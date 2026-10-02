@@ -600,6 +600,9 @@ local function coast(parent,walk,activities)
  terrain:FillBlock(CFrame.new(0,-18,800),V(1472,4,400),Enum.Material.Sand)
  terrain:FillBlock(CFrame.new(0,-10,608),V(1472,12,16),Enum.Material.Sand)
  terrain:FillBlock(CFrame.new(0,-12,624),V(1472,8,16),Enum.Material.Sand)
+ -- Gentle continuous entry joins the raised beach to the shallow sea floor.
+ -- Players must be able to walk into/out of water without jumping a vertical sand lip.
+ part(m,"ShoreEntrySlope",V(1440,1,28),CFrame.new(0,-2.5,612)*CFrame.Angles(math.atan(.25),0,0),Color3.fromRGB(227,208,156),Enum.Material.Sand)
  local buoyColor=Color3.fromRGB(239,174,68)
  local function buoy(x,z)
   local body=ellipsoid(m,"SwimBoundaryBuoy",V(1.8,2.3,1.8),V(x,.45,z),buoyColor,Enum.Material.SmoothPlastic)
@@ -761,7 +764,8 @@ function City.Build(parent)
  marker("PierFinish","RaceFinish",V(240,2,403),"Finish dash")
  -- Boundaries sit outside street edges, never across an interior road.
  for _,x in ipairs({-725,725}) do part(parent,"MapEdge",V(2,140,1210),V(x,68,0),dark).Transparency=1 end
- for _,z in ipairs({-605,605}) do part(parent,"MapEdge",V(1450,140,2),V(0,68,z),dark).Transparency=1 end
+ -- The southern shore opens into the lifeguard-bounded swimming area.
+ part(parent,"MapEdge",V(1450,140,2),V(0,68,-605),dark).Transparency=1
  return {jobs=workplaces(parent),walk=walk,activities=activities,spawn=CFrame.new(-600,4,210)}
 end
 -- Small review scene; never called by gameplay world generation.
