@@ -92,6 +92,10 @@ local function building(parent,cf,w,d,floors,index,style)
   color=paints[frontage+1];m:SetAttribute("FrontageStyle",({"Gallery","Terracotta","TileHouse","Atelier"})[frontage+1])
  end
  local function b(name,size,pos,c,mat,solid) return part(m,name,size,cf*CFrame.new(pos),c,mat,solid) end
+ local shopIndex=index==501 and 2 or index==266 and 3 or (index-1)%#shops+1
+ local shopKind=({"Bakery","Cafe","Florist","Books","Gelato","Market","Cafe","Art","Bakery","Music","Market","Cafe"})[shopIndex]
+ m:SetAttribute("ShopName",shops[shopIndex]);m:SetAttribute("ShopKind",shopKind)
+ local doorWidth=8
  local interior=(index%7==0 or index==501) and w>=24 and d>=20
  if interior then
   m:SetAttribute("WalkableInterior",true);m:SetAttribute("Entrance",cf*CFrame.new(0,3.8,-d/2))
@@ -100,16 +104,79 @@ local function building(parent,cf,w,d,floors,index,style)
   b("RearWall",V(w,8,1),V(0,5,d/2-.5),stone,Enum.Material.Limestone)
   for _,side in ipairs({-1,1}) do
    b("SideWall",V(1,8,d),V(side*(w/2-.5),5,0),color,Enum.Material.Plaster)
-   b("ShopfrontWall",V((w-6)/2,8,1),V(side*(w+6)/4,5,-d/2+.5),stone,Enum.Material.Limestone)
-   b("DoorJamb",V(.4,7,.6),V(side*3.2,4.5,-d/2-.1),cream,Enum.Material.Limestone)
+   b("ShopfrontWall",V((w-doorWidth)/2,8,1),V(side*(w+doorWidth)/4,5,-d/2+.5),stone,Enum.Material.Limestone)
+   b("DoorJamb",V(.4,7,.6),V(side*(doorWidth/2+.2),4.5,-d/2-.1),cream,Enum.Material.Limestone)
   end
-  b("DoorLintel",V(6.8,1,.7),V(0,8.5,-d/2-.1),cream,Enum.Material.Limestone)
-  -- Clear six-stud entrance/aisle; display furniture remains against the side walls.
+  b("DoorLintel",V(doorWidth+.8,1,.7),V(0,8.5,-d/2-.1),cream,Enum.Material.Limestone)
+  if math.abs(cf.LookVector.X)>.1 and math.abs(cf.LookVector.Z)>.1 then
+   -- Chamfered corner paving ends at the threshold. Bridge its 1.35-stud drop
+   -- with a shallow apron so non-jumping pedestrians can enter from the street.
+   local ramp=b("EntranceRamp",V(doorWidth+2,.3,12),V(0,.55,-d/2-6),stone,Enum.Material.Pavement)
+   ramp.CFrame*=CFrame.Angles(-math.atan(1.3/12),0,0)
+  end
+  -- Furniture stays outside the central four-stud aisle, including in narrow shops.
+  m:SetAttribute("InteriorAisle",cf*CFrame.new(0,4,0));m:SetAttribute("InteriorAisleSize",V(4,4.5,d-3))
   b("ServiceCounter",V(6,3,2),V(w/2-4,2.6,0),terra,Enum.Material.Wood)
-  for shelf=1,3 do
-   b("BookShelf",V(1.5,.25,d*.55),V(-w/2+1.5,1.5+shelf*1.5,1),terra,Enum.Material.Wood)
-   for book=1,6 do
-    b("Book",V(.7,1,.6),V(-w/2+1.6,2.1+shelf*1.5,-d*.2+book*d*.07),palette[(book+index)%#palette+1],Enum.Material.Fabric,false)
+  local left=-w/2+2
+  if shopKind=="Books" then
+   for shelf=1,3 do
+    b("BookShelf",V(1.5,.25,d*.55),V(left,1.5+shelf*1.5,1),terra,Enum.Material.Wood)
+    for book=1,6 do
+     b("Book",V(.7,.7+(book%3)*.15,.6),V(left,2.1+shelf*1.5,-d*.2+book*d*.07),palette[(book+index)%#palette+1],Enum.Material.Fabric,false)
+    end
+   end
+  elseif shopKind=="Cafe" then
+   b("EspressoMachine",V(2.6,1.7,1.5),V(w/2-4,4.95,0),iron,Enum.Material.Metal,false)
+   b("EspressoTrim",V(2.7,.15,1.6),V(w/2-4,5.55,0),cream,Enum.Material.Metal,false)
+   for dx=-.7,.7,.7 do b("CoffeeCup",V(.4,.55,.4),V(w/2-4+dx,5.9,0),cream,Enum.Material.CeramicTiles,false) end
+   local tx=-w/2+4
+   b("CafeInteriorTable",V(3.4,.3,3.4),V(tx,3.4,2),stone,Enum.Material.Marble)
+   b("CafeInteriorTableLeg",V(.35,2.1,.35),V(tx,2.2,2),iron,Enum.Material.Metal)
+   for _,side in ipairs({-1,1}) do
+    local seat=Instance.new("Seat");seat.Name="CafeSeat";seat.Size=V(2,.4,2)
+    seat.CFrame=cf*CFrame.new(tx,2.5,2+side*3)*CFrame.Angles(0,side==1 and 0 or math.pi,0)
+    seat.Color=accent;seat.Material=Enum.Material.Wood;seat.Anchored=true;seat.Parent=m
+    for _,dx in ipairs({-.7,.7}) do for _,dz in ipairs({-.7,.7}) do b("CafeSeatLeg",V(.15,1.1,.15),V(tx+dx,1.75,2+side*3+dz),iron,Enum.Material.Metal,false) end end
+    b("CafeSeatBack",V(2,2,.25),V(tx,3.3,2+side*3.85),accent,Enum.Material.Wood)
+    local prompt=Instance.new("ProximityPrompt");prompt.ActionText="Sit";prompt.ObjectText=shops[shopIndex];prompt.KeyboardKeyCode=Enum.KeyCode.F;prompt.MaxActivationDistance=6;prompt.Parent=seat
+    prompt.Triggered:Connect(function(player)
+     local c=player.Character;local root=c and c:FindFirstChild("HumanoidRootPart");local h=c and c:FindFirstChildOfClass("Humanoid")
+     if root and h and h.Health>0 and not seat.Occupant and (root.Position-seat.Position).Magnitude<=8 then seat:Sit(h) end
+    end)
+   end
+  elseif shopKind=="Florist" then
+   for i=1,4 do
+    local z=-d*.25+i*d*.12
+    b("FlowerStand",V(2.4,1.4,2.4),V(left,1.95,z),terra,Enum.Material.CeramicTiles)
+    for j=-1,1 do
+     b("CutFlowerStem",V(.08,2,.08),V(left+j*.45,3.5,z),leaf,Enum.Material.Grass,false)
+     local flower=b("CutFlower",V(.8,.5,.8),V(left+j*.45,4.5,z),j==0 and cream or Color3.fromRGB(212,109,133),Enum.Material.SmoothPlastic,false);flower.Shape=Enum.PartType.Ball
+    end
+   end
+  elseif shopKind=="Art" then
+   for i=1,3 do
+    local z=-d*.3+i*d*.18
+    b("GalleryFrame",V(.3,3.8,3),V(left-1,4.8,z),terra,Enum.Material.Wood,false)
+    b("GalleryCanvas",V(.1,3.3,2.5),V(left-.78,4.8,z),Color3.fromRGB(106,165,178),Enum.Material.Fabric,false)
+    b("PaintedHorizon",V(.12,1.3,2.5),V(left-.7,3.85,z),i%2==0 and leaf or stone,nil,false)
+   end
+   b("GalleryBench",V(1.8,1.4,d*.45),V(left+1.3,1.95,0),terra,Enum.Material.Wood)
+  elseif shopKind=="Music" then
+   b("InstrumentRack",V(1.8,.4,d*.6),V(left,2.1,0),terra,Enum.Material.Wood)
+   for i=1,3 do
+    local z=-d*.3+i*d*.15
+    local body=b("DisplayGuitar",V(.6,1.7,1.2),V(left,3.2,z),i%2==0 and terra or cream,Enum.Material.Wood,false);body.Shape=Enum.PartType.Ball
+    b("GuitarNeck",V(.3,2,.3),V(left,4.7,z),dark,Enum.Material.Wood,false)
+   end
+  else
+   for shelf=1,2 do
+    b("FoodDisplayShelf",V(2.4,.25,d*.6),V(left,1.9+shelf*1.5,0),stone,Enum.Material.Marble)
+    for item=1,5 do
+     local z=-d*.3+item*d*.1
+     local foodColor=shopKind=="Bakery" and Color3.fromRGB(211,159,91) or shopKind=="Gelato" and palette[(item%#palette)+1] or item%2==0 and Color3.fromRGB(177,74,65) or Color3.fromRGB(113,155,83)
+     local food=b(shopKind=="Bakery" and "BreadLoaf" or shopKind=="Gelato" and "GelatoTub" or "ProduceBasket",V(1.6,.65,1),V(left,2.35+shelf*1.5,z),foodColor,Enum.Material.SmoothPlastic,false)
+     if shopKind=="Bakery" then food.Shape=Enum.PartType.Ball end
+    end
    end
   end
   b("PendantStem",V(.1,1.2,.1),V(0,7.7,0),iron,Enum.Material.Metal,false)
@@ -192,21 +259,22 @@ local function building(parent,cf,w,d,floors,index,style)
   end
   b("ShopFascia",V(w-.8,1.4,.55),V(0,8.3,-d/2-.4),accent,Enum.Material.Wood,false)
  end
- for _,x in ipairs({-w*.23,w*.23}) do
-  b("ShopGlazing",V(w*.31,5.3,.25),V(x,4,-d/2-.25),glass,Enum.Material.Glass,false)
+ local shopOffset=(w+doorWidth)/4;local windowWidth=(w-doorWidth)/2-1.6
+ for _,x in ipairs({-shopOffset,shopOffset}) do
+  b("ShopGlazing",V(windowWidth,5.3,.25),V(x,4,-d/2-.25),glass,Enum.Material.Glass,false)
   local awningColor=refined and accent or index%2==0 and Color3.fromRGB(118,67,57) or Color3.fromRGB(61,111,99)
-  local canopy=b("ShopAwning",V(w*.35,.35,3),V(x,7,-d/2-1),awningColor,Enum.Material.Fabric,false)
+  local canopy=b("ShopAwning",V(windowWidth+.7,.35,3),V(x,7,-d/2-1),awningColor,Enum.Material.Fabric,false)
   if refined then
    canopy.CFrame*=CFrame.Angles(-.14,0,0)
-   b("AwningValance",V(w*.35,.55,.12),V(x,6.5,-d/2-2.5),awningColor,Enum.Material.Fabric,false)
-   b("ShopWindowFrame",V(w*.31+.5,5.8,.13),V(x,4,-d/2-.39),accent,Enum.Material.Wood,false)
-   b("ShopWindowInset",V(w*.31-.4,4.9,.1),V(x,4,-d/2-.48),glass,Enum.Material.Glass,false)
-   b("ShopTransom",V(w*.31-.4,.14,.1),V(x,5.55,-d/2-.55),cream,nil,false)
-   for _,side in ipairs({-1,1}) do b("DisplayMullion",V(.13,4.9,.12),V(x+side*w*.065,4,-d/2-.57),cream,nil,false) end
-   b("DisplayShelf",V(w*.27,.18,.15),V(x,2.6,-d/2-.57),cream,nil,false)
+   b("AwningValance",V(windowWidth+.7,.55,.12),V(x,6.5,-d/2-2.5),awningColor,Enum.Material.Fabric,false)
+   b("ShopWindowFrame",V(windowWidth+.5,5.8,.13),V(x,4,-d/2-.39),accent,Enum.Material.Wood,false)
+   b("ShopWindowInset",V(windowWidth-.4,4.9,.1),V(x,4,-d/2-.48),glass,Enum.Material.Glass,false)
+   b("ShopTransom",V(windowWidth-.4,.14,.1),V(x,5.55,-d/2-.55),cream,nil,false)
+   for _,side in ipairs({-1,1}) do b("DisplayMullion",V(.13,4.9,.12),V(x+side*windowWidth*.22,4,-d/2-.57),cream,nil,false) end
+   b("DisplayShelf",V(windowWidth*.9,.18,.15),V(x,2.6,-d/2-.57),cream,nil,false)
   end
  end
- sign(m,shops[(index-1)%#shops+1],cf*CFrame.new(0,8.7,-d/2-(refined and .85 or .5)),math.min(w-3,26))
+ sign(m,shops[shopIndex],cf*CFrame.new(0,8.7,-d/2-(refined and .85 or .5)),math.min(w-3,26))
  if style=="Modernista" then
   for i=-2,2 do
    local ornament=b("CeramicCrown",V(3,2.8+math.abs(i),2),V(i*w/6,h+2.5,-d/2),i%2==0 and Color3.fromRGB(78,146,145) or cream,Enum.Material.CeramicTiles,false)
@@ -234,12 +302,12 @@ local function block(parent,x,z,index,style,walk,activities)
  local m=model(parent,style.."Block_"..index);m:SetAttribute("RefinedFrontages",index==13);octagon(m,x,z);garden(m,x,z)
  for _,side in ipairs({-1,1}) do
   for j,offset in ipairs({-40,40}) do
-   building(m,CFrame.lookAt(V(x+offset,0,z+side*82),V(x+offset,0,z+side*150)),68,28,3+(index+j)%3,index*20+j+(side+1)*2,style)
-   building(m,CFrame.lookAt(V(x+side*82,0,z+offset),V(x+side*150,0,z+offset)),68,28,3+(index+j+1)%3,index*20+7+j+(side+1)*2,style)
+   building(m,CFrame.lookAt(V(x+offset,0,z+side*82),V(x+offset,0,z+side*150)),52,28,3+(index+j)%3,index*20+j+(side+1)*2,style)
+   building(m,CFrame.lookAt(V(x+side*82,0,z+offset),V(x+side*150,0,z+offset)),52,28,3+(index+j+1)%3,index*20+7+j+(side+1)*2,style)
   end
  end
  for _,sx in ipairs({-1,1}) do for _,sz in ipairs({-1,1}) do
-  building(m,CFrame.lookAt(V(x+sx*79,0,z+sz*79),V(x+sx*150,0,z+sz*150)),34,23,4+index%2,index*20+14+(sx+1)+(sz+1)*2,style)
+  building(m,CFrame.lookAt(V(x+sx*82.5,0,z+sz*82.5),V(x+sx*150,0,z+sz*150)),24,20,4+index%2,index*20+14+(sx+1)+(sz+1)*2,style)
  end end
  -- Perimeter paths never cross the buildings; courtyard entrances are between facades.
  for _,side in ipairs({-1,1}) do for _,n in ipairs({-70,0,70}) do
