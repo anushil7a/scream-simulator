@@ -63,3 +63,7 @@ Compile changed scripts with `luau-compile`, build both place formats, then run 
 ### Studio movement-pass testing
 
 In local Studio Play, open **TEST TOOLS**, scroll to **Test movement**, and toggle it on. The normal microphone requirement still applies. This grants a temporary movement entitlement only in Studio; safe-area movement limits and arena cooldowns remain enforced. Toggle again to remove it. The server rejects this command outside Studio even while public test tools are enabled. No purchase is prompted, and legitimate save progress is frozen before the test mutation. Real pass IDs remain unconfigured.
+
+### Standalone microphone feasibility lab
+
+Build the five-script isolated place with `rojo build mic-prototype.project.json -o build/MicrophoneFeasibility.rbxl`. It shares the production microphone/rule modules but contains no city, saves, rewards or purchases. See [the lab test procedure](prototypes/microphone/README.md). A privately published, two-account real-mic pass remains required; local compile/build results do not prove voice transport.

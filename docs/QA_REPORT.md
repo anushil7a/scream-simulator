@@ -119,3 +119,7 @@ Fixed layout dimensions now recompute on viewport/touch-mode changes. Nine menu 
 ## Studio-only movement entitlement — 2026-10-02
 
 Added the brief's separate test entitlement, exposed only in Studio's TEST TOOLS panel and server-gated by IsStudio. Nine native checks passed for safe-area premium rolls, save-baseline isolation and arena-entry cooldown/immunity restoration using synthetic mic readiness/scripted placement. Nine actual-source mocked-service checks passed for non-Studio grant denial and player cleanup. No real paid ownership, purchase, microphone or multiplayer entitlement pass is claimed.
+
+## Isolated microphone lab — 2026-10-02
+
+A standalone [mic feasibility project and two-person procedure](../prototypes/microphone/README.md) now exists. Both scripts compile and both place formats build with exactly five scripts/modules and no persistence or purchase code. Real audio/runtime verification is still open. Studio publishing controls could be read but coordinate actions failed; the dialog was closed without publication. A later local file-open action and UI rechecks timed out; no new lab instance appeared in the Studio connector, so its open outcome is unverified. A new private test experience and real-microphone participants remain required.
