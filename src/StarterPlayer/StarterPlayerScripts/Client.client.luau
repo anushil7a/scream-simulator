@@ -104,9 +104,9 @@ button(micPanel,"Calibrate","CALIBRATE MIC",UDim2.fromOffset(188,36),UDim2.fromO
 button(micPanel,"Retry","CHECK ACCESS",UDim2.fromOffset(188,36),UDim2.fromOffset(224,208),function() mic:Check() end)
 for _,v in ipairs(micPanel:GetDescendants()) do if v:IsA("GuiObject") then v.ZIndex=21 end end
 local micScale=Instance.new("UIScale");micScale.Parent=micPanel
-local meter=frame(gui,"MicPower",UDim2.fromOffset(230,52),UDim2.new(.5,-115,1,-64))
-local meterText=label(meter,"SCREAM POWER 0%",UDim2.new(1,-20,0,24),UDim2.fromOffset(10,4),12,gold)
-local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,36),panel)
+local meter=frame(gui,"MicPower",UDim2.fromOffset(230,62),UDim2.new(.5,-115,1,-74))
+local meterText=label(meter,"LIVE MIC 0%\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,gold)
+local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,49),panel)
 local meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 local reticle=label(gui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.TextXAlignment=Enum.TextXAlignment.Center
 local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
@@ -384,13 +384,18 @@ Run.RenderStepped:Connect(function(dt)
  micPanel.Visible=not mic.ready and not modal.Visible and not devPanel.Visible;micStatus.Text=mic.status
  if reportedReady~=mic.ready or (data.micReady~=mic.ready and os.clock()>readyReportAt) then reportedReady=mic.ready;readyReportAt=os.clock()+1;action:FireServer("MicReady",mic.ready) end
  if captureSource and blocked() then cancelCapture() end
+ if captureSource and mic.captureStarted and os.clock()-mic.captureStarted>Config.VoiceCombat.CaptureExpiry then
+  cancelCapture();notify("Capture expired. Hold attack again and use a fresh live scream.")
+ end
  local gameplayVisible=mic.ready and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
  local showTouchControls=originalTouchControls and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
  meter.Visible=gameplayVisible;reticle.Visible=UIS.TouchEnabled and gameplayVisible
  local power=mic.power;meterFill.Size=UDim2.fromScale(power,1)
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
- meterText.Text=string.format("SCREAM POWER %d%% • %.0f studs",math.floor(power*100),range)
+ local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
+ local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
+ meterText.Text=string.format("LIVE MIC %d%% • up to %.0f studs\n%s",math.floor(power*100),range,captureHint)
  if layoutChanged then
  local short=viewport.Y<550
  menuScale.Scale=1
@@ -423,7 +428,7 @@ Run.RenderStepped:Connect(function(dt)
  hud.Visible=gameplayVisible;controls.Visible=gameplayVisible
  tracked.Visible=gameplayVisible and tracked.Text~="";zone.Visible=viewport.X>740 and mic.ready
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
- castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and "RELEASE TO FIRE" or "HOLD SCREAM [E]"
+ castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD SCREAM [E]"
  castButton.BackgroundColor3=protected>0 and muted or gold
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
  local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs [SHIFT]",p:GetAttribute("SprintCharge") or 10)

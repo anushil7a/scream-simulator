@@ -595,3 +595,9 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - BeginCapture resets smoothing as well as samples; three new regressions show pre-button voice cannot power a subsequent silent shot, while fresh speech still works. Pure suite now4010 assertions. Both projects rebuilt.
 - Synced four lab sources after verifying exact old-source matches, in the owner's test place only. Restart revealed MicLab's direct module lookup raced replication; fixed to WaitForChild. Assistant-thread direct remote test was capability-denied, so tested via temporary ordinary client fixture without changing permissions. Native synthetic75% request returnedAccepted and exactly one non-colliding25.5-stud pulse; console empty. This does not prove a real-mic attack passed. Removed fixture and restarted clean for owner retry; cloud publication not performed.
 - No audio recording/replay feature exists. Scalar energy values are temporary and consumed once. Soundboards/recordings fed externally into an input cannot be certified as human live voice by this API.
+
+## 2026-10-02 — resume after mic access and full-city capture HUD
+
+- Owner reported “it works”; current lab102529270037263 reports microphone-ready. Exact successful stage and second-person audio remain unconfirmed; asked for clarification without delaying independent work.
+- Native Studio file UI recovered. Opened the rebuilt MicrophoneCity.rbxl directly and verified its connector identity. Added live-meter wording, sampling countdown, release phase and automatic8-second expiry to the full-city HUD, retaining existing input/cooldown separation.
+- Eight StudioCaptureHUD checks passed through actual GUI/render callbacks using a synthetic mic adapter. Covers idle/live labeling, sampling, release and expiry/cancel feedback. Does not represent real capture or physical controls. Stopped Play and restored clean source. Both city build formats compile/build.

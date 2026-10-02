@@ -64,6 +64,10 @@ Implemented: selected NPC tasks, Nick discovery and staged soccer challenge, one
 
 ## Owner/external inputs needed
 
+October2 update after owner reported “it works”: Studio UI access recovered and the current MicrophoneCity.rbxl opened natively. The connected `screm test` place is102529270037263 (different from the first lab88993310833821). Its client reports microphone-ready; observed result text still showed an earlier insufficient-input release, so “it works” is recorded as owner confirmation without inferring successful attack or two-person audibility. Asked which stage passed. The older UI-access blocker below is historical; real-audio, device, multiplayer and art-review gates remain open.
+
+Full city HUD now labels its meter as live input, shows the first1.25-second sampling countdown and release phase, and cancels held captures after8seconds. Eight native HUD checks passed with synthetic UI state in the newly opened local city. No real microphone attack was inferred from that fixture; fixture removed and clean client restored.
+
 Latest continuation checkpoint (after `cbfed76`): native Studio access again returned `timeoutReached` on a fresh app binding. The Studio connector still lists only MicrophoneCity, Place1 and the untouched unnamed instance; no standalone lab instance is verified. No publication was attempted in this checkpoint. The previous turn made progress through the Animator recovery test; this checkpoint is blocked on the same UI/real-test inputs. Additional synthetic checks cannot close the outstanding real-audio, physical-device, multiplayer or owner art-review requirements.
 
 Concrete next action: open `build/MicrophoneFeasibility.rbxl` manually in Studio and follow `prototypes/microphone/README.md` to create a **new private** mic lab. Supply its link and two voice-eligible testers using separate microphones/devices. Keep the production experience unchanged. Also open `build/FountainReview.rbxl` for the pending saved-file asset review. Resume implementation from actual failures or review feedback; do not claim either gate passed from the earlier in-session previews.
