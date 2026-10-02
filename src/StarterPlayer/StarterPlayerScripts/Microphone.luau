@@ -54,8 +54,12 @@ function Microphone:Begin()
 end
 function Microphone:Release()
  local started=self.captureStarted;self.captureStarted=nil
- if not started or not self.ready or os.clock()-started<.25 or os.clock()-started>8 then self.model:BeginCapture();return 0 end
- return self.model:Release()
+ if not started or not self.ready then self.model:BeginCapture();return 0,'Microphone capture canceled. Try again.' end
+ local elapsed=os.clock()-started
+ if elapsed<.25 then self.model:BeginCapture();return 0,'Hold attack while speaking for at least 0.25 seconds.' end
+ if elapsed>8 then self.model:BeginCapture();return 0,'Capture expired. Start a new live scream.' end
+ local power=self.model:Release()
+ return power,power<.08 and 'Hold attack FIRST, speak immediately, then release within 1.25 seconds.' or nil
 end
 function Microphone:Step(dt)
  if not self.eligible then self.power=0;return end
@@ -72,7 +76,7 @@ function Microphone:Step(dt)
    if self.phase=='quiet' then self.phase='voice';self.phaseStarted=os.clock();self.status='Calibration 2/2: use a comfortable strong voice for two seconds.'
    else local ok,message=self.model:Calibrate(self.quiet,self.spoken);self.phase=nil;self.ready=ok;self.status=ok and 'Ready. Hold E, use your voice, then release to aim a scream.' or message end
   end
- elseif self.model.calibrated then self.ready=true;self.status='Microphone ready • live proximity voice' end
+ elseif self.model.calibrated then self.ready=true;self.status='Microphone ready • live input detected' end
  if self.captureStarted and os.clock()-self.captureStarted<=1.25 then self.model:Capture(self.power) end
 end
 function Microphone:Destroy()

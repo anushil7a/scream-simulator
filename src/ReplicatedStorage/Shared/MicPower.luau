@@ -33,7 +33,8 @@ function MicPower:Reset()
  self.smoothed=0;self.active=false;self.samples={}
 end
 function MicPower:BeginCapture()
- self.samples={}
+ -- A new attack cannot inherit energy from speech before the button press.
+ self:Reset()
 end
 function MicPower:Capture(power)
  if finite(power) then table.insert(self.samples,math.clamp(power,0,1)) end

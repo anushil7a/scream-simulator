@@ -82,7 +82,7 @@ local function releaseCapture(source)
  if captureSource~=source then return end
  captureSource=nil
  if blocked() then cancelCapture();return end
- local power=mic:Release();if power<.08 then action:FireServer("CancelCast");notify("Use your voice while holding attack.");return end
+ local power,reason=mic:Release();if power<.08 then action:FireServer("CancelCast");notify(reason or "Use your voice while holding attack.");return end
  local ray,hit=aimRay()
  action:FireServer("Cast",{sequence=sequence,power=power,aim=hit and hit.Position or ray.Origin+ray.Direction*1000})
  nextCast=os.clock()+4

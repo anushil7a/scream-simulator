@@ -18,7 +18,7 @@ The project sets `VoiceChatService.UseAudioApi = Enabled` and `EnableDefaultVoic
 
 1. Use two eligible accounts on separate real devices/microphones, preferably headphones. Record device/model, OS, Roblox client version, place version and date manually.
 2. Retry access, unmute through Roblox, then calibrate: two quiet seconds followed by two seconds of a comfortable strong voice. Confirm input status and power respond. Power is normalized, not measured decibels.
-3. Hold E or the capture button, speak, then release. Valid capture should show Accepted; repeated releases within four seconds must not be accepted. Silent/too-short capture must not submit a valid attack.
+3. Hold E or the capture button **before** speaking. Speak immediately during the displayed1.25-second window, then release. Valid capture shows Accepted and a short cyan test pulse aimed at the mouse. This lab pulse has no damage or rewards. The live meter also moves outside an attack, which does not mean that voice is armed for a shot. Repeated releases within four seconds must not be accepted. Silent/too-short capture must not submit a valid attack.
 4. The displayed milliseconds measure release-to-server-acknowledgement only. Measure perceived voice delay separately; this readout is not voice latency.
 5. Have the listener stand at the marked distances. Confirm live voice is audible nearby and attenuates with distance. Check Roblox mute/block/volume controls; do not assume that a server acceptance proves audio was heard.
 6. Mute during capture, deny permission, disconnect/reconnect a microphone, retry, lose window focus, and respawn. Confirm capture is canceled and setup remains recoverable. Record actual behavior and failures; hardware support is not proven by a zero meter alone.
@@ -26,6 +26,14 @@ The project sets `VoiceChatService.UseAudioApi = Enabled` and `EnableDefaultVoic
 8. Repeat capture on phone touch, including releasing outside the capture button. The panel scrolls on short screens.
 
 Keep human observations in a dated note. Do not record other players' speech. A successful lab pass is a prerequisite, not a substitute for the full game's multiplayer, movement, persistence, and device-performance gates.
+
+## October2 user test and fix
+
+The owner opened/published `scream test` (place88993310833821), saw microphone-ready and reported the meter reaching100%, but received no valid voice on release. This confirms owner-observed local input, not successful attacks or another listener hearing audio. Capture timing was not observed, so the specific rejection cause is unproven.
+
+Added a visible sampling countdown, explicit hold-first instructions, release failure reasons, automatic capture expiry, and an accepted-attack pulse. Resetting the smoothing filter at each new capture prevents speech before the button press leaking into a silent attack. Numbers measuring loudness are consumed once; no audio is recorded, saved or replayed by the game. External audio played into a mic cannot be reliably identified as a recording by this energy meter.
+
+A native restart exposed a module-arrival race; the lab now waits for Microphone before requiring it. Native scripted request checking (not human audio) produced one accepted75% pulse, length25.5, non-colliding, with an empty console. Temporary fixture removed before leaving the lab ready to retry. Local source is updated; no cloud republish is claimed. A second eligible account is still needed to verify actual proximity audibility.
 
 ## Current verification and blocker
 

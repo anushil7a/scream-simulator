@@ -18,7 +18,7 @@ local function added(p)
 end
 Players.PlayerAdded:Connect(added);for _,p in ipairs(Players:GetPlayers()) do added(p) end
 Players.PlayerRemoving:Connect(function(p) sessions[p]=nil end)
-remote.OnServerEvent:Connect(function(p,verb,sequence,power)
+remote.OnServerEvent:Connect(function(p,verb,sequence,power,target)
  local s=sessions[p];if not s then return end
  local now=os.clock();if now-s.window>=1 then s.window=now;s.requests=0 end
  s.requests+=1;if s.requests>20 then return end
@@ -29,5 +29,25 @@ remote.OnServerEvent:Connect(function(p,verb,sequence,power)
  elseif verb=="release" then
   local accepted=Rules.Release(s.voice,now,sequence,power,alive==true)
   remote:FireClient(p,accepted and "Accepted" or "Rejected",accepted and power or 0,sequence)
+  if accepted then
+   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+   if not root then return end
+   local origin=root.Position+Vector3.new(0,1,0)
+   local direction=root.CFrame.LookVector
+   if typeof(target)=="Vector3" and Rules.IsFinite(target.X) and Rules.IsFinite(target.Y) and Rules.IsFinite(target.Z) then
+    local delta=target-origin
+    if delta.Magnitude>.01 and delta.Magnitude<100000 then direction=delta.Unit end
+   end
+   local length=Rules.Stats(1,power,false).range
+   local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.RespectCanCollide=true
+   local hit=workspace:Raycast(origin,direction*length,params)
+   if hit then length=(hit.Position-origin).Magnitude end
+   if length>.01 then
+    local pulse=Instance.new("Part");pulse.Name="LiveMicTestPulse";pulse.Anchored=true;pulse.CanCollide=false;pulse.CanQuery=false;pulse.CanTouch=false
+    pulse.Material=Enum.Material.Neon;pulse.Color=Color3.fromRGB(75,224,235);pulse.Transparency=.25
+    pulse.Size=Vector3.new(.5,.5,length);pulse.CFrame=CFrame.lookAt(origin+direction*length/2,origin+direction*length)
+    pulse.Parent=workspace;game:GetService("Debris"):AddItem(pulse,.3)
+   end
+  end
  end
 end)
