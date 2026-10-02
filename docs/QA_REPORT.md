@@ -91,6 +91,8 @@ The owner requested that blocked items be recorded while independent work contin
 
 ## Where to work next
 
+Development fountain integration follow-up: Plaça del Sol now uses the reviewed mosaic fountain with common collision/water and a28-part built-in fallback. Seven native asset-selection/re-entry/recovery checks and six plaza path cases passed. All28 production sources compile; city and review builds succeed. Main native view shows the detailed asset; simulated missing texture shows the fallback. Published destination permissions, actual network streaming and real-device frame rates remain unverified. See `research/FOUNTAIN_ASSET_TRIAL.md` for the failure found and corrected during this check.
+
 - Run representative multiplayer/device checks once the required participants and hardware are available; the completed local NPC observation covers a narrower scope.
 - Continue final map/activity/animation polish and fix concrete defects found by playtests.
 - Coordinate the real microphone/device test inputs; synthetic evidence cannot replace them.

@@ -39,6 +39,12 @@
         "StreamOutBehavior": "Opportunistic",
         "StreamingIntegrityMode": "PauseOutsideLoadedArea"
       }
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "MosaicFountainTemplate": {
+        "$path": "assets/review/MosaicFountain.rbxmx"
+      }
     }
   }
 }

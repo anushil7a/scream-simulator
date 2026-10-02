@@ -1,4 +1,4 @@
--- Original Barcelona-inspired city geometry. All art is generated locally; no downloaded scripts/assets.
+-- Original Barcelona-inspired city geometry; reviewed fountain mesh has a built-in fallback.
 local City={}
 local V=Vector3.new
 local Collection=game:GetService("CollectionService")
@@ -523,7 +523,12 @@ end
 local function square(parent,x,z,name,walk,activities)
  local m=model(parent,name);octagon(m,x,z)
  part(m,"SquareInlay",V(130,.08,130),CFrame.new(x,.86,z)*CFrame.Angles(0,math.pi/4,0),Color3.fromRGB(162,137,113),Enum.Material.Cobblestone)
- fountain(m,x,z)
+ local template=name=="Plaça del Sol" and game.ServerStorage:FindFirstChild("MosaicFountainTemplate")
+ if template then
+  local avoid=part(m,"FountainNavigation",V(32,9,32),V(x,4,z),stone,nil,false);avoid.Transparency=1;avoid.CanQuery=true
+  local modifier=Instance.new("PathfindingModifier");modifier.Label="Fountain";modifier.Parent=avoid
+  require(script.Parent.Fountain).create(template,m,V(x,1,z))
+ else fountain(m,x,z) end
  for i=1,8 do local a=i*math.pi/4;local px,pz=x+math.cos(a)*58,z+math.sin(a)*58
   tree(m,px,pz,false);bench(m,CFrame.lookAt(V(x+math.cos(a)*43,0,z+math.sin(a)*43),V(x,0,z)))
   table.insert(walk,V(x+math.cos(a)*32,4,z+math.sin(a)*32));table.insert(activities,{position=V(x+math.cos(a)*32,4,z+math.sin(a)*32),kind="Watch"})

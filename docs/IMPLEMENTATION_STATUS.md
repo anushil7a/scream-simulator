@@ -603,3 +603,10 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - Eight StudioCaptureHUD checks passed through actual GUI/render callbacks using a synthetic mic adapter. Covers idle/live labeling, sampling, release and expiry/cancel feedback. Does not represent real capture or physical controls. Stopped Play and restored clean source. Both city build formats compile/build.
 
 - Opened exact repository-built FountainReview.rbxl via native picker. Last UI observation timed out, but connector identified the new instance and it ran successfully. Screenshot confirms all three textured meshes plus water/streams; all six content loads succeeded; bounds28.2263×20×28.2494. Console only camera-reset notice. Stopped Play. Saved-file render gate is now closed; main-map integration/fallback and published destination permissions remain open.
+
+## 2026-10-02 — fountain adopted in city with asset fallback
+
+- Main project now includes the template; Plaça del Sol uses shared Fountain module. Detailed meshes and built-in tiled fallback share water/streams and three fixed collision proxies inside existing navigation exclusion. Review project references the same installer; duplicate removed.
+- Client visual selection uses successful loading of every mesh/texture, atomic model streaming and per-attempt tickets. Initial native success showed3meshes,28hidden fallback parts,3solid proxies. All6arrival routes passed. Missing-texture clone showed the complete fallback in native screenshot.
+- Tag re-entry after success revealed a real failure: all fallback parts stayed hidden after a missing-texture load. Added fallback visibility reset before each load. Seven native regression checks then passed across success→failure→recovery and collision count. This is a local lifecycle probe, not network streaming/device FPS evidence.
+- All28production sources and fixture compile; city/review builds succeed in both formats. Integrated city screenshot reviewed; stopped Play and restored clean LandmarkVisuals source, removing fixture/local camera/UI changes. Cloud game remains unchanged. Published asset access remains to verify in the private full-game test.

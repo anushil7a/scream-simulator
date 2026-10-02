@@ -10,7 +10,21 @@
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "$path": "prototypes/fountain"
+      "Review": {
+        "$path": "prototypes/fountain/Review.server.luau"
+      },
+      "Install": {
+        "$path": "src/ServerScriptService/Fountain.luau"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "LandmarkVisuals": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/LandmarkVisuals.client.luau"
+        }
+      }
     }
   }
 }
