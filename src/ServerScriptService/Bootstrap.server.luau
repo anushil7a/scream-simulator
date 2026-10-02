@@ -211,7 +211,19 @@ local function talk(p,id)
   if b.talkingTo and b.talkingTo~=p and (b.socialUntil or 0)>os.clock() then state(p,b.name.." is speaking with someone. Try again shortly.");return end
   closeConversation(p);s.conversationBot=b;b.talkingTo=p
   s.nextTalk=os.clock()+2
-  local message=b.name..": "..World.Talk(b,p)
+  local contextLine
+  for _,questId in ipairs(b.questIds or {}) do
+   local q=Config.GetQuest(questId);local progress=s.data.quests[questId]
+   if q and progress and not progress.claimed then
+    if progress.progress>=q.goal then contextLine="You finished my task! Your reward is waiting in Quests.";break
+    elseif s.activeQuest==questId then
+     local soccer=Soccer.Status(p)
+     contextLine="For our task: "..QuestGuide.Step(q,progress.progress,s.carrying,s.raceStart~=nil,soccer and soccer.detail)
+    end
+   end
+  end
+  if not contextLine and b.name=="Nick Booty" and s.data.achievements.NickChampion then contextLine="My champion is back! I have practiced. The goal is still winning." end
+  local message=b.name..": "..World.Talk(b,p,contextLine)
   if b.name=="Nick Booty" and not s.data.achievements.FoundNick then
    s.data.achievements.FoundNick=true;s.data.coins+=50;message="Hidden achievement: Found Nick Booty! +50 coins. "..message
   end

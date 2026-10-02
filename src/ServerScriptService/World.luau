@@ -246,7 +246,7 @@ local function stopWalking(bot)
     bot.humanoid:MoveTo(bot.root.Position)
     bot.working=false
 end
-function World.Talk(bot, player)
+function World.Talk(bot, player, contextLine)
     stopWalking(bot)
     if player and player.Character then
         local root = player.Character:FindFirstChild("HumanoidRootPart")
@@ -255,7 +255,10 @@ function World.Talk(bot, player)
         bot.socialUntil = os.clock() + 5
     end
     local options = roleLines[bot.role] or lines
-    local message = options[rng:NextInteger(1, #options)]
+    local index=rng:NextInteger(1,bot.lastTalkIndex and #options-1 or #options)
+    if bot.lastTalkIndex and index>=bot.lastTalkIndex then index+=1 end
+    bot.lastTalkIndex=index
+    local message = contextLine or options[index]
     World.Speak(bot, message)
     return message
 end
