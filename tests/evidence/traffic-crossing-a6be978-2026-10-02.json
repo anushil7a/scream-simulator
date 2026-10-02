@@ -1,0 +1,28 @@
+{
+  "source": "a6be978",
+  "scope": "One Studio client; existing NPC Humanoid.MoveTo across isolated real traffic lane in both directions; other traffic paused; not multiplayer player impact.",
+  "result": {
+    "records": [
+      {
+        "finalSpeed": 24,
+        "direction": 1,
+        "minimumSpeed": 0,
+        "horizontalDrift": 0,
+        "finalZ": 127.0980453491211,
+        "sawYield": true,
+        "maximumHeight": 3.4399380683898926
+      },
+      {
+        "finalSpeed": 24,
+        "direction": -1,
+        "minimumSpeed": 0,
+        "horizontalDrift": 0,
+        "finalZ": 127.0980453491211,
+        "sawYield": true,
+        "maximumHeight": 3.4399330615997314
+      }
+    ],
+    "passed": true,
+    "checks": 10
+  }
+}

@@ -1,0 +1,333 @@
+{
+  "frames": [
+    {
+      "id": 388,
+      "ms": 15.980708162176597,
+      "absoluteId": 889299
+    },
+    {
+      "id": 389,
+      "ms": 17.929208141307754,
+      "absoluteId": 889300
+    },
+    {
+      "id": 390,
+      "ms": 15.511624833867245,
+      "absoluteId": 889301
+    },
+    {
+      "id": 391,
+      "ms": 17.172624816077587,
+      "absoluteId": 889302
+    },
+    {
+      "id": 392,
+      "ms": 16.180874826699437,
+      "absoluteId": 889303
+    },
+    {
+      "id": 393,
+      "ms": 17.610541478054074,
+      "absoluteId": 889304
+    },
+    {
+      "id": 394,
+      "ms": 15.646624832421367,
+      "absoluteId": 889305
+    },
+    {
+      "id": 395,
+      "ms": 16.548124822766113,
+      "absoluteId": 889306
+    },
+    {
+      "id": 396,
+      "ms": 17.049874817392265,
+      "absoluteId": 889307
+    },
+    {
+      "id": 397,
+      "ms": 16.469749823605525,
+      "absoluteId": 889308
+    },
+    {
+      "id": 398,
+      "ms": 16.882374819186225,
+      "absoluteId": 889309
+    },
+    {
+      "id": 399,
+      "ms": 16.03016649498022,
+      "absoluteId": 889310
+    },
+    {
+      "id": 400,
+      "ms": 17.413666480162647,
+      "absoluteId": 889311
+    },
+    {
+      "id": 401,
+      "ms": 15.702416498490493,
+      "absoluteId": 889312
+    },
+    {
+      "id": 402,
+      "ms": 18.127291472519573,
+      "absoluteId": 889313
+    },
+    {
+      "id": 403,
+      "ms": 15.539208166905155,
+      "absoluteId": 889314
+    },
+    {
+      "id": 404,
+      "ms": 18.069208139808325,
+      "absoluteId": 889315
+    },
+    {
+      "id": 405,
+      "ms": 15.504708167274657,
+      "absoluteId": 889316
+    },
+    {
+      "id": 406,
+      "ms": 17.830208142368065,
+      "absoluteId": 889317
+    },
+    {
+      "id": 407,
+      "ms": 15.505833167262608,
+      "absoluteId": 889318
+    },
+    {
+      "id": 408,
+      "ms": 17.79704147605662,
+      "absoluteId": 889319
+    },
+    {
+      "id": 409,
+      "ms": 15.463666501047555,
+      "absoluteId": 889320
+    },
+    {
+      "id": 410,
+      "ms": 17.511249812450842,
+      "absoluteId": 889321
+    },
+    {
+      "id": 411,
+      "ms": 15.888499829830835,
+      "absoluteId": 889322
+    },
+    {
+      "id": 412,
+      "ms": 17.80524980930204,
+      "absoluteId": 889323
+    },
+    {
+      "id": 413,
+      "ms": 15.528333167021628,
+      "absoluteId": 889324
+    },
+    {
+      "id": 414,
+      "ms": 17.688458143886237,
+      "absoluteId": 889325
+    },
+    {
+      "id": 415,
+      "ms": 15.676166498771636,
+      "absoluteId": 889326
+    },
+    {
+      "id": 416,
+      "ms": 17.656499810895184,
+      "absoluteId": 889327
+    },
+    {
+      "id": 417,
+      "ms": 15.849541496914753,
+      "absoluteId": 889328
+    },
+    {
+      "id": 418,
+      "ms": 16.485749823434162,
+      "absoluteId": 889329
+    },
+    {
+      "id": 419,
+      "ms": 16.95333315175958,
+      "absoluteId": 889330
+    },
+    {
+      "id": 420,
+      "ms": 15.626166499307146,
+      "absoluteId": 889331
+    },
+    {
+      "id": 421,
+      "ms": 18.321458137106674,
+      "absoluteId": 889332
+    },
+    {
+      "id": 422,
+      "ms": 15.781708164307929,
+      "absoluteId": 889333
+    },
+    {
+      "id": 423,
+      "ms": 17.57029147848516,
+      "absoluteId": 889334
+    },
+    {
+      "id": 424,
+      "ms": 15.889791496483667,
+      "absoluteId": 889335
+    },
+    {
+      "id": 425,
+      "ms": 16.924333152070176,
+      "absoluteId": 889336
+    },
+    {
+      "id": 426,
+      "ms": 16.623666488623712,
+      "absoluteId": 889337
+    },
+    {
+      "id": 427,
+      "ms": 16.025249828366213,
+      "absoluteId": 889338
+    }
+  ],
+  "topInclusiveCpuScopes": [
+    {
+      "timer": "Sleep",
+      "thread": " RBX Worker H",
+      "ms": 645.0178264250571,
+      "meanMs": 16.12544566062643
+    },
+    {
+      "timer": "Sleep",
+      "thread": " RBX Worker G",
+      "ms": 638.8643681576286,
+      "meanMs": 15.971609203940716
+    },
+    {
+      "timer": "Sleep",
+      "thread": " RBX Worker F",
+      "ms": 632.793118222653,
+      "meanMs": 15.819827955566325
+    },
+    {
+      "timer": "Sleep",
+      "thread": " RBX Worker E",
+      "ms": 604.033576864007,
+      "meanMs": 15.100839421600176
+    },
+    {
+      "timer": "Sleep",
+      "thread": " RBX Worker D",
+      "ms": 594.3942019672468,
+      "meanMs": 14.859855049181169
+    },
+    {
+      "timer": "Sleep",
+      "thread": " RBX Worker C",
+      "ms": 578.0950771418138,
+      "meanMs": 14.452376928545345
+    },
+    {
+      "timer": "Sleep",
+      "thread": " RBX Worker B",
+      "ms": 547.060619140866,
+      "meanMs": 13.676515478521651
+    },
+    {
+      "timer": "Sleep",
+      "thread": " RBX Worker A",
+      "ms": 539.1231192258783,
+      "meanMs": 13.478077980646958
+    },
+    {
+      "timer": "Thread (FG)",
+      "thread": " RBX Worker A",
+      "ms": 112.53029046144366,
+      "meanMs": 2.8132572615360916
+    },
+    {
+      "timer": "Thread (FG)",
+      "thread": " RBX Worker B",
+      "ms": 105.90329053242021,
+      "meanMs": 2.6475822633105053
+    },
+    {
+      "timer": "TS::JobStep",
+      "thread": " RBX Worker B",
+      "ms": 85.85991574708896,
+      "meanMs": 2.146497893677224
+    },
+    {
+      "timer": "TS::ArbiterStep",
+      "thread": " RBX Worker B",
+      "ms": 81.50049912711256,
+      "meanMs": 2.0375124781778142
+    },
+    {
+      "timer": "TS::JobStep",
+      "thread": " RBX Worker A",
+      "ms": 80.73649913529516,
+      "meanMs": 2.018412478382379
+    },
+    {
+      "timer": "Thread (FG)",
+      "thread": " RBX Worker C",
+      "ms": 77.93883249859209,
+      "meanMs": 1.9484708124648022
+    },
+    {
+      "timer": "TS::ArbiterStep",
+      "thread": " RBX Worker A",
+      "ms": 73.43441588016867,
+      "meanMs": 1.8358603970042169
+    },
+    {
+      "timer": "TS::JobStep",
+      "thread": " RBX Worker C",
+      "ms": 65.17791596859752,
+      "meanMs": 1.629447899214938
+    },
+    {
+      "timer": "Thread (FG)",
+      "thread": " RBX Worker D",
+      "ms": 64.02529098094237,
+      "meanMs": 1.6006322745235593
+    },
+    {
+      "timer": "TS::ArbiterStep",
+      "thread": " RBX Worker C",
+      "ms": 61.702832672483055,
+      "meanMs": 1.5425708168120764
+    },
+    {
+      "timer": "$Event",
+      "thread": " RBX Main",
+      "ms": 57.25845772008324,
+      "meanMs": 1.4314614430020811
+    },
+    {
+      "timer": "Thread (FG)",
+      "thread": " RBX Worker E",
+      "ms": 55.86479106834304,
+      "meanMs": 1.396619776708576
+    }
+  ],
+  "context": {
+    "source": "bef188c",
+    "mode": "one-client Studio at spawn with microphone setup displayed",
+    "worldParts": 50278,
+    "solidParts": 3468,
+    "scope": "40-frame short CPU capture; not actual-device/multiplayer sign-off"
+  }
+}
