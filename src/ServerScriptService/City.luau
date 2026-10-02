@@ -228,13 +228,34 @@ local function building(parent,cf,w,d,floors,index,style)
   end
   for col=1,cols do
    local x=(col-(cols+1)/2)*spacing
-   b("CourtyardWindow",V(2.8,4,.15),V(x,y,d/2+.1),glass,Enum.Material.Glass,false)
+   -- Courtyard elevations receive simpler, quieter detail than the retail fronts.
+   local rearColor=refined and (floor*3+col+index)%11==0 and Color3.fromRGB(190,160,104) or glass
+   if refined and floor<=2 then
+    b("RearWindowSurround",V(3.3,4.5,.14),V(x,y,d/2+.1),stone,Enum.Material.Limestone,false)
+    b("RearWindowSill",V(3.7,.22,.55),V(x,y-2.25,d/2+.28),cream,Enum.Material.Limestone,false)
+    if (col+index)%2==0 then
+     for _,side in ipairs({-1,1}) do
+      local shutter=b("CourtyardShutter",V(.85,4.2,.16),V(x+side*2,y,d/2+.3),accent,Enum.Material.Wood,false)
+      shutter.CFrame*=CFrame.Angles(0,side*.22,0)
+     end
+    end
+    if floor==1 and col==math.ceil(cols/2) and index%3==0 then
+     b("CourtyardBalcony",V(4.7,.25,1.8),V(x,y-2.2,d/2+.85),stone,Enum.Material.Limestone,false)
+     b("CourtyardBalconyRail",V(4.7,.16,.16),V(x,y-.6,d/2+1.65),iron,Enum.Material.Metal,false)
+     for _,dx in ipairs({-2.2,0,2.2}) do b("CourtyardBaluster",V(.12,1.6,.12),V(x+dx,y-1.4,d/2+1.65),iron,Enum.Material.Metal,false) end
+     b("CourtyardFlowerBox",V(2.3,.5,.6),V(x,y-1.75,d/2+1.25),terra,Enum.Material.CeramicTiles,false)
+     b("CourtyardFlowers",V(2.1,.35,.5),V(x,y-1.35,d/2+1.25),Color3.fromRGB(198,130,135),Enum.Material.Grass,false)
+    end
+   end
+   b("CourtyardWindow",V(2.8,4,.15),V(x,y,d/2+.2),rearColor,Enum.Material.Glass,false)
   end
   for _,side in ipairs({-1,1}) do for k=-1,1 do
    b("SideWindow",V(.15,4,2.7),V(side*(w/2+.1),y,k*d/4),glass,Enum.Material.Glass,false)
   end end
  end
  if refined then
+  b("RearDrainpipe",V(.18,h-.8,.18),V(w/2-1,h/2+1,d/2+.3),accent,Enum.Material.Metal,false)
+  b("CourtyardCornice",V(w+.4,.3,.6),V(0,h+.75,d/2+.15),cream,Enum.Material.Limestone,false)
   -- Four frontage compositions share a collision shell and a clear central entrance.
   if frontage==0 then
    b("GalleryBalcony",V(w-5,.35,2.8),V(0,9.8,-d/2-1.3),stone,Enum.Material.Limestone,false)
