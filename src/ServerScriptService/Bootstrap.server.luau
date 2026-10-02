@@ -55,7 +55,7 @@ end
 local function questProgress(p,event,amount)
  local s=sessions[p];if not s or not s.activeQuest then return end
  local q=Config.GetQuest(s.activeQuest);if not q or q.event~=event then return end
- local v=s.data.quests[q.id];if not v or v.claimed then return end
+ local v=s.data.quests[q.id];if not v or v.claimed or v.progress>=q.goal then return end
  v.progress=math.min(q.goal,v.progress+(amount or 1));state(p,v.progress==q.goal and "Quest complete! Claim your reward in Quests." or nil)
 end
 local function stopQuest(p)
@@ -277,6 +277,9 @@ end
 local function interactQuest(p,obj)
   local s=sessions[p];local _,r=parts(p);local marker=obj.Parent
   if not s or not r or not marker or not marker:IsA("BasePart") or (r.Position-marker.Position).Magnitude>12 then return end
+  local active=Config.GetQuest(s.activeQuest)
+  local progress=active and s.data.quests[active.id]
+  if progress and (progress.claimed or progress.progress>=active.goal) then state(p,"Task complete · claim your reward in Quests.");return end
   local kind=marker:GetAttribute("QuestAction")
   if kind=="Garden" and s.activeQuest=="garden" then
    if s.collected[marker.Name] then state(p,"This bed is already watered.");return end
@@ -286,11 +289,11 @@ local function interactQuest(p,obj)
    s.collected[marker.Name]=true;questProgress(p,"Litter")
   elseif kind=="Pickup" and s.activeQuest=="delivery" then s.questDeadline=os.clock()+90;s.carrying=true;state(p,"Order collected · deliver to the boardwalk stage in 90s")
   elseif kind=="Dropoff" and s.activeQuest=="delivery" then
-   if s.carrying and s.questDeadline and os.clock()<=s.questDeadline then questProgress(p,"Delivery");s.carrying=false;s.questDeadline=nil
+   if s.carrying and s.questDeadline and os.clock()<=s.questDeadline then s.carrying=false;s.questDeadline=nil;questProgress(p,"Delivery")
    else state(p,"Pick up a fresh order from the café first.") end
   elseif kind=="RaceStart" and s.activeQuest=="sprint" then s.questDeadline=os.clock()+25;s.raceStart=os.clock();state(p,"Go! Follow the boardwalk to the pier finish · 25s")
   elseif kind=="RaceFinish" and s.activeQuest=="sprint" then
-   if s.raceStart and os.clock()-s.raceStart>=3 and s.questDeadline and os.clock()<=s.questDeadline then questProgress(p,"Race");s.questDeadline=nil;s.raceStart=nil
+   if s.raceStart and os.clock()-s.raceStart>=3 and s.questDeadline and os.clock()<=s.questDeadline then s.questDeadline=nil;s.raceStart=nil;questProgress(p,"Race")
    else state(p,"Start at the lifeguard tower and beat 25 seconds.") end
   else state(p,"Accept the matching quest from the Quests menu first.") end
 end
