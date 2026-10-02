@@ -80,7 +80,7 @@ Run.PreSimulation:Connect(function(dt)
     if model:GetAttribute("Gesturing") and i==1 then angle=-.8+math.sin(now*5)*.15 end
     if model:GetAttribute("Working") then
      if role=="CafeWorker" and i<=2 then angle=-.8+(i==2 and math.sin(now*3)*.15 or 0)
-     elseif role=="Sanitation" and i==2 then angle=-.15+math.sin(now*2)*.3
+     elseif role=="Sanitation" and i==2 then angle=model:GetAttribute("Repairing") and (-.9+math.sin(now*5)*.4) or (-.15+math.sin(now*2)*.3)
      elseif role=="BeachWorker" and i==2 then angle=-.7+math.sin(now*2.5)*.2
      elseif role=="Busker" and i<=2 then angle=-.6+(i==2 and math.sin(now*8)*.13 or 0)
      elseif role=="Soccer" then

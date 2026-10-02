@@ -17,6 +17,18 @@ World.Build()
 BeachVolley.Start(workspace.ScreamSimulatorWorld)
 local Destruction=require(script.Parent.Destruction)
 Destruction.Start(workspace.ScreamSimulatorWorld)
+World.FindMaintenance=function(bot)
+ if os.clock()<(bot.nextMaintenance or 0) then return nil end
+ local station=Destruction.MaintenanceTarget(bot.root.Position,80)
+ if station then bot.nextMaintenance=os.clock()+30 end
+ return station
+end
+World.FinishMaintenance=function(bot,station)
+ if bot.alive and bot.working and (bot.reactionUntil or 0)<=os.clock() and (bot.socialUntil or 0)<=os.clock() then
+  return Destruction.FinishMaintenance(station,bot.root.Position)
+ end
+ return false
+end
 local old=ReplicatedStorage:FindFirstChild("ScreamRemotes");if old then old:Destroy() end
 local remotes=Instance.new("Folder");remotes.Name="ScreamRemotes";remotes.Parent=ReplicatedStorage
 local function remote(name) local r=Instance.new("RemoteEvent");r.Name=name;r.Parent=remotes;return r end

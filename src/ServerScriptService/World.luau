@@ -242,6 +242,7 @@ local function releaseSeat(bot)
 end
 local function stopWalking(bot)
     bot.watchingUntil=nil;bot.watchingPerformer=nil
+    bot.model:SetAttribute("Repairing",false)
     bot.model:SetAttribute("Applauding",false)
     releaseSeat(bot)
     bot.pathVersion=(bot.pathVersion or 0)+1
@@ -529,7 +530,7 @@ local function makeBot(parent, index, x, z, role, job)
         accessory(model, head, "GlassesBridge", Vector3.new(0.28, 0.08, 0.14),
             CFrame.new(0, 0.09, -0.62), C.dark, Enum.Material.Metal)
     end
-    local jobTool,water;local carryParts={}
+    local jobTool,water;local carryParts={};local cleaningParts={};local repairParts={}
     if role=="Soccer" and job then
         for _,leg in ipairs({ll,rl}) do accessory(model,leg,"FootballSock",Vector3.new(1.03,.9,1.03),CFrame.new(0,-.25,0),Color3.fromRGB(240,231,212),Enum.Material.Fabric) end
         local badge=accessory(model,torso,"NumberZero",Vector3.new(.62,.74,.12),CFrame.new(0,.15,-.58),Color3.fromRGB(240,231,212),Enum.Material.Fabric)
@@ -541,8 +542,11 @@ local function makeBot(parent, index, x, z, role, job)
         for _,dx in ipairs({-.35,.35}) do table.insert(carryParts,accessory(model,la,"CoffeeCup",Vector3.new(.3,.4,.3),trayGrip*CFrame.new(dx,.26,0),Color3.fromRGB(243,225,191),Enum.Material.CeramicTiles)) end
         accessory(model,torso,"CafeApron",Vector3.new(1.7,1.5,.1),CFrame.new(0,-.2,-.57),Color3.fromRGB(71,139,125),Enum.Material.Fabric)
     elseif role=="Sanitation" then
-        accessory(model,ra,"BroomHandle",Vector3.new(.14,2.7,.14),CFrame.new(0,-1.25,-.45),Color3.fromRGB(155,113,77),Enum.Material.Wood)
-        accessory(model,ra,"BroomHead",Vector3.new(1.6,.35,.65),CFrame.new(0,-2.6,-.45),Color3.fromRGB(196,163,97),Enum.Material.Fabric)
+        table.insert(cleaningParts,accessory(model,ra,"BroomHandle",Vector3.new(.14,2.7,.14),CFrame.new(0,-1.25,-.45),Color3.fromRGB(155,113,77),Enum.Material.Wood))
+        table.insert(cleaningParts,accessory(model,ra,"BroomHead",Vector3.new(1.6,.35,.65),CFrame.new(0,-2.6,-.45),Color3.fromRGB(196,163,97),Enum.Material.Fabric))
+        table.insert(repairParts,accessory(model,ra,"RepairHandle",Vector3.new(.18,1.1,.18),CFrame.new(0,-1.3,-.35),Color3.fromRGB(155,113,77),Enum.Material.Wood))
+        table.insert(repairParts,accessory(model,ra,"RepairHammer",Vector3.new(.85,.3,.35),CFrame.new(0,-1.85,-.35),Color3.fromRGB(105,121,126),Enum.Material.Metal))
+        for _,item in ipairs(repairParts) do item.Transparency=1 end
         accessory(model,torso,"SafetyVest",Vector3.new(1.85,1.5,.12),CFrame.new(0,0,-.58),Color3.fromRGB(224,176,69),Enum.Material.Fabric)
     elseif role=="BeachWorker" then
         accessory(model,ra,"CleaningCloth",Vector3.new(.7,.15,.65),CFrame.new(0,-1,-.25),Color3.fromRGB(235,220,181),Enum.Material.Fabric)
@@ -595,7 +599,7 @@ local function makeBot(parent, index, x, z, role, job)
     speech.BackgroundColor3 = Color3.fromRGB(244, 237, 211)
     speech.TextColor3 = C.dark
     local bot = {id = "Bot" .. index, name = displayName, role = role, model = model, root = root, humanoid = humanoid,
-        health = Config.BotMaxHealth, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"} or nil, job=job, jobTool=jobTool, water=water, carryParts=carryParts, jobStep=0,
+        health = Config.BotMaxHealth, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"} or nil, job=job, jobTool=jobTool, water=water, carryParts=carryParts, cleaningParts=cleaningParts, repairParts=repairParts, jobStep=0,
         start = home, lastGrounded=home, roamRadius = role == "Commuter" and 200 or 125,
         joints = {ls, rs, lh, rh}, lastGreeting = -1000}
     for _, limb in ipairs(bot.joints) do limb:SetAttribute("RestPose", limb.C0) end
@@ -614,7 +618,7 @@ local function makeBot(parent, index, x, z, role, job)
                         task.wait(.2)
                     elseif job then
                         bot.jobStep=bot.jobStep%#job.stations+1
-                        local station=job.stations[bot.jobStep]
+                        local station=role=="Sanitation" and World.FindMaintenance and World.FindMaintenance(bot) or job.stations[bot.jobStep]
                         model:SetAttribute("WorkStep",bot.jobStep)
                         for _,item in ipairs(bot.carryParts) do item.Transparency=bot.jobStep==2 and 0 or 1 end
                         bot.working=false;model:SetAttribute("Activity","Walking to work")
@@ -625,10 +629,13 @@ local function makeBot(parent, index, x, z, role, job)
                                 bot.practiceCycle=(bot.practiceCycle or 0)+1
                                 model:SetAttribute("PracticeRoutine",({"Miss","Trip","OwnGoal"})[(bot.practiceCycle-1)%3+1])
                             end
-                            bot.working=true;model:SetAttribute("WorkStarted",workspace:GetServerTimeNow());model:SetAttribute("Activity",station.action or role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
+                            bot.working=true;model:SetAttribute("Repairing",station.maintenanceModel~=nil);model:SetAttribute("WorkStarted",workspace:GetServerTimeNow());model:SetAttribute("Activity",station.action or role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
                             local untilTime=os.clock()+(role=="Soccer" and 6.5 or rng:NextNumber(5,9))
                             while model.Parent and bot.alive and os.clock()<untilTime and (bot.socialUntil or 0)<=os.clock() and (bot.reactionUntil or 0)<=os.clock() do task.wait(.2) end
-                            bot.working=false
+                            if bot.working and bot.alive and os.clock()>=untilTime and station.maintenanceModel and World.FinishMaintenance then
+                                World.FinishMaintenance(bot,station)
+                            end
+                            bot.working=false;model:SetAttribute("Repairing",false)
                         end
                         task.wait(.3)
                     else
@@ -750,6 +757,9 @@ function World.Build()
                 end
                 for _,bot in ipairs(World.Bots) do
                     if bot.water then bot.water.Enabled=bot.alive and bot.working==true end
+                    local repairing=bot.alive and bot.working and bot.model:GetAttribute("Repairing")==true
+                    for _,item in ipairs(bot.cleaningParts or {}) do item.Transparency=repairing and 1 or 0 end
+                    for _,item in ipairs(bot.repairParts or {}) do item.Transparency=repairing and 0 or 1 end
                     if not bot.alive or not bot.root.Parent then continue end
                     local gesture=(bot.gestureUntil or 0)>now
                     if bot.model:GetAttribute("Gesturing")~=gesture then bot.model:SetAttribute("Gesturing",gesture) end

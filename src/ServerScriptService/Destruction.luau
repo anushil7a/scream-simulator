@@ -42,7 +42,7 @@ function Service.Damage(instance,level,damage)
  if not object then return nil end
  local health,destroyed,reason=Rules.Hit(object.kind,level,object.health,damage)
  if reason then return {model=model,reason=reason,required=Rules.Types[object.kind].level} end
- object.health=health;model:SetAttribute('ObjectHealth',health)
+ object.health=health;object.lastDamaged=os.clock();model:SetAttribute('ObjectHealth',health)
  local ratio=health/Rules.Types[object.kind].health;model:SetAttribute('DamageStage',destroyed and 3 or ratio<.35 and 2 or ratio<.7 and 1 or 0)
  for part,original in pairs(object.parts) do if part.Parent then
   if destroyed then part.Transparency=1;part.CanCollide=false;part.CanQuery=false;part.CanTouch=false;if part:IsA("Seat") then if part.Occupant then part.Occupant.Sit=false end;part.Disabled=true end
@@ -58,6 +58,40 @@ function Service.Damage(instance,level,damage)
  model:SetAttribute('RepairAt',workspace:GetServerTimeNow()+duration)
  task.delay(duration,function() restore(model,object,version) end)
  return {model=model,destroyed=destroyed,health=health,kind=object.kind,position=object.box.Position}
+end
+-- Local maintenance complements the automatic repair timer. A worker must
+-- physically reach the object and finish its work after a quiet interval.
+function Service.MaintenanceTarget(origin,radius)
+ local candidates={}
+ for model,object in pairs(Service.objects) do
+  if model.Parent and (object.kind=="Bench" or object.kind=="Bin")
+   and object.health<Rules.Types[object.kind].health and os.clock()-(object.lastDamaged or os.clock())>=45
+   and (object.box.Position-origin).Magnitude<=radius then
+   table.insert(candidates,{model=model,object=object,distance=(object.box.Position-origin).Magnitude})
+  end
+ end
+ table.sort(candidates,function(a,b) return a.distance<b.distance end)
+ for _,candidate in ipairs(candidates) do
+  local object=candidate.object
+  if not occupied(object) then
+   local approach
+   for _,offset in ipairs({Vector3.new(object.size.X/2+2.4,0,0),Vector3.new(-object.size.X/2-2.4,0,0),Vector3.new(0,0,object.size.Z/2+2.4),Vector3.new(0,0,-object.size.Z/2-2.4)}) do
+    local p=object.box:PointToWorldSpace(offset);p=Vector3.new(p.X,origin.Y,p.Z)
+    if not approach or (p-origin).Magnitude<(approach-origin).Magnitude then approach=p end
+   end
+   return {position=approach,lookAt=object.box.Position,action="Repairing "..Rules.Types[object.kind].name:lower(),maintenanceModel=candidate.model,maintenanceVersion=object.version}
+  end
+ end
+end
+function Service.FinishMaintenance(station,workerPosition)
+ local model=station.maintenanceModel;local object=Service.objects[model]
+ if not object or not model.Parent or object.version~=station.maintenanceVersion
+  or (object.kind~="Bench" and object.kind~="Bin") or object.health>=Rules.Types[object.kind].health
+  or os.clock()-(object.lastDamaged or os.clock())<45 or (workerPosition-station.position).Magnitude>2
+  or (workerPosition-object.box.Position).Magnitude>12 or occupied(object) then return false end
+ -- Invalidate the old timer only after all safety checks pass.
+ object.version+=1;restore(model,object,object.version)
+ return true
 end
 function Service.Start(world)
  Service.objects={};Service.ids={};Service.world=world
