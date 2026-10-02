@@ -1,6 +1,6 @@
 # Redesign QA and release readiness
 
-Updated October 2, 2026. Source verification: **7b8f065** on `feature/microphone-city-redesign`.
+Updated October 2, 2026. Full source-suite baseline: **7b8f065**; focused menu/traffic verification through **a6be978** on `feature/microphone-city-redesign`.
 
 **Not ready for production publication.** The source/build is available for developer review in [draft PR #1](https://github.com/anushil7a/scream-simulator/pull/1). The live experience was last verified at version 32; this redesign has not been published over it.
 
@@ -93,3 +93,9 @@ Nine native Studio checks passed for tab-specific refresh and scroll preservatio
 ## Traffic yielding regression — 2026-10-02
 
 Cars now brake for residents in their lane and resume gradually; stationary cars do not emit impact callbacks. `StudioTraffic.server.luau` passed 1,330 per-step assertions in controlled native Studio movement for both directions, sudden crossing clearance, stop/no-impact and recovery. This uses positioned test parts, not an autonomous NPC crossing or live multiplayer player-hit test. Those physical tests remain required.
+
+## Physical NPC crossing — 2026-10-02
+
+`StudioTrafficCrossing.server.luau` passed ten checks on `a6be978`: an existing resident used actual Humanoid walking across a road while the production Heartbeat advanced an isolated car, repeated in both directions. Cars reached zero speed, then resumed 24 studs/s after the crossing cleared. Recorded sideways displacement was zero; maximum root height was 3.44 studs; the NPC crossed from Z104 to Z127.10. Other traffic was temporarily paused and the NPC destination was scripted. This closes the focused native pedestrian-crossing case, not autonomous citywide routing or player-hit/multiplayer testing. [Raw results](../tests/evidence/traffic-crossing-a6be978-2026-10-02.json).
+
+A subsequent street-height view from the spawn plaza showed that broad paved areas still read sparse despite the surrounding facade detail. Final city art/activity review remains open; do not treat the route/traffic passes as visual sign-off.

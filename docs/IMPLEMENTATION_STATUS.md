@@ -503,3 +503,10 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - The server only emits a vehicle impact sweep when the car actually travels. Stationary solid cars therefore do not repeatedly hurt players or calculate a zero-length impact direction. Players remain subject to normal moving-car damage; this change does not make traffic harmless.
 - `tests/StudioTraffic.server.luau` passed 1,330 assertions across deterministic 60 Hz traffic steps in native Studio models/CFrames: both lane directions, stop clearance, stationary callbacks, smooth recovery, sudden crossings, and residents behind the car. The high assertion count includes repeated per-step invariants, not 1,330 distinct play scenarios. No physical NPC crossing, live player impact, multiplayer, or frame-rate benchmark is claimed.
 - Fixture removed, play stopped, clean World source synchronized to both development Studio copies. Physical collision playtests remain open in the QA report.
+
+## 2026-10-02 — actual pedestrian/traffic crossing
+
+- Added `StudioTrafficCrossing.server.luau`, using one existing resident, native Humanoid.MoveTo, real collision geometry and production Heartbeat traffic in each travel direction. Only test setup/destination were scripted; movement was not teleported per frame. Other traffic was paused during each isolated case.
+- Ten checks passed: both cars braked to zero, residents crossed to Z127.10 without sideways displacement, max root height stayed at 3.44, and cars resumed 24 studs/s. Raw evidence: `tests/evidence/traffic-crossing-a6be978-2026-10-02.json`.
+- Fixture restored cars/NPC after execution. Stopped play, removed appended fixture and temporary review-camera/UI state. Production source is unchanged by this test.
+- Street-level spawn-plaza review still reads sparse in the broad paved areas. Further authored visual/activity refinement remains necessary; this is not a final art approval.
