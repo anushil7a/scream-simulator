@@ -105,7 +105,14 @@ Run.PreSimulation:Connect(function(dt)
     if i>=3 then angle=-math.pi/2 elseif model:GetAttribute("Reading") and i==1 then angle=-1.15 else angle=-.15 end
    end
    -- These custom R6 joints have no rotated basis: positive X bends toward -Z.
-   joint.Transform=CFrame.Angles(-angle,0,0)
+   if model:GetAttribute("Applauding") and humanoid.Health>0 and not moving and not seated and i<=2 then
+    -- Bring both hands together in front of the chest; phase offsets keep
+    -- several spectators from clapping in perfect synchronization.
+    local inward=.55+math.sin(now*9+(model:GetAttribute("AnimationSeed") or 1))*.2
+    joint.Transform=CFrame.Angles(1.15,0,(i==1 and 1 or -1)*inward)
+   else
+    joint.Transform=CFrame.Angles(-angle,0,0)
+   end
   end
  end
 end)

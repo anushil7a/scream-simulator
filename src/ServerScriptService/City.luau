@@ -661,6 +661,7 @@ local function coast(parent,walk,activities)
  building(m,CFrame.new(-480,0,399)*CFrame.Angles(0,math.pi,0),48,23,1,501,"Marina")
  for i=1,4 do cafe(m,-522+i*17,439,Color3.fromRGB(59,115,106)) end
  part(m,"EncoreStage",V(32,1.5,20),V(150,1.7,428),dark,Enum.Material.WoodPlanks)
+ for _,x in ipairs({140,150,160}) do table.insert(activities,{position=V(x,4,415),kind="Performance"}) end
  for _,x in ipairs({136,164}) do part(m,"StageSpeaker",V(3,6,3),V(x,5,433),iron,Enum.Material.Metal) end
  sign(m,"MÚSICA A LA MAR",CFrame.new(150,8,437)*CFrame.Angles(0,math.pi,0),30)
  coastalLookout(m,walk,activities)

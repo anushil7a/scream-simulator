@@ -241,6 +241,8 @@ local function releaseSeat(bot)
     end
 end
 local function stopWalking(bot)
+    bot.watchingUntil=nil;bot.watchingPerformer=nil
+    bot.model:SetAttribute("Applauding",false)
     releaseSeat(bot)
     bot.pathVersion=(bot.pathVersion or 0)+1
     bot.humanoid:MoveTo(bot.root.Position)
@@ -356,11 +358,52 @@ local function restNearby(bot,destination)
     return choices[1] and World.UseSeat(bot,choices[1]) or false
 end
 
+-- Residents already near the stage can listen without adding another path request
+-- or drawing a crowd into the through-route. Interruptions use stopWalking.
+function World.WatchPerformance(bot)
+    local now=os.clock()
+    if not bot.alive or bot.job or bot.restSeat or (bot.socialUntil or 0)>now
+        or (bot.reactionUntil or 0)>now or (bot.nextPerformance or 0)>now then return false end
+    local performer
+    for _,other in ipairs(World.Bots) do
+        if other~=bot and other.role=="Busker" and other.job and other.alive and other.working
+            and (other.root.Position-bot.root.Position).Magnitude<26 then
+            performer=other;break
+        end
+    end
+    if not performer then return false end
+    local audience=0
+    for _,other in ipairs(World.Bots) do
+        if other.watchingPerformer==performer and (other.watchingUntil or 0)>now then audience+=1 end
+    end
+    if audience>=3 then return false end
+    local ray=RaycastParams.new();ray.FilterType=Enum.RaycastFilterType.Exclude
+    ray.FilterDescendantsInstances={bot.model,performer.model};ray.RespectCanCollide=true
+    if workspace:Raycast(bot.root.Position,performer.root.Position-bot.root.Position,ray) then return false end
+    stopWalking(bot)
+    local version=bot.pathVersion
+    bot.watchingPerformer=performer;bot.watchingUntil=now+rng:NextNumber(5,8)
+    bot.nextPerformance=now+30
+    bot.model:SetAttribute("Activity","Listening to Èric's performance")
+    faceToward(bot,performer.root.Position)
+    while bot.model.Parent and bot.alive and bot.pathVersion==version and performer.alive and performer.working
+        and os.clock()<(bot.watchingUntil or 0) and (bot.reactionUntil or 0)<=os.clock() do
+        bot.model:SetAttribute("Applauding",bot.watchingUntil-os.clock()<2.5)
+        task.wait(.2)
+    end
+    if bot.pathVersion==version then
+        bot.watchingUntil=nil;bot.watchingPerformer=nil
+        bot.model:SetAttribute("Applauding",false)
+        bot.model:SetAttribute("Activity","Exploring the neighborhood")
+    end
+    return true
+end
+
 local function socialize(bot)
     if (bot.socialUntil or 0) > os.clock() then return false end
     local friends = {}
     for _, other in ipairs(World.Bots) do
-        if other ~= bot and other.alive and (other.socialUntil or 0) < os.clock()
+        if other ~= bot and other.alive and not other.working and not other.watchingPerformer and (other.socialUntil or 0) < os.clock()
             and (other.root.Position - bot.root.Position).Magnitude < 22 then
             table.insert(friends, other)
         end
@@ -382,7 +425,7 @@ local function socialize(bot)
 end
 
 local function noticePlayers(bot)
-    if bot.restSeat or (bot.socialUntil or 0)>os.clock() then return end
+    if bot.restSeat or bot.watchingPerformer or (bot.socialUntil or 0)>os.clock() then return end
     if (bot.lastGreeting or 0) + 14 > os.clock() then return end
     for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
         local character = player.Character
@@ -590,7 +633,9 @@ local function makeBot(parent, index, x, z, role, job)
                         task.wait(.3)
                     else
                         local choice = rng:NextNumber()
-                        if choice < 0.23 then
+                        if choice < .2 and World.WatchPerformance(bot) then
+                            task.wait(.3)
+                        elseif choice < 0.23 then
                             bot.gestureUntil = os.clock() + rng:NextNumber(1.5, 3.5)
                             if role == "Busker" or role == "Vendor" or rng:NextNumber() < 0.45 then
                                 World.Talk(bot)
@@ -602,7 +647,9 @@ local function makeBot(parent, index, x, z, role, job)
                             local destination, kind = chooseDestination(bot)
                             roamTo(bot, destination)
                             if bot.alive and (destination - bot.root.Position).Magnitude < 13 then
-                                if kind=="Rest" and restNearby(bot,destination) then
+                                if kind=="Performance" then
+                                    World.WatchPerformance(bot)
+                                elseif kind=="Rest" and restNearby(bot,destination) then
                                     bot.model:SetAttribute("Activity","Exploring the neighborhood")
                                 elseif kind == "Browse" or kind == "Watch" or kind == "Rest" then
                                     bot.gestureUntil = os.clock() + 2.5
