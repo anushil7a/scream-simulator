@@ -568,3 +568,9 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - Visual review caught stacked billboard distance labels; changed them to flat SurfaceGui distance plates with an explicit origin marker. Both lab sources compile and rebuild. The changed ground-label visual itself has not received another native screenshot yet.
 - Code review found overlapping lab requests could replace the acknowledgement timer. New captures now wait for the pending reply/timeout, and canceled/expired replies are ignored. This guard is source-compiled, not network-latency playtest evidence.
 - Stopped Play and restored the exact repository Bootstrap/Client sources and all three original enabled states. Verified city Bootstrap/Client restored and Residents, RunAnimation, Health enabled. No live publication.
+
+## 2026-10-02 — original mosaic fountain candidate
+
+- Generated and visually inspected a three-part original Mediterranean mosaic fountain using Studio's mesh generation tool. Generation job completed, returned model asset93795363493053; the tool uploaded an art asset, not a game version. Actual size is roughly14.13×10×14.13 versus requested28×10×28. Requested4,500triangle budget is not a measured count.
+- Stored all mesh/texture references, native sizes and transforms in `assets/review/MosaicFountain.rbxmx`; no scripts, all meshes anchored/non-colliding. Separate `fountain-review.project.json` builds binary/XML review places. XML round-trip checks confirm three meshes and no scripts. Native import/render of the rebuilt file and destination experience permissions are still open.
+- Main map source/default project unchanged. Local generated review model is named REVIEW_ONLY_MosaicFountain, non-colliding/non-querying, atY−1000 in the disposable MicrophoneCity editor; no gameplay fixture or active Play. Detailed manifest and acceptance checks: `research/FOUNTAIN_ASSET_TRIAL.md`.

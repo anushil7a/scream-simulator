@@ -1,0 +1,12 @@
+{
+  "name": "FountainReview",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "MosaicFountain": {
+        "$path": "assets/review/MosaicFountain.rbxmx"
+      }
+    }
+  }
+}
