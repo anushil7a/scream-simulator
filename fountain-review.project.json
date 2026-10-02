@@ -2,11 +2,15 @@
   "name": "FountainReview",
   "tree": {
     "$className": "DataModel",
-    "Workspace": {
-      "$className": "Workspace",
-      "MosaicFountain": {
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "MosaicFountainTemplate": {
         "$path": "assets/review/MosaicFountain.rbxmx"
       }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "$path": "prototypes/fountain"
     }
   }
 }
