@@ -26,10 +26,11 @@ end
 local function state(p,message,conversation)
  local s=sessions[p];if not s or not p.Parent then return end
  local _,r,h=parts(p)
+ local soccer=Soccer.Status(p)
  Equipment.Sync(p,s.data.amplifierEquipped)
  stateRemote:FireClient(p,{coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
  amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
- availableQuests=s.data.availableQuests,quests=s.data.quests,activeQuest=s.activeQuest,questTime=s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
+ availableQuests=s.data.availableQuests,quests=s.data.quests,activeQuest=s.activeQuest,questStep=soccer and soccer.detail,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,s.voice.nextCast-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,testSession=s.testBaseline~=nil,message=message})
@@ -323,9 +324,9 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   if q then local v=s.data.quests[q.id];if not v then v={progress=0,claimed=false};s.data.quests[q.id]=v end
    if not v.claimed and v.progress>=q.goal then state(p,"Task complete · claim your reward.");return end
    if not v.claimed then stopQuest(p);s.activeQuest=q.id;state(p,q.name.." accepted")
-    if q.id=="nick" then s.questDeadline=os.clock()+120;Soccer.Start(p,function(message) state(p,message) end,function()
+    if q.id=="nick" then Soccer.Start(p,function(message) state(p,message) end,function()
      if sessions[p]==s and s.activeQuest=="nick" then s.questDeadline=nil;questProgress(p,"Soccer");state(p,"Nick: WE DID IT! Claim your reward in Quests.") end
-    end) end
+    end,function() if sessions[p]==s and s.activeQuest=="nick" then stopQuest(p);state(p,"Nick: Attempt ended. Return to the court and accept my task to try again.") end end) end
    end end
  elseif verb=="AbandonQuest" then stopQuest(p);state(p,"Task abandoned. Unfinished progress was reset; earned rewards remain claimable.")
  elseif verb=="ClaimQuest" then

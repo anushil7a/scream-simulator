@@ -46,6 +46,9 @@ modal.Visible=false;mic.ready=false;mic.status="Roblox voice access is required.
 local clipped={}
 for _,obj in ipairs(micPanel:GetDescendants()) do if (obj:IsA("TextLabel") or obj:IsA("TextButton")) and not obj.TextFits then table.insert(clipped,obj.Text) end end
 table.insert(report,{tab="Mic setup",menuSize=tostring(micPanel.AbsoluteSize),clipped=clipped})
+notify("Nick: I lost THREE balls. You have 120 seconds! Check the north beach loungers, east of the pier, and the path north of this court. Hold F nearby.")
+task.wait(.15)
+table.insert(report,{tab="Long notification",clipped=not toast.TextFits,size=tostring(toast.AbsoluteSize)})
 return report
 '''
 (root/'build/StudioUIPreview.luau').write_text(source)

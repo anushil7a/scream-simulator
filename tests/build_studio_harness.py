@@ -35,3 +35,8 @@ print('Assembled server, client and animation harnesses from current source')
 world_source=bundle(common+[server/'City.luau'],server/'World.luau')
 head,tail=world_source.rsplit('return World',1)
 (out/'StudioWorldHarness.luau').write_text(head+'return World.Build()'+tail)
+
+# Isolated actual-service collection/cleanup audit with fake player records.
+soccer_source=bundle(common+[server/'CombatRules.luau'],server/'SoccerChallenge.luau')
+audit_source=(ROOT/'tests/StudioSoccerAudit.luau').read_text()
+(out/'StudioSoccerHarness.luau').write_text('assert(game.PlaceId==0);local world=workspace:FindFirstChild("ScreamSimulatorWorld");local owned=not world;if not world then world=Instance.new("Model");world.Name="ScreamSimulatorWorld";world.Parent=workspace end\nlocal Soccer=(function()\n'+soccer_source+'\nend)()\nlocal audit=(function()\n'+audit_source+'\nend)()\nlocal result=audit(Soccer);if owned then world:Destroy() end;return result')
