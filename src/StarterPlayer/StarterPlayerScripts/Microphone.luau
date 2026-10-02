@@ -11,18 +11,22 @@ function Microphone.new()
 end
 function Microphone:Check()
  self.generation+=1;local generation=self.generation
- self.status='Checking Roblox voice access…';self.eligible=false;self.ready=false;self:Cancel()
- task.delay(10,function() if self.generation==generation and not self.eligible then self.status='Voice access check timed out. Check Roblox voice settings, then retry.' end end)
+ self.status='Checking Roblox voice access…';self.eligible=false;self.ready=false;self.checkPending=true;self:CancelCalibration();self:Cancel()
+ task.delay(10,function() if self.generation==generation and self.checkPending then self.status='Voice access check timed out. Check Roblox voice settings, then retry.' end end)
  task.spawn(function()
   local ok,enabled=pcall(function() return Voice:IsVoiceEnabledForUserIdAsync(Players.LocalPlayer.UserId) end)
   if self.generation~=generation then return end
+  self.checkPending=false
   self.eligible=ok and enabled==true
   self.status=self.eligible and 'Unmute your Roblox microphone, then calibrate.' or 'Roblox voice access is required. Enable eligible voice access in your account and allow microphone permission.'
  end)
 end
+function Microphone:CancelCalibration()
+ self.phase=nil;self.phaseStarted=nil;self.quiet={};self.spoken={}
+end
 function Microphone:FindInput()
  if self.input and self.input.Parent then return self.input end
- self:Cancel();self.ready=false
+ self:Cancel();self:CancelCalibration();self.ready=false
  if self.analyzer then self.analyzer:Destroy();self.analyzer=nil end
  local input=Players.LocalPlayer:FindFirstChildWhichIsA('AudioDeviceInput',true)
  if not input then return nil end
@@ -57,7 +61,7 @@ function Microphone:Step(dt)
  local input=self:FindInput()
  if not input then self.status='Waiting for Roblox mic input. The experience needs Voice Chat and the Audio API enabled.';self.power=0;return end
  if input.Muted then
-  self.ready=false;self.phase=nil;self:Cancel();self.model:Reset();self.power=0;self.status='Microphone muted. Unmute in Roblox to continue.';return
+  self.ready=false;self:CancelCalibration();self:Cancel();self.model:Reset();self.power=0;self.status='Microphone muted. Unmute in Roblox to continue.';return
  end
  local rms=self.analyzer.RmsLevel
  self.power=self.model:Step(rms,dt)
