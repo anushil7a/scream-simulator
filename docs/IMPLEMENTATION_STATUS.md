@@ -99,3 +99,11 @@ Approved scope: [development brief](PROFESSIONAL_REDESIGN_PROMPT.md). Started Oc
 - Review handheld equipment and run/jump/roll poses on actual R6/R15 rigs; reproduce physical dodge/scream input and mobile multitouch, beyond synthetic server requests.
 - Validate streaming, skyline continuity, performance at target population, full gameplay with two clients, long-running repair, persistence contention, disconnect/rejoin and migration.
 - Published mic prototype with eligible accounts, two real microphones, permission/mute/disconnect and nearby listeners still needs real-device participation. Pass and badge IDs remain unset. Document these owner-dependent gates; do not fabricate results or publish WIP over production.
+
+## Representative block art pass — October 1
+
+- Added four bounded frontage compositions (gallery balcony, stepped terracotta roofline, ceramic bands/piers, projecting atelier bays), distinct paint/trim palettes, lower-floor mullions, warm window variation, framed shop displays and pitched awnings. Fine balcony spindles are limited to the lower two floors on refined buildings.
+- Reviewed a four-building sample in disposable Place1 (`City.BuildFrontageSample`, never called by gameplay), then the actual arrival-side block, index 13, in the normal running local game. Fixed shop-sign depth after the first sample exposed fascia overlap. Runtime capture `arrival_frontages_clear` shows readable names and the new storefronts. Only that block has the new frontage flag; wholesale city propagation has not been claimed or performed.
+- Plane trees now have four branches, offset crown clusters and a central crown rather than three stacked ellipsoids. Collision remains on the existing trunk; new branches/crowns are decorative.
+- Actual updated world static-clearance audit passes: **zero road blockers, zero blocked entrances, 31 enterable interiors; 46,016 runtime parts / 3,023 solid parts**. Console shows only the expected unavailable-save warning. Added geometry has not yet been benchmarked at population/load targets.
+- HUD was hidden briefly for the environment screenshot, then restored. Play stopped cleanly. This is an incremental representative-block review, not final approval of the city-wide visual standard; district layout variation, interiors, more distinctive landmarks and meaningful activity still need work.

@@ -42,7 +42,15 @@ local function tree(parent,x,z,palm)
    for k=1,3 do part(parent,"PalmFrond",V(2.4,.22,3.5),cf*CFrame.new(0,-(k-1)^2*.35,k*2.2)*CFrame.Angles((k-2)*.23,0,0),leaf,Enum.Material.Grass,false) end
   end
  else
-  for j=1,3 do ellipsoid(parent,"PlaneTreeCrown",V(9+j,7,9+j),V(x+(j-2)*2,h+j,z+(j%2)*2),Color3.fromRGB(71+j*9,113+j*8,64+j*3),Enum.Material.Grass) end
+  -- Branches and separate crown clusters avoid the old stacked mushroom silhouette.
+  for j=0,3 do
+   local angle=j*math.pi/2+.45
+   local direction=V(math.cos(angle),0,math.sin(angle))
+   local start=V(x,h-2,z);local finish=V(x,h+1.5,z)+direction*3.2
+   part(parent,"PlaneTreeBranch",V(.55,.55,(finish-start).Magnitude),CFrame.lookAt((start+finish)/2,finish),Color3.fromRGB(116,96,69),Enum.Material.Wood,false)
+   ellipsoid(parent,"PlaneTreeCrown",V(7.4,5.8,7.4),finish+V(0,1,0),Color3.fromRGB(78+j*5,116+j*5,68+j*3),Enum.Material.Grass)
+  end
+  ellipsoid(parent,"PlaneTreeCrown",V(8.5,7,8.5),V(x,h+4,z),Color3.fromRGB(93,137,79),Enum.Material.Grass)
  end
 end
 local function lamp(parent,x,z)
@@ -71,10 +79,18 @@ local function cafe(parent,x,z,color)
  end
  cylinder(parent,"Cup",.3,.55,V(x,3.45,z),cream,Enum.Material.CeramicTiles)
 end
-local shops={"FORN DEL SOL","CAFÈ MARINA","FLORS I FULLes","LLIBRERIA","GELATS","MERCAT LOCAL","TAPES DEL BARRI","ESTUDI D'ART","PANADERIA","MÚSICA","FRUITA FRESCA","CASA DE TE"}
+local shops={"FORN DEL SOL","CAFÈ MARINA","FLORS I FULLES","LLIBRERIA","GELATS","MERCAT LOCAL","TAPES DEL BARRI","ESTUDI D'ART","PANADERIA","MÚSICA","FRUITA FRESCA","CASA DE TE"}
 local function building(parent,cf,w,d,floors,index,style)
  local m=model(parent,"Casa_"..index)
  local h=floors*8+7;local color=palette[Random.new(index*7919):NextInteger(1,#palette)]
+ local refined=parent:GetAttribute("RefinedFrontages")==true
+ local frontage=index%4
+ local accents={Color3.fromRGB(57,112,105),Color3.fromRGB(130,72,65),Color3.fromRGB(69,94,121),Color3.fromRGB(136,116,64)}
+ local accent=accents[frontage+1]
+ if refined then
+  local paints={Color3.fromRGB(230,207,165),Color3.fromRGB(204,146,117),Color3.fromRGB(183,199,177),Color3.fromRGB(237,220,185)}
+  color=paints[frontage+1];m:SetAttribute("FrontageStyle",({"Gallery","Terracotta","TileHouse","Atelier"})[frontage+1])
+ end
  local function b(name,size,pos,c,mat,solid) return part(m,name,size,cf*CFrame.new(pos),c,mat,solid) end
  local interior=(index%7==0 or index==501) and w>=24 and d>=20
  if interior then
@@ -123,16 +139,22 @@ local function building(parent,cf,w,d,floors,index,style)
   for col=1,cols do
    local x=(col-(cols+1)/2)*spacing
    b("WindowRecess",V(3.1,4.6,.2),V(x,y,-d/2-.16),iron,nil,false)
-   b("WindowGlass",V(2.6,4.1,.22),V(x,y,-d/2-.3),glass,Enum.Material.Glass,false)
-   b("WindowLintel",V(3.8,.4,.6),V(x,y+2.5,-d/2-.35),cream,Enum.Material.Limestone,false)
-   if style=="Born" or col%2==0 then
-    b("Shutter",V(.8,4.4,.35),V(x-2,y,-d/2-.35),Color3.fromRGB(73,101,83),Enum.Material.Wood,false)
-    b("Shutter",V(.8,4.4,.35),V(x+2,y,-d/2-.35),Color3.fromRGB(73,101,83),Enum.Material.Wood,false)
+   local paneColor=refined and (floor+col+index)%7==0 and Color3.fromRGB(193,168,109) or glass
+   b("WindowGlass",V(2.6,4.1,.22),V(x,y,-d/2-.3),paneColor,Enum.Material.Glass,false)
+   if refined and floor<=2 then
+    b("WindowMullion",V(.12,4.1,.08),V(x,y,-d/2-.45),cream,nil,false)
+    b("WindowTransom",V(2.6,.12,.08),V(x,y+.55,-d/2-.45),cream,nil,false)
    end
-   if (floor+col+index)%2==0 then
+   b("WindowLintel",V(3.8,.4,.6),V(x,y+2.5,-d/2-.35),cream,Enum.Material.Limestone,false)
+   if style=="Born" or (refined and frontage==1) or col%2==0 then
+    b("Shutter",V(.8,4.4,.35),V(x-2,y,-d/2-.35),(refined and accent or Color3.fromRGB(73,101,83)),Enum.Material.Wood,false)
+    b("Shutter",V(.8,4.4,.35),V(x+2,y,-d/2-.35),(refined and accent or Color3.fromRGB(73,101,83)),Enum.Material.Wood,false)
+   end
+   if (floor+col+index)%2==0 and not (refined and frontage==0 and floor==1) then
     b("BalconySlab",V(4.7,.3,2.1),V(x,y-2.2,-d/2-1),stone,Enum.Material.Limestone,false)
     b("IronBalconyRail",V(4.7,1,.15),V(x,y-1.25,-d/2-2),iron,Enum.Material.Metal,false)
-    for _,dx in ipairs({-1.7,0,1.7}) do b("Baluster",V(.12,1.6,.15),V(x+dx,y-1.4,-d/2-2),iron,Enum.Material.Metal,false) end
+    -- Broad upper rails read at distance; fine ironwork is reserved for street-level floors.
+    if not refined or floor<=2 then for _,dx in ipairs({-1.7,0,1.7}) do b("Baluster",V(.12,1.6,.15),V(x+dx,y-1.4,-d/2-2),iron,Enum.Material.Metal,false) end end
     if col==1 then b("WindowFlowers",V(3,.55,.55),V(x,y-.9,-d/2-2),Color3.fromRGB(174,79,100),Enum.Material.Grass,false) end
    end
   end
@@ -144,11 +166,47 @@ local function building(parent,cf,w,d,floors,index,style)
    b("SideWindow",V(.15,4,2.7),V(side*(w/2+.1),y,k*d/4),glass,Enum.Material.Glass,false)
   end end
  end
+ if refined then
+  -- Four frontage compositions share a collision shell and a clear central entrance.
+  if frontage==0 then
+   b("GalleryBalcony",V(w-5,.35,2.8),V(0,9.8,-d/2-1.3),stone,Enum.Material.Limestone,false)
+   b("GalleryRail",V(w-5,1.1,.18),V(0,10.7,-d/2-2.6),iron,Enum.Material.Metal,false)
+   for x=-w/2+4,w/2-4,4 do b("GallerySpindle",V(.14,1.8,.14),V(x,10.6,-d/2-2.6),iron,Enum.Material.Metal,false) end
+   b("UpperTerrace",V(w*.64,1.8,d*.5),V(0,h+2.5,d*.12),stone,Enum.Material.Limestone,false)
+  elseif frontage==1 then
+   for _,side in ipairs({-1,1}) do
+    b("SteppedGable",V(w*.22,2.6,.9),V(side*w*.23,h+2.7,-d/2),cream,Enum.Material.Limestone,false)
+   end
+   b("GableCrown",V(w*.22,4.1,.9),V(0,h+3.45,-d/2),cream,Enum.Material.Limestone,false)
+  elseif frontage==2 then
+   for floor=1,floors do
+    b("CeramicBelt",V(w-.8,.65,.35),V(0,7.5+floor*8,-d/2-.4),accent,Enum.Material.CeramicTiles,false)
+   end
+   for _,side in ipairs({-1,1}) do b("CeramicPier",V(.55,h-8,.4),V(side*(w/2-2),h/2+5,-d/2-.45),accent,Enum.Material.CeramicTiles,false) end
+  else
+   for _,side in ipairs({-1,1}) do
+    b("AtelierBay",V(4.8,h-12,1),V(side*w*.27,(h+12)/2,-d/2-.55),stone,Enum.Material.Limestone,false)
+    for floor=2,floors do b("BayGlazing",V(3.5,5,.16),V(side*w*.27,4+floor*8,-d/2-1.1),glass,Enum.Material.Glass,false) end
+   end
+   b("AtelierRoofLight",V(w*.38,2,d*.34),V(0,h+2.8,0),accent,Enum.Material.Metal,false)
+  end
+  b("ShopFascia",V(w-.8,1.4,.55),V(0,8.3,-d/2-.4),accent,Enum.Material.Wood,false)
+ end
  for _,x in ipairs({-w*.23,w*.23}) do
   b("ShopGlazing",V(w*.31,5.3,.25),V(x,4,-d/2-.25),glass,Enum.Material.Glass,false)
-  b("ShopAwning",V(w*.35,.5,3),V(x,7,-d/2-1),index%2==0 and Color3.fromRGB(118,67,57) or Color3.fromRGB(61,111,99),Enum.Material.Fabric,false)
+  local awningColor=refined and accent or index%2==0 and Color3.fromRGB(118,67,57) or Color3.fromRGB(61,111,99)
+  local canopy=b("ShopAwning",V(w*.35,.35,3),V(x,7,-d/2-1),awningColor,Enum.Material.Fabric,false)
+  if refined then
+   canopy.CFrame*=CFrame.Angles(-.14,0,0)
+   b("AwningValance",V(w*.35,.55,.12),V(x,6.5,-d/2-2.5),awningColor,Enum.Material.Fabric,false)
+   b("ShopWindowFrame",V(w*.31+.5,5.8,.13),V(x,4,-d/2-.39),accent,Enum.Material.Wood,false)
+   b("ShopWindowInset",V(w*.31-.4,4.9,.1),V(x,4,-d/2-.48),glass,Enum.Material.Glass,false)
+   b("ShopTransom",V(w*.31-.4,.14,.1),V(x,5.55,-d/2-.55),cream,nil,false)
+   for _,side in ipairs({-1,1}) do b("DisplayMullion",V(.13,4.9,.12),V(x+side*w*.065,4,-d/2-.57),cream,nil,false) end
+   b("DisplayShelf",V(w*.27,.18,.15),V(x,2.6,-d/2-.57),cream,nil,false)
+  end
  end
- sign(m,shops[(index-1)%#shops+1],cf*CFrame.new(0,8.7,-d/2-.5),math.min(w-3,26))
+ sign(m,shops[(index-1)%#shops+1],cf*CFrame.new(0,8.7,-d/2-(refined and .85 or .5)),math.min(w-3,26))
  if style=="Modernista" then
   for i=-2,2 do
    local ornament=b("CeramicCrown",V(3,2.8+math.abs(i),2),V(i*w/6,h+2.5,-d/2),i%2==0 and Color3.fromRGB(78,146,145) or cream,Enum.Material.CeramicTiles,false)
@@ -173,7 +231,7 @@ local function garden(parent,x,z)
  bench(parent,CFrame.new(x+18,0,z+14));bench(parent,CFrame.new(x-18,0,z-14)*CFrame.Angles(0,math.pi,0))
 end
 local function block(parent,x,z,index,style,walk,activities)
- local m=model(parent,style.."Block_"..index);octagon(m,x,z);garden(m,x,z)
+ local m=model(parent,style.."Block_"..index);m:SetAttribute("RefinedFrontages",index==13);octagon(m,x,z);garden(m,x,z)
  for _,side in ipairs({-1,1}) do
   for j,offset in ipairs({-40,40}) do
    building(m,CFrame.lookAt(V(x+offset,0,z+side*82),V(x+offset,0,z+side*150)),68,28,3+(index+j)%3,index*20+j+(side+1)*2,style)
@@ -437,5 +495,12 @@ function City.Build(parent)
  for _,x in ipairs({-725,725}) do part(parent,"MapEdge",V(2,140,1210),V(x,68,0),dark).Transparency=1 end
  for _,z in ipairs({-605,605}) do part(parent,"MapEdge",V(1450,140,2),V(0,68,z),dark).Transparency=1 end
  return {jobs=workplaces(parent),walk=walk,activities=activities,spawn=CFrame.new(-600,4,210)}
+end
+-- Small review scene; never called by gameplay world generation.
+function City.BuildFrontageSample(parent)
+ parent:SetAttribute("RefinedFrontages",true)
+ part(parent,"ReviewSidewalk",V(170,1,65),V(0,0,0),stone,Enum.Material.Pavement)
+ for i=0,3 do building(parent,CFrame.new(-60+i*40,0,8),34,25,3+i%2,800+i,"Eixample") end
+ for _,x in ipairs({-78,78}) do tree(parent,x,-15,false);lamp(parent,x,-22) end
 end
 return City
