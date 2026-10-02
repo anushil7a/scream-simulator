@@ -728,6 +728,33 @@ local function carAt(car,distance)
     if car.direction<0 then x=690-distance end
     return CFrame.new(x,2.05,car.lane)*CFrame.Angles(0,car.direction>0 and 0 or math.pi,0)
 end
+-- Traffic yields to residents in its lane. Players remain subject to impact rules.
+function World.StepTraffic(car,dt)
+    dt=math.clamp(dt,0,.1)
+    local previous=car.model:GetPivot()
+    local clearance=math.huge
+    for _,bot in ipairs(World.Bots) do
+        if bot.alive and bot.root.Parent then
+            local relative=previous:PointToObjectSpace(bot.root.Position)
+            if relative.X>=-8 and math.abs(relative.Z)<5.5 and math.abs(relative.Y)<6 then
+                clearance=math.min(clearance,math.max(0,relative.X-9))
+            end
+        end
+    end
+    local cruise=car.cruiseSpeed or car.speed
+    local target=math.min(cruise,math.sqrt(2*30*clearance))
+    car.speed=math.clamp(target,math.max(0,car.speed-30*dt),car.speed+8*dt)
+    local travel=math.min(dt*car.speed,clearance)
+    if dt>0 and travel<dt*car.speed then car.speed=travel/dt end
+    car.distance+=travel
+    local wrapped=car.distance>1380
+    if wrapped then car.distance-=1380 end
+    local nextFrame=carAt(car,car.distance)
+    if travel>0 and not wrapped and World.OnVehicleSweep then World.OnVehicleSweep(car,previous,nextFrame) end
+    car.model:PivotTo(nextFrame)
+    car.model:SetAttribute("Speed",car.speed)
+    car.model:SetAttribute("Yielding",target<cruise)
+end
 function World.Build()
     local old=workspace:FindFirstChild("ScreamSimulatorWorld");if old then old:Destroy() end
     table.clear(World.Bots);table.clear(World.Cars);table.clear(seatReservations)
@@ -746,7 +773,7 @@ function World.Build()
     for i,job in ipairs(layout.jobs or {}) do local point=job.stations[1].position;makeBot(parent,#seeds+i,point.X,point.Z,job.role,job) end
     for i,spec in ipairs({{-368,1,23},{-352,-1,21},{112,1,20},{128,-1,24},{352,1,18},{368,-1,22}}) do
         local m=vehicle(parent,i%2==0 and "Sedan" or "Taxi",i%2==0 and Color3.fromRGB(65+i*15,104,115) or Color3.fromRGB(226,177,64));m.Name="TrafficCar"..i
-        local car={model=m,hull=m.CollisionHull,lane=spec[1],direction=spec[2],speed=spec[3],distance=(i-1)*210};m:PivotTo(carAt(car,car.distance));table.insert(World.Cars,car)
+        local car={model=m,hull=m.CollisionHull,lane=spec[1],direction=spec[2],speed=spec[3],cruiseSpeed=spec[3],distance=(i-1)*210};m:PivotTo(carAt(car,car.distance));table.insert(World.Cars,car)
     end
     for i,pos in ipairs({{-490,-110},{490,105},{-490,130},{690,120}}) do taxi(parent,pos[1],pos[2],"Sedan",Color3.fromRGB(91+i*22,93,99)) end
     if RunService:IsRunning() then
@@ -755,12 +782,7 @@ function World.Build()
             while parent.Parent do
                 local dt=RunService.Heartbeat:Wait();local now=os.clock();grounding+=dt
                 for _,car in ipairs(World.Cars) do
-                    local previous=car.model:GetPivot();local travel=math.min(dt,.1)*car.speed;car.distance+=travel
-                    local wrapped=car.distance>1380;if wrapped then car.distance-=1380 end
-                    local nextFrame=carAt(car,car.distance)
-                    if not wrapped and World.OnVehicleSweep then World.OnVehicleSweep(car,previous,nextFrame) end
-                    car.model:PivotTo(nextFrame)
-                    car.model:SetAttribute("Speed",car.speed)
+                    World.StepTraffic(car,dt)
                 end
                 local groundParams
                 if grounding>=.25 then

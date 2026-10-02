@@ -89,3 +89,7 @@ The owner requested that blocked items be recorded while independent work contin
 ## Additional menu regression check — 2026-10-02
 
 Nine native Studio checks passed for tab-specific refresh and scroll preservation in `StudioMenuRefresh.client.luau`. Synthetic XP/quest changes retained scream card instances; level changes rebuilt them while retaining scroll; settings changes refreshed their tab. No claim of physical-device input or frame-time improvement is made. Fixture removed after the run.
+
+## Traffic yielding regression — 2026-10-02
+
+Cars now brake for residents in their lane and resume gradually; stationary cars do not emit impact callbacks. `StudioTraffic.server.luau` passed 1,330 per-step assertions in controlled native Studio movement for both directions, sudden crossing clearance, stop/no-impact and recovery. This uses positioned test parts, not an autonomous NPC crossing or live multiplayer player-hit test. Those physical tests remain required.

@@ -496,3 +496,10 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - Relevant changes still rebuild the active tab. Rebuilds retain its scroll position after layout; switching tabs resets to the top. A revision guard prevents stale deferred restores from moving a newer tab.
 - `tests/StudioMenuRefresh.client.luau`: nine native Studio assertions passed using synthetic profile changes and actual GUI instances (XP subtitle, instance retention, quest independence, level refresh, scroll retention, tab reset, settings refresh). This is not a physical input or performance benchmark.
 - Removed the appended fixture and stopped play; synchronized the clean Client source to both development Studio copies. No live publication.
+
+## 2026-10-02 — traffic yields to residents
+
+- Traffic previously advanced at fixed speed through NPC crossings. Cars now check living residents in their lane, brake toward available clearance, clamp travel if a resident suddenly enters the front clearance, and accelerate at 8 studs/s² toward their cruise speed after the lane clears. The lookahead uses native car-local coordinates, including reverse-direction lanes.
+- The server only emits a vehicle impact sweep when the car actually travels. Stationary solid cars therefore do not repeatedly hurt players or calculate a zero-length impact direction. Players remain subject to normal moving-car damage; this change does not make traffic harmless.
+- `tests/StudioTraffic.server.luau` passed 1,330 assertions across deterministic 60 Hz traffic steps in native Studio models/CFrames: both lane directions, stop clearance, stationary callbacks, smooth recovery, sudden crossings, and residents behind the car. The high assertion count includes repeated per-step invariants, not 1,330 distinct play scenarios. No physical NPC crossing, live player impact, multiplayer, or frame-rate benchmark is claimed.
+- Fixture removed, play stopped, clean World source synchronized to both development Studio copies. Physical collision playtests remain open in the QA report.
