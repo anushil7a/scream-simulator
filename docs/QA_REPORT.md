@@ -137,3 +137,7 @@ A standalone [mic feasibility project and two-person procedure](../prototypes/mi
 ## Mic-lab native startup follow-up — 2026-10-02
 
 The lab scripts booted in the existing disposable Studio copy with unrelated automatic scripts disabled: GUI, remote and floor appeared, no city was built, console was empty, and missing mic input stayed not-ready. Original game scripts/enabled states were restored and Play stopped. This narrows the earlier runtime gap to a successful startup check; published real-audio capture remains unverified. Code also blocks overlapping acknowledgement requests; ground labels replace overlapping billboards. Those final refinements compile/build but have no additional live-mic/network evidence.
+
+## Navigation map follow-up — 2026-10-02
+
+CityMap now replaces broad zone blocks with actual road positions, beach extent, six numbered landmarks, a destination legend and correctly centered position/heading arrow. Preserves world aspect ratio and hides stale player position during respawn. Twelve synthetic native UI checks at648/270holder widths passed; wide/narrow renders reviewed in disposable FountainReview, then fixtures removed and Play stopped. Both city builds succeed;29production sources now. This addition has not been synced/published to the private city preview and does not establish physical-device usability or frame rate.

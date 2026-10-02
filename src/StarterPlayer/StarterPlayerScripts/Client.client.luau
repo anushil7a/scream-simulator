@@ -1,3 +1,4 @@
+local CityMap=require(script.Parent:WaitForChild("CityMap"))
 local Players=game:GetService("Players")
 local RS=game:GetService("ReplicatedStorage")
 local UIS=game:GetService("UserInputService")
@@ -230,13 +231,13 @@ render=function()
   end
  elseif selected=="Map" then
   title.Text="CITY & COAST";subtitle.Text="Arena District: 40% PvP. Outer neighborhoods and beach: 60% safe."
-  local c=card(250)
-  local map=frame(c,"Map",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13),Color3.fromRGB(45,66,72))
-  local function area(t,x,y,w,h,col) local f=frame(map,t,UDim2.fromScale(w,h),UDim2.fromScale(x,y),col);local l=label(f,t,UDim2.fromScale(1,1),UDim2.new(),13);l.TextXAlignment=Enum.TextXAlignment.Center;return f end
-  area("SAFE NORTH",0,0,1,.2,Color3.fromRGB(50,93,82));area("SAFE\nWEST",0,.2,.166,.6,Color3.fromRGB(50,93,82));area("SAFE\nEAST",.833,.2,.167,.6,Color3.fromRGB(50,93,82))
-  area("ARENA DISTRICT • PvP\n40% of playable land",.166,.2,.667,.6,Color3.fromRGB(136,65,70));area("BARCELONETA • SAFE BEACH",0,.8,1,.2,Color3.fromRGB(159,137,91))
-  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root then local pos=root.Position;mapDot=area("●",math.clamp((pos.X+720)/1440,0,.94),math.clamp((pos.Z+600)/1200,0,.94),.06,.06,gold) end
-  info("Gold dot: you. Spawn: Plaça del Sol, southwest. Beach: south. Coffee: west promenade café → music stage. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
+  local c=card(300)
+  local holder=frame(c,"MapHolder",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13));holder.BackgroundTransparency=1
+  mapDot=CityMap.create(holder)
+  CityMap.update(mapDot,p.Character and p.Character:FindFirstChild("HumanoidRootPart"))
+  info("Gold arrow: you and your facing direction. Red: PvP. Green and sand: safe. North is up.",64)
+  info(CityMap.legend,94)
+  info("Coffee: west promenade café → music stage. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
   info("Hold E / SCREAM, use mic, release: fire toward aim\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",125)
@@ -458,7 +459,7 @@ Run.RenderStepped:Connect(function(dt)
   nextResidentUi=os.clock()+.1
   talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
  end
- if root and mapDot and mapDot.Parent then mapDot.Position=UDim2.fromScale(math.clamp((root.Position.X+720)/1440,0,.94),math.clamp((root.Position.Z+600)/1200,0,.94)) end
+ if mapDot then CityMap.update(mapDot,root) end
  talkButton.Visible=talkTarget~=nil and mic.ready and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
 end)
 action:FireServer("Sync")
