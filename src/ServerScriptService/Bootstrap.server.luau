@@ -184,6 +184,24 @@ local function closeConversation(p)
  if bot and bot.talkingTo==p then bot.talkingTo=nil;bot.socialUntil=0 end
  if s then s.conversationBot=nil end
 end
+local function microSpeaker(p,s,toggleOwned)
+ if s.data.amplifierOwned then
+  if toggleOwned then s.data.amplifierEquipped=not s.data.amplifierEquipped
+  else state(p,"You already own a micro-speaker. Equip it from Style.");return end
+ else
+  if s.data.coins<Config.MicroSpeakerPrice then state(p,"Micro-speaker costs "..Config.MicroSpeakerPrice.." coins. You need "..(Config.MicroSpeakerPrice-s.data.coins).." more.");return end
+  s.data.coins-=Config.MicroSpeakerPrice;s.data.amplifierOwned=true;s.data.amplifierEquipped=true
+ end
+ state(p,s.data.amplifierEquipped and "Micro-speaker equipped · +12% normalized power, capped at 100%" or "Micro-speaker unequipped")
+end
+local function vendorPurchase(p,s,arg)
+ local bot=s.conversationBot;local _,root=parts(p)
+ if type(arg)~="table" or arg.product~="MicroSpeaker" or not bot or arg.npc~=bot.id or bot.role~="Vendor" or not bot.alive or not bot.root.Parent or bot.talkingTo~=p or (bot.socialUntil or 0)<=os.clock() or not root or (root.Position-bot.root.Position).Magnitude>14 then
+  state(p,"Speak with the market vendor nearby before buying.");return
+ end
+ -- No yielding between ownership check and debit: duplicate requests never charge twice.
+ microSpeaker(p,s,false)
+end
 local function talk(p,id)
  local s=sessions[p];local _,r=parts(p);if not s or not r or type(id)~="string" or os.clock()<(s.nextTalk or 0) then return end
  for _,b in ipairs(World.Bots) do if b.id==id and b.alive and b.root.Parent and (b.root.Position-r.Position).Magnitude<=14 then
@@ -205,7 +223,7 @@ local function talk(p,id)
    if q then table.insert(choices,{id=id,name=q.name,description=q.description,claimed=progress and progress.claimed==true,complete=progress and progress.progress>=q.goal}) end
   end
   local hints={Gardener="The raised flowerbeds in Rambla Gardens need water. Hold F beside each bed after accepting my task.",Vendor="The café prepares orders for the music stage. Pick up a fresh order before starting your delivery.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker="Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
-  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices});return
+  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices,products=b.role=="Vendor" and {{id="MicroSpeaker",name="Micro-speaker",price=Config.MicroSpeakerPrice,owned=s.data.amplifierOwned,description="Handheld amplifier · +12% normalized power, capped at 100%. Buy once with earned coins."}} or nil});return
  end end
 end
 local function dev(p,command)
@@ -307,12 +325,8 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="Talk" then talk(p,arg)
  elseif verb=="DevCommand" then dev(p,arg)
  elseif verb=="EquipSound" then local sound=type(arg)=="string" and Config.GetSound(arg);if sound and sound.level<=s.data.level then s.data.sound=sound.id;state(p,sound.name.." equipped") end
- elseif verb=="MicroSpeaker" then
-  if not s.data.amplifierOwned then
-   if s.data.coins<Config.MicroSpeakerPrice then state(p,"Micro-speaker costs "..Config.MicroSpeakerPrice.." coins.");return end
-   s.data.coins-=Config.MicroSpeakerPrice;s.data.amplifierOwned=true;s.data.amplifierEquipped=true
-  else s.data.amplifierEquipped=not s.data.amplifierEquipped end
-  state(p,s.data.amplifierEquipped and "Micro-speaker equipped · +12% normalized power, capped at 100%" or "Micro-speaker unequipped")
+ elseif verb=="MicroSpeaker" then microSpeaker(p,s,true)
+ elseif verb=="VendorPurchase" then vendorPurchase(p,s,arg)
  elseif verb=="SetAura" and type(arg)=="string" and Config.Auras[arg] then s.data.aura=arg;state(p)
  elseif verb=="AcceptQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg)

@@ -212,6 +212,15 @@ showConversation=function(info)
   order+=1;local b=button(conversationList,"Choice",text,UDim2.new(1,-10,0,48),UDim2.new(),callback);b.TextWrapped=true;b.LayoutOrder=order;return b
  end
  choice("Tell me about this neighborhood",function() line.Text=info.hint end)
+ for _,product in ipairs(info.products or {}) do
+  words(product.description,muted)
+  local b=choice(product.owned and (product.name.." · owned") or ("Buy "..product.name.." · "..product.price.." coins"),function()
+   if not product.owned and conversationNPC then
+    action:FireServer("VendorPurchase",{npc=conversationNPC:GetAttribute("NpcId"),product=product.id});closeConversation()
+   end
+  end)
+  b.Active=not product.owned;b.AutoButtonColor=not product.owned
+ end
  if data.activeQuest then words("Starting another task resets unfinished progress on your current task.",muted) end
  for _,q in ipairs(info.quests or {}) do
   words(q.description,muted)
