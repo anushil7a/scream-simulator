@@ -18,7 +18,7 @@ rojo build default.project.json -o build/MicrophoneCity.rbxlx
 
 Open `build/MicrophoneCity.rbxl` in Roblox Studio and press Play. The city is generated on startup; an empty Edit viewport is expected. Build from `src/` rather than assuming older root-level place files contain this redesign. Rojo 7.7 was used. Generated `build/` outputs are ignored by Git.
 
-Read the [development brief](docs/PROFESSIONAL_REDESIGN_PROMPT.md), [implementation evidence and remaining work](docs/IMPLEMENTATION_STATUS.md), [asset inventory](docs/ASSET_INVENTORY.md), and [contributor guide](CONTRIBUTING.md).
+Read the [current QA report and release gates](docs/QA_REPORT.md), [development brief](docs/PROFESSIONAL_REDESIGN_PROMPT.md), [implementation evidence and remaining work](docs/IMPLEMENTATION_STATUS.md), [asset inventory](docs/ASSET_INVENTORY.md), and [contributor guide](CONTRIBUTING.md).
 
 ## Implemented in this branch
 
