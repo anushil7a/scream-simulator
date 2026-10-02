@@ -13,6 +13,7 @@ local City=require(script.Parent.City)
 World.Bots = {}
 World.WalkPoints = {}
 World.ActivityPoints = {}
+World.Seats = {}
 
 local rng = Random.new(8044)
 local C = {
@@ -221,7 +222,20 @@ function World.Speak(bot, message)
     end)
 end
 
+local seatReservations={}
+local function releaseSeat(bot)
+    local seat=bot.restSeat
+    if seat and seatReservations[seat]==bot then seatReservations[seat]=nil end
+    bot.restSeat=nil
+    if bot.readingBook then bot.readingBook:Destroy();bot.readingBook=nil end
+    if bot.model.Parent then bot.model:SetAttribute("Resting",false);bot.model:SetAttribute("Reading",false) end
+    if seat and bot.humanoid.SeatPart==seat then
+        bot.humanoid.Sit=false
+        bot.humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+    end
+end
 local function stopWalking(bot)
+    releaseSeat(bot)
     bot.pathVersion=(bot.pathVersion or 0)+1
     bot.humanoid:MoveTo(bot.root.Position)
     bot.working=false
@@ -263,7 +277,7 @@ local function roamTo(bot, destination)
     bot.pathVersion=(bot.pathVersion or 0)+1;local version=bot.pathVersion
     local path = PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5, AgentCanJump=false, AgentCanClimb=false, WaypointSpacing=5, Costs={Fountain=math.huge,Asphalt=8}})
     local ok = pcall(function() path:ComputeAsync(bot.root.Position, destination) end)
-    if not ok or path.Status ~= Enum.PathStatus.Success or bot.pathVersion~=version then task.wait(0.3); return end
+    if not ok or path.Status ~= Enum.PathStatus.Success or bot.pathVersion~=version then path:Destroy();task.wait(0.3); return end
     local blocked = false
     local connection = path.Blocked:Connect(function() blocked = true end)
     for _, waypoint in ipairs(path:GetWaypoints()) do
@@ -278,7 +292,44 @@ local function roamTo(bot, destination)
             task.wait(0.06)
         end
     end
-    connection:Disconnect()
+    connection:Disconnect();path:Destroy()
+end
+
+local function usableSeat(seat)
+    local group=seat and seat.Parent
+    return seat and seat.Parent and seat:IsA("Seat") and not seat.Disabled and group and not group:GetAttribute("Destroyed")
+end
+function World.UseSeat(bot,seat,duration)
+    if not bot.alive or (bot.socialUntil or 0)>os.clock() or (bot.reactionUntil or 0)>os.clock() or not usableSeat(seat) or seat.Occupant or seatReservations[seat] then return false end
+    stopWalking(bot);seatReservations[seat]=bot;bot.restSeat=seat
+    bot.model:SetAttribute("Activity","Finding a seat")
+    local approach=seat.Position+seat.CFrame.LookVector*4+Vector3.new(0,1,0)
+    roamTo(bot,approach)
+    if bot.restSeat~=seat then return false end
+    if not bot.alive or not usableSeat(seat) or seat.Occupant or (bot.root.Position-seat.Position).Magnitude>8 then releaseSeat(bot);return false end
+    bot.humanoid:MoveTo(bot.root.Position);seat:Sit(bot.humanoid)
+    task.wait(.2)
+    if bot.restSeat~=seat then return false end
+    if bot.humanoid.SeatPart~=seat then releaseSeat(bot);return false end
+    local reading=(bot.model:GetAttribute("AnimationSeed") or 0)%2==0
+    bot.model:SetAttribute("Resting",true);bot.model:SetAttribute("Reading",reading)
+    bot.model:SetAttribute("Activity",reading and "Reading in the courtyard" or "Taking a quiet break")
+    if reading then
+        local arm=bot.model:FindFirstChild("Left Arm")
+        if arm then bot.readingBook=accessory(bot.model,arm,"CourtyardBook",Vector3.new(1.3,.15,1.1),CFrame.new(.3,-1,-.4),Color3.fromRGB(57,112,105),Enum.Material.Fabric) end
+    end
+    local ends=os.clock()+math.clamp(duration or rng:NextNumber(9,16),1,20)
+    while bot.restSeat==seat and bot.alive and bot.model.Parent and usableSeat(seat) and seat.Occupant==bot.humanoid and os.clock()<ends do task.wait(.15) end
+    if bot.restSeat==seat then releaseSeat(bot) end
+    return true
+end
+local function restNearby(bot,destination)
+    local choices={}
+    for _,seat in ipairs(World.Seats) do
+        if seat:IsA("Seat") and usableSeat(seat) and not seat.Occupant and not seatReservations[seat] and (seat.Position-destination).Magnitude<25 then table.insert(choices,seat) end
+    end
+    table.sort(choices,function(a,b) return (a.Position-bot.root.Position).Magnitude<(b.Position-bot.root.Position).Magnitude end)
+    return choices[1] and World.UseSeat(bot,choices[1]) or false
 end
 
 local function socialize(bot)
@@ -307,6 +358,7 @@ local function socialize(bot)
 end
 
 local function noticePlayers(bot)
+    if bot.restSeat or (bot.socialUntil or 0)>os.clock() then return end
     if (bot.lastGreeting or 0) + 14 > os.clock() then return end
     for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
         local character = player.Character
@@ -484,7 +536,9 @@ local function makeBot(parent, index, x, z, role, job)
             task.wait(index * 0.08)
             while model.Parent do
                 if bot.alive then
-                    if (bot.reactionUntil or 0) > os.clock() then
+                    if bot.restSeat then
+                        task.wait(.2)
+                    elseif (bot.reactionUntil or 0) > os.clock() then
                         task.wait(0.5)
                     elseif (bot.socialUntil or 0)>os.clock() then
                         task.wait(.2)
@@ -517,7 +571,9 @@ local function makeBot(parent, index, x, z, role, job)
                             local destination, kind = chooseDestination(bot)
                             roamTo(bot, destination)
                             if bot.alive and (destination - bot.root.Position).Magnitude < 13 then
-                                if kind == "Browse" or kind == "Watch" or kind == "Rest" then
+                                if kind=="Rest" and restNearby(bot,destination) then
+                                    bot.model:SetAttribute("Activity","Exploring the neighborhood")
+                                elseif kind == "Browse" or kind == "Watch" or kind == "Rest" then
                                     bot.gestureUntil = os.clock() + 2.5
                                     task.wait(rng:NextNumber(2, 4))
                                 elseif rng:NextNumber() < 0.3 then
@@ -574,12 +630,13 @@ local function carAt(car,distance)
 end
 function World.Build()
     local old=workspace:FindFirstChild("ScreamSimulatorWorld");if old then old:Destroy() end
-    table.clear(World.Bots);table.clear(World.Cars)
+    table.clear(World.Bots);table.clear(World.Cars);table.clear(seatReservations)
     pcall(function() PhysicsService:RegisterCollisionGroup("Residents") end)
     PhysicsService:CollisionGroupSetCollidable("Residents","Residents",false)
     atmosphere()
     local parent=Instance.new("Model");parent.Name="ScreamSimulatorWorld";parent.Parent=workspace
     local layout=City.Build(parent);World.WalkPoints=layout.walk;World.ActivityPoints=layout.activities;World.SafeSpawn=layout.spawn
+    table.clear(World.Seats);for _,item in ipairs(parent:GetDescendants()) do if item:IsA("Seat") then table.insert(World.Seats,item) end end
     local spawn=Instance.new("SpawnLocation");spawn.Name="SafeSpawn";spawn.Size=Vector3.new(7,.2,7);spawn.CFrame=World.SafeSpawn-Vector3.new(0,3,0);spawn.Anchored=true;spawn.Neutral=true;spawn.Duration=0;spawn.Transparency=1;spawn.CanCollide=false;spawn.Parent=parent
     local roles={"Local","Tourist","Vendor","Commuter","Busker","Fighter"}
     -- Cluster residents at destinations; leave roads and building interiors clear.
@@ -611,7 +668,7 @@ function World.Build()
                     local gesture=(bot.gestureUntil or 0)>now
                     if bot.model:GetAttribute("Gesturing")~=gesture then bot.model:SetAttribute("Gesturing",gesture) end
                     if bot.model:GetAttribute("Working")~=(bot.working==true) then bot.model:SetAttribute("Working",bot.working==true) end
-                    if grounding>=.25 then
+                    if grounding>=.25 and not bot.humanoid.SeatPart then
                         local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
                         local exclude={};for _,b in ipairs(World.Bots) do table.insert(exclude,b.model) end
                         for _,player in ipairs(game.Players:GetPlayers()) do if player.Character then table.insert(exclude,player.Character) end end

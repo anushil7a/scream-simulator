@@ -35,7 +35,8 @@ Run.PreSimulation:Connect(function(dt)
   if rig.elapsed<interval then continue end
   local elapsed=math.min(rig.elapsed,.2);rig.elapsed=0
   local speed=Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z).Magnitude
-  local moving=humanoid.Health>0 and speed>.4 and humanoid.FloorMaterial~=Enum.Material.Air
+  local seated=humanoid.SeatPart~=nil
+  local moving=not seated and humanoid.Health>0 and speed>.4 and humanoid.FloorMaterial~=Enum.Material.Air
   rig.blend+=((moving and 1 or 0)-rig.blend)*math.min(elapsed*10,1)
   rig.phase+=elapsed*math.max(6,speed*1.2)
   local swing=math.sin(rig.phase)*.42*rig.blend
@@ -80,7 +81,11 @@ Run.PreSimulation:Connect(function(dt)
     end
    end
    if role=="CafeWorker" and model:GetAttribute("WorkStep")==2 and i==1 then angle=-.8 end
-   joint.Transform=CFrame.Angles(angle,0,0)
+   if seated then
+    if i>=3 then angle=-math.pi/2 elseif model:GetAttribute("Reading") and i==1 then angle=-1.15 else angle=-.15 end
+   end
+   -- These custom R6 joints have no rotated basis: positive X bends toward -Z.
+   joint.Transform=CFrame.Angles(-angle,0,0)
   end
  end
 end)
