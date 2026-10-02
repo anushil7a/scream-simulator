@@ -229,7 +229,13 @@ local function releaseSeat(bot)
     bot.restSeat=nil
     if bot.readingBook then bot.readingBook:Destroy();bot.readingBook=nil end
     if bot.model.Parent then bot.model:SetAttribute("Resting",false);bot.model:SetAttribute("Reading",false) end
-    if seat and bot.humanoid.SeatPart==seat then
+    local physicalSeat=bot.humanoid.SeatPart
+    if physicalSeat then
+        -- Sit=false/GettingUp can leave a server-owned NPC's SeatWeld intact.
+        -- Remove only this character's seating weld, never another occupant's joint.
+        for _,weld in ipairs(physicalSeat:GetChildren()) do
+            if weld:IsA("Weld") and weld.Name=="SeatWeld" and weld.Part1 and weld.Part1:IsDescendantOf(bot.model) then weld:Destroy() end
+        end
         bot.humanoid.Sit=false
         bot.humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
     end
@@ -274,6 +280,7 @@ local function chooseDestination(bot)
 end
 
 local function roamTo(bot, destination, precise)
+    if bot.humanoid.SeatPart and not bot.restSeat then releaseSeat(bot) end
     bot.pathVersion=(bot.pathVersion or 0)+1;local version=bot.pathVersion
     local path = PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5, AgentCanJump=false, AgentCanClimb=false, WaypointSpacing=5, Costs={Fountain=math.huge,Asphalt=8}})
     local ok = pcall(function() path:ComputeAsync(bot.root.Position, destination) end)
