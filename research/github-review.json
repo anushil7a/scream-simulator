@@ -1,0 +1,23 @@
+{
+  "checked": "2026-09-23",
+  "repositories": [
+    {
+      "repo": "rojo-rbx/rojo",
+      "stars": 1747
+    },
+    {
+      "repo": "Quenty/NevermoreEngine",
+      "stars": 612
+    },
+    {
+      "repo": "Roblox/creator-docs",
+      "stars": 839
+    },
+    {
+      "repo": "domlysz/BlenderGIS",
+      "stars": 9407,
+      "commit": "2add45ffec547f419cc77563a7fe976fd6c8f0c4"
+    }
+  ],
+  "downloaded": "Four plain-text BlenderGIS source/reference files at a pinned commit, not installed or executed"
+}

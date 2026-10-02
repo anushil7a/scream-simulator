@@ -1,0 +1,2 @@
+-- This script intentionally replaces Roblox's default Health regeneration script.
+-- Scream Simulator handles its 10-second, 20-health healing rule on the server.

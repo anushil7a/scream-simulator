@@ -1,0 +1,20 @@
+# Local/editor files
+.DS_Store
+*.rbxl.lock
+*.rbxlx.lock
+*.lock
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+
+# Historical copies and third-party research downloads
+backups/
+research/BlenderGIS-*
+
+# Temporary builds and logs
+build/
+*.log

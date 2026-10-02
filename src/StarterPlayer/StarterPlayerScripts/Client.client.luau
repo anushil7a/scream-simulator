@@ -1,0 +1,205 @@
+local Players=game:GetService("Players")
+local RS=game:GetService("ReplicatedStorage")
+local UIS=game:GetService("UserInputService")
+local Run=game:GetService("RunService")
+local Tween=game:GetService("TweenService")
+local Debris=game:GetService("Debris")
+local p=Players.LocalPlayer
+local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
+local remotes=RS:WaitForChild("ScreamRemotes")
+local action=remotes:WaitForChild("Action")
+local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")
+local dark=Color3.fromRGB(19,32,40);local panel=Color3.fromRGB(29,47,55);local gold=Color3.fromRGB(255,205,111);local white=Color3.fromRGB(239,244,240);local muted=Color3.fromRGB(165,188,193)
+local data={level=1,xp=0,xpNext=103,coins=0,health=100,sound="TinyAah",aura="Gold",quests={},settings={volume=.55,reducedShake=false}}
+local function frame(parent,name,size,pos,color)
+ local f=Instance.new("Frame");f.Name=name;f.Size=size;f.Position=pos;f.BackgroundColor3=color or dark;f.BorderSizePixel=0;f.Parent=parent
+ local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,10);c.Parent=f;return f
+end
+local function label(parent,text,size,pos,fontSize,color)
+ local l=Instance.new("TextLabel");l.Size=size;l.Position=pos;l.BackgroundTransparency=1;l.Text=text;l.TextSize=fontSize or 15;l.Font=Enum.Font.GothamMedium;l.TextColor3=color or white;l.TextXAlignment=Enum.TextXAlignment.Left;l.TextWrapped=true;l.Parent=parent;return l
+end
+local function button(parent,name,text,size,pos,callback,color)
+ local b=Instance.new("TextButton");b.Name=name;b.Size=size;b.Position=pos;b.BackgroundColor3=color or panel;b.TextColor3=white;b.Text=text;b.TextSize=14;b.Font=Enum.Font.GothamBold;b.AutoButtonColor=true;b.BorderSizePixel=0;b.Parent=parent
+ local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,8);c.Parent=b;b.Activated:Connect(callback);return b
+end
+local top=frame(gui,"Navigation",UDim2.fromOffset(250,40),UDim2.fromOffset(14,12));top.BackgroundTransparency=1
+local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,.5);modal.Visible=false
+local menuScale=Instance.new("UIScale");menuScale.Parent=modal
+local title=label(modal,"SCREAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
+local subtitle=label(modal,"Train for XP. Unlock a new scream every five levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
+button(modal,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-52,0,16),function() modal.Visible=false end)
+local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
+local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
+local selected="Screams";local render;local tabs={};local mapDot
+local function toggle() modal.Visible=not modal.Visible;if modal.Visible then render() end end
+local shop=button(top,"ShopToggle","SCREAMS  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),toggle,gold);shop.TextColor3=dark
+button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() selected="Quests";modal.Visible=not(modal.Visible and title.Text=="CITY QUESTS");render() end)
+local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.08
+local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-24,0,22),UDim2.fromOffset(12,7),14,gold)
+local health=label(hud,"100 HP",UDim2.fromOffset(65,20),UDim2.fromOffset(12,31),12)
+local hb=frame(hud,"HealthTrack",UDim2.fromOffset(142,6),UDim2.fromOffset(83,38),panel)
+local hf=frame(hb,"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
+local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-24,0,19),UDim2.fromOffset(12,52),12,muted)
+local xb=frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,79),panel)
+local xf=frame(xb,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
+local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
+local tracked=label(gui,"",UDim2.fromOffset(250,66),UDim2.fromOffset(16,56),13);tracked.TextYAlignment=Enum.TextYAlignment.Top
+local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center
+local toastUntil=0
+local function notify(t) toast.Text=t;toastUntil=os.clock()+4 end
+local nextCast=0
+local function cast()
+ if modal.Visible or (p:GetAttribute("ProtectionEnds") or 0)>workspace:GetServerTimeNow() or os.clock()<nextCast then return end
+ local sound=Config.GetSound(data.sound);nextCast=os.clock()+sound.cooldown;action:FireServer("Cast")
+end
+local function dodge() if not modal.Visible then action:FireServer("Dodge") end end
+local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
+local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),cast,gold);castButton.TextColor3=dark
+local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge)
+local sprinting=false
+local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() sprinting=not sprinting;action:FireServer("Sprint",sprinting) end)
+local talkTarget
+local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-52),function() if talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end end);talkButton.Visible=false
+local devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false
+label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
+label(devPanel,"Test commands disable saving this session.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
+for i,item in ipairs({{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level 30"},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}) do
+ button(devPanel,item[1],item[2],UDim2.fromOffset(100,39),UDim2.fromOffset(10+((i-1)%2)*110,80+math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
+end
+local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible end);testButton.Visible=false
+local function card(height) return frame(content,"Card",UDim2.new(1,-8,0,height),UDim2.new(),panel) end
+local function info(text,height) local c=card(height or 70);label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
+render=function()
+ for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
+ for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
+ if selected=="Screams" then
+  title.Text="SCREAM COLLECTION";subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  New unlocks at 5, 10, 15, 20, 25"
+  for _,s in ipairs(Config.Sounds) do
+   local c=card(101);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,-156,0,26),UDim2.fromOffset(14,8),17,gold)
+   label(c,s.description,UDim2.new(1,-158,0,25),UDim2.fromOffset(14,36),13)
+   label(c,s.damage.." DAMAGE    "..s.range.." RANGE / "..s.width.." WIDTH    "..s.cooldown.."s COOLDOWN",UDim2.new(1,-28,0,23),UDim2.fromOffset(14,69),12,muted)
+   local unlocked=data.level>=s.level
+   local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
+   if not unlocked then b.TextColor3=muted end
+  end
+ elseif selected=="Quests" then
+  title.Text="CITY QUESTS";subtitle.Text="Choose an activity. Complete it, then claim your XP and coins."
+  for _,q in ipairs(Config.Quests) do
+   local v=data.quests[q.id] or {progress=0};local c=card(123)
+   label(c,q.name,UDim2.new(1,-150,0,25),UDim2.fromOffset(14,8),17,gold)
+   label(c,q.description,UDim2.new(1,-158,0,49),UDim2.fromOffset(14,36),13)
+   label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,23),UDim2.fromOffset(14,93),12,muted)
+   button(c,q.id,v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "TRACKING" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,32),function()
+    if not v.claimed then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
+   end)
+  end
+ elseif selected=="Style" then
+  title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your scream effects."
+  for name,color in pairs(Config.Auras) do
+   local c=card(56);label(c,name,UDim2.fromOffset(240,36),UDim2.fromOffset(15,10),17,color)
+   button(c,name,data.aura==name and "EQUIPPED" or "USE COLOR",UDim2.fromOffset(126,36),UDim2.new(1,-140,0,10),function() action:FireServer("SetAura",name) end)
+  end
+ elseif selected=="Map" then
+  title.Text="CITY & COAST";subtitle.Text="Arena District: 40% PvP. Outer neighborhoods and beach: 60% safe."
+  local c=card(250)
+  local map=frame(c,"Map",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13),Color3.fromRGB(45,66,72))
+  local function area(t,x,y,w,h,col) local f=frame(map,t,UDim2.fromScale(w,h),UDim2.fromScale(x,y),col);local l=label(f,t,UDim2.fromScale(1,1),UDim2.new(),13);l.TextXAlignment=Enum.TextXAlignment.Center;return f end
+  area("SAFE NORTH",0,0,1,.2,Color3.fromRGB(50,93,82));area("SAFE\nWEST",0,.2,.166,.6,Color3.fromRGB(50,93,82));area("SAFE\nEAST",.833,.2,.167,.6,Color3.fromRGB(50,93,82))
+  area("ARENA DISTRICT • PvP\n40% of playable land",.166,.2,.667,.6,Color3.fromRGB(136,65,70));area("BARCELONETA • SAFE BEACH",0,.8,1,.2,Color3.fromRGB(159,137,91))
+  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root then local pos=root.Position;mapDot=area("YOU",math.clamp((pos.X+720)/1440,0,.94),math.clamp((pos.Z+600)/1200,0,.94),.06,.06,gold) end
+  info("Spawn: Plaça del Sol, southwest. Beach: south. Coffee: west promenade café → music stage. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
+ else
+  title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
+  info("E / tap SCREAM: fire a beam straight ahead\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",125)
+  local c=card(58);button(c,"Volume","AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.fromOffset(260,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
+  local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.fromOffset(260,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
+ end
+end
+for i,name in ipairs({"Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() selected=name;render() end) end
+local lastMenuKey=""
+remotes.State.OnClientEvent:Connect(function(nextData)
+ data=nextData;stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";health.Text=data.health.."/"..(data.maxHealth or 100);hf.Size=UDim2.fromScale(data.health/(data.maxHealth or 100),1)
+ xpText.Text=data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP";xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
+ zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
+ testButton.Visible=data.devAccess==true
+ local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
+ tracked.Text=q and (q.name.."  "..v.progress.."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s" or "")) or ""
+ if data.message then notify(data.message) end
+ local key=game:GetService("HttpService"):JSONEncode({data.level,data.xp,data.sound,data.aura,data.quests,data.activeQuest,data.settings})
+ if modal.Visible and key~=lastMenuKey then render() end;lastMenuKey=key
+end)
+UIS.InputBegan:Connect(function(input,processed)
+ if processed then return end
+ local k=input.KeyCode
+ if k==Enum.KeyCode.E then cast() elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
+ elseif k==Enum.KeyCode.M then selected="Map";modal.Visible=not modal.Visible;render()
+ elseif k==Enum.KeyCode.LeftShift then action:FireServer("Sprint",true)
+ elseif k==Enum.KeyCode.T and talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end
+end)
+UIS.InputEnded:Connect(function(input) if input.KeyCode==Enum.KeyCode.LeftShift then action:FireServer("Sprint",false) end end)
+UIS.WindowFocusReleased:Connect(function() sprinting=false;action:FireServer("Sprint",false) end)
+local function fxPart(position,color,size)
+ local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
+end
+remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length)
+ if kind=="ResetCollected" then for _,o in ipairs(workspace.ScreamSimulatorWorld.QuestObjects:GetChildren()) do o.LocalTransparencyModifier=0;local prompt=o:FindFirstChildOfClass("ProximityPrompt");if prompt then prompt.Enabled=true end end;return end
+ if kind=="Collected" then if pos and pos.Parent then pos.LocalTransparencyModifier=1;local prompt=pos:FindFirstChildOfClass("ProximityPrompt");if prompt then prompt.Enabled=false end end;return end
+ local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root and (root.Position-pos).Magnitude>180 then return end
+ local color=Config.Auras[kind=="Dodge" and id or aura] or gold
+ if kind=="Dodge" then local f=fxPart(pos,color,Vector3.new(2,3,2));Tween:Create(f,TweenInfo.new(.35),{Transparency=1,Size=Vector3.new(5,1,5)}):Play();return end
+ local s=Config.GetSound(id);if not s then return end
+ do
+  local carrier=Instance.new("Part");carrier.Anchored=true;carrier.CanCollide=false;carrier.CanQuery=false;carrier.Transparency=1;carrier.Position=pos;carrier.Parent=workspace
+  local audio=Instance.new("Sound");audio.SoundId=s.assetId~="" and s.assetId or "rbxasset://sounds/oof.ogg";audio.PlaybackSpeed=({Pulse=1.4,Echo=1.1,Feathers=1.9,Quake=.65,Storm=.85,Nova=.5})[s.effect] or 1
+  audio.Volume=data.settings.volume;audio.RollOffMaxDistance=s.range*1.5;audio.Parent=carrier
+  if s.effect=="Echo" then local echo=Instance.new("EchoSoundEffect");echo.Delay=.15;echo.Feedback=.4;echo.Parent=audio end
+  audio:Play();Debris:AddItem(carrier,5)
+ end
+ direction=direction or Vector3.new(0,0,-1);length=length or s.range
+ local width=s.width;local center=pos+direction*length/2
+ local beam=fxPart(center,color,Vector3.new(width,width,length));beam.Name="ScreamBeam";beam.CFrame=CFrame.lookAt(center,center+direction);beam.Transparency=.55
+ local core=fxPart(center,Color3.fromRGB(255,245,206),Vector3.new(width*.22,width*.22,length));core.CFrame=beam.CFrame
+ Tween:Create(beam,TweenInfo.new(.38),{Transparency=1,Size=Vector3.new(width*.5,width*.5,length)}):Play()
+ Tween:Create(core,TweenInfo.new(.25),{Transparency=1}):Play()
+ if not data.settings.reducedShake then
+  local count=s.effect=="Pulse" and 4 or 9
+  for i=1,count do
+   local side=Vector3.new(-direction.Z,0,direction.X);local phase=i*math.pi*2/count
+   local offset=(side*math.cos(phase)+Vector3.yAxis*math.sin(phase))*width*.35
+   local shard=fxPart(pos+offset,color,s.effect=="Feathers" and Vector3.new(.3,1.6,.7) or Vector3.new(.3,.3,2))
+   shard.CFrame=CFrame.lookAt(pos+offset,pos+offset+direction)
+   Tween:Create(shard,TweenInfo.new(.18+length/300),{Position=pos+direction*length+offset,Transparency=1}):Play()
+  end
+ end
+end)
+local elapsed=0
+Run.RenderStepped:Connect(function(dt)
+ local viewport=workspace.CurrentCamera.ViewportSize
+ local short=viewport.Y<550
+ menuScale.Scale=math.min(1,(viewport.X-32)/720)
+ local menuHeight=short and math.max(230,(viewport.Y-125)/menuScale.Scale) or 520
+ modal.Size=UDim2.fromOffset(720,menuHeight);modal.Position=UDim2.new(.5,0,.5,short and 18 or 0)
+ subtitle.Visible=not short
+ for _,b in pairs(tabs) do b.Position=UDim2.fromOffset(b.Position.X.Offset,short and 54 or 88) end
+ content.Position=UDim2.fromOffset(20,short and 96 or 132);content.Size=UDim2.new(1,-40,1,short and -108 or -148)
+ -- Keep desktop controls compact; smaller displays retain readable button text.
+ local touch=UIS.TouchEnabled
+ hud.Position=touch and UDim2.fromOffset(14,56) or UDim2.new(0,14,1,-108)
+ controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
+ hud.Visible=not modal.Visible;controls.Visible=not modal.Visible
+ tracked.Position=UDim2.fromOffset(16,touch and 158 or 56)
+ if touch then sprintButton.TextSize=12 end
+ tracked.Visible=not modal.Visible;zone.Visible=viewport.X>740
+ local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
+ castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or "SCREAM [E]"
+ castButton.BackgroundColor3=protected>0 and muted or gold
+ local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
+ local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs [SHIFT]",p:GetAttribute("SprintCharge") or 10)
+ if os.clock()>toastUntil then toast.Text="" end
+ elapsed+=dt;if elapsed<.25 then return end;elapsed=0
+ talkTarget=nil;local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");local world=workspace:FindFirstChild("ScreamSimulatorWorld");local best=13
+ if root and world then for _,bot in ipairs(world:GetChildren()) do local r=bot:IsA("Model") and bot:FindFirstChild("HumanoidRootPart");if r then local distance=(r.Position-root.Position).Magnitude;if distance<best then best=distance;talkTarget=bot end end end end
+ if root and mapDot and mapDot.Parent then mapDot.Position=UDim2.fromScale(math.clamp((root.Position.X+720)/1440,0,.94),math.clamp((root.Position.Z+600)/1200,0,.94)) end
+ talkButton.Visible=talkTarget~=nil and not modal.Visible
+end)
+action:FireServer("Sync")
