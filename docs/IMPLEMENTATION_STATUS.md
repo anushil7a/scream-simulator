@@ -581,3 +581,9 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - Added review-only installer with scale2(28.23wide×20high), two water surfaces, four curved Beam streams and a single simple collision proxy. Native plaza screenshot confirmed the assembled result. Main City/default project have not adopted the candidate.
 - Six existing no-jump arrival paths passed with the trial present. Exploratory radius42 endpoints were on bench seats and returnedNoPath; diagnosed by raycasts and replaced with the established walkable route fixture. No navigation change was needed.
 - Review scripts compile and both review place formats build. Exact rebuilt-file native import and published permissions remain unverified. Stopped Play, removing trial geometry/camera/UI changes; a saved reload template remains in the disposable editor's ServerStorage. No game publication.
+
+## 2026-10-02 — default Animator recovery regression
+
+- Added `StudioAnimatorBlend.client.luau`, temporarily appended to the actual production animation script in disposable MicrophoneCity. It retains the current R15 avatar's default Animate/Animator and drives only synthetic local action attributes. No physical controls or microphone readiness were simulated as real input.
+- Passed43 checks across eight charge→roll→release/recovery cycles. Two base animation tracks continued playing; additive pose residuals returned to zero after every cycle. This is focused scheduler/recovery evidence, not a full movement/visual/avatar/multiplayer sign-off.
+- Captured raw evidence against87bfcec, stopped Play, removed the appended fixture and verified the restored production source has no AnimatorBlendResult marker. Test source compiles; no gameplay source or live published place changed.

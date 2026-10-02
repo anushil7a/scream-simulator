@@ -36,6 +36,8 @@ Implemented: separate roll, collision checks, sprint exhaustion/recovery, jump/l
 
 **Open:** physical keyboard and touch/multitouch play, default Animator blending, varied avatar proportions/accessories, micro-speaker grip through full movement, respawns under latency, vehicle impact/recovery and premium boundary transitions in actual multiplayer. The focused joint test does not close these requirements.
 
+Follow-up on `87bfcec`: `StudioAnimatorBlend.client.luau` passed43 checks on the current R15 avatar with default Animate enabled. Eight synthetic charge→roll→release/recovery cycles retained two playing base animation tracks and ended with zero measured additive translation/angle. This narrows the default-Animator gap to a successful current-avatar recovery check; it does not cover moving R6/R15 rigs, physical input, all proportions, visual quality, latency or multiplayer replication. [Raw result](../tests/evidence/animator-blend-87bfcec-2026-10-02.json). Fixture removed and clean production animation source restored after stopping Play.
+
 ### Map, residents and activities
 
 Implemented: Barcelona-inspired district layout, 40% central PvP land, safe surroundings, 31 enterable shops, 13 varied courtyards, market, beach, pier/lookout, swimming boundary, seating, selected quest givers and 46 residents. Additions include performance audiences, microphone beach volley, active street-furniture maintenance and distinct worker uniforms.
