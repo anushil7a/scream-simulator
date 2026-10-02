@@ -173,6 +173,19 @@ local hairColors = {
     Color3.fromRGB(55, 61, 65), Color3.fromRGB(105, 74, 58), Color3.fromRGB(184, 164, 129),
 }
 
+-- Named workers have recognizable uniforms while ordinary residents keep
+-- independent seeded palettes/accessories. Uniform fronts must stay visible.
+local workwear={
+ CafeWorker={shirt=Color3.fromRGB(236,220,190),pants=Color3.fromRGB(40,76,74),outfit=2},
+ Sanitation={shirt=Color3.fromRGB(56,99,108),pants=Color3.fromRGB(49,58,70),outfit=2},
+ BeachWorker={shirt=Color3.fromRGB(203,105,87),pants=Color3.fromRGB(213,198,165),outfit=2},
+ Gardener={shirt=Color3.fromRGB(81,127,91),pants=Color3.fromRGB(104,82,63),outfit=1},
+ Artist={shirt=Color3.fromRGB(226,213,187),pants=Color3.fromRGB(99,83,103),outfit=3},
+ Busker={shirt=Color3.fromRGB(157,74,77),pants=Color3.fromRGB(46,62,81),outfit=3},
+ Vendor={shirt=Color3.fromRGB(58,111,108),pants=Color3.fromRGB(77,64,58),outfit=2},
+ Soccer={shirt=Color3.fromRGB(43,105,168),pants=Color3.fromRGB(32,47,70),outfit=3},
+}
+
 local function rigPart(model, name, size, cf, color, collide)
     local p = Instance.new("Part")
     p.Name, p.Size, p.CFrame = name, size, cf
@@ -471,7 +484,9 @@ local function makeBot(parent, index, x, z, role, job)
     local pants = pantsColors[avatarRng:NextInteger(1, #pantsColors)]
     local hairColor = hairColors[avatarRng:NextInteger(1, #hairColors)]
     local outfit = avatarRng:NextInteger(1, 5)
-    if role=="Soccer" and job then shirt=Color3.fromRGB(43,105,168);pants=Color3.fromRGB(32,47,70);outfit=3 end
+    local uniform=job and workwear[role]
+    if uniform then shirt=uniform.shirt;pants=uniform.pants;outfit=uniform.outfit end
+    model:SetAttribute("WorkUniform",uniform~=nil)
     model:SetAttribute("OutfitVariant", outfit)
     local root = rigPart(model, "HumanoidRootPart", Vector3.new(2, 2, 1), cf, Color3.new(1, 1, 1), false)
     root.Transparency = 1
@@ -501,18 +516,18 @@ local function makeBot(parent, index, x, z, role, job)
     accessory(model, ll, "LeftShoe", Vector3.new(1.05, 0.43, 1.22), CFrame.new(0, -0.78, -0.1), shoeColor)
     accessory(model, rl, "RightShoe", Vector3.new(1.05, 0.43, 1.22), CFrame.new(0, -0.78, -0.1), shoeColor)
     if outfit == 1 then
-        accessory(model, head, "Beanie", Vector3.new(2.2, 0.6, 1.25), CFrame.new(0, 0.66, 0), hairColor, Enum.Material.Fabric)
-        accessory(model, head, "BeanieBand", Vector3.new(2.24, 0.22, 1.3), CFrame.new(0, 0.34, 0), shirt, Enum.Material.Fabric)
+        accessory(model, head, "Beanie", Vector3.new(2.2, 0.6, 1.25), CFrame.new(0, 0.66, 0), hairColor, Enum.Material.Fabric, Enum.PartType.Ball)
+        accessory(model, head, "BeanieBand", Vector3.new(2.24, 0.22, 1.3), CFrame.new(0, 0.34, 0), shirt, Enum.Material.Fabric, Enum.PartType.Ball)
     elseif outfit == 2 then
-        accessory(model, head, "Cap", Vector3.new(2.15, 0.48, 1.2), CFrame.new(0, 0.66, 0), shirt, Enum.Material.Fabric)
-        accessory(model, head, "CapBrim", Vector3.new(1.7, 0.13, 1.0), CFrame.new(0, 0.49, -0.85), shirt, Enum.Material.Fabric)
+        accessory(model, head, "Cap", Vector3.new(2.15, 0.48, 1.2), CFrame.new(0, 0.66, 0), shirt, Enum.Material.Fabric, Enum.PartType.Ball)
+        accessory(model, head, "CapBrim", Vector3.new(1.7, 0.13, 1.0), CFrame.new(0, 0.49, -0.85), shirt, Enum.Material.Fabric, Enum.PartType.Ball)
     elseif outfit == 3 then
-        accessory(model, head, "Hair", Vector3.new(2.14, 0.5, 1.18), CFrame.new(0, 0.62, 0), hairColor)
+        accessory(model, head, "Hair", Vector3.new(2.14, 0.5, 1.18), CFrame.new(0, 0.62, 0), hairColor, nil, Enum.PartType.Ball)
         for _, dx in ipairs({-0.65, 0, 0.65}) do
             accessory(model, head, "CurlyHair", Vector3.new(0.78, 0.65, 0.8), CFrame.new(dx, 0.82, -0.21), hairColor, nil, Enum.PartType.Ball)
         end
     elseif outfit == 4 then
-        accessory(model, head, "Hair", Vector3.new(2.17, 0.62, 1.27), CFrame.new(0, 0.66, 0), hairColor)
+        accessory(model, head, "Hair", Vector3.new(2.17, 0.62, 1.27), CFrame.new(0, 0.66, 0), hairColor, nil, Enum.PartType.Ball)
         for _, dx in ipairs({-1.07, 1.07}) do
             accessory(model, head, "HeadphoneEar", Vector3.new(0.35, 0.8, 0.7), CFrame.new(dx, 0.05, 0), C.dark)
         end
@@ -550,7 +565,7 @@ local function makeBot(parent, index, x, z, role, job)
         accessory(model,torso,"SafetyVest",Vector3.new(1.85,1.5,.12),CFrame.new(0,0,-.58),Color3.fromRGB(224,176,69),Enum.Material.Fabric)
     elseif role=="BeachWorker" then
         accessory(model,ra,"CleaningCloth",Vector3.new(.7,.15,.65),CFrame.new(0,-1,-.25),Color3.fromRGB(235,220,181),Enum.Material.Fabric)
-        accessory(model,torso,"BeachCrewBadge",Vector3.new(.6,.4,.12),CFrame.new(.45,.4,-.59),Color3.fromRGB(199,83,74))
+        accessory(model,torso,"BeachCrewBadge",Vector3.new(.6,.4,.12),CFrame.new(.45,.4,-.59),Color3.fromRGB(244,228,189))
     elseif role=="Busker" and job then
         accessory(model,torso,"GuitarBody",Vector3.new(1.5,1.7,.5),CFrame.new(.2,-.35,-.9),Color3.fromRGB(183,121,65),Enum.Material.Wood,Enum.PartType.Ball)
         accessory(model,torso,"GuitarSoundhole",Vector3.new(.45,.45,.04),CFrame.new(.2,-.1,-1.17),Color3.fromRGB(55,41,32),nil,Enum.PartType.Ball)
