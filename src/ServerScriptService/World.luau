@@ -273,7 +273,7 @@ local function chooseDestination(bot)
     return chosen.position, chosen.kind
 end
 
-local function roamTo(bot, destination)
+local function roamTo(bot, destination, precise)
     bot.pathVersion=(bot.pathVersion or 0)+1;local version=bot.pathVersion
     local path = PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5, AgentCanJump=false, AgentCanClimb=false, WaypointSpacing=5, Costs={Fountain=math.huge,Asphalt=8}})
     local ok = pcall(function() path:ComputeAsync(bot.root.Position, destination) end)
@@ -293,6 +293,20 @@ local function roamTo(bot, destination)
         end
     end
     connection:Disconnect();path:Destroy()
+    -- MoveTo's broad arrival tolerance is fine for strolling, but leaves tools
+    -- out of reach of work surfaces after an interrupted route. Finish the last
+    -- short, path-checked segment using physical movement, never a position snap.
+    if precise and not blocked and bot.pathVersion==version and (bot.root.Position-destination).Magnitude<4 then
+        local speed=bot.humanoid.WalkSpeed;bot.humanoid.WalkSpeed=math.min(speed,4)
+        local deadline=os.clock()+2
+        while bot.alive and bot.model.Parent and bot.pathVersion==version and os.clock()<deadline and (bot.reactionUntil or 0)<=os.clock() do
+            local delta=Vector3.new(destination.X-bot.root.Position.X,0,destination.Z-bot.root.Position.Z)
+            if delta.Magnitude<.45 then break end
+            bot.humanoid:Move(delta.Unit,false);task.wait(.05)
+        end
+        if bot.pathVersion==version then bot.humanoid:Move(Vector3.zero,false) end
+        bot.humanoid.WalkSpeed=speed
+    end
 end
 
 local function usableSeat(seat)
@@ -551,8 +565,8 @@ local function makeBot(parent, index, x, z, role, job)
                         model:SetAttribute("WorkStep",bot.jobStep)
                         for _,item in ipairs(bot.carryParts) do item.Transparency=bot.jobStep==2 and 0 or 1 end
                         bot.working=false;model:SetAttribute("Activity","Walking to work")
-                        roamTo(bot,station.position)
-                        if bot.alive and (bot.root.Position-station.position).Magnitude<5 and (bot.reactionUntil or 0)<=os.clock() and (bot.socialUntil or 0)<=os.clock() then
+                        roamTo(bot,station.position,true)
+                        if bot.alive and (Vector3.new(bot.root.Position.X,station.position.Y,bot.root.Position.Z)-station.position).Magnitude<.8 and (bot.reactionUntil or 0)<=os.clock() and (bot.socialUntil or 0)<=os.clock() then
                             bot.humanoid:MoveTo(bot.root.Position);faceToward(bot,station.lookAt)
                             bot.working=true;model:SetAttribute("WorkStarted",workspace:GetServerTimeNow());model:SetAttribute("Activity",station.action or role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
                             local untilTime=os.clock()+rng:NextNumber(5,9)
