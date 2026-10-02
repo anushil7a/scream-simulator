@@ -3,7 +3,9 @@ task.spawn(function()
  task.wait(5)
  local template=game:GetService("CollectionService"):GetTagged("CityResident")[1];assert(template)
  local residents={};local checks=0;local camera=workspace.CurrentCamera;local saved=camera.CFrame
- local root=Instance.new("Part");root.Anchored=true;root.Position=Vector3.new(0,3,0)
+ local viewer=Instance.new("Model");viewer.Parent=workspace
+ local root=Instance.new("Part");root.Name="HumanoidRootPart";root.Anchored=true;root.Position=Vector3.new(0,3,0);root.Parent=viewer
+ local viewerHumanoid=Instance.new("Humanoid");viewerHumanoid.Parent=viewer
  local function check(ok,message) assert(ok,message);checks+=1 end
  local function enabled(name)
   local n=0;for _,bot in ipairs(residents) do if bot.Head[name].Enabled then n+=1 end end;return n
@@ -27,7 +29,7 @@ task.spawn(function()
   refreshResidentLabels(nil,camera,residents)
   check(enabled("Nameplate")==0 and enabled("SpeechBubble")==0,"Labels survive absent character")
  end,debug.traceback)
- camera.CFrame=saved;root:Destroy();for _,bot in ipairs(residents) do bot:Destroy() end
+ camera.CFrame=saved;viewer:Destroy();for _,bot in ipairs(residents) do bot:Destroy() end
  workspace:SetAttribute("ResidentLabelsResult",game:GetService("HttpService"):JSONEncode({passed=ok,checks=checks,error=not ok and tostring(err) or nil}))
  print("Resident label checks",ok,checks,err)
 end)

@@ -1,3 +1,4 @@
+local InteractionRules=require(game:GetService("ReplicatedStorage").Shared.InteractionRules)
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local RunService=game:GetService("RunService")
@@ -214,7 +215,7 @@ local function microSpeaker(p,s,toggleOwned)
 end
 local function vendorPurchase(p,s,arg)
  local bot=s.conversationBot;local _,root=parts(p)
- if type(arg)~="table" or arg.product~="MicroSpeaker" or not bot or arg.npc~=bot.id or bot.role~="Vendor" or not bot.alive or not bot.root.Parent or bot.talkingTo~=p or (bot.socialUntil or 0)<=os.clock() or not root or (root.Position-bot.root.Position).Magnitude>14 then
+ if type(arg)~="table" or arg.product~="MicroSpeaker" or not bot or arg.npc~=bot.id or bot.role~="Vendor" or not bot.alive or not bot.root.Parent or bot.talkingTo~=p or (bot.socialUntil or 0)<=os.clock() or not root or not InteractionRules.CanReachNpc(p.Character,bot.model,14) then
   state(p,"Speak with the market vendor nearby before buying.");return
  end
  -- No yielding between ownership check and debit: duplicate requests never charge twice.
@@ -222,7 +223,7 @@ local function vendorPurchase(p,s,arg)
 end
 local function talk(p,id)
  local s=sessions[p];local _,r=parts(p);if not s or not r or type(id)~="string" or os.clock()<(s.nextTalk or 0) then return end
- for _,b in ipairs(World.Bots) do if b.id==id and b.alive and b.root.Parent and (b.root.Position-r.Position).Magnitude<=14 then
+ for _,b in ipairs(World.Bots) do if b.id==id and b.alive and b.root.Parent and InteractionRules.CanReachNpc(p.Character,b.model,14) then
   if b.talkingTo and b.talkingTo~=p and (b.socialUntil or 0)>os.clock() then state(p,b.name.." is speaking with someone. Try again shortly.");return end
   closeConversation(p);s.conversationBot=b;b.talkingTo=p
   s.nextTalk=os.clock()+2

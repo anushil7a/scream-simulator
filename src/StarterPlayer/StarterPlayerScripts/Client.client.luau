@@ -10,6 +10,7 @@ local originalTouchControls=GuiService.TouchControlsEnabled
 script.Destroying:Connect(function() GuiService.TouchControlsEnabled=originalTouchControls end)
 local p=Players.LocalPlayer
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
+local InteractionRules=require(RS.Shared:WaitForChild("InteractionRules"))
 local mic=require(script.Parent:WaitForChild("Microphone")).new()
 local ScreamEffects=require(script.Parent:WaitForChild("ScreamEffects"))
 local remotes=RS:WaitForChild("ScreamRemotes")
@@ -131,7 +132,7 @@ local function refreshResidentLabels(root,camera,residents)
   local _,onScreen=camera:WorldToViewportPoint(head.Position)
   if not onScreen then continue end
   visible[bot]={nameplate=nameplate,speech=speech}
-  if distance<best then nearest=bot;best=distance end
+  if distance<best and InteractionRules.CanReachNpc(root.Parent,bot,13) then nearest=bot;best=distance end
   if h.Health<h.MaxHealth and distance<damageDistance then damaged=bot;damageDistance=distance end
   local words=speech and speech:FindFirstChildOfClass("TextLabel")
   if words and words.Visible and distance<speechDistance then speaker=bot;speechDistance=distance end

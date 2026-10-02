@@ -107,3 +107,7 @@ Added a flower kiosk with cosmetic bouquet interaction, pergola with two usable 
 ## Crowd label refinement — 2026-10-02
 
 Healthy NPC nameplates omit full-health counters. Client limits names to the on-screen talk target plus one nearby injured resident, and speech to one nearby speaker. Eight native checks with controlled local clones passed for these limits, off-screen/dead target exclusion and absent-character cleanup. This does not prove physical mobile legibility or line-of-sight interaction filtering.
+
+## Conversation cover correction — 2026-10-02
+
+Client targeting and server conversation/vendor access now share living-character, range and solid-cover checks. Six native assertions passed for actual conversation rejection through a wall, acceptance past non-solid decoration and out-of-range rejection. Eight crowd-label checks also passed with this rule. The older label section's missing line-of-sight filtering is superseded by this change. Vendor purchase with newly introduced cover and multiplayer timing remain untested in this focused fixture. Source now contains 26 Luau files; the 25-file full-suite baseline above remains historical.

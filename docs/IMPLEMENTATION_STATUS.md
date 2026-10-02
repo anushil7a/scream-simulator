@@ -524,3 +524,10 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - Refreshes at 10 Hz using CityResident tags. Off-screen/dead NPCs no longer take the talk target. This is screen visibility, not a new line-of-sight targeting guarantee.
 - `StudioResidentLabels.client.luau`: eight native checks passed using synthetic local crowd poses with actual Humanoids/BillboardGuis: healthy crowd limits, injured label retention, off-screen filtering, dead-target exclusion and absent-player cleanup. Physical phone readability and wider playtesting remain open.
 - Stopped play and removed the appended test. Both development Studio copies hold clean current World/Client source. Both place formats rebuilt.
+
+## 2026-10-02 — conversation cover rules
+
+- Found distance-only NPC conversation and vendor access. Added shared `InteractionRules.CanReachNpc`: living characters, range, and a head-to-head ray respecting solid geometry. The Residents collision group excludes other passing residents while retaining solid world cover. Client target selection and server conversation/vendor validation repeat the same check.
+- `StudioConversationCover.server.luau`: six native checks passed against the actual `talk` handler and shared rule: solid wall rejects, non-solid decoration permits, distance rejects. The vendor call site uses the same guard, but a new live vendor purchase was not exercised in this fixture.
+- Updated local crowd-label fixture to provide a real viewer model; all eight checks passed again. Native tests use positioned characters, not physical input/multiplayer.
+- New module creation through the generic execution tool was rejected by Studio capabilities; used the supported script-edit tool to create it. No permission/capability settings changed. Fixtures removed and clean source synced to both stopped development copies.
