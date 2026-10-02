@@ -2,6 +2,8 @@
 
 [GitHub repository](https://github.com/anushil7a/scream-simulator) · [Roblox experience](https://www.roblox.com/games/122465114514497/Scream-Simulator)
 
+[Draft redesign review and developer handoff](https://github.com/anushil7a/scream-simulator/pull/1) — includes build instructions, scoped test evidence and remaining release gates.
+
 **Active development, not a completed release.** Current work is on `feature/microphone-city-redesign`. The live experience was last verified at version 32; this branch has not been published over it. [Historical release notes](docs/RELEASE_32_NOTES.md) describe that older build.
 
 ## Build the current source

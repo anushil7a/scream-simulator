@@ -2,6 +2,12 @@
 
 Approved scope: [development brief](PROFESSIONAL_REDESIGN_PROMPT.md). Started October 1, 2026. This is an active implementation, not a release completion report.
 
+## Current review entry point
+
+[Draft pull request #1](https://github.com/anushil7a/scream-simulator/pull/1) provides a developer handoff against `main`. It is open and draft; no merge or live publication occurred. Follow README to reproduce the source build and ASSET_INVENTORY.md for dependencies. The chronological evidence log below includes superseded failures and intermediate states; read each dated correction before treating an earlier checkpoint as current behavior.
+
+Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo place formats build, 4,003 combat/mic/destruction assertions, 1,506 progression assertions, 12 lease checks and5 quest lifecycle scenarios pass. This is source/rule evidence only. Real microphones, physical input/avatars, final city art/activity, actual-device/multiplayer performance, live save migration/backup and final release validation remain outstanding.
+
 ## Work sequence
 
 - [ ] Audit/reproduce existing defects and profile live baseline.
