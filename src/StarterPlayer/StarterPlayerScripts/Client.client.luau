@@ -368,6 +368,10 @@ Run.RenderStepped:Connect(function(dt)
    local far=root and (hit.Position-root.Position).Magnitude>rangeLimit+2
    local kind=object:GetAttribute("ObjectName") or object:GetAttribute("DestructibleType") or object.Name
    aimInfo.Text=string.format("%s · LEVEL %d\n%s",kind,required,data.level<required and "LOCKED" or far and "OUT OF MAX RANGE" or string.format("%d / %d durability",hp,object:GetAttribute("ObjectMaxHealth") or hp))
+   local repairSeconds=math.max(0,math.ceil((object:GetAttribute("RepairAt") or 0)-workspace:GetServerTimeNow()))
+   if repairSeconds>0 and hp<(object:GetAttribute("ObjectMaxHealth") or hp) then
+    aimInfo.Text..=string.format("\nRepair in %d:%02d",math.floor(repairSeconds/60),repairSeconds%60)
+   end
    aimInfo.TextColor3=(data.level<required or far) and muted or gold
   end
  end

@@ -50,10 +50,13 @@ function Service.Damage(instance,level,damage)
  end end
  if destroyed then
   for prompt in pairs(object.prompts) do if prompt.Parent then prompt.Enabled=false end end
-  object.version+=1;local version=object.version;local duration=Rules.Types[object.kind].repair
-  model:SetAttribute('Destroyed',true);model:SetAttribute('RepairAt',workspace:GetServerTimeNow()+duration)
-  task.delay(duration,function() restore(model,object,version) end)
+  model:SetAttribute('Destroyed',true)
  end
+ -- Every accepted hit restarts repair, including damage that leaves the object standing.
+ -- The version guard prevents an older deadline restoring through a newer hit.
+ object.version+=1;local version=object.version;local duration=Rules.Types[object.kind].repair
+ model:SetAttribute('RepairAt',workspace:GetServerTimeNow()+duration)
+ task.delay(duration,function() restore(model,object,version) end)
  return {model=model,destroyed=destroyed,health=health,kind=object.kind,position=object.box.Position}
 end
 function Service.Start(world)
