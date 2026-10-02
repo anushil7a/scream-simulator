@@ -9,10 +9,12 @@ local Rules=require(script.Parent.CombatRules)
 local VoiceCombat=require(ReplicatedStorage.Shared.VoiceCombat)
 local Entitlements=require(script.Parent.Entitlements)
 local Soccer=require(script.Parent.SoccerChallenge)
+local BeachVolley=require(script.Parent.BeachVolley)
 local QuestLifecycle=require(ReplicatedStorage.Shared.QuestLifecycle)
 local QuestGuide=require(ReplicatedStorage.Shared.QuestGuide)
 local Equipment=require(script.Parent.Equipment)
 World.Build()
+BeachVolley.Start(workspace.ScreamSimulatorWorld)
 local Destruction=require(script.Parent.Destruction)
 Destruction.Start(workspace.ScreamSimulatorWorld)
 local old=ReplicatedStorage:FindFirstChild("ScreamRemotes");if old then old:Destroy() end
@@ -107,6 +109,7 @@ local function cast(p,request)
  local length=obstruction and obstruction.Distance or sound.range
  effect:FireAllClients("Scream",origin,style.id,s.data.aura,direction,length,sound.width)
  Soccer.Hit(p,origin,direction,length,sound.width,sound.power)
+ BeachVolley.Hit(p,origin,direction,length,sound.width,sound.power)
  if obstruction then
   local result=Destruction.Damage(obstruction.Instance,s.data.level,sound.damage)
   if result then

@@ -625,6 +625,8 @@ local function coast(parent,walk,activities)
  end
  for i=1,18 do
   local x=-660+(i-1)*77;local z=470+(i%3)*25;local color=i%2==0 and Color3.fromRGB(215,116,85) or Color3.fromRGB(78,153,157)
+  -- Reserve a run-up margin around the playable volleyball court.
+  if x> -82 and x< -18 and z>455 and z<551 then z=455 end
   parasol(m,x,z,color)
   part(m,"BeachLounger",V(3,.5,7),V(x+4,1.6,z+5),cream,Enum.Material.Fabric)
   part(m,"LoungerBack",V(3,3,.4),CFrame.new(x+4,2.8,z+8)*CFrame.Angles(.4,0,0),color,Enum.Material.Fabric)
@@ -665,6 +667,8 @@ local function coast(parent,walk,activities)
  for _,x in ipairs({136,164}) do part(m,"StageSpeaker",V(3,6,3),V(x,5,433),iron,Enum.Material.Metal) end
  sign(m,"MÚSICA A LA MAR",CFrame.new(150,8,437)*CFrame.Angles(0,math.pi,0),30)
  coastalLookout(m,walk,activities)
+ for _,x in ipairs({-70,-30}) do part(m,"VolleySideline",V(.18,.04,52),V(x,1.04,505),cream,nil,false) end
+ for _,z in ipairs({479,531}) do part(m,"VolleyBaseline",V(40,.04,.18),V(-50,1.04,z),cream,nil,false) end
  for _,x in ipairs({-70,-30}) do cylinder(m,"VolleyballPost",.3,9,V(x,5.5,505),iron,Enum.Material.Metal) end
  for y=5,9 do part(m,"VolleyballNet",V(40,.1,.1),V(-50,y,505),cream,nil,false) end
  for x=-70,-30,2 do part(m,"VolleyballNet",V(.1,4,.1),V(x,7,505),cream,nil,false) end
