@@ -13,6 +13,7 @@ local cream=Color3.fromRGB(245,224,180)
 local rng=Random.new(230926)
 local function part(parent,name,size,cf,color,material,solid)
  local p=Instance.new("Part");p.Name=name;p.Size=size;p.CFrame=typeof(cf)=="CFrame" and cf or CFrame.new(cf);p.Color=color;p.Material=material or Enum.Material.SmoothPlastic
+ p.CastShadow=solid~=false
  p.Anchored=true;p.CanCollide=solid~=false;p.CanQuery=solid~=false;p.CanTouch=false;p.Parent=parent;return p
 end
 local function model(parent,name) local m=Instance.new("Model");m.Name=name;m.Parent=parent;return m end
@@ -75,7 +76,7 @@ local function building(parent,cf,w,d,floors,index,style)
  local m=model(parent,"Casa_"..index)
  local h=floors*8+7;local color=palette[Random.new(index*7919):NextInteger(1,#palette)]
  local function b(name,size,pos,c,mat,solid) return part(m,name,size,cf*CFrame.new(pos),c,mat,solid) end
- local interior=index%7==0 and w>=24 and d>=20
+ local interior=(index%7==0 or index==501) and w>=24 and d>=20
  if interior then
   m:SetAttribute("WalkableInterior",true);m:SetAttribute("Entrance",cf*CFrame.new(0,3.8,-d/2))
   b("UpperMasonry",V(w,h-8,d),V(0,9+(h-8)/2,0),color,Enum.Material.Plaster)
@@ -371,6 +372,10 @@ local function workplaces(parent)
  part(m,"PaintedSun",V(.55,.55,.05),V(-648,5.9,171.19),Color3.fromRGB(247,197,95),nil,false).Shape=Enum.PartType.Ball
  for i=1,4 do part(m,"PaintedHomes",V(.55,.6+i*.08,.05),V(-648.4+i*.65,4.95,171.2),palette[i],nil,false) end
  return {
+  {role="CafeWorker",name="Júlia Ferrer",stations={{position=V(-480,4,399),lookAt=V(-460,3,399),action="Preparing coffee"},{position=V(-491,4,435),lookAt=V(-488,3,439),action="Serving the terrace"}}},
+  {role="Sanitation",name="Biel Roca",stations={{position=V(262,4,406),lookAt=V(262,3,412),action="Sweeping the promenade"},{position=V(182,4,406),lookAt=V(182,3,412),action="Restocking the bins"},{position=V(22,4,406),lookAt=V(22,3,412),action="Checking the street furniture"}}},
+  {role="BeachWorker",name="Nora Marín",stations={{position=V(-577,4,521),lookAt=V(-579,2,525),action="Checking beach loungers"},{position=V(-500,4,471),lookAt=V(-502,2,475),action="Tidying the beach"}}},
+  {role="Busker",name="Èric Sol",stations={{position=V(150,5.5,426),lookAt=V(150,4,409),action="Playing for the promenade"}}},
   {role="Soccer",name="Nick Booty",quests={"nick"},stations={{position=V(602,4,580),lookAt=V(628,3,585)}}},
   {role="Gardener",name="Mar Soler",quests={"garden","beach"},stations=beds},
   {role="Artist",name="Laia Costa",stations={{position=artist,lookAt=V(-647,5,171)}}},

@@ -140,6 +140,9 @@ local names = {
 }
 local lines = {"That was loud!", "Can you hear me?", "This city is wild!", "Nice scream!", "Watch out for the War Zone!", "I need some quiet.", "Whoa, my ears!", "You leveled up yet?"}
 local roleLines = {
+    CafeWorker = {"Two coffees for the terrace!", "The cups are hot. My jokes are lukewarm.", "Take a seat; the sea is the best view."},
+    Sanitation = {"This promenade deserves a little care.", "If you find litter, Mar can use a hand.", "Keeping the city ready for tomorrow."},
+    BeachWorker = {"Sunshade, water, and a little sea breeze.", "The loungers are ready. Please leave the sand clean.", "Someone keeps kicking footballs down the beach."},
     Soccer = {"I aimed for the goal. The goal moved. Probably.", "My best trick is missing from here.", "Five perfect assists and I might finally score!"},
     Gardener = {"These flowers need water, not another scream!", "I planted the blue ones for the sea.", "The garden is everyone’s front yard."},
     Artist = {"Hold still! You might end up in this painting.", "The sea changes color every hour.", "My last seagull looked like a potato."},
@@ -335,12 +338,14 @@ local function makeBot(parent, index, x, z, role, job)
     if job then displayName=job.name end
     local model = Instance.new("Model")
     model.Name = displayName .. "_TrainingNPC"
+    model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
     model.Parent = parent
     model:SetAttribute("NpcId", "Bot" .. index)
     model:SetAttribute("DisplayName", displayName)
     model:SetAttribute("Role", role)
     local avatarRng = Random.new(8044 + index * 479)
-    local cf = CFrame.new(x, 3.9, z)
+    local home=Vector3.new(x,job and job.stations[1].position.Y or 3.9,z)
+    local cf = CFrame.new(home)
     local skin = skinColors[avatarRng:NextInteger(1, #skinColors)]
     local shirt = shirtColors[avatarRng:NextInteger(1, #shirtColors)]
     local pants = pantsColors[avatarRng:NextInteger(1, #pantsColors)]
@@ -404,8 +409,23 @@ local function makeBot(parent, index, x, z, role, job)
         accessory(model, head, "GlassesBridge", Vector3.new(0.28, 0.08, 0.14),
             CFrame.new(0, 0.09, -0.62), C.dark, Enum.Material.Metal)
     end
-    local jobTool,water
-    if role=="Gardener" then
+    local jobTool,water;local carryParts={}
+    if role=="CafeWorker" then
+        table.insert(carryParts,accessory(model,la,"ServingTray",Vector3.new(1.5,.12,1),CFrame.new(0,-1,-.6),Color3.fromRGB(104,139,124),Enum.Material.Metal))
+        for _,dx in ipairs({-.35,.35}) do table.insert(carryParts,accessory(model,la,"CoffeeCup",Vector3.new(.3,.4,.3),CFrame.new(dx,-.75,-.6),Color3.fromRGB(243,225,191),Enum.Material.CeramicTiles)) end
+        accessory(model,torso,"CafeApron",Vector3.new(1.7,1.5,.1),CFrame.new(0,-.2,-.57),Color3.fromRGB(71,139,125),Enum.Material.Fabric)
+    elseif role=="Sanitation" then
+        accessory(model,ra,"BroomHandle",Vector3.new(.14,2.7,.14),CFrame.new(0,-1.25,-.45),Color3.fromRGB(155,113,77),Enum.Material.Wood)
+        accessory(model,ra,"BroomHead",Vector3.new(1.6,.35,.65),CFrame.new(0,-2.6,-.45),Color3.fromRGB(196,163,97),Enum.Material.Fabric)
+        accessory(model,torso,"SafetyVest",Vector3.new(1.85,1.5,.12),CFrame.new(0,0,-.58),Color3.fromRGB(224,176,69),Enum.Material.Fabric)
+    elseif role=="BeachWorker" then
+        accessory(model,ra,"CleaningCloth",Vector3.new(.7,.15,.65),CFrame.new(0,-1,-.25),Color3.fromRGB(235,220,181),Enum.Material.Fabric)
+        accessory(model,torso,"BeachCrewBadge",Vector3.new(.6,.4,.12),CFrame.new(.45,.4,-.59),Color3.fromRGB(199,83,74))
+    elseif role=="Busker" and job then
+        accessory(model,torso,"GuitarBody",Vector3.new(1.5,1.7,.5),CFrame.new(.2,-.35,-.9),Color3.fromRGB(183,121,65),Enum.Material.Wood,Enum.PartType.Ball)
+        accessory(model,torso,"GuitarSoundhole",Vector3.new(.45,.45,.04),CFrame.new(.2,-.1,-1.17),Color3.fromRGB(55,41,32),nil,Enum.PartType.Ball)
+        accessory(model,torso,"GuitarNeck",Vector3.new(.35,2.3,.17),CFrame.new(-.3,.9,-.92)*CFrame.Angles(0,0,-.35),Color3.fromRGB(112,74,47),Enum.Material.Wood)
+    elseif role=="Gardener" then
         jobTool=accessory(model,ra,"WateringCan",Vector3.new(.9,.85,.7),CFrame.new(0,-1.15,-.35),Color3.fromRGB(77,133,123),Enum.Material.Metal)
         accessory(model,ra,"CanSpout",Vector3.new(.2,.2,.9),CFrame.new(0,-1.05,-1),Color3.fromRGB(77,133,123),Enum.Material.Metal)
         local outlet=Instance.new("Attachment");outlet.Position=Vector3.new(0,-.35,-.6);outlet.Parent=jobTool
@@ -447,8 +467,8 @@ local function makeBot(parent, index, x, z, role, job)
     speech.BackgroundColor3 = Color3.fromRGB(244, 237, 211)
     speech.TextColor3 = C.dark
     local bot = {id = "Bot" .. index, name = displayName, role = role, model = model, root = root, humanoid = humanoid,
-        health = Config.BotMaxHealth, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"} or nil, job=job, jobTool=jobTool, water=water, jobStep=0,
-        start = Vector3.new(x, 3.9, z), lastGrounded=Vector3.new(x,3.9,z), roamRadius = role == "Commuter" and 200 or 125,
+        health = Config.BotMaxHealth, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"} or nil, job=job, jobTool=jobTool, water=water, carryParts=carryParts, jobStep=0,
+        start = home, lastGrounded=home, roamRadius = role == "Commuter" and 200 or 125,
         joints = {ls, rs, lh, rh}, lastGreeting = -1000}
     for _, limb in ipairs(bot.joints) do limb:SetAttribute("RestPose", limb.C0) end
     table.insert(World.Bots, bot)
@@ -465,11 +485,13 @@ local function makeBot(parent, index, x, z, role, job)
                     elseif job then
                         bot.jobStep=bot.jobStep%#job.stations+1
                         local station=job.stations[bot.jobStep]
+                        model:SetAttribute("WorkStep",bot.jobStep)
+                        for _,item in ipairs(bot.carryParts) do item.Transparency=bot.jobStep==2 and 0 or 1 end
                         bot.working=false;model:SetAttribute("Activity","Walking to work")
                         roamTo(bot,station.position)
                         if bot.alive and (bot.root.Position-station.position).Magnitude<5 and (bot.reactionUntil or 0)<=os.clock() then
                             bot.humanoid:MoveTo(bot.root.Position);faceToward(bot,station.lookAt)
-                            bot.working=true;model:SetAttribute("Activity",role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
+                            bot.working=true;model:SetAttribute("Activity",station.action or role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
                             local untilTime=os.clock()+rng:NextNumber(5,9)
                             while model.Parent and bot.alive and os.clock()<untilTime and (bot.socialUntil or 0)<=os.clock() and (bot.reactionUntil or 0)<=os.clock() do task.wait(.2) end
                             bot.working=false
@@ -556,7 +578,7 @@ function World.Build()
     local roles={"Local","Tourist","Vendor","Commuter","Busker","Fighter"}
     -- Cluster residents at destinations; leave roads and building interiors clear.
     local seeds={{-625,205},{-575,205},{-600,185},{-610,265},{-360,180},{-360,260},{-120,-32},{-145,15},{-92,15},{85,-71},{155,-71},{85,7},{155,7},{-240,403},{0,403},{200,403},{420,403},{-540,403}}
-    for i=1,24 do local point=layout.walk[((i-1)*29+5)%#layout.walk+1];table.insert(seeds,{point.X,point.Z}) end
+    for i=1,20 do local point=layout.walk[((i-1)*29+5)%#layout.walk+1];table.insert(seeds,{point.X,point.Z}) end
     for i,spot in ipairs(seeds) do makeBot(parent,i,spot[1],spot[2],roles[(i-1)%#roles+1]) end
     for i,job in ipairs(layout.jobs or {}) do local point=job.stations[1].position;makeBot(parent,#seeds+i,point.X,point.Z,job.role,job) end
     for i,spec in ipairs({{-368,1,23},{-352,-1,21},{112,1,20},{128,-1,24},{352,1,18},{368,-1,22}}) do

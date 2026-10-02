@@ -1,4 +1,5 @@
 -- Run against the generated city in a disposable Studio place. This is engine evidence,
+-- Moving residents do not count as static road/door obstructions.
 -- not a replacement for walking/driving routes or measuring device frame times.
 return function(world)
  local params=OverlapParams.new();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances={world};params.RespectCanCollide=true
@@ -10,7 +11,7 @@ return function(world)
    interiors+=1
    local entrance=object:GetAttribute("Entrance")
    if entrance then for _,part in ipairs(workspace:GetPartBoundsInBox(entrance,Vector3.new(2.5,4,7),params)) do
-    if part.CanCollide then table.insert(doorways,part:GetFullName()) end
+    if part.CanCollide and part.Anchored then table.insert(doorways,part:GetFullName()) end
    end end
   end
  end
@@ -19,7 +20,7 @@ return function(world)
    local size=Vector3.new(road.Size.X-1,5,road.Size.Z-1)
    for _,part in ipairs(workspace:GetPartBoundsInBox(road.CFrame+Vector3.new(0,3.5,0),size,params)) do
     local vehicle=part:FindFirstAncestorOfClass("Model")
-    if part.CanCollide and part.Name~="MapEdge" and not part:IsDescendantOf(world.Boulevards) and not (vehicle and vehicle:GetAttribute("Vehicle")) and not seen[part] then
+    if part.CanCollide and part.Anchored and part.Name~="MapEdge" and not part:IsDescendantOf(world.Boulevards) and not (vehicle and vehicle:GetAttribute("Vehicle")) and not seen[part] then
      seen[part]=true;table.insert(obstructions,part:GetFullName())
     end
    end

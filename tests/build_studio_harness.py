@@ -12,6 +12,7 @@ client=ROOT/'src/StarterPlayer/StarterPlayerScripts'
 def inline(path):
     text=path.read_text()
     text=text.replace('require(RS:WaitForChild("Shared"):WaitForChild("Config"))','modules.Config')
+    text=re.sub(r'require\((?:script.Parent|game:GetService\("ReplicatedStorage"\)(?::WaitForChild\("Shared"\))?):WaitForChild\("([A-Za-z0-9_]+)"\)\)',r'modules.\1',text)
     text=re.sub(r'require\((?:game:GetService\("ReplicatedStorage"\)|[^()])+\)',lambda m:'modules.'+re.search(r'\.([A-Za-z0-9_]+)\)$',m[0])[1],text)
     assert 'require(' not in text, path
     return text
@@ -30,3 +31,7 @@ server_order=common+[shared/'ProfileLease.luau',shared/'DestructionRules.luau']+
 (out/'StudioClientHarness.luau').write_text(bundle(common+[shared/'MicPower.luau',client/'Microphone.luau'],client/'Client.client.luau'))
 (out/'StudioAnimationsHarness.luau').write_text(bundle(common,client/'RunAnimation.client.luau')+'\n'+inline(client/'Residents.client.luau'))
 print('Assembled server, client and animation harnesses from current source')
+
+world_source=bundle(common+[server/'City.luau'],server/'World.luau')
+head,tail=world_source.rsplit('return World',1)
+(out/'StudioWorldHarness.luau').write_text(head+'return World.Build()'+tail)

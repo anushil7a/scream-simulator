@@ -1,5 +1,5 @@
-local VoiceCombat=require(script.Parent.VoiceCombat)
-local Progression=require(script.Parent.Progression)
+local VoiceCombat=require(script.Parent:WaitForChild("VoiceCombat"))
+local Progression=require(script.Parent:WaitForChild("Progression"))
 local Config = {}
 Config.Progression=Progression
 Config.VoiceCombat=VoiceCombat

@@ -1,7 +1,7 @@
 local Players=game:GetService('Players')
 local Voice=game:GetService('VoiceChatService')
 local Run=game:GetService('RunService')
-local Power=require(game.ReplicatedStorage.Shared.MicPower)
+local Power=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("MicPower"))
 local Microphone={};Microphone.__index=Microphone
 function Microphone.new()
  local self=setmetatable({model=Power.new(),power=0,eligible=false,ready=false,status='Checking Roblox voice access…',captureStarted=nil,phase=nil,quiet={},spoken={},generation=0},Microphone)

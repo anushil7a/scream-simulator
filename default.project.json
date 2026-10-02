@@ -29,6 +29,16 @@
         "UseAudioApi": "Enabled",
         "EnableDefaultVoice": true
       }
+    },
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "StreamingEnabled": true,
+        "StreamingMinRadius": 64,
+        "StreamingTargetRadius": 512,
+        "StreamOutBehavior": "Opportunistic",
+        "StreamingIntegrityMode": "PauseOutsideLoadedArea"
+      }
     }
   }
 }

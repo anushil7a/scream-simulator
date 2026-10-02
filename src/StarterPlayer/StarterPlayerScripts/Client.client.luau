@@ -7,7 +7,7 @@ local Debris=game:GetService("Debris")
 local TextService=game:GetService("TextService")
 local p=Players.LocalPlayer
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
-local mic=require(script.Parent.Microphone).new()
+local mic=require(script.Parent:WaitForChild("Microphone")).new()
 local remotes=RS:WaitForChild("ScreamRemotes")
 local action=remotes:WaitForChild("Action")
 local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")
@@ -62,16 +62,19 @@ local function beginCapture(source)
  if captureSource or blocked() or os.clock()<nextCast then return end
  if mic:Begin() then sequence+=1;captureSource=source;action:FireServer("BeginCast",sequence) end
 end
+local function aimRay()
+ local camera=workspace.CurrentCamera
+ local location=UIS.TouchEnabled and camera.ViewportSize/2 or UIS:GetMouseLocation()-game:GetService("GuiService"):GetGuiInset()
+ local ray=camera:ViewportPointToRay(location.X,location.Y)
+ local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
+ return ray,workspace:Raycast(ray.Origin,ray.Direction*1000,params)
+end
 local function releaseCapture(source)
  if captureSource~=source then return end
  captureSource=nil
  if blocked() then cancelCapture();return end
  local power=mic:Release();if power<.08 then action:FireServer("CancelCast");notify("Use your voice while holding attack.");return end
- local camera=workspace.CurrentCamera
- local location=UIS.TouchEnabled and camera.ViewportSize/2 or UIS:GetMouseLocation()-game:GetService("GuiService"):GetGuiInset()
- local ray=camera:ViewportPointToRay(location.X,location.Y)
- local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
- local hit=workspace:Raycast(ray.Origin,ray.Direction*1000,params)
+ local ray,hit=aimRay()
  action:FireServer("Cast",{sequence=sequence,power=power,aim=hit and hit.Position or ray.Origin+ray.Direction*1000})
  nextCast=os.clock()+4
 end
@@ -97,6 +100,7 @@ local meterText=label(meter,"SCREAM POWER 0%",UDim2.new(1,-20,0,24),UDim2.fromOf
 local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,36),panel)
 local meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 local reticle=label(gui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.TextXAlignment=Enum.TextXAlignment.Center
+local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
 local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge)
 local sprinting=false
@@ -283,7 +287,22 @@ Run.RenderStepped:Connect(function(dt)
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
  local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs [SHIFT]",p:GetAttribute("SprintCharge") or 10)
  if os.clock()>toastUntil then toast.Text="" end
- elapsed+=dt;if elapsed<.25 then return end;elapsed=0
+ aimInfo.Visible=mic.ready and not modal.Visible
+ elapsed+=dt;if elapsed<.15 then return end;elapsed=0
+ aimInfo.Text=""
+ if aimInfo.Visible then
+  local _,hit=aimRay();local object=hit and hit.Instance
+  while object and object~=workspace and not object:GetAttribute("RequiredLevel") do object=object.Parent end
+  if object and object~=workspace then
+   local required=object:GetAttribute("RequiredLevel");local hp=object:GetAttribute("ObjectHealth") or 0
+   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+   local rangeLimit=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange
+   local far=root and (hit.Position-root.Position).Magnitude>rangeLimit+2
+   local kind=object:GetAttribute("ObjectName") or object:GetAttribute("DestructibleType") or object.Name
+   aimInfo.Text=string.format("%s · LEVEL %d\n%s",kind,required,data.level<required and "LOCKED" or far and "OUT OF MAX RANGE" or string.format("%d / %d durability",hp,object:GetAttribute("ObjectMaxHealth") or hp))
+   aimInfo.TextColor3=(data.level<required or far) and muted or gold
+  end
+ end
  talkTarget=nil;local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");local world=workspace:FindFirstChild("ScreamSimulatorWorld");local best=13
  if root and world then for _,bot in ipairs(world:GetChildren()) do local r=bot:IsA("Model") and bot:FindFirstChild("HumanoidRootPart");if r then local distance=(r.Position-root.Position).Magnitude;if distance<best then best=distance;talkTarget=bot end end end end
  if root and mapDot and mapDot.Parent then mapDot.Position=UDim2.fromScale(math.clamp((root.Position.X+720)/1440,0,.94),math.clamp((root.Position.Z+600)/1200,0,.94)) end

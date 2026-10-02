@@ -1,7 +1,7 @@
 local Players=game:GetService('Players')
 local Collection=game:GetService('CollectionService')
 local Rules=require(game.ReplicatedStorage.Shared.DestructionRules)
-local Service={objects={}}
+local Service={objects={},ids={}}
 function Service.Register(model)
  if Service.objects[model] then return end
  local kind=model:GetAttribute('DestructibleType');local spec=Rules.Types[kind]
@@ -10,17 +10,21 @@ function Service.Register(model)
  for _,part in ipairs(model:GetDescendants()) do
   if part:IsA('BasePart') then parts[part]={color=part.Color,transparency=part.Transparency,collide=part.CanCollide,query=part.CanQuery,touch=part.CanTouch,seatDisabled=part:IsA("Seat") and part.Disabled or false} end
  end
+ if next(parts)==nil then return end
  local cf,size=model:GetBoundingBox()
+ local id=string.format("%s:%.3f:%.3f:%.3f",kind,cf.Position.X,cf.Position.Y,cf.Position.Z)
+ if Service.ids[id] and Service.ids[id]~=model then warn("Duplicate destructible position",id);return end
+ Service.ids[id]=model;model:SetAttribute("ObjectId",id)
  Service.objects[model]={parts=parts,kind=kind,health=spec.health,box=cf,size=size,version=0,prompts={}}
  for _,item in ipairs(model:GetDescendants()) do if item:IsA("ProximityPrompt") then Service.objects[model].prompts[item]=item.Enabled end end
- model:SetAttribute('ObjectHealth',spec.health);model:SetAttribute('ObjectMaxHealth',spec.health);model:SetAttribute('RequiredLevel',spec.level);model:SetAttribute('Destroyed',false)
+ model:SetAttribute('ObjectName',spec.name);model:SetAttribute('ObjectHealth',spec.health);model:SetAttribute('ObjectMaxHealth',spec.health);model:SetAttribute('RequiredLevel',spec.level);model:SetAttribute('Destroyed',false)
 end
 local function occupied(object)
  local characters={};for _,p in ipairs(Players:GetPlayers()) do if p.Character then table.insert(characters,p.Character) end end
- local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+ local world=Service.world
  if world then for _,model in ipairs(game:GetService("CollectionService"):GetTagged("CityResident")) do if model:IsDescendantOf(world) then table.insert(characters,model) end end end
  if #characters==0 then return false end
- local params=OverlapParams.new();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=characters;params.MaxParts=1
+ local params=OverlapParams.new();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=characters;params.MaxParts=1;params.RespectCanCollide=true
  return #workspace:GetPartBoundsInBox(object.box,object.size+Vector3.new(2,3,2),params)>0
 end
 local function restore(model,object,version)
@@ -53,11 +57,11 @@ function Service.Damage(instance,level,damage)
  return {model=model,destroyed=destroyed,health=health,kind=object.kind,position=object.box.Position}
 end
 function Service.Start(world)
- Service.objects={}
+ Service.objects={};Service.ids={};Service.world=world
  for _,model in ipairs(Collection:GetTagged('CityDestructible')) do if model:IsDescendantOf(world) then Service.Register(model) end end
  if Service.added then Service.added:Disconnect() end
  Service.added=Collection:GetInstanceAddedSignal('CityDestructible'):Connect(function(model) if model:IsDescendantOf(world) then task.defer(function() if model:IsDescendantOf(world) then Service.Register(model) end end) end end)
  if Service.removed then Service.removed:Disconnect() end
- Service.removed=Collection:GetInstanceRemovedSignal("CityDestructible"):Connect(function(model) Service.objects[model]=nil end)
+ Service.removed=Collection:GetInstanceRemovedSignal("CityDestructible"):Connect(function(model) local id=model:GetAttribute("ObjectId");if id and Service.ids[id]==model then Service.ids[id]=nil end;Service.objects[model]=nil end)
 end
 return Service
