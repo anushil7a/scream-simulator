@@ -10,6 +10,7 @@ function MicPower.new()
  return setmetatable({floor=0.003,ceiling=0.06,smoothed=0,active=false,calibrated=false,samples={}},MicPower)
 end
 function MicPower:Calibrate(quiet,voice)
+ self.calibrated=false;self:Reset()
  if #quiet<15 or #voice<15 then return false,"Not enough microphone samples" end
  for _,list in ipairs({quiet,voice}) do for _,v in ipairs(list) do if not finite(v) or v<0 then return false,"Invalid microphone samples" end end end
  local noise=percentile(quiet,.9)

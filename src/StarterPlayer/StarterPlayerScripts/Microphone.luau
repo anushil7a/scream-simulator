@@ -41,7 +41,8 @@ function Microphone:Calibrate()
  local input=self:FindInput()
  if not self.eligible or not input then self.status='Enable Roblox voice and reconnect your microphone first.';return end
  if input.Muted then self.status='Unmute using the Roblox microphone control, then calibrate.';return end
- self:Cancel();self.ready=false;self.phase='quiet';self.phaseStarted=os.clock();self.quiet={};self.spoken={}
+ -- A new attempt supersedes the previous calibration, including failed retries.
+ self:Cancel();self.model=Power.new();self.power=0;self.ready=false;self.phase='quiet';self.phaseStarted=os.clock();self.quiet={};self.spoken={}
  self.status='Calibration 1/2: stay quiet for two seconds.'
 end
 function Microphone:Cancel()

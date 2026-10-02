@@ -43,6 +43,11 @@ for i=1,60 do mic:Capture(mic:Step(.06,1/60)) end
 check(mic:Release()>.9,'sustained voice accepted')
 check(mic:Release()==0,'samples consumed once')
 check(not Mic.new():Calibrate(quiet,quiet),'no voice calibration rejected')
+for _=1,6 do mic:Capture(.8) end
+check(not mic:Calibrate(quiet,quiet),'failed recalibration rejected')
+check(not mic.calibrated,'failed recalibration must invalidate previous success')
+check(#mic.samples==0 and mic.smoothed==0,'failed recalibration clears stale capture')
+check(mic:Calibrate(quiet,voice) and mic.calibrated,'successful retry restores calibration')
 print('PASS '..count..' microphone/combat rule checks')
 local Destruction=require('../src/ReplicatedStorage/Shared/DestructionRules')
 for _,level in ipairs({1,25,26,50,51,75,76,99,100,101,300}) do
