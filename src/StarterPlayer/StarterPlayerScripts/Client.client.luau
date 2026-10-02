@@ -346,15 +346,19 @@ remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,
  ScreamEffects.Render(s.effect,pos,direction,length,beamWidth or 4,color,data.settings.reducedShake,s.variant)
 end)
 local elapsed=0
+local lastViewport,lastTouch
 Run.RenderStepped:Connect(function(dt)
  local viewport=gui.AbsoluteSize
+ local touch=UIS.TouchEnabled
+ local layoutChanged=viewport~=lastViewport or touch~=lastTouch
+ if layoutChanged then lastViewport=viewport;lastTouch=touch;toastWidth=0 end
  local notificationWidth=math.min(640,viewport.X-32)
  if notificationWidth~=toastWidth then
   toastWidth=notificationWidth;toast.TextSize=viewport.X<820 and 14 or 16
   local textHeight=TextService:GetTextSize(toast.Text,toast.TextSize,toast.Font,Vector2.new(notificationWidth,10000)).Y
   toast.Size=UDim2.fromOffset(notificationWidth,math.min(viewport.Y*.35,textHeight+12))
  end
- conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-36))
+ if layoutChanged then conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-36)) end
  if conversationPanel.Visible then
   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
   local npcRoot=conversationNPC and conversationNPC.Parent and conversationNPC:FindFirstChild("HumanoidRootPart")
@@ -366,12 +370,14 @@ Run.RenderStepped:Connect(function(dt)
   if data.testSession or data.savingAvailable==false then xpText.Text="TEMPORARY PROGRESS • not saved"
   elseif data.savingDelayed then xpText.Text="SAVE DELAYED • retrying" end
  end
+ if layoutChanged then
  micScale.Scale=1
  local micWidth=math.min(430,viewport.X-24);local micNarrow=micWidth<400
  micPanel.Size=UDim2.fromOffset(micWidth,micNarrow and 320 or 260);micTitle.TextSize=micNarrow and 18 or 21
  local calibrate=micPanel.Calibrate;local retry=micPanel.Retry
  calibrate.Size=UDim2.fromOffset(micNarrow and micWidth-36 or 188,UIS.TouchEnabled and 44 or 36);retry.Size=calibrate.Size
  calibrate.Position=UDim2.fromOffset(18,micNarrow and 224 or 208);retry.Position=UDim2.fromOffset(micNarrow and 18 or 224,micNarrow and 270 or 208)
+ end
  micPanel.Visible=not mic.ready and not modal.Visible and not devPanel.Visible;micStatus.Text=mic.status
  if reportedReady~=mic.ready or (data.micReady~=mic.ready and os.clock()>readyReportAt) then reportedReady=mic.ready;readyReportAt=os.clock()+1;action:FireServer("MicReady",mic.ready) end
  if captureSource and blocked() then cancelCapture() end
@@ -382,6 +388,7 @@ Run.RenderStepped:Connect(function(dt)
  local power=mic.power;meterFill.Size=UDim2.fromScale(power,1)
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
  meterText.Text=string.format("SCREAM POWER %d%% • %.0f studs",math.floor(power*100),range)
+ if layoutChanged then
  local short=viewport.Y<550
  menuScale.Scale=1
  local width=math.min(720,viewport.X-24)
@@ -398,7 +405,6 @@ Run.RenderStepped:Connect(function(dt)
  content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
  if width~=lastLayoutWidth then lastLayoutWidth=width;if modal.Visible then render() end end
  -- Keep desktop controls compact; smaller displays retain readable button text.
- local touch=UIS.TouchEnabled
  local tight=viewport.X<380
  shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=tight and "SCREAMS" or "SCREAMS [B]"
  questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
@@ -407,9 +413,11 @@ Run.RenderStepped:Connect(function(dt)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
  talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
  talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
- hud.Visible=gameplayVisible;controls.Visible=gameplayVisible;controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
+ controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
  tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and 160 or 64)
  sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
+ end
+ hud.Visible=gameplayVisible;controls.Visible=gameplayVisible
  tracked.Visible=gameplayVisible and tracked.Text~="";zone.Visible=viewport.X>740 and mic.ready
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and "RELEASE TO FIRE" or "HOLD SCREAM [E]"

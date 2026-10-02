@@ -111,3 +111,7 @@ Healthy NPC nameplates omit full-health counters. Client limits names to the on-
 ## Conversation cover correction — 2026-10-02
 
 Client targeting and server conversation/vendor access now share living-character, range and solid-cover checks. Six native assertions passed for actual conversation rejection through a wall, acceptance past non-solid decoration and out-of-range rejection. Eight crowd-label checks also passed with this rule. The older label section's missing line-of-sight filtering is superseded by this change. Vendor purchase with newly introduced cover and multiplayer timing remain untested in this focused fixture. The full source-suite baseline above has since been refreshed to this revision.
+
+## UI layout work reduction — 2026-10-02
+
+Fixed layout dimensions now recompute on viewport/touch-mode changes. Nine menu regression checks passed. Native iPhone 17 Pro simulation confirmed the open menu and five tab buttons remained in bounds after portrait/landscape changes (401×720 and 750×303 GUI viewports). This removes repeated calculations but is not a measured real-device FPS result.
