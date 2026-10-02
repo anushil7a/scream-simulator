@@ -61,6 +61,12 @@ end
 
 function Profiles.Load(userId)
     if not store then return Profiles.Default(),false end
+    -- Serialize acquisition with this server's saves and other acquisitions.
+    while locks[userId] do task.wait(.05) end
+    if owned[userId] then
+        return Profiles.Default(),false,"Your previous session is still saving. Rejoin shortly."
+    end
+    locks[userId]=true
     local key="Player_"..userId
     for attempt=1,3 do
         local success,result=pcall(function()
@@ -70,21 +76,24 @@ function Profiles.Load(userId)
             end)
         end)
         if success then
-            if Lease.Owns(result,owner) then owned[userId]=true;return Profiles.Sanitize(result),true end
+            locks[userId]=nil
+            if Lease.Owns(result,owner) then owned[userId]={};return Profiles.Sanitize(result),true end
             return Profiles.Default(),false,"Another server is still saving this profile. Rejoin shortly."
         end
         warn("ScreamSimulator profile load failed",userId,attempt)
         task.wait(attempt)
     end
+    locks[userId]=nil
     return Profiles.Default(),false,"Saving is unavailable. This session uses temporary progress."
 end
 
 function Profiles.Save(userId,data,release)
     if not store then return false,"unavailable" end
-    if not owned[userId] then return false,"ownership" end
+    local session=owned[userId]
+    if not session then return false,"ownership" end
     -- Snapshot after waiting, so an older autosave cannot overwrite a leave/save.
     while locks[userId] do task.wait(.05) end
-    if not owned[userId] then return false,"ownership" end
+    if owned[userId]~=session then return false,"ownership" end
     locks[userId]=true
     local snapshot=Profiles.Sanitize(data)
     local key="Player_"..userId

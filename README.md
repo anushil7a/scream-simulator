@@ -55,6 +55,7 @@ luau tests/VoiceCombat.luau
 luau tests/Progression.luau
 luau tests/ProfileLease.luau
 luau tests/QuestLifecycle.luau
+python3 tests/profile_race.py
 ```
 
 Compile changed scripts with `luau-compile`, build both place formats, then run the relevant native Studio regression. Document failures and untested cases. [Report an issue](https://github.com/anushil7a/scream-simulator/issues) with reproduction steps, build/commit, device and expected behavior.

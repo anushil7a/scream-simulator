@@ -369,3 +369,11 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - Desktop save notice and narrow-screen XP/status line expose delayed saves. Notifications distinguish retrying in-server progress from progress that cannot be saved. Autosave ignores completion after its session/player is gone, avoiding stale UI/session mutation.
 - `tests/StudioSaveStatus.server.luau` passed **five checks** using mocked Save outcomes with a non-saving disposable profile: transient failure, successful retry, ownership loss, unavailable store, and stale session callback. No DataStore writes occurred. This verifies result handling, not real API failure behavior, same-server rejoin races, contention or durability; isolated live migration/save testing remains mandatory.
 - Removed the fixture and stopped Play. Compiled changed source and rebuilt local places. No production publication or production save experimentation.
+
+
+## Same-server profile reconnect race — October 2
+
+- Profile acquisition now uses the same per-user lock as saving. Concurrent loads cannot both acquire writable copies; a rejoin waits for an in-flight leave save and reads its final data. A still-owned profile after a failed leave remains unavailable to a second writer. Failed acquisition releases the lock, and unrelated users are not serialized together.
+- Added a unique in-memory ownership token per acquisition. A save captures that token before waiting for the lock and must still match afterward. This closes a second race: an old queued autosave can no longer wake after a new acquisition and overwrite that new session simply because both share the same server JobId.
+- `python3 tests/profile_race.py` executes the actual Profiles source in Luau with a deterministic yielding in-memory store and minimal platform/config stubs. **13 checks passed** covering concurrent acquisition, leave/rejoin ordering, unrelated users, stale autosave rejection, failed leave safety and failed-load lock release. Existing12 lease-rule checks also pass. No Roblox DataStore is contacted; live service contention, request retries and durability still require isolated API validation.
+- Synced clean Profiles source to Place1, compiled and rebuilt both local place formats. Added the reproducible concurrency check to README. Production unchanged.
