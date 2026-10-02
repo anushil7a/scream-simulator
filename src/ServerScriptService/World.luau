@@ -139,6 +139,9 @@ local names = {
 }
 local lines = {"That was loud!", "Can you hear me?", "This city is wild!", "Nice scream!", "Watch out for the War Zone!", "I need some quiet.", "Whoa, my ears!", "You leveled up yet?"}
 local roleLines = {
+    Soccer = {"I aimed for the goal. The goal moved. Probably.", "My best trick is missing from here.", "Five perfect assists and I might finally score!"},
+    Gardener = {"These flowers need water, not another scream!", "I planted the blue ones for the sea.", "The garden is everyone’s front yard."},
+    Artist = {"Hold still! You might end up in this painting.", "The sea changes color every hour.", "My last seagull looked like a potato."},
     Busker = {"One more song before the train!", "The market's got rhythm today.", "Toss me a request!"},
     Commuter = {"The next train is always late.", "I know a shortcut through the square.", "Coffee first, then the commute."},
     Tourist = {"That plaza is incredible!", "Where's the best snack cart?", "I keep finding new corners."},
@@ -215,6 +218,7 @@ function World.Speak(bot, message)
 end
 
 function World.Talk(bot, player)
+    bot.working=false
     if player and player.Character then
         local root = player.Character:FindFirstChild("HumanoidRootPart")
         if root then faceToward(bot, root.Position) end
@@ -307,6 +311,7 @@ local function noticePlayers(bot)
 end
 
 function World.ReactToScream(bot, origin)
+    bot.working=false
     bot.reactionUntil = os.clock() + 2.3
     bot.gestureUntil = bot.reactionUntil
     local delta = bot.root.Position - origin
@@ -317,8 +322,9 @@ function World.ReactToScream(bot, origin)
     World.Speak(bot, ({"Whoa, my ears!", "That echoed down the block!", "Careful with that scream!"})[rng:NextInteger(1, 3)])
 end
 
-local function makeBot(parent, index, x, z, role)
+local function makeBot(parent, index, x, z, role, job)
     local displayName = names[(index - 1) % #names + 1] .. (index > #names and " " .. ({"Park", "Reed", "Chen", "Rivera", "Brooks", "Shah"})[(index-1)%6+1] or "")
+    if job then displayName=job.name end
     local model = Instance.new("Model")
     model.Name = displayName .. "_TrainingNPC"
     model.Parent = parent
@@ -390,6 +396,16 @@ local function makeBot(parent, index, x, z, role)
         accessory(model, head, "GlassesBridge", Vector3.new(0.28, 0.08, 0.14),
             CFrame.new(0, 0.09, -0.62), C.dark, Enum.Material.Metal)
     end
+    local jobTool,water
+    if role=="Gardener" then
+        jobTool=accessory(model,ra,"WateringCan",Vector3.new(.9,.85,.7),CFrame.new(0,-1.15,-.35),Color3.fromRGB(77,133,123),Enum.Material.Metal)
+        accessory(model,ra,"CanSpout",Vector3.new(.2,.2,.9),CFrame.new(0,-1.05,-1),Color3.fromRGB(77,133,123),Enum.Material.Metal)
+        local outlet=Instance.new("Attachment");outlet.Position=Vector3.new(0,-.35,-.6);outlet.Parent=jobTool
+        water=Instance.new("ParticleEmitter");water.Name="WaterDrops";water.Rate=12;water.Lifetime=NumberRange.new(.35,.6);water.Speed=NumberRange.new(1,2);water.Acceleration=Vector3.new(0,-12,0);water.Size=NumberSequence.new(.08);water.Color=ColorSequence.new(Color3.fromRGB(134,213,235));water.Enabled=false;water.Parent=outlet
+    elseif role=="Artist" then
+        jobTool=accessory(model,ra,"PaintBrush",Vector3.new(.14,1.3,.14),CFrame.new(0,-1.1,-.35),Color3.fromRGB(131,88,61),Enum.Material.Wood)
+        accessory(model,la,"PaintPalette",Vector3.new(.9,.12,.7),CFrame.new(0,-1,-.3),Color3.fromRGB(190,144,92),Enum.Material.Wood)
+    end
     if role == "Vendor" then
         accessory(model, torso, "VendorApron", Vector3.new(1.65, 1.4, 0.14),
             CFrame.new(0, -0.32, -0.61), Color3.fromRGB(222, 215, 188), Enum.Material.Fabric)
@@ -423,7 +439,7 @@ local function makeBot(parent, index, x, z, role)
     speech.BackgroundColor3 = Color3.fromRGB(244, 237, 211)
     speech.TextColor3 = C.dark
     local bot = {id = "Bot" .. index, name = displayName, role = role, model = model, root = root, humanoid = humanoid,
-        health = Config.BotMaxHealth, alive = true, label = nameLabel, speech = speech,
+        health = Config.BotMaxHealth, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"} or nil, job=job, jobTool=jobTool, water=water, jobStep=0,
         start = Vector3.new(x, 3.9, z), lastGrounded=Vector3.new(x,3.9,z), roamRadius = role == "Commuter" and 200 or 125,
         joints = {ls, rs, lh, rh}, lastGreeting = -1000}
     for _, limb in ipairs(bot.joints) do limb:SetAttribute("RestPose", limb.C0) end
@@ -435,6 +451,19 @@ local function makeBot(parent, index, x, z, role)
                 if bot.alive then
                     if (bot.reactionUntil or 0) > os.clock() then
                         task.wait(0.5)
+                    elseif job and (bot.socialUntil or 0)<=os.clock() then
+                        bot.jobStep=bot.jobStep%#job.stations+1
+                        local station=job.stations[bot.jobStep]
+                        bot.working=false;model:SetAttribute("Activity","Walking to work")
+                        roamTo(bot,station.position)
+                        if bot.alive and (bot.root.Position-station.position).Magnitude<5 and (bot.reactionUntil or 0)<=os.clock() then
+                            bot.humanoid:MoveTo(bot.root.Position);faceToward(bot,station.lookAt)
+                            bot.working=true;model:SetAttribute("Activity",role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
+                            local untilTime=os.clock()+rng:NextNumber(5,9)
+                            while model.Parent and bot.alive and os.clock()<untilTime and (bot.socialUntil or 0)<=os.clock() and (bot.reactionUntil or 0)<=os.clock() do task.wait(.2) end
+                            bot.working=false
+                        end
+                        task.wait(.3)
                     else
                         local choice = rng:NextNumber()
                         if choice < 0.23 then
@@ -518,6 +547,7 @@ function World.Build()
     local seeds={{-625,205},{-575,205},{-600,185},{-610,265},{-360,180},{-360,260},{-120,-32},{-145,15},{-92,15},{85,-71},{155,-71},{85,7},{155,7},{-240,403},{0,403},{200,403},{420,403},{-540,403}}
     for i=1,24 do local point=layout.walk[((i-1)*29+5)%#layout.walk+1];table.insert(seeds,{point.X,point.Z}) end
     for i,spot in ipairs(seeds) do makeBot(parent,i,spot[1],spot[2],roles[(i-1)%#roles+1]) end
+    for i,job in ipairs(layout.jobs or {}) do local point=job.stations[1].position;makeBot(parent,#seeds+i,point.X,point.Z,job.role,job) end
     for i,spec in ipairs({{-368,1,23},{-352,-1,21},{112,1,20},{128,-1,24},{352,1,18},{368,-1,22}}) do
         local m=vehicle(parent,i%2==0 and "Sedan" or "Taxi",i%2==0 and Color3.fromRGB(65+i*15,104,115) or Color3.fromRGB(226,177,64));m.Name="TrafficCar"..i
         local car={model=m,hull=m.CollisionHull,lane=spec[1],direction=spec[2],speed=spec[3],distance=(i-1)*210};m:PivotTo(carAt(car,car.distance));table.insert(World.Cars,car)
@@ -537,6 +567,7 @@ function World.Build()
                     car.model:SetAttribute("Speed",car.speed)
                 end
                 for _,bot in ipairs(World.Bots) do
+                    if bot.water then bot.water.Enabled=bot.alive and bot.working==true end
                     if not bot.alive or not bot.root.Parent then continue end
                     local velocity=bot.root.AssemblyLinearVelocity;local speed=Vector3.new(velocity.X,0,velocity.Z).Magnitude
                     local moving=speed>.4 and bot.humanoid.FloorMaterial~=Enum.Material.Air
@@ -544,6 +575,13 @@ function World.Build()
                     for i,j in ipairs(bot.joints) do
                         local angle=(i==1 or i==4) and swing or -swing
                         if not moving and (bot.gestureUntil or 0)>now and i==1 then angle=-.8+math.sin(now*5)*.15 end
+                        if bot.working and not moving then
+                            if bot.role=="Soccer" and i==4 then angle=math.sin(now*2)*.9
+                            elseif bot.role=="Gardener" and i==2 then angle=-.9+math.sin(now*1.6)*.12
+                            elseif bot.role=="Artist" and i==2 then angle=-1.2+math.sin(now*3)*.18
+                            elseif bot.role=="Artist" and i==1 then angle=-.7
+                            elseif bot.role=="Vendor" and i<=2 then angle=-.6+math.sin(now*2+i)*.3 end
+                        end
                         j.C0=j:GetAttribute("RestPose")*CFrame.Angles(angle,0,0)
                     end
                     if grounding>=.25 then

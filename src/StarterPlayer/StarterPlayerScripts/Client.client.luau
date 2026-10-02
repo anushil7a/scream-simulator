@@ -6,6 +6,7 @@ local Tween=game:GetService("TweenService")
 local Debris=game:GetService("Debris")
 local p=Players.LocalPlayer
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
+local mic=require(script.Parent.Microphone).new()
 local remotes=RS:WaitForChild("ScreamRemotes")
 local action=remotes:WaitForChild("Action")
 local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")
@@ -47,14 +48,54 @@ local tracked=label(gui,"",UDim2.fromOffset(250,66),UDim2.fromOffset(16,56),13);
 local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center
 local toastUntil=0
 local function notify(t) toast.Text=t;toastUntil=os.clock()+4 end
-local nextCast=0
-local function cast()
- if modal.Visible or (p:GetAttribute("ProtectionEnds") or 0)>workspace:GetServerTimeNow() or os.clock()<nextCast then return end
- local sound=Config.GetSound(data.sound);nextCast=os.clock()+sound.cooldown;action:FireServer("Cast")
+local nextCast=0;local sequence=0;local captureSource=nil
+local function cancelCapture()
+ captureSource=nil;mic:Cancel();action:FireServer("CancelCast")
 end
-local function dodge() if not modal.Visible then action:FireServer("Dodge") end end
+local function blocked()
+ local now=workspace:GetServerTimeNow()
+ return modal.Visible or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
+end
+local function beginCapture(source)
+ if captureSource or blocked() or os.clock()<nextCast then return end
+ if mic:Begin() then sequence+=1;captureSource=source;action:FireServer("BeginCast",sequence) end
+end
+local function releaseCapture(source)
+ if captureSource~=source then return end
+ captureSource=nil
+ if blocked() then cancelCapture();return end
+ local power=mic:Release();if power<.08 then action:FireServer("CancelCast");notify("Use your voice while holding attack.");return end
+ local camera=workspace.CurrentCamera
+ local location=UIS.TouchEnabled and camera.ViewportSize/2 or UIS:GetMouseLocation()-game:GetService("GuiService"):GetGuiInset()
+ local ray=camera:ViewportPointToRay(location.X,location.Y)
+ local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
+ local hit=workspace:Raycast(ray.Origin,ray.Direction*1000,params)
+ action:FireServer("Cast",{sequence=sequence,power=power,aim=hit and hit.Position or ray.Origin+ray.Direction*1000})
+ nextCast=os.clock()+4
+end
+local function dodge()
+ cancelCapture()
+ if not modal.Visible and mic.ready then action:FireServer("Dodge") end
+end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
-local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),cast,gold);castButton.TextColor3=dark
+local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),function() end,gold);castButton.TextColor3=dark
+castButton.InputBegan:Connect(function(input)
+ if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then beginCapture(input) end
+end)
+local micPanel=frame(gui,"MicSetup",UDim2.fromOffset(430,260),UDim2.fromScale(.5,.5));micPanel.AnchorPoint=Vector2.new(.5,.5);micPanel.ZIndex=20
+label(micPanel,"YOUR VOICE. YOUR POWER.",UDim2.new(1,-36,0,35),UDim2.fromOffset(18,16),21,gold)
+local micStatus=label(micPanel,"",UDim2.new(1,-36,0,90),UDim2.fromOffset(18,58),15)
+label(micPanel,"A microphone and Roblox voice access are required. Nearby players hear your live voice. No recordings are saved by this game.",UDim2.new(1,-36,0,50),UDim2.fromOffset(18,146),12,muted)
+button(micPanel,"Calibrate","CALIBRATE MIC",UDim2.fromOffset(188,36),UDim2.fromOffset(18,208),function() mic:Calibrate() end,gold).TextColor3=dark
+button(micPanel,"Retry","CHECK ACCESS",UDim2.fromOffset(188,36),UDim2.fromOffset(224,208),function() mic:Check() end)
+for _,v in ipairs(micPanel:GetDescendants()) do if v:IsA("GuiObject") then v.ZIndex=21 end end
+local micScale=Instance.new("UIScale");micScale.Parent=micPanel
+local meter=frame(gui,"MicPower",UDim2.fromOffset(230,52),UDim2.new(.5,-115,1,-64))
+local meterText=label(meter,"SCREAM POWER 0%",UDim2.new(1,-20,0,24),UDim2.fromOffset(10,4),12,gold)
+local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,36),panel)
+local meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
+local reticle=label(gui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.TextXAlignment=Enum.TextXAlignment.Center
+local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge)
 local sprinting=false
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() sprinting=not sprinting;action:FireServer("Sprint",sprinting) end)
@@ -63,7 +104,7 @@ local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new
 local devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false
 label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
 label(devPanel,"Test commands disable saving this session.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
-for i,item in ipairs({{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level 30"},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}) do
+for i,item in ipairs({{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level 300"},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}) do
  button(devPanel,item[1],item[2],UDim2.fromOffset(100,39),UDim2.fromOffset(10+((i-1)%2)*110,80+math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
 end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible end);testButton.Visible=false
@@ -73,28 +114,35 @@ render=function()
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Screams" then
-  title.Text="SCREAM COLLECTION";subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  New unlocks at 5, 10, 15, 20, 25"
+  title.Text="SCREAM COLLECTION";subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  Live voice styles • power scales with your level"
   for _,s in ipairs(Config.Sounds) do
    local c=card(101);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,-156,0,26),UDim2.fromOffset(14,8),17,gold)
    label(c,s.description,UDim2.new(1,-158,0,25),UDim2.fromOffset(14,36),13)
-   label(c,s.damage.." DAMAGE    "..s.range.." RANGE / "..s.width.." WIDTH    "..s.cooldown.."s COOLDOWN",UDim2.new(1,-28,0,23),UDim2.fromOffset(14,69),12,muted)
+   label(c,string.format("UP TO %d DAMAGE / %.1f STUDS • 4s COOLDOWN",Config.VoiceCombat.Stats(data.level,1,false).damage,Config.VoiceCombat.Stats(data.level,1,false).maxRange),UDim2.new(1,-28,0,23),UDim2.fromOffset(14,69),12,muted)
    local unlocked=data.level>=s.level
    local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
    if not unlocked then b.TextColor3=muted end
   end
  elseif selected=="Quests" then
-  title.Text="CITY QUESTS";subtitle.Text="Choose an activity. Complete it, then claim your XP and coins."
+  title.Text="CITY QUESTS";subtitle.Text="Meet residents to unlock their tasks. Completed tasks award XP and coins."
   for _,q in ipairs(Config.Quests) do
+   local available=data.availableQuests and data.availableQuests[q.id]
+   if q.hidden and not available then continue end
    local v=data.quests[q.id] or {progress=0};local c=card(123)
    label(c,q.name,UDim2.new(1,-150,0,25),UDim2.fromOffset(14,8),17,gold)
-   label(c,q.description,UDim2.new(1,-158,0,49),UDim2.fromOffset(14,36),13)
+   label(c,available and q.description or "Meet "..(q.giver or "a resident").." and press T to talk.",UDim2.new(1,-158,0,49),UDim2.fromOffset(14,36),13)
    label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,23),UDim2.fromOffset(14,93),12,muted)
-   button(c,q.id,v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "TRACKING" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,32),function()
-    if not v.claimed then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
+   button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and (q.id=="nick" and "RESTART" or "TRACKING") or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,32),function()
+    if available and not v.claimed then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
    end)
   end
  elseif selected=="Style" then
   title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your scream effects."
+  local equipment=card(90)
+  label(equipment,"MICRO-SPEAKER",UDim2.fromOffset(310,25),UDim2.fromOffset(15,10),17,gold)
+  label(equipment,"+12% mic power · capped at 100%",UDim2.fromOffset(330,25),UDim2.fromOffset(15,42),14)
+  button(equipment,"MicroSpeaker",data.amplifierEquipped and "UNEQUIP" or data.amplifierOwned and "EQUIP" or tostring(Config.MicroSpeakerPrice).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,24),function() action:FireServer("MicroSpeaker") end)
+  info("Movement pass: unlimited jumps and consecutive rolls only in safe areas. Arena cooldowns always apply."..(Config.MovementPassId==0 and " Purchase setup is not available yet." or ""),70)
   for name,color in pairs(Config.Auras) do
    local c=card(56);label(c,name,UDim2.fromOffset(240,36),UDim2.fromOffset(15,10),17,color)
    button(c,name,data.aura==name and "EQUIPPED" or "USE COLOR",UDim2.fromOffset(126,36),UDim2.new(1,-140,0,10),function() action:FireServer("SetAura",name) end)
@@ -110,7 +158,7 @@ render=function()
   info("Spawn: Plaça del Sol, southwest. Beach: south. Coffee: west promenade café → music stage. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
-  info("E / tap SCREAM: fire a beam straight ahead\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",125)
+  info("Hold E / SCREAM, use mic, release: fire toward aim\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",125)
   local c=card(58);button(c,"Volume","AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.fromOffset(260,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.fromOffset(260,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
  end
@@ -125,38 +173,40 @@ remotes.State.OnClientEvent:Connect(function(nextData)
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
  tracked.Text=q and (q.name.."  "..v.progress.."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s" or "")) or ""
  if data.message then notify(data.message) end
- local key=game:GetService("HttpService"):JSONEncode({data.level,data.xp,data.sound,data.aura,data.quests,data.activeQuest,data.settings})
+ local key=game:GetService("HttpService"):JSONEncode({data.level,data.xp,data.sound,data.aura,data.quests,data.activeQuest,data.settings,data.availableQuests,data.amplifierOwned,data.amplifierEquipped,data.movementPass})
  if modal.Visible and key~=lastMenuKey then render() end;lastMenuKey=key
 end)
 UIS.InputBegan:Connect(function(input,processed)
  if processed then return end
  local k=input.KeyCode
- if k==Enum.KeyCode.E then cast() elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
+ if k==Enum.KeyCode.E then beginCapture("keyboard") elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
  elseif k==Enum.KeyCode.M then selected="Map";modal.Visible=not modal.Visible;render()
  elseif k==Enum.KeyCode.LeftShift then action:FireServer("Sprint",true)
  elseif k==Enum.KeyCode.T and talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end
 end)
-UIS.InputEnded:Connect(function(input) if input.KeyCode==Enum.KeyCode.LeftShift then action:FireServer("Sprint",false) end end)
-UIS.WindowFocusReleased:Connect(function() sprinting=false;action:FireServer("Sprint",false) end)
+UIS.InputEnded:Connect(function(input)
+ if input.KeyCode==Enum.KeyCode.E then releaseCapture("keyboard")
+ elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
+ if input.KeyCode==Enum.KeyCode.LeftShift then action:FireServer("Sprint",false) end
+end)
+p.CharacterRemoving:Connect(cancelCapture)
+UIS.WindowFocusReleased:Connect(function() sprinting=false;cancelCapture();action:FireServer("Sprint",false) end)
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
-remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length)
+remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,beamWidth)
  if kind=="ResetCollected" then for _,o in ipairs(workspace.ScreamSimulatorWorld.QuestObjects:GetChildren()) do o.LocalTransparencyModifier=0;local prompt=o:FindFirstChildOfClass("ProximityPrompt");if prompt then prompt.Enabled=true end end;return end
  if kind=="Collected" then if pos and pos.Parent then pos.LocalTransparencyModifier=1;local prompt=pos:FindFirstChildOfClass("ProximityPrompt");if prompt then prompt.Enabled=false end end;return end
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root and (root.Position-pos).Magnitude>180 then return end
+ if kind=="Break" then
+  for i=1,6 do local chip=fxPart(pos,Config.Auras[id] or gold,Vector3.new(.5,.5,.5));Tween:Create(chip,TweenInfo.new(.45),{Position=pos+Vector3.new(math.cos(i)*3,2,math.sin(i)*3),Transparency=1}):Play() end;return
+ end
  local color=Config.Auras[kind=="Dodge" and id or aura] or gold
  if kind=="Dodge" then local f=fxPart(pos,color,Vector3.new(2,3,2));Tween:Create(f,TweenInfo.new(.35),{Transparency=1,Size=Vector3.new(5,1,5)}):Play();return end
  local s=Config.GetSound(id);if not s then return end
- do
-  local carrier=Instance.new("Part");carrier.Anchored=true;carrier.CanCollide=false;carrier.CanQuery=false;carrier.Transparency=1;carrier.Position=pos;carrier.Parent=workspace
-  local audio=Instance.new("Sound");audio.SoundId=s.assetId~="" and s.assetId or "rbxasset://sounds/oof.ogg";audio.PlaybackSpeed=({Pulse=1.4,Echo=1.1,Feathers=1.9,Quake=.65,Storm=.85,Nova=.5})[s.effect] or 1
-  audio.Volume=data.settings.volume;audio.RollOffMaxDistance=s.range*1.5;audio.Parent=carrier
-  if s.effect=="Echo" then local echo=Instance.new("EchoSoundEffect");echo.Delay=.15;echo.Feedback=.4;echo.Parent=audio end
-  audio:Play();Debris:AddItem(carrier,5)
- end
- direction=direction or Vector3.new(0,0,-1);length=length or s.range
- local width=s.width;local center=pos+direction*length/2
+ -- Actual voice is carried by Roblox proximity audio. Never play a recorded attack.
+ direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range
+ local width=beamWidth or 4;local center=pos+direction*length/2
  local beam=fxPart(center,color,Vector3.new(width,width,length));beam.Name="ScreamBeam";beam.CFrame=CFrame.lookAt(center,center+direction);beam.Transparency=.55
  local core=fxPart(center,Color3.fromRGB(255,245,206),Vector3.new(width*.22,width*.22,length));core.CFrame=beam.CFrame
  Tween:Create(beam,TweenInfo.new(.38),{Transparency=1,Size=Vector3.new(width*.5,width*.5,length)}):Play()
@@ -175,6 +225,14 @@ end)
 local elapsed=0
 Run.RenderStepped:Connect(function(dt)
  local viewport=workspace.CurrentCamera.ViewportSize
+ micScale.Scale=math.min(1,(viewport.X-30)/430,(viewport.Y-90)/260)
+ micPanel.Visible=not mic.ready;micStatus.Text=mic.status
+ if reportedReady~=mic.ready or (data.micReady~=mic.ready and os.clock()>readyReportAt) then reportedReady=mic.ready;readyReportAt=os.clock()+1;action:FireServer("MicReady",mic.ready) end
+ if captureSource and blocked() then cancelCapture() end
+ meter.Visible=mic.ready and not modal.Visible;reticle.Visible=UIS.TouchEnabled and mic.ready and not modal.Visible
+ local power=mic.power;meterFill.Size=UDim2.fromScale(power,1)
+ local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
+ meterText.Text=string.format("SCREAM POWER %d%% • %.0f studs",math.floor(power*100),range)
  local short=viewport.Y<550
  menuScale.Scale=math.min(1,(viewport.X-32)/720)
  local menuHeight=short and math.max(230,(viewport.Y-125)/menuScale.Scale) or 520
@@ -186,12 +244,12 @@ Run.RenderStepped:Connect(function(dt)
  local touch=UIS.TouchEnabled
  hud.Position=touch and UDim2.fromOffset(14,56) or UDim2.new(0,14,1,-108)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
- hud.Visible=not modal.Visible;controls.Visible=not modal.Visible
+ hud.Visible=not modal.Visible;controls.Visible=not modal.Visible and mic.ready
  tracked.Position=UDim2.fromOffset(16,touch and 158 or 56)
  if touch then sprintButton.TextSize=12 end
  tracked.Visible=not modal.Visible;zone.Visible=viewport.X>740
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
- castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or "SCREAM [E]"
+ castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and "RELEASE TO FIRE" or "HOLD SCREAM [E]"
  castButton.BackgroundColor3=protected>0 and muted or gold
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
  local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs [SHIFT]",p:GetAttribute("SprintCharge") or 10)
@@ -203,3 +261,9 @@ Run.RenderStepped:Connect(function(dt)
  talkButton.Visible=talkTarget~=nil and not modal.Visible
 end)
 action:FireServer("Sync")
+
+-- JumpRequest supports the built-in keyboard, controller and touch jump controls.
+UIS.JumpRequest:Connect(function()
+ local character=p.Character;local h=character and character:FindFirstChildOfClass("Humanoid")
+ if h and h.FloorMaterial==Enum.Material.Air and data.movementPass and not data.inWarZone and not blocked() then action:FireServer("ExtraJump") end
+end)

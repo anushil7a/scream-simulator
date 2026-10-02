@@ -1,6 +1,7 @@
 -- Original Barcelona-inspired city geometry. All art is generated locally; no downloaded scripts/assets.
 local City={}
 local V=Vector3.new
+local Collection=game:GetService("CollectionService")
 local palette={Color3.fromRGB(219,192,151),Color3.fromRGB(227,206,171),Color3.fromRGB(195,151,117),Color3.fromRGB(234,214,180),Color3.fromRGB(191,169,135),Color3.fromRGB(220,174,143)}
 local stone=Color3.fromRGB(207,191,159)
 local dark=Color3.fromRGB(48,62,61)
@@ -26,7 +27,12 @@ local function sign(parent,text,cf,width)
  local g=Instance.new("SurfaceGui");g.Face=Enum.NormalId.Front;g.PixelsPerStud=28;g.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;g.Parent=p
  local t=Instance.new("TextLabel");t.Size=UDim2.fromScale(1,1);t.BackgroundTransparency=1;t.Font=Enum.Font.GothamBold;t.TextColor3=cream;t.TextScaled=true;t.Text=text;t.Parent=g;return p
 end
+local function destructible(m,kind)
+ m:SetAttribute("DestructibleType",kind);Collection:AddTag(m,"CityDestructible")
+end
 local function tree(parent,x,z,palm)
+ local group=model(parent,palm and "Palm" or "SmallTree");parent=group
+ if not palm and (V(x,0,z)-V(-600,0,210)).Magnitude>85 then destructible(group,"SmallTree") end
  local h=palm and rng:NextNumber(14,20) or rng:NextNumber(10,15)
  cylinder(parent,"TreeTrunk",.65,h,V(x,h/2+1,z),Color3.fromRGB(116,96,69),Enum.Material.Wood)
  if palm then
@@ -46,8 +52,13 @@ local function lamp(parent,x,z)
  if math.abs(x)<100 and math.abs(z)<100 then local l=Instance.new("PointLight");l.Range=16;l.Brightness=.3;l.Color=cream;l.Parent=top end
 end
 local function bench(parent,cf)
- part(parent,"BenchSeat",V(8,.5,2.5),cf*CFrame.new(0,2,0),Color3.fromRGB(139,100,66),Enum.Material.WoodPlanks)
+ local group=model(parent,"Bench");parent=group
+ if (cf.Position-V(-600,0,210)).Magnitude>85 then destructible(group,"Bench") end
+ local seat=part(parent,"BenchSeat",V(8,.5,2.5),cf*CFrame.new(0,2,0),Color3.fromRGB(139,100,66),Enum.Material.WoodPlanks)
  part(parent,"BenchBack",V(8,2.2,.35),cf*CFrame.new(0,3.2,1.1),Color3.fromRGB(139,100,66),Enum.Material.WoodPlanks)
+ local usable=Instance.new("Seat");usable.Name="UsableSeat";usable.Size=V(3,.25,2);usable.CFrame=cf*CFrame.new(0,2.4,0);usable.Transparency=1;usable.Anchored=true;usable.CanCollide=false;usable.Parent=parent
+ local sit=Instance.new("ProximityPrompt");sit.ActionText="Sit";sit.ObjectText="City bench";sit.KeyboardKeyCode=Enum.KeyCode.F;sit.MaxActivationDistance=7;sit.Parent=seat
+ sit.Triggered:Connect(function(player) local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid");local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart");if h and root and (root.Position-seat.Position).Magnitude<9 and not group:GetAttribute("Destroyed") then usable:Sit(h) end end)
  for _,x in ipairs({-3,3}) do part(parent,"BenchLeg",V(.35,2,.9),cf*CFrame.new(x,1,0),iron,Enum.Material.Metal) end
 end
 local function cafe(parent,x,z,color)
@@ -64,15 +75,47 @@ local function building(parent,cf,w,d,floors,index,style)
  local m=model(parent,"Casa_"..index)
  local h=floors*8+7;local color=palette[Random.new(index*7919):NextInteger(1,#palette)]
  local function b(name,size,pos,c,mat,solid) return part(m,name,size,cf*CFrame.new(pos),c,mat,solid) end
- b("Masonry",V(w,h,d),V(0,h/2+1,0),color,Enum.Material.Plaster)
- b("StonePlinth",V(w+.3,5,d+.3),V(0,3.5,0),stone,Enum.Material.Limestone)
+ local interior=index%7==0 and w>=24 and d>=20
+ if interior then
+  m:SetAttribute("WalkableInterior",true)
+  b("UpperMasonry",V(w,h-8,d),V(0,9+(h-8)/2,0),color,Enum.Material.Plaster)
+  b("InteriorFloor",V(w,.3,d),V(0,1.1,0),cream,Enum.Material.WoodPlanks)
+  b("RearWall",V(w,8,1),V(0,5,d/2-.5),stone,Enum.Material.Limestone)
+  for _,side in ipairs({-1,1}) do
+   b("SideWall",V(1,8,d),V(side*(w/2-.5),5,0),color,Enum.Material.Plaster)
+   b("ShopfrontWall",V((w-6)/2,8,1),V(side*(w+6)/4,5,-d/2+.5),stone,Enum.Material.Limestone)
+   b("DoorJamb",V(.4,7,.6),V(side*3.2,4.5,-d/2-.1),cream,Enum.Material.Limestone)
+  end
+  b("DoorLintel",V(6.8,1,.7),V(0,8.5,-d/2-.1),cream,Enum.Material.Limestone)
+  -- Clear six-stud entrance/aisle; display furniture remains against the side walls.
+  b("ServiceCounter",V(6,3,2),V(w/2-4,2.6,0),terra,Enum.Material.Wood)
+  for shelf=1,3 do
+   b("BookShelf",V(1.5,.25,d*.55),V(-w/2+1.5,1.5+shelf*1.5,1),terra,Enum.Material.Wood)
+   for book=1,6 do
+    b("Book",V(.7,1,.6),V(-w/2+1.6,2.1+shelf*1.5,-d*.2+book*d*.07),palette[(book+index)%#palette+1],Enum.Material.Fabric,false)
+   end
+  end
+  b("PendantStem",V(.1,1.2,.1),V(0,7.7,0),iron,Enum.Material.Metal,false)
+  b("WarmPendant",V(2,.6,2),V(0,7,0),cream,Enum.Material.Neon,false)
+ else
+  b("Masonry",V(w,h,d),V(0,h/2+1,0),color,Enum.Material.Plaster)
+  b("StonePlinth",V(w+.3,5,d+.3),V(0,3.5,0),stone,Enum.Material.Limestone)
+ end
  b("Cornice",V(w+1.7,.8,d+1.7),V(0,h+1,0),cream,Enum.Material.Limestone)
  b("TerracottaRoof",V(w+1.1,.5,d+1.1),V(0,h+1.7,0),terra,Enum.Material.RoofShingles)
  b("RoofParapet",V(w,.9,.5),V(0,h+2,-d/2),stone,Enum.Material.Limestone)
  b("Chimney",V(2,4,2),V(w*.25,h+3,0),stone,Enum.Material.Brick)
- b("EntranceDoor",V(3.5,5.8,.3),V(0,4,-d/2-.35),Color3.fromRGB(84,66,49),Enum.Material.Wood,false)
- b("DoorTransom",V(3.4,1.1,.4),V(0,7,-d/2-.35),glass,Enum.Material.Glass,false)
+ if not interior then
+  b("EntranceDoor",V(3.5,5.8,.3),V(0,4,-d/2-.35),Color3.fromRGB(84,66,49),Enum.Material.Wood,false)
+  b("DoorTransom",V(3.4,1.1,.4),V(0,7,-d/2-.35),glass,Enum.Material.Glass,false)
+ end
  for _,dx in ipairs({-w/2+.6,w/2-.6}) do b("CornerPilaster",V(1.2,h,.6),V(dx,h/2+1,-d/2-.4),stone,Enum.Material.Limestone,false) end
+ if index%3==0 then
+  local facade=model(m,"BreakableFrontage")
+  part(facade,"DecorativeStonePanel",V(w*.35,3.2,.5),cf*CFrame.new(0,10.5,-d/2-.5),color,Enum.Material.Limestone)
+  part(facade,"PanelCornice",V(w*.38,.4,.8),cf*CFrame.new(0,12.2,-d/2-.6),cream,Enum.Material.Limestone)
+  destructible(facade,floors<=2 and "HouseFacade" or floors<=4 and "ApartmentFacade" or "TowerFacade")
+ end
  local cols=math.max(2,math.floor(w/9));local spacing=(w-7)/cols
  for floor=1,floors do
   local y=4+floor*8
@@ -239,6 +282,23 @@ local function market(parent,x,z,walk,activities)
  end
  sign(m,"MERCAT DEL MAR",CFrame.new(x,23,z-84),75)
 end
+local function streetBin(parent,x,z)
+ local m=model(parent,"StreetBin")
+ cylinder(m,"BinBody",1.1,3,V(x,2.3,z),Color3.fromRGB(66,100,98),Enum.Material.Metal)
+ cylinder(m,"BinLid",1.2,.3,V(x,3.95,z),iron,Enum.Material.Metal)
+ destructible(m,"Bin")
+end
+local function bicycle(parent,x,z)
+ local m=model(parent,"Bicycle")
+ for _,dx in ipairs({-2.5,2.5}) do
+  local wheel=part(m,"BikeWheel",V(.4,3,3),CFrame.new(x+dx,2,z)*CFrame.Angles(0,math.pi/2,0),iron,Enum.Material.Rubber);wheel.Shape=Enum.PartType.Cylinder
+ end
+ part(m,"BikeFrame",V(5,.4,.5),CFrame.new(x,3,z)*CFrame.Angles(0,0,.15),Color3.fromRGB(185,106,75),Enum.Material.Metal)
+ part(m,"BikeSeat",V(1.3,.3,1),V(x-1,4.1,z),iron)
+ part(m,"Handlebar",V(.3,.3,2),V(x+2.5,4.4,z),iron,Enum.Material.Metal)
+ part(m,"Fork",V(.35,3,.35),V(x+2.5,3,z),iron,Enum.Material.Metal)
+ destructible(m,"Bike")
+end
 local function coast(parent,walk,activities)
  local m=model(parent,"BarcelonetaCoast")
  part(m,"Beach",V(1440,3,170),V(0,-.5,515),Color3.fromRGB(227,208,156),Enum.Material.Sand)
@@ -246,7 +306,7 @@ local function coast(parent,walk,activities)
  part(m,"PasseigMaritim",V(1440,1,52),V(0,.25,401),Color3.fromRGB(197,176,141),Enum.Material.Pavement)
  for x=-680,680,40 do
   part(m,"PromenadeTileBand",V(1,.05,52),V(x,.79,401),Color3.fromRGB(152,138,117),Enum.Material.Cobblestone,false)
-  if x%80==0 then tree(m,x,421,true);lamp(m,x,380);bench(m,CFrame.new(x+14,0,412));end
+  if x%80==0 then tree(m,x,421,true);lamp(m,x,380);bench(m,CFrame.new(x+14,0,412));streetBin(m,x+22,412);if x%160==0 then bicycle(m,x-12,414) end end
   table.insert(walk,V(x,3.8,403));table.insert(activities,{position=V(x,3.8,407),kind="Stroll"})
  end
  for i=1,18 do
@@ -257,7 +317,7 @@ local function coast(parent,walk,activities)
   end
   part(m,"BeachLounger",V(3,.5,7),V(x+4,1.6,z+5),cream,Enum.Material.Fabric)
   part(m,"LoungerBack",V(3,3,.4),CFrame.new(x+4,2.8,z+8)*CFrame.Angles(.4,0,0),color,Enum.Material.Fabric)
-  if i%3==0 then ellipsoid(m,"SandDune",V(27,4,18),V(x,.7,565),Color3.fromRGB(219,200,148),Enum.Material.Sand) end
+  if i%3==0 and x<590 then ellipsoid(m,"SandDune",V(27,4,18),V(x,.7,565),Color3.fromRGB(219,200,148),Enum.Material.Sand) end
  end
  for x=-700,700,60 do local p=part(m,"SurfLine",V(40,.05,1.2),V(x,.08,600),Color3.fromRGB(214,235,225),nil,false);p.Transparency=.35 end
  part(m,"TimberPier",V(28,1.5,125),V(525,1.5,537),Color3.fromRGB(144,113,78),Enum.Material.WoodPlanks)
@@ -276,6 +336,44 @@ local function coast(parent,walk,activities)
  for y=5,9 do part(m,"VolleyballNet",V(40,.1,.1),V(-50,y,505),cream,nil,false) end
  for x=-70,-30,2 do part(m,"VolleyballNet",V(.1,4,.1),V(x,7,505),cream,nil,false) end
  return m
+end
+-- Hand-placed work sites: positions are pedestrian interiors, not traffic lanes.
+local function workplaces(parent)
+ local m=model(parent,"NeighborhoodWorkplaces")
+ local beds={}
+ for _,z in ipairs({228,250,272}) do
+  local bed=part(m,"RaisedPlanter",V(10,1.5,7),V(-423,1.75,z),terra,Enum.Material.Brick)
+  bed.Name="Flowerbed"..z;bed:SetAttribute("QuestAction","Garden")
+  local prompt=Instance.new("ProximityPrompt");prompt.ActionText="Water flowers";prompt.ObjectText="Community garden";prompt.KeyboardKeyCode=Enum.KeyCode.F;prompt.HoldDuration=1.5;prompt.MaxActivationDistance=10;prompt.Parent=bed
+  part(m,"PottingSoil",V(9,.15,6),V(-423,2.58,z),Color3.fromRGB(83,66,48),Enum.Material.Ground)
+  for dx=-3,3,3 do for dz=-1.5,1.5,3 do
+   cylinder(m,"FlowerStem",.09,1.1,V(-423+dx,3.1,z+dz),leaf,Enum.Material.Grass)
+   ellipsoid(m,"Flowers",V(.9,.4,.9),V(-423+dx,3.7,z+dz),Color3.fromRGB(224,123+dx*8,148),Enum.Material.Grass)
+  end end
+  table.insert(beds,{position=V(-414,4,z),lookAt=V(-423,3,z)})
+ end
+ part(m,"GardenSupplyCrate",V(5,2,4),V(-422,2,289),stone,Enum.Material.WoodPlanks)
+ -- A side court tucked behind the east promenade, reached from the pier path.
+ part(m,"CoastalCourt",V(116,.2,90),V(648,1.1,545),Color3.fromRGB(188,157,109),Enum.Material.Sand)
+ for _,z in ipairs({502,587}) do part(m,"CourtTouchline",V(112,.04,.3),V(648,1.25,z),cream,nil,false) end
+ for _,x in ipairs({592,704}) do part(m,"CourtTouchline",V(.3,.04,85),V(x,1.25,544.5),cream,nil,false) end
+ for _,x in ipairs({620,636}) do cylinder(m,"GoalPost",.18,7,V(x,4.5,585),cream,Enum.Material.Metal) end
+ part(m,"GoalCrossbar",V(16,.35,.35),V(628,8,585),cream,Enum.Material.Metal)
+ sign(m,"NO BALL GAMES? NICK DID NOT READ THIS.",CFrame.new(701,4,590)*CFrame.Angles(0,math.pi,0),17)
+ local artist=V(-647,4,177)
+ for _,dx in ipairs({-1.4,1.4}) do part(m,"EaselLeg",V(.2,5,.3),CFrame.new(-647+dx,3.5,171)*CFrame.Angles(0,0,dx*.08),terra,Enum.Material.Wood) end
+ part(m,"EaselCanvas",V(4,3,.25),V(-647,5,171),cream,Enum.Material.Fabric)
+ -- Original little coastal painting, visible from the pedestrian side.
+ part(m,"PaintedSky",V(3.6,1.4,.04),V(-647,5.6,171.15),Color3.fromRGB(128,202,220),nil,false)
+ part(m,"PaintedSea",V(3.6,1,.04),V(-647,4.45,171.15),Color3.fromRGB(62,143,166),nil,false)
+ part(m,"PaintedSun",V(.55,.55,.05),V(-648,5.9,171.19),Color3.fromRGB(247,197,95),nil,false).Shape=Enum.PartType.Ball
+ for i=1,4 do part(m,"PaintedHomes",V(.55,.6+i*.08,.05),V(-648.4+i*.65,4.95,171.2),palette[i],nil,false) end
+ return {
+  {role="Soccer",name="Nick Booty",quests={"nick"},stations={{position=V(602,4,580),lookAt=V(628,3,585)}}},
+  {role="Gardener",name="Mar Soler",quests={"garden","beach"},stations=beds},
+  {role="Artist",name="Laia Costa",stations={{position=artist,lookAt=V(-647,5,171)}}},
+  {role="Vendor",name="Pau Vidal",quests={"delivery"},stations={{position=V(85,4,-52),lookAt=V(85,4,-60)},{position=V(91,4,-52),lookAt=V(91,4,-60)}}},
+ }
 end
 function City.Build(parent)
  rng=Random.new(230926)
@@ -331,6 +429,6 @@ function City.Build(parent)
  -- Boundaries sit outside street edges, never across an interior road.
  for _,x in ipairs({-725,725}) do part(parent,"MapEdge",V(2,140,1210),V(x,68,0),dark).Transparency=1 end
  for _,z in ipairs({-605,605}) do part(parent,"MapEdge",V(1450,140,2),V(0,68,z),dark).Transparency=1 end
- return {walk=walk,activities=activities,spawn=CFrame.new(-600,4,210)}
+ return {jobs=workplaces(parent),walk=walk,activities=activities,spawn=CFrame.new(-600,4,210)}
 end
 return City

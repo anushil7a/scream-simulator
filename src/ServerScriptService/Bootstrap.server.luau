@@ -6,7 +6,12 @@ local World=require(script.Parent.World)
 local Profiles=require(script.Parent.Profiles)
 local Access=require(script.Parent.DeveloperAccess)
 local Rules=require(script.Parent.CombatRules)
+local VoiceCombat=require(ReplicatedStorage.Shared.VoiceCombat)
+local Entitlements=require(script.Parent.Entitlements)
+local Soccer=require(script.Parent.SoccerChallenge)
 World.Build()
+local Destruction=require(script.Parent.Destruction)
+Destruction.Start(workspace.ScreamSimulatorWorld)
 local old=ReplicatedStorage:FindFirstChild("ScreamRemotes");if old then old:Destroy() end
 local remotes=Instance.new("Folder");remotes.Name="ScreamRemotes";remotes.Parent=ReplicatedStorage
 local function remote(name) local r=Instance.new("RemoteEvent");r.Name=name;r.Parent=remotes;return r end
@@ -20,9 +25,10 @@ local function state(p,message)
  local s=sessions[p];if not s or not p.Parent then return end
  local _,r,h=parts(p)
  stateRemote:FireClient(p,{coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
- quests=s.data.quests,activeQuest=s.activeQuest,questTime=s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
+ amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
+ availableQuests=s.data.availableQuests,quests=s.data.quests,activeQuest=s.activeQuest,questTime=s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
- protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
+ castCooldown=math.max(0,s.voice.nextCast-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave,message=message})
 end
 local function syncHealth(p,full)
@@ -49,6 +55,7 @@ local function questProgress(p,event,amount)
  v.progress=math.min(q.goal,v.progress+(amount or 1));state(p,v.progress==q.goal and "Quest complete! Claim your reward in Quests." or nil)
 end
 local function protect(p,s)
+ VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
  s.protectedUntil=os.clock()+Config.SpawnProtection
  p:SetAttribute("ProtectionEnds",workspace:GetServerTimeNow()+Config.SpawnProtection)
  local c=p.Character;if c then local oldField=c:FindFirstChild("SpawnProtection");if oldField then oldField:Destroy() end
@@ -64,20 +71,38 @@ local function audible(c,origin,target,targetModel)
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c,targetModel}
  return workspace:Raycast(origin,target-origin,params)==nil
 end
-local function cast(p)
- local s=sessions[p];local c,r=parts(p);if not s or not r then return end
- local now=os.clock();local sound=Config.GetSound(s.data.sound)
- if not Rules.CanCast(s,sound,now) then return end
- s.nextCast=now+sound.cooldown
+local function canCapture(p,s,now)
+ local _,r=parts(p)
+ return r~=nil and s.micReady and now>=s.protectedUntil and now>=s.dodgingUntil and now>=(s.knockedUntil or 0)
+end
+local function cast(p,request)
+ local s=sessions[p];local c,r=parts(p);if not s or not r or type(request)~="table" then return end
+ p:SetAttribute("CaptureStarted",0)
+ local now=os.clock();local style=Config.GetSound(s.data.sound)
+ local aim=request.aim
+ if typeof(aim)~="Vector3" or not VoiceCombat.IsFinite(aim.X) or not VoiceCombat.IsFinite(aim.Y) or not VoiceCombat.IsFinite(aim.Z) then VoiceCombat.Cancel(s.voice);return end
  local origin=r.Position+Vector3.new(0,1,0)
- local direction=Vector3.new(r.CFrame.LookVector.X,0,r.CFrame.LookVector.Z)
- if direction.Magnitude<.01 then return end;direction=direction.Unit
+ local head=c:FindFirstChild("Head");if head and (head.Position-r.Position).Magnitude<5 then origin=head.Position end
+ local delta=aim-origin
+ if delta.Magnitude<.01 or delta.Magnitude>2048 then VoiceCombat.Cancel(s.voice);return end
+ if not VoiceCombat.Release(s.voice,now,request.sequence,request.power,style~=nil and style.level<=s.data.level and canCapture(p,s,now)) then return end
+ local sound=VoiceCombat.Stats(s.data.level,request.power,s.data.amplifierEquipped==true)
+ local direction=delta.Unit
+ s.nextCast=s.voice.nextCast;p:SetAttribute("ScreamReleased",workspace:GetServerTimeNow());p:SetAttribute("CaptureStarted",0)
  local exclude={c};for _,bot in ipairs(World.Bots) do table.insert(exclude,bot.model) end
  for _,other in ipairs(Players:GetPlayers()) do if other.Character then table.insert(exclude,other.Character) end end
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances=exclude;params.RespectCanCollide=true
  local obstruction=workspace:Raycast(origin,direction*sound.range,params)
  local length=obstruction and obstruction.Distance or sound.range
- effect:FireAllClients("Scream",origin,sound.id,s.data.aura,direction,length)
+ effect:FireAllClients("Scream",origin,style.id,s.data.aura,direction,length,sound.width)
+ Soccer.Hit(p,origin,direction,length,sound.width,sound.power)
+ if obstruction then
+  local result=Destruction.Damage(obstruction.Instance,s.data.level,sound.damage)
+  if result then
+   if result.reason=="level" then state(p,"Requires level "..result.required)
+   elseif result.destroyed then effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition") end
+  end
+ end
  local hits=0;local paid=0
  for _,bot in ipairs(World.Bots) do
   if bot.alive and bot.root.Parent and Rules.InBeam(origin,direction,bot.root.Position,length,sound.width,1) and audible(c,origin,bot.root.Position,bot.model) then
@@ -115,10 +140,13 @@ local function cast(p)
 end
 local function dodge(p)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
- if not s or not r or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
- s.nextDodge=now+Config.DodgeCooldown;s.dodgingUntil=now+Config.DodgeDuration
+ if s then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
+ if not s or not r or not s.micReady or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
+ local cooldown=Entitlements.CanUseMovement(p,r.Position) and Config.DodgeDuration or Config.DodgeCooldown
+ s.nextDodge=now+cooldown;s.dodgingUntil=now+Config.DodgeDuration
+ s.lastDodge=now
  p:SetAttribute("DodgeEnds",workspace:GetServerTimeNow()+Config.DodgeDuration)
- p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+Config.DodgeCooldown)
+ p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+cooldown)
  local direction=h.MoveDirection;if direction.Magnitude<0.1 then direction=r.CFrame.LookVector end
  direction=Vector3.new(direction.X,0,direction.Z).Unit
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c}
@@ -146,7 +174,16 @@ end
 local function talk(p,id)
  local s=sessions[p];local _,r=parts(p);if not s or not r or type(id)~="string" or os.clock()<(s.nextTalk or 0) then return end
  for _,b in ipairs(World.Bots) do if b.id==id and b.alive and b.root.Parent and (b.root.Position-r.Position).Magnitude<=14 then
-  s.nextTalk=os.clock()+2;state(p,b.name..": "..World.Talk(b,p));return
+  s.nextTalk=os.clock()+2
+  local message=b.name..": "..World.Talk(b,p)
+  if b.name=="Nick Booty" and not s.data.achievements.FoundNick then
+   s.data.achievements.FoundNick=true;s.data.coins+=50;message="Hidden achievement: Found Nick Booty! +50 coins. "..message
+  end
+  if b.questIds then
+   for _,questId in ipairs(b.questIds) do s.data.availableQuests[questId]=true end
+   message..=" · Tasks available in Quests"
+  end
+  state(p,message);return
  end end
 end
 local function dev(p,command)
@@ -168,6 +205,7 @@ World.OnVehicleSweep=function(car,previous,nextFrame)
  for player,s in pairs(sessions) do
   local character,root,humanoid=parts(player);local now=os.clock()
   if root and now>=s.protectedUntil and now>=(s.nextCarHit or 0) and Rules.VehicleSweep(previous*CFrame.new(0,.55,0),nextFrame*CFrame.new(0,.55,0),root.Position,Vector3.new(8,4,4.5)) then
+   VoiceCombat.Cancel(s.voice);player:SetAttribute("CaptureStarted",0)
    s.nextCarHit=now+4;s.knockedUntil=now+1.3;s.dodgingUntil=0;s.sprintRequested=false;s.nextHeal=now+10
    player:SetAttribute("DodgeEnds",0);player:SetAttribute("KnockdownEnds",workspace:GetServerTimeNow()+1.3)
    local damage=math.clamp(math.floor(car.speed*1.1),15,35)
@@ -192,12 +230,15 @@ World.OnVehicleSweep=function(car,previous,nextFrame)
   end
  end
 end
-for _,obj in ipairs(workspace.ScreamSimulatorWorld.QuestObjects:GetDescendants()) do
- if obj:IsA("ProximityPrompt") then obj.Triggered:Connect(function(p)
+for _,obj in ipairs(workspace.ScreamSimulatorWorld:GetDescendants()) do
+ if obj:IsA("ProximityPrompt") and obj.Parent:GetAttribute("QuestAction") then obj.Triggered:Connect(function(p)
   local s=sessions[p];local _,r=parts(p);local marker=obj.Parent
   if not s or not r or (r.Position-marker.Position).Magnitude>12 then return end
   local kind=marker:GetAttribute("QuestAction")
-  if kind=="Litter" and s.activeQuest=="beach" then
+  if kind=="Garden" and s.activeQuest=="garden" then
+   if s.collected[marker.Name] then state(p,"This bed is already watered.");return end
+   s.collected[marker.Name]=true;questProgress(p,"Garden");state(p,"Flowers watered · thanks for helping the neighborhood!")
+  elseif kind=="Litter" and s.activeQuest=="beach" then
    if s.collected[marker.Name] then state(p,"Already collected this bottle.");return end
    s.collected[marker.Name]=true;questProgress(p,"Litter");effect:FireClient(p,"Collected",marker)
   elseif kind=="Pickup" and s.activeQuest=="delivery" then s.questDeadline=os.clock()+90;s.carrying=true;state(p,"Order collected · deliver to the boardwalk stage in 90s")
@@ -213,50 +254,88 @@ for _,obj in ipairs(workspace.ScreamSimulatorWorld.QuestObjects:GetDescendants()
 end
 action.OnServerEvent:Connect(function(p,verb,arg)
  local s=sessions[p];if not s or type(verb)~="string" then return end
- if verb=="Cast" then cast(p);return elseif verb=="Dodge" then dodge(p);return
+ local now=os.clock()
+ s.requestWindow=s.requestWindow or now;s.requestCount=s.requestCount or 0
+ if now-s.requestWindow>=1 then s.requestWindow=now;s.requestCount=0 end
+ s.requestCount+=1;if s.requestCount>30 then return end
+ if verb=="BeginCast" then
+  p:SetAttribute("CaptureStarted",0)
+  if VoiceCombat.Begin(s.voice,now,arg,canCapture(p,s,now)) then p:SetAttribute("CaptureStarted",workspace:GetServerTimeNow()) end;return
+ elseif verb=="CancelCast" then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0);return
+ elseif verb=="MicReady" then s.micReady=arg==true;if not s.micReady then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end;return
+ elseif verb=="Cast" then cast(p,arg);return elseif verb=="Dodge" then dodge(p);return
+ elseif verb=="ExtraJump" then
+  local _,root,h=parts(p)
+  if root and s.micReady and Entitlements.CanUseMovement(p,root.Position) and now>=(s.nextExtraJump or 0) and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and h.FloorMaterial==Enum.Material.Air then
+   s.nextExtraJump=now+.25
+   local v=root.AssemblyLinearVelocity;root.AssemblyLinearVelocity=Vector3.new(v.X,45,v.Z)
+  end
+  return
  elseif verb=="Sprint" then if type(arg)=="boolean" then s.sprintRequested=arg end;return end
  local now=os.clock();if now<s.nextAction then return end;s.nextAction=now+0.15
  if verb=="Sync" then state(p)
  elseif verb=="Talk" then talk(p,arg)
  elseif verb=="DevCommand" then dev(p,arg)
  elseif verb=="EquipSound" then local sound=type(arg)=="string" and Config.GetSound(arg);if sound and sound.level<=s.data.level then s.data.sound=sound.id;state(p,sound.name.." equipped") end
+ elseif verb=="MicroSpeaker" then
+  if not s.data.amplifierOwned then
+   if s.data.coins<Config.MicroSpeakerPrice then state(p,"Micro-speaker costs "..Config.MicroSpeakerPrice.." coins.");return end
+   s.data.coins-=Config.MicroSpeakerPrice;s.data.amplifierOwned=true;s.data.amplifierEquipped=true
+  else s.data.amplifierEquipped=not s.data.amplifierEquipped end
+  state(p,s.data.amplifierEquipped and "Micro-speaker equipped · +12% normalized power, capped at 100%" or "Micro-speaker unequipped")
  elseif verb=="SetAura" and type(arg)=="string" and Config.Auras[arg] then s.data.aura=arg;state(p)
  elseif verb=="AcceptQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg)
+  if q and not s.data.availableQuests[q.id] then state(p,"Meet "..(q.giver or "the quest giver").." to unlock this task.");return end
+  if q and q.id=="nick" then
+   local _,root=parts(p)
+   if not root or (root.Position-Vector3.new(647,4,547)).Magnitude>90 then state(p,"Return to Nick's coastal court to start.");return end
+  end
   if q then local v=s.data.quests[q.id];if not v then v={progress=0,claimed=false};s.data.quests[q.id]=v end
-   if not v.claimed then s.activeQuest=q.id;s.questDeadline=nil;s.carrying=false;s.raceStart=nil;state(p,q.name.." accepted") end end
+   if not v.claimed then Soccer.Cancel(p);s.activeQuest=q.id;s.questDeadline=nil;s.carrying=false;s.raceStart=nil;state(p,q.name.." accepted")
+    if q.id=="nick" then s.questDeadline=os.clock()+120;Soccer.Start(p,function(message) state(p,message) end,function()
+     if sessions[p]==s and s.activeQuest=="nick" then s.questDeadline=nil;questProgress(p,"Soccer");state(p,"Nick: WE DID IT! Claim your reward in Quests.") end
+    end) end
+   end end
  elseif verb=="ClaimQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg);local v=q and s.data.quests[q.id]
-  if v and not v.claimed and v.progress>=q.goal then v.claimed=true;s.data.coins+=q.coins;xp(p,q.xp);if s.activeQuest==q.id then s.activeQuest=nil end;state(p,"Quest reward · +"..q.xp.." XP · +"..q.coins.." coins") end
+  if v and not v.claimed and v.progress>=q.goal then v.claimed=true;if q.id=="nick" then s.data.achievements.NickChampion=true end;s.data.coins+=q.coins;xp(p,q.xp);if s.activeQuest==q.id then s.activeQuest=nil end;state(p,"Quest reward · +"..q.xp.." XP · +"..q.coins.." coins") end
  elseif verb=="SetSettings" and type(arg)=="table" then
   if type(arg.volume)=="number" and arg.volume==arg.volume then s.data.settings.volume=math.clamp(arg.volume,0,1) end
   if type(arg.reducedShake)=="boolean" then s.data.settings.reducedShake=arg.reducedShake end;state(p)
  end
 end)
 local function joined(p)
- local data,save=Profiles.Load(p.UserId);if not p.Parent then return end
- local s={data=data,canSave=save,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+10,
+ task.spawn(Entitlements.Refresh,p)
+ local data,save,loadMessage=Profiles.Load(p.UserId);if not p.Parent then if save then Profiles.Save(p.UserId,data,true) end;return end
+ local s={data=data,canSave=save,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+10,
  botRewards={},koRewards={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  local function spawn(c)
   local h=c:WaitForChild("Humanoid",10);if not h or p.Character~=c then return end
-  h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=16;s.sprintCharge=10;s.sprintRequested=false;s.sprintLockedUntil=0;s.dodgingUntil=0
+  s.jumpPower=h.JumpPower;s.jumpHeight=h.JumpHeight
+  h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=s.micReady and 16 or 0;s.sprintCharge=10;s.sprintRequested=false;s.sprintLockedUntil=0;s.dodgingUntil=0
   protect(p,s);state(p)
  end
  p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
- state(p,"Welcome · train for XP, unlock screams, and explore the coast")
+ state(p,loadMessage or "Welcome · train for XP, unlock screams, and explore the coast")
 end
 Players.PlayerAdded:Connect(joined);for _,p in ipairs(Players:GetPlayers()) do task.spawn(joined,p) end
-Players.PlayerRemoving:Connect(function(p) local s=sessions[p];if s and s.canSave then Profiles.Save(p.UserId,s.data) end;sessions[p]=nil end)
+Players.PlayerRemoving:Connect(function(p) local s=sessions[p];if s and s.canSave then Profiles.Save(p.UserId,s.data,true) end;sessions[p]=nil end)
 task.spawn(function()
  local tick=0
  while true do task.wait(0.1);tick+=1;local now=os.clock()
   for p,s in pairs(sessions) do
    local dt=math.clamp(now-s.lastStep,0,.25);s.lastStep=now;local _,r,h=parts(p)
+   -- Crossing into PvP immediately restores the full dodge cooldown.
+   if r and Config.InArena(r.Position) and s.lastDodge then s.nextDodge=math.max(s.nextDodge,s.lastDodge+Config.DodgeCooldown);p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+math.max(0,s.nextDodge-now)) end
+   if s.voice.capture and now-s.voice.capture.started>VoiceCombat.CaptureExpiry then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
    if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then s.sprintLockedUntil=0;s.sprintCharge=10 end
    local running=h and s.sprintRequested and s.sprintCharge>0 and now>=s.sprintLockedUntil
    if running then s.sprintCharge=math.max(0,s.sprintCharge-dt);if s.sprintCharge==0 then running=false;s.sprintLockedUntil=now+5 end
    elseif now>=s.sprintLockedUntil then s.sprintCharge=math.min(10,s.sprintCharge+dt*2) end
-   if h then h.WalkSpeed=now<(s.knockedUntil or 0) and 0 or now<s.dodgingUntil and 0 or running and 25 or 16
+   if h then h.WalkSpeed=not s.micReady and 0 or now<(s.knockedUntil or 0) and 0 or now<s.dodgingUntil and 0 or running and 25 or 16
+    h.JumpPower=s.micReady and (s.jumpPower or 50) or 0;h.JumpHeight=s.micReady and (s.jumpHeight or 7.2) or 0
+    if not s.micReady then h.Jump=false end
     if h.Health<h.MaxHealth and now>=s.nextHeal then h.Health=math.min(h.MaxHealth,h.Health+h.MaxHealth*.2);s.nextHeal=now+10 end
     if r.Position.Y< -20 then p.Character:PivotTo(World.SafeSpawn);protect(p,s) end
    end
@@ -267,4 +346,4 @@ task.spawn(function()
  end
 end)
 task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(Profiles.Save,p.UserId,s.data) end end end end)
-game:BindToClose(function() local pending=0;for p,s in pairs(sessions) do if s.canSave then pending+=1;task.spawn(function() Profiles.Save(p.UserId,s.data);pending-=1 end) end end;local deadline=os.clock()+25;while pending>0 and os.clock()<deadline do task.wait(.1) end end)
+game:BindToClose(function() local pending=0;for p,s in pairs(sessions) do if s.canSave then pending+=1;task.spawn(function() Profiles.Save(p.UserId,s.data,true);pending-=1 end) end end;local deadline=os.clock()+25;while pending>0 and os.clock()<deadline do task.wait(.1) end end)
