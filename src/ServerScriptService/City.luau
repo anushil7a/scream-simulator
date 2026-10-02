@@ -52,6 +52,7 @@ local function tree(parent,x,z,palm)
   end
   ellipsoid(parent,"PlaneTreeCrown",V(8.5,7,8.5),V(x,h+4,z),Color3.fromRGB(93,137,79),Enum.Material.Grass)
  end
+ return group,h
 end
 local function lamp(parent,x,z)
  cylinder(parent,"StreetLamp",.22,12,V(x,7,z),iron,Enum.Material.Metal)
@@ -291,15 +292,88 @@ local function octagon(parent,x,z)
   part(parent,"Chamfer",V(39.6,1,39.6),CFrame.new(x+sx*76,.3,z+sz*76)*CFrame.Angles(0,math.pi/4,0),stone,Enum.Material.Pavement)
  end end
 end
-local function garden(parent,x,z)
- part(parent,"CourtyardGarden",V(110,.3,110),V(x,1,z),Color3.fromRGB(112,138,79),Enum.Material.Grass)
- part(parent,"GardenPath",V(12,.12,110),V(x,1.2,z),Color3.fromRGB(209,192,153),Enum.Material.Pavement)
- part(parent,"GardenPath",V(110,.12,12),V(x,1.21,z),Color3.fromRGB(209,192,153),Enum.Material.Pavement)
- for _,dx in ipairs({-33,33}) do for _,dz in ipairs({-33,33}) do tree(parent,x+dx,z+dz,false) end end
- bench(parent,CFrame.new(x+18,0,z+14));bench(parent,CFrame.new(x-18,0,z-14)*CFrame.Angles(0,math.pi,0))
+local function garden(parent,x,z,index,activities)
+ -- Every court keeps two unobstructed twelve-stud public passages. Details stay
+ -- inside quadrants so the entrances never terminate at a fence or a tree.
+ local theme=({"ReadingGarden","OrangeCourt","SculptureCourt","PergolaCourt"})[(index-1)%4+1]
+ local m=model(parent,theme);m:SetAttribute("CourtyardTheme",theme)
+ m:SetAttribute("CourtCenter",V(x,1.3,z))
+ part(m,"CourtyardGarden",V(110,.3,110),V(x,1,z),Color3.fromRGB(112,138,79),Enum.Material.Grass)
+ for _,size in ipairs({V(12,.12,110),V(110,.12,12)}) do part(m,"GardenPath",size,V(x,1.2,z),Color3.fromRGB(209,192,153),Enum.Material.Pavement) end
+ local function pad(dx,dz)
+  part(m,"CourtTerrace",V(36,.12,36),V(x+dx,1.22,z+dz),Color3.fromRGB(222,206,175),Enum.Material.Cobblestone)
+ end
+ local function planter(dx,dz)
+  part(m,"LimestonePlanter",V(15,1.1,7),V(x+dx,1.7,z+dz),stone,Enum.Material.Limestone)
+  part(m,"PlanterSoil",V(14.4,.12,6.4),V(x+dx,2.3,z+dz),Color3.fromRGB(90,73,54),Enum.Material.Ground,false)
+  for k=-2,2 do
+   ellipsoid(m,"Lavender",V(2.3,1.5,3.5),V(x+dx+k*2.6,2.8,z+dz),Color3.fromRGB(116+k*3,116,150),Enum.Material.Grass)
+  end
+ end
+ local function seat(dx,dz,yaw)
+  bench(m,CFrame.new(x+dx,0,z+dz)*CFrame.Angles(0,yaw or 0,0))
+ end
+ if theme=="ReadingGarden" then
+  for _,side in ipairs({-1,1}) do
+   pad(side*29,-29);tree(m,x+side*39,z-39,false)
+   seat(side*27,-17,math.pi);planter(side*28,-47)
+  end
+  -- A pair of sheltered reading rooms, open toward the crossing paths.
+  for _,side in ipairs({-1,1}) do
+   pad(side*29,29)
+   for _,dx in ipairs({-11,11}) do for _,dz in ipairs({-10,10}) do
+    local top=11.3+math.sin(side*.06)*dx
+    part(m,"ReadingCanopyPost",V(.65,top-1.3,.65),V(x+side*29+dx,(top+1.3)/2,z+29+dz),iron,Enum.Material.Metal)
+   end end
+   part(m,"ReadingCanopy",V(26,.4,24),CFrame.new(x+side*29,11.5,z+29)*CFrame.Angles(0,0,side*.06),Color3.fromRGB(132,86,65),Enum.Material.WoodPlanks,false)
+   seat(side*29,33);seat(side*29,23,math.pi)
+  end
+ elseif theme=="OrangeCourt" then
+  for _,dx in ipairs({-29,29}) do for _,dz in ipairs({-29,29}) do
+   pad(dx,dz);local orangeTree,height=tree(m,x+dx,z+dz,false)
+   for k=0,7 do
+    local angle=math.floor(k/2)*math.pi/2+.45+(k%2-.5)*.35
+    ellipsoid(orangeTree,"OrangeFruit",V(.9,.9,.9),V(x+dx+math.cos(angle)*5.3,height+.05,z+dz+math.sin(angle)*5.3),Color3.fromRGB(230,143,49))
+   end
+   seat(dx,dz+(dz<0 and 12 or -12),dz<0 and math.pi or 0)
+  end end
+ elseif theme=="SculptureCourt" then
+  pad(-29,-29);pad(29,29)
+  for _,side in ipairs({-1,1}) do
+   local center=V(x+side*29,2,z+side*29)
+   part(m,"SculpturePlinth",V(8,1.5,8),center,stone,Enum.Material.Limestone)
+   -- Interlocking tilted blades give each end a recognizable silhouette.
+   for blade=0,2 do
+    part(m,"SculptureBlade",V(1.4,9,3.3),CFrame.new(center+V((blade-1)*2,5.5,0))*CFrame.Angles(.15,blade*.5,(blade-1)*.32),({Color3.fromRGB(63,132,138),Color3.fromRGB(203,123,79),Color3.fromRGB(222,185,99)})[blade+1],Enum.Material.Metal)
+   end
+   seat(side*29,side*29-side*12,side<0 and math.pi or 0)
+   planter(side*29,-side*31);tree(m,x+side*40,z-side*43,false)
+  end
+ else
+  for _,side in ipairs({-1,1}) do
+   pad(side*29,-29);pad(side*29,29)
+   for _,dx in ipairs({-12,12}) do for _,dz in ipairs({-12,12}) do
+    part(m,"PergolaColumn",V(1.2,10,1.2),V(x+side*29+dx,6.3,z-29+dz),cream,Enum.Material.Limestone)
+   end end
+   for dx=-14,14,4 do
+    part(m,"PergolaRafter",V(.65,.7,29),V(x+side*29+dx,11.5,z-29),Color3.fromRGB(136,101,71),Enum.Material.Wood,false)
+   end
+   for _,dz in ipairs({-11,11}) do part(m,"PergolaBeam",V(30,.8,.8),V(x+side*29,10.8,z-29+dz),Color3.fromRGB(136,101,71),Enum.Material.Wood,false) end
+   for k=-2,2 do
+    ellipsoid(m,"PergolaVine",V(7,2.5,7),V(x+side*29+k*4,12,z-35+(k%2)*2),leaf,Enum.Material.Grass)
+   end
+   for k=0,3 do
+    ellipsoid(m,"ClimbingVine",V(2.3,3,2.3),V(x+side*29-12,3+k*2.3,z-41),leaf,Enum.Material.Grass)
+   end
+   seat(side*29,-24);cafe(m,x+side*29,z+29,Color3.fromRGB(89,126,111));planter(side*29,47)
+  end
+ end
+ for _,side in ipairs({-1,1}) do
+  table.insert(activities,{position=V(x+side*29,4,z-9),kind=theme=="SculptureCourt" and "Watch" or "Rest"})
+ end
 end
 local function block(parent,x,z,index,style,walk,activities)
- local m=model(parent,style.."Block_"..index);m:SetAttribute("RefinedFrontages",index==13);octagon(m,x,z);garden(m,x,z)
+ local m=model(parent,style.."Block_"..index);m:SetAttribute("RefinedFrontages",true);octagon(m,x,z);garden(m,x,z,index,activities)
  for _,side in ipairs({-1,1}) do
   for j,offset in ipairs({-40,40}) do
    building(m,CFrame.lookAt(V(x+offset,0,z+side*82),V(x+offset,0,z+side*150)),52,28,3+(index+j)%3,index*20+j+(side+1)*2,style)
@@ -318,7 +392,7 @@ local function block(parent,x,z,index,style,walk,activities)
  if index%2==0 then cafe(m,x+18,z+40,Color3.fromRGB(103,129,108)) end
 end
 local function oldTown(parent,x,z,index,walk,activities)
- local m=model(parent,"BornLanes_"..index);octagon(m,x,z)
+ local m=model(parent,"BornLanes_"..index);m:SetAttribute("RefinedFrontages",true);octagon(m,x,z)
  part(m,"OldTownPaving",V(185,.12,185),V(x,.88,z),Color3.fromRGB(179,163,139),Enum.Material.Cobblestone)
  -- Staggered, narrow houses create small lanes and a sheltered café court.
  for row=-1,1 do for col=-2,2 do
@@ -338,7 +412,7 @@ local function oldTown(parent,x,z,index,walk,activities)
  sign(m,"CARRER DEL SOL",CFrame.new(x-60,6,z-48),19)
 end
 local function waterfrontHomes(parent,x,z,index,walk,activities)
- local m=model(parent,"MaritimeQuarter_"..index);octagon(m,x,z)
+ local m=model(parent,"MaritimeQuarter_"..index);m:SetAttribute("RefinedFrontages",true);octagon(m,x,z)
  for row=-1,1,2 do for j=-2,2 do
   building(m,CFrame.new(x+j*37,0,z+row*59)*CFrame.Angles(0,row==1 and math.pi or 0,0),31,32,2+(j+index)%2,index*100+j+row*10,"Born")
  end end
