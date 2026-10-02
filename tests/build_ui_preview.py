@@ -35,6 +35,13 @@ for _,tab in ipairs({"Screams","Quests","Style","Map","Settings"}) do
  end
  table.insert(report,{tab=tab,clipped=clipped,undersized=undersized,horizontalOverflow=overflow,menuSize=tostring(modal.AbsoluteSize)})
 end
+modal.Visible=false
+showConversation({npc=p.Character,name="Mar Soler",line="The neighborhood flowerbeds could use a little care. Can you lend a hand today?",hint="Visit the three raised flowerbeds in Rambla Gardens.",quests={Config.Quests[2],Config.Quests[3]}})
+task.wait(.15)
+local dialogueClipped={}
+for _,obj in ipairs(conversationPanel:GetDescendants()) do if (obj:IsA("TextLabel") or obj:IsA("TextButton")) and not obj.TextFits then table.insert(dialogueClipped,obj.Text) end end
+table.insert(report,{tab="Conversation",menuSize=tostring(conversationPanel.AbsoluteSize),clipped=dialogueClipped})
+closeConversation()
 modal.Visible=false;mic.ready=false;mic.status="Roblox voice access is required. Enable eligible voice access in your account and allow microphone permission.";task.wait(.15)
 local clipped={}
 for _,obj in ipairs(micPanel:GetDescendants()) do if (obj:IsA("TextLabel") or obj:IsA("TextButton")) and not obj.TextFits then table.insert(clipped,obj.Text) end end

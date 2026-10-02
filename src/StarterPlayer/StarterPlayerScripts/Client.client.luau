@@ -51,13 +51,14 @@ local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);to
 local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
 local toastUntil=0
 local function notify(t) toast.Text=t;toastUntil=os.clock()+4 end
+local conversationPanel,showConversation,closeConversation
 local nextCast=0;local sequence=0;local captureSource=nil
 local function cancelCapture()
  captureSource=nil;mic:Cancel();action:FireServer("CancelCast")
 end
 local function blocked()
  local now=workspace:GetServerTimeNow()
- return modal.Visible or (devPanel and devPanel.Visible) or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
+ return (conversationPanel and conversationPanel.Visible) or modal.Visible or (devPanel and devPanel.Visible) or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
 end
 local function beginCapture(source)
  if captureSource or blocked() or os.clock()<nextCast then return end
@@ -81,7 +82,7 @@ local function releaseCapture(source)
 end
 local function dodge()
  cancelCapture()
- if not modal.Visible and mic.ready then action:FireServer("Dodge") end
+ if not blocked() then action:FireServer("Dodge") end
 end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
 local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),function() end,gold);castButton.TextColor3=dark
@@ -179,6 +180,39 @@ render=function()
  end
 end
 for i,name in ipairs({"Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() selected=name;render() end) end
+local conversationNPC,conversationUntil
+conversationPanel=frame(gui,"Conversation",UDim2.fromOffset(460,300),UDim2.fromScale(.5,.5));conversationPanel.AnchorPoint=Vector2.new(.5,.5);conversationPanel.Visible=false;conversationPanel.ZIndex=10
+local conversationName=label(conversationPanel,"",UDim2.new(1,-80,0,36),UDim2.fromOffset(18,12),19,gold)
+local conversationList=Instance.new("ScrollingFrame");conversationList.Size=UDim2.new(1,-36,1,-66);conversationList.Position=UDim2.fromOffset(18,54);conversationList.BackgroundTransparency=1;conversationList.BorderSizePixel=0;conversationList.ScrollBarThickness=4;conversationList.AutomaticCanvasSize=Enum.AutomaticSize.Y;conversationList.CanvasSize=UDim2.new();conversationList.Parent=conversationPanel
+local conversationLayout=Instance.new("UIListLayout");conversationLayout.Padding=UDim.new(0,10);conversationLayout.SortOrder=Enum.SortOrder.LayoutOrder;conversationLayout.Parent=conversationList
+closeConversation=function()
+ if conversationPanel.Visible then action:FireServer("EndConversation") end
+ conversationPanel.Visible=false;conversationNPC=nil
+end
+button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
+showConversation=function(info)
+ cancelCapture();modal.Visible=false;if devPanel then devPanel.Visible=false end
+ conversationNPC=info.npc;conversationUntil=os.clock()+20;conversationName.Text=info.name
+ for _,child in ipairs(conversationList:GetChildren()) do if child:IsA("GuiObject") then child:Destroy() end end
+ local order=0
+ local function words(text,color)
+  order+=1;local l=label(conversationList,text,UDim2.new(1,-10,0,0),UDim2.new(),14,color);l.AutomaticSize=Enum.AutomaticSize.Y;l.LayoutOrder=order;return l
+ end
+ local line=words(info.line,white)
+ local function choice(text,callback)
+  order+=1;local b=button(conversationList,"Choice",text,UDim2.new(1,-10,0,48),UDim2.new(),callback);b.TextWrapped=true;b.LayoutOrder=order;return b
+ end
+ choice("Tell me about this neighborhood",function() line.Text=info.hint end)
+ for _,q in ipairs(info.quests or {}) do
+  words(q.description,muted)
+  local b=choice(q.claimed and (q.name.." · completed") or ("Accept: "..q.name),function()
+   if not q.claimed then action:FireServer("AcceptQuest",q.id);closeConversation() end
+  end)
+  b.Active=not q.claimed;b.AutoButtonColor=not q.claimed
+ end
+ choice("See you later",closeConversation)
+ conversationList.CanvasPosition=Vector2.zero;conversationPanel.Visible=true
+end
 local lastMenuKey=""
 remotes.State.OnClientEvent:Connect(function(nextData)
  data=nextData;stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";health.Text=data.health.."/"..(data.maxHealth or 100);hf.Size=UDim2.fromScale(data.health/(data.maxHealth or 100),1)
@@ -188,6 +222,7 @@ remotes.State.OnClientEvent:Connect(function(nextData)
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
  tracked.Text=q and (q.name.."  "..v.progress.."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s" or "")) or ""
  if data.message then notify(data.message) end
+ if data.conversation then showConversation(data.conversation) end
  local key=game:GetService("HttpService"):JSONEncode({data.level,data.xp,data.sound,data.aura,data.quests,data.activeQuest,data.settings,data.availableQuests,data.amplifierOwned,data.amplifierEquipped,data.movementPass})
  if modal.Visible and key~=lastMenuKey then render() end;lastMenuKey=key
 end)
@@ -204,7 +239,7 @@ UIS.InputEnded:Connect(function(input)
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
  if input.KeyCode==Enum.KeyCode.LeftShift then action:FireServer("Sprint",false) end
 end)
-p.CharacterRemoving:Connect(cancelCapture)
+p.CharacterRemoving:Connect(function() cancelCapture();if closeConversation then closeConversation() end end)
 UIS.WindowFocusReleased:Connect(function() sprinting=false;cancelCapture();action:FireServer("Sprint",false) end)
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
@@ -226,6 +261,12 @@ end)
 local elapsed=0
 Run.RenderStepped:Connect(function(dt)
  local viewport=workspace.CurrentCamera.ViewportSize
+ conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-36))
+ if conversationPanel.Visible then
+  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+  local npcRoot=conversationNPC and conversationNPC.Parent and conversationNPC:FindFirstChild("HumanoidRootPart")
+  if modal.Visible or not root or not npcRoot or (root.Position-npcRoot.Position).Magnitude>18 or os.clock()>conversationUntil then closeConversation() end
+ end
  saveNotice.Text=data.testSession and "TEST SESSION · progress is temporary" or data.savingAvailable==false and "Temporary progress · saving unavailable" or ""
  saveNotice.Visible=not modal.Visible and viewport.X>=820
  if viewport.X<820 and (data.testSession or data.savingAvailable==false) then xpText.Text="TEMPORARY PROGRESS • not saved" end
@@ -293,7 +334,7 @@ Run.RenderStepped:Connect(function(dt)
  talkTarget=nil;local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");local world=workspace:FindFirstChild("ScreamSimulatorWorld");local best=13
  if root and world then for _,bot in ipairs(world:GetChildren()) do local r=bot:IsA("Model") and bot:FindFirstChild("HumanoidRootPart");if r then local distance=(r.Position-root.Position).Magnitude;if distance<best then best=distance;talkTarget=bot end end end end
  if root and mapDot and mapDot.Parent then mapDot.Position=UDim2.fromScale(math.clamp((root.Position.X+720)/1440,0,.94),math.clamp((root.Position.Z+600)/1200,0,.94)) end
- talkButton.Visible=talkTarget~=nil and not modal.Visible
+ talkButton.Visible=talkTarget~=nil and not modal.Visible and not conversationPanel.Visible
 end)
 action:FireServer("Sync")
 

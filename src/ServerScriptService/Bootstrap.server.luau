@@ -22,7 +22,7 @@ local function parts(p)
  local c=p.Character;local r=c and c:FindFirstChild("HumanoidRootPart");local h=c and c:FindFirstChildOfClass("Humanoid")
  if r and h and h.Health>0 then return c,r,h end
 end
-local function state(p,message)
+local function state(p,message,conversation)
  local s=sessions[p];if not s or not p.Parent then return end
  local _,r,h=parts(p)
  Equipment.Sync(p,s.data.amplifierEquipped)
@@ -31,7 +31,7 @@ local function state(p,message)
  availableQuests=s.data.availableQuests,quests=s.data.quests,activeQuest=s.activeQuest,questTime=s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,s.voice.nextCast-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,testSession=s.testBaseline~=nil,message=message})
+ conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,testSession=s.testBaseline~=nil,message=message})
 end
 local function syncHealth(p,full)
  local s=sessions[p];local _,_,h=parts(p);if not s or not h then return end
@@ -173,9 +173,16 @@ local function dodge(p)
  end)
  state(p)
 end
+local function closeConversation(p)
+ local s=sessions[p];local bot=s and s.conversationBot
+ if bot and bot.talkingTo==p then bot.talkingTo=nil;bot.socialUntil=0 end
+ if s then s.conversationBot=nil end
+end
 local function talk(p,id)
  local s=sessions[p];local _,r=parts(p);if not s or not r or type(id)~="string" or os.clock()<(s.nextTalk or 0) then return end
  for _,b in ipairs(World.Bots) do if b.id==id and b.alive and b.root.Parent and (b.root.Position-r.Position).Magnitude<=14 then
+  if b.talkingTo and b.talkingTo~=p and (b.socialUntil or 0)>os.clock() then state(p,b.name.." is speaking with someone. Try again shortly.");return end
+  closeConversation(p);s.conversationBot=b;b.talkingTo=p
   s.nextTalk=os.clock()+2
   local message=b.name..": "..World.Talk(b,p)
   if b.name=="Nick Booty" and not s.data.achievements.FoundNick then
@@ -185,7 +192,14 @@ local function talk(p,id)
    for _,questId in ipairs(b.questIds) do s.data.availableQuests[questId]=true end
    message..=" · Tasks available in Quests"
   end
-  state(p,message);return
+  b.socialUntil=os.clock()+20
+  local choices={}
+  for _,id in ipairs(b.questIds or {}) do
+   local q=Config.GetQuest(id);local progress=s.data.quests[id]
+   if q then table.insert(choices,{id=id,name=q.name,description=q.description,claimed=progress and progress.claimed==true}) end
+  end
+  local hints={Gardener="The raised flowerbeds in Rambla Gardens need water. Hold F beside each bed after accepting my task.",Vendor="The café prepares orders for the music stage. Pick up a fresh order before starting your delivery.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker="Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
+  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices});return
  end end
 end
 local function dev(p,command)
@@ -268,6 +282,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   p:SetAttribute("CaptureStarted",0)
   if VoiceCombat.Begin(s.voice,now,arg,canCapture(p,s,now)) then p:SetAttribute("CaptureStarted",workspace:GetServerTimeNow()) end;return
  elseif verb=="CancelCast" then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0);return
+ elseif verb=="EndConversation" then closeConversation(p);return
  elseif verb=="MicReady" then s.micReady=arg==true;if not s.micReady then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end;return
  elseif verb=="Cast" then cast(p,arg);return elseif verb=="Dodge" then dodge(p);return
  elseif verb=="ExtraJump" then
@@ -329,7 +344,7 @@ local function joined(p)
  state(p,loadMessage or "Welcome · train for XP, unlock screams, and explore the coast")
 end
 Players.PlayerAdded:Connect(joined);for _,p in ipairs(Players:GetPlayers()) do task.spawn(joined,p) end
-Players.PlayerRemoving:Connect(function(p) local s=sessions[p];if s and s.canSave then Profiles.Save(p.UserId,s.testBaseline or s.data,true) end;sessions[p]=nil end)
+Players.PlayerRemoving:Connect(function(p) closeConversation(p);local s=sessions[p];if s and s.canSave then Profiles.Save(p.UserId,s.testBaseline or s.data,true) end;sessions[p]=nil end)
 task.spawn(function()
  local tick=0
  while true do task.wait(0.1);tick+=1;local now=os.clock()
