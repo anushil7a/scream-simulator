@@ -25,12 +25,12 @@ Config.DodgeDistance = 14
 Config.ZoneMin = Vector3.new(-480,-20,-360)
 Config.ZoneMax = Vector3.new(480,200,360)
 Config.Sounds = {
- {id="TinyAah",name="Tiny Aah",level=1,damage=12,range=30,width=4,cooldown=2.4,effect="Pulse",description="A focused forward sound beam.",assetId=""},
- {id="IyoPop",name="Echo Pop",level=5,damage=18,range=42,width=5,cooldown=2.6,effect="Echo",description="A longer beam wrapped in echo rings.",assetId=""},
- {id="PanicChicken",name="Panic Chicken",level=10,damage=25,range=56,width=6,cooldown=2.8,effect="Feathers",description="A piercing stream of golden feathers.",assetId=""},
- {id="Laughquake",name="Laughquake",level=15,damage=32,range=72,width=7,cooldown=3,effect="Quake",description="A broad ground-rumbling sound beam.",assetId=""},
- {id="MegaChaos",name="Storm Siren",level=20,damage=40,range=90,width=8,cooldown=3.2,effect="Storm",description="A crackling electric sound lance.",assetId=""},
- {id="Supernova",name="Supernova",level=25,damage=48,range=112,width=10,cooldown=3.5,effect="Nova",description="A brilliant long-range sound ray.",assetId=""},
+ {id="TinyAah",name="Tiny Aah",level=1,effect="Pulse",description="A clean pulse around your aimed voice beam.",assetId=""},
+ {id="IyoPop",name="Echo Pop",level=5,effect="Echo",description="Three echo rings wrap your aimed voice beam.",assetId=""},
+ {id="PanicChicken",name="Panic Chicken",level=10,effect="Feathers",description="Feather-shaped sparks follow your voice beam.",assetId=""},
+ {id="Laughquake",name="Laughquake",level=15,effect="Quake",description="Jagged ribbons trace your aimed voice beam.",assetId=""},
+ {id="MegaChaos",name="Storm Siren",level=20,effect="Storm",description="Electric strands trace your aimed voice beam.",assetId=""},
+ {id="Supernova",name="Supernova",level=25,effect="Nova",description="A bright starburst marks the end of your beam.",assetId=""},
 }
 -- Familiar early unlocks retain their save IDs. Further styles unlock every five levels.
 local families={"Pulse","Echo","Feathers","Quake","Storm","Nova"}

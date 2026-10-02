@@ -130,11 +130,12 @@ render=function()
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Screams" then
-  title.Text="SCREAM COLLECTION";subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  Live voice styles • power scales with your level"
+  title.Text="SCREAM COLLECTION";subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  Styles change visuals • level and mic power set strength"
+  local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
   for _,s in ipairs(Config.Sounds) do
    local c=card(narrow and 178 or 101);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
    label(c,s.description,UDim2.new(1,narrow and -28 or -158,0,narrow and 40 or 25),UDim2.fromOffset(14,narrow and 54 or 36),13)
-   label(c,string.format("UP TO %d DAMAGE / %.1f STUDS • 4s COOLDOWN",Config.VoiceCombat.Stats(data.level,1,false).damage,Config.VoiceCombat.Stats(data.level,1,false).maxRange),UDim2.new(1,-28,0,narrow and 30 or 23),UDim2.fromOffset(14,narrow and 95 or 69),12,muted)
+   label(c,string.format("UP TO %d DAMAGE / %.1f STUDS • 4s COOLDOWN",maximum.damage,maximum.maxRange),UDim2.new(1,-28,0,narrow and 30 or 23),UDim2.fromOffset(14,narrow and 95 or 69),12,muted)
    local unlocked=data.level>=s.level
    local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,narrow and 132 or 21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
    if not unlocked then b.TextColor3=muted end

@@ -408,3 +408,10 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - After protection expired, E down450ms/up emitted exactly one Scream effect and no Dodge. After cooldown, E down350ms, Q press, E release emitted one Dodge and no additional Scream; another immediate Q did not add a Dodge.
 - Repeated with an observed positive server CaptureStarted before Q: capture cleared to0, Dodge count advanced1→2 and Scream count stayed1. Separately observed positive capture before B opened the menu; releasing E and closing B left capture0 and Scream count1. This verifies cancellation rather than merely absence of initial capture.
 - Console only showed the temporary-profile warning. Released all held keys, stopped Play and removed the synthetic mic fixture. No production behavior changes were necessary for these cases. Physical hardware, combined touch input, audio noise during roll, latency and respawn sequences remain outstanding.
+
+
+## Scream collection balance clarity — October 2
+
+- Removed unused legacy damage/range/width/per-style cooldown values from the six early style definitions. Their saved IDs and unlock levels remain unchanged; the common four-second cooldown and VoiceCombat level/power calculations remain authoritative.
+- Rewrote descriptions to match the implemented Pulse/Echo/Feathers/Quake/Storm/Nova visuals instead of implying that equipping a particular cosmetic grants extra reach. Collection subtitle now explains the relationship between visuals, level and microphone power. Maximum stats are calculated once per menu render using the same shared combat function.
+- Source compiles and4,003 existing combat/microphone/destruction checks pass. Opened the collection through Studio B input; sampled updated subtitle, Echo description and level1 maximum stats all reported TextFits true at the default viewport (18 damage,30 studs,4-second cooldown). No balance or save migration change introduced. Stopped Play and rebuilt both local formats; production unchanged.
