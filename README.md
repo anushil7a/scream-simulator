@@ -8,6 +8,8 @@ Experience: **Scream Simulator** · Place `122465114514497` · Universe `1076753
 
 ## Get started / help develop
 
+**Next redesign brief:** [Microphone combat and professional city development prompt](docs/PROFESSIONAL_REDESIGN_PROMPT.md). This is planned work, not a description of features already shipped.
+
 **Repository:** https://github.com/anushil7a/scream-simulator
 
 ```sh
