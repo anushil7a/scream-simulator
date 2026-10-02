@@ -232,9 +232,22 @@ showConversation=function(info)
  choice("See you later",closeConversation)
  conversationList.CanvasPosition=Vector2.zero;conversationPanel.Visible=true
 end
+local function refreshQuestObjects()
+ local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+ local objects=world and world:FindFirstChild("QuestObjects")
+ if not objects then return end
+ for _,object in objects:GetChildren() do
+  if object:IsA("BasePart") and object:GetAttribute("QuestAction")=="Litter" then
+   local hidden=data.collected and data.collected[object.Name]==true
+   object.LocalTransparencyModifier=hidden and 1 or 0
+   local prompt=object:FindFirstChildOfClass("ProximityPrompt")
+   if prompt then prompt.Enabled=not hidden end
+  end
+ end
+end
 local lastMenuKey=""
 remotes.State.OnClientEvent:Connect(function(nextData)
- data=nextData;stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";health.Text=data.health.."/"..(data.maxHealth or 100);hf.Size=UDim2.fromScale(data.health/(data.maxHealth or 100),1)
+ data=nextData;refreshQuestObjects();stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";health.Text=data.health.."/"..(data.maxHealth or 100);hf.Size=UDim2.fromScale(data.health/(data.maxHealth or 100),1)
  xpText.Text=data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP";xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
  zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
  testButton.Visible=data.devAccess==true
@@ -264,8 +277,6 @@ local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
 remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,beamWidth)
- if kind=="ResetCollected" then for _,o in ipairs(workspace.ScreamSimulatorWorld.QuestObjects:GetChildren()) do o.LocalTransparencyModifier=0;local prompt=o:FindFirstChildOfClass("ProximityPrompt");if prompt then prompt.Enabled=true end end;return end
- if kind=="Collected" then if pos and pos.Parent then pos.LocalTransparencyModifier=1;local prompt=pos:FindFirstChildOfClass("ProximityPrompt");if prompt then prompt.Enabled=false end end;return end
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root and (root.Position-pos).Magnitude>180 then return end
  if kind=="Break" then
   for i=1,6 do local chip=fxPart(pos,Config.Auras[id] or gold,Vector3.new(.5,.5,.5));Tween:Create(chip,TweenInfo.new(.45),{Position=pos+Vector3.new(math.cos(i)*3,2,math.sin(i)*3),Transparency=1}):Play() end;return

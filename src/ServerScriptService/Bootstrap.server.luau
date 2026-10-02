@@ -30,7 +30,7 @@ local function state(p,message,conversation)
  Equipment.Sync(p,s.data.amplifierEquipped)
  stateRemote:FireClient(p,{coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
  amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
- availableQuests=s.data.availableQuests,quests=s.data.quests,activeQuest=s.activeQuest,questStep=soccer and soccer.detail,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
+ availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=soccer and soccer.detail,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,s.voice.nextCast-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,testSession=s.testBaseline~=nil,message=message})
@@ -240,7 +240,7 @@ local function dev(p,command)
  elseif command=="LevelOne" then s.data.level=1;s.data.xp=0;s.data.sound="TinyAah"
  elseif command=="Heal" and h then h.Health=h.MaxHealth
  elseif positions[command] and c then c:PivotTo(positions[command]);protect(p,s)
- elseif command=="ResetQuests" then stopQuest(p);s.data.quests={};effect:FireClient(p,"ResetCollected")
+ elseif command=="ResetQuests" then stopQuest(p);s.data.quests={}
  elseif command=="ResetBots" then for _,b in ipairs(World.Bots) do b.health=Config.BotMaxHealth;b.alive=true;World.UpdateBot(b) end
  else return end
  syncHealth(p,command=="Heal");state(p,"Test applied · this session does not save")
@@ -274,17 +274,16 @@ World.OnVehicleSweep=function(car,previous,nextFrame)
   end
  end
 end
-for _,obj in ipairs(workspace.ScreamSimulatorWorld:GetDescendants()) do
- if obj:IsA("ProximityPrompt") and obj.Parent:GetAttribute("QuestAction") then obj.Triggered:Connect(function(p)
+local function interactQuest(p,obj)
   local s=sessions[p];local _,r=parts(p);local marker=obj.Parent
-  if not s or not r or (r.Position-marker.Position).Magnitude>12 then return end
+  if not s or not r or not marker or not marker:IsA("BasePart") or (r.Position-marker.Position).Magnitude>12 then return end
   local kind=marker:GetAttribute("QuestAction")
   if kind=="Garden" and s.activeQuest=="garden" then
    if s.collected[marker.Name] then state(p,"This bed is already watered.");return end
    s.collected[marker.Name]=true;questProgress(p,"Garden");state(p,"Flowers watered · thanks for helping the neighborhood!")
   elseif kind=="Litter" and s.activeQuest=="beach" then
    if s.collected[marker.Name] then state(p,"Already collected this bottle.");return end
-   s.collected[marker.Name]=true;questProgress(p,"Litter");effect:FireClient(p,"Collected",marker)
+   s.collected[marker.Name]=true;questProgress(p,"Litter")
   elseif kind=="Pickup" and s.activeQuest=="delivery" then s.questDeadline=os.clock()+90;s.carrying=true;state(p,"Order collected · deliver to the boardwalk stage in 90s")
   elseif kind=="Dropoff" and s.activeQuest=="delivery" then
    if s.carrying and s.questDeadline and os.clock()<=s.questDeadline then questProgress(p,"Delivery");s.carrying=false;s.questDeadline=nil
@@ -294,7 +293,9 @@ for _,obj in ipairs(workspace.ScreamSimulatorWorld:GetDescendants()) do
    if s.raceStart and os.clock()-s.raceStart>=3 and s.questDeadline and os.clock()<=s.questDeadline then questProgress(p,"Race");s.questDeadline=nil;s.raceStart=nil
    else state(p,"Start at the lifeguard tower and beat 25 seconds.") end
   else state(p,"Accept the matching quest from the Quests menu first.") end
- end) end
+end
+for _,obj in ipairs(workspace.ScreamSimulatorWorld:GetDescendants()) do
+ if obj:IsA("ProximityPrompt") and obj.Parent:GetAttribute("QuestAction") then obj.Triggered:Connect(function(p) interactQuest(p,obj) end) end
 end
 action.OnServerEvent:Connect(function(p,verb,arg)
  local s=sessions[p];if not s or type(verb)~="string" then return end
@@ -337,7 +338,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   end
   if q then local v=s.data.quests[q.id];if not v then v={progress=0,claimed=false};s.data.quests[q.id]=v end
    if not v.claimed and v.progress>=q.goal then state(p,"Task complete · claim your reward.");return end
-   if not v.claimed then stopQuest(p);s.activeQuest=q.id;state(p,q.name.." accepted")
+   if not v.claimed then stopQuest(p);v.progress=0;s.activeQuest=q.id;state(p,q.name.." accepted")
     if q.id=="nick" then Soccer.Start(p,function(message) state(p,message) end,function()
      if sessions[p]==s and s.activeQuest=="nick" then s.questDeadline=nil;questProgress(p,"Soccer");state(p,"Nick: WE DID IT! Claim your reward in Quests.") end
     end,function() if sessions[p]==s and s.activeQuest=="nick" then stopQuest(p);state(p,"Nick: Attempt ended. Return to the court and accept my task to try again.") end end) end
