@@ -725,7 +725,12 @@ function World.Build()
     return parent
 end
 function World.UpdateBot(bot)
-    stopWalking(bot);bot.model:SetAttribute("Working",false)
+    -- A normal hit already started its flee reaction. Do not cancel that MoveTo here.
+    if not bot.alive or bot.health==Config.BotMaxHealth then
+        stopWalking(bot);bot.model:SetAttribute("Working",false)
+        bot.socialUntil=0;bot.talkingTo=nil;bot.reactionUntil=0;bot.gestureUntil=0
+        bot.speechToken=(bot.speechToken or 0)+1;bot.speech.Visible=false
+    end
     bot.label.Text=bot.alive and (bot.name.."  "..bot.health.."/"..Config.BotMaxHealth) or "RECOVERING"
     if bot.alive then
         bot.humanoid.Health=bot.health
