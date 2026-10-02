@@ -41,5 +41,13 @@ end
 local ordered={};for _,v in pairs(scopes) do v.meanMs=v.ms/#frames;table.insert(ordered,v) end
 table.sort(ordered,function(a,b)return a.ms>b.ms end)
 local top={};for i=1,math.min(20,#ordered) do top[i]=ordered[i] end
+-- Sleeping workers and whole-thread spans otherwise crowd useful scopes out of the report.
+-- Keep the original inclusive report; neither list is an additive frame-time breakdown.
+local nonIdle={}
+for _,entry in ordered do
+ if entry.timer~="Sleep" and not string.match(entry.timer,"^Thread") then
+  table.insert(nonIdle,entry);if #nonIdle==20 then break end
+ end
+end
 iterator:Dispose();session:Dispose()
-return {frames=frames,topInclusiveCpuScopes=top}
+return {frames=frames,topInclusiveCpuScopes=top,topNonIdleCpuScopes=nonIdle}
