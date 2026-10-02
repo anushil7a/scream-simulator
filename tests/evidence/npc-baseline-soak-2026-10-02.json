@@ -1,0 +1,607 @@
+{
+  "state": "complete",
+  "samples": [
+    {
+      "worldInstances": 47858,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 0,
+      "elapsed": 0,
+      "luaKB": 7746,
+      "movedSinceLast": 0,
+      "working": 0
+    },
+    {
+      "worldInstances": 47864,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 2,
+      "elapsed": 30,
+      "luaKB": 2792,
+      "movedSinceLast": 39,
+      "working": 5
+    },
+    {
+      "worldInstances": 47860,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 2,
+      "elapsed": 60,
+      "luaKB": 3445,
+      "movedSinceLast": 41,
+      "working": 6
+    },
+    {
+      "worldInstances": 47861,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 1,
+      "elapsed": 90,
+      "luaKB": 3070,
+      "movedSinceLast": 38,
+      "working": 6
+    },
+    {
+      "worldInstances": 47863,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 3,
+      "elapsed": 120,
+      "luaKB": 3131,
+      "movedSinceLast": 42,
+      "working": 4
+    },
+    {
+      "worldInstances": 47865,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 5,
+      "elapsed": 150,
+      "luaKB": 3517,
+      "movedSinceLast": 39,
+      "working": 6
+    },
+    {
+      "worldInstances": 47863,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 5,
+      "elapsed": 180,
+      "luaKB": 3369,
+      "movedSinceLast": 37,
+      "working": 5
+    },
+    {
+      "worldInstances": 47867,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 9,
+      "elapsed": 210,
+      "luaKB": 3431,
+      "movedSinceLast": 36,
+      "working": 6
+    },
+    {
+      "worldInstances": 47867,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 9,
+      "elapsed": 240,
+      "luaKB": 3536,
+      "movedSinceLast": 32,
+      "working": 3
+    },
+    {
+      "worldInstances": 47867,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 9,
+      "elapsed": 270,
+      "luaKB": 3210,
+      "movedSinceLast": 32,
+      "working": 5
+    },
+    {
+      "worldInstances": 47867,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 9,
+      "elapsed": 300,
+      "luaKB": 3242,
+      "movedSinceLast": 31,
+      "working": 3
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 330,
+      "luaKB": 3768,
+      "movedSinceLast": 32,
+      "working": 4
+    },
+    {
+      "worldInstances": 47868,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 10,
+      "elapsed": 360,
+      "luaKB": 3478,
+      "movedSinceLast": 30,
+      "working": 3
+    },
+    {
+      "worldInstances": 47868,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 10,
+      "elapsed": 390,
+      "luaKB": 3053,
+      "movedSinceLast": 28,
+      "working": 6
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 420,
+      "luaKB": 3647,
+      "movedSinceLast": 28,
+      "working": 4
+    },
+    {
+      "worldInstances": 47868,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 10,
+      "elapsed": 450,
+      "luaKB": 3837,
+      "movedSinceLast": 31,
+      "working": 5
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 480,
+      "luaKB": 3401,
+      "movedSinceLast": 26,
+      "working": 6
+    },
+    {
+      "worldInstances": 47868,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 10,
+      "elapsed": 511,
+      "luaKB": 4212,
+      "movedSinceLast": 27,
+      "working": 5
+    },
+    {
+      "worldInstances": 47868,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 10,
+      "elapsed": 541,
+      "luaKB": 3577,
+      "movedSinceLast": 30,
+      "working": 4
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 571,
+      "luaKB": 2862,
+      "movedSinceLast": 30,
+      "working": 5
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 601,
+      "luaKB": 3141,
+      "movedSinceLast": 31,
+      "working": 4
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 631,
+      "luaKB": 3814,
+      "movedSinceLast": 28,
+      "working": 5
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 661,
+      "luaKB": 4088,
+      "movedSinceLast": 30,
+      "working": 4
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 691,
+      "luaKB": 2866,
+      "movedSinceLast": 28,
+      "working": 5
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 721,
+      "luaKB": 4225,
+      "movedSinceLast": 26,
+      "working": 3
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 751,
+      "luaKB": 4054,
+      "movedSinceLast": 30,
+      "working": 6
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 781,
+      "luaKB": 3951,
+      "movedSinceLast": 29,
+      "working": 6
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 811,
+      "luaKB": 3024,
+      "movedSinceLast": 29,
+      "working": 3
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 841,
+      "luaKB": 3495,
+      "movedSinceLast": 30,
+      "working": 5
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 871,
+      "luaKB": 2633,
+      "movedSinceLast": 28,
+      "working": 5
+    },
+    {
+      "worldInstances": 47869,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 11,
+      "elapsed": 901,
+      "luaKB": 2704,
+      "movedSinceLast": 28,
+      "working": 4
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 931,
+      "luaKB": 3579,
+      "movedSinceLast": 29,
+      "working": 7
+    },
+    {
+      "worldInstances": 47871,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 13,
+      "elapsed": 961,
+      "luaKB": 4010,
+      "movedSinceLast": 28,
+      "working": 5
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 991,
+      "luaKB": 3722,
+      "movedSinceLast": 29,
+      "working": 3
+    },
+    {
+      "worldInstances": 47871,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 13,
+      "elapsed": 1021,
+      "luaKB": 3152,
+      "movedSinceLast": 27,
+      "working": 6
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1051,
+      "luaKB": 3987,
+      "movedSinceLast": 28,
+      "working": 5
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1081,
+      "luaKB": 3040,
+      "movedSinceLast": 28,
+      "working": 3
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1112,
+      "luaKB": 3508,
+      "movedSinceLast": 28,
+      "working": 6
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1142,
+      "luaKB": 2907,
+      "movedSinceLast": 28,
+      "working": 3
+    },
+    {
+      "worldInstances": 47871,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 13,
+      "elapsed": 1172,
+      "luaKB": 2816,
+      "movedSinceLast": 28,
+      "working": 6
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1202,
+      "luaKB": 2837,
+      "movedSinceLast": 26,
+      "working": 7
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1232,
+      "luaKB": 4402,
+      "movedSinceLast": 26,
+      "working": 3
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1262,
+      "luaKB": 4149,
+      "movedSinceLast": 26,
+      "working": 6
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1292,
+      "luaKB": 3842,
+      "movedSinceLast": 27,
+      "working": 5
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1322,
+      "luaKB": 3989,
+      "movedSinceLast": 27,
+      "working": 4
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1352,
+      "luaKB": 2942,
+      "movedSinceLast": 25,
+      "working": 6
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1382,
+      "luaKB": 3296,
+      "movedSinceLast": 28,
+      "working": 5
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1412,
+      "luaKB": 2805,
+      "movedSinceLast": 26,
+      "working": 7
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1442,
+      "luaKB": 3732,
+      "movedSinceLast": 28,
+      "working": 3
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1472,
+      "luaKB": 2969,
+      "movedSinceLast": 27,
+      "working": 6
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1502,
+      "luaKB": 4108,
+      "movedSinceLast": 28,
+      "working": 4
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1532,
+      "luaKB": 4017,
+      "movedSinceLast": 28,
+      "working": 6
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1562,
+      "luaKB": 4239,
+      "movedSinceLast": 26,
+      "working": 5
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1592,
+      "luaKB": 2999,
+      "movedSinceLast": 27,
+      "working": 6
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1622,
+      "luaKB": 3164,
+      "movedSinceLast": 27,
+      "working": 4
+    },
+    {
+      "worldInstances": 47872,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 14,
+      "elapsed": 1652,
+      "luaKB": 3008,
+      "movedSinceLast": 27,
+      "working": 6
+    },
+    {
+      "worldInstances": 47871,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 13,
+      "elapsed": 1682,
+      "luaKB": 4265,
+      "movedSinceLast": 25,
+      "working": 4
+    },
+    {
+      "worldInstances": 47871,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 13,
+      "elapsed": 1712,
+      "luaKB": 4119,
+      "movedSinceLast": 27,
+      "working": 5
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1742,
+      "luaKB": 2903,
+      "movedSinceLast": 27,
+      "working": 5
+    },
+    {
+      "worldInstances": 47870,
+      "above20Studs": 0,
+      "alive": 46,
+      "seated": 12,
+      "elapsed": 1773,
+      "luaKB": 3076,
+      "movedSinceLast": 27,
+      "working": 5
+    }
+  ],
+  "error": "",
+  "runId": "CityNpcSoak-20261002-7d54864"
+}
