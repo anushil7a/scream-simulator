@@ -1,5 +1,7 @@
 local VoiceCombat=require(script.Parent.VoiceCombat)
+local Progression=require(script.Parent.Progression)
 local Config = {}
+Config.Progression=Progression
 Config.VoiceCombat=VoiceCombat
 Config.MaxLevel = 300
 Config.MaxHealth = 100
@@ -56,7 +58,7 @@ local questGivers={beach="Mar Soler · Rambla Gardens",delivery="Pau Vidal · Me
 for _,quest in ipairs(Config.Quests) do quest.giver=quest.giver or questGivers[quest.id] end
 function Config.GetSound(id) for _,s in ipairs(Config.Sounds) do if s.id==id then return s end end end
 function Config.GetQuest(id) for _,q in ipairs(Config.Quests) do if q.id==id then return q end end end
-function Config.XPToNext(level) return math.floor(70+level*25+level^1.55*8) end
-function Config.PlayerKOXP(level) return 50+math.clamp(level,1,Config.MaxLevel)*12 end
+function Config.XPToNext(level) return Progression.XPToNext(level) end
+function Config.PlayerKOXP(level) return Progression.PlayerKOXP(level) end
 function Config.InArena(p) return p.X>=Config.ZoneMin.X and p.X<=Config.ZoneMax.X and p.Z>=Config.ZoneMin.Z and p.Z<=Config.ZoneMax.Z and p.Y>=Config.ZoneMin.Y and p.Y<=Config.ZoneMax.Y end
 return Config

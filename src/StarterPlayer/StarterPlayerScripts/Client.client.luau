@@ -4,6 +4,7 @@ local UIS=game:GetService("UserInputService")
 local Run=game:GetService("RunService")
 local Tween=game:GetService("TweenService")
 local Debris=game:GetService("Debris")
+local TextService=game:GetService("TextService")
 local p=Players.LocalPlayer
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
 local mic=require(script.Parent.Microphone).new()
@@ -31,10 +32,10 @@ local subtitle=label(modal,"Train for XP. Unlock a new scream every five levels.
 button(modal,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-52,0,16),function() modal.Visible=false end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
-local selected="Screams";local render;local tabs={};local mapDot
+local selected="Screams";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local function toggle() modal.Visible=not modal.Visible;if modal.Visible then render() end end
 local shop=button(top,"ShopToggle","SCREAMS  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),toggle,gold);shop.TextColor3=dark
-button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() selected="Quests";modal.Visible=not(modal.Visible and title.Text=="CITY QUESTS");render() end)
+local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() selected="Quests";modal.Visible=not(modal.Visible and title.Text=="CITY QUESTS");render() end)
 local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.08
 local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-24,0,22),UDim2.fromOffset(12,7),14,gold)
 local health=label(hud,"100 HP",UDim2.fromOffset(65,20),UDim2.fromOffset(12,31),12)
@@ -46,6 +47,7 @@ local xf=frame(xb,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
 local tracked=label(gui,"",UDim2.fromOffset(250,66),UDim2.fromOffset(16,56),13);tracked.TextYAlignment=Enum.TextYAlignment.Top
 local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center
+local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
 local toastUntil=0
 local function notify(t) toast.Text=t;toastUntil=os.clock()+4 end
 local nextCast=0;local sequence=0;local captureSource=nil
@@ -54,7 +56,7 @@ local function cancelCapture()
 end
 local function blocked()
  local now=workspace:GetServerTimeNow()
- return modal.Visible or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
+ return modal.Visible or (devPanel and devPanel.Visible) or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
 end
 local function beginCapture(source)
  if captureSource or blocked() or os.clock()<nextCast then return end
@@ -83,7 +85,7 @@ castButton.InputBegan:Connect(function(input)
  if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then beginCapture(input) end
 end)
 local micPanel=frame(gui,"MicSetup",UDim2.fromOffset(430,260),UDim2.fromScale(.5,.5));micPanel.AnchorPoint=Vector2.new(.5,.5);micPanel.ZIndex=20
-label(micPanel,"YOUR VOICE. YOUR POWER.",UDim2.new(1,-36,0,35),UDim2.fromOffset(18,16),21,gold)
+local micTitle=label(micPanel,"YOUR VOICE. YOUR POWER.",UDim2.new(1,-36,0,35),UDim2.fromOffset(18,16),21,gold)
 local micStatus=label(micPanel,"",UDim2.new(1,-36,0,90),UDim2.fromOffset(18,58),15)
 label(micPanel,"A microphone and Roblox voice access are required. Nearby players hear your live voice. No recordings are saved by this game.",UDim2.new(1,-36,0,50),UDim2.fromOffset(18,146),12,muted)
 button(micPanel,"Calibrate","CALIBRATE MIC",UDim2.fromOffset(188,36),UDim2.fromOffset(18,208),function() mic:Calibrate() end,gold).TextColor3=dark
@@ -100,8 +102,8 @@ local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),
 local sprinting=false
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() sprinting=not sprinting;action:FireServer("Sprint",sprinting) end)
 local talkTarget
-local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-52),function() if talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end end);talkButton.Visible=false
-local devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false
+local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),function() if talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end end);talkButton.Visible=false
+devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false
 label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
 label(devPanel,"Test commands disable saving this session.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
 for i,item in ipairs({{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level 300"},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}) do
@@ -109,18 +111,19 @@ for i,item in ipairs({{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Lev
 end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible end);testButton.Visible=false
 local function card(height) return frame(content,"Card",UDim2.new(1,-8,0,height),UDim2.new(),panel) end
-local function info(text,height) local c=card(height or 70);label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
+local function info(text,height) local width=math.min(720,workspace.CurrentCamera.ViewportSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
 render=function()
+ narrow=workspace.CurrentCamera.ViewportSize.X-24<620
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Screams" then
   title.Text="SCREAM COLLECTION";subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  Live voice styles • power scales with your level"
   for _,s in ipairs(Config.Sounds) do
-   local c=card(101);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,-156,0,26),UDim2.fromOffset(14,8),17,gold)
-   label(c,s.description,UDim2.new(1,-158,0,25),UDim2.fromOffset(14,36),13)
-   label(c,string.format("UP TO %d DAMAGE / %.1f STUDS • 4s COOLDOWN",Config.VoiceCombat.Stats(data.level,1,false).damage,Config.VoiceCombat.Stats(data.level,1,false).maxRange),UDim2.new(1,-28,0,23),UDim2.fromOffset(14,69),12,muted)
+   local c=card(narrow and 178 or 101);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
+   label(c,s.description,UDim2.new(1,narrow and -28 or -158,0,narrow and 40 or 25),UDim2.fromOffset(14,narrow and 54 or 36),13)
+   label(c,string.format("UP TO %d DAMAGE / %.1f STUDS • 4s COOLDOWN",Config.VoiceCombat.Stats(data.level,1,false).damage,Config.VoiceCombat.Stats(data.level,1,false).maxRange),UDim2.new(1,-28,0,narrow and 30 or 23),UDim2.fromOffset(14,narrow and 95 or 69),12,muted)
    local unlocked=data.level>=s.level
-   local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
+   local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,narrow and 132 or 21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
    if not unlocked then b.TextColor3=muted end
   end
  elseif selected=="Quests" then
@@ -128,23 +131,30 @@ render=function()
   for _,q in ipairs(Config.Quests) do
    local available=data.availableQuests and data.availableQuests[q.id]
    if q.hidden and not available then continue end
-   local v=data.quests[q.id] or {progress=0};local c=card(123)
-   label(c,q.name,UDim2.new(1,-150,0,25),UDim2.fromOffset(14,8),17,gold)
-   label(c,available and q.description or "Meet "..(q.giver or "a resident").." and press T to talk.",UDim2.new(1,-158,0,49),UDim2.fromOffset(14,36),13)
-   label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,23),UDim2.fromOffset(14,93),12,muted)
-   button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and (q.id=="nick" and "RESTART" or "TRACKING") or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,32),function()
+   local v=data.quests[q.id] or {progress=0}
+   local description=available and q.description or "Meet "..(q.giver or "a resident").." and press T to talk."
+   local textWidth=math.min(720,workspace.CurrentCamera.ViewportSize.X-24)-48-(narrow and 28 or 158)
+   local nameHeight=math.max(26,TextService:GetTextSize(q.name,17,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+4)
+   local descriptionHeight=math.max(49,TextService:GetTextSize(description,13,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+8)
+   local descriptionY=12+nameHeight;local rewardY=descriptionY+descriptionHeight+5
+   local actionY=narrow and rewardY+34 or 32
+   local c=card(narrow and actionY+48 or math.max(150,rewardY+35))
+   label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
+   label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
+   label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
+   button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and (q.id=="nick" and "RESTART" or "TRACKING") or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
     if available and not v.claimed then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
    end)
   end
  elseif selected=="Style" then
   title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your scream effects."
-  local equipment=card(90)
-  label(equipment,"MICRO-SPEAKER",UDim2.fromOffset(310,25),UDim2.fromOffset(15,10),17,gold)
-  label(equipment,"+12% mic power · capped at 100%",UDim2.fromOffset(330,25),UDim2.fromOffset(15,42),14)
-  button(equipment,"MicroSpeaker",data.amplifierEquipped and "UNEQUIP" or data.amplifierOwned and "EQUIP" or tostring(Config.MicroSpeakerPrice).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,24),function() action:FireServer("MicroSpeaker") end)
-  info("Movement pass: unlimited jumps and consecutive rolls only in safe areas. Arena cooldowns always apply."..(Config.MovementPassId==0 and " Purchase setup is not available yet." or ""),70)
+  local equipment=card(narrow and 142 or 90)
+  label(equipment,"MICRO-SPEAKER",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
+  label(equipment,"+12% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
+  button(equipment,"MicroSpeaker",data.amplifierEquipped and "UNEQUIP" or data.amplifierOwned and "EQUIP" or tostring(Config.MicroSpeakerPrice).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,narrow and 90 or 24),function() action:FireServer("MicroSpeaker") end)
+  info("Movement pass: repeated jumps (24-stud height limit) and consecutive rolls only in safe areas. Arena cooldowns always apply."..(Config.MovementPassId==0 and " Purchase setup is not available yet." or ""),70)
   for name,color in pairs(Config.Auras) do
-   local c=card(56);label(c,name,UDim2.fromOffset(240,36),UDim2.fromOffset(15,10),17,color)
+   local c=card(56);label(c,name,UDim2.new(1,-158,0,36),UDim2.fromOffset(15,10),17,color)
    button(c,name,data.aura==name and "EQUIPPED" or "USE COLOR",UDim2.fromOffset(126,36),UDim2.new(1,-140,0,10),function() action:FireServer("SetAura",name) end)
   end
  elseif selected=="Map" then
@@ -154,13 +164,13 @@ render=function()
   local function area(t,x,y,w,h,col) local f=frame(map,t,UDim2.fromScale(w,h),UDim2.fromScale(x,y),col);local l=label(f,t,UDim2.fromScale(1,1),UDim2.new(),13);l.TextXAlignment=Enum.TextXAlignment.Center;return f end
   area("SAFE NORTH",0,0,1,.2,Color3.fromRGB(50,93,82));area("SAFE\nWEST",0,.2,.166,.6,Color3.fromRGB(50,93,82));area("SAFE\nEAST",.833,.2,.167,.6,Color3.fromRGB(50,93,82))
   area("ARENA DISTRICT • PvP\n40% of playable land",.166,.2,.667,.6,Color3.fromRGB(136,65,70));area("BARCELONETA • SAFE BEACH",0,.8,1,.2,Color3.fromRGB(159,137,91))
-  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root then local pos=root.Position;mapDot=area("YOU",math.clamp((pos.X+720)/1440,0,.94),math.clamp((pos.Z+600)/1200,0,.94),.06,.06,gold) end
-  info("Spawn: Plaça del Sol, southwest. Beach: south. Coffee: west promenade café → music stage. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
+  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root then local pos=root.Position;mapDot=area("●",math.clamp((pos.X+720)/1440,0,.94),math.clamp((pos.Z+600)/1200,0,.94),.06,.06,gold) end
+  info("Gold dot: you. Spawn: Plaça del Sol, southwest. Beach: south. Coffee: west promenade café → music stage. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
   info("Hold E / SCREAM, use mic, release: fire toward aim\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",125)
-  local c=card(58);button(c,"Volume","AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.fromOffset(260,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
-  local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.fromOffset(260,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
+  local c=card(58);button(c,"Volume","AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
+  local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
  end
 end
 for i,name in ipairs({"Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() selected=name;render() end) end
@@ -225,7 +235,15 @@ end)
 local elapsed=0
 Run.RenderStepped:Connect(function(dt)
  local viewport=workspace.CurrentCamera.ViewportSize
- micScale.Scale=math.min(1,(viewport.X-30)/430,(viewport.Y-90)/260)
+ saveNotice.Text=data.testSession and "TEST SESSION · progress is temporary" or data.savingAvailable==false and "Temporary progress · saving unavailable" or ""
+ saveNotice.Visible=not modal.Visible and viewport.X>=820
+ if viewport.X<820 and (data.testSession or data.savingAvailable==false) then xpText.Text="TEMPORARY PROGRESS • not saved" end
+ micScale.Scale=1
+ local micWidth=math.min(430,viewport.X-24);local micNarrow=micWidth<400
+ micPanel.Size=UDim2.fromOffset(micWidth,micNarrow and 320 or 260);micTitle.TextSize=micNarrow and 18 or 21
+ local calibrate=micPanel.Calibrate;local retry=micPanel.Retry
+ calibrate.Size=UDim2.fromOffset(micNarrow and micWidth-36 or 188,36);retry.Size=calibrate.Size
+ calibrate.Position=UDim2.fromOffset(18,micNarrow and 224 or 208);retry.Position=UDim2.fromOffset(micNarrow and 18 or 224,micNarrow and 270 or 208)
  micPanel.Visible=not mic.ready;micStatus.Text=mic.status
  if reportedReady~=mic.ready or (data.micReady~=mic.ready and os.clock()>readyReportAt) then reportedReady=mic.ready;readyReportAt=os.clock()+1;action:FireServer("MicReady",mic.ready) end
  if captureSource and blocked() then cancelCapture() end
@@ -234,18 +252,29 @@ Run.RenderStepped:Connect(function(dt)
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
  meterText.Text=string.format("SCREAM POWER %d%% • %.0f studs",math.floor(power*100),range)
  local short=viewport.Y<550
- menuScale.Scale=math.min(1,(viewport.X-32)/720)
- local menuHeight=short and math.max(230,(viewport.Y-125)/menuScale.Scale) or 520
- modal.Size=UDim2.fromOffset(720,menuHeight);modal.Position=UDim2.new(.5,0,.5,short and 18 or 0)
- subtitle.Visible=not short
- for _,b in pairs(tabs) do b.Position=UDim2.fromOffset(b.Position.X.Offset,short and 54 or 88) end
- content.Position=UDim2.fromOffset(20,short and 96 or 132);content.Size=UDim2.new(1,-40,1,short and -108 or -148)
+ menuScale.Scale=1
+ local width=math.min(720,viewport.X-24)
+ modal.Size=UDim2.fromOffset(width,math.min(620,viewport.Y-36));modal.Position=UDim2.fromScale(.5,.5)
+ title.TextSize=width<620 and 20 or 23
+ subtitle.Visible=not short;subtitle.Size=UDim2.new(1,-44,0,width<620 and 42 or 25)
+ local tabY=short and 54 or width<620 and 102 or 88
+ local columns=width<360 and 3 or 5;local rows=math.ceil(5/columns)
+ local tabWidth=(width-40-(columns-1)*6)/columns
+ for i,name in ipairs({"Screams","Quests","Style","Map","Settings"}) do
+  local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(20+((i-1)%columns)*(tabWidth+6),tabY+math.floor((i-1)/columns)*50);b.TextSize=width<620 and 12 or 14
+ end
+ content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
+ if width~=lastLayoutWidth then lastLayoutWidth=width;if modal.Visible then render() end end
  -- Keep desktop controls compact; smaller displays retain readable button text.
  local touch=UIS.TouchEnabled
- hud.Position=touch and UDim2.fromOffset(14,56) or UDim2.new(0,14,1,-108)
+ local tight=viewport.X<380
+ shop.Size=UDim2.fromOffset(tight and 90 or 125,36);shop.Text=tight and "SCREAMS" or "SCREAMS [B]"
+ questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
+ testButton.Size=UDim2.fromOffset(tight and 90 or 112,32);testButton.Position=UDim2.new(1,tight and -104 or -126,0,14)
+ hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,56) or UDim2.new(0,14,1,-108)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
  hud.Visible=not modal.Visible;controls.Visible=not modal.Visible and mic.ready
- tracked.Position=UDim2.fromOffset(16,touch and 158 or 56)
+ tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and 158 or 56)
  if touch then sprintButton.TextSize=12 end
  tracked.Visible=not modal.Visible;zone.Visible=viewport.X>740
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)

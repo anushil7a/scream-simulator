@@ -31,7 +31,7 @@ local function state(p,message)
  availableQuests=s.data.availableQuests,quests=s.data.quests,activeQuest=s.activeQuest,questTime=s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,s.voice.nextCast-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave,message=message})
+ settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,testSession=s.testBaseline~=nil,message=message})
 end
 local function syncHealth(p,full)
  local s=sessions[p];local _,_,h=parts(p);if not s or not h then return end
@@ -113,7 +113,7 @@ local function cast(p,request)
    else World.ReactToScream(bot,r.Position) end
    World.UpdateBot(bot)
    if now>=(s.botRewards[bot.id] or 0) and paid<5 then
-    s.botRewards[bot.id]=now+5;paid+=1;s.data.coins+=ko and 5 or 2;xp(p,ko and 16 or 5)
+    s.botRewards[bot.id]=now+VoiceCombat.Cooldown;paid+=1;s.data.coins+=ko and 5 or 2;xp(p,ko and 16 or 5)
    end
   end
  end
@@ -122,7 +122,7 @@ local function cast(p,request)
   for _,target in ipairs(Players:GetPlayers()) do
    local ts=sessions[target];local tc,tr,th=parts(target)
    if target~=p and ts and tr and Rules.CanTarget(r.Position,tr.Position,ts.protectedUntil,now,sound.range+2) and Rules.InBeam(origin,direction,tr.Position,length,sound.width,1) and audible(c,origin,tr.Position,tc) then
-    if now<ts.dodgingUntil then questProgress(target,"Evade")
+    if now<ts.dodgingUntil and not ts.premiumRoll then questProgress(target,"Evade")
     else
      ts.nextHeal=now+Config.HealQuietSeconds
      if th.Health<=sound.damage then
@@ -146,7 +146,7 @@ local function dodge(p)
  if not s or not r or not s.micReady or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
  local cooldown=Entitlements.CanUseMovement(p,r.Position) and Config.DodgeDuration or Config.DodgeCooldown
  s.nextDodge=now+cooldown;s.dodgingUntil=now+Config.DodgeDuration
- s.lastDodge=now
+ s.lastDodge=now;s.premiumRoll=cooldown<Config.DodgeCooldown
  p:SetAttribute("DodgeEnds",workspace:GetServerTimeNow()+Config.DodgeDuration)
  p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+cooldown)
  local direction=h.MoveDirection;if direction.Magnitude<0.1 then direction=r.CFrame.LookVector end
@@ -190,10 +190,14 @@ local function talk(p,id)
 end
 local function dev(p,command)
  local s=sessions[p];if not s or not Access.IsAuthorized(p,game.CreatorType,game.CreatorId) then return end
+ local valid={Coins=true,XP=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true}
+ if type(command)~="string" or not valid[command] then return end
+ -- Freeze legitimate progress before any test mutation. Keep renewing/releasing its lease.
+ if not s.testBaseline then s.testBaseline=Profiles.Sanitize(s.data);s.data=Profiles.Sanitize(s.data) end
  local c,_,h=parts(p)
  local positions={Hub=World.SafeSpawn,Arena=CFrame.new(0,6,0),Beach=CFrame.new(0,4,403)}
  if command=="Coins" then s.data.coins+=1000
- elseif command=="XP" then s.canSave=false;xp(p,500)
+ elseif command=="XP" then xp(p,500)
  elseif command=="MaxLevel" then s.data.level=Config.MaxLevel;s.data.xp=0
  elseif command=="LevelOne" then s.data.level=1;s.data.xp=0;s.data.sound="TinyAah"
  elseif command=="Heal" and h then h.Health=h.MaxHealth
@@ -201,7 +205,7 @@ local function dev(p,command)
  elseif command=="ResetQuests" then s.data.quests={};s.activeQuest=nil;s.questDeadline=nil;s.collected={};effect:FireClient(p,"ResetCollected")
  elseif command=="ResetBots" then for _,b in ipairs(World.Bots) do b.health=Config.BotMaxHealth;b.alive=true;World.UpdateBot(b) end
  else return end
- syncHealth(p,command=="Heal");s.canSave=false;state(p,"Test applied · this session does not save")
+ syncHealth(p,command=="Heal");state(p,"Test applied · this session does not save")
 end
 World.OnVehicleSweep=function(car,previous,nextFrame)
  for player,s in pairs(sessions) do
@@ -268,9 +272,12 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="Cast" then cast(p,arg);return elseif verb=="Dodge" then dodge(p);return
  elseif verb=="ExtraJump" then
   local _,root,h=parts(p)
-  if root and s.micReady and Entitlements.CanUseMovement(p,root.Position) and now>=(s.nextExtraJump or 0) and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and h.FloorMaterial==Enum.Material.Air then
+  if root and s.micReady and Entitlements.CanUseMovement(p,root.Position) and now>=(s.nextExtraJump or 0) and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and h.FloorMaterial==Enum.Material.Air and s.jumpOriginY and root.Position.Y<s.jumpOriginY+24 then
    s.nextExtraJump=now+.25
-   local v=root.AssemblyLinearVelocity;root.AssemblyLinearVelocity=Vector3.new(v.X,45,v.Z)
+   local v=root.AssemblyLinearVelocity
+   local remaining=math.max(0,s.jumpOriginY+24-root.Position.Y)
+   local impulse=math.min(45,math.sqrt(2*workspace.Gravity*remaining))
+   root.AssemblyLinearVelocity=Vector3.new(v.X,impulse,v.Z)
   end
   return
  elseif verb=="Sprint" then if type(arg)=="boolean" then s.sprintRequested=arg end;return end
@@ -322,20 +329,24 @@ local function joined(p)
  state(p,loadMessage or "Welcome · train for XP, unlock screams, and explore the coast")
 end
 Players.PlayerAdded:Connect(joined);for _,p in ipairs(Players:GetPlayers()) do task.spawn(joined,p) end
-Players.PlayerRemoving:Connect(function(p) local s=sessions[p];if s and s.canSave then Profiles.Save(p.UserId,s.data,true) end;sessions[p]=nil end)
+Players.PlayerRemoving:Connect(function(p) local s=sessions[p];if s and s.canSave then Profiles.Save(p.UserId,s.testBaseline or s.data,true) end;sessions[p]=nil end)
 task.spawn(function()
  local tick=0
  while true do task.wait(0.1);tick+=1;local now=os.clock()
   for p,s in pairs(sessions) do
    local dt=math.clamp(now-s.lastStep,0,.25);s.lastStep=now;local _,r,h=parts(p)
    -- Crossing into PvP immediately restores the full dodge cooldown.
-   if r and Config.InArena(r.Position) and s.lastDodge then s.nextDodge=math.max(s.nextDodge,s.lastDodge+Config.DodgeCooldown);p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+math.max(0,s.nextDodge-now)) end
+   if r and Config.InArena(r.Position) and s.lastDodge then
+    if s.premiumRoll then s.premiumRoll=false;s.dodgingUntil=0;p:SetAttribute("DodgeEnds",0) end
+    s.nextDodge=math.max(s.nextDodge,s.lastDodge+Config.DodgeCooldown);p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+math.max(0,s.nextDodge-now)) end
    if s.voice.capture and now-s.voice.capture.started>VoiceCombat.CaptureExpiry then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
    if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then s.sprintLockedUntil=0;s.sprintCharge=10 end
    local running=h and s.sprintRequested and s.sprintCharge>0 and now>=s.sprintLockedUntil
    if running then s.sprintCharge=math.max(0,s.sprintCharge-dt);if s.sprintCharge==0 then running=false;s.sprintLockedUntil=now+5 end
    elseif now>=s.sprintLockedUntil then s.sprintCharge=math.min(10,s.sprintCharge+dt*2) end
-   if h then h.WalkSpeed=not s.micReady and 0 or now<(s.knockedUntil or 0) and 0 or now<s.dodgingUntil and 0 or running and 25 or 16
+   if h then
+    if h.FloorMaterial~=Enum.Material.Air then s.jumpOriginY=r.Position.Y end
+    h.WalkSpeed=not s.micReady and 0 or now<(s.knockedUntil or 0) and 0 or now<s.dodgingUntil and 0 or running and 25 or 16
     h.JumpPower=s.micReady and (s.jumpPower or 50) or 0;h.JumpHeight=s.micReady and (s.jumpHeight or 7.2) or 0
     if not s.micReady then h.Jump=false end
     if h.Health<h.MaxHealth and now>=s.nextHeal then h.Health=math.min(h.MaxHealth,h.Health+h.MaxHealth*.2);s.nextHeal=now+10 end
@@ -347,5 +358,5 @@ task.spawn(function()
   end
  end
 end)
-task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(Profiles.Save,p.UserId,s.data) end end end end)
-game:BindToClose(function() local pending=0;for p,s in pairs(sessions) do if s.canSave then pending+=1;task.spawn(function() Profiles.Save(p.UserId,s.data,true);pending-=1 end) end end;local deadline=os.clock()+25;while pending>0 and os.clock()<deadline do task.wait(.1) end end)
+task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(Profiles.Save,p.UserId,s.testBaseline or s.data) end end end end)
+game:BindToClose(function() local pending=0;for p,s in pairs(sessions) do if s.canSave then pending+=1;task.spawn(function() Profiles.Save(p.UserId,s.testBaseline or s.data,true);pending-=1 end) end end;local deadline=os.clock()+25;while pending>0 and os.clock()<deadline do task.wait(.1) end end)

@@ -26,7 +26,7 @@ local function wholeNumber(value, fallback, minimum, maximum)
 end
 
 function Profiles.Default()
-    return {schemaVersion=2,amplifierOwned=false,amplifierEquipped=false,achievements={},availableQuests={},coins=0,level=1,xp=0,sound="TinyAah",aura="Gold",quests={},settings={volume=0.55,reducedShake=false}}
+    return {schemaVersion=3,amplifierOwned=false,amplifierEquipped=false,achievements={},availableQuests={},coins=0,level=1,xp=0,sound="TinyAah",aura="Gold",quests={},settings={volume=0.55,reducedShake=false}}
 end
 function Profiles.Sanitize(raw)
     local data=Profiles.Default()
@@ -37,8 +37,7 @@ function Profiles.Sanitize(raw)
         for _,id in ipairs({"FoundNick","NickChampion"}) do if raw.achievements[id]==true then data.achievements[id]=true end end
     end
     data.coins=wholeNumber(raw.coins,0,0,1000000000)
-    data.level=wholeNumber(raw.level,1,1,Config.MaxLevel)
-    data.xp=wholeNumber(raw.xp,0,0,Config.XPToNext(data.level)-1)
+    data.level,data.xp=Config.Progression.Normalize(raw.level,raw.xp)
     local sound=Config.GetSound(raw.sound)
     if sound and sound.level<=data.level then data.sound=sound.id end
     if type(raw.aura)=="string" and Config.Auras[raw.aura] then data.aura=raw.aura end
