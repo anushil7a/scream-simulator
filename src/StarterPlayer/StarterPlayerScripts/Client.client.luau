@@ -125,12 +125,32 @@ end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then modal.Visible=false end end);testButton.Visible=false
 local function card(height) return frame(content,"Card",UDim2.new(1,-8,0,height),UDim2.new(),panel) end
 local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
+local renderedMenuKey,renderedTab
+local renderRevision=0
+local function menuKey()
+ local fields
+ if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped}
+ elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests}
+ elseif selected=="Style" then fields={aura=data.aura,owned=data.amplifierOwned,equipped=data.amplifierEquipped}
+ elseif selected=="Settings" then fields=data.settings
+ else fields={} end
+ return selected..":"..gui.AbsoluteSize.X..":"..game:GetService("HttpService"):JSONEncode(fields)
+end
 render=function()
+ if selected=="Screams" then
+  subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  Styles change visuals • level and mic power set strength"
+ end
+ local key=menuKey()
+ if key==renderedMenuKey then return end
+ local scroll=renderedTab==selected and content.CanvasPosition or Vector2.zero
+ renderedMenuKey=key;renderedTab=selected;renderRevision+=1
+ local revision=renderRevision
+ mapDot=nil
  narrow=gui.AbsoluteSize.X-24<620
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Screams" then
-  title.Text="SCREAM COLLECTION";subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  Styles change visuals • level and mic power set strength"
+  title.Text="SCREAM COLLECTION"
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
   for _,s in ipairs(Config.Sounds) do
    local c=card(narrow and 178 or 101);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
@@ -191,6 +211,12 @@ render=function()
   local c=card(58);button(c,"Volume","AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
  end
+ -- Restore only after AutomaticCanvasSize has measured the replacement cards.
+ task.spawn(function()
+  Run.Heartbeat:Wait()
+  if revision~=renderRevision then return end
+  content.CanvasPosition=Vector2.new(0,math.clamp(scroll.Y,0,math.max(0,content.AbsoluteCanvasSize.Y-content.AbsoluteWindowSize.Y)))
+ end)
 end
 for i,name in ipairs({"Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() selected=name;render() end) end
 local conversationNPC,conversationUntil
@@ -249,7 +275,6 @@ local function refreshQuestObjects()
   end
  end
 end
-local lastMenuKey=""
 remotes.State.OnClientEvent:Connect(function(nextData)
  data=nextData;refreshQuestObjects();stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";health.Text=data.health.."/"..(data.maxHealth or 100);hf.Size=UDim2.fromScale(data.health/(data.maxHealth or 100),1)
  xpText.Text=data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP";xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
@@ -259,8 +284,7 @@ remotes.State.OnClientEvent:Connect(function(nextData)
  tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ""
  if data.message then notify(data.message) end
  if data.conversation then showConversation(data.conversation) end
- local key=game:GetService("HttpService"):JSONEncode({data.level,data.xp,data.sound,data.aura,data.quests,data.activeQuest,data.settings,data.availableQuests,data.amplifierOwned,data.amplifierEquipped,data.movementPass})
- if modal.Visible and key~=lastMenuKey then render() end;lastMenuKey=key
+ if modal.Visible then render() end
 end)
 UIS.InputBegan:Connect(function(input,processed)
  if processed then return end

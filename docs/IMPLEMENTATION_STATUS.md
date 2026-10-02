@@ -489,3 +489,10 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - World descendants stayed within 53,563–53,573 (initial53,563; final53,570). Post-startup Luau heap samples ranged from2,455–4,145KB; final2,555KB. This is bounded observed behavior, not proof against every leak/transient fault. Console contained only the expected unavailable-save warning and successful 61-sample completion.
 - This resolves the previously unfinished **local one-client NPC lifecycle observation**. It does not resolve representative multiplayer voice/combat load, physical-device FPS, all input/animation states or published gameplay. Other Studio tests ran during portions of this interval; do not treat these memory observations as isolated device-performance measurements.
 - Exported before stopping Play. Restored Place1 Bootstrap from clean source and removed both probe script attributes; verified no `NpcSoakSamples` fixture text remains. Synchronized newer City, MicPower, Microphone and RunAnimation modules. Both known disposable Studio copies are stopped in Edit with clean current source; no active soak remains. Updated QA_REPORT.md to reflect completion and retain outstanding release gates.
+
+## 2026-10-02 — menu updates preserve browsing
+
+- Replaced the shared menu invalidation key with tab-specific dependencies. XP-only updates refresh the scream subtitle without recreating all 61 cards; quest progress no longer recreates the scream collection or settings.
+- Relevant changes still rebuild the active tab. Rebuilds retain its scroll position after layout; switching tabs resets to the top. A revision guard prevents stale deferred restores from moving a newer tab.
+- `tests/StudioMenuRefresh.client.luau`: nine native Studio assertions passed using synthetic profile changes and actual GUI instances (XP subtitle, instance retention, quest independence, level refresh, scroll retention, tab reset, settings refresh). This is not a physical input or performance benchmark.
+- Removed the appended fixture and stopped play; synchronized the clean Client source to both development Studio copies. No live publication.

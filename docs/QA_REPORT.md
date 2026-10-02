@@ -85,3 +85,7 @@ The owner requested that blocked items be recorded while independent work contin
 - Continue final map/activity/animation polish and fix concrete defects found by playtests.
 - Coordinate the real microphone/device test inputs; synthetic evidence cannot replace them.
 - Update this report after each release-relevant result rather than treating the chronological log as a final sign-off.
+
+## Additional menu regression check — 2026-10-02
+
+Nine native Studio checks passed for tab-specific refresh and scroll preservation in `StudioMenuRefresh.client.luau`. Synthetic XP/quest changes retained scream card instances; level changes rebuilt them while retaining scroll; settings changes refreshed their tab. No claim of physical-device input or frame-time improvement is made. Fixture removed after the run.
