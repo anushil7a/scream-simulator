@@ -615,7 +615,7 @@ local function coast(parent,walk,activities)
  -- Bounded tiles avoid oversized-Part clamping and keep the distant horizon loaded.
  local sea=model(m,"MediterraneanBackdrop");sea.ModelStreamingMode=Enum.ModelStreamingMode.Persistent
  for x=-2000,2000,2000 do for z=-400,5600,2000 do
-  part(sea,"Mediterranean",V(2000,1,2000),V(x,-4,z),Color3.fromRGB(48,143,169),Enum.Material.SmoothPlastic,false)
+  part(sea,"Mediterranean",V(2000,1,2000),V(x,-4,z),Color3.fromRGB(94,185,219),Enum.Material.SmoothPlastic,false)
  end end
  part(m,"PasseigMaritim",V(1440,1,52),V(0,.25,401),Color3.fromRGB(197,176,141),Enum.Material.Pavement)
  for x=-680,680,40 do
