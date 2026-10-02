@@ -323,3 +323,11 @@ Approved scope: [development brief](PROFESSIONAL_REDESIGN_PROMPT.md). Started Oc
 - Added a repair countdown to the aimed-object readout. Native `StudioRepairReadout.client.luau` passed three checks: countdown appears, text fits, countdown disappears after restoration. Synthetic aim/readiness, default viewport; physical aim, phone layout and voice input were not tested here.
 - Added `docs/ASSET_INVENTORY.md` with source ownership/dependency boundaries, bundled Roblox face texture, procedural animations/effects, and unresolved actual avatar/audio validation. Linked from README. No third-party assets downloaded.
 - Removed both temporary fixture appendices, stopped Play and restored clean source. Compiled changed scripts and rebuilt both local place formats. Production unchanged.
+
+
+## Destroyed bench occupant regression — October 2
+
+- Added `tests/StudioDestroyedSeat.server.luau` using a cloned actual resident rig, real Seat occupancy and the normal Destruction service. Three distinct bench positions avoid overlapping IDs while exercising repeated sit/damage/destruction cycles.
+- **15 checks passed**: partial damage preserves occupancy; destruction clears the physical SeatWeld, SeatPart and Sit state; the seat is disabled/non-colliding; the released resident then walks. Measured horizontal movement over two seconds: 9.42, 9.33 and 9.33 studs. Console showed only the expected temporary-profile warning and pass.
+- Initial one-second movement observation measured 4.40 studs after dropping from the seat, so the fixture observation was extended to two seconds. An intermediate reuse of one bench position emitted duplicate-ID warnings; final fixtures use distinct locations. No production behavior change was needed: disabling a destroyed seat released this tested rig correctly, unlike the previously fixed natural seat-expiry path.
+- Scope: actual engine seating with a server-owned cloned resident and synthetic service damage. This does not verify physical player seating, R15/avatar variants, multiplayer streaming or an actual microphone attack. Removed the temporary Bootstrap appendix and stopped Play. Production source/builds unchanged; regression evidence added to the branch.
