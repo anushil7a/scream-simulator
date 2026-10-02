@@ -40,7 +40,7 @@ Implemented: separate roll, collision checks, sprint exhaustion/recovery, jump/l
 
 Implemented: Barcelona-inspired district layout, 40% central PvP land, safe surroundings, 31 enterable shops, 13 varied courtyards, market, beach, pier/lookout, swimming boundary, seating, selected quest givers and 46 residents. Additions include performance audiences, microphone beach volley, active street-furniture maintenance and distinct worker uniforms.
 
-On `70a4cf5`, native checks passed all **72** route cases and found zero static road, doorway or interior-aisle obstructions. Source geometry has since changed only the distant sea backdrop color; the newer mic/animation changes are separate. The raw route results are in [city-routes-70a4cf5-2026-10-02.json](../tests/evidence/city-routes-70a4cf5-2026-10-02.json). That inspected world contained 50,285 parts / 3,468 solid parts, which still warrants load/device profiling.
+On `70a4cf5`, native checks passed all **72** route cases and found zero static road, doorway or interior-aisle obstructions. Later changes include the distant sea backdrop color and authored spawn-plaza corners (see below); those older route results are scoped to their recorded revision. The raw route results are in [city-routes-70a4cf5-2026-10-02.json](../tests/evidence/city-routes-70a4cf5-2026-10-02.json). That inspected world contained 50,285 parts / 3,468 solid parts, which still warrants load/device profiling.
 
 Scoped tests: audience behavior: 12 checks; volley: 16 scripted checks including a synthetic cast through Bootstrap; maintenance: 13 checks including a real quiet interval, actual worker navigation and player occupancy. None is a human two-player usability test.
 
@@ -99,3 +99,7 @@ Cars now brake for residents in their lane and resume gradually; stationary cars
 `StudioTrafficCrossing.server.luau` passed ten checks on `a6be978`: an existing resident used actual Humanoid walking across a road while the production Heartbeat advanced an isolated car, repeated in both directions. Cars reached zero speed, then resumed 24 studs/s after the crossing cleared. Recorded sideways displacement was zero; maximum root height was 3.44 studs; the NPC crossed from Z104 to Z127.10. Other traffic was temporarily paused and the NPC destination was scripted. This closes the focused native pedestrian-crossing case, not autonomous citywide routing or player-hit/multiplayer testing. [Raw results](../tests/evidence/traffic-crossing-a6be978-2026-10-02.json).
 
 A subsequent street-height view from the spawn plaza showed that broad paved areas still read sparse despite the surrounding facade detail. Final city art/activity review remains open; do not treat the route/traffic passes as visual sign-off.
+
+## Spawn-plaza visual pass — 2026-10-02
+
+Added a flower kiosk with cosmetic bouquet interaction, pergola with two usable benches, ceramic paving and three resident destinations. Six focused native no-jump arrival routes passed. Engine-injected F activated the actual prompt and changed bouquet colors. Visual review corrected sign direction/height. Adds 105 parts / 21 solid parts. This is incremental plaza refinement; final city-wide art approval, physical touch testing and representative device/load profiling remain open. The prior full-map route and NPC soak runs predate this addition.

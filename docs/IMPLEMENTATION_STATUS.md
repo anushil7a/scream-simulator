@@ -510,3 +510,10 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - Ten checks passed: both cars braked to zero, residents crossed to Z127.10 without sideways displacement, max root height stayed at 3.44, and cars resumed 24 studs/s. Raw evidence: `tests/evidence/traffic-crossing-a6be978-2026-10-02.json`.
 - Fixture restored cars/NPC after execution. Stopped play, removed appended fixture and temporary review-camera/UI state. Production source is unchanged by this test.
 - Street-level spawn-plaza review still reads sparse in the broad paved areas. Further authored visual/activity refinement remains necessary; this is not a final art approval.
+
+## 2026-10-02 — authored spawn-plaza corners
+
+- Added a unique Flors del Sol flower kiosk with striped awning, five bouquets and a server-checked F interaction to cycle display colors (two-second shared cooldown; cosmetic, no currency). Added a pergola reading corner with two usable benches and three NPC activity destinations. Flat teal border and sun-pattern ceramic paving give the safe plaza a distinct visual treatment. Fountain approaches remain open.
+- Native visual review corrected the sign orientation and moved it below the flowers. Awning/slats cast shadows without adding collision. Addition: 105 BaseParts, 21 solid parts, two usable Seats. Wider city art/performance approval is still open.
+- `StudioArrivalRoutes.luau`: all six native no-jump routes succeeded (24, 20, 21, 22, 29, 36 waypoints), covering both sides of the kiosk, pergola and existing north/east/south exits. Native engine-injected F held for 650ms changed a bouquet from pink to purple; this is not physical keyboard/touch testing.
+- Clean City source synchronized after play cleanup and both place formats rebuilt. Existing 72-route and NPC-soak evidence predates this geometry/activity addition; it is not a fresh full-map pass.

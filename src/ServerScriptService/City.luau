@@ -466,6 +466,60 @@ local function fountain(parent,x,z)
  cylinder(parent,"FountainBowl",6,.7,V(x,6.4,z),stone,Enum.Material.Marble)
  for i=1,8 do local a=i*math.pi/4;local f=part(parent,"WaterJet",V(.15,3,.15),V(x+math.cos(a)*4,4.5,z+math.sin(a)*4),Color3.fromRGB(153,216,218),Enum.Material.Glass,false);f.Transparency=.35 end
 end
+-- Authored arrival corners keep the fountain approaches open and give the
+-- safe spawn its own identity rather than repeating another city block.
+local function arrivalPlaza(parent,x,z,walk,activities)
+ local m=model(parent,"SolArrivalCorners")
+ local teal=Color3.fromRGB(48,119,115)
+ local flowerColors={Color3.fromRGB(227,119,145),Color3.fromRGB(245,197,87),Color3.fromRGB(175,147,216),cream}
+ -- Flush ceramic bands guide the eye toward the fountain without collision.
+ for _,side in ipairs({-1,1}) do
+  part(m,"TileBorder",V(1.2,.035,126),V(x+side*67,.925,z),teal,Enum.Material.CeramicTiles,false)
+  part(m,"TileBorder",V(126,.035,1.2),V(x,.925,z+side*67),teal,Enum.Material.CeramicTiles,false)
+ end
+ for i=0,15 do
+  local a=i*math.pi/8
+  part(m,"SunMosaic",V(2.2,.04,5),CFrame.new(x+math.cos(a)*23,.93,z+math.sin(a)*23)*CFrame.Angles(0,-a+math.pi/2,0),i%2==0 and teal or terra,Enum.Material.CeramicTiles,false)
+ end
+ local kx,kz=x-64,z-65
+ local kiosk=model(m,"FlowerKiosk")
+ part(kiosk,"Counter",V(17,3.2,5),V(kx,2.5,kz),teal,Enum.Material.WoodPlanks)
+ part(kiosk,"CounterTop",V(18,.3,5.6),V(kx,4.25,kz),cream,Enum.Material.Marble)
+ for _,dx in ipairs({-8,8}) do part(kiosk,"CanopyPost",V(.45,7.6,.45),V(kx+dx,4.8,kz+2),iron,Enum.Material.Metal) end
+ for stripe=-4,4 do
+  part(kiosk,"StripedAwning",V(2.1,.2,9),CFrame.new(kx+stripe*2.1,8.7,kz)*CFrame.Angles(.1,0,0),stripe%2==0 and terra or cream,Enum.Material.Fabric,false).CastShadow=true
+  part(kiosk,"AwningValance",V(2.1,1,.15),V(kx+stripe*2.1,7.75,kz+4.5),stripe%2==0 and terra or cream,Enum.Material.Fabric,false)
+ end
+ sign(kiosk,"FLORS DEL SOL",CFrame.new(kx,2.7,kz+2.9)*CFrame.Angles(0,math.pi,0),14)
+ local blossoms={}
+ for i=-2,2 do
+  cylinder(kiosk,"BouquetPot",.8,1.2,V(kx+i*3,5,kz),terra,Enum.Material.CeramicTiles)
+  for j=-1,1 do
+   local px=kx+i*3+j*.42
+   part(kiosk,"FlowerStem",V(.08,1.2,.08),V(px,6,kz),leaf,nil,false)
+   local blossom=ellipsoid(kiosk,"BouquetBlossom",V(.9,.65,.9),V(px,6.6,kz),flowerColors[(i+2)%4+1],Enum.Material.SmoothPlastic)
+   table.insert(blossoms,blossom)
+  end
+ end
+ local prompt=Instance.new("ProximityPrompt");prompt.ActionText="Arrange bouquet colors";prompt.ObjectText="Flors del Sol";prompt.KeyboardKeyCode=Enum.KeyCode.F;prompt.MaxActivationDistance=8;prompt.HoldDuration=.4;prompt.Parent=kiosk.Counter
+ local arrangement,lastChange=0,0
+ prompt.Triggered:Connect(function(player)
+  local character=player.Character;local root=character and character:FindFirstChild("HumanoidRootPart");local h=character and character:FindFirstChildOfClass("Humanoid")
+  if not root or not h or h.Health<=0 or (root.Position-kiosk.Counter.Position).Magnitude>10 or os.clock()-lastChange<2 then return end
+  lastChange=os.clock();arrangement=arrangement%4+1
+  for i,blossom in ipairs(blossoms) do blossom.Color=flowerColors[(i+arrangement)%4+1] end
+ end)
+ local px,pz=x+64,z-65
+ local pergola=model(m,"ShadedReadingCorner")
+ for _,dx in ipairs({-10,10}) do for _,dz in ipairs({-8,8}) do part(pergola,"PergolaPost",V(.7,10,.7),V(px+dx,5.9,pz+dz),iron,Enum.Material.Metal) end end
+ for dx=-10,10,2 do part(pergola,"ShadeSlat",V(.8,.35,18),V(px+dx,11,pz),Color3.fromRGB(144,113,77),Enum.Material.Wood,false).CastShadow=true end
+ for _,dz in ipairs({-8,8}) do part(pergola,"ShadeBeam",V(22,.7,.6),V(px,10.6,pz+dz),iron,Enum.Material.Metal,false) end
+ bench(pergola,CFrame.new(px,0,pz+5))
+ bench(pergola,CFrame.new(px,0,pz-5)*CFrame.Angles(0,math.pi,0))
+ for _,point in ipairs({V(kx,4,kz-8),V(kx,4,kz+8),V(px,4,pz)}) do
+  table.insert(walk,point);table.insert(activities,{position=point,kind="Watch"})
+ end
+end
 local function square(parent,x,z,name,walk,activities)
  local m=model(parent,name);octagon(m,x,z)
  part(m,"SquareInlay",V(130,.08,130),CFrame.new(x,.86,z)*CFrame.Angles(0,math.pi/4,0),Color3.fromRGB(162,137,113),Enum.Material.Cobblestone)
@@ -476,6 +530,7 @@ local function square(parent,x,z,name,walk,activities)
  end
  for i=1,4 do cafe(m,x-75+i*30,z+81,Color3.fromRGB(116,93,70)) end
  sign(m,name:upper(),CFrame.new(x,7,z+98),34)
+ if name=="Plaça del Sol" then arrivalPlaza(m,x,z,walk,activities) end
  return m
 end
 local function basilica(parent,x,z)
