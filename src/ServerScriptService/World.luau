@@ -606,8 +606,10 @@ local function makeBot(parent, index, x, z, role, job)
     humanoid.Parent = model
     model.PrimaryPart = root
     if RunService:IsRunning() then root:SetNetworkOwner(nil) end
-    local nameLabel = billboard(head, displayName .. "  " .. Config.BotMaxHealth .. "/" .. Config.BotMaxHealth, Vector3.new(0, 2.5, 0))
+    local nameLabel = billboard(head, displayName, Vector3.new(0, 2.5, 0))
     local speech = billboard(head, "", Vector3.new(0, 4.4, 0), 185)
+    nameLabel.Parent.Name="Nameplate"
+    speech.Parent.Name="SpeechBubble";speech.Parent.Size=UDim2.fromOffset(200,48)
     nameLabel.Parent.MaxDistance = 18
     speech.Parent.MaxDistance = 24
     speech.Visible = false
@@ -825,7 +827,7 @@ function World.UpdateBot(bot)
         bot.socialUntil=0;bot.talkingTo=nil;bot.reactionUntil=0;bot.gestureUntil=0
         bot.speechToken=(bot.speechToken or 0)+1;bot.speech.Visible=false
     end
-    bot.label.Text=bot.alive and (bot.name.."  "..bot.health.."/"..Config.BotMaxHealth) or "RECOVERING"
+    bot.label.Text=bot.alive and (bot.health<Config.BotMaxHealth and (bot.name.."  "..bot.health.."/"..Config.BotMaxHealth) or bot.name) or "RECOVERING"
     if bot.alive then
         bot.humanoid.Health=bot.health
         if bot.health==Config.BotMaxHealth then

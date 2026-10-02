@@ -114,6 +114,34 @@ local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),
 local sprinting=false
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() sprinting=not sprinting;action:FireServer("Sprint",sprinting) end)
 local talkTarget
+local nextResidentUi=0
+local function refreshResidentLabels(root,camera,residents)
+ local nearest,best=nil,13
+ local speaker,speechDistance=nil,24
+ local damaged,damageDistance=nil,18
+ local visible={}
+ for _,bot in ipairs(residents) do
+  local r=bot:FindFirstChild("HumanoidRootPart");local head=bot:FindFirstChild("Head");local h=bot:FindFirstChildOfClass("Humanoid")
+  if not r or not head then continue end
+  local nameplate=head:FindFirstChild("Nameplate");local speech=head:FindFirstChild("SpeechBubble")
+  if nameplate then nameplate.Enabled=false end
+  if speech then speech.Enabled=false end
+  if not root or not h or h.Health<=0 then continue end
+  local distance=(r.Position-root.Position).Magnitude
+  local _,onScreen=camera:WorldToViewportPoint(head.Position)
+  if not onScreen then continue end
+  visible[bot]={nameplate=nameplate,speech=speech}
+  if distance<best then nearest=bot;best=distance end
+  if h.Health<h.MaxHealth and distance<damageDistance then damaged=bot;damageDistance=distance end
+  local words=speech and speech:FindFirstChildOfClass("TextLabel")
+  if words and words.Visible and distance<speechDistance then speaker=bot;speechDistance=distance end
+ end
+ -- A single interaction name, at most one additional hurt resident, and one
+ -- speech bubble keep crowds readable. Occlusion still uses native billboards.
+ for _,bot in pairs({nearest,damaged}) do local item=visible[bot];if item and item.nameplate then item.nameplate.Enabled=true end end
+ if speaker and visible[speaker].speech then visible[speaker].speech.Enabled=true end
+ return nearest
+end
 local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),function() if talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end end);talkButton.Visible=false
 devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false;devPanel.ZIndex=10
 local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
@@ -408,8 +436,11 @@ Run.RenderStepped:Connect(function(dt)
    aimInfo.TextColor3=(data.level<required or far) and muted or gold
   end
  end
- talkTarget=nil;local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");local world=workspace:FindFirstChild("ScreamSimulatorWorld");local best=13
- if root and world then for _,bot in ipairs(world:GetChildren()) do local r=bot:IsA("Model") and bot:FindFirstChild("HumanoidRootPart");if r then local distance=(r.Position-root.Position).Magnitude;if distance<best then best=distance;talkTarget=bot end end end end
+ local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+ if os.clock()>=nextResidentUi then
+  nextResidentUi=os.clock()+.1
+  talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
+ end
  if root and mapDot and mapDot.Parent then mapDot.Position=UDim2.fromScale(math.clamp((root.Position.X+720)/1440,0,.94),math.clamp((root.Position.Z+600)/1200,0,.94)) end
  talkButton.Visible=talkTarget~=nil and mic.ready and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
 end)

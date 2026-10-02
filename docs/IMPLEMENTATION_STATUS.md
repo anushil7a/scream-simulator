@@ -517,3 +517,10 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - Native visual review corrected the sign orientation and moved it below the flowers. Awning/slats cast shadows without adding collision. Addition: 105 BaseParts, 21 solid parts, two usable Seats. Wider city art/performance approval is still open.
 - `StudioArrivalRoutes.luau`: all six native no-jump routes succeeded (24, 20, 21, 22, 29, 36 waypoints), covering both sides of the kiosk, pergola and existing north/east/south exits. Native engine-injected F held for 650ms changed a bouquet from pink to purple; this is not physical keyboard/touch testing.
 - Clean City source synchronized after play cleanup and both place formats rebuilt. Existing 72-route and NPC-soak evidence predates this geometry/activity addition; it is not a fresh full-map pass.
+
+## 2026-10-02 — resident label clutter
+
+- Healthy residents now display their name without redundant full-health numbers. Client chooses one on-screen interaction target within 13 studs, at most one additional hurt resident within 18, and one speaking resident within 24. Native billboard occlusion remains enabled. Separate Nameplate/SpeechBubble names remove ambiguous duplicate Label children; speech receives a 200×48 frame.
+- Refreshes at 10 Hz using CityResident tags. Off-screen/dead NPCs no longer take the talk target. This is screen visibility, not a new line-of-sight targeting guarantee.
+- `StudioResidentLabels.client.luau`: eight native checks passed using synthetic local crowd poses with actual Humanoids/BillboardGuis: healthy crowd limits, injured label retention, off-screen filtering, dead-target exclusion and absent-player cleanup. Physical phone readability and wider playtesting remain open.
+- Stopped play and removed the appended test. Both development Studio copies hold clean current World/Client source. Both place formats rebuilt.

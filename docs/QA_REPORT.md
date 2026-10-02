@@ -103,3 +103,7 @@ A subsequent street-height view from the spawn plaza showed that broad paved are
 ## Spawn-plaza visual pass — 2026-10-02
 
 Added a flower kiosk with cosmetic bouquet interaction, pergola with two usable benches, ceramic paving and three resident destinations. Six focused native no-jump arrival routes passed. Engine-injected F activated the actual prompt and changed bouquet colors. Visual review corrected sign direction/height. Adds 105 parts / 21 solid parts. This is incremental plaza refinement; final city-wide art approval, physical touch testing and representative device/load profiling remain open. The prior full-map route and NPC soak runs predate this addition.
+
+## Crowd label refinement — 2026-10-02
+
+Healthy NPC nameplates omit full-health counters. Client limits names to the on-screen talk target plus one nearby injured resident, and speech to one nearby speaker. Eight native checks with controlled local clones passed for these limits, off-screen/dead target exclusion and absent-character cleanup. This does not prove physical mobile legibility or line-of-sight interaction filtering.
