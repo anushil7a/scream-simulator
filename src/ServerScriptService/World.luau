@@ -469,8 +469,9 @@ local function makeBot(parent, index, x, z, role, job)
         local face=Instance.new("SurfaceGui");face.Face=Enum.NormalId.Front;face.CanvasSize=Vector2.new(80,100);face.Parent=badge
         local number=Instance.new("TextLabel");number.Size=UDim2.fromScale(1,1);number.BackgroundTransparency=1;number.Text="0";number.Font=Enum.Font.GothamBold;number.TextSize=76;number.TextColor3=Color3.fromRGB(32,47,70);number.Parent=face
     elseif role=="CafeWorker" then
-        table.insert(carryParts,accessory(model,la,"ServingTray",Vector3.new(1.5,.12,1),CFrame.new(0,-1,-.6),Color3.fromRGB(104,139,124),Enum.Material.Metal))
-        for _,dx in ipairs({-.35,.35}) do table.insert(carryParts,accessory(model,la,"CoffeeCup",Vector3.new(.3,.4,.3),CFrame.new(dx,-.75,-.6),Color3.fromRGB(243,225,191),Enum.Material.CeramicTiles)) end
+        local trayGrip=CFrame.new(0,-1,-.6)*CFrame.Angles(-.8,0,0)
+        table.insert(carryParts,accessory(model,la,"ServingTray",Vector3.new(1.5,.12,1),trayGrip,Color3.fromRGB(104,139,124),Enum.Material.Metal))
+        for _,dx in ipairs({-.35,.35}) do table.insert(carryParts,accessory(model,la,"CoffeeCup",Vector3.new(.3,.4,.3),trayGrip*CFrame.new(dx,.26,0),Color3.fromRGB(243,225,191),Enum.Material.CeramicTiles)) end
         accessory(model,torso,"CafeApron",Vector3.new(1.7,1.5,.1),CFrame.new(0,-.2,-.57),Color3.fromRGB(71,139,125),Enum.Material.Fabric)
     elseif role=="Sanitation" then
         accessory(model,ra,"BroomHandle",Vector3.new(.14,2.7,.14),CFrame.new(0,-1.25,-.45),Color3.fromRGB(155,113,77),Enum.Material.Wood)
@@ -484,13 +485,15 @@ local function makeBot(parent, index, x, z, role, job)
         accessory(model,torso,"GuitarSoundhole",Vector3.new(.45,.45,.04),CFrame.new(.2,-.1,-1.17),Color3.fromRGB(55,41,32),nil,Enum.PartType.Ball)
         accessory(model,torso,"GuitarNeck",Vector3.new(.35,2.3,.17),CFrame.new(-.3,.9,-.92)*CFrame.Angles(0,0,-.35),Color3.fromRGB(112,74,47),Enum.Material.Wood)
     elseif role=="Gardener" then
-        jobTool=accessory(model,ra,"WateringCan",Vector3.new(.9,.85,.7),CFrame.new(0,-1.15,-.35),Color3.fromRGB(77,133,123),Enum.Material.Metal)
-        accessory(model,ra,"CanSpout",Vector3.new(.2,.2,.9),CFrame.new(0,-1.05,-1),Color3.fromRGB(77,133,123),Enum.Material.Metal)
-        local outlet=Instance.new("Attachment");outlet.Position=Vector3.new(0,-.35,-.6);outlet.Parent=jobTool
-        water=Instance.new("ParticleEmitter");water.Name="WaterDrops";water.Rate=12;water.Lifetime=NumberRange.new(.35,.6);water.Speed=NumberRange.new(1,2);water.Acceleration=Vector3.new(0,-12,0);water.Size=NumberSequence.new(.08);water.Color=ColorSequence.new(Color3.fromRGB(134,213,235));water.Enabled=false;water.Parent=outlet
+        local canGrip=CFrame.new(0,-1.15,-.35)*CFrame.Angles(-1.15,0,0)
+        jobTool=accessory(model,ra,"WateringCan",Vector3.new(.9,.85,.7),canGrip,Color3.fromRGB(77,133,123),Enum.Material.Metal)
+        accessory(model,ra,"CanSpout",Vector3.new(.2,.2,.9),canGrip*CFrame.new(0,.1,-.65),Color3.fromRGB(77,133,123),Enum.Material.Metal)
+        local outlet=Instance.new("Attachment");outlet.Position=Vector3.new(0,.1,-1.1);outlet.Parent=jobTool
+        water=Instance.new("ParticleEmitter");water.Name="WaterDrops";water.EmissionDirection=Enum.NormalId.Front;water.Rate=12;water.Lifetime=NumberRange.new(.35,.6);water.Speed=NumberRange.new(1,2);water.Acceleration=Vector3.new(0,-12,0);water.Size=NumberSequence.new(.08);water.Color=ColorSequence.new(Color3.fromRGB(134,213,235));water.Enabled=false;water.Parent=outlet
     elseif role=="Artist" then
         jobTool=accessory(model,ra,"PaintBrush",Vector3.new(.14,1.3,.14),CFrame.new(0,-1.1,-.35),Color3.fromRGB(131,88,61),Enum.Material.Wood)
-        accessory(model,la,"PaintPalette",Vector3.new(.9,.12,.7),CFrame.new(0,-1,-.3),Color3.fromRGB(190,144,92),Enum.Material.Wood)
+        accessory(model,ra,"BrushTip",Vector3.new(.19,.3,.19),CFrame.new(0,-1.8,-.35),Color3.fromRGB(64,143,165),Enum.Material.Fabric)
+        accessory(model,la,"PaintPalette",Vector3.new(.9,.12,.7),CFrame.new(0,-1,-.3)*CFrame.Angles(-.7,0,0),Color3.fromRGB(190,144,92),Enum.Material.Wood)
     end
     if role == "Vendor" then
         accessory(model, torso, "VendorApron", Vector3.new(1.65, 1.4, 0.14),
@@ -549,7 +552,7 @@ local function makeBot(parent, index, x, z, role, job)
                         for _,item in ipairs(bot.carryParts) do item.Transparency=bot.jobStep==2 and 0 or 1 end
                         bot.working=false;model:SetAttribute("Activity","Walking to work")
                         roamTo(bot,station.position)
-                        if bot.alive and (bot.root.Position-station.position).Magnitude<5 and (bot.reactionUntil or 0)<=os.clock() then
+                        if bot.alive and (bot.root.Position-station.position).Magnitude<5 and (bot.reactionUntil or 0)<=os.clock() and (bot.socialUntil or 0)<=os.clock() then
                             bot.humanoid:MoveTo(bot.root.Position);faceToward(bot,station.lookAt)
                             bot.working=true;model:SetAttribute("WorkStarted",workspace:GetServerTimeNow());model:SetAttribute("Activity",station.action or role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
                             local untilTime=os.clock()+rng:NextNumber(5,9)

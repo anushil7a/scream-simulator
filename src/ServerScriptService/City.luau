@@ -563,7 +563,7 @@ local function workplaces(parent)
  for _,x in ipairs({620,636}) do cylinder(m,"GoalPost",.18,7,V(x,4.5,585),cream,Enum.Material.Metal) end
  part(m,"GoalCrossbar",V(16,.35,.35),V(628,8,585),cream,Enum.Material.Metal)
  sign(m,"NO BALL GAMES? NICK DID NOT READ THIS.",CFrame.new(701,4,590)*CFrame.Angles(0,math.pi,0),17)
- local artist=V(-647,4,177)
+ local artist=V(-647,4,173.5)
  for _,dx in ipairs({-1.4,1.4}) do part(m,"EaselLeg",V(.2,5,.3),CFrame.new(-647+dx,3.5,171)*CFrame.Angles(0,0,dx*.08),terra,Enum.Material.Wood) end
  part(m,"EaselCanvas",V(4,3,.25),V(-647,5,171),cream,Enum.Material.Fabric)
  -- Original little coastal painting, visible from the pedestrian side.
