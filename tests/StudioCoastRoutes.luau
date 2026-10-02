@@ -5,6 +5,9 @@ local cases={
  {"lookout balcony",V(-240,4,427),V(-240,6.3,452)},
  {"lookout cabin",V(-240,4,427),V(-240,6.3,462)},
  {"pier",V(525,4,403),V(525,5,580)},
+ {"moved court-side lounger",V(-40,4,403),V(-40,4,453)},
+ {"volley north half",V(-50,4,403),V(-50,4,484)},
+ {"volley south half",V(-50,4,570),V(-50,4,526)},
 }
 for i=1,18,3 do
  local x=-660+(i-1)*77;local z=470+(i%3)*25
