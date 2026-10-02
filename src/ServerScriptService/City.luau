@@ -537,10 +537,46 @@ local function coastalLookout(parent,walk,activities)
  table.insert(walk,V(-240,4,430));table.insert(walk,V(-240,6.3,452))
  table.insert(activities,{position=V(-240,6.3,452),kind="Watch"})
 end
+-- Two thin right-triangle wedges form one original fabric triangle.
+local function fabricTriangle(parent,a,b,c,color)
+ local ab,ac,bc=b-a,c-a,c-b
+ if ab:Dot(ab)>ac:Dot(ac) and ab:Dot(ab)>bc:Dot(bc) then a,c=c,a
+ elseif ac:Dot(ac)>bc:Dot(bc) then a,b=b,a end
+ ab,ac,bc=b-a,c-a,c-b
+ local right=ac:Cross(ab).Unit;local back=bc.Unit;local up=back:Cross(right).Unit
+ local height=math.abs(ab:Dot(up))
+ for _,spec in ipairs({{(a+b)/2,right,back,math.abs(ab:Dot(back))},{(a+c)/2,-right,-back,math.abs(ac:Dot(back))}}) do
+  local w=Instance.new("WedgePart");w.Name="ParasolFabric";w.Size=V(.06,height,spec[4]);w.CFrame=CFrame.fromMatrix(spec[1],spec[2],up,spec[3]);w.Color=color;w.Material=Enum.Material.Fabric;w.Anchored=true;w.CanCollide=false;w.CanQuery=false;w.CanTouch=false;w.Parent=parent
+ end
+end
+local function parasol(parent,x,z,color)
+ local m=model(parent,"StripedBeachParasol")
+ cylinder(m,"ParasolPole",.12,7.6,V(x,4.8,z),cream,Enum.Material.Wood)
+ cylinder(m,"ParasolFoot",.6,.2,V(x,1.1,z),stone,Enum.Material.Concrete)
+ local crown=V(x,8.65,z)
+ for j=0,7 do
+  local a=j*math.pi/4;local b=(j+1)*math.pi/4
+  local edgeA=V(x+math.cos(a)*6,6.9,z+math.sin(a)*6)
+  local edgeB=V(x+math.cos(b)*6,6.9,z+math.sin(b)*6)
+  local stripe=j%2==0 and color or cream
+  fabricTriangle(m,crown,edgeA,edgeB,stripe)
+  local middle=(edgeA+edgeB)/2
+  part(m,"CanopyValance",V((edgeA-edgeB).Magnitude,.45,.06),CFrame.lookAt(middle-V(0,.2,0),V(x,middle.Y-.2,z)),stripe,Enum.Material.Fabric,false)
+  if j%2==0 then
+   local tip=edgeA-V(0,.06,0);local start=crown-V(0,.08,0)
+   part(m,"CanopyRib",V(.07,.07,(tip-start).Magnitude),CFrame.lookAt((tip+start)/2,tip),stone,Enum.Material.Wood,false)
+  end
+ end
+ ellipsoid(m,"ParasolFinial",V(.35,.5,.35),crown+V(0,.2,0),cream,Enum.Material.Wood)
+end
 local function coast(parent,walk,activities)
  local m=model(parent,"BarcelonetaCoast")
  part(m,"Beach",V(1440,3,170),V(0,-.5,515),Color3.fromRGB(227,208,156),Enum.Material.Sand)
- part(m,"Mediterranean",V(3200,1,1800),V(0,-1,1500),Color3.fromRGB(48,143,169),Enum.Material.Glass,false).Transparency=.16
+ -- Bounded tiles avoid oversized-Part clamping and keep the distant horizon loaded.
+ local sea=model(m,"MediterraneanBackdrop");sea.ModelStreamingMode=Enum.ModelStreamingMode.Persistent
+ for x=-2000,2000,2000 do for z=1600,5600,2000 do
+  part(sea,"Mediterranean",V(2000,1,2000),V(x,-1,z),Color3.fromRGB(48,143,169),Enum.Material.Glass,false).Transparency=.16
+ end end
  part(m,"PasseigMaritim",V(1440,1,52),V(0,.25,401),Color3.fromRGB(197,176,141),Enum.Material.Pavement)
  for x=-680,680,40 do
   part(m,"PromenadeTileBand",V(1,.05,52),V(x,.79,401),Color3.fromRGB(152,138,117),Enum.Material.Cobblestone,false)
@@ -549,12 +585,19 @@ local function coast(parent,walk,activities)
  end
  for i=1,18 do
   local x=-660+(i-1)*77;local z=470+(i%3)*25;local color=i%2==0 and Color3.fromRGB(215,116,85) or Color3.fromRGB(78,153,157)
-  cylinder(m,"ParasolPole",.18,7,V(x,4,z),stone,Enum.Material.Metal)
-  for j=1,8 do
-   local w=Instance.new("WedgePart");w.Name="StripedParasol";w.Size=V(4.5,2,5.7);w.CFrame=CFrame.new(x,7.5,z)*CFrame.Angles(0,j*math.pi/4,0)*CFrame.new(0,0,2.5);w.Color=j%2==0 and color or cream;w.Material=Enum.Material.Fabric;w.Anchored=true;w.CanCollide=false;w.CanQuery=false;w.Parent=m
-  end
+  parasol(m,x,z,color)
   part(m,"BeachLounger",V(3,.5,7),V(x+4,1.6,z+5),cream,Enum.Material.Fabric)
   part(m,"LoungerBack",V(3,3,.4),CFrame.new(x+4,2.8,z+8)*CFrame.Angles(.4,0,0),color,Enum.Material.Fabric)
+  for _,dx in ipairs({-1.65,1.65}) do
+   part(m,"LoungerSideRail",V(.2,.3,7.6),V(x+4+dx,1.55,z+5),stone,Enum.Material.Wood)
+   for _,dz in ipairs({-2.5,2.5}) do part(m,"LoungerLeg",V(.2,.55,.3),V(x+4+dx,1.25,z+5+dz),stone,Enum.Material.Wood) end
+  end
+  if i%2==0 then
+   part(m,"BeachTowel",V(2.4,.04,3.3),V(x+4,1.88,z+3.5),color,Enum.Material.Fabric,false)
+   cylinder(m,"BeachSideTable",1.1,.2,V(x+7,2.2,z+6),stone,Enum.Material.Wood)
+   cylinder(m,"BeachTableLeg",.15,1.1,V(x+7,1.65,z+6),cream,Enum.Material.Wood)
+   cylinder(m,"WaterCup",.22,.5,V(x+7,2.55,z+6),color,Enum.Material.SmoothPlastic)
+  end
   local seat=Instance.new("Seat");seat.Name="BeachSeat";seat:SetAttribute("RestSetting","Beach");seat.Size=V(2.5,.2,2);seat.CFrame=CFrame.new(x+4,2,z+5);seat.Anchored=true;seat.Transparency=1;seat.CanCollide=false;seat.Parent=m
   local prompt=Instance.new("ProximityPrompt");prompt.ActionText="Sit";prompt.ObjectText="Beach lounger";prompt.KeyboardKeyCode=Enum.KeyCode.F;prompt.MaxActivationDistance=7;prompt.Parent=seat
   prompt.Triggered:Connect(function(player)
