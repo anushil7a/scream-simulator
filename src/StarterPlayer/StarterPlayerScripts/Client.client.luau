@@ -5,6 +5,9 @@ local Run=game:GetService("RunService")
 local Tween=game:GetService("TweenService")
 local Debris=game:GetService("Debris")
 local TextService=game:GetService("TextService")
+local GuiService=game:GetService("GuiService")
+local originalTouchControls=GuiService.TouchControlsEnabled
+script.Destroying:Connect(function() GuiService.TouchControlsEnabled=originalTouchControls end)
 local p=Players.LocalPlayer
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
 local mic=require(script.Parent:WaitForChild("Microphone")).new()
@@ -26,17 +29,17 @@ local function button(parent,name,text,size,pos,callback,color)
  local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,8);c.Parent=b;b.Activated:Connect(callback);return b
 end
 local top=frame(gui,"Navigation",UDim2.fromOffset(250,40),UDim2.fromOffset(14,12));top.BackgroundTransparency=1
-local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,.5);modal.Visible=false
+local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,0);modal.ZIndex=10;modal.Visible=false
 local menuScale=Instance.new("UIScale");menuScale.Parent=modal
 local title=label(modal,"SCREAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
 local subtitle=label(modal,"Train for XP. Unlock a new scream every five levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
-button(modal,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-52,0,16),function() modal.Visible=false end)
+button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function() modal.Visible=false end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
 local selected="Screams";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
-local function toggle() modal.Visible=not modal.Visible;if modal.Visible then render() end end
+local function toggle() modal.Visible=not modal.Visible;if modal.Visible then if devPanel then devPanel.Visible=false end;render() end end
 local shop=button(top,"ShopToggle","SCREAMS  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),toggle,gold);shop.TextColor3=dark
-local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() selected="Quests";modal.Visible=not(modal.Visible and title.Text=="CITY QUESTS");render() end)
+local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() if devPanel then devPanel.Visible=false end;selected="Quests";modal.Visible=not(modal.Visible and title.Text=="CITY QUESTS");render() end)
 local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.08
 local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-24,0,22),UDim2.fromOffset(12,7),14,gold)
 local health=label(hud,"100 HP",UDim2.fromOffset(65,20),UDim2.fromOffset(12,31),12)
@@ -109,17 +112,18 @@ local sprinting=false
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() sprinting=not sprinting;action:FireServer("Sprint",sprinting) end)
 local talkTarget
 local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),function() if talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end end);talkButton.Visible=false
-devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false
+devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false;devPanel.ZIndex=10
+local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
 label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
 label(devPanel,"Test commands disable saving this session.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
 for i,item in ipairs({{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level 300"},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}) do
- button(devPanel,item[1],item[2],UDim2.fromOffset(100,39),UDim2.fromOffset(10+((i-1)%2)*110,80+math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
+ button(testContent,item[1],item[2],UDim2.fromOffset(98,44),UDim2.fromOffset(((i-1)%2)*108,math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
 end
-local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible end);testButton.Visible=false
+local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then modal.Visible=false end end);testButton.Visible=false
 local function card(height) return frame(content,"Card",UDim2.new(1,-8,0,height),UDim2.new(),panel) end
-local function info(text,height) local width=math.min(720,workspace.CurrentCamera.ViewportSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
+local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
 render=function()
- narrow=workspace.CurrentCamera.ViewportSize.X-24<620
+ narrow=gui.AbsoluteSize.X-24<620
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Screams" then
@@ -144,7 +148,7 @@ render=function()
    if q.hidden and not available then continue end
    local v=data.quests[q.id] or {progress=0}
    local description=available and q.description or "Meet "..(q.giver or "a resident").." and press T to talk."
-   local textWidth=math.min(720,workspace.CurrentCamera.ViewportSize.X-24)-48-(narrow and 28 or 158)
+   local textWidth=math.min(720,gui.AbsoluteSize.X-24)-48-(narrow and 28 or 158)
    local nameHeight=math.max(26,TextService:GetTextSize(q.name,17,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+4)
    local descriptionHeight=math.max(49,TextService:GetTextSize(description,13,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+8)
    local descriptionY=12+nameHeight;local rewardY=descriptionY+descriptionHeight+5
@@ -266,7 +270,7 @@ remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,
 end)
 local elapsed=0
 Run.RenderStepped:Connect(function(dt)
- local viewport=workspace.CurrentCamera.ViewportSize
+ local viewport=gui.AbsoluteSize
  local notificationWidth=math.min(640,viewport.X-32)
  if notificationWidth~=toastWidth then
   toastWidth=notificationWidth;toast.TextSize=viewport.X<820 and 14 or 16
@@ -286,19 +290,23 @@ Run.RenderStepped:Connect(function(dt)
  local micWidth=math.min(430,viewport.X-24);local micNarrow=micWidth<400
  micPanel.Size=UDim2.fromOffset(micWidth,micNarrow and 320 or 260);micTitle.TextSize=micNarrow and 18 or 21
  local calibrate=micPanel.Calibrate;local retry=micPanel.Retry
- calibrate.Size=UDim2.fromOffset(micNarrow and micWidth-36 or 188,36);retry.Size=calibrate.Size
+ calibrate.Size=UDim2.fromOffset(micNarrow and micWidth-36 or 188,UIS.TouchEnabled and 44 or 36);retry.Size=calibrate.Size
  calibrate.Position=UDim2.fromOffset(18,micNarrow and 224 or 208);retry.Position=UDim2.fromOffset(micNarrow and 18 or 224,micNarrow and 270 or 208)
- micPanel.Visible=not mic.ready;micStatus.Text=mic.status
+ micPanel.Visible=not mic.ready and not modal.Visible and not devPanel.Visible;micStatus.Text=mic.status
  if reportedReady~=mic.ready or (data.micReady~=mic.ready and os.clock()>readyReportAt) then reportedReady=mic.ready;readyReportAt=os.clock()+1;action:FireServer("MicReady",mic.ready) end
  if captureSource and blocked() then cancelCapture() end
- meter.Visible=mic.ready and not modal.Visible;reticle.Visible=UIS.TouchEnabled and mic.ready and not modal.Visible
+ local gameplayVisible=mic.ready and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
+ local showTouchControls=originalTouchControls and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
+ if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
+ meter.Visible=gameplayVisible;reticle.Visible=UIS.TouchEnabled and gameplayVisible
  local power=mic.power;meterFill.Size=UDim2.fromScale(power,1)
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
  meterText.Text=string.format("SCREAM POWER %d%% • %.0f studs",math.floor(power*100),range)
  local short=viewport.Y<550
  menuScale.Scale=1
  local width=math.min(720,viewport.X-24)
- modal.Size=UDim2.fromOffset(width,math.min(620,viewport.Y-36));modal.Position=UDim2.fromScale(.5,.5)
+ modal.Size=UDim2.fromOffset(width,math.min(620,viewport.Y-76));modal.Position=UDim2.new(.5,0,0,64)
+ devPanel.Size=UDim2.fromOffset(230,math.min(330,viewport.Y-76));devPanel.Position=UDim2.new(1,-244,0,64)
  title.TextSize=width<620 and 20 or 23
  subtitle.Visible=not short;subtitle.Size=UDim2.new(1,-44,0,width<620 and 42 or 25)
  local tabY=short and 54 or width<620 and 102 or 88
@@ -312,22 +320,22 @@ Run.RenderStepped:Connect(function(dt)
  -- Keep desktop controls compact; smaller displays retain readable button text.
  local touch=UIS.TouchEnabled
  local tight=viewport.X<380
- shop.Size=UDim2.fromOffset(tight and 90 or 125,36);shop.Text=tight and "SCREAMS" or "SCREAMS [B]"
- questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
- testButton.Size=UDim2.fromOffset(tight and 90 or 112,32);testButton.Position=UDim2.new(1,tight and -104 or -126,0,14)
- hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,56) or UDim2.new(0,14,1,-108)
+ shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=tight and "SCREAMS" or "SCREAMS [B]"
+ questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
+ testButton.Size=UDim2.fromOffset(tight and 90 or 112,touch and 44 or 32);testButton.Position=UDim2.new(1,tight and -104 or -126,0,14)
+ hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,64) or UDim2.new(0,14,1,-108)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
- hud.Visible=not modal.Visible;controls.Visible=not modal.Visible and mic.ready
- tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and 158 or 56)
- if touch then sprintButton.TextSize=12 end
- tracked.Visible=not modal.Visible;zone.Visible=viewport.X>740
+ hud.Visible=gameplayVisible;controls.Visible=gameplayVisible;controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
+ tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and 166 or 64)
+ sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
+ tracked.Visible=gameplayVisible;zone.Visible=viewport.X>740 and mic.ready
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and "RELEASE TO FIRE" or "HOLD SCREAM [E]"
  castButton.BackgroundColor3=protected>0 and muted or gold
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
  local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs [SHIFT]",p:GetAttribute("SprintCharge") or 10)
  if os.clock()>toastUntil then toast.Text="" end
- aimInfo.Visible=mic.ready and not modal.Visible
+ aimInfo.Visible=gameplayVisible
  elapsed+=dt;if elapsed<.15 then return end;elapsed=0
  aimInfo.Text=""
  if aimInfo.Visible then
@@ -346,7 +354,7 @@ Run.RenderStepped:Connect(function(dt)
  talkTarget=nil;local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");local world=workspace:FindFirstChild("ScreamSimulatorWorld");local best=13
  if root and world then for _,bot in ipairs(world:GetChildren()) do local r=bot:IsA("Model") and bot:FindFirstChild("HumanoidRootPart");if r then local distance=(r.Position-root.Position).Magnitude;if distance<best then best=distance;talkTarget=bot end end end end
  if root and mapDot and mapDot.Parent then mapDot.Position=UDim2.fromScale(math.clamp((root.Position.X+720)/1440,0,.94),math.clamp((root.Position.Z+600)/1200,0,.94)) end
- talkButton.Visible=talkTarget~=nil and not modal.Visible and not conversationPanel.Visible
+ talkButton.Visible=talkTarget~=nil and mic.ready and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
 end)
 action:FireServer("Sync")
 
