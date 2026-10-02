@@ -49,3 +49,9 @@ The generated Studio object is retained as `Workspace.REVIEW_ONLY_MosaicFountain
 - Both review sources compile; binary/XML review builds succeed. Exact rebuilt-file native import remains unverified because the native file-opening UI is unavailable. The successful render used the saved Roblox model reload plus the actual repository installer source.
 
 Main map source/default project remain unchanged. Accepting the asset into the main map still requires the native build-loading check, fallback behavior and destination permissions. The local review template remains in the disposable editor's ServerStorage; no trial scene remains after stopping Play.
+
+## Native rebuilt-file verification completed
+
+After Studio file controls recovered, opened `build/FountainReview.rbxl` through the native file picker. Although the final UI observation timed out, the connector confirmed a new FountainReview instance1a662539-4904-4648-bc18-60e9021c75b5. Started that exact build: installer assembled the three mesh parts, water and streams; measured bounds28.2263×20×28.2494. ContentProvider reported Success on all six IDs. Native screenshot confirms textured octagonal mosaic basin, pedestal, bowl and water streams rendering from the repository-built file. Console had only the assistant camera-reset notice. Stopped Play after verification.
+
+This supersedes the earlier **native rebuilt-file import** blocker. Main map adoption, fallback behavior and actual destination publication permissions remain open; Studio content success does not prove cloud client permissions.
