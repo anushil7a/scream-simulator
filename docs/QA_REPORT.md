@@ -46,13 +46,13 @@ Scoped tests: audience behavior: 12 checks; volley: 16 scripted checks including
 
 **Open:** final city-wide art/activity review at street height, physical traversal/driving, crowd behavior under player load, obstacle/destruction recovery across all occupations, volleyball timing with two real microphones and additional iteration based on playtests. Current screenshots and route checks do not prove the requested final visual quality or fun.
 
-### NPC soak in progress
+### Completed local NPC soak
 
-Run `CityNpcSoak-20261002-70a4cf5` is active in **Place1**, Studio ID `d388915b-0dc8-4725-92c0-83fbcae49c6a`, for 1,800 seconds. At 1,397 seconds: 46 alive, 36 moved since the previous snapshot, 5 working, 2 seated; no recorded persistent seat mismatches, walking-target stalls or residents above 20 studs. This is an interim observation, not a pass.
+Run `CityNpcSoak-20261002-70a4cf5` completed **1,800 seconds with 61 snapshots**. All 46 residents remained alive; 34–43 moved between post-startup snapshots and 3–7 were working. No persistent seat mismatches, walking-target stalls or above-20-stud residents were recorded in the samples. World descendants stayed within 53,563–53,573; post-startup Luau heap samples ranged from 2,455–4,145 KB and ended at 2,555 KB. These observations do not prove the absence of every transient fault or memory leak.
 
-Do not restart or stop the run solely because an observation times out. Query its exact workspace run/state/sample attributes. On completion, export all samples, review behavior and console output, stop Play, restore clean Bootstrap/remove probe attributes, and resync the newer Microphone, MicPower, RunAnimation and City sources. See the detailed log for exact cleanup instructions.
+[Raw samples](../tests/evidence/npc-current-soak-2026-10-02.json) retain the exact source/run identity. Console output contained the expected unavailable-save warning and the successful observer completion. Play was stopped, observer source/attributes were removed, and the newer Microphone, MicPower, RunAnimation and City sources were synchronized. Both known disposable test copies are now stopped with clean current source.
 
-This run has one Studio client without real microphone/combat load. Even successful completion does not satisfy the requested representative 24-player, 30-minute soak or physical-device frame-rate targets.
+This run had one Studio client without real microphone/combat load. Secondary Studio experiments also ran during portions of the interval. It does **not** satisfy the representative 24-player, 30-minute soak or physical-device frame-rate targets.
 
 ### Quests, progression, destruction and persistence
 
@@ -81,7 +81,7 @@ The owner requested that blocked items be recorded while independent work contin
 
 ## Where to work next
 
-- Finish/export the already-running NPC observation; preserve its scope and any failures.
+- Run representative multiplayer/device checks once the required participants and hardware are available; the completed local NPC observation covers a narrower scope.
 - Continue final map/activity/animation polish and fix concrete defects found by playtests.
 - Coordinate the real microphone/device test inputs; synthetic evidence cannot replace them.
 - Update this report after each release-relevant result rather than treating the chronological log as a final sign-off.
