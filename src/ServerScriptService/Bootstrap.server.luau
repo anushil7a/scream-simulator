@@ -373,7 +373,13 @@ task.spawn(function()
     h.JumpPower=s.micReady and (s.jumpPower or 50) or 0;h.JumpHeight=s.micReady and (s.jumpHeight or 7.2) or 0
     if not s.micReady then h.Jump=false end
     if h.Health<h.MaxHealth and now>=s.nextHeal then h.Health=math.min(h.MaxHealth,h.Health+h.MaxHealth*.2);s.nextHeal=now+10 end
-    if r.Position.Y< -20 then p.Character:PivotTo(World.SafeSpawn);protect(p,s) end
+    if r.Position.Z>600 and (r.Position.Z>780 or math.abs(r.Position.X)>700) then
+     p.Character:PivotTo(CFrame.new(math.clamp(r.Position.X,-670,670),5,594))
+     r.AssemblyLinearVelocity=Vector3.zero;r.AssemblyAngularVelocity=Vector3.zero
+     s.sprintRequested=false;s.dodgingUntil=0;s.knockedUntil=0;h.PlatformStand=false;h.AutoRotate=true
+     p:SetAttribute("DodgeEnds",0);p:SetAttribute("KnockdownEnds",0);protect(p,s)
+     state(p,"Lifeguard rescue · stay inside the gold buoys.")
+    elseif r.Position.Y< -20 then p.Character:PivotTo(World.SafeSpawn);protect(p,s) end
    end
    if s.questDeadline and now>s.questDeadline then stopQuest(p);state(p,"Time's up · accept the task again to restart.") end
    p:SetAttribute("SprintCharge",s.sprintCharge);p:SetAttribute("SprintCooldown",math.max(0,s.sprintLockedUntil-now));p:SetAttribute("Sprinting",running==true)

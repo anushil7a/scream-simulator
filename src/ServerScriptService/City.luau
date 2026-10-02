@@ -572,10 +572,26 @@ end
 local function coast(parent,walk,activities)
  local m=model(parent,"BarcelonetaCoast")
  part(m,"Beach",V(1440,3,170),V(0,-.5,515),Color3.fromRGB(227,208,156),Enum.Material.Sand)
+ -- Reserved offshore volume: real water supports the default Humanoid swim controller.
+ local terrain=workspace.Terrain
+ terrain.WaterColor=Color3.fromRGB(48,143,169);terrain.WaterTransparency=.35;terrain.WaterReflectance=.25;terrain.WaterWaveSize=.18;terrain.WaterWaveSpeed=8
+ terrain:FillBlock(CFrame.new(0,-8,800),V(1472,16,400),Enum.Material.Water)
+ terrain:FillBlock(CFrame.new(0,-18,800),V(1472,4,400),Enum.Material.Sand)
+ terrain:FillBlock(CFrame.new(0,-10,608),V(1472,12,16),Enum.Material.Sand)
+ terrain:FillBlock(CFrame.new(0,-12,624),V(1472,8,16),Enum.Material.Sand)
+ local buoyColor=Color3.fromRGB(239,174,68)
+ local function buoy(x,z)
+  local body=ellipsoid(m,"SwimBoundaryBuoy",V(1.8,2.3,1.8),V(x,.45,z),buoyColor,Enum.Material.SmoothPlastic)
+  body:SetAttribute("SwimBoundary",true)
+  cylinder(m,"BuoyBand",.84,.35,V(x,.6,z),cream,Enum.Material.SmoothPlastic).CanCollide=false
+ end
+ for x=-680,680,80 do buoy(x,760) end
+ for _,x in ipairs({-680,680}) do for z=620,740,40 do buoy(x,z) end end
+ sign(m,"SWIM INSIDE THE GOLD BUOYS",CFrame.new(-229,5,587),16)
  -- Bounded tiles avoid oversized-Part clamping and keep the distant horizon loaded.
  local sea=model(m,"MediterraneanBackdrop");sea.ModelStreamingMode=Enum.ModelStreamingMode.Persistent
  for x=-2000,2000,2000 do for z=1600,5600,2000 do
-  part(sea,"Mediterranean",V(2000,1,2000),V(x,-1,z),Color3.fromRGB(48,143,169),Enum.Material.Glass,false).Transparency=.16
+  part(sea,"Mediterranean",V(2000,1,2000),V(x,-4,z),Color3.fromRGB(48,143,169),Enum.Material.SmoothPlastic,false)
  end end
  part(m,"PasseigMaritim",V(1440,1,52),V(0,.25,401),Color3.fromRGB(197,176,141),Enum.Material.Pavement)
  for x=-680,680,40 do

@@ -74,13 +74,13 @@ Run.PreSimulation:Connect(function(dt)
   for _,name in ipairs({"Right Shoulder","RightShoulder"}) do pose(name,CFrame.Angles(-(equipped and 1.15 or .65)*charge-.9*recoil,0,(equipped and -.15 or .32)*charge)) end
   pose("Waist",CFrame.Angles(.12*charge-.28*recoil,0,0))
   pose("Neck",CFrame.Angles(-.12*charge+.1*recoil,0,0))
-  if not grounded then
+  if not grounded and rig.humanoid:GetState()~=Enum.HumanoidStateType.Swimming then
    local rising=v.Y>1
    local bend=rising and .26 or -.13
    for _,name in ipairs({"Left Hip","LeftHip","Right Hip","RightHip"}) do pose(name,CFrame.Angles(bend,0,0)) end
    pose("LeftKnee",CFrame.Angles(rising and -.5 or -.15,0,0))
    pose("RightKnee",CFrame.Angles(rising and -.3 or -.2,0,0))
-  else
+  elseif grounded then
    local elapsed=now-rig.landing
    local compress=elapsed>=0 and elapsed<.22 and math.sin(elapsed/.22*math.pi) or 0
    pose("Waist",CFrame.Angles(-.13*compress,0,0))
