@@ -143,7 +143,7 @@ local roleLines = {
     CafeWorker = {"Two coffees for the terrace!", "The cups are hot. My jokes are lukewarm.", "Take a seat; the sea is the best view."},
     Sanitation = {"This promenade deserves a little care.", "If you find litter, Mar can use a hand.", "Keeping the city ready for tomorrow."},
     BeachWorker = {"Sunshade, water, and a little sea breeze.", "The loungers are ready. Please leave the sand clean.", "Someone keeps kicking footballs down the beach."},
-    Soccer = {"I aimed for the goal. The goal moved. Probably.", "My best trick is missing from here.", "Five perfect assists and I might finally score!"},
+    Soccer = {"I aimed for the goal. The goal moved. Probably.", "My best trick is missing from here.", "I celebrated before looking. It did not go in."},
     Gardener = {"These flowers need water, not another scream!", "I planted the blue ones for the sea.", "The garden is everyone’s front yard."},
     Artist = {"Hold still! You might end up in this painting.", "The sea changes color every hour.", "My last seagull looked like a potato."},
     Busker = {"One more song before the train!", "The market's got rhythm today.", "Toss me a request!"},
@@ -351,6 +351,7 @@ local function makeBot(parent, index, x, z, role, job)
     local pants = pantsColors[avatarRng:NextInteger(1, #pantsColors)]
     local hairColor = hairColors[avatarRng:NextInteger(1, #hairColors)]
     local outfit = avatarRng:NextInteger(1, 5)
+    if role=="Soccer" and job then shirt=Color3.fromRGB(43,105,168);pants=Color3.fromRGB(32,47,70);outfit=3 end
     model:SetAttribute("OutfitVariant", outfit)
     local root = rigPart(model, "HumanoidRootPart", Vector3.new(2, 2, 1), cf, Color3.new(1, 1, 1), false)
     root.Transparency = 1
@@ -410,7 +411,12 @@ local function makeBot(parent, index, x, z, role, job)
             CFrame.new(0, 0.09, -0.62), C.dark, Enum.Material.Metal)
     end
     local jobTool,water;local carryParts={}
-    if role=="CafeWorker" then
+    if role=="Soccer" and job then
+        for _,leg in ipairs({ll,rl}) do accessory(model,leg,"FootballSock",Vector3.new(1.03,.9,1.03),CFrame.new(0,-.25,0),Color3.fromRGB(240,231,212),Enum.Material.Fabric) end
+        local badge=accessory(model,torso,"NumberZero",Vector3.new(.62,.74,.12),CFrame.new(0,.15,-.58),Color3.fromRGB(240,231,212),Enum.Material.Fabric)
+        local face=Instance.new("SurfaceGui");face.Face=Enum.NormalId.Front;face.CanvasSize=Vector2.new(80,100);face.Parent=badge
+        local number=Instance.new("TextLabel");number.Size=UDim2.fromScale(1,1);number.BackgroundTransparency=1;number.Text="0";number.Font=Enum.Font.GothamBold;number.TextSize=76;number.TextColor3=Color3.fromRGB(32,47,70);number.Parent=face
+    elseif role=="CafeWorker" then
         table.insert(carryParts,accessory(model,la,"ServingTray",Vector3.new(1.5,.12,1),CFrame.new(0,-1,-.6),Color3.fromRGB(104,139,124),Enum.Material.Metal))
         for _,dx in ipairs({-.35,.35}) do table.insert(carryParts,accessory(model,la,"CoffeeCup",Vector3.new(.3,.4,.3),CFrame.new(dx,-.75,-.6),Color3.fromRGB(243,225,191),Enum.Material.CeramicTiles)) end
         accessory(model,torso,"CafeApron",Vector3.new(1.7,1.5,.1),CFrame.new(0,-.2,-.57),Color3.fromRGB(71,139,125),Enum.Material.Fabric)
@@ -491,7 +497,7 @@ local function makeBot(parent, index, x, z, role, job)
                         roamTo(bot,station.position)
                         if bot.alive and (bot.root.Position-station.position).Magnitude<5 and (bot.reactionUntil or 0)<=os.clock() then
                             bot.humanoid:MoveTo(bot.root.Position);faceToward(bot,station.lookAt)
-                            bot.working=true;model:SetAttribute("Activity",station.action or role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
+                            bot.working=true;model:SetAttribute("WorkStarted",workspace:GetServerTimeNow());model:SetAttribute("Activity",station.action or role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
                             local untilTime=os.clock()+rng:NextNumber(5,9)
                             while model.Parent and bot.alive and os.clock()<untilTime and (bot.socialUntil or 0)<=os.clock() and (bot.reactionUntil or 0)<=os.clock() do task.wait(.2) end
                             bot.working=false
