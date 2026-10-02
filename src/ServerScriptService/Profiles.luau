@@ -80,10 +80,11 @@ function Profiles.Load(userId)
 end
 
 function Profiles.Save(userId,data,release)
-    if not store or not owned[userId] then return false end
+    if not store then return false,"unavailable" end
+    if not owned[userId] then return false,"ownership" end
     -- Snapshot after waiting, so an older autosave cannot overwrite a leave/save.
     while locks[userId] do task.wait(.05) end
-    if not owned[userId] then return false end
+    if not owned[userId] then return false,"ownership" end
     locks[userId]=true
     local snapshot=Profiles.Sanitize(data)
     local key="Player_"..userId
@@ -97,7 +98,7 @@ function Profiles.Save(userId,data,release)
         end)
         if success then
             locks[userId]=nil
-            if result==nil then owned[userId]=nil;return false end
+            if result==nil then owned[userId]=nil;return false,"ownership" end
             if release then owned[userId]=nil end
             return true
         end
@@ -105,7 +106,7 @@ function Profiles.Save(userId,data,release)
         task.wait(attempt)
     end
     locks[userId]=nil
-    return false
+    return false,"retry"
 end
 
 return Profiles

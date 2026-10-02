@@ -36,7 +36,7 @@ local function state(p,message,conversation)
  availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,s.voice.nextCast-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,testSession=s.testBaseline~=nil,message=message})
+ conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,testSession=s.testBaseline~=nil,message=message})
 end
 local function syncHealth(p,full)
  local s=sessions[p];local _,_,h=parts(p);if not s or not h then return end
@@ -408,5 +408,17 @@ task.spawn(function()
   end
  end
 end)
-task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(Profiles.Save,p.UserId,s.testBaseline or s.data) end end end end)
+local function autosave(p,s)
+ local ok,reason=Profiles.Save(p.UserId,s.testBaseline or s.data)
+ -- A leave/rejoin can finish while UpdateAsync is yielding.
+ if sessions[p]~=s or not p.Parent then return end
+ if ok then s.saveDelayed=false
+ elseif reason=="ownership" or reason=="unavailable" then
+  s.canSave=false;s.saveDelayed=false;state(p,"Saving is unavailable. Progress from here is temporary; rejoin before continuing progression.")
+ else
+  local first=not s.saveDelayed;s.saveDelayed=true
+  if first then state(p,"Save delayed. Your progress is still in this server; saving will retry automatically.") end
+ end
+end
+task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(autosave,p,s) end end end end)
 game:BindToClose(function() local pending=0;for p,s in pairs(sessions) do if s.canSave then pending+=1;task.spawn(function() Profiles.Save(p.UserId,s.testBaseline or s.data,true);pending-=1 end) end end;local deadline=os.clock()+25;while pending>0 and os.clock()<deadline do task.wait(.1) end end)

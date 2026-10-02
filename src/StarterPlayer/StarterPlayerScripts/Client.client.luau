@@ -306,9 +306,12 @@ Run.RenderStepped:Connect(function(dt)
   local npcRoot=conversationNPC and conversationNPC.Parent and conversationNPC:FindFirstChild("HumanoidRootPart")
   if modal.Visible or not root or not npcRoot or (root.Position-npcRoot.Position).Magnitude>18 or os.clock()>conversationUntil then closeConversation() end
  end
- saveNotice.Text=data.testSession and "TEST SESSION · progress is temporary" or data.savingAvailable==false and "Temporary progress · saving unavailable" or ""
+ saveNotice.Text=data.testSession and "TEST SESSION · progress is temporary" or data.savingDelayed and "Save delayed · retrying automatically" or data.savingAvailable==false and "Temporary progress · saving unavailable" or ""
  saveNotice.Visible=not modal.Visible and viewport.X>=820
- if viewport.X<820 and (data.testSession or data.savingAvailable==false) then xpText.Text="TEMPORARY PROGRESS • not saved" end
+ if viewport.X<820 then
+  if data.testSession or data.savingAvailable==false then xpText.Text="TEMPORARY PROGRESS • not saved"
+  elseif data.savingDelayed then xpText.Text="SAVE DELAYED • retrying" end
+ end
  micScale.Scale=1
  local micWidth=math.min(430,viewport.X-24);local micNarrow=micWidth<400
  micPanel.Size=UDim2.fromOffset(micWidth,micNarrow and 320 or 260);micTitle.TextSize=micNarrow and 18 or 21
