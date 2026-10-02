@@ -1,6 +1,7 @@
 local Config = require(game:GetService("ReplicatedStorage").Shared.Config)
 local RunService = game:GetService("RunService")
 local PathfindingService = game:GetService("PathfindingService")
+local Collection=game:GetService("CollectionService")
 
 local World = {}
 World.ZoneMin = Config.ZoneMin
@@ -217,8 +218,13 @@ function World.Speak(bot, message)
     end)
 end
 
-function World.Talk(bot, player)
+local function stopWalking(bot)
+    bot.pathVersion=(bot.pathVersion or 0)+1
+    bot.humanoid:MoveTo(bot.root.Position)
     bot.working=false
+end
+function World.Talk(bot, player)
+    stopWalking(bot)
     if player and player.Character then
         local root = player.Character:FindFirstChild("HumanoidRootPart")
         if root then faceToward(bot, root.Position) end
@@ -251,18 +257,19 @@ local function chooseDestination(bot)
 end
 
 local function roamTo(bot, destination)
-    local path = PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5, AgentCanJump=false, AgentCanClimb=false, WaypointSpacing=5})
+    bot.pathVersion=(bot.pathVersion or 0)+1;local version=bot.pathVersion
+    local path = PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5, AgentCanJump=false, AgentCanClimb=false, WaypointSpacing=5, Costs={Fountain=math.huge,Asphalt=8}})
     local ok = pcall(function() path:ComputeAsync(bot.root.Position, destination) end)
-    if not ok or path.Status ~= Enum.PathStatus.Success then task.wait(0.3); return end
+    if not ok or path.Status ~= Enum.PathStatus.Success or bot.pathVersion~=version then task.wait(0.3); return end
     local blocked = false
     local connection = path.Blocked:Connect(function() blocked = true end)
     for _, waypoint in ipairs(path:GetWaypoints()) do
-        if blocked or not bot.alive or not bot.model.Parent or (bot.reactionUntil or 0) > os.clock() then break end
+        if bot.pathVersion~=version or blocked or not bot.alive or not bot.model.Parent or (bot.reactionUntil or 0) > os.clock() then break end
         if waypoint.Action == Enum.PathWaypointAction.Jump then break end
         bot.humanoid:MoveTo(waypoint.Position)
         local started, lastProgress, previous = os.clock(), os.clock(), bot.root.Position
         while (Vector3.new(waypoint.Position.X,bot.root.Position.Y,waypoint.Position.Z)-bot.root.Position).Magnitude > 2.8 do
-            if not bot.alive or blocked or (bot.reactionUntil or 0) > os.clock() or os.clock()-started > 4 then break end
+            if bot.pathVersion~=version or not bot.alive or blocked or (bot.reactionUntil or 0) > os.clock() or os.clock()-started > 4 then break end
             if (bot.root.Position-previous).Magnitude > 0.7 then previous = bot.root.Position; lastProgress = os.clock() end
             if os.clock()-lastProgress > 0.8 then bot.humanoid:MoveTo(bot.root.Position); blocked=true; break end
             task.wait(0.06)
@@ -282,6 +289,7 @@ local function socialize(bot)
     end
     if #friends == 0 then return false end
     local friend = friends[rng:NextInteger(1, #friends)]
+    stopWalking(bot);stopWalking(friend)
     bot.socialUntil, friend.socialUntil = os.clock() + 8, os.clock() + 8
     bot.gestureUntil, friend.gestureUntil = os.clock() + 3, os.clock() + 3
     faceToward(bot, friend.root.Position)
@@ -311,7 +319,7 @@ local function noticePlayers(bot)
 end
 
 function World.ReactToScream(bot, origin)
-    bot.working=false
+    stopWalking(bot)
     bot.reactionUntil = os.clock() + 2.3
     bot.gestureUntil = bot.reactionUntil
     local delta = bot.root.Position - origin
@@ -444,6 +452,7 @@ local function makeBot(parent, index, x, z, role, job)
         joints = {ls, rs, lh, rh}, lastGreeting = -1000}
     for _, limb in ipairs(bot.joints) do limb:SetAttribute("RestPose", limb.C0) end
     table.insert(World.Bots, bot)
+    model:SetAttribute("AnimationSeed",index);Collection:AddTag(model,"CityResident")
     if RunService:IsRunning() then
         task.spawn(function()
             task.wait(index * 0.08)
@@ -451,7 +460,9 @@ local function makeBot(parent, index, x, z, role, job)
                 if bot.alive then
                     if (bot.reactionUntil or 0) > os.clock() then
                         task.wait(0.5)
-                    elseif job and (bot.socialUntil or 0)<=os.clock() then
+                    elseif (bot.socialUntil or 0)>os.clock() then
+                        task.wait(.2)
+                    elseif job then
                         bot.jobStep=bot.jobStep%#job.stations+1
                         local station=job.stations[bot.jobStep]
                         bot.working=false;model:SetAttribute("Activity","Walking to work")
@@ -569,21 +580,9 @@ function World.Build()
                 for _,bot in ipairs(World.Bots) do
                     if bot.water then bot.water.Enabled=bot.alive and bot.working==true end
                     if not bot.alive or not bot.root.Parent then continue end
-                    local velocity=bot.root.AssemblyLinearVelocity;local speed=Vector3.new(velocity.X,0,velocity.Z).Magnitude
-                    local moving=speed>.4 and bot.humanoid.FloorMaterial~=Enum.Material.Air
-                    local swing=moving and math.sin(now*math.max(6,speed*1.2)+tonumber(bot.id:sub(4)))*.42 or 0
-                    for i,j in ipairs(bot.joints) do
-                        local angle=(i==1 or i==4) and swing or -swing
-                        if not moving and (bot.gestureUntil or 0)>now and i==1 then angle=-.8+math.sin(now*5)*.15 end
-                        if bot.working and not moving then
-                            if bot.role=="Soccer" and i==4 then angle=math.sin(now*2)*.9
-                            elseif bot.role=="Gardener" and i==2 then angle=-.9+math.sin(now*1.6)*.12
-                            elseif bot.role=="Artist" and i==2 then angle=-1.2+math.sin(now*3)*.18
-                            elseif bot.role=="Artist" and i==1 then angle=-.7
-                            elseif bot.role=="Vendor" and i<=2 then angle=-.6+math.sin(now*2+i)*.3 end
-                        end
-                        j.C0=j:GetAttribute("RestPose")*CFrame.Angles(angle,0,0)
-                    end
+                    local gesture=(bot.gestureUntil or 0)>now
+                    if bot.model:GetAttribute("Gesturing")~=gesture then bot.model:SetAttribute("Gesturing",gesture) end
+                    if bot.model:GetAttribute("Working")~=(bot.working==true) then bot.model:SetAttribute("Working",bot.working==true) end
                     if grounding>=.25 then
                         local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
                         local exclude={};for _,b in ipairs(World.Bots) do table.insert(exclude,b.model) end
@@ -606,6 +605,7 @@ function World.Build()
     return parent
 end
 function World.UpdateBot(bot)
+    stopWalking(bot);bot.model:SetAttribute("Working",false)
     bot.label.Text=bot.alive and (bot.name.."  "..bot.health.."/"..Config.BotMaxHealth) or "RECOVERING"
     if bot.alive then
         bot.humanoid.Health=bot.health

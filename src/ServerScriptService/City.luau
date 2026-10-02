@@ -77,7 +77,7 @@ local function building(parent,cf,w,d,floors,index,style)
  local function b(name,size,pos,c,mat,solid) return part(m,name,size,cf*CFrame.new(pos),c,mat,solid) end
  local interior=index%7==0 and w>=24 and d>=20
  if interior then
-  m:SetAttribute("WalkableInterior",true)
+  m:SetAttribute("WalkableInterior",true);m:SetAttribute("Entrance",cf*CFrame.new(0,3.8,-d/2))
   b("UpperMasonry",V(w,h-8,d),V(0,9+(h-8)/2,0),color,Enum.Material.Plaster)
   b("InteriorFloor",V(w,.3,d),V(0,1.1,0),cream,Enum.Material.WoodPlanks)
   b("RearWall",V(w,8,1),V(0,5,d/2-.5),stone,Enum.Material.Limestone)
@@ -184,11 +184,11 @@ local function block(parent,x,z,index,style,walk,activities)
  end end
  -- Perimeter paths never cross the buildings; courtyard entrances are between facades.
  for _,side in ipairs({-1,1}) do for _,n in ipairs({-70,0,70}) do
-  table.insert(walk,V(x+n,4,z+side*109));table.insert(walk,V(x+side*109,4,z+n))
+  table.insert(walk,V(x+n,4,z+side*101));table.insert(walk,V(x+side*101,4,z+n))
  end end
  table.insert(activities,{position=V(x,4,z),kind="Rest"})
- for _,dx in ipairs({-110,110}) do lamp(m,x+dx,z-60);tree(m,x+dx,z+42,false) end
- if index%2==0 then cafe(m,x,z+108,Color3.fromRGB(103,129,108)) end
+ for _,dx in ipairs({-102,102}) do lamp(m,x+dx,z-60);tree(m,x+dx,z+42,false) end
+ if index%2==0 then cafe(m,x+18,z+40,Color3.fromRGB(103,129,108)) end
 end
 local function oldTown(parent,x,z,index,walk,activities)
  local m=model(parent,"BornLanes_"..index);octagon(m,x,z)
@@ -236,6 +236,8 @@ local function landmarkQuarter(parent,x,z,walk,activities)
  for _,dx in ipairs({-50,50}) do bench(m,CFrame.new(x+dx,0,z+34));table.insert(activities,{position=V(x+dx,4,z+26),kind="Watch"}) end
 end
 local function fountain(parent,x,z)
+ local avoid=part(parent,"FountainNavigation",V(32,9,32),V(x,4,z),stone,nil,false);avoid.Transparency=1
+ local modifier=Instance.new("PathfindingModifier");modifier.Label="Fountain";modifier.Parent=avoid
  cylinder(parent,"FountainBasin",15,1,V(x,1.5,z),stone,Enum.Material.Marble)
  cylinder(parent,"FountainWater",13,.2,V(x,2.1,z),Color3.fromRGB(75,166,177),Enum.Material.Glass)
  cylinder(parent,"FountainPedestal",2,5,V(x,4,z),cream,Enum.Material.Marble)
@@ -423,7 +425,7 @@ function City.Build(parent)
  end
  for i=1,6 do marker("Bottle"..i,"Litter",V(-380+i*115,1.9,535+(i%2)*25),"Collect bottle") end
  marker("CoffeeOrder","Pickup",V(-480,2,414),"Pick up coffee")
- marker("StageDelivery","Dropoff",V(150,2,414),"Deliver coffee")
+ marker("StageDelivery","Dropoff",V(150,2,403),"Deliver coffee")
  marker("BoardwalkStart","RaceStart",V(-240,2,403),"Start 25s dash")
  marker("PierFinish","RaceFinish",V(240,2,403),"Finish dash")
  -- Boundaries sit outside street edges, never across an interior road.
