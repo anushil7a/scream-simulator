@@ -33,8 +33,17 @@ end)
 Run.PreSimulation:Connect(function(dt)
  for player,rig in pairs(rigs) do
   if not rig.character.Parent then continue end
-  local function pose(name,offset)
-   local j=rig.joints[name];if j and j.Parent then j.Transform=j.Transform*offset;rig.offsets[j]=(rig.offsets[j] or CFrame.identity)*offset end
+  local function pose(name,offset,jointSpace)
+   local j=rig.joints[name]
+   if j and j.Parent then
+    if not jointSpace then
+     -- R6 joint bases include quarter turns. Express body motions in the
+     -- parent part's axes so forward motion stays forward on both rig types.
+     local basis=j:IsA("Motor6D") and j.C0.Rotation or j.Attachment0 and j.Attachment0.CFrame.Rotation or CFrame.identity
+     offset=basis:Inverse()*offset*basis
+    end
+    j.Transform=j.Transform*offset;rig.offsets[j]=(rig.offsets[j] or CFrame.identity)*offset
+   end
   end
   local now=workspace:GetServerTimeNow();local ends=player:GetAttribute("DodgeEnds") or 0;local started=player:GetAttribute("DodgeStarted") or 0
   local grounded=rig.humanoid.FloorMaterial~=Enum.Material.Air
@@ -49,7 +58,7 @@ Run.PreSimulation:Connect(function(dt)
     local roll=CFrame.new(0,-1.1*tuck,0)*CFrame.Angles(-math.pi*2*t,0,0)
     local basis=rootJoint:IsA("Motor6D") and rootJoint.C0 or rootJoint.Attachment0 and rootJoint.Attachment0.CFrame or CFrame.identity
     local offset=basis:Inverse()*roll*basis
-    pose(rootJoint.Name,offset)
+    pose(rootJoint.Name,offset,true)
    end
    for _,name in ipairs({"Left Shoulder","Right Shoulder","LeftShoulder","RightShoulder"}) do pose(name,CFrame.Angles(-1.4*tuck,0,0)) end
    for _,name in ipairs({"Left Hip","Right Hip","LeftHip","RightHip"}) do pose(name,CFrame.Angles(1.2*tuck,0,0)) end
