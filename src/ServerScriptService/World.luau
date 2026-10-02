@@ -327,7 +327,7 @@ function World.UseSeat(bot,seat,duration)
     if bot.humanoid.SeatPart~=seat then releaseSeat(bot);return false end
     local reading=(bot.model:GetAttribute("AnimationSeed") or 0)%2==0
     bot.model:SetAttribute("Resting",true);bot.model:SetAttribute("Reading",reading)
-    bot.model:SetAttribute("Activity",reading and "Reading in the courtyard" or "Taking a quiet break")
+    bot.model:SetAttribute("Activity",reading and (seat:GetAttribute("RestSetting")=="Beach" and "Reading by the sea" or "Reading in the courtyard") or "Taking a quiet break")
     if reading then
         local arm=bot.model:FindFirstChild("Left Arm")
         if arm then bot.readingBook=accessory(bot.model,arm,"CourtyardBook",Vector3.new(1.3,.15,1.1),CFrame.new(.3,-1,-.4),Color3.fromRGB(57,112,105),Enum.Material.Fabric) end

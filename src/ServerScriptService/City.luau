@@ -502,6 +502,41 @@ local function bicycle(parent,x,z)
  part(m,"Fork",V(.35,3,.35),V(x+2.5,3,z),iron,Enum.Material.Metal)
  destructible(m,"Bike")
 end
+local function coastalLookout(parent,walk,activities)
+ local m=model(parent,"LifeguardLookout")
+ local blue=Color3.fromRGB(112,173,181)
+ -- A small open station, with a clear stair approach from the promenade.
+ part(m,"LookoutDeck",V(22,.6,20),V(-240,3,458),Color3.fromRGB(160,126,87),Enum.Material.WoodPlanks)
+ for _,x in ipairs({-249,-231}) do for _,z in ipairs({451,465}) do
+  part(m,"LookoutSupport",V(.8,2.7,.8),V(x,1.65,z),dark,Enum.Material.Wood)
+ end end
+ for i=1,5 do
+  local top=1+i*.46
+  part(m,"LookoutStair",V(8,top-1,3.6),V(-240,(top+1)/2,430+i*3.6),Color3.fromRGB(160,126,87),Enum.Material.WoodPlanks)
+ end
+ for _,x in ipairs({-250.5,-229.5}) do
+  part(m,"DeckRail",V(.3,.3,19),V(x,6,458),cream,Enum.Material.Wood)
+  for _,z in ipairs({449,458,467}) do part(m,"DeckRailPost",V(.3,2.8,.3),V(x,4.7,z),cream,Enum.Material.Wood) end
+ end
+ -- Solid wall below windows, open doorway and shaded public balcony.
+ part(m,"CabinBack",V(14,9,.4),V(-240,7.8,466),blue,Enum.Material.WoodPlanks)
+ for _,x in ipairs({-247,-233}) do
+  part(m,"CabinSideBase",V(.4,3,10),V(x,4.8,461),blue,Enum.Material.WoodPlanks)
+  part(m,"CabinSideLintel",V(.4,.8,10),V(x,11.9,461),cream,Enum.Material.Wood)
+  for _,z in ipairs({456,461,466}) do part(m,"WindowMullion",V(.35,5.2,.35),V(x,8.9,z),cream,Enum.Material.Wood) end
+ end
+ for _,x in ipairs({-245.5,-234.5}) do part(m,"DoorSide",V(3,9,.4),V(x,7.8,456),blue,Enum.Material.WoodPlanks) end
+ part(m,"DoorLintel",V(8,1,.4),V(-240,11.8,456),cream,Enum.Material.Wood)
+ part(m,"LifeguardRoof",V(19,.6,15),CFrame.new(-240,12.9,461)*CFrame.Angles(.08,0,0),terra,Enum.Material.RoofShingles)
+ part(m,"FirstAidBox",V(2.4,2,.4),V(-243,6.7,465.6),cream,Enum.Material.Metal,false)
+ part(m,"AidCross",V(1.4,.35,.1),V(-243,6.7,465.33),terra,nil,false)
+ part(m,"AidCross",V(.35,1.4,.1),V(-243,6.7,465.32),terra,nil,false)
+ sign(m,"SOCORRISME",CFrame.new(-240,11.6,455.7),12)
+ cylinder(m,"Flagpole",.12,15,V(-251,8.5,465),iron,Enum.Material.Metal)
+ part(m,"BeachFlag",V(4,2.5,.08),V(-249,14.3,465),Color3.fromRGB(242,201,97),Enum.Material.Fabric,false)
+ table.insert(walk,V(-240,4,430));table.insert(walk,V(-240,6.3,452))
+ table.insert(activities,{position=V(-240,6.3,452),kind="Watch"})
+end
 local function coast(parent,walk,activities)
  local m=model(parent,"BarcelonetaCoast")
  part(m,"Beach",V(1440,3,170),V(0,-.5,515),Color3.fromRGB(227,208,156),Enum.Material.Sand)
@@ -520,21 +555,32 @@ local function coast(parent,walk,activities)
   end
   part(m,"BeachLounger",V(3,.5,7),V(x+4,1.6,z+5),cream,Enum.Material.Fabric)
   part(m,"LoungerBack",V(3,3,.4),CFrame.new(x+4,2.8,z+8)*CFrame.Angles(.4,0,0),color,Enum.Material.Fabric)
+  local seat=Instance.new("Seat");seat.Name="BeachSeat";seat:SetAttribute("RestSetting","Beach");seat.Size=V(2.5,.2,2);seat.CFrame=CFrame.new(x+4,2,z+5);seat.Anchored=true;seat.Transparency=1;seat.CanCollide=false;seat.Parent=m
+  local prompt=Instance.new("ProximityPrompt");prompt.ActionText="Sit";prompt.ObjectText="Beach lounger";prompt.KeyboardKeyCode=Enum.KeyCode.F;prompt.MaxActivationDistance=7;prompt.Parent=seat
+  prompt.Triggered:Connect(function(player)
+   local character=player.Character;local humanoid=character and character:FindFirstChildOfClass("Humanoid");local root=character and character:FindFirstChild("HumanoidRootPart")
+   if humanoid and humanoid.Health>0 and root and not seat.Occupant and (root.Position-seat.Position).Magnitude<9 then seat:Sit(humanoid) end
+  end)
+  if i%3==1 then table.insert(walk,V(x+4,4,z-2));table.insert(activities,{position=V(x+4,4,z-2),kind="Rest"}) end
   if i%3==0 and x<590 then ellipsoid(m,"SandDune",V(27,4,18),V(x,.7,565),Color3.fromRGB(219,200,148),Enum.Material.Sand) end
  end
  for x=-700,700,60 do local p=part(m,"SurfLine",V(40,.05,1.2),V(x,.08,600),Color3.fromRGB(214,235,225),nil,false);p.Transparency=.35 end
  part(m,"TimberPier",V(28,1.5,125),V(525,1.5,537),Color3.fromRGB(144,113,78),Enum.Material.WoodPlanks)
+ for i=1,3 do
+  local top=1+i*(1.25/3)
+  part(m,"PierApproachStep",V(20,top-1,3),V(525,(top+1)/2,466+i*3),Color3.fromRGB(144,113,78),Enum.Material.WoodPlanks)
+ end
  for z=480,590,22 do for _,x in ipairs({511,539}) do cylinder(m,"PierPost",.4,6,V(x,2,z),dark,Enum.Material.Wood) end end
  for _,x in ipairs({511,539}) do part(m,"PierRail",V(.5,.5,110),V(x,4,535),stone,Enum.Material.Wood) end
+ table.insert(walk,V(525,5,481));table.insert(walk,V(525,5,580))
+ table.insert(activities,{position=V(525,5,580),kind="Watch"})
  -- Café and performance terrace are entirely pedestrian.
  building(m,CFrame.new(-480,0,399)*CFrame.Angles(0,math.pi,0),48,23,1,501,"Marina")
  for i=1,4 do cafe(m,-522+i*17,439,Color3.fromRGB(59,115,106)) end
  part(m,"EncoreStage",V(32,1.5,20),V(150,1.7,428),dark,Enum.Material.WoodPlanks)
  for _,x in ipairs({136,164}) do part(m,"StageSpeaker",V(3,6,3),V(x,5,433),iron,Enum.Material.Metal) end
  sign(m,"MÚSICA A LA MAR",CFrame.new(150,8,437)*CFrame.Angles(0,math.pi,0),30)
- part(m,"LifeguardCabin",V(14,8,12),V(-240,7,458),Color3.fromRGB(112,173,181),Enum.Material.WoodPlanks)
- part(m,"LifeguardRoof",V(18,.7,16),V(-240,11.5,458),terra,Enum.Material.RoofShingles)
- for _,x in ipairs({-246,-234}) do part(m,"LifeguardLeg",V(1,4,1),V(x,2,458),dark,Enum.Material.Wood) end
+ coastalLookout(m,walk,activities)
  for _,x in ipairs({-70,-30}) do cylinder(m,"VolleyballPost",.3,9,V(x,5.5,505),iron,Enum.Material.Metal) end
  for y=5,9 do part(m,"VolleyballNet",V(40,.1,.1),V(-50,y,505),cream,nil,false) end
  for x=-70,-30,2 do part(m,"VolleyballNet",V(.1,4,.1),V(x,7,505),cream,nil,false) end
