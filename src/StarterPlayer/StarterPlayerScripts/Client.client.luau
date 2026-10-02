@@ -49,7 +49,7 @@ local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-24,0,19),UDim2.fromOffset(12,52
 local xb=frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,79),panel)
 local xf=frame(xb,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
-local tracked=label(gui,"",UDim2.fromOffset(250,66),UDim2.fromOffset(16,56),13);tracked.TextYAlignment=Enum.TextYAlignment.Top
+local tracked=label(gui,"",UDim2.fromOffset(290,66),UDim2.fromOffset(16,56),13);tracked.TextYAlignment=Enum.TextYAlignment.Top
 local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center;toast.AnchorPoint=Vector2.new(.5,1);toast.Position=UDim2.fromScale(.5,.72)
 local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
 local toastUntil=0;local toastWidth=0
@@ -252,7 +252,7 @@ remotes.State.OnClientEvent:Connect(function(nextData)
  zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
  testButton.Visible=data.devAccess==true
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
- tracked.Text=q and (q.name.."  "..(data.questStep or (v.progress.."/"..q.goal))..(data.questTime>0 and "  •  "..data.questTime.."s" or "")) or ""
+ tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ""
  if data.message then notify(data.message) end
  if data.conversation then showConversation(data.conversation) end
  local key=game:GetService("HttpService"):JSONEncode({data.level,data.xp,data.sound,data.aura,data.quests,data.activeQuest,data.settings,data.availableQuests,data.amplifierOwned,data.amplifierEquipped,data.movementPass})

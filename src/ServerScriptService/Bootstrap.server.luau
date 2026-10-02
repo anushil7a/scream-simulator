@@ -10,6 +10,7 @@ local VoiceCombat=require(ReplicatedStorage.Shared.VoiceCombat)
 local Entitlements=require(script.Parent.Entitlements)
 local Soccer=require(script.Parent.SoccerChallenge)
 local QuestLifecycle=require(ReplicatedStorage.Shared.QuestLifecycle)
+local QuestGuide=require(ReplicatedStorage.Shared.QuestGuide)
 local Equipment=require(script.Parent.Equipment)
 World.Build()
 local Destruction=require(script.Parent.Destruction)
@@ -27,10 +28,12 @@ local function state(p,message,conversation)
  local s=sessions[p];if not s or not p.Parent then return end
  local _,r,h=parts(p)
  local soccer=Soccer.Status(p)
+ local quest=Config.GetQuest(s.activeQuest);local progress=quest and s.data.quests[quest.id]
+ local step=QuestGuide.Step(quest,progress and progress.progress or 0,s.carrying,s.raceStart~=nil,soccer and soccer.detail)
  Equipment.Sync(p,s.data.amplifierEquipped)
  stateRemote:FireClient(p,{coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
  amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
- availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=soccer and soccer.detail,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
+ availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,s.voice.nextCast-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,testSession=s.testBaseline~=nil,message=message})
