@@ -133,7 +133,12 @@ render=function()
    if not unlocked then b.TextColor3=muted end
   end
  elseif selected=="Quests" then
-  title.Text="CITY QUESTS";subtitle.Text="Meet residents to unlock their tasks. Completed tasks award XP and coins."
+  title.Text="CITY QUESTS";subtitle.Text="One active task. Switching or abandoning resets unfinished progress."
+  if data.activeQuest then
+   local current=Config.GetQuest(data.activeQuest);local c=card(96)
+   label(c,"CURRENT: "..(current and current.name or data.activeQuest),UDim2.new(1,-28,0,38),UDim2.fromOffset(14,6),14,gold)
+   button(c,"AbandonQuest","ABANDON",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,50),function() action:FireServer("AbandonQuest") end)
+  end
   for _,q in ipairs(Config.Quests) do
    local available=data.availableQuests and data.availableQuests[q.id]
    if q.hidden and not available then continue end
@@ -149,7 +154,7 @@ render=function()
    label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
    label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
    button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and (q.id=="nick" and "RESTART" or "TRACKING") or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
-    if available and not v.claimed then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
+    if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id or q.id=="nick") then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
    end)
   end
  elseif selected=="Style" then
@@ -203,10 +208,11 @@ showConversation=function(info)
   order+=1;local b=button(conversationList,"Choice",text,UDim2.new(1,-10,0,48),UDim2.new(),callback);b.TextWrapped=true;b.LayoutOrder=order;return b
  end
  choice("Tell me about this neighborhood",function() line.Text=info.hint end)
+ if data.activeQuest then words("Starting another task resets unfinished progress on your current task.",muted) end
  for _,q in ipairs(info.quests or {}) do
   words(q.description,muted)
-  local b=choice(q.claimed and (q.name.." · completed") or ("Accept: "..q.name),function()
-   if not q.claimed then action:FireServer("AcceptQuest",q.id);closeConversation() end
+  local b=choice(q.claimed and (q.name.." · completed") or ((q.complete and "Claim: " or "Accept: ")..q.name),function()
+   if not q.claimed then action:FireServer(q.complete and "ClaimQuest" or "AcceptQuest",q.id);closeConversation() end
   end)
   b.Active=not q.claimed;b.AutoButtonColor=not q.claimed
  end

@@ -9,6 +9,7 @@ local Rules=require(script.Parent.CombatRules)
 local VoiceCombat=require(ReplicatedStorage.Shared.VoiceCombat)
 local Entitlements=require(script.Parent.Entitlements)
 local Soccer=require(script.Parent.SoccerChallenge)
+local QuestLifecycle=require(ReplicatedStorage.Shared.QuestLifecycle)
 local Equipment=require(script.Parent.Equipment)
 World.Build()
 local Destruction=require(script.Parent.Destruction)
@@ -55,6 +56,10 @@ local function questProgress(p,event,amount)
  local q=Config.GetQuest(s.activeQuest);if not q or q.event~=event then return end
  local v=s.data.quests[q.id];if not v or v.claimed then return end
  v.progress=math.min(q.goal,v.progress+(amount or 1));state(p,v.progress==q.goal and "Quest complete! Claim your reward in Quests." or nil)
+end
+local function stopQuest(p)
+ local s=sessions[p];if not s then return end
+ Soccer.Cancel(p);QuestLifecycle.Clear(s,Config.GetQuest)
 end
 local function protect(p,s)
  VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
@@ -196,7 +201,7 @@ local function talk(p,id)
   local choices={}
   for _,id in ipairs(b.questIds or {}) do
    local q=Config.GetQuest(id);local progress=s.data.quests[id]
-   if q then table.insert(choices,{id=id,name=q.name,description=q.description,claimed=progress and progress.claimed==true}) end
+   if q then table.insert(choices,{id=id,name=q.name,description=q.description,claimed=progress and progress.claimed==true,complete=progress and progress.progress>=q.goal}) end
   end
   local hints={Gardener="The raised flowerbeds in Rambla Gardens need water. Hold F beside each bed after accepting my task.",Vendor="The café prepares orders for the music stage. Pick up a fresh order before starting your delivery.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker="Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
   state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices});return
@@ -216,7 +221,7 @@ local function dev(p,command)
  elseif command=="LevelOne" then s.data.level=1;s.data.xp=0;s.data.sound="TinyAah"
  elseif command=="Heal" and h then h.Health=h.MaxHealth
  elseif positions[command] and c then c:PivotTo(positions[command]);protect(p,s)
- elseif command=="ResetQuests" then s.data.quests={};s.activeQuest=nil;s.questDeadline=nil;s.collected={};effect:FireClient(p,"ResetCollected")
+ elseif command=="ResetQuests" then stopQuest(p);s.data.quests={};effect:FireClient(p,"ResetCollected")
  elseif command=="ResetBots" then for _,b in ipairs(World.Bots) do b.health=Config.BotMaxHealth;b.alive=true;World.UpdateBot(b) end
  else return end
  syncHealth(p,command=="Heal");state(p,"Test applied · this session does not save")
@@ -316,14 +321,16 @@ action.OnServerEvent:Connect(function(p,verb,arg)
    if not root or (root.Position-Vector3.new(647,4,547)).Magnitude>90 then state(p,"Return to Nick's coastal court to start.");return end
   end
   if q then local v=s.data.quests[q.id];if not v then v={progress=0,claimed=false};s.data.quests[q.id]=v end
-   if not v.claimed then Soccer.Cancel(p);s.activeQuest=q.id;s.questDeadline=nil;s.carrying=false;s.raceStart=nil;state(p,q.name.." accepted")
+   if not v.claimed and v.progress>=q.goal then state(p,"Task complete · claim your reward.");return end
+   if not v.claimed then stopQuest(p);s.activeQuest=q.id;state(p,q.name.." accepted")
     if q.id=="nick" then s.questDeadline=os.clock()+120;Soccer.Start(p,function(message) state(p,message) end,function()
      if sessions[p]==s and s.activeQuest=="nick" then s.questDeadline=nil;questProgress(p,"Soccer");state(p,"Nick: WE DID IT! Claim your reward in Quests.") end
     end) end
    end end
+ elseif verb=="AbandonQuest" then stopQuest(p);state(p,"Task abandoned. Unfinished progress was reset; earned rewards remain claimable.")
  elseif verb=="ClaimQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg);local v=q and s.data.quests[q.id]
-  if v and not v.claimed and v.progress>=q.goal then v.claimed=true;if q.id=="nick" then s.data.achievements.NickChampion=true end;s.data.coins+=q.coins;xp(p,q.xp);if s.activeQuest==q.id then s.activeQuest=nil end;state(p,"Quest reward · +"..q.xp.." XP · +"..q.coins.." coins") end
+  if v and not v.claimed and v.progress>=q.goal then v.claimed=true;if q.id=="nick" then s.data.achievements.NickChampion=true end;s.data.coins+=q.coins;xp(p,q.xp);if s.activeQuest==q.id then stopQuest(p) end;state(p,"Quest reward · +"..q.xp.." XP · +"..q.coins.." coins") end
  elseif verb=="SetSettings" and type(arg)=="table" then
   if type(arg.volume)=="number" and arg.volume==arg.volume then s.data.settings.volume=math.clamp(arg.volume,0,1) end
   if type(arg.reducedShake)=="boolean" then s.data.settings.reducedShake=arg.reducedShake end;state(p)
@@ -367,7 +374,7 @@ task.spawn(function()
     if h.Health<h.MaxHealth and now>=s.nextHeal then h.Health=math.min(h.MaxHealth,h.Health+h.MaxHealth*.2);s.nextHeal=now+10 end
     if r.Position.Y< -20 then p.Character:PivotTo(World.SafeSpawn);protect(p,s) end
    end
-   if s.questDeadline and now>s.questDeadline then s.questDeadline=nil;s.carrying=false;s.raceStart=nil;state(p,"Time's up · restart at the quest's starting point") end
+   if s.questDeadline and now>s.questDeadline then stopQuest(p);state(p,"Time's up · accept the task again to restart.") end
    p:SetAttribute("SprintCharge",s.sprintCharge);p:SetAttribute("SprintCooldown",math.max(0,s.sprintLockedUntil-now));p:SetAttribute("Sprinting",running==true)
    if tick%5==0 then state(p) end
   end
