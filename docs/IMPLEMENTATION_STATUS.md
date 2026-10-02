@@ -531,3 +531,9 @@ Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo p
 - `StudioConversationCover.server.luau`: six native checks passed against the actual `talk` handler and shared rule: solid wall rejects, non-solid decoration permits, distance rejects. The vendor call site uses the same guard, but a new live vendor purchase was not exercised in this fixture.
 - Updated local crowd-label fixture to provide a real viewer model; all eight checks passed again. Native tests use positioned characters, not physical input/multiplayer.
 - New module creation through the generic execution tool was rejected by Studio capabilities; used the supported script-edit tool to create it. No permission/capability settings changed. Fixtures removed and clean source synced to both stopped development copies.
+
+## 2026-10-02 — refreshed source and city regression baseline
+
+- At `48bf91e`, all 26 production Luau sources compile. The combat/mic/destruction (4,007), progression (1,506), profile lease (12), quest lifecycle (5), and actual Profiles/mock-store concurrency (13) suites passed: 5,543 assertions/scenarios total. Leveling estimates remain mathematical, not player-playtest evidence.
+- Fresh native pathfinding passed all 78 cases: 31 shops, 26 courtyard passages, 12 coastal destinations, 3 audience positions and 6 arrival-plaza routes. Static audit: 50,390 parts, 3,489 solid, 31 interiors, zero static road/door/aisle blockers. Raw results: `tests/evidence/city-routes-48bf91e-2026-10-02.json`.
+- This updates the source/navigation baseline after the plaza, traffic and interaction changes. It does not rerun the 30-minute NPC observation or close physical microphone, mobile/multiplayer, art-review or real persistence gates. No fixture was installed for the read-only audits; play stopped afterward.

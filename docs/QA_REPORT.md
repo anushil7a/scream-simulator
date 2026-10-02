@@ -1,6 +1,6 @@
 # Redesign QA and release readiness
 
-Updated October 2, 2026. Full source-suite baseline: **7b8f065**; focused menu/traffic verification through **a6be978** on `feature/microphone-city-redesign`.
+Updated October 2, 2026. Full source-suite and native route baseline: **48bf91e** on `feature/microphone-city-redesign`.
 
 **Not ready for production publication.** The source/build is available for developer review in [draft PR #1](https://github.com/anushil7a/scream-simulator/pull/1). The live experience was last verified at version 32; this redesign has not been published over it.
 
@@ -8,9 +8,9 @@ This is a concise current handoff. [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STA
 
 ## Fresh source/build verification
 
-Executed against `7b8f065`:
+Executed against `48bf91e`:
 
-- All **25** `src/**/*.luau` files compile with `luau-compile`.
+- All **26** `src/**/*.luau` files compile with `luau-compile`.
 - `luau tests/VoiceCombat.luau`: **4,007** combat, microphone-processing and destruction rule assertions.
 - `luau tests/Progression.luau`: **1,506** progression/migration assertions. Printed leveling times are mathematical estimates, not player-playtest results.
 - `luau tests/ProfileLease.luau`: **12** lease assertions.
@@ -40,7 +40,7 @@ Implemented: separate roll, collision checks, sprint exhaustion/recovery, jump/l
 
 Implemented: Barcelona-inspired district layout, 40% central PvP land, safe surroundings, 31 enterable shops, 13 varied courtyards, market, beach, pier/lookout, swimming boundary, seating, selected quest givers and 46 residents. Additions include performance audiences, microphone beach volley, active street-furniture maintenance and distinct worker uniforms.
 
-On `70a4cf5`, native checks passed all **72** route cases and found zero static road, doorway or interior-aisle obstructions. Later changes include the distant sea backdrop color and authored spawn-plaza corners (see below); those older route results are scoped to their recorded revision. The raw route results are in [city-routes-70a4cf5-2026-10-02.json](../tests/evidence/city-routes-70a4cf5-2026-10-02.json). That inspected world contained 50,285 parts / 3,468 solid parts, which still warrants load/device profiling.
+On `48bf91e`, native checks passed all **78** route cases: 31 shops, 26 courtyard passages, 12 coastal destinations, 3 audience positions and 6 arrival-plaza routes. The static audit found zero road, doorway or interior-aisle obstructions. [Current raw results](../tests/evidence/city-routes-48bf91e-2026-10-02.json) retain the run context. The inspected world contained 50,390 parts / 3,489 solid parts and 31 enterable shops. These results cover the new arrival-plaza geometry; they do not replace physical traversal, city-wide art review or load/device profiling.
 
 Scoped tests: audience behavior: 12 checks; volley: 16 scripted checks including a synthetic cast through Bootstrap; maintenance: 13 checks including a real quiet interval, actual worker navigation and player occupancy. None is a human two-player usability test.
 
@@ -110,4 +110,4 @@ Healthy NPC nameplates omit full-health counters. Client limits names to the on-
 
 ## Conversation cover correction — 2026-10-02
 
-Client targeting and server conversation/vendor access now share living-character, range and solid-cover checks. Six native assertions passed for actual conversation rejection through a wall, acceptance past non-solid decoration and out-of-range rejection. Eight crowd-label checks also passed with this rule. The older label section's missing line-of-sight filtering is superseded by this change. Vendor purchase with newly introduced cover and multiplayer timing remain untested in this focused fixture. Source now contains 26 Luau files; the 25-file full-suite baseline above remains historical.
+Client targeting and server conversation/vendor access now share living-character, range and solid-cover checks. Six native assertions passed for actual conversation rejection through a wall, acceptance past non-solid decoration and out-of-range rejection. Eight crowd-label checks also passed with this rule. The older label section's missing line-of-sight filtering is superseded by this change. Vendor purchase with newly introduced cover and multiplayer timing remain untested in this focused fixture. The full source-suite baseline above has since been refreshed to this revision.
