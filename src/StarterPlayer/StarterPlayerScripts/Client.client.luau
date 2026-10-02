@@ -148,7 +148,10 @@ devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60))
 local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
 label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
 label(devPanel,"Test commands disable saving this session.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
-for i,item in ipairs({{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level 300"},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}) do
+local testCommands={{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level 300"},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}
+if Run:IsStudio() then table.insert(testCommands,{"StudioMovement","Test movement"}) end
+testContent.CanvasSize=UDim2.fromOffset(0,math.ceil(#testCommands/2)*47)
+for i,item in ipairs(testCommands) do
  button(testContent,item[1],item[2],UDim2.fromOffset(98,44),UDim2.fromOffset(((i-1)%2)*108,math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
 end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then modal.Visible=false end end);testButton.Visible=false

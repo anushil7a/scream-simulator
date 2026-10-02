@@ -59,3 +59,7 @@ python3 tests/profile_race.py
 ```
 
 Compile changed scripts with `luau-compile`, build both place formats, then run the relevant native Studio regression. Document failures and untested cases. [Report an issue](https://github.com/anushil7a/scream-simulator/issues) with reproduction steps, build/commit, device and expected behavior.
+
+### Studio movement-pass testing
+
+In local Studio Play, open **TEST TOOLS**, scroll to **Test movement**, and toggle it on. The normal microphone requirement still applies. This grants a temporary movement entitlement only in Studio; safe-area movement limits and arena cooldowns remain enforced. Toggle again to remove it. The server rejects this command outside Studio even while public test tools are enabled. No purchase is prompted, and legitimate save progress is frozen before the test mutation. Real pass IDs remain unconfigured.

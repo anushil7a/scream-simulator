@@ -259,8 +259,9 @@ local function talk(p,id)
 end
 local function dev(p,command)
  local s=sessions[p];if not s or not Access.IsAuthorized(p,game.CreatorType,game.CreatorId) then return end
- local valid={Coins=true,XP=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true}
+ local valid={Coins=true,XP=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true,StudioMovement=true}
  if type(command)~="string" or not valid[command] then return end
+ if command=="StudioMovement" and not game:GetService("RunService"):IsStudio() then return end
  -- Freeze legitimate progress before any test mutation. Keep renewing/releasing its lease.
  if not s.testBaseline then s.testBaseline=Profiles.Sanitize(s.data);s.data=Profiles.Sanitize(s.data) end
  local c,_,h=parts(p)
@@ -272,9 +273,10 @@ local function dev(p,command)
  elseif command=="Heal" and h then h.Health=h.MaxHealth
  elseif positions[command] and c then c:PivotTo(positions[command]);protect(p,s)
  elseif command=="ResetQuests" then stopQuest(p);s.data.quests={}
+ elseif command=="StudioMovement" then Entitlements.SetStudioMovement(p,not Entitlements.HasStudioMovement(p))
  elseif command=="ResetBots" then for _,b in ipairs(World.Bots) do b.health=Config.BotMaxHealth;b.alive=true;World.UpdateBot(b) end
  else return end
- syncHealth(p,command=="Heal");state(p,"Test applied · this session does not save")
+ syncHealth(p,command=="Heal");state(p,command=="StudioMovement" and ("Studio movement test "..(Entitlements.HasStudioMovement(p) and "ON" or "OFF").." · safe areas only · not saved") or "Test applied · this session does not save")
 end
 World.OnVehicleSweep=function(car,previous,nextFrame)
  for player,s in pairs(sessions) do

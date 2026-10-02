@@ -115,3 +115,7 @@ Client targeting and server conversation/vendor access now share living-characte
 ## UI layout work reduction — 2026-10-02
 
 Fixed layout dimensions now recompute on viewport/touch-mode changes. Nine menu regression checks passed. Native iPhone 17 Pro simulation confirmed the open menu and five tab buttons remained in bounds after portrait/landscape changes (401×720 and 750×303 GUI viewports). This removes repeated calculations but is not a measured real-device FPS result.
+
+## Studio-only movement entitlement — 2026-10-02
+
+Added the brief's separate test entitlement, exposed only in Studio's TEST TOOLS panel and server-gated by IsStudio. Nine native checks passed for safe-area premium rolls, save-baseline isolation and arena-entry cooldown/immunity restoration using synthetic mic readiness/scripted placement. Nine actual-source mocked-service checks passed for non-Studio grant denial and player cleanup. No real paid ownership, purchase, microphone or multiplayer entitlement pass is claimed.
