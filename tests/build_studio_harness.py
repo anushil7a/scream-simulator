@@ -28,7 +28,7 @@ out=ROOT/'build';out.mkdir(exist_ok=True)
 common=[shared/'VoiceCombat.luau',shared/'Progression.luau',shared/'Config.luau']
 server_order=common+[shared/'ProfileLease.luau',shared/'DestructionRules.luau']+[server/(n+'.luau') for n in ['City','World','CombatRules','Profiles','DeveloperAccess','Entitlements','Equipment','SoccerChallenge','Destruction']]
 (out/'StudioServerHarness.luau').write_text(bundle(server_order,server/'Bootstrap.server.luau'))
-(out/'StudioClientHarness.luau').write_text(bundle(common+[shared/'MicPower.luau',client/'Microphone.luau'],client/'Client.client.luau'))
+(out/'StudioClientHarness.luau').write_text(bundle(common+[shared/'MicPower.luau',client/'Microphone.luau',client/'ScreamEffects.luau'],client/'Client.client.luau'))
 (out/'StudioAnimationsHarness.luau').write_text(bundle(common,client/'RunAnimation.client.luau')+'\n'+inline(client/'Residents.client.luau'))
 print('Assembled server, client and animation harnesses from current source')
 

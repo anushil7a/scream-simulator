@@ -8,6 +8,7 @@ local TextService=game:GetService("TextService")
 local p=Players.LocalPlayer
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
 local mic=require(script.Parent:WaitForChild("Microphone")).new()
+local ScreamEffects=require(script.Parent:WaitForChild("ScreamEffects"))
 local remotes=RS:WaitForChild("ScreamRemotes")
 local action=remotes:WaitForChild("Action")
 local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")
@@ -220,21 +221,7 @@ remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,
  local s=Config.GetSound(id);if not s then return end
  -- Actual voice is carried by Roblox proximity audio. Never play a recorded attack.
  direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range
- local width=beamWidth or 4;local center=pos+direction*length/2
- local beam=fxPart(center,color,Vector3.new(width,width,length));beam.Name="ScreamBeam";beam.CFrame=CFrame.lookAt(center,center+direction);beam.Transparency=.55
- local core=fxPart(center,Color3.fromRGB(255,245,206),Vector3.new(width*.22,width*.22,length));core.CFrame=beam.CFrame
- Tween:Create(beam,TweenInfo.new(.38),{Transparency=1,Size=Vector3.new(width*.5,width*.5,length)}):Play()
- Tween:Create(core,TweenInfo.new(.25),{Transparency=1}):Play()
- if not data.settings.reducedShake then
-  local count=s.effect=="Pulse" and 4 or 9
-  for i=1,count do
-   local side=Vector3.new(-direction.Z,0,direction.X);local phase=i*math.pi*2/count
-   local offset=(side*math.cos(phase)+Vector3.yAxis*math.sin(phase))*width*.35
-   local shard=fxPart(pos+offset,color,s.effect=="Feathers" and Vector3.new(.3,1.6,.7) or Vector3.new(.3,.3,2))
-   shard.CFrame=CFrame.lookAt(pos+offset,pos+offset+direction)
-   Tween:Create(shard,TweenInfo.new(.18+length/300),{Position=pos+direction*length+offset,Transparency=1}):Play()
-  end
- end
+ ScreamEffects.Render(s.effect,pos,direction,length,beamWidth or 4,color,data.settings.reducedShake,s.variant)
 end)
 local elapsed=0
 Run.RenderStepped:Connect(function(dt)
