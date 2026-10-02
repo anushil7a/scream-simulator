@@ -49,7 +49,10 @@ local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-24,0,19),UDim2.fromOffset(12,52
 local xb=frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,79),panel)
 local xf=frame(xb,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
-local tracked=label(gui,"",UDim2.fromOffset(290,66),UDim2.fromOffset(16,56),13);tracked.TextYAlignment=Enum.TextYAlignment.Top
+local tracked=label(gui,"",UDim2.fromOffset(290,50),UDim2.fromOffset(16,56),13);tracked.Name="QuestTracker";tracked.TextYAlignment=Enum.TextYAlignment.Top
+tracked.BackgroundColor3=dark;tracked.BackgroundTransparency=.12
+local trackerCorner=Instance.new("UICorner");trackerCorner.CornerRadius=UDim.new(0,8);trackerCorner.Parent=tracked
+local trackerPadding=Instance.new("UIPadding");trackerPadding.PaddingLeft=UDim.new(0,6);trackerPadding.PaddingRight=UDim.new(0,6);trackerPadding.PaddingTop=UDim.new(0,4);trackerPadding.PaddingBottom=UDim.new(0,4);trackerPadding.Parent=tracked
 local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center;toast.AnchorPoint=Vector2.new(.5,1);toast.Position=UDim2.fromScale(.5,.72)
 local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
 local toastUntil=0;local toastWidth=0
@@ -345,10 +348,12 @@ Run.RenderStepped:Connect(function(dt)
  testButton.Size=UDim2.fromOffset(tight and 90 or 112,touch and 44 or 32);testButton.Position=UDim2.new(1,tight and -104 or -126,0,14)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,64) or UDim2.new(0,14,1,-108)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
+ talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
+ talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
  hud.Visible=gameplayVisible;controls.Visible=gameplayVisible;controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
- tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and 166 or 64)
+ tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and 160 or 64)
  sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
- tracked.Visible=gameplayVisible;zone.Visible=viewport.X>740 and mic.ready
+ tracked.Visible=gameplayVisible and tracked.Text~="";zone.Visible=viewport.X>740 and mic.ready
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and "RELEASE TO FIRE" or "HOLD SCREAM [E]"
  castButton.BackgroundColor3=protected>0 and muted or gold
