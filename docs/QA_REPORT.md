@@ -64,6 +64,10 @@ Implemented: selected NPC tasks, Nick discovery and staged soccer challenge, one
 
 ## Owner/external inputs needed
 
+Latest continuation checkpoint (after `cbfed76`): native Studio access again returned `timeoutReached` on a fresh app binding. The Studio connector still lists only MicrophoneCity, Place1 and the untouched unnamed instance; no standalone lab instance is verified. No publication was attempted in this checkpoint. The previous turn made progress through the Animator recovery test; this checkpoint is blocked on the same UI/real-test inputs. Additional synthetic checks cannot close the outstanding real-audio, physical-device, multiplayer or owner art-review requirements.
+
+Concrete next action: open `build/MicrophoneFeasibility.rbxl` manually in Studio and follow `prototypes/microphone/README.md` to create a **new private** mic lab. Supply its link and two voice-eligible testers using separate microphones/devices. Keep the production experience unchanged. Also open `build/FountainReview.rbxl` for the pending saved-file asset review. Resume implementation from actual failures or review feedback; do not claim either gate passed from the earlier in-session previews.
+
 - Two voice-eligible accounts and separate real microphones/devices for the published mic feasibility test. A developer must create/use an isolated private test experience with voice/audio settings enabled. Do not connect experiments to production saves or publish WIP over the current experience.
 - Named desktop and physical phone targets, plus testers for representative multiplayer load. The working default is 24 players, 60 FPS desktop and 30 FPS phone; no final device result exists.
 - Real badge/pass IDs and prices if those products are to launch. IDs remain 0; do not invent IDs or trigger purchases. In-game achievements and entitlement hooks exist independently.
