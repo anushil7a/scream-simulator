@@ -568,8 +568,12 @@ local function makeBot(parent, index, x, z, role, job)
                         roamTo(bot,station.position,true)
                         if bot.alive and (Vector3.new(bot.root.Position.X,station.position.Y,bot.root.Position.Z)-station.position).Magnitude<.8 and (bot.reactionUntil or 0)<=os.clock() and (bot.socialUntil or 0)<=os.clock() then
                             bot.humanoid:MoveTo(bot.root.Position);faceToward(bot,station.lookAt)
+                            if role=="Soccer" then
+                                bot.practiceCycle=(bot.practiceCycle or 0)+1
+                                model:SetAttribute("PracticeRoutine",({"Miss","Trip","OwnGoal"})[(bot.practiceCycle-1)%3+1])
+                            end
                             bot.working=true;model:SetAttribute("WorkStarted",workspace:GetServerTimeNow());model:SetAttribute("Activity",station.action or role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
-                            local untilTime=os.clock()+rng:NextNumber(5,9)
+                            local untilTime=os.clock()+(role=="Soccer" and 6.5 or rng:NextNumber(5,9))
                             while model.Parent and bot.alive and os.clock()<untilTime and (bot.socialUntil or 0)<=os.clock() and (bot.reactionUntil or 0)<=os.clock() do task.wait(.2) end
                             bot.working=false
                         end
