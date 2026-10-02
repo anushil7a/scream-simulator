@@ -25,7 +25,7 @@ local function cancel()
  source=nil;releaseTime=nil;mic:Cancel();remote:FireServer("cancel")
 end
 local function begin(input)
- if source or os.clock()<cooldown or not mic:Begin() then return end
+ if source or releaseTime or os.clock()<cooldown or not mic:Begin() then return end
  sequence+=1;source=input;remote:FireServer("begin",sequence)
 end
 local function finish(input)
@@ -45,7 +45,7 @@ UIS.InputEnded:Connect(function(input)
 end)
 UIS.WindowFocusReleased:Connect(cancel);p.CharacterRemoving:Connect(cancel)
 remote.OnClientEvent:Connect(function(message,power,id)
- if id~=sequence then return end
+ if id~=sequence or not releaseTime then return end
  if message=="Accepted" then cooldown=os.clock()+4 end
  result.Text=string.format("%s • power %.0f%% • acknowledgement %.0f ms",message,power*100,releaseTime and (os.clock()-releaseTime)*1000 or 0)
  releaseTime=nil

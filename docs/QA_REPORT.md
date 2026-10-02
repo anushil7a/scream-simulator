@@ -123,3 +123,7 @@ Added the brief's separate test entitlement, exposed only in Studio's TEST TOOLS
 ## Isolated microphone lab — 2026-10-02
 
 A standalone [mic feasibility project and two-person procedure](../prototypes/microphone/README.md) now exists. Both scripts compile and both place formats build with exactly five scripts/modules and no persistence or purchase code. Real audio/runtime verification is still open. Studio publishing controls could be read but coordinate actions failed; the dialog was closed without publication. A later local file-open action and UI rechecks timed out; no new lab instance appeared in the Studio connector, so its open outcome is unverified. A new private test experience and real-microphone participants remain required.
+
+## Mic-lab native startup follow-up — 2026-10-02
+
+The lab scripts booted in the existing disposable Studio copy with unrelated automatic scripts disabled: GUI, remote and floor appeared, no city was built, console was empty, and missing mic input stayed not-ready. Original game scripts/enabled states were restored and Play stopped. This narrows the earlier runtime gap to a successful startup check; published real-audio capture remains unverified. Code also blocks overlapping acknowledgement requests; ground labels replace overlapping billboards. Those final refinements compile/build but have no additional live-mic/network evidence.

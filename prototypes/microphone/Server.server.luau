@@ -5,10 +5,11 @@ local Rules=require(RS.Shared.VoiceCombat)
 local remote=Instance.new("RemoteEvent");remote.Name="MicLab";remote.Parent=RS
 local ground=Instance.new("Part");ground.Name="TestFloor";ground.Anchored=true;ground.Size=Vector3.new(80,1,180);ground.Position=Vector3.new(0,-.5,-60);ground.Color=Color3.fromRGB(48,72,78);ground.Parent=workspace
 local spawn=Instance.new("SpawnLocation");spawn.Anchored=true;spawn.Size=Vector3.new(8,1,8);spawn.Position=Vector3.new(0,.5,8);spawn.Neutral=true;spawn.Parent=workspace
-for _,distance in ipairs({10,25,50,100}) do
+for _,distance in ipairs({0,10,25,50,100}) do
  local line=Instance.new("Part");line.Name=tostring(distance).."Studs";line.Anchored=true;line.CanCollide=false;line.Size=Vector3.new(70,.05,.3);line.Position=Vector3.new(0,.05,-distance);line.Color=Color3.fromRGB(255,205,111);line.Parent=workspace
- local gui=Instance.new("BillboardGui");gui.Size=UDim2.fromOffset(160,30);gui.StudsOffsetWorldSpace=Vector3.new(0,3,0);gui.Parent=line
- local label=Instance.new("TextLabel");label.Size=UDim2.fromScale(1,1);label.BackgroundTransparency=1;label.TextColor3=Color3.new(1,1,1);label.TextSize=18;label.Text=distance.." studs from origin";label.Parent=gui
+ local plate=Instance.new("Part");plate.Name="DistanceLabel";plate.Anchored=true;plate.CanCollide=false;plate.Size=Vector3.new(16,.04,4);plate.Position=Vector3.new(-24,.06,-distance-3);plate.Color=Color3.fromRGB(32,47,54);plate.Parent=workspace
+ local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Top;gui.CanvasSize=Vector2.new(512,128);gui.Parent=plate
+ local label=Instance.new("TextLabel");label.Size=UDim2.fromScale(1,1);label.BackgroundTransparency=1;label.TextColor3=Color3.new(1,1,1);label.TextSize=52;label.Text=distance==0 and "ORIGIN" or distance.." STUDS";label.Parent=gui
 end
 local sessions={}
 local function added(p)
