@@ -596,8 +596,8 @@ local function coast(parent,walk,activities)
  -- Reserved offshore volume: real water supports the default Humanoid swim controller.
  local terrain=workspace.Terrain
  terrain.WaterColor=Color3.fromRGB(48,143,169);terrain.WaterTransparency=.35;terrain.WaterReflectance=.25;terrain.WaterWaveSize=.18;terrain.WaterWaveSpeed=8
- terrain:FillBlock(CFrame.new(0,-8,800),V(1472,16,400),Enum.Material.Water)
- terrain:FillBlock(CFrame.new(0,-18,800),V(1472,4,400),Enum.Material.Sand)
+ terrain:FillBlock(CFrame.new(0,-8,800),V(2400,16,400),Enum.Material.Water)
+ terrain:FillBlock(CFrame.new(0,-18,800),V(2400,4,400),Enum.Material.Sand)
  terrain:FillBlock(CFrame.new(0,-10,608),V(1472,12,16),Enum.Material.Sand)
  terrain:FillBlock(CFrame.new(0,-12,624),V(1472,8,16),Enum.Material.Sand)
  -- Gentle continuous entry joins the raised beach to the shallow sea floor.
@@ -614,7 +614,7 @@ local function coast(parent,walk,activities)
  sign(m,"SWIM INSIDE THE GOLD BUOYS",CFrame.new(-229,5,587),16)
  -- Bounded tiles avoid oversized-Part clamping and keep the distant horizon loaded.
  local sea=model(m,"MediterraneanBackdrop");sea.ModelStreamingMode=Enum.ModelStreamingMode.Persistent
- for x=-2000,2000,2000 do for z=1600,5600,2000 do
+ for x=-2000,2000,2000 do for z=-400,5600,2000 do
   part(sea,"Mediterranean",V(2000,1,2000),V(x,-4,z),Color3.fromRGB(48,143,169),Enum.Material.SmoothPlastic,false)
  end end
  part(m,"PasseigMaritim",V(1440,1,52),V(0,.25,401),Color3.fromRGB(197,176,141),Enum.Material.Pavement)
@@ -717,7 +717,27 @@ function City.Build(parent)
  local ground=part(parent,"CityLand",V(1440,3,1200),V(0,-1.6,0),Color3.fromRGB(126,139,108),Enum.Material.Ground)
  ground:SetAttribute("GroundSurface",true)
  local backdrop=model(parent,"CoastalBackdrop")
- part(backdrop,"Mainland",V(5200,10,2500),V(0,-7,-1850),Color3.fromRGB(105,127,91),Enum.Material.Grass)
+ backdrop.ModelStreamingMode=Enum.ModelStreamingMode.Persistent
+ -- Distant scenery is deliberately low-detail and outside the playable city.
+ -- Tiles stay below the engine's part-size limit; a single giant slab was clamped.
+ for x=-2000,2000,2000 do for z=-1600,-3600,-2000 do
+  part(backdrop,"Mainland",V(2000,10,2000),V(x,-7,z),Color3.fromRGB(105,127,91),Enum.Material.Grass,false)
+ end end
+ for _,side in ipairs({-1,1}) do
+  part(backdrop,"OuterCityVerge",V(496,4,1000),V(side*982,-2,-100),Color3.fromRGB(126,139,108),Enum.Material.Ground,false)
+  for i=0,4 do
+   ellipsoid(backdrop,"CoastalFoothill",V(540,130+i*24,540),V(side*(1040+i%2*100),-40,-460+i*200),Color3.fromRGB(109+i*3,133+i*2,94),Enum.Material.Grass)
+  end
+  ellipsoid(backdrop,"CoastalSandSpit",V(220,12,310),V(side*810,-5,495),Color3.fromRGB(227,208,156),Enum.Material.Sand)
+  -- Rocky headlands frame the beach without covering its swimming entrance.
+  for i=0,6 do
+   local z=410+i*43;local x=side*(789+i*17)
+   local rock=ellipsoid(backdrop,"CoastalLimestone",V(74-i*3,34-i*2,82),V(x,-6,z),Color3.fromRGB(161+i*3,154+i*2,130+i*2),Enum.Material.Rock)
+   rock.CFrame*=CFrame.Angles(.07*i,side*(.2+i*.17),.05*i)
+   ellipsoid(backdrop,"LimestoneOutcrop",V(28,18+i%3*5,32),V(x-side*22,-2,z+18),Color3.fromRGB(175,168,147),Enum.Material.Rock)
+   rock:SetAttribute("BackdropOnly",true)
+  end
+ end
  for i=-5,5 do
   ellipsoid(backdrop,"CollserolaRidge",V(1300,480+(i%3)*80,1400),V(i*490,-175,-2350-math.abs(i)*70),Color3.fromRGB(105,129,106),Enum.Material.Grass)
  end
