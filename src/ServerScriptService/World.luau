@@ -679,6 +679,14 @@ function World.Build()
                     car.model:PivotTo(nextFrame)
                     car.model:SetAttribute("Speed",car.speed)
                 end
+                local groundParams
+                if grounding>=.25 then
+                    groundParams=RaycastParams.new();groundParams.FilterType=Enum.RaycastFilterType.Exclude
+                    local exclude={}
+                    for _,bot in ipairs(World.Bots) do table.insert(exclude,bot.model) end
+                    for _,player in ipairs(game.Players:GetPlayers()) do if player.Character then table.insert(exclude,player.Character) end end
+                    groundParams.FilterDescendantsInstances=exclude;groundParams.RespectCanCollide=true
+                end
                 for _,bot in ipairs(World.Bots) do
                     if bot.water then bot.water.Enabled=bot.alive and bot.working==true end
                     if not bot.alive or not bot.root.Parent then continue end
@@ -686,11 +694,7 @@ function World.Build()
                     if bot.model:GetAttribute("Gesturing")~=gesture then bot.model:SetAttribute("Gesturing",gesture) end
                     if bot.model:GetAttribute("Working")~=(bot.working==true) then bot.model:SetAttribute("Working",bot.working==true) end
                     if grounding>=.25 and not bot.humanoid.SeatPart then
-                        local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
-                        local exclude={};for _,b in ipairs(World.Bots) do table.insert(exclude,b.model) end
-                        for _,player in ipairs(game.Players:GetPlayers()) do if player.Character then table.insert(exclude,player.Character) end end
-                        params.FilterDescendantsInstances=exclude;params.RespectCanCollide=true
-                        local hit=workspace:Raycast(bot.root.Position+Vector3.new(0,2,0),Vector3.new(0,-20,0),params)
+                        local hit=workspace:Raycast(bot.root.Position+Vector3.new(0,2,0),Vector3.new(0,-20,0),groundParams)
                         local gap=hit and bot.root.Position.Y-hit.Position.Y or 99
                         if gap>5 or gap<1.5 or bot.root.Position.Y>8 or bot.root.Position.Y< -3 then
                             bot.airSince=bot.airSince or now
