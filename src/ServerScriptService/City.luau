@@ -236,7 +236,7 @@ local function landmarkQuarter(parent,x,z,walk,activities)
  for _,dx in ipairs({-50,50}) do bench(m,CFrame.new(x+dx,0,z+34));table.insert(activities,{position=V(x+dx,4,z+26),kind="Watch"}) end
 end
 local function fountain(parent,x,z)
- local avoid=part(parent,"FountainNavigation",V(32,9,32),V(x,4,z),stone,nil,false);avoid.Transparency=1
+ local avoid=part(parent,"FountainNavigation",V(32,9,32),V(x,4,z),stone,nil,false);avoid.Transparency=1;avoid.CanQuery=true
  local modifier=Instance.new("PathfindingModifier");modifier.Label="Fountain";modifier.Parent=avoid
  cylinder(parent,"FountainBasin",15,1,V(x,1.5,z),stone,Enum.Material.Marble)
  cylinder(parent,"FountainWater",13,.2,V(x,2.1,z),Color3.fromRGB(75,166,177),Enum.Material.Glass)

@@ -70,7 +70,7 @@ local function eject(p,h)
  s.nextHeal=os.clock()+Config.HealQuietSeconds;state(p,"Knocked out · back at the safe hub")
 end
 local function audible(c,origin,target,targetModel)
- local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c,targetModel}
+ local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c,targetModel};params.RespectCanCollide=true
  return workspace:Raycast(origin,target-origin,params)==nil
 end
 local function canCapture(p,s,now)
