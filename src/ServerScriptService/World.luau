@@ -1,6 +1,7 @@
 local Config = require(game:GetService("ReplicatedStorage").Shared.Config)
 local RunService = game:GetService("RunService")
 local PathfindingService = game:GetService("PathfindingService")
+local Collection=game:GetService("CollectionService")
 
 local World = {}
 World.ZoneMin = Config.ZoneMin
@@ -12,6 +13,7 @@ local City=require(script.Parent.City)
 World.Bots = {}
 World.WalkPoints = {}
 World.ActivityPoints = {}
+World.Seats = {}
 
 local rng = Random.new(8044)
 local C = {
@@ -139,6 +141,12 @@ local names = {
 }
 local lines = {"That was loud!", "Can you hear me?", "This city is wild!", "Nice scream!", "Watch out for the War Zone!", "I need some quiet.", "Whoa, my ears!", "You leveled up yet?"}
 local roleLines = {
+    CafeWorker = {"Two coffees for the terrace!", "The cups are hot. My jokes are lukewarm.", "Take a seat; the sea is the best view."},
+    Sanitation = {"This promenade deserves a little care.", "If you find litter, Mar can use a hand.", "Keeping the city ready for tomorrow."},
+    BeachWorker = {"Sunshade, water, and a little sea breeze.", "The loungers are ready. Please leave the sand clean.", "Someone keeps kicking footballs down the beach."},
+    Soccer = {"I aimed for the goal. The goal moved. Probably.", "My best trick is missing from here.", "I celebrated before looking. It did not go in."},
+    Gardener = {"These flowers need water, not another scream!", "I planted the blue ones for the sea.", "The garden is everyone’s front yard."},
+    Artist = {"Hold still! You might end up in this painting.", "The sea changes color every hour.", "My last seagull looked like a potato."},
     Busker = {"One more song before the train!", "The market's got rhythm today.", "Toss me a request!"},
     Commuter = {"The next train is always late.", "I know a shortcut through the square.", "Coffee first, then the commute."},
     Tourist = {"That plaza is incredible!", "Where's the best snack cart?", "I keep finding new corners."},
@@ -163,6 +171,19 @@ local pantsColors = {
 local hairColors = {
     Color3.fromRGB(42, 33, 29), Color3.fromRGB(94, 58, 37), Color3.fromRGB(174, 128, 73),
     Color3.fromRGB(55, 61, 65), Color3.fromRGB(105, 74, 58), Color3.fromRGB(184, 164, 129),
+}
+
+-- Named workers have recognizable uniforms while ordinary residents keep
+-- independent seeded palettes/accessories. Uniform fronts must stay visible.
+local workwear={
+ CafeWorker={shirt=Color3.fromRGB(236,220,190),pants=Color3.fromRGB(40,76,74),outfit=2},
+ Sanitation={shirt=Color3.fromRGB(56,99,108),pants=Color3.fromRGB(49,58,70),outfit=2},
+ BeachWorker={shirt=Color3.fromRGB(203,105,87),pants=Color3.fromRGB(213,198,165),outfit=2},
+ Gardener={shirt=Color3.fromRGB(81,127,91),pants=Color3.fromRGB(104,82,63),outfit=1},
+ Artist={shirt=Color3.fromRGB(226,213,187),pants=Color3.fromRGB(99,83,103),outfit=3},
+ Busker={shirt=Color3.fromRGB(157,74,77),pants=Color3.fromRGB(46,62,81),outfit=3},
+ Vendor={shirt=Color3.fromRGB(58,111,108),pants=Color3.fromRGB(77,64,58),outfit=2},
+ Soccer={shirt=Color3.fromRGB(43,105,168),pants=Color3.fromRGB(32,47,70),outfit=3},
 }
 
 local function rigPart(model, name, size, cf, color, collide)
@@ -214,7 +235,35 @@ function World.Speak(bot, message)
     end)
 end
 
-function World.Talk(bot, player)
+local seatReservations={}
+local function releaseSeat(bot)
+    local seat=bot.restSeat
+    if seat and seatReservations[seat]==bot then seatReservations[seat]=nil end
+    bot.restSeat=nil
+    if bot.readingBook then bot.readingBook:Destroy();bot.readingBook=nil end
+    if bot.model.Parent then bot.model:SetAttribute("Resting",false);bot.model:SetAttribute("Reading",false) end
+    local physicalSeat=bot.humanoid.SeatPart
+    if physicalSeat then
+        -- Sit=false/GettingUp can leave a server-owned NPC's SeatWeld intact.
+        -- Remove only this character's seating weld, never another occupant's joint.
+        for _,weld in ipairs(physicalSeat:GetChildren()) do
+            if weld:IsA("Weld") and weld.Name=="SeatWeld" and weld.Part1 and weld.Part1:IsDescendantOf(bot.model) then weld:Destroy() end
+        end
+        bot.humanoid.Sit=false
+        bot.humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+    end
+end
+local function stopWalking(bot)
+    bot.watchingUntil=nil;bot.watchingPerformer=nil
+    bot.model:SetAttribute("Repairing",false)
+    bot.model:SetAttribute("Applauding",false)
+    releaseSeat(bot)
+    bot.pathVersion=(bot.pathVersion or 0)+1
+    bot.humanoid:MoveTo(bot.root.Position)
+    bot.working=false
+end
+function World.Talk(bot, player, contextLine)
+    stopWalking(bot)
     if player and player.Character then
         local root = player.Character:FindFirstChild("HumanoidRootPart")
         if root then faceToward(bot, root.Position) end
@@ -222,7 +271,10 @@ function World.Talk(bot, player)
         bot.socialUntil = os.clock() + 5
     end
     local options = roleLines[bot.role] or lines
-    local message = options[rng:NextInteger(1, #options)]
+    local index=rng:NextInteger(1,bot.lastTalkIndex and #options-1 or #options)
+    if bot.lastTalkIndex and index>=bot.lastTalkIndex then index+=1 end
+    bot.lastTalkIndex=index
+    local message = contextLine or options[index]
     World.Speak(bot, message)
     return message
 end
@@ -246,38 +298,133 @@ local function chooseDestination(bot)
     return chosen.position, chosen.kind
 end
 
-local function roamTo(bot, destination)
-    local path = PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5, AgentCanJump=false, AgentCanClimb=false, WaypointSpacing=5})
+local function roamTo(bot, destination, precise)
+    if bot.humanoid.SeatPart and not bot.restSeat then releaseSeat(bot) end
+    bot.pathVersion=(bot.pathVersion or 0)+1;local version=bot.pathVersion
+    local path = PathfindingService:CreatePath({AgentRadius=2, AgentHeight=5, AgentCanJump=false, AgentCanClimb=false, WaypointSpacing=5, Costs={Fountain=math.huge,Asphalt=8}})
     local ok = pcall(function() path:ComputeAsync(bot.root.Position, destination) end)
-    if not ok or path.Status ~= Enum.PathStatus.Success then task.wait(0.3); return end
+    if not ok or path.Status ~= Enum.PathStatus.Success or bot.pathVersion~=version then path:Destroy();task.wait(0.3); return end
     local blocked = false
     local connection = path.Blocked:Connect(function() blocked = true end)
     for _, waypoint in ipairs(path:GetWaypoints()) do
-        if blocked or not bot.alive or not bot.model.Parent or (bot.reactionUntil or 0) > os.clock() then break end
+        if bot.pathVersion~=version or blocked or not bot.alive or not bot.model.Parent or (bot.reactionUntil or 0) > os.clock() then break end
         if waypoint.Action == Enum.PathWaypointAction.Jump then break end
         bot.humanoid:MoveTo(waypoint.Position)
         local started, lastProgress, previous = os.clock(), os.clock(), bot.root.Position
         while (Vector3.new(waypoint.Position.X,bot.root.Position.Y,waypoint.Position.Z)-bot.root.Position).Magnitude > 2.8 do
-            if not bot.alive or blocked or (bot.reactionUntil or 0) > os.clock() or os.clock()-started > 4 then break end
+            if bot.pathVersion~=version or not bot.alive or blocked or (bot.reactionUntil or 0) > os.clock() or os.clock()-started > 4 then break end
             if (bot.root.Position-previous).Magnitude > 0.7 then previous = bot.root.Position; lastProgress = os.clock() end
             if os.clock()-lastProgress > 0.8 then bot.humanoid:MoveTo(bot.root.Position); blocked=true; break end
             task.wait(0.06)
         end
     end
-    connection:Disconnect()
+    connection:Disconnect();path:Destroy()
+    -- MoveTo's broad arrival tolerance is fine for strolling, but leaves tools
+    -- out of reach of work surfaces after an interrupted route. Finish the last
+    -- short, path-checked segment using physical movement, never a position snap.
+    if precise and not blocked and bot.pathVersion==version and (bot.root.Position-destination).Magnitude<4 then
+        local speed=bot.humanoid.WalkSpeed;bot.humanoid.WalkSpeed=math.min(speed,4)
+        local deadline=os.clock()+2
+        while bot.alive and bot.model.Parent and bot.pathVersion==version and os.clock()<deadline and (bot.reactionUntil or 0)<=os.clock() do
+            local delta=Vector3.new(destination.X-bot.root.Position.X,0,destination.Z-bot.root.Position.Z)
+            if delta.Magnitude<.45 then break end
+            bot.humanoid:Move(delta.Unit,false);task.wait(.05)
+        end
+        if bot.pathVersion==version then bot.humanoid:Move(Vector3.zero,false) end
+        bot.humanoid.WalkSpeed=speed
+    end
+end
+
+local function usableSeat(seat)
+    local group=seat and seat.Parent
+    return seat and seat.Parent and seat:IsA("Seat") and not seat.Disabled and group and not group:GetAttribute("Destroyed")
+end
+function World.UseSeat(bot,seat,duration)
+    if not bot.alive or (bot.socialUntil or 0)>os.clock() or (bot.reactionUntil or 0)>os.clock() or not usableSeat(seat) or seat.Occupant or seatReservations[seat] then return false end
+    stopWalking(bot);seatReservations[seat]=bot;bot.restSeat=seat
+    bot.model:SetAttribute("Activity","Finding a seat")
+    local approach=seat.Position+seat.CFrame.LookVector*4+Vector3.new(0,1,0)
+    roamTo(bot,approach)
+    if bot.restSeat~=seat then return false end
+    if not bot.alive or not usableSeat(seat) or seat.Occupant or (bot.root.Position-seat.Position).Magnitude>8 then releaseSeat(bot);return false end
+    bot.humanoid:MoveTo(bot.root.Position);seat:Sit(bot.humanoid)
+    task.wait(.2)
+    if bot.restSeat~=seat then return false end
+    if bot.humanoid.SeatPart~=seat then releaseSeat(bot);return false end
+    local reading=(bot.model:GetAttribute("AnimationSeed") or 0)%2==0
+    bot.model:SetAttribute("Resting",true);bot.model:SetAttribute("Reading",reading)
+    bot.model:SetAttribute("Activity",reading and (seat:GetAttribute("RestSetting")=="Beach" and "Reading by the sea" or "Reading in the courtyard") or "Taking a quiet break")
+    if reading then
+        local arm=bot.model:FindFirstChild("Left Arm")
+        if arm then bot.readingBook=accessory(bot.model,arm,"CourtyardBook",Vector3.new(1.3,.15,1.1),CFrame.new(.3,-1,-.4),Color3.fromRGB(57,112,105),Enum.Material.Fabric) end
+    end
+    local ends=os.clock()+math.clamp(duration or rng:NextNumber(9,16),1,20)
+    while bot.restSeat==seat and bot.alive and bot.model.Parent and usableSeat(seat) and seat.Occupant==bot.humanoid and os.clock()<ends do task.wait(.15) end
+    if bot.restSeat==seat then releaseSeat(bot) end
+    return true
+end
+local function restNearby(bot,destination)
+    local choices={}
+    for _,seat in ipairs(World.Seats) do
+        if seat:IsA("Seat") and usableSeat(seat) and not seat.Occupant and not seatReservations[seat] and (seat.Position-destination).Magnitude<25 then table.insert(choices,seat) end
+    end
+    table.sort(choices,function(a,b) return (a.Position-bot.root.Position).Magnitude<(b.Position-bot.root.Position).Magnitude end)
+    return choices[1] and World.UseSeat(bot,choices[1]) or false
+end
+
+-- Residents already near the stage can listen without adding another path request
+-- or drawing a crowd into the through-route. Interruptions use stopWalking.
+function World.WatchPerformance(bot)
+    local now=os.clock()
+    if not bot.alive or bot.job or bot.restSeat or (bot.socialUntil or 0)>now
+        or (bot.reactionUntil or 0)>now or (bot.nextPerformance or 0)>now then return false end
+    local performer
+    for _,other in ipairs(World.Bots) do
+        if other~=bot and other.role=="Busker" and other.job and other.alive and other.working
+            and (other.root.Position-bot.root.Position).Magnitude<26 then
+            performer=other;break
+        end
+    end
+    if not performer then return false end
+    local audience=0
+    for _,other in ipairs(World.Bots) do
+        if other.watchingPerformer==performer and (other.watchingUntil or 0)>now then audience+=1 end
+    end
+    if audience>=3 then return false end
+    local ray=RaycastParams.new();ray.FilterType=Enum.RaycastFilterType.Exclude
+    ray.FilterDescendantsInstances={bot.model,performer.model};ray.RespectCanCollide=true
+    if workspace:Raycast(bot.root.Position,performer.root.Position-bot.root.Position,ray) then return false end
+    stopWalking(bot)
+    local version=bot.pathVersion
+    bot.watchingPerformer=performer;bot.watchingUntil=now+rng:NextNumber(5,8)
+    bot.nextPerformance=now+30
+    bot.model:SetAttribute("Activity","Listening to Èric's performance")
+    faceToward(bot,performer.root.Position)
+    while bot.model.Parent and bot.alive and bot.pathVersion==version and performer.alive and performer.working
+        and os.clock()<(bot.watchingUntil or 0) and (bot.reactionUntil or 0)<=os.clock() do
+        bot.model:SetAttribute("Applauding",bot.watchingUntil-os.clock()<2.5)
+        task.wait(.2)
+    end
+    if bot.pathVersion==version then
+        bot.watchingUntil=nil;bot.watchingPerformer=nil
+        bot.model:SetAttribute("Applauding",false)
+        bot.model:SetAttribute("Activity","Exploring the neighborhood")
+    end
+    return true
 end
 
 local function socialize(bot)
     if (bot.socialUntil or 0) > os.clock() then return false end
     local friends = {}
     for _, other in ipairs(World.Bots) do
-        if other ~= bot and other.alive and (other.socialUntil or 0) < os.clock()
+        if other ~= bot and other.alive and not other.working and not other.watchingPerformer and (other.socialUntil or 0) < os.clock()
             and (other.root.Position - bot.root.Position).Magnitude < 22 then
             table.insert(friends, other)
         end
     end
     if #friends == 0 then return false end
     local friend = friends[rng:NextInteger(1, #friends)]
+    stopWalking(bot);stopWalking(friend)
     bot.socialUntil, friend.socialUntil = os.clock() + 8, os.clock() + 8
     bot.gestureUntil, friend.gestureUntil = os.clock() + 3, os.clock() + 3
     faceToward(bot, friend.root.Position)
@@ -292,6 +439,7 @@ local function socialize(bot)
 end
 
 local function noticePlayers(bot)
+    if bot.restSeat or bot.watchingPerformer or (bot.socialUntil or 0)>os.clock() then return end
     if (bot.lastGreeting or 0) + 14 > os.clock() then return end
     for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
         local character = player.Character
@@ -307,6 +455,7 @@ local function noticePlayers(bot)
 end
 
 function World.ReactToScream(bot, origin)
+    stopWalking(bot)
     bot.reactionUntil = os.clock() + 2.3
     bot.gestureUntil = bot.reactionUntil
     local delta = bot.root.Position - origin
@@ -317,21 +466,27 @@ function World.ReactToScream(bot, origin)
     World.Speak(bot, ({"Whoa, my ears!", "That echoed down the block!", "Careful with that scream!"})[rng:NextInteger(1, 3)])
 end
 
-local function makeBot(parent, index, x, z, role)
+local function makeBot(parent, index, x, z, role, job)
     local displayName = names[(index - 1) % #names + 1] .. (index > #names and " " .. ({"Park", "Reed", "Chen", "Rivera", "Brooks", "Shah"})[(index-1)%6+1] or "")
+    if job then displayName=job.name end
     local model = Instance.new("Model")
     model.Name = displayName .. "_TrainingNPC"
+    model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
     model.Parent = parent
     model:SetAttribute("NpcId", "Bot" .. index)
     model:SetAttribute("DisplayName", displayName)
     model:SetAttribute("Role", role)
     local avatarRng = Random.new(8044 + index * 479)
-    local cf = CFrame.new(x, 3.9, z)
+    local home=Vector3.new(x,job and job.stations[1].position.Y or 3.9,z)
+    local cf = CFrame.new(home)
     local skin = skinColors[avatarRng:NextInteger(1, #skinColors)]
     local shirt = shirtColors[avatarRng:NextInteger(1, #shirtColors)]
     local pants = pantsColors[avatarRng:NextInteger(1, #pantsColors)]
     local hairColor = hairColors[avatarRng:NextInteger(1, #hairColors)]
     local outfit = avatarRng:NextInteger(1, 5)
+    local uniform=job and workwear[role]
+    if uniform then shirt=uniform.shirt;pants=uniform.pants;outfit=uniform.outfit end
+    model:SetAttribute("WorkUniform",uniform~=nil)
     model:SetAttribute("OutfitVariant", outfit)
     local root = rigPart(model, "HumanoidRootPart", Vector3.new(2, 2, 1), cf, Color3.new(1, 1, 1), false)
     root.Transparency = 1
@@ -361,18 +516,18 @@ local function makeBot(parent, index, x, z, role)
     accessory(model, ll, "LeftShoe", Vector3.new(1.05, 0.43, 1.22), CFrame.new(0, -0.78, -0.1), shoeColor)
     accessory(model, rl, "RightShoe", Vector3.new(1.05, 0.43, 1.22), CFrame.new(0, -0.78, -0.1), shoeColor)
     if outfit == 1 then
-        accessory(model, head, "Beanie", Vector3.new(2.2, 0.6, 1.25), CFrame.new(0, 0.66, 0), hairColor, Enum.Material.Fabric)
-        accessory(model, head, "BeanieBand", Vector3.new(2.24, 0.22, 1.3), CFrame.new(0, 0.34, 0), shirt, Enum.Material.Fabric)
+        accessory(model, head, "Beanie", Vector3.new(2.2, 0.6, 1.25), CFrame.new(0, 0.66, 0), hairColor, Enum.Material.Fabric, Enum.PartType.Ball)
+        accessory(model, head, "BeanieBand", Vector3.new(2.24, 0.22, 1.3), CFrame.new(0, 0.34, 0), shirt, Enum.Material.Fabric, Enum.PartType.Ball)
     elseif outfit == 2 then
-        accessory(model, head, "Cap", Vector3.new(2.15, 0.48, 1.2), CFrame.new(0, 0.66, 0), shirt, Enum.Material.Fabric)
-        accessory(model, head, "CapBrim", Vector3.new(1.7, 0.13, 1.0), CFrame.new(0, 0.49, -0.85), shirt, Enum.Material.Fabric)
+        accessory(model, head, "Cap", Vector3.new(2.15, 0.48, 1.2), CFrame.new(0, 0.66, 0), shirt, Enum.Material.Fabric, Enum.PartType.Ball)
+        accessory(model, head, "CapBrim", Vector3.new(1.7, 0.13, 1.0), CFrame.new(0, 0.49, -0.85), shirt, Enum.Material.Fabric, Enum.PartType.Ball)
     elseif outfit == 3 then
-        accessory(model, head, "Hair", Vector3.new(2.14, 0.5, 1.18), CFrame.new(0, 0.62, 0), hairColor)
+        accessory(model, head, "Hair", Vector3.new(2.14, 0.5, 1.18), CFrame.new(0, 0.62, 0), hairColor, nil, Enum.PartType.Ball)
         for _, dx in ipairs({-0.65, 0, 0.65}) do
             accessory(model, head, "CurlyHair", Vector3.new(0.78, 0.65, 0.8), CFrame.new(dx, 0.82, -0.21), hairColor, nil, Enum.PartType.Ball)
         end
     elseif outfit == 4 then
-        accessory(model, head, "Hair", Vector3.new(2.17, 0.62, 1.27), CFrame.new(0, 0.66, 0), hairColor)
+        accessory(model, head, "Hair", Vector3.new(2.17, 0.62, 1.27), CFrame.new(0, 0.66, 0), hairColor, nil, Enum.PartType.Ball)
         for _, dx in ipairs({-1.07, 1.07}) do
             accessory(model, head, "HeadphoneEar", Vector3.new(0.35, 0.8, 0.7), CFrame.new(dx, 0.05, 0), C.dark)
         end
@@ -389,6 +544,42 @@ local function makeBot(parent, index, x, z, role)
         end
         accessory(model, head, "GlassesBridge", Vector3.new(0.28, 0.08, 0.14),
             CFrame.new(0, 0.09, -0.62), C.dark, Enum.Material.Metal)
+    end
+    local jobTool,water;local carryParts={};local cleaningParts={};local repairParts={}
+    if role=="Soccer" and job then
+        for _,leg in ipairs({ll,rl}) do accessory(model,leg,"FootballSock",Vector3.new(1.03,.9,1.03),CFrame.new(0,-.25,0),Color3.fromRGB(240,231,212),Enum.Material.Fabric) end
+        local badge=accessory(model,torso,"NumberZero",Vector3.new(.62,.74,.12),CFrame.new(0,.15,-.58),Color3.fromRGB(240,231,212),Enum.Material.Fabric)
+        local face=Instance.new("SurfaceGui");face.Face=Enum.NormalId.Front;face.CanvasSize=Vector2.new(80,100);face.Parent=badge
+        local number=Instance.new("TextLabel");number.Size=UDim2.fromScale(1,1);number.BackgroundTransparency=1;number.Text="0";number.Font=Enum.Font.GothamBold;number.TextSize=76;number.TextColor3=Color3.fromRGB(32,47,70);number.Parent=face
+    elseif role=="CafeWorker" then
+        local trayGrip=CFrame.new(0,-1,-.6)*CFrame.Angles(-.8,0,0)
+        table.insert(carryParts,accessory(model,la,"ServingTray",Vector3.new(1.5,.12,1),trayGrip,Color3.fromRGB(104,139,124),Enum.Material.Metal))
+        for _,dx in ipairs({-.35,.35}) do table.insert(carryParts,accessory(model,la,"CoffeeCup",Vector3.new(.3,.4,.3),trayGrip*CFrame.new(dx,.26,0),Color3.fromRGB(243,225,191),Enum.Material.CeramicTiles)) end
+        accessory(model,torso,"CafeApron",Vector3.new(1.7,1.5,.1),CFrame.new(0,-.2,-.57),Color3.fromRGB(71,139,125),Enum.Material.Fabric)
+    elseif role=="Sanitation" then
+        table.insert(cleaningParts,accessory(model,ra,"BroomHandle",Vector3.new(.14,2.7,.14),CFrame.new(0,-1.25,-.45),Color3.fromRGB(155,113,77),Enum.Material.Wood))
+        table.insert(cleaningParts,accessory(model,ra,"BroomHead",Vector3.new(1.6,.35,.65),CFrame.new(0,-2.6,-.45),Color3.fromRGB(196,163,97),Enum.Material.Fabric))
+        table.insert(repairParts,accessory(model,ra,"RepairHandle",Vector3.new(.18,1.1,.18),CFrame.new(0,-1.3,-.35),Color3.fromRGB(155,113,77),Enum.Material.Wood))
+        table.insert(repairParts,accessory(model,ra,"RepairHammer",Vector3.new(.85,.3,.35),CFrame.new(0,-1.85,-.35),Color3.fromRGB(105,121,126),Enum.Material.Metal))
+        for _,item in ipairs(repairParts) do item.Transparency=1 end
+        accessory(model,torso,"SafetyVest",Vector3.new(1.85,1.5,.12),CFrame.new(0,0,-.58),Color3.fromRGB(224,176,69),Enum.Material.Fabric)
+    elseif role=="BeachWorker" then
+        accessory(model,ra,"CleaningCloth",Vector3.new(.7,.15,.65),CFrame.new(0,-1,-.25),Color3.fromRGB(235,220,181),Enum.Material.Fabric)
+        accessory(model,torso,"BeachCrewBadge",Vector3.new(.6,.4,.12),CFrame.new(.45,.4,-.59),Color3.fromRGB(244,228,189))
+    elseif role=="Busker" and job then
+        accessory(model,torso,"GuitarBody",Vector3.new(1.5,1.7,.5),CFrame.new(.2,-.35,-.9),Color3.fromRGB(183,121,65),Enum.Material.Wood,Enum.PartType.Ball)
+        accessory(model,torso,"GuitarSoundhole",Vector3.new(.45,.45,.04),CFrame.new(.2,-.1,-1.17),Color3.fromRGB(55,41,32),nil,Enum.PartType.Ball)
+        accessory(model,torso,"GuitarNeck",Vector3.new(.35,2.3,.17),CFrame.new(-.3,.9,-.92)*CFrame.Angles(0,0,-.35),Color3.fromRGB(112,74,47),Enum.Material.Wood)
+    elseif role=="Gardener" then
+        local canGrip=CFrame.new(0,-1.15,-.35)*CFrame.Angles(-1.15,0,0)
+        jobTool=accessory(model,ra,"WateringCan",Vector3.new(.9,.85,.7),canGrip,Color3.fromRGB(77,133,123),Enum.Material.Metal)
+        accessory(model,ra,"CanSpout",Vector3.new(.2,.2,.9),canGrip*CFrame.new(0,.1,-.65),Color3.fromRGB(77,133,123),Enum.Material.Metal)
+        local outlet=Instance.new("Attachment");outlet.Position=Vector3.new(0,.1,-1.1);outlet.Parent=jobTool
+        water=Instance.new("ParticleEmitter");water.Name="WaterDrops";water.EmissionDirection=Enum.NormalId.Front;water.Rate=12;water.Lifetime=NumberRange.new(.35,.6);water.Speed=NumberRange.new(1,2);water.Acceleration=Vector3.new(0,-12,0);water.Size=NumberSequence.new(.08);water.Color=ColorSequence.new(Color3.fromRGB(134,213,235));water.Enabled=false;water.Parent=outlet
+    elseif role=="Artist" then
+        jobTool=accessory(model,ra,"PaintBrush",Vector3.new(.14,1.3,.14),CFrame.new(0,-1.1,-.35),Color3.fromRGB(131,88,61),Enum.Material.Wood)
+        accessory(model,ra,"BrushTip",Vector3.new(.19,.3,.19),CFrame.new(0,-1.8,-.35),Color3.fromRGB(64,143,165),Enum.Material.Fabric)
+        accessory(model,la,"PaintPalette",Vector3.new(.9,.12,.7),CFrame.new(0,-1,-.3)*CFrame.Angles(-.7,0,0),Color3.fromRGB(190,144,92),Enum.Material.Wood)
     end
     if role == "Vendor" then
         accessory(model, torso, "VendorApron", Vector3.new(1.65, 1.4, 0.14),
@@ -415,29 +606,60 @@ local function makeBot(parent, index, x, z, role)
     humanoid.Parent = model
     model.PrimaryPart = root
     if RunService:IsRunning() then root:SetNetworkOwner(nil) end
-    local nameLabel = billboard(head, displayName .. "  " .. Config.BotMaxHealth .. "/" .. Config.BotMaxHealth, Vector3.new(0, 2.5, 0))
+    local nameLabel = billboard(head, displayName, Vector3.new(0, 2.5, 0))
     local speech = billboard(head, "", Vector3.new(0, 4.4, 0), 185)
+    nameLabel.Parent.Name="Nameplate"
+    speech.Parent.Name="SpeechBubble";speech.Parent.Size=UDim2.fromOffset(200,48)
     nameLabel.Parent.MaxDistance = 18
     speech.Parent.MaxDistance = 24
     speech.Visible = false
     speech.BackgroundColor3 = Color3.fromRGB(244, 237, 211)
     speech.TextColor3 = C.dark
     local bot = {id = "Bot" .. index, name = displayName, role = role, model = model, root = root, humanoid = humanoid,
-        health = Config.BotMaxHealth, alive = true, label = nameLabel, speech = speech,
-        start = Vector3.new(x, 3.9, z), lastGrounded=Vector3.new(x,3.9,z), roamRadius = role == "Commuter" and 200 or 125,
+        health = Config.BotMaxHealth, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"} or nil, job=job, jobTool=jobTool, water=water, carryParts=carryParts, cleaningParts=cleaningParts, repairParts=repairParts, jobStep=0,
+        start = home, lastGrounded=home, roamRadius = role == "Commuter" and 200 or 125,
         joints = {ls, rs, lh, rh}, lastGreeting = -1000}
     for _, limb in ipairs(bot.joints) do limb:SetAttribute("RestPose", limb.C0) end
     table.insert(World.Bots, bot)
+    model:SetAttribute("AnimationSeed",index);Collection:AddTag(model,"CityResident")
     if RunService:IsRunning() then
         task.spawn(function()
             task.wait(index * 0.08)
             while model.Parent do
                 if bot.alive then
-                    if (bot.reactionUntil or 0) > os.clock() then
+                    if bot.restSeat then
+                        task.wait(.2)
+                    elseif (bot.reactionUntil or 0) > os.clock() then
                         task.wait(0.5)
+                    elseif (bot.socialUntil or 0)>os.clock() then
+                        task.wait(.2)
+                    elseif job then
+                        bot.jobStep=bot.jobStep%#job.stations+1
+                        local station=role=="Sanitation" and World.FindMaintenance and World.FindMaintenance(bot) or job.stations[bot.jobStep]
+                        model:SetAttribute("WorkStep",bot.jobStep)
+                        for _,item in ipairs(bot.carryParts) do item.Transparency=bot.jobStep==2 and 0 or 1 end
+                        bot.working=false;model:SetAttribute("Activity","Walking to work")
+                        roamTo(bot,station.position,true)
+                        if bot.alive and (Vector3.new(bot.root.Position.X,station.position.Y,bot.root.Position.Z)-station.position).Magnitude<.8 and (bot.reactionUntil or 0)<=os.clock() and (bot.socialUntil or 0)<=os.clock() then
+                            bot.humanoid:MoveTo(bot.root.Position);faceToward(bot,station.lookAt)
+                            if role=="Soccer" then
+                                bot.practiceCycle=(bot.practiceCycle or 0)+1
+                                model:SetAttribute("PracticeRoutine",({"Miss","Trip","OwnGoal"})[(bot.practiceCycle-1)%3+1])
+                            end
+                            bot.working=true;model:SetAttribute("Repairing",station.maintenanceModel~=nil);model:SetAttribute("WorkStarted",workspace:GetServerTimeNow());model:SetAttribute("Activity",station.action or role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
+                            local untilTime=os.clock()+(role=="Soccer" and 6.5 or rng:NextNumber(5,9))
+                            while model.Parent and bot.alive and os.clock()<untilTime and (bot.socialUntil or 0)<=os.clock() and (bot.reactionUntil or 0)<=os.clock() do task.wait(.2) end
+                            if bot.working and bot.alive and os.clock()>=untilTime and station.maintenanceModel and World.FinishMaintenance then
+                                World.FinishMaintenance(bot,station)
+                            end
+                            bot.working=false;model:SetAttribute("Repairing",false)
+                        end
+                        task.wait(.3)
                     else
                         local choice = rng:NextNumber()
-                        if choice < 0.23 then
+                        if choice < .2 and World.WatchPerformance(bot) then
+                            task.wait(.3)
+                        elseif choice < 0.23 then
                             bot.gestureUntil = os.clock() + rng:NextNumber(1.5, 3.5)
                             if role == "Busker" or role == "Vendor" or rng:NextNumber() < 0.45 then
                                 World.Talk(bot)
@@ -449,7 +671,11 @@ local function makeBot(parent, index, x, z, role)
                             local destination, kind = chooseDestination(bot)
                             roamTo(bot, destination)
                             if bot.alive and (destination - bot.root.Position).Magnitude < 13 then
-                                if kind == "Browse" or kind == "Watch" or kind == "Rest" then
+                                if kind=="Performance" then
+                                    World.WatchPerformance(bot)
+                                elseif kind=="Rest" and restNearby(bot,destination) then
+                                    bot.model:SetAttribute("Activity","Exploring the neighborhood")
+                                elseif kind == "Browse" or kind == "Watch" or kind == "Rest" then
                                     bot.gestureUntil = os.clock() + 2.5
                                     task.wait(rng:NextNumber(2, 4))
                                 elseif rng:NextNumber() < 0.3 then
@@ -504,23 +730,52 @@ local function carAt(car,distance)
     if car.direction<0 then x=690-distance end
     return CFrame.new(x,2.05,car.lane)*CFrame.Angles(0,car.direction>0 and 0 or math.pi,0)
 end
+-- Traffic yields to residents in its lane. Players remain subject to impact rules.
+function World.StepTraffic(car,dt)
+    dt=math.clamp(dt,0,.1)
+    local previous=car.model:GetPivot()
+    local clearance=math.huge
+    for _,bot in ipairs(World.Bots) do
+        if bot.alive and bot.root.Parent then
+            local relative=previous:PointToObjectSpace(bot.root.Position)
+            if relative.X>=-8 and math.abs(relative.Z)<5.5 and math.abs(relative.Y)<6 then
+                clearance=math.min(clearance,math.max(0,relative.X-9))
+            end
+        end
+    end
+    local cruise=car.cruiseSpeed or car.speed
+    local target=math.min(cruise,math.sqrt(2*30*clearance))
+    car.speed=math.clamp(target,math.max(0,car.speed-30*dt),car.speed+8*dt)
+    local travel=math.min(dt*car.speed,clearance)
+    if dt>0 and travel<dt*car.speed then car.speed=travel/dt end
+    car.distance+=travel
+    local wrapped=car.distance>1380
+    if wrapped then car.distance-=1380 end
+    local nextFrame=carAt(car,car.distance)
+    if travel>0 and not wrapped and World.OnVehicleSweep then World.OnVehicleSweep(car,previous,nextFrame) end
+    car.model:PivotTo(nextFrame)
+    car.model:SetAttribute("Speed",car.speed)
+    car.model:SetAttribute("Yielding",target<cruise)
+end
 function World.Build()
     local old=workspace:FindFirstChild("ScreamSimulatorWorld");if old then old:Destroy() end
-    table.clear(World.Bots);table.clear(World.Cars)
+    table.clear(World.Bots);table.clear(World.Cars);table.clear(seatReservations)
     pcall(function() PhysicsService:RegisterCollisionGroup("Residents") end)
     PhysicsService:CollisionGroupSetCollidable("Residents","Residents",false)
     atmosphere()
     local parent=Instance.new("Model");parent.Name="ScreamSimulatorWorld";parent.Parent=workspace
     local layout=City.Build(parent);World.WalkPoints=layout.walk;World.ActivityPoints=layout.activities;World.SafeSpawn=layout.spawn
+    table.clear(World.Seats);for _,item in ipairs(parent:GetDescendants()) do if item:IsA("Seat") then table.insert(World.Seats,item) end end
     local spawn=Instance.new("SpawnLocation");spawn.Name="SafeSpawn";spawn.Size=Vector3.new(7,.2,7);spawn.CFrame=World.SafeSpawn-Vector3.new(0,3,0);spawn.Anchored=true;spawn.Neutral=true;spawn.Duration=0;spawn.Transparency=1;spawn.CanCollide=false;spawn.Parent=parent
     local roles={"Local","Tourist","Vendor","Commuter","Busker","Fighter"}
     -- Cluster residents at destinations; leave roads and building interiors clear.
     local seeds={{-625,205},{-575,205},{-600,185},{-610,265},{-360,180},{-360,260},{-120,-32},{-145,15},{-92,15},{85,-71},{155,-71},{85,7},{155,7},{-240,403},{0,403},{200,403},{420,403},{-540,403}}
-    for i=1,24 do local point=layout.walk[((i-1)*29+5)%#layout.walk+1];table.insert(seeds,{point.X,point.Z}) end
+    for i=1,20 do local point=layout.walk[((i-1)*29+5)%#layout.walk+1];table.insert(seeds,{point.X,point.Z}) end
     for i,spot in ipairs(seeds) do makeBot(parent,i,spot[1],spot[2],roles[(i-1)%#roles+1]) end
+    for i,job in ipairs(layout.jobs or {}) do local point=job.stations[1].position;makeBot(parent,#seeds+i,point.X,point.Z,job.role,job) end
     for i,spec in ipairs({{-368,1,23},{-352,-1,21},{112,1,20},{128,-1,24},{352,1,18},{368,-1,22}}) do
         local m=vehicle(parent,i%2==0 and "Sedan" or "Taxi",i%2==0 and Color3.fromRGB(65+i*15,104,115) or Color3.fromRGB(226,177,64));m.Name="TrafficCar"..i
-        local car={model=m,hull=m.CollisionHull,lane=spec[1],direction=spec[2],speed=spec[3],distance=(i-1)*210};m:PivotTo(carAt(car,car.distance));table.insert(World.Cars,car)
+        local car={model=m,hull=m.CollisionHull,lane=spec[1],direction=spec[2],speed=spec[3],cruiseSpeed=spec[3],distance=(i-1)*210};m:PivotTo(carAt(car,car.distance));table.insert(World.Cars,car)
     end
     for i,pos in ipairs({{-490,-110},{490,105},{-490,130},{690,120}}) do taxi(parent,pos[1],pos[2],"Sedan",Color3.fromRGB(91+i*22,93,99)) end
     if RunService:IsRunning() then
@@ -529,29 +784,27 @@ function World.Build()
             while parent.Parent do
                 local dt=RunService.Heartbeat:Wait();local now=os.clock();grounding+=dt
                 for _,car in ipairs(World.Cars) do
-                    local previous=car.model:GetPivot();local travel=math.min(dt,.1)*car.speed;car.distance+=travel
-                    local wrapped=car.distance>1380;if wrapped then car.distance-=1380 end
-                    local nextFrame=carAt(car,car.distance)
-                    if not wrapped and World.OnVehicleSweep then World.OnVehicleSweep(car,previous,nextFrame) end
-                    car.model:PivotTo(nextFrame)
-                    car.model:SetAttribute("Speed",car.speed)
+                    World.StepTraffic(car,dt)
+                end
+                local groundParams
+                if grounding>=.25 then
+                    groundParams=RaycastParams.new();groundParams.FilterType=Enum.RaycastFilterType.Exclude
+                    local exclude={}
+                    for _,bot in ipairs(World.Bots) do table.insert(exclude,bot.model) end
+                    for _,player in ipairs(game.Players:GetPlayers()) do if player.Character then table.insert(exclude,player.Character) end end
+                    groundParams.FilterDescendantsInstances=exclude;groundParams.RespectCanCollide=true
                 end
                 for _,bot in ipairs(World.Bots) do
+                    if bot.water then bot.water.Enabled=bot.alive and bot.working==true end
+                    local repairing=bot.alive and bot.working and bot.model:GetAttribute("Repairing")==true
+                    for _,item in ipairs(bot.cleaningParts or {}) do item.Transparency=repairing and 1 or 0 end
+                    for _,item in ipairs(bot.repairParts or {}) do item.Transparency=repairing and 0 or 1 end
                     if not bot.alive or not bot.root.Parent then continue end
-                    local velocity=bot.root.AssemblyLinearVelocity;local speed=Vector3.new(velocity.X,0,velocity.Z).Magnitude
-                    local moving=speed>.4 and bot.humanoid.FloorMaterial~=Enum.Material.Air
-                    local swing=moving and math.sin(now*math.max(6,speed*1.2)+tonumber(bot.id:sub(4)))*.42 or 0
-                    for i,j in ipairs(bot.joints) do
-                        local angle=(i==1 or i==4) and swing or -swing
-                        if not moving and (bot.gestureUntil or 0)>now and i==1 then angle=-.8+math.sin(now*5)*.15 end
-                        j.C0=j:GetAttribute("RestPose")*CFrame.Angles(angle,0,0)
-                    end
-                    if grounding>=.25 then
-                        local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
-                        local exclude={};for _,b in ipairs(World.Bots) do table.insert(exclude,b.model) end
-                        for _,player in ipairs(game.Players:GetPlayers()) do if player.Character then table.insert(exclude,player.Character) end end
-                        params.FilterDescendantsInstances=exclude;params.RespectCanCollide=true
-                        local hit=workspace:Raycast(bot.root.Position+Vector3.new(0,2,0),Vector3.new(0,-20,0),params)
+                    local gesture=(bot.gestureUntil or 0)>now
+                    if bot.model:GetAttribute("Gesturing")~=gesture then bot.model:SetAttribute("Gesturing",gesture) end
+                    if bot.model:GetAttribute("Working")~=(bot.working==true) then bot.model:SetAttribute("Working",bot.working==true) end
+                    if grounding>=.25 and not bot.humanoid.SeatPart then
+                        local hit=workspace:Raycast(bot.root.Position+Vector3.new(0,2,0),Vector3.new(0,-20,0),groundParams)
                         local gap=hit and bot.root.Position.Y-hit.Position.Y or 99
                         if gap>5 or gap<1.5 or bot.root.Position.Y>8 or bot.root.Position.Y< -3 then
                             bot.airSince=bot.airSince or now
@@ -568,7 +821,13 @@ function World.Build()
     return parent
 end
 function World.UpdateBot(bot)
-    bot.label.Text=bot.alive and (bot.name.."  "..bot.health.."/"..Config.BotMaxHealth) or "RECOVERING"
+    -- A normal hit already started its flee reaction. Do not cancel that MoveTo here.
+    if not bot.alive or bot.health==Config.BotMaxHealth then
+        stopWalking(bot);bot.model:SetAttribute("Working",false)
+        bot.socialUntil=0;bot.talkingTo=nil;bot.reactionUntil=0;bot.gestureUntil=0
+        bot.speechToken=(bot.speechToken or 0)+1;bot.speech.Visible=false
+    end
+    bot.label.Text=bot.alive and (bot.health<Config.BotMaxHealth and (bot.name.."  "..bot.health.."/"..Config.BotMaxHealth) or bot.name) or "RECOVERING"
     if bot.alive then
         bot.humanoid.Health=bot.health
         if bot.health==Config.BotMaxHealth then

@@ -1,0 +1,30 @@
+{
+  "name": "FountainReview",
+  "tree": {
+    "$className": "DataModel",
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "MosaicFountainTemplate": {
+        "$path": "assets/review/MosaicFountain.rbxmx"
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Review": {
+        "$path": "prototypes/fountain/Review.server.luau"
+      },
+      "Install": {
+        "$path": "src/ServerScriptService/Fountain.luau"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "LandmarkVisuals": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/LandmarkVisuals.client.luau"
+        }
+      }
+    }
+  }
+}
