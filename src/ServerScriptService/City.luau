@@ -481,6 +481,22 @@ local function arrivalPlaza(parent,x,z,walk,activities)
   local a=i*math.pi/8
   part(m,"SunMosaic",V(2.2,.04,5),CFrame.new(x+math.cos(a)*23,.93,z+math.sin(a)*23)*CFrame.Angles(0,-a+math.pi/2,0),i%2==0 and teal or terra,Enum.Material.CeramicTiles,false)
  end
+ -- A sheltered practice lane beside spawn, outside roads and NPC seating.
+ local practice=model(m,"MicPracticeLane")
+ local tx,tz=x-83,z-18
+ part(practice,"LanePaving",V(12,.035,34),V(tx,.93,tz+15),Color3.fromRGB(130,157,146),Enum.Material.Cobblestone,false)
+ for _,dx in ipairs({-6,6}) do part(practice,"LaneEdge",V(.16,.04,34),V(tx+dx,.95,tz+15),cream,nil,false) end
+ part(practice,"StandLine",V(10,.04,.35),V(tx,.96,tz+25),cream,nil,false)
+ for _,dx in ipairs({-4,4}) do part(practice,"TargetPost",V(.5,7,.5),V(tx+dx,4.4,tz),iron,Enum.Material.Metal) end
+ local target=part(practice,"PracticeTarget",V(9,6,.5),V(tx,5.1,tz),teal,Enum.Material.Wood)
+ target:SetAttribute("MicPracticeTarget",true);target:SetAttribute("RestColor",teal)
+ local face=Instance.new("SurfaceGui");face.Face=Enum.NormalId.Back;face.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;face.PixelsPerStud=40;face.MaxDistance=90;face.Parent=target
+ for i,size in ipairs({.88,.6,.3}) do
+  local ring=Instance.new("Frame");ring.AnchorPoint=Vector2.new(.5,.5);ring.Position=UDim2.fromScale(.5,.5);ring.Size=UDim2.fromScale(size*.66,size);ring.BackgroundColor3=i%2==0 and teal or cream;ring.BorderSizePixel=0;ring.Parent=face
+  local round=Instance.new("UICorner");round.CornerRadius=UDim.new(1,0);round.Parent=ring
+ end
+ sign(practice,"MIC PRACTICE",CFrame.new(tx,9.1,tz)*CFrame.Angles(0,math.pi,0),13)
+ sign(practice,"HOLD · SPEAK · RELEASE",CFrame.new(tx,1.7,tz+.4)*CFrame.Angles(0,math.pi,0),13)
  local kx,kz=x-64,z-65
  local kiosk=model(m,"FlowerKiosk")
  part(kiosk,"Counter",V(17,3.2,5),V(kx,2.5,kz),teal,Enum.Material.WoodPlanks)

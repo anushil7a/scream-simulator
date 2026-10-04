@@ -123,6 +123,12 @@ local function cast(p,request)
  effect:FireAllClients("Scream",origin,style.id,s.data.aura,direction,length,sound.width)
  Soccer.Hit(p,origin,direction,length,sound.width,sound.power)
  BeachVolley.Hit(p,origin,direction,length,sound.width,sound.power)
+ local practiceMessage
+ if obstruction and obstruction.Instance:GetAttribute("MicPracticeTarget")==true then
+  practiceMessage=string.format("Practice hit · %d%% power · %.0f studs · %d damage",math.floor(sound.power*100+.5),length,sound.damage)
+  local target=obstruction.Instance;local pulse=(target:GetAttribute("PracticePulse") or 0)+1;target:SetAttribute("PracticePulse",pulse);target.Color=Color3.fromRGB(255,205,111)
+  task.delay(.3,function() if target.Parent and target:GetAttribute("PracticePulse")==pulse then target.Color=target:GetAttribute("RestColor") end end)
+ end
  if obstruction then
   local result=Destruction.Damage(obstruction.Instance,s.data.level,sound.damage)
   if result then
@@ -163,7 +169,7 @@ local function cast(p,request)
    end
   end
  end
- state(p)
+ state(p,practiceMessage)
 end
 local function dodge(p)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
