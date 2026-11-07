@@ -23,6 +23,14 @@
         "$path": "src/StarterPlayer/StarterPlayerScripts"
       }
     },
+    "TextChatService": {
+      "$className": "TextChatService",
+      "$properties": {
+        "ChatVersion": "TextChatService",
+        "CreateDefaultTextChannels": true,
+        "CreateDefaultCommands": true
+      }
+    },
     "VoiceChatService": {
       "$className": "VoiceChatService",
       "$properties": {
