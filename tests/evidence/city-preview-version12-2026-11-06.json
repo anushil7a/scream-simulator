@@ -1,0 +1,137 @@
+{
+  "placeId": 90337242377543,
+  "universeId": 10769005350,
+  "version": 12,
+  "scripts": {
+    "StarterPlayer.StarterPlayerScripts.Client": {
+      "hash": 1749236465,
+      "bytes": 38631
+    },
+    "StarterPlayer.StarterPlayerScripts.Microphone": {
+      "hash": 3447522151,
+      "bytes": 5180
+    },
+    "ServerScriptService.World": {
+      "hash": 688496856,
+      "bytes": 50762
+    },
+    "ServerScriptService.DeveloperAccess": {
+      "hash": 2938569231,
+      "bytes": 554
+    },
+    "StarterPlayer.StarterPlayerScripts.Ambience": {
+      "hash": 1488651948,
+      "bytes": 3292
+    },
+    "ServerScriptService.BeachVolley": {
+      "hash": 3864560756,
+      "bytes": 4764
+    },
+    "ReplicatedStorage.Shared.QuestLifecycle": {
+      "hash": 1866854489,
+      "bytes": 562
+    },
+    "ServerScriptService.SoccerChallenge": {
+      "hash": 1585087729,
+      "bytes": 8234
+    },
+    "StarterPlayer.StarterPlayerScripts.ScreamEffects": {
+      "hash": 2181447497,
+      "bytes": 4091
+    },
+    "ReplicatedStorage.Shared.Config": {
+      "hash": 2478388278,
+      "bytes": 5617
+    },
+    "ReplicatedStorage.Shared.VoiceCombat": {
+      "hash": 2050203324,
+      "bytes": 2523
+    },
+    "ServerScriptService.Bootstrap": {
+      "hash": 501549811,
+      "bytes": 33991
+    },
+    "ReplicatedStorage.Shared.QuestGuide": {
+      "hash": 1907929430,
+      "bytes": 955
+    },
+    "ServerScriptService.Equipment": {
+      "hash": 2739603216,
+      "bytes": 1942
+    },
+    "StarterPlayer.StarterCharacterScripts.Health": {
+      "hash": 870862041,
+      "bytes": 164
+    },
+    "ReplicatedStorage.Shared.DestructionRules": {
+      "hash": 2492772953,
+      "bytes": 1012
+    },
+    "ServerScriptService.Profiles": {
+      "hash": 1690570931,
+      "bytes": 5272
+    },
+    "ServerScriptService.Destruction": {
+      "hash": 4121809144,
+      "bytes": 7567
+    },
+    "ServerScriptService.Fountain": {
+      "hash": 3100439604,
+      "bytes": 4092
+    },
+    "StarterPlayer.StarterPlayerScripts.LandmarkVisuals": {
+      "hash": 3467104551,
+      "bytes": 2024
+    },
+    "ReplicatedStorage.Shared.MicPower": {
+      "hash": 2339169814,
+      "bytes": 2348
+    },
+    "StarterPlayer.StarterPlayerScripts.Residents": {
+      "hash": 3222362093,
+      "bytes": 7103
+    },
+    "ReplicatedStorage.Shared.Progression": {
+      "hash": 1526572977,
+      "bytes": 839
+    },
+    "StarterPlayer.StarterPlayerScripts.RunAnimation": {
+      "hash": 3222301997,
+      "bytes": 6622
+    },
+    "ReplicatedStorage.Shared.InteractionRules": {
+      "hash": 33155657,
+      "bytes": 1152
+    },
+    "ServerScriptService.Entitlements": {
+      "hash": 852062940,
+      "bytes": 1475
+    },
+    "ServerScriptService.CombatRules": {
+      "hash": 2032078907,
+      "bytes": 1452
+    },
+    "ReplicatedStorage.Shared.ProfileLease": {
+      "hash": 4191049867,
+      "bytes": 639
+    },
+    "ServerScriptService.City": {
+      "hash": 1305596593,
+      "bytes": 62060
+    },
+    "StarterPlayer.StarterPlayerScripts.CityMap": {
+      "hash": 1889764758,
+      "bytes": 3203
+    }
+  },
+  "gameplayCommit": "8f0bb60",
+  "configurationChecks": 4,
+  "scope": "Studio cloud reopen after native Publish As to existing City Preview; not a real Roblox-client mic or multiplayer pass.",
+  "clientSmoke": {
+    "ui": true,
+    "chat": "TextChatService",
+    "general": true,
+    "streamedResidents": 25,
+    "loadedPlayingAmbienceSources": 5
+  }
+}

@@ -4,6 +4,8 @@ Updated November 6, 2026. Gameplay source: `8f0bb60`, branch `feature/microphone
 
 ## Current state
 
+**Publication recovered:** after the owner restarted Studio, the latest build was uploaded to the existing City Preview and reopened at **version 12**. All 30 sources match `8f0bb60`; all four place configuration checks pass. UI, modern chat and five loaded/playing ambience sources passed the Studio startup check. The publishing blocker below is historical; human/external evidence gates remain open. See `docs/QA_REPORT.md` for the current publication record.
+
 - Latest source is pushed to [GitHub](https://github.com/anushil7a/scream-simulator/tree/feature/microphone-city-redesign); review remains in [draft PR #1](https://github.com/anushil7a/scream-simulator/pull/1).
 - Rebuilt local files: `build/MicrophoneCity.rbxl`, `build/MicrophoneCity.rbxlx`, and `build/CityPreviewLatest.rbxl`. These generated files are ignored by Git; README has reproducible build commands.
 - Last verified cloud copy: [City Preview](https://www.roblox.com/games/90337242377543/Scream-Simulator-City-Preview), place **90337242377543**, universe **10769005350**, version **10**, source `229a137`. Modern chat/typing cancellation and ambience changes are newer than that verification.
