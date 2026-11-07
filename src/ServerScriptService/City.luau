@@ -666,6 +666,46 @@ local function parasol(parent,x,z,color)
  end
  ellipsoid(m,"ParasolFinial",V(.35,.5,.35),crown+V(0,.2,0),cream,Enum.Material.Wood)
 end
+local function beachRinse(parent,x,z)
+ local m=model(parent,"BeachRinseStation");m.ModelStreamingMode=Enum.ModelStreamingMode.Atomic
+ local blue=Color3.fromRGB(58,138,155);local metal=Color3.fromRGB(179,196,196)
+ part(m,"RinsePad",V(14,.12,12),V(x,1.06,z),cream,Enum.Material.CeramicTiles)
+ for dx=-6,6,2 do for dz=-5,5,2 do
+  part(m,"MosaicTile",V(1.9,.025,1.9),V(x+dx,1.135,z+dz),(dx+dz)%4==1 and blue or cream,Enum.Material.CeramicTiles,false)
+ end end
+ part(m,"Drain",V(3,.025,1.4),V(x,1.16,z+.5),iron,Enum.Material.Metal,false)
+ for dx=-1.2,1.2,.4 do part(m,"DrainSlot",V(.1,.015,1.2),V(x+dx,1.18,z+.5),dark,nil,false) end
+ part(m,"TiledBack",V(12,3,.45),V(x,2.62,z-4.7),cream,Enum.Material.CeramicTiles)
+ part(m,"BlueTileBand",V(12,.5,.035),V(x,3.4,z-4.45),blue,Enum.Material.CeramicTiles,false)
+ for _,dx in ipairs({-6,6}) do part(m,"TileEndCap",V(.3,3.2,.65),V(x+dx,2.72,z-4.7),stone,Enum.Material.Limestone) end
+ cylinder(m,"ShowerColumn",.18,8,V(x,5.12,z-3),metal,Enum.Material.Metal)
+ part(m,"ShowerArm",V(.3,.3,3),V(x,9.05,z-1.5),metal,Enum.Material.Metal)
+ local nozzle=cylinder(m,"ShowerHead",.7,.18,V(x,8.87,z),metal,Enum.Material.Metal)
+ local valve=part(m,"Tap",V(.8,.5,.6),V(x,4.2,z-2.65),blue,Enum.Material.Metal)
+ part(m,"TapHandle",V(1.2,.16,.22),V(x,4.55,z-2.65),metal,Enum.Material.Metal)
+ local water={}
+ for i=0,5 do
+  local angle=i*math.pi/3
+  local a=Instance.new("Attachment");a.Position=nozzle.CFrame:PointToObjectSpace(V(x+math.cos(angle)*.4,8.7,z+math.sin(angle)*.4));a.Parent=nozzle
+  local b=Instance.new("Attachment");b.Position=nozzle.CFrame:PointToObjectSpace(V(x+math.cos(angle)*.7,1.2,z+math.sin(angle)*.7));b.Parent=nozzle
+  local beam=Instance.new("Beam");beam.Name="RinseWater";beam.Attachment0=a;beam.Attachment1=b;beam.Width0=.045;beam.Width1=.025;beam.FaceCamera=true;beam.Color=ColorSequence.new(Color3.fromRGB(180,228,237));beam.Transparency=NumberSequence.new(.35);beam.Enabled=false;beam.Parent=nozzle;table.insert(water,beam)
+ end
+ local prompt=Instance.new("ProximityPrompt");prompt.ActionText="Turn on water";prompt.ObjectText="Beach rinse";prompt.KeyboardKeyCode=Enum.KeyCode.F;prompt.HoldDuration=.2;prompt.MaxActivationDistance=7;prompt.Parent=valve
+ local active=false
+ m:SetAttribute("RinseActive",false)
+ prompt.Triggered:Connect(function(player)
+  local character=player.Character;local root=character and character:FindFirstChild("HumanoidRootPart");local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+  if active or not root or not humanoid or humanoid.Health<=0 or (root.Position-valve.Position).Magnitude>8 then return end
+  active=true;prompt.Enabled=false;m:SetAttribute("RinseActive",true)
+  for _,beam in ipairs(water) do beam.Enabled=true end
+  task.delay(5,function()
+   if not m.Parent then return end
+   for _,beam in ipairs(water) do beam.Enabled=false end
+   active=false;m:SetAttribute("RinseActive",false);prompt.Enabled=true
+  end)
+ end)
+ return m
+end
 local function coast(parent,walk,activities)
  local m=model(parent,"BarcelonetaCoast")
  part(m,"Beach",V(1440,3,170),V(0,-.5,515),Color3.fromRGB(227,208,156),Enum.Material.Sand)
@@ -743,6 +783,7 @@ local function coast(parent,walk,activities)
  for _,x in ipairs({136,164}) do part(m,"StageSpeaker",V(3,6,3),V(x,5,433),iron,Enum.Material.Metal) end
  sign(m,"MÚSICA A LA MAR",CFrame.new(150,8,437)*CFrame.Angles(0,math.pi,0),30)
  coastalLookout(m,walk,activities)
+ for _,x in ipairs({-350,350}) do beachRinse(m,x,446) end
  for _,x in ipairs({-70,-30}) do part(m,"VolleySideline",V(.18,.04,52),V(x,1.04,505),cream,nil,false) end
  for _,z in ipairs({479,531}) do part(m,"VolleyBaseline",V(40,.04,.18),V(-50,1.04,z),cream,nil,false) end
  for _,x in ipairs({-70,-30}) do cylinder(m,"VolleyballPost",.3,9,V(x,5.5,505),iron,Enum.Material.Metal) end
