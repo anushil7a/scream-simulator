@@ -20,6 +20,8 @@ Open `build/MicrophoneCity.rbxl` in Roblox Studio and press Play. The city is ge
 
 Read the [current QA report and release gates](docs/QA_REPORT.md), [development brief](docs/PROFESSIONAL_REDESIGN_PROMPT.md), [implementation evidence and remaining work](docs/IMPLEMENTATION_STATUS.md), [asset inventory](docs/ASSET_INVENTORY.md), and [contributor guide](CONTRIBUTING.md).
 
+The [release handoff](docs/RELEASE_HANDOFF.md) records the latest local build, last verified playable preview, publishing recovery steps and human test requirements.
+
 ## Implemented in this branch
 
 - Hold attack, use microphone, release an aimed beam. Client calibration/power processing and server bounds/cooldowns are implemented; real microphone/proximity-voice validation remains outstanding.
