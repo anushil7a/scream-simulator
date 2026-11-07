@@ -21,6 +21,11 @@ Source inspection: October 2, 2026. Applies to `feature/microphone-city-redesign
 
 ## Audio
 
+- Added November 6, 2026: location-bound scenery audio in `Ambience.client.luau`, independent of microphone capture and Roblox proximity voice. Four shoreline sources share surf asset 9119677305; the stage uses guitar asset 15675051846 only while a living nearby busker is working. Both are looped with bounded volume/range and routed through the local CityAmbience group. CITY AUDIO changes this group only.
+- [Surf Ocean Wave Impact On Zuma Beach 4 (SFX)](https://create.roblox.com/store/asset/9119677305), publisher ProSoundEffects, courtesy of Pro Sound Effects. Free Creator Store audio result; permitted use is through Roblox under applicable Creator Store/platform terms, not an assertion of unrestricted off-platform licensing. Audio-only insertion yielded a Sound with zero children. Native client preload succeeded; duration 40.224 seconds.
+- [Roblox_UI_Loop_Guitar_Acoustic](https://create.roblox.com/store/asset/15675051846), publisher Roblox. Free Creator Store audio result. Same platform-use scope; no downloaded model or embedded scripts. Native client preload succeeded; duration approximately 11.971 seconds. Creator Store lookup used the verified-creator filter for both candidates.
+- Temporary review Sound instances were removed. Source defines the runtime objects. Published destination asset access, human listening balance and coexistence with two-person live voice remain unverified. These sounds never activate attacks or replay recorded screams.
+
 - `Microphone.luau` uses Roblox audio objects and analyzer readings. The Rojo project enables Audio API/default voice settings. Actual account eligibility, input permissions and two-account proximity voice behavior remain unverified release gates.
 - Current `src/` contains no literal uploaded SoundId, TextureId, MeshId, AnimationId or `rbxassetid` references found by the October 2 source scan. This is scoped to repository source, not a claim about all runtime-injected assets.
 - No prerecorded attack-scream pack is bundled. Live microphone audio must remain on Roblox-supported transport; do not introduce custom recording storage as an asset pipeline.

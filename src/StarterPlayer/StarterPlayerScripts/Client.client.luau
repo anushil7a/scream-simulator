@@ -237,11 +237,12 @@ render=function()
   CityMap.update(mapDot,p.Character and p.Character:FindFirstChild("HumanoidRootPart"))
   info("Gold arrow: you and your facing direction. Red: PvP. Green and sand: safe. North is up.",64)
   info(CityMap.legend,94)
-  info("Coffee: west promenade café → music stage. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
+  info("Coffee: collect at the west café, then check your objective for the assigned stop. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
   info("Hold E / SCREAM, use mic, release: fire toward aim\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",125)
-  local c=card(58);button(c,"Volume","AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
+  local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
+  info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
   local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
  end
  -- Restore only after AutomaticCanvasSize has measured the replacement cards.
