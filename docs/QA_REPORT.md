@@ -10,6 +10,18 @@ This is a concise current handoff. [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STA
 
 ## Fresh source/build verification
 
+### Resident observation and ambience recovery — November 6, 2026
+
+On the clean `93698b4` local city, 30 one-second post-startup server snapshots observed 46 living residents. All eight occupational roles had working samples; no unseated airborne samples appeared among 1,380 observations. Moving roles accumulated physical travel; Nick and the painter worked at their stationary stations. [Raw samples](../tests/evidence/resident-30-second-93698b4-2026-11-06.json). This is a short unloaded Studio observation, not a multiplayer soak or proof against transient floating.
+
+The same startup exposed real HTTP timeouts for all four surf emitters; the guitar loaded. Ambience now preloads each of its two shared assets once and retries at most twice (2/4-second delays), then starts the corresponding emitters. Loading never blocks the gameplay controller. Native checks on a disposable copy established:
+
+- Injected first-call failure, then actual ContentProvider: both representatives reached attempt 2; all five emitters were loaded and playing.
+- Persistent injected failure with unloaded fixture IDs: exactly two representatives reached attempt 3; all five sounds remained stopped, with no fourth attempt after two additional seconds. The initial version of this test used cached production IDs and failed its stopped assertion because already-loaded sounds correctly played; it did not simulate unavailable assets.
+- Destroying the controller 0.2 seconds into a delayed load removed the soundscape and SoundGroup. The delayed callback was canceled by Studio script destruction, so this establishes cleanup, not execution of the post-load guard. Console contained only the expected temporary-profile warning.
+
+All injected providers/IDs and destruction code were removed, Play stopped, and the clean source restored. Human listening, actual CDN recovery timing, live voice mixing and destination asset access remain open. The updated ambience is still pending cloud publication.
+
 ### Latest preview upload attempt — November 6, 2026
 
 Rebuilt `build/CityPreviewLatest.rbxl` from `93698b4` and opened it in Studio. All **30** production script lengths/hashes match the repository; `tests/StudioPlaceConfig.luau` passed all **4** serialized chat, live-voice and streaming checks. The clean local `ChatReview.rbxl` copy also has all current scripts and passed the configuration checks. Neither local copy is evidence of a cloud publication.

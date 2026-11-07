@@ -1,0 +1,95 @@
+{
+  "source": "93698b4",
+  "studio": "CityPreviewLatest.rbxl",
+  "scope": "One Studio server/client, 30 one-second samples after startup. No mic/combat load. Walking means root speed above 1 stud/s; airborne excludes occupied seats.",
+  "result": {
+    "roles": {
+      "Fighter": {
+        "airborne": 0,
+        "walking": 107,
+        "samples": 180,
+        "travel": 882.0796487033367,
+        "working": 0
+      },
+      "Commuter": {
+        "airborne": 0,
+        "walking": 108,
+        "samples": 180,
+        "travel": 853.5622471868992,
+        "working": 0
+      },
+      "CafeWorker": {
+        "airborne": 0,
+        "walking": 14,
+        "samples": 30,
+        "travel": 115.57339298725128,
+        "working": 15
+      },
+      "BeachWorker": {
+        "airborne": 0,
+        "walking": 21,
+        "samples": 30,
+        "travel": 198.98819616436958,
+        "working": 8
+      },
+      "Vendor": {
+        "airborne": 0,
+        "walking": 120,
+        "samples": 210,
+        "travel": 1052.6561992168427,
+        "working": 19
+      },
+      "Local": {
+        "airborne": 0,
+        "walking": 139,
+        "samples": 210,
+        "travel": 1249.8259179890156,
+        "working": 0
+      },
+      "Sanitation": {
+        "airborne": 0,
+        "walking": 17,
+        "samples": 30,
+        "travel": 185.00103092193604,
+        "working": 12
+      },
+      "Busker": {
+        "airborne": 0,
+        "walking": 99,
+        "samples": 210,
+        "travel": 905.9411126375198,
+        "working": 30
+      },
+      "Gardener": {
+        "airborne": 0,
+        "walking": 13,
+        "samples": 30,
+        "travel": 100.56750559806824,
+        "working": 17
+      },
+      "Tourist": {
+        "airborne": 0,
+        "walking": 130,
+        "samples": 210,
+        "travel": 1152.9743938148022,
+        "working": 0
+      },
+      "Soccer": {
+        "airborne": 0,
+        "walking": 0,
+        "samples": 30,
+        "travel": 0,
+        "working": 28
+      },
+      "Artist": {
+        "airborne": 0,
+        "walking": 0,
+        "samples": 30,
+        "travel": 0,
+        "working": 26
+      }
+    },
+    "samples": 30,
+    "residents": 46
+  }
+}
