@@ -21,7 +21,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Verify unlock boundaries, overflow XP, retired styles, idempotent migration and reload. Produce a local build; do not publish.
 - Why first: continuous damage and destruction need a coherent level/balance model, and a cap change must not erase progress.
 
-### P0 — voice-triggered continuous combat (next)
+### P0 — voice-triggered continuous combat (pure-rule foundation complete; integration next)
 
 - Replace hold/release as the default attack trigger. Sustained calibrated voice starts an attack, aiming tracks during the scream, quiet/mute stops it.
 - Prototype 4 seconds maximum active time, then 10 seconds cooldown from attack end. Compare with shorter active windows in timed playtests; keep tuning data-driven.
@@ -29,6 +29,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Server owns start/end deadlines, tick rate, damage budget, range/cover/PvP and reward limits. One sustained scream must not become repeated full-damage casts, per-tick XP farming or unlimited destruction. Reject stale/replayed pulses, missing stop messages and aim/power abuse; use server expiry even if the client disappears.
 - Rework beam effects as one updated bounded effect per attacker rather than creating an entire old burst every tick. Rework feedback, mic controller and server acknowledgement together.
 - Re-test mouse/first-person/touch aim, rolling interruption, short noises, noise during cooldown, reconnect, respawn and silence. Prototype locally before requesting real-mic friend tests.
+- Pure modules and integration contract: [SUSTAINED_ATTACK_PROTOCOL.md](SUSTAINED_ATTACK_PROTOCOL.md). They are not wired into the playable client/server yet; do not present a rules-only build as playable automatic voice combat.
 
 ### P1 — destruction as combat design
 
@@ -80,7 +81,9 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Background continuation configured: active thread heartbeat `scream-simulator-development`, every four hours. It reads this roadmap, checks usage before new tasks, makes local reviewable progress, requires fresh approval for publishing/external pushes, and stays quiet on unchanged blockers or usage cutoff. No manual cron or hidden loop was installed.
 - Verification: 508 progression assertions, 1,419 combat/mic/destruction assertions, 370 actual-Config/Profiles migration checks with mocked engine services, 13 actual-Profiles concurrency checks with mocked store; all production sources compile. Both `build/Level100Review.rbxl` and `.rbxlx` build. Progression estimates still model the old 4-second burst cadence and are not forecasts for the proposed sustained attack.
 - Native review blocked: Studio connector can inspect the existing cloud place, but native window controls timed out twice. Did not modify that cloud place or restart/discard owner work. Local opening/play and real save migration remain unverified; use the separate Level100Review build when native controls recover. Usage recheck remained 27% used / 73% remaining.
+- November 7 heartbeat: usage 30% used / 70% remaining at task start. Working tree was clean. Added independent VoiceActivation and SustainedAttack modules: onset/quiet gating, state cancellation, four-second maximum, ten-second end-based cooldown, input expiry/rate limits, per-target fractional damage and bounded target tracking. All 9,094 pure tests passed; all 32 production sources compile; binary/XML SustainedRulesReview builds succeed. No entry point/remote/VFX integration or real audio test is claimed. No cloud writes, uploads or external pushes.
+- New balance finding: the existing ten-second quiet-time healing matches the proposed ten-second attack cooldown. Test regeneration between bursts before choosing final DPS/cooldown; no healing change made in this task.
 
 ## Next action
 
-Finish native review of Level100Review when Studio controls recover. While that is blocked, implement/test the independent sustained-attack rule/state machine and voice onset/cancellation in source, before integrating it into a local city. Check usage before starting that next task. No publication or external push without owner approval.
+Check usage before the next task. Integrate the new protocol through a server-owned adapter with fresh aim/cover/PvP validation, bounded reward/destruction handling and expiry; reject old burst damage paths when the new mode is active. Then connect microphone onset/armed UI and persistent beam effects and test in a disposable local city. Keep native Level100Review verification pending until Studio controls recover. No publication or external push without owner approval.

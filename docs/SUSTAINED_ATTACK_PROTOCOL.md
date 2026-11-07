@@ -1,0 +1,41 @@
+# Sustained voice prototype contract
+
+November 7, 2026. This is a tested pure-rule foundation, **not a playable continuous attack yet**. Existing Microphone, Client, Bootstrap and VFX entry points still use hold/release. The new modules are included by Rojo but not required by those entry points.
+
+## Local voice activation
+
+`Shared.VoiceActivation` consumes normalized calibrated power and explicit armed, allowed and ready flags. It returns a single `start` or `stop` transition, not attacks per frame.
+
+- Require 0.2 seconds quiet before arming/rearming, then 0.25 seconds at or above 35% power to start.
+- While active, power at/below 18% for 0.2 seconds stops the attack. Hysteresis tolerates short dips; an isolated pop cannot start one.
+- Menus/dialogue, typing, calibration, lost focus, mute/disconnect, protection, roll, knockdown, death and cooldown must set appropriate flags or call `Cancel`. The caller must cancel on server denial or the maximum-duration limit too.
+- A cancellation requires fresh quiet and fresh voice; speech during a blocked state cannot be queued into a later attack.
+- Large frame deltas contribute at most 0.1 seconds of onset/quiet. The module stores only timers, never recordings.
+- Thresholds are initial proposals for comfortable calibrated voice, not physical decibels or reliable classification of human screams. Real-microphone tuning remains required.
+
+## Server attack protocol
+
+`Shared.SustainedAttack` consumes **server time**, a sequence number, trusted server-derived DPS, normalized reported power and an allowed-state flag. Clients cannot select the DPS, targets, hit geometry or time.
+
+- Begin: consumes increasing integer sequences, rejects illegal state/power/budget, an active attack or cooldown. A repeated begin never refreshes an active deadline.
+- Pulse: accept at most ten samples per second for the active sequence. Too-fast pulses do not refresh the input timeout. Missing input expires at 0.5 seconds; low/invalid power or forbidden state stops damage.
+- Step: resolve at most one damage quantum per 0.2 seconds, using current server-filtered target IDs. Never backfill multiple damage ticks after a stall; each step accounts for at most 0.25 seconds.
+- Duration: at most four seconds from accepted begin. Cooldown is ten seconds from the actual stop/earliest expiry time, even if expiry is observed late.
+- Damage: accumulate fractional damage separately per target while it is present. Late entrants do not inherit earlier damage; duplicate target IDs or steps cannot duplicate damage. Target tracking is bounded to 128 identities per attack and cleared at end.
+- `firstHit` is emitted once per target when positive damage first applies. The adapter must retain normal reward/KO guards; it must not pay per tick. The pure module does not award XP/coins, apply Humanoid damage or destroy anything.
+- Current hard DPS ceiling is 24. Proposed adapter budget: `VoiceCombat.Stats(level, 1, false).damage * 0.75`, giving 13.5–21 full-power DPS across levels 1–100, with `(0.45 + 0.55 * effectivePower)` scaling. This is initial tuning, not a balanced live result.
+
+The adapter must supply unique stable IDs for players, bots and destructible objects, after reconstructing origin/aim/range/width/cover/PvP/protection/dodge eligibility on the server. Re-evaluate permission each tick; preserve exact whole damage and per-object eligibility when applying returned budgets. Do not trust client lists of targets or damage.
+
+## Integration still required
+
+1. Add explicit local armed/paused UI, microphone onset handling and aim/power start/pulse/stop messages. Preserve Roblox voice/mute controls and cancel on all invalid states.
+2. Add a server adapter with server-selected DPS/sequence state, fresh aim validation, heartbeat expiry and server target resolution. Retire old burst remotes rather than accepting both damage paths.
+3. Replace repeated burst VFX with one bounded updated beam per attacker, cleanup on end/disconnect and a measured replication rate. Handle server rejection/acknowledgement in the UI.
+4. Keep NPC/KO/destruction rewards bounded per sustained attack. Review existing soccer/volley handlers separately: calling them on every damage tick would change their difficulty and ball physics.
+5. Revisit healing: current 20% regeneration begins ten seconds after damage, matching the proposed cooldown. Measure how much healing happens between bursts and how that changes time-to-knockout.
+6. Verify in a disposable local city, then request owner-approved real mic/multiplayer testing. No cloud edits or publication are authorized.
+
+## Evidence
+
+`luau tests/SustainedAttack.luau` passes **9,094** pure assertions across all 100 levels, deadline/cooldown boundaries, stale and spammed messages, interruptions, late targets, fractional budgets, resource caps and voice onset/quiet/cancellation. All 32 production sources compile, and binary/XML `SustainedRulesReview` builds succeed. These tests have no remote transport, geometry, humanoids, real microphones, devices or multiplayer participants; they cannot establish those behaviors.

@@ -2,6 +2,8 @@
 
 ## November 7 management and unpublished progression work
 
+**Sustained-voice pure prototype:** added VoiceActivation and SustainedAttack modules, not yet connected to gameplay. Passed 9,094 pure assertions for all-level damage budgets, 4s duration / 10s end-based cooldown, quiet/onset/hysteresis, invalid-state cancellation, replay/spam and missing-input handling, late-target accounting and bounded tracking. All 32 production sources compile; SustainedRulesReview builds in binary/XML. [Contract and remaining integration](SUSTAINED_ATTACK_PROTOCOL.md). No real voice, remote, geometry, Humanoid or multiplayer pass is implied, and current playable controls are unchanged. Existing ten-second healing versus the proposed ten-second cooldown is recorded for balance testing.
+
 Owner now requires approval before publishing. No cloud writes or uploads were performed in this session. Existing City Preview reports version 15, whose 30 sources match the verified version-14 source record. See `ROADMAP.md` for current priorities, usage cutoff and approved design changes; older 300-level/hold-release requirements are superseded as described there.
 
 Local source now caps at level 100 with 11 styles (base at 1, then every ten levels). Profile schema 4 preserves a sanitized pre-cap level/XP/style snapshot; retired style IDs resolve to current canonical selections, and equipped tiers cannot exceed active level. Per-level range/damage/health slopes remain; max-level range is 54.75 studs, full-power damage 28, health 135 and beam width 7. These are initial burst-model values, not final continuous-attack balance.
