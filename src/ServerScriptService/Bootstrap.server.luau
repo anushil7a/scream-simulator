@@ -123,20 +123,24 @@ local function cast(p,request)
  effect:FireAllClients("Scream",origin,style.id,s.data.aura,direction,length,sound.width)
  Soccer.Hit(p,origin,direction,length,sound.width,sound.power)
  BeachVolley.Hit(p,origin,direction,length,sound.width,sound.power)
- local practiceMessage
+ local castMessage
  if obstruction and obstruction.Instance:GetAttribute("MicPracticeTarget")==true then
-  practiceMessage=string.format("Practice hit · %d%% power · %.0f studs · %d damage",math.floor(sound.power*100+.5),length,sound.damage)
+  castMessage=string.format("Practice hit · %d%% power · %.0f studs · %d damage",math.floor(sound.power*100+.5),length,sound.damage)
   local target=obstruction.Instance;local pulse=(target:GetAttribute("PracticePulse") or 0)+1;target:SetAttribute("PracticePulse",pulse);target.Color=Color3.fromRGB(255,205,111)
   task.delay(.3,function() if target.Parent and target:GetAttribute("PracticePulse")==pulse then target.Color=target:GetAttribute("RestColor") end end)
  end
  if obstruction then
   local result=Destruction.Damage(obstruction.Instance,s.data.level,sound.damage)
   if result then
-   if result.reason=="level" then state(p,"Requires level "..result.required)
-   elseif result.destroyed then effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition") end
+   if result.reason=="level" then castMessage="Requires level "..result.required
+   elseif not result.reason then
+    local name=result.model:GetAttribute("ObjectName") or result.kind
+    castMessage=result.destroyed and name.." destroyed" or string.format("%s hit · %d durability left",name,result.health)
+    if result.destroyed then effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition") end
+   end
   end
  end
- local hits=0;local paid=0
+ local hits=0;local paid=0;local playerHits=0;local evades=0;local knockoutMessage
  for _,bot in ipairs(World.Bots) do
   if bot.alive and bot.root.Parent and Rules.InBeam(origin,direction,bot.root.Position,length,sound.width,1) and audible(c,origin,bot.root.Position,bot.model) then
    hits+=1;bot.health=math.max(0,bot.health-sound.damage);local ko=bot.health==0
@@ -153,8 +157,9 @@ local function cast(p,request)
   for _,target in ipairs(Players:GetPlayers()) do
    local ts=sessions[target];local tc,tr,th=parts(target)
    if target~=p and ts and tr and Rules.CanTarget(r.Position,tr.Position,ts.protectedUntil,now,sound.range+2) and Rules.InBeam(origin,direction,tr.Position,length,sound.width,1) and audible(c,origin,tr.Position,tc) then
-    if now<ts.dodgingUntil and not ts.premiumRoll then questProgress(target,"Evade")
+    if now<ts.dodgingUntil and not ts.premiumRoll then evades+=1;questProgress(target,"Evade")
     else
+     playerHits+=1
      ts.nextHeal=now+Config.HealQuietSeconds
      if th.Health<=sound.damage then
       local targetLevel=ts.data.level;local attackerLevel=s.data.level;eject(target,th)
@@ -162,14 +167,18 @@ local function cast(p,request)
       if now>=(s.koRewards[target.UserId] or 0) then
        s.koRewards[target.UserId]=now+30;local reward=Config.PlayerKOXP(targetLevel);xp(p,reward);s.data.coins+=20
        if targetLevel>=attackerLevel then questProgress(p,"Underdog") end
-       state(p,"Player knockout · +"..reward.." XP")
+       knockoutMessage="Player knockout · +"..reward.." XP"
       end
      else th.Health-=sound.damage;state(target) end
     end
    end
   end
  end
- state(p,practiceMessage)
+ local totalHits=hits+playerHits
+ if knockoutMessage then castMessage=knockoutMessage
+ elseif totalHits>0 then castMessage=string.format("Hit %d %s · %d damage each",totalHits,totalHits==1 and "target" or "targets",sound.damage)
+ elseif not castMessage then castMessage=evades>0 and "Scream dodged" or obstruction and "Scream stopped by cover" or "Scream missed" end
+ state(p,castMessage)
 end
 local function dodge(p)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
