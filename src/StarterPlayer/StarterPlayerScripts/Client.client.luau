@@ -10,6 +10,10 @@ local GuiService=game:GetService("GuiService")
 local originalTouchControls=GuiService.TouchControlsEnabled
 script.Destroying:Connect(function() GuiService.TouchControlsEnabled=originalTouchControls end)
 local p=Players.LocalPlayer
+local firstPerson=false
+local originalCameraMode=p.CameraMode
+local originalMinZoom,originalMaxZoom=p.CameraMinZoomDistance,p.CameraMaxZoomDistance
+local cameraGeneration=0;local thirdPersonDistance=12
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
 local InteractionRules=require(RS.Shared:WaitForChild("InteractionRules"))
 local mic=require(script.Parent:WaitForChild("Microphone")).new()
@@ -64,6 +68,29 @@ local nextCast=0;local sequence=0;local captureSource=nil
 local function cancelCapture()
  captureSource=nil;mic:Cancel();action:FireServer("CancelCast")
 end
+local function toggleCamera()
+ cancelCapture();cameraGeneration+=1;local generation=cameraGeneration
+ firstPerson=not firstPerson
+ if firstPerson then
+  local camera=workspace.CurrentCamera
+  local distance=camera and (camera.CFrame.Position-camera.Focus.Position).Magnitude or 12
+  if distance>1 then thirdPersonDistance=distance end
+  p.CameraMode=Enum.CameraMode.LockFirstPerson
+ else
+  p.CameraMode=Enum.CameraMode.Classic
+  -- Leave the close zoom immediately, then return normal wheel/pinch limits.
+  p.CameraMinZoomDistance=math.clamp(thirdPersonDistance,originalMinZoom,originalMaxZoom)
+  task.spawn(function()
+   Run.RenderStepped:Wait()
+   if cameraGeneration==generation then p.CameraMinZoomDistance=originalMinZoom end
+  end)
+ end
+ if modal.Visible and selected=="Settings" then render() end
+end
+script.Destroying:Connect(function()
+ cameraGeneration+=1;p.CameraMode=originalCameraMode
+ p.CameraMinZoomDistance=originalMinZoom;p.CameraMaxZoomDistance=originalMaxZoom
+end)
 local function blocked()
  local now=workspace:GetServerTimeNow()
  return UIS:GetFocusedTextBox()~=nil or (conversationPanel and conversationPanel.Visible) or modal.Visible or (devPanel and devPanel.Visible) or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
@@ -74,7 +101,7 @@ local function beginCapture(source)
 end
 local function aimRay()
  local camera=workspace.CurrentCamera
- local location=UIS.TouchEnabled and camera.ViewportSize/2 or UIS:GetMouseLocation()-game:GetService("GuiService"):GetGuiInset()
+ local location=(firstPerson or UIS.TouchEnabled) and camera.ViewportSize/2 or UIS:GetMouseLocation()
  local ray=camera:ViewportPointToRay(location.X,location.Y)
  local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
  return ray,workspace:Raycast(ray.Origin,ray.Direction*1000,params)
@@ -109,12 +136,15 @@ local meter=frame(gui,"MicPower",UDim2.fromOffset(230,62),UDim2.new(.5,-115,1,-7
 local meterText=label(meter,"LIVE MIC 0%\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,gold)
 local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,49),panel)
 local meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
-local reticle=label(gui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.TextXAlignment=Enum.TextXAlignment.Center
+local aimGui=Instance.new("ScreenGui");aimGui.Name="ScreamAim";aimGui.ResetOnSpawn=false;aimGui.ScreenInsets=Enum.ScreenInsets.None;aimGui.Parent=p.PlayerGui
+script.Destroying:Connect(function() aimGui:Destroy() end)
+local reticle=label(aimGui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.Name="Crosshair";reticle.TextXAlignment=Enum.TextXAlignment.Center
 local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
 local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge)
 local sprinting=false
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() sprinting=not sprinting;action:FireServer("Sprint",sprinting) end)
+local viewButton=button(controls,"CameraToggle","1ST [V]",UDim2.fromOffset(88,32),UDim2.fromOffset(0,52),toggleCamera)
 local talkTarget
 local nextResidentUi=0
 local function refreshResidentLabels(root,camera,residents)
@@ -165,7 +195,7 @@ local function menuKey()
  if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped}
  elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests}
  elseif selected=="Style" then fields={aura=data.aura,owned=data.amplifierOwned,equipped=data.amplifierEquipped}
- elseif selected=="Settings" then fields=data.settings
+ elseif selected=="Settings" then fields={settings=data.settings,firstPerson=firstPerson}
  else fields={} end
  return selected..":"..gui.AbsoluteSize.X..":"..game:GetService("HttpService"):JSONEncode(fields)
 end
@@ -240,7 +270,8 @@ render=function()
   info("Coffee: collect at the west café, then check your objective for the assigned stop. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
-  info("Hold E / SCREAM, use mic, release: fire toward aim\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",125)
+  info("Hold E / SCREAM, use mic, release: fire toward aim\nV / view button: first or third person\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",145)
+  local cameraCard=card(58);button(cameraCard,"CameraMode", "VIEW: "..(firstPerson and "FIRST PERSON" or "THIRD PERSON"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),toggleCamera)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
   local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
@@ -321,9 +352,10 @@ remotes.State.OnClientEvent:Connect(function(nextData)
  if modal.Visible then render() end
 end)
 UIS.InputBegan:Connect(function(input,processed)
- if processed then return end
+ if processed or UIS:GetFocusedTextBox() then return end
  local k=input.KeyCode
  if k==Enum.KeyCode.E then beginCapture("keyboard") elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
+ elseif k==Enum.KeyCode.V then toggleCamera()
  elseif k==Enum.KeyCode.M then selected="Map";modal.Visible=not modal.Visible;render()
  elseif k==Enum.KeyCode.LeftShift then action:FireServer("Sprint",true)
  elseif k==Enum.KeyCode.T and talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end
@@ -352,6 +384,9 @@ remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,
 end)
 local elapsed=0
 local lastViewport,lastTouch
+-- A visible modal button frees the cursor for Roblox's first-person camera.
+modal.Close.Modal=true;micPanel.Calibrate.Modal=true;conversationPanel.Close.Modal=true
+testContent.XP.Modal=true
 Run.RenderStepped:Connect(function(dt)
  local viewport=gui.AbsoluteSize
  local touch=UIS.TouchEnabled
@@ -392,7 +427,8 @@ Run.RenderStepped:Connect(function(dt)
  local gameplayVisible=mic.ready and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
  local showTouchControls=originalTouchControls and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
- meter.Visible=gameplayVisible;reticle.Visible=UIS.TouchEnabled and gameplayVisible
+ meter.Visible=gameplayVisible;reticle.Visible=(firstPerson or UIS.TouchEnabled) and gameplayVisible
+ viewButton.Text=firstPerson and "3RD [V]" or "1ST [V]"
  local power=captureSource and mic:CapturePower() or mic.power;meterFill.Size=UDim2.fromScale(power,1)
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
@@ -426,6 +462,7 @@ Run.RenderStepped:Connect(function(dt)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
  tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and 160 or 64)
  sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
+ viewButton.Size=UDim2.fromOffset(88,touch and 44 or 32)
  end
  hud.Visible=gameplayVisible;controls.Visible=gameplayVisible
  tracked.Visible=gameplayVisible and tracked.Text~="";zone.Visible=viewport.X>740 and mic.ready

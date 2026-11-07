@@ -10,6 +10,12 @@ This is a concise current handoff. [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STA
 
 ## Fresh source/build verification
 
+### Optional first-person aiming — November 6, 2026
+
+Added session-local V/view-button/Settings toggles using Roblox's first-person camera. First-person and touch aim use the camera-center ray; a fullscreen crosshair shares that center. Desktop third-person rays now use raw screen mouse coordinates with ViewportPointToRay, removing the old GUI-inset subtraction. Switching view cancels capture; returning to third person restores normal zoom limits after leaving the close zoom. Visible overlay buttons release the cursor through GuiButton.Modal. Camera preferences restore on controller destruction; this is not a saved profile setting.
+
+Thirteen native unpublished-city checks in `StudioFirstPerson.client.luau` passed with synthetic microphone readiness: camera mode, capture cancellation, HUD, centered ray/crosshair, overlay cursor flags, menu hiding, Settings refresh, zoom-limit restoration and rapid switching. The first fixture compared GUI absolute coordinates directly with viewport coordinates and failed; correcting the comparison to subtract the fullscreen ScreenGui origin resolved that fixture error. Native CUA V key presses additionally switched to LockFirstPerson at about 0.5-stud focus distance and back to Classic. No real microphone attack, physical phone touch, human aiming-quality assessment or multiplayer camera pass is claimed. Fixture removed and Play stopped before publication.
+
 ### Resident observation and ambience recovery — November 6, 2026
 
 On the clean `93698b4` local city, 30 one-second post-startup server snapshots observed 46 living residents. All eight occupational roles had working samples; no unseated airborne samples appeared among 1,380 observations. Moving roles accumulated physical travel; Nick and the painter worked at their stationary stations. [Raw samples](../tests/evidence/resident-30-second-93698b4-2026-11-06.json). This is a short unloaded Studio observation, not a multiplayer soak or proof against transient floating.

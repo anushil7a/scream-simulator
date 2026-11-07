@@ -41,6 +41,7 @@ These are source/integration milestones, not blanket verification of every devic
 - Hold **Shift** / tap **SPRINT**: up to ten seconds of sprint, then five seconds of recovery.
 - **T** / **TALK**: nearby NPC dialogue. **F**: world interactions.
 - **B** / **SCREAMS**: toggle collection. **M**: map. Quests, Style and Settings are menu tabs.
+- **V** / **1ST–3RD view button** / **Settings → View**: switch first/third person for this session. First person aims through a centered crosshair; switching views cancels a pending capture. Menus free the cursor.
 
 A microphone and Roblox voice eligibility are required for gameplay. Studio setup without usable voice may remain on the microphone panel. Synthetic fixtures in `tests/` can exercise selected mechanics, but are not a substitute for live voice validation and must never be appended to production source.
 
@@ -49,6 +50,15 @@ A microphone and Roblox voice eligibility are required for gameplay. Studio setu
 Public test tools remain enabled at the owner's request (`DeveloperAccess.PublicTestingEnabled = true`). The first test mutation freezes legitimate progress; test changes use a temporary copy and are not saved. Owner/product configuration is still needed for real pass and badge IDs.
 
 Outstanding release gates include real microphones and eligible accounts, physical device/multiplayer input and performance tests, live save contention/migration checks, completed city art review and a production backup/old-server drain. **Do not publish this branch as a finished release based on compilation or synthetic tests.** See the status log for active test runs and their exact source versions.
+
+### Still unfinished
+
+- Real paid game passes and published Roblox badges: product/badge IDs and ownership/award verification are not configured. Cosmetic options, entitlement hooks, Studio movement testing and in-game Nick achievements exist.
+- Two-account live voice listening, permission/reconnect behavior and comfortable-volume calibration across actual microphones.
+- Physical phone/touch and multiplayer combat, roll/attack cancellation, traffic impacts, quests and destruction/repair playtests.
+- Live test-universe save/rejoin, migration and concurrent-session verification.
+- Final city art/game-feel acceptance and measured desktop/phone performance at the intended player count, including a representative 30-minute multiplayer soak.
+- Final production rollout/rollback and old-server drain. City Preview is a test publication; the original experience remains separate.
 
 ## Quick source checks
 
