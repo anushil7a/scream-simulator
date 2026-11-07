@@ -8,7 +8,7 @@ task.spawn(function()
  local checks=0
  local function check(v,msg) assert(v,msg);checks+=1 end
  local function prompt(kind)
-  for _,o in workspace.ScreamSimulatorWorld:GetDescendants() do if o:IsA("ProximityPrompt") and o.Parent:GetAttribute("QuestAction")==kind then return o end end
+  for _,o in workspace.ScreamSimulatorWorld:GetDescendants() do if o:IsA("ProximityPrompt") and o.Parent:GetAttribute("QuestAction")==kind and (kind~="Dropoff" or o.Parent:GetAttribute("DeliveryStop")==s.deliveryStop) then return o end end
   error("Missing prompt "..kind)
  end
  local function trigger(kind)

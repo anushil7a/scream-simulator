@@ -5,6 +5,6 @@ function QuestLifecycle.Clear(session,getQuest)
  local definition=id and getQuest(id)
  local progress=id and session.data.quests[id]
  if definition and progress and not progress.claimed and progress.progress<definition.goal then progress.progress=0 end
- session.activeQuest=nil;session.questDeadline=nil;session.carrying=false;session.raceStart=nil;session.collected={}
+ session.activeQuest=nil;session.questDeadline=nil;session.carrying=false;session.deliveryStop=nil;session.raceStart=nil;session.collected={}
 end
 return QuestLifecycle

@@ -22,6 +22,12 @@ Config.MicroSpeakerPrice = 1500
 Config.DodgeCooldown = 4
 Config.DodgeDuration = 0.6
 Config.DodgeDistance = 14
+Config.DeliveryStops={
+ {id="StageDelivery",name="boardwalk music stage",position=Vector3.new(150,2,403)},
+ {id="LookoutDelivery",name="lifeguard lookout",position=Vector3.new(-240,2,427)},
+ {id="PierDelivery",name="end of the timber pier",position=Vector3.new(525,3,580)},
+}
+function Config.GetDeliveryStop(id) for _,stop in ipairs(Config.DeliveryStops) do if stop.id==id then return stop end end end
 Config.ZoneMin = Vector3.new(-480,-20,-360)
 Config.ZoneMax = Vector3.new(480,200,360)
 Config.Sounds = {
@@ -48,7 +54,7 @@ Config.Quests={
  {id="nick",name="The Worst Striker’s Best Assist",hidden=true,giver="Nick Booty · hidden coastal court",description="Find Nick’s three lost balls (120s), steer through four cone-course gates (90s), then hit five targets (120s). Final targets move and Nick’s assist drifts right. Soft mic shots give control. Restart at his court.",goal=1,xp=1800,coins=1200,event="Soccer"},
  {id="garden",name="A Little More Color",description="Help Mar Soler water the three raised flowerbeds in Rambla Gardens. Hold F beside each bed.",giver="Mar Soler · Rambla Gardens",goal=3,xp=130,coins=80,event="Garden"},
  {id="beach",name="Leave Only Footprints",description="Collect 6 washed-up bottles on the beach. Hold F near litter.",goal=6,xp=100,coins=50,event="Litter"},
- {id="delivery",name="Coffee Before the Encore",description="Pick up a café order, then deliver it to the boardwalk stage within 90 seconds.",goal=1,xp=120,coins=60,event="Delivery"},
+ {id="delivery",name="Coffee on the Coast",description="Collect a café order, then deliver it to your assigned waterfront stop within 90 seconds. Check your objective for the recipient.",goal=1,xp=120,coins=60,event="Delivery"},
  {id="crowd",name="Three's a Crowd",description="Line up 3 training residents and hit them with one beam.",goal=1,xp=100,coins=40,event="Crowd"},
  {id="sprint",name="Boardwalk Dash",description="Start beside the lifeguard tower and follow the promenade east to the finish in 25 seconds.",goal=1,xp=120,coins=50,event="Race"},
  {id="dodge",name="Can't Touch This",description="Dodge 3 enemy screams in the central arena.",goal=3,xp=160,coins=70,event="Evade"},

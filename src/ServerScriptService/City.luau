@@ -898,10 +898,14 @@ function City.Build(parent)
  local function marker(name,kind,pos,text)
   local p=part(quests,name,V(1,1.6,1),pos,kind=="Litter" and Color3.fromRGB(65,145,143) or Color3.fromRGB(226,181,83),Enum.Material.Glass,false);p:SetAttribute("QuestAction",kind)
   local prompt=Instance.new("ProximityPrompt");prompt.ActionText=text;prompt.ObjectText=name;prompt.KeyboardKeyCode=Enum.KeyCode.F;prompt.MaxActivationDistance=10;prompt.HoldDuration=.25;prompt.RequiresLineOfSight=false;prompt.Parent=p
+  return p
  end
  for i=1,6 do marker("Bottle"..i,"Litter",V(-380+i*115,1.9,535+(i%2)*25),"Collect bottle") end
  marker("CoffeeOrder","Pickup",V(-480,2,414),"Pick up coffee")
- marker("StageDelivery","Dropoff",V(150,2,403),"Deliver coffee")
+ for _,stop in ipairs(require(game.ReplicatedStorage.Shared.Config).DeliveryStops) do
+  local destination=marker(stop.id,"Dropoff",stop.position,"Deliver coffee")
+  destination:SetAttribute("DeliveryStop",stop.id);destination.ProximityPrompt.ObjectText=stop.name
+ end
  marker("BoardwalkStart","RaceStart",V(-240,2,403),"Start 25s dash")
  marker("PierFinish","RaceFinish",V(240,2,403),"Finish dash")
  -- Boundaries sit outside street edges, never across an interior road.

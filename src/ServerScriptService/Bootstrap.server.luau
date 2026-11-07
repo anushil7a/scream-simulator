@@ -44,7 +44,8 @@ local function state(p,message,conversation)
  local _,r,h=parts(p)
  local soccer=Soccer.Status(p)
  local quest=Config.GetQuest(s.activeQuest);local progress=quest and s.data.quests[quest.id]
- local step=QuestGuide.Step(quest,progress and progress.progress or 0,s.carrying,s.raceStart~=nil,soccer and soccer.detail)
+ local deliveryStop=Config.GetDeliveryStop(s.deliveryStop)
+ local step=QuestGuide.Step(quest,progress and progress.progress or 0,s.carrying,s.raceStart~=nil,soccer and soccer.detail,deliveryStop and deliveryStop.name)
  Equipment.Sync(p,s.data.amplifierEquipped)
  stateRemote:FireClient(p,{coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
  amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
@@ -249,7 +250,8 @@ local function talk(p,id)
     if progress.progress>=q.goal then contextLine="You finished my task! Your reward is waiting in Quests.";break
     elseif s.activeQuest==questId then
      local soccer=Soccer.Status(p)
-     contextLine="For our task: "..QuestGuide.Step(q,progress.progress,s.carrying,s.raceStart~=nil,soccer and soccer.detail)
+     local deliveryStop=Config.GetDeliveryStop(s.deliveryStop)
+     contextLine="For our task: "..QuestGuide.Step(q,progress.progress,s.carrying,s.raceStart~=nil,soccer and soccer.detail,deliveryStop and deliveryStop.name)
     end
    end
   end
@@ -268,7 +270,7 @@ local function talk(p,id)
    local q=Config.GetQuest(id);local progress=s.data.quests[id]
    if q then table.insert(choices,{id=id,name=q.name,description=q.description,claimed=progress and progress.claimed==true,complete=progress and progress.progress>=q.goal}) end
   end
-  local hints={Gardener="The raised flowerbeds in Rambla Gardens need water. Hold F beside each bed after accepting my task.",Vendor="The café prepares orders for the music stage. Pick up a fresh order before starting your delivery.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker="Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
+  local hints={Gardener="The raised flowerbeds in Rambla Gardens need water. Hold F beside each bed after accepting my task.",Vendor="The café sends orders along the waterfront. Collect one, then check your objective for its destination.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker="Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
   state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices,products=b.role=="Vendor" and {{id="MicroSpeaker",name="Micro-speaker",price=Config.MicroSpeakerPrice,owned=s.data.amplifierOwned,description="Handheld amplifier · +12% normalized power, capped at 100%. Buy once with earned coins."}} or nil});return
  end end
 end
@@ -335,9 +337,14 @@ local function interactQuest(p,obj)
   elseif kind=="Litter" and s.activeQuest=="beach" then
    if s.collected[marker.Name] then state(p,"Already collected this bottle.");return end
    s.collected[marker.Name]=true;questProgress(p,"Litter")
-  elseif kind=="Pickup" and s.activeQuest=="delivery" then s.questDeadline=os.clock()+90;s.carrying=true;state(p,"Order collected · deliver to the boardwalk stage in 90s")
+  elseif kind=="Pickup" and s.activeQuest=="delivery" then
+   if s.carrying then state(p,"You already have an order. Check your objective for its destination.");return end
+   local stop=Config.DeliveryStops[math.random(1,#Config.DeliveryStops)]
+   s.deliveryStop=stop.id;s.questDeadline=os.clock()+90;s.carrying=true;state(p,"Order collected · "..stop.name.." · 90s")
   elseif kind=="Dropoff" and s.activeQuest=="delivery" then
-   if s.carrying and s.questDeadline and os.clock()<=s.questDeadline then s.carrying=false;s.questDeadline=nil;questProgress(p,"Delivery")
+   if s.carrying and s.questDeadline and os.clock()<=s.questDeadline then
+    if marker:GetAttribute("DeliveryStop")~=s.deliveryStop then local stop=Config.GetDeliveryStop(s.deliveryStop);state(p,"This order is for the "..(stop and stop.name or "assigned stop")..".");return end
+    s.carrying=false;s.questDeadline=nil;s.deliveryStop=nil;questProgress(p,"Delivery")
    else state(p,"Pick up a fresh order from the café first.") end
   elseif kind=="RaceStart" and s.activeQuest=="sprint" then s.questDeadline=os.clock()+25;s.raceStart=os.clock();state(p,"Go! Follow the boardwalk to the pier finish · 25s")
   elseif kind=="RaceFinish" and s.activeQuest=="sprint" then
