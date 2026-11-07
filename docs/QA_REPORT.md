@@ -10,6 +10,12 @@ This is a concise current handoff. [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STA
 
 ## Fresh source/build verification
 
+### Latest preview upload attempt — November 6, 2026
+
+Rebuilt `build/CityPreviewLatest.rbxl` from `93698b4` and opened it in Studio. All **30** production script lengths/hashes match the repository; `tests/StudioPlaceConfig.luau` passed all **4** serialized chat, live-voice and streaming checks. The clean local `ChatReview.rbxl` copy also has all current scripts and passed the configuration checks. Neither local copy is evidence of a cloud publication.
+
+Studio's native window controls repeatedly returned `timeoutReached` after opening the latest build. No new upload or cloud reopen was confirmed. **Version 10 remains the last verified public preview**; modern chat/typing fixes and coastal/stage ambience are still pending publication. The feature branch at `93698b4` was verified against GitHub's remote head. To resume publication, recover the Studio window, publish the latest built place over **City Preview / place 90337242377543**, then freshly reopen and compare all 30 sources plus serialized settings. Do not select the original production place.
+
 Executed against `229a137`:
 
 - All **29** `src/**/*.luau` files compile with `luau-compile`.
