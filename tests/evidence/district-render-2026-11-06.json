@@ -1,0 +1,187 @@
+{
+  "date": "2026-11-06",
+  "sourceCommit": "2852846",
+  "scope": "One-client unpublished ChatReview Studio Play, 1281x702 viewport, no microphone/combat load; foreground focus and hardware qualification not established",
+  "districtSamples": [
+    {
+      "render": {
+        "Children": {
+          "1": {
+            "Name": "Opaque",
+            "Sizes": {
+              "Drawcalls": 80,
+              "Triangles": 116968
+            }
+          },
+          "2": {
+            "Name": "Transparent",
+            "Sizes": {
+              "Drawcalls": 4,
+              "Triangles": 96
+            }
+          },
+          "3": {
+            "Name": "UI",
+            "Sizes": {
+              "Drawcalls": 27,
+              "Triangles": 490
+            }
+          },
+          "4": {
+            "Name": "Sky",
+            "Sizes": {
+              "Drawcalls": 3,
+              "Triangles": 28
+            }
+          }
+        },
+        "Sizes": {
+          "Drawcalls": 114,
+          "Triangles": 117582
+        },
+        "Name": "TriangleComposition"
+      },
+      "frameMs": {
+        "max": 1134.9824666976929,
+        "p95": 71.47570699453354,
+        "p50": 17.326999455690384
+      },
+      "viewport": "1281, 702",
+      "district": "Arrival",
+      "loadedWorldParts": 15758
+    },
+    {
+      "render": {
+        "Children": {
+          "1": {
+            "Name": "Opaque",
+            "Sizes": {
+              "Drawcalls": 48,
+              "Triangles": 70772
+            }
+          },
+          "2": {
+            "Name": "Terrain",
+            "Sizes": {
+              "Drawcalls": 48,
+              "Triangles": 2736
+            }
+          },
+          "3": {
+            "Name": "UI",
+            "Sizes": {
+              "Drawcalls": 28,
+              "Triangles": 538
+            }
+          },
+          "4": {
+            "Name": "Sky",
+            "Sizes": {
+              "Drawcalls": 3,
+              "Triangles": 28
+            }
+          }
+        },
+        "Sizes": {
+          "Drawcalls": 127,
+          "Triangles": 74074
+        },
+        "Name": "TriangleComposition"
+      },
+      "frameMs": {
+        "max": 33.25020894408226,
+        "p95": 18.635541200637817,
+        "p50": 15.953250229358673
+      },
+      "viewport": "1281, 702",
+      "district": "Market",
+      "loadedWorldParts": 43637
+    },
+    {
+      "render": {
+        "Children": {
+          "1": {
+            "Name": "Opaque",
+            "Sizes": {
+              "Drawcalls": 68,
+              "Triangles": 60680
+            }
+          },
+          "2": {
+            "Name": "Terrain",
+            "Sizes": {
+              "Drawcalls": 127,
+              "Triangles": 24060
+            }
+          },
+          "3": {
+            "Name": "UI",
+            "Sizes": {
+              "Drawcalls": 27,
+              "Triangles": 526
+            }
+          },
+          "4": {
+            "Name": "GenericPostProcess",
+            "Sizes": {
+              "Drawcalls": 2,
+              "Triangles": 2
+            }
+          },
+          "5": {
+            "Name": "Sky",
+            "Sizes": {
+              "Drawcalls": 4,
+              "Triangles": 29
+            }
+          },
+          "6": {
+            "Name": "Shadows",
+            "Sizes": {
+              "Drawcalls": 4,
+              "Triangles": 6896
+            }
+          }
+        },
+        "Sizes": {
+          "Drawcalls": 232,
+          "Triangles": 92193
+        },
+        "Name": "TriangleComposition"
+      },
+      "frameMs": {
+        "max": 26.603374630212784,
+        "p95": 18.844999372959137,
+        "p50": 16.68441668152809
+      },
+      "viewport": "1281, 702",
+      "district": "Waterfront",
+      "loadedWorldParts": 29113
+    }
+  ],
+  "warmArrival": {
+    "district": "Arrival",
+    "warmupSeconds": 10,
+    "samples": 300,
+    "loadedPartsBefore": 15812,
+    "loadedPartsAfter": 15808,
+    "frameMs": {
+      "p50": 16.666792333126068,
+      "p95": 18.1126669049263,
+      "max": 33.492833375930786,
+      "mean": 16.711643246623378
+    }
+  },
+  "procedure": [
+    "Move the server-owned test character to each sampled district and anchor it for the observation.",
+    "Set the client camera to Scriptable at the recorded street view; wait two seconds before the render query and 120 RenderStepped samples.",
+    "Run a separate fresh arrival session with ten-second warmup and 300 RenderStepped samples.",
+    "Stop Play after each run; no fixtures, camera changes or test positioning are saved."
+  ],
+  "limitations": [
+    "Render snapshots are view-dependent; exclude Shadows when comparing creator-controlled passes.",
+    "Two seconds of settling did not prove full asset/streaming warmup; the arrival maximum of 1134.98ms is retained.",
+    "Warmup comparison does not isolate the cause of the initial stall.",
+    "These observations do not prove physical phone, standalone player or representative multiplayer targets."
+  ]
+}
