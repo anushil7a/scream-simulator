@@ -1,21 +1,25 @@
 # Redesign QA and release readiness
 
-Updated October 2, 2026. Full source-suite and native route baseline: **48bf91e** on `feature/microphone-city-redesign`.
+Updated November 6, 2026. Current source-suite baseline: **229a137** on `feature/microphone-city-redesign`. Historical full-city route baseline: **48bf91e**, with newer scoped route checks recorded below.
 
 **Not ready for production publication.** The source/build is available for developer review in [draft PR #1](https://github.com/anushil7a/scream-simulator/pull/1). The live experience was last verified at version 32; this redesign has not been published over it.
+
+**Current playable preview:** [Scream Simulator City Preview](https://www.roblox.com/games/90337242377543/Scream-Simulator-City-Preview) was published and freshly reopened at **version 10**. All 29 source lengths/hashes match **229a137**. This includes captured-power feedback, server-confirmed cast outcomes, rinse stations and varied deliveries. A subsequent Studio smoke loaded ScreamUI, 46 residents, two rinse stations, one practice target and three delivery stops, then stopped cleanly. [Verification record](../tests/evidence/city-preview-version10-2026-11-06.json). Earlier publication-pending notes below are historical and superseded. Real Roblox-client voice, saves, devices and representative multiplayer gates remain open.
 
 This is a concise current handoff. [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) contains the chronological experiments, failures, corrections, exact Studio contexts and active-run cleanup instructions. The [development brief](PROFESSIONAL_REDESIGN_PROMPT.md) remains the full scope; this report does not reduce it.
 
 ## Fresh source/build verification
 
-Executed against `48bf91e`:
+Executed against `229a137`:
 
-- All **26** `src/**/*.luau` files compile with `luau-compile`.
-- `luau tests/VoiceCombat.luau`: **4,007** combat, microphone-processing and destruction rule assertions.
+- All **29** `src/**/*.luau` files compile with `luau-compile`.
+- `luau tests/VoiceCombat.luau`: **4,017** combat, microphone-processing and destruction rule assertions.
 - `luau tests/Progression.luau`: **1,506** progression/migration assertions. Printed leveling times are mathematical estimates, not player-playtest results.
 - `luau tests/ProfileLease.luau`: **12** lease assertions.
 - `luau tests/QuestLifecycle.luau`: **5** lifecycle scenarios.
+- `luau tests/QuestGuide.luau`: **9** delivery guide checks.
 - `python3 tests/profile_race.py`: **13** checks using actual Profiles source with a mocked store and coroutine scheduling. This is not Roblox DataStore contention evidence.
+- `python3 tests/entitlements.py`: **9** actual-source entitlement checks using mocked services.
 - Both Rojo place formats build: `build/MicrophoneCity.rbxl` and `.rbxlx`. Generated files are ignored; use README commands to reproduce them.
 
 Counts describe coverage in these suites, not a probability of a bug-free game. No synthetic suite validates physical microphones, real phones or a representative multiplayer population.
