@@ -2,6 +2,8 @@
 
 Updated November 6, 2026. Gameplay source: `8f0bb60`, branch `feature/microphone-city-redesign`.
 
+**Latest update:** City Preview version **14** now matches gameplay commit `55563b3` (optional first-person aiming). All 30 cloud sources and four place-configuration checks pass; startup includes the view toggle and crosshair. Source and README remaining-work list are pushed. The older version/source details below are historical.
+
 ## Current state
 
 **Publication recovered:** after the owner restarted Studio, the latest build was uploaded to the existing City Preview and reopened at **version 12**. All 30 sources match `8f0bb60`; all four place configuration checks pass. UI, modern chat and five loaded/playing ambience sources passed the Studio startup check. The publishing blocker below is historical; human/external evidence gates remain open. See `docs/QA_REPORT.md` for the current publication record.
