@@ -1,5 +1,13 @@
 # Redesign QA and release readiness
 
+## November 7 management and unpublished progression work
+
+Owner now requires approval before publishing. No cloud writes or uploads were performed in this session. Existing City Preview reports version 15, whose 30 sources match the verified version-14 source record. See `ROADMAP.md` for current priorities, usage cutoff and approved design changes; older 300-level/hold-release requirements are superseded as described there.
+
+Local source now caps at level 100 with 11 styles (base at 1, then every ten levels). Profile schema 4 preserves a sanitized pre-cap level/XP/style snapshot; retired style IDs resolve to current canonical selections, and equipped tiers cannot exceed active level. Per-level range/damage/health slopes remain; max-level range is 54.75 studs, full-power damage 28, health 135 and beam width 7. These are initial burst-model values, not final continuous-attack balance.
+
+Passed 508 progression assertions, 1,419 combat/mic/destruction assertions, 370 actual Config/Profiles migration checks using mocked engine services, and 13 actual Profiles concurrency checks with mocked store. All 30 production sources compile, and Level100Review builds in binary/XML form. Native local review is pending because native Studio controls timed out twice; the existing cloud place was not used as a test target. No real saved data was read or modified. Continuous-voice attacks are not implemented by this change.
+
 Updated November 6, 2026. Current source-suite baseline: **229a137** on `feature/microphone-city-redesign`. Historical full-city route baseline: **48bf91e**, with newer scoped route checks recorded below.
 
 **Latest preview: version 14**, gameplay commit **55563b3**. Native Publish As updated the existing City Preview; the freshly opened cloud place reports ID 90337242377543 / universe 10769005350. All 30 source lengths/hashes match; all four serialized configuration checks pass. Startup loaded the camera toggle and crosshair with default Classic view. Play stopped afterward. A non-binding Studio lighting-migration notice was dismissed during cloud opening. [Verification](../tests/evidence/city-preview-version14-2026-11-06.json). This supersedes the version 12 publication record below; human/device/multiplayer gates remain open.

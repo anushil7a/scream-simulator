@@ -1,0 +1,6 @@
+---
+description: Scream Simulator development priorities and release approvals
+alwaysApply: true
+---
+
+Follow the project `AGENTS.md` and `docs/ROADMAP.md`. Prioritize microphone PvP, level-based destruction, correctness, balance and measured performance. Stop starting tasks at 80% Codex usage; finish the current bounded task. No publishing or external push without explicit current approval.

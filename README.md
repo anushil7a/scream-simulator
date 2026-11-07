@@ -1,5 +1,7 @@
 # Scream Simulator — microphone city redesign
 
+**Current direction (November 7):** see [the prioritized roadmap](docs/ROADMAP.md). Core microphone PvP and level-based destruction come first; level cap is now 100 in local source, with new styles every ten levels. Voice-triggered sustained attacks (initial 4s active / 10s cooldown proposal) are next; the current published build still uses hold/release. Publishing requires fresh owner approval. Development stops starting tasks at 20% Codex allowance remaining.
+
 [GitHub repository](https://github.com/anushil7a/scream-simulator) · [Roblox experience](https://www.roblox.com/games/122465114514497/Scream-Simulator)
 
 [Draft redesign review and developer handoff](https://github.com/anushil7a/scream-simulator/pull/1) — includes build instructions, scoped test evidence and remaining release gates.
@@ -25,7 +27,7 @@ The [release handoff](docs/RELEASE_HANDOFF.md) records the latest local build, l
 ## Implemented in this branch
 
 - Hold attack, use microphone, release an aimed beam. Client calibration/power processing and server bounds/cooldowns are implemented; real microphone/proximity-voice validation remains outstanding.
-- Levels 1–300, four-second cast cooldown, bounded power/level scaling, visual style unlocks every five levels, compact menus, mouse aim and touch controls.
+- Levels 1–100 in local source, four-second burst cooldown pending the sustained-voice prototype, bounded power/level scaling, visual style unlocks every ten levels, compact menus, mouse aim and touch controls. The published version still uses the older 300-level progression.
 - Central PvP district, safe city surroundings, spawn protection, separate dodge, sprint stamina, level-scaled health and quiet-time healing.
 - Barcelona-inspired city with courtyards, enterable shops, market, beach, usable seating, pier, lookout, swimming area and lifeguard boundary recovery. Art and performance are still being refined.
 - 46 residents with grounded navigation, conversations, work activities, reading/resting and reactions. Nick has practice routines and a multi-stage optional soccer quest.

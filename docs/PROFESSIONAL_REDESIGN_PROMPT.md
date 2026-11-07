@@ -1,5 +1,7 @@
 # Scream Simulator — professional redesign development prompt
 
+**Superseded decisions, November 7, 2026:** the owner's current [roadmap](ROADMAP.md) takes precedence: microphone PvP/destruction first, level cap 100, ten-level unlock cadence, planned voice-triggered sustained attacks with proposed 4-second active / 10-second cooldown testing. Cosmetics/paid products are deferred. Publishing now requires fresh explicit owner approval. Older numeric/control requirements below are historical context, not authorization to restore them.
+
 Prepared October 1, 2026. Status: ready-to-use implementation brief incorporating the owner’s five design answers. Numeric balance and device targets remain proposed defaults. This document specifies future work, not completed implementation or test results.
 
 ## Copyable implementation prompt

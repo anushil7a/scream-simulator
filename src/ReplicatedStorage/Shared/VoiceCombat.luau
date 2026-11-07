@@ -1,6 +1,6 @@
 -- Pure rules: no client-selected damage, range, victim, or reward is authoritative.
 local VoiceCombat = {}
-VoiceCombat.MaxLevel = 300
+VoiceCombat.MaxLevel = 100
 VoiceCombat.Cooldown = 4
 VoiceCombat.MinCapture = 0.25
 VoiceCombat.MaxCapture = 1.25
@@ -23,7 +23,7 @@ function VoiceCombat.Stats(level, power, amplifier)
   maxRange = maximum,
   range = math.min(110, maximum * (0.4 + 0.6 * p)),
   damage = math.min(48, math.floor((18 + 0.1 * (l - 1)) * (0.45 + 0.55 * p) + 0.5)),
-  width = 4 + 3 * (l - 1) / 299,
+  width = 4 + 3 * (l - 1) / (VoiceCombat.MaxLevel - 1),
   health = math.floor(100 + 0.35 * (l - 1) + 0.5),
   power = p,
   cooldown = VoiceCombat.Cooldown,

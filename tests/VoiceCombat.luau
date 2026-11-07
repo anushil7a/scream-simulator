@@ -3,16 +3,18 @@ local Mic=require('../src/ReplicatedStorage/Shared/MicPower')
 local count=0
 local function check(condition,message) assert(condition,message);count+=1 end
 local last=0
-for l=1,300 do
+for l=1,Rules.MaxLevel do
  local stats=Rules.Stats(l,1,false)
  check(stats.maxRange>last,'every level must increase range');last=stats.maxRange
- check(stats.damage<=48 and stats.range<=110 and stats.health<=205,'balance caps')
+ check(stats.damage<=48 and stats.range<=110 and stats.health<=135,'balance caps')
  local previous=0
  for n=0,10 do local v=Rules.Stats(l,n/10,true);check(v.range>=previous and v.range<=stats.maxRange,'loudness/amplifier caps');previous=v.range end
 end
-check(Rules.Stats(300,1,false).maxRange==104.75,'level 300 range')
+check(Rules.Stats(100,1,false).maxRange==54.75,'level 100 range')
 check(Rules.Stats(1,1,false).health==100,'level 1 health')
-check(Rules.Stats(300,1,false).health==205,'level 300 health')
+check(Rules.Stats(100,1,false).health==135,'level 100 health')
+check(Rules.Level(300)==100 and Rules.MaxLevel==100,'legacy level clamps to current cap')
+check(Rules.Stats(100,1,false).width==7,'current max-level beam width')
 local s=Rules.New()
 check(Rules.Begin(s,0,1,true),'begin')
 Rules.Cancel(s) -- roll cancels a pending attack

@@ -26,11 +26,17 @@ local function wholeNumber(value, fallback, minimum, maximum)
 end
 
 function Profiles.Default()
-    return {schemaVersion=3,amplifierOwned=false,amplifierEquipped=false,achievements={},availableQuests={},coins=0,level=1,xp=0,sound="TinyAah",aura="Gold",quests={},settings={volume=0.55,reducedShake=false}}
+    return {schemaVersion=4,amplifierOwned=false,amplifierEquipped=false,achievements={},availableQuests={},coins=0,level=1,xp=0,sound="TinyAah",aura="Gold",quests={},settings={volume=0.55,reducedShake=false}}
 end
 function Profiles.Sanitize(raw)
     local data=Profiles.Default()
     if type(raw)~="table" then return data end
+    -- Archive pre-cap progress once; never apply it to active level-100 combat.
+    local legacy=type(raw.legacyProgress)=="table" and raw.legacyProgress or raw.schemaVersion~=4 and raw or nil
+    if legacy then
+        data.legacyProgress={level=wholeNumber(legacy.level,1,1,300),xp=wholeNumber(legacy.xp,0,0,1000000000)}
+        if Config.GetSound(legacy.sound) then data.legacyProgress.sound=legacy.sound end
+    end
     data.amplifierOwned=raw.amplifierOwned==true
     data.amplifierEquipped=data.amplifierOwned and raw.amplifierEquipped==true
     if type(raw.achievements)=="table" then
@@ -39,7 +45,7 @@ function Profiles.Sanitize(raw)
     data.coins=wholeNumber(raw.coins,0,0,1000000000)
     data.level,data.xp=Config.Progression.Normalize(raw.level,raw.xp)
     local sound=Config.GetSound(raw.sound)
-    if sound and sound.level<=data.level then data.sound=sound.id end
+    if sound then data.sound=(sound.level<=data.level and sound or Config.SoundForLevel(data.level)).id end
     if type(raw.aura)=="string" and Config.Auras[raw.aura] then data.aura=raw.aura end
     if type(raw.availableQuests)=="table" then
         for _,q in ipairs(Config.Quests) do if raw.availableQuests[q.id]==true then data.availableQuests[q.id]=true end end

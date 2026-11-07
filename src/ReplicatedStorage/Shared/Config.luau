@@ -3,7 +3,7 @@ local Progression=require(script.Parent:WaitForChild("Progression"))
 local Config = {}
 Config.Progression=Progression
 Config.VoiceCombat=VoiceCombat
-Config.MaxLevel = 300
+Config.MaxLevel = VoiceCombat.MaxLevel
 Config.MaxHealth = 100
 Config.MapMin=Vector3.new(-720,-20,-600)
 Config.MapMax=Vector3.new(720,200,600)
@@ -32,18 +32,18 @@ Config.ZoneMin = Vector3.new(-480,-20,-360)
 Config.ZoneMax = Vector3.new(480,200,360)
 Config.Sounds = {
  {id="TinyAah",name="Tiny Aah",level=1,effect="Pulse",description="A clean pulse around your aimed voice beam.",assetId=""},
- {id="IyoPop",name="Echo Pop",level=5,effect="Echo",description="Three echo rings wrap your aimed voice beam.",assetId=""},
- {id="PanicChicken",name="Panic Chicken",level=10,effect="Feathers",description="Feather-shaped sparks follow your voice beam.",assetId=""},
- {id="Laughquake",name="Laughquake",level=15,effect="Quake",description="Jagged ribbons trace your aimed voice beam.",assetId=""},
- {id="MegaChaos",name="Storm Siren",level=20,effect="Storm",description="Electric strands trace your aimed voice beam.",assetId=""},
- {id="Supernova",name="Supernova",level=25,effect="Nova",description="A bright starburst marks the end of your beam.",assetId=""},
+ {id="IyoPop",name="Echo Pop",level=10,effect="Echo",description="Three echo rings wrap your aimed voice beam.",assetId=""},
+ {id="PanicChicken",name="Panic Chicken",level=20,effect="Feathers",description="Feather-shaped sparks follow your voice beam.",assetId=""},
+ {id="Laughquake",name="Laughquake",level=30,effect="Quake",description="Jagged ribbons trace your aimed voice beam.",assetId=""},
+ {id="MegaChaos",name="Storm Siren",level=40,effect="Storm",description="Electric strands trace your aimed voice beam.",assetId=""},
+ {id="Supernova",name="Supernova",level=50,effect="Nova",description="A bright starburst marks the end of your beam.",assetId=""},
 }
--- Familiar early unlocks retain their save IDs. Further styles unlock every five levels.
+-- Reuse existing visuals at the new ten-level cadence; no cosmetic expansion.
 local families={"Pulse","Echo","Feathers","Quake","Storm","Nova"}
 local titles={"Resonance","Prism","Sunburst","Aftershock","Tempest","Aurora"}
 local ranks={"Coastal","Mosaic","Moonlit","Radiant","Spectral","Celestial","Royal","Mythic","Astral","Legendary"}
-for level=30,300,5 do
- local n=(level-30)/5
+for level=60,Config.MaxLevel,10 do
+ local n=(level-60)/10
  local family=n%#families+1
  local rank=math.floor(n/#families)+1
  table.insert(Config.Sounds,{id="VoiceStyle"..level,name=ranks[rank].." "..titles[family],level=level,effect=families[family],description="Mic-powered "..string.lower(families[family]).." visuals. Power and reach scale with your level.",assetId="",variant=rank})
@@ -62,7 +62,19 @@ Config.Quests={
 }
 local questGivers={beach="Mar Soler · Rambla Gardens",delivery="Pau Vidal · Mercat del Mar",crowd="Busker · west gardens",sprint="Commuter · Plaça del Sol",dodge="Fighter · Rambla Gardens",arena="Fighter · Rambla Gardens"}
 for _,quest in ipairs(Config.Quests) do quest.giver=quest.giver or questGivers[quest.id] end
-function Config.GetSound(id) for _,s in ipairs(Config.Sounds) do if s.id==id then return s end end end
+function Config.SoundForLevel(level)
+ local chosen=Config.Sounds[1]
+ for _,s in ipairs(Config.Sounds) do if s.level<=level then chosen=s end end
+ return chosen
+end
+function Config.GetSound(id)
+ for _,s in ipairs(Config.Sounds) do if s.id==id then return s end end
+ -- Resolve retired save IDs; Profiles archives the original selection.
+ local legacy=type(id)=="string" and tonumber(id:match("^VoiceStyle(%d+)$"))
+ if legacy and legacy>=30 and legacy<=300 and legacy%5==0 then
+  return Config.SoundForLevel(math.min(Config.MaxLevel,legacy))
+ end
+end
 function Config.GetQuest(id) for _,q in ipairs(Config.Quests) do if q.id==id then return q end end end
 function Config.XPToNext(level) return Progression.XPToNext(level) end
 function Config.PlayerKOXP(level) return Progression.PlayerKOXP(level) end

@@ -38,7 +38,7 @@ local top=frame(gui,"Navigation",UDim2.fromOffset(250,40),UDim2.fromOffset(14,12
 local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,0);modal.ZIndex=10;modal.Visible=false
 local menuScale=Instance.new("UIScale");menuScale.Parent=modal
 local title=label(modal,"SCREAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
-local subtitle=label(modal,"Train for XP. Unlock a new scream every five levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
+local subtitle=label(modal,"Train for XP. Unlock a new scream every ten levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
 button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function() modal.Visible=false end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
@@ -179,7 +179,7 @@ devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60))
 local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
 label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
 label(devPanel,"Test commands disable saving this session.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
-local testCommands={{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level 300"},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}
+local testCommands={{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level "..Config.MaxLevel},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}
 if Run:IsStudio() then table.insert(testCommands,{"StudioMovement","Test movement"}) end
 testContent.CanvasSize=UDim2.fromOffset(0,math.ceil(#testCommands/2)*47)
 for i,item in ipairs(testCommands) do
