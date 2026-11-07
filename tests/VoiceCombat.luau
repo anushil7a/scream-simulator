@@ -56,6 +56,18 @@ check(not mic:Calibrate(quiet,quiet),'failed recalibration rejected')
 check(not mic.calibrated,'failed recalibration must invalidate previous success')
 check(#mic.samples==0 and mic.smoothed==0,'failed recalibration clears stale capture')
 check(mic:Calibrate(quiet,voice) and mic.calibrated,'successful retry restores calibration')
+mic:BeginCapture()
+for _=1,12 do mic:Capture(.65) end
+check(mic:CapturePower()==.65,'capture preview reports sustained shot strength')
+check(mic:CapturePower()==.65 and #mic.samples==12,'preview does not consume the shot')
+for _=1,60 do mic:Step(0,1/60) end
+check(mic:CapturePower()==.65,'live silence after sampling does not change captured strength')
+check(mic:Release()==.65,'release agrees with preview')
+check(mic:CapturePower()==0,'released shot cannot be previewed or reused')
+mic:BeginCapture();mic:Capture(1)
+check(mic:CapturePower()==0,'isolated peak cannot appear as a valid shot')
+mic:Reset()
+check(mic:CapturePower()==0,'cancel clears capture preview')
 print('PASS '..count..' microphone/combat rule checks')
 local Destruction=require('../src/ReplicatedStorage/Shared/DestructionRules')
 for _,level in ipairs({1,25,26,50,51,75,76,99,100,101,300}) do

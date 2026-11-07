@@ -7,6 +7,7 @@ task.spawn(function()
  local function check(ok,message) assert(ok,message);checks+=1 end
  local fake={ready=true,power=.8,status="Synthetic HUD check"}
  function fake:Cancel() self.captureStarted=nil end
+ function fake:CapturePower() return .65 end
  local ok,err=xpcall(function()
   mic=fake;modal.Visible=false;devPanel.Visible=false;conversationPanel.Visible=false
   captureSource=nil;nextCast=0
@@ -17,9 +18,13 @@ task.spawn(function()
   task.wait(.1)
   check(string.find(meterText.Text,"Speak now",1,true)~=nil,"Missing sampling countdown")
   check(castButton.Text=="SPEAK • RELEASE","Attack control missing speak prompt")
+  check(string.find(meterText.Text,"SCREAM POWER 65%",1,true)~=nil,"Capture meter shows live input instead of shot strength")
   fake.captureStarted=os.clock()-1.5;task.wait(.1)
   check(string.find(meterText.Text,"Window ended",1,true)~=nil,"Frozen window appears live")
   check(castButton.Text=="RELEASE TO FIRE","Missing release action")
+  fake.power=0;task.wait(.1)
+  check(string.find(meterText.Text,"SCREAM POWER 65%",1,true)~=nil,"Silent live mic overwrote frozen shot strength")
+  check(math.abs(meterFill.Size.X.Scale-.65)<.001,"Meter fill disagrees with shot strength")
   fake.captureStarted=os.clock()-9;task.wait(.1)
   check(captureSource==nil and fake.captureStarted==nil,"Expired capture not canceled")
   check(string.find(toast.Text,"Capture expired",1,true)~=nil,"Expiry feedback missing")

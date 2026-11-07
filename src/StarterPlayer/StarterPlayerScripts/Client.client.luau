@@ -392,11 +392,11 @@ Run.RenderStepped:Connect(function(dt)
  local showTouchControls=originalTouchControls and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
  meter.Visible=gameplayVisible;reticle.Visible=UIS.TouchEnabled and gameplayVisible
- local power=mic.power;meterFill.Size=UDim2.fromScale(power,1)
+ local power=captureSource and mic:CapturePower() or mic.power;meterFill.Size=UDim2.fromScale(power,1)
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
- meterText.Text=string.format("LIVE MIC %d%% • up to %.0f studs\n%s",math.floor(power*100),range,captureHint)
+ meterText.Text=string.format("%s %d%% • up to %.0f studs\n%s",captureSource and "SCREAM POWER" or "LIVE MIC",math.floor(power*100),range,captureHint)
  if layoutChanged then
  local short=viewport.Y<550
  menuScale.Scale=1

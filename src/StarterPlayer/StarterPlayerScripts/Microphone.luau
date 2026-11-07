@@ -52,6 +52,9 @@ function Microphone:Begin()
  if not self.ready then return false end
  self.model:BeginCapture();self.captureStarted=os.clock();return true
 end
+function Microphone:CapturePower()
+ return self.captureStarted and self.ready and self.model:CapturePower() or 0
+end
 function Microphone:Release()
  local started=self.captureStarted;self.captureStarted=nil
  if not started or not self.ready then self.model:BeginCapture();return 0,'Microphone capture canceled. Try again.' end

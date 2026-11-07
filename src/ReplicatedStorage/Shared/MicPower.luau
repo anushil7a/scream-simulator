@@ -39,12 +39,16 @@ end
 function MicPower:Capture(power)
  if finite(power) then table.insert(self.samples,math.clamp(power,0,1)) end
 end
-function MicPower:Release()
- local samples=self.samples;self.samples={}
+function MicPower:CapturePower()
+ local samples=self.samples
  if #samples<5 then return 0 end
  local voiced=0;for _,v in ipairs(samples) do if v>=.08 then voiced+=1 end end
  if voiced<5 or voiced/#samples<.35 then return 0 end
  -- A short pop cannot determine attack strength; use sustained energy.
  return percentile(samples,.65)
+end
+function MicPower:Release()
+ local power=self:CapturePower();self.samples={}
+ return power
 end
 return MicPower
