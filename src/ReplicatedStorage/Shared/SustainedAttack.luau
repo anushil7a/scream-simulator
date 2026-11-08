@@ -25,19 +25,19 @@ end
 function Attack.New() return {time=0,lastSequence=0,nextStart=0,active=nil} end
 function Attack.Begin(s,now,sequence,maxDps,power,allowed)
  if not observe(s,now) then return false,"clock" end
- expire(s,now)
- if not finite(sequence) or sequence%1~=0 or sequence<1 or sequence>2^31 then return false,"sequence" end
- if sequence<=s.lastSequence then return false,"replay" end
+ local ended=expire(s,now)
+ if not finite(sequence) or sequence%1~=0 or sequence<1 or sequence>2^31 then return false,"sequence",ended end
+ if sequence<=s.lastSequence then return false,"replay",ended end
  s.lastSequence=sequence
  -- A duplicate/new begin cannot cancel or refresh a running attack.
- if s.active then return false,"active" end
- if allowed~=true then return false,"state" end
- if now+EPS<s.nextStart then return false,"cooldown" end
- if not finite(maxDps) or maxDps<=0 or maxDps>Attack.MaxDps then return false,"budget" end
- if not finite(power) or power<Attack.MinimumPower or power>1 then return false,"power" end
+ if s.active then return false,"active",ended end
+ if allowed~=true then return false,"state",ended end
+ if now+EPS<s.nextStart then return false,"cooldown",ended end
+ if not finite(maxDps) or maxDps<=0 or maxDps>Attack.MaxDps then return false,"budget",ended end
+ if not finite(power) or power<Attack.MinimumPower or power>1 then return false,"power",ended end
  s.active={sequence=sequence,started=now,lastPulse=now,lastTick=now,power=power,
   maxDps=maxDps,targets={},targetCount=0}
- return true
+ return true,nil,ended
 end
 function Attack.Pulse(s,now,sequence,power,allowed)
  if not observe(s,now) then return false,"clock" end
@@ -63,6 +63,11 @@ end
 local function validId(id)
  return (type(id)=="string" and #id>0 and #id<=128)
   or (finite(id) and id%1==0 and id>=0)
+end
+function Attack.NeedsTargets(s,now)
+ local a=s.active
+ return a~=nil and finite(now) and now>=s.time and now+EPS<a.lastPulse+Attack.InputTimeout
+  and math.min(now,a.started+Attack.MaxDuration)-a.lastTick+EPS>=Attack.TickInterval
 end
 function Attack.Step(s,now,allowed,targets)
  if not observe(s,now) then return {},nil,"clock" end

@@ -27,6 +27,14 @@ November 7, 2026. This is a tested pure-rule foundation, **not a playable contin
 
 The adapter must supply unique stable IDs for players, bots and destructible objects, after reconstructing origin/aim/range/width/cover/PvP/protection/dodge eligibility on the server. Re-evaluate permission each tick; preserve exact whole damage and per-object eligibility when applying returned budgets. Do not trust client lists of targets or damage.
 
+## Server adapter seam
+
+`ServerScriptService.SustainedAttackAdapter` is ready for Bootstrap wiring. Supply the two rules modules and `SustainedAim` to its factory. Begin/pulse take a server context with current character identity and origin, or nil when gameplay state forbids an attack. Begin also reads the server level and amplifier flag, which remain fixed for that attack. Each pulse carries an increasing per-attack `sample` integer in addition to its attack `sequence`. Fresh but rate-rejected samples are consumed; only accepted pulses update aim.
+
+Step rechecks character identity and reconstructs direction from the current origin. Its resolver callback is invoked only for a due damage tick with fresh input. Return server-selected target IDs, an ID-to-target detail map and optional beam metadata. Apply returned damage only to those resolved details. Begin and pulse may also return expiry metadata even when the new request is rejected. No network handlers, actual target resolver, damage application or VFX are wired yet.
+
+`luau tests/SustainedAttackAdapter.luau` passes 28 checks with mocked geometry, including client-forged fields, aim reconstruction after movement, sample replay, respawn, expiration and duplicate ticks. Roblox raycasts and gameplay remain untested.
+
 ## Integration still required
 
 1. Add explicit local armed/paused UI, microphone onset handling and aim/power start/pulse/stop messages. Preserve Roblox voice/mute controls and cancel on all invalid states.

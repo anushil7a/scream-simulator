@@ -21,7 +21,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Verify unlock boundaries, overflow XP, retired styles, idempotent migration and reload. Produce a local build; do not publish.
 - Why first: continuous damage and destruction need a coherent level/balance model, and a cap change must not erase progress.
 
-### P0 — voice-triggered continuous combat (pure-rule foundation complete; integration next)
+### P0 — voice-triggered continuous combat (pure rules and server adapter complete; gameplay wiring next)
 
 - Replace hold/release as the default attack trigger. Sustained calibrated voice starts an attack, aiming tracks during the scream, quiet/mute stops it.
 - Prototype 4 seconds maximum active time, then 10 seconds cooldown from attack end. Compare with shorter active windows in timed playtests; keep tuning data-driven.
@@ -84,6 +84,8 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - November 7 heartbeat: usage 30% used / 70% remaining at task start. Working tree was clean. Added independent VoiceActivation and SustainedAttack modules: onset/quiet gating, state cancellation, four-second maximum, ten-second end-based cooldown, input expiry/rate limits, per-target fractional damage and bounded target tracking. All 9,094 pure tests passed; all 32 production sources compile; binary/XML SustainedRulesReview builds succeed. No entry point/remote/VFX integration or real audio test is claimed. No cloud writes, uploads or external pushes.
 - New balance finding: the existing ten-second quiet-time healing matches the proposed ten-second attack cooldown. Test regeneration between bursts before choosing final DPS/cooldown; no healing change made in this task.
 
+- November 7 heartbeat: usage 34% used at start and finish. Added a server adapter and Roblox aim validator. The adapter latches server-derived level/amplifier and character identity, rejects stale sample IDs, and resolves targets only on eligible damage ticks using the current origin. Passed 28 adapter checks with mocked geometry and 9,094 pure rules checks. Changed modules compile and `build/SustainedAdapterReview.rbxl` builds. Bootstrap is unchanged; no live or local runtime behavior changed. No publication or push.
+
 ## Next action
 
-Check usage before the next task. Integrate the new protocol through a server-owned adapter with fresh aim/cover/PvP validation, bounded reward/destruction handling and expiry; reject old burst damage paths when the new mode is active. Then connect microphone onset/armed UI and persistent beam effects and test in a disposable local city. Keep native Level100Review verification pending until Studio controls recover. No publication or external push without owner approval.
+After checking usage, wire the adapter into Bootstrap behind a disposable-local Studio opt-in. Build the server raycast/cover/PvP resolver and apply budgeted hits with bounded NPC/KO/destruction rewards. Disable legacy burst damage when the prototype is active. Then connect microphone controls and beam effects. Native progression review remains pending.
