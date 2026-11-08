@@ -21,7 +21,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Verify unlock boundaries, overflow XP, retired styles, idempotent migration and reload. Produce a local build; do not publish.
 - Why first: continuous damage and destruction need a coherent level/balance model, and a cap change must not erase progress.
 
-### P0 — voice-triggered continuous combat (pure rules and server adapter complete; gameplay wiring next)
+### P0 — voice-triggered continuous combat (local server prototype wired; client and native verification pending)
 
 - Replace hold/release as the default attack trigger. Sustained calibrated voice starts an attack, aiming tracks during the scream, quiet/mute stops it.
 - Prototype 4 seconds maximum active time, then 10 seconds cooldown from attack end. Compare with shorter active windows in timed playtests; keep tuning data-driven.
@@ -86,6 +86,8 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 - November 7 heartbeat: usage 34% used at start and finish. Added a server adapter and Roblox aim validator. The adapter latches server-derived level/amplifier and character identity, rejects stale sample IDs, and resolves targets only on eligible damage ticks using the current origin. Passed 28 adapter checks with mocked geometry and 9,094 pure rules checks. Changed modules compile and `build/SustainedAdapterReview.rbxl` builds. Bootstrap is unchanged; no live or local runtime behavior changed. No publication or push.
 
+- November 8 heartbeat: added opt-in local server wiring. Sustained hits use current server raycasts, PvP/roll/protection checks, level-gated destruction, and bounded NPC and knockout rewards. The prototype rejects legacy cast remotes and uses temporary profiles without loading saves. Adapter (28), sustained rules (9,094), and legacy combat/mic/destruction (1,419) checks passed. Bootstrap and the native fixture compile; `build/SustainedServerReview.rbxl` builds. The fixture was not executed in Studio; no live or external writes.
+
 ## Next action
 
-After checking usage, wire the adapter into Bootstrap behind a disposable-local Studio opt-in. Build the server raycast/cover/PvP resolver and apply budgeted hits with bounded NPC/KO/destruction rewards. Disable legacy burst damage when the prototype is active. Then connect microphone controls and beam effects. Native progression review remains pending.
+Check usage, then wire the opt-in client onset and arm/pause UI to the sustained remotes. Add bounded persistent beam feedback. Run the disposable Studio server fixture before claiming native damage or cover verification, then test PvP, destruction and real microphones separately. Keep normal mode on legacy combat until review.

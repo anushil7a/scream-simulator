@@ -14,6 +14,13 @@ local BeachVolley=require(script.Parent.BeachVolley)
 local QuestLifecycle=require(ReplicatedStorage.Shared.QuestLifecycle)
 local QuestGuide=require(ReplicatedStorage.Shared.QuestGuide)
 local Equipment=require(script.Parent.Equipment)
+-- Only an explicitly opted-in, unpublished Studio place can use this prototype.
+local sustainedEnabled=RunService:IsStudio() and game.PlaceId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
+local sustained
+if sustainedEnabled then
+ sustained=require(script.Parent.SustainedAttackAdapter).new(require(ReplicatedStorage.Shared.SustainedAttack),
+  VoiceCombat,require(script.Parent.SustainedAim))
+end
 World.Build()
 BeachVolley.Start(workspace.ScreamSimulatorWorld)
 local Destruction=require(script.Parent.Destruction)
@@ -39,6 +46,14 @@ local function parts(p)
  local c=p.Character;local r=c and c:FindFirstChild("HumanoidRootPart");local h=c and c:FindFirstChildOfClass("Humanoid")
  if r and h and h.Health>0 then return c,r,h end
 end
+local function sustainedEnd(p,ended,now)
+ if not ended then return end
+ p:SetAttribute("SustainedActive",false)
+ p:SetAttribute("SustainedReadyAt",workspace:GetServerTimeNow()+math.max(0,ended.nextStart-now))
+end
+local function cancelSustained(p,s,now)
+ if s.sustained then sustainedEnd(p,sustained.Cancel(s.sustained,now),now) end
+end
 local function state(p,message,conversation)
  local s=sessions[p];if not s or not p.Parent then return end
  local _,r,h=parts(p)
@@ -51,7 +66,7 @@ local function state(p,message,conversation)
  amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
  availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
- castCooldown=math.max(0,s.voice.nextCast-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
+ castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,testSession=s.testBaseline~=nil,message=message})
 end
 local function syncHealth(p,full)
@@ -82,6 +97,7 @@ local function stopQuest(p)
  Soccer.Cancel(p);QuestLifecycle.Clear(s,Config.GetQuest)
 end
 local function protect(p,s)
+ cancelSustained(p,s,os.clock())
  VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
  s.protectedUntil=os.clock()+Config.SpawnProtection
  p:SetAttribute("ProtectionEnds",workspace:GetServerTimeNow()+Config.SpawnProtection)
@@ -102,24 +118,113 @@ local function canCapture(p,s,now)
  local _,r=parts(p)
  return r~=nil and s.micReady and now>=s.protectedUntil and now>=s.dodgingUntil and now>=(s.knockedUntil or 0)
 end
+local function attackOrigin(c,r)
+ local head=c:FindFirstChild("Head")
+ if head and head:IsA("BasePart") and (head.Position-r.Position).Magnitude<5 then return head.Position end
+ return r.Position+Vector3.new(0,1,0)
+end
+local function beamObstruction(c,origin,direction,range,players)
+ local exclude={c};for _,bot in ipairs(World.Bots) do table.insert(exclude,bot.model) end
+ for _,other in ipairs(players) do if other.Character then table.insert(exclude,other.Character) end end
+ local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
+ params.FilterDescendantsInstances=exclude;params.RespectCanCollide=true
+ return workspace:Raycast(origin,direction*range,params)
+end
+local function sustainedContext(p,s,now)
+ if not canCapture(p,s,now) then return nil end
+ local c,r=parts(p)
+ local style=Config.GetSound(s.data.sound)
+ if not style or style.level>s.data.level then return nil end
+ return {player=p,character=c,origin=attackOrigin(c,r),position=r.Position,
+  level=s.data.level,amplifier=s.data.amplifierEquipped}
+end
+local function resolveSustained(ctx,direction,stats,now)
+ local ids,details={},{}
+ local function add(id,detail)
+  if not details[id] then table.insert(ids,id);details[id]=detail end
+ end
+ local players=Players:GetPlayers()
+ local obstruction=beamObstruction(ctx.character,ctx.origin,direction,stats.range,players)
+ local length=obstruction and obstruction.Distance or stats.range
+ if Config.InArena(ctx.position) then
+  for _,p in ipairs(players) do
+   local ts=sessions[p];local c,r,h=parts(p)
+   if p~=ctx.player and ts and r and Rules.CanTarget(ctx.position,r.Position,ts.protectedUntil,now,stats.range+2)
+    and (now>=ts.dodgingUntil or ts.premiumRoll)
+    and Rules.InBeam(ctx.origin,direction,r.Position,length,stats.width,1) and audible(ctx.character,ctx.origin,r.Position,c) then
+    add("player:"..p.UserId,{player=p,session=ts,humanoid=h})
+   end
+  end
+ end
+ if obstruction then
+  local model=obstruction.Instance
+  while model and not Destruction.objects[model] do model=model.Parent end
+  local id=model and model:GetAttribute("ObjectId")
+  if type(id)=="string" and not model:GetAttribute("Destroyed") then add("object:"..id,{object=model}) end
+ end
+ for _,bot in ipairs(World.Bots) do
+  if bot.alive and bot.root.Parent and Rules.InBeam(ctx.origin,direction,bot.root.Position,length,stats.width,1)
+   and audible(ctx.character,ctx.origin,bot.root.Position,bot.model) then
+   add("bot:"..tostring(bot.id),{bot=bot})
+  end
+ end
+ return ids,details
+end
+local function stepSustained(p,s,now)
+ local intent=s.sustained.intent
+ local context=sustainedContext(p,s,now)
+ local hits,ended,details=sustained.Step(s.sustained,now,context,resolveSustained)
+ sustainedEnd(p,ended,now)
+ for _,hit in ipairs(hits) do
+  local target=details[hit.id]
+  if target.player then
+   local ts,h=target.session,target.humanoid
+   ts.nextHeal=now+Config.HealQuietSeconds
+   if h.Health<=hit.damage then
+    eject(target.player,h)
+    if now>=(s.koRewards[target.player.UserId] or 0) then
+     s.koRewards[target.player.UserId]=now+30
+     xp(p,Config.PlayerKOXP(ts.data.level));s.data.coins+=20
+     if ts.data.level>=intent.level then questProgress(p,"Underdog") end
+    end
+   else h.Health-=hit.damage end
+  elseif target.object then
+   local result=Destruction.Damage(target.object,intent.level,hit.damage)
+   if result and result.destroyed then
+    effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition")
+   end
+  else
+   local bot=target.bot
+   bot.health=math.max(0,bot.health-hit.damage)
+   local ko=bot.health==0
+   if ko then
+    bot.alive=false
+    task.delay(Config.BotRespawnSeconds,function()
+     if bot.model.Parent then bot.health=Config.BotMaxHealth;bot.alive=true;World.UpdateBot(bot) end
+    end)
+   elseif hit.firstHit then World.ReactToScream(bot,context.position) end
+   World.UpdateBot(bot)
+   if hit.firstHit and (intent.paid or 0)<5 and now>=(s.botRewards[bot.id] or 0) then
+    intent.paid=(intent.paid or 0)+1;s.botRewards[bot.id]=now+10
+    s.data.coins+=ko and 5 or 2;xp(p,ko and 16 or 5)
+   end
+  end
+ end
+end
 local function cast(p,request)
  local s=sessions[p];local c,r=parts(p);if not s or not r or type(request)~="table" then return end
  p:SetAttribute("CaptureStarted",0)
  local now=os.clock();local style=Config.GetSound(s.data.sound)
  local aim=request.aim
  if typeof(aim)~="Vector3" or not VoiceCombat.IsFinite(aim.X) or not VoiceCombat.IsFinite(aim.Y) or not VoiceCombat.IsFinite(aim.Z) then VoiceCombat.Cancel(s.voice);return end
- local origin=r.Position+Vector3.new(0,1,0)
- local head=c:FindFirstChild("Head");if head and (head.Position-r.Position).Magnitude<5 then origin=head.Position end
+ local origin=attackOrigin(c,r)
  local delta=aim-origin
  if delta.Magnitude<.01 or delta.Magnitude>2048 then VoiceCombat.Cancel(s.voice);return end
  if not VoiceCombat.Release(s.voice,now,request.sequence,request.power,style~=nil and style.level<=s.data.level and canCapture(p,s,now)) then return end
  local sound=VoiceCombat.Stats(s.data.level,request.power,s.data.amplifierEquipped==true)
  local direction=delta.Unit
  s.nextCast=s.voice.nextCast;p:SetAttribute("ScreamReleased",workspace:GetServerTimeNow());p:SetAttribute("CaptureStarted",0)
- local exclude={c};for _,bot in ipairs(World.Bots) do table.insert(exclude,bot.model) end
- for _,other in ipairs(Players:GetPlayers()) do if other.Character then table.insert(exclude,other.Character) end end
- local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances=exclude;params.RespectCanCollide=true
- local obstruction=workspace:Raycast(origin,direction*sound.range,params)
+ local obstruction=beamObstruction(c,origin,direction,sound.range,Players:GetPlayers())
  local length=obstruction and obstruction.Distance or sound.range
  effect:FireAllClients("Scream",origin,style.id,s.data.aura,direction,length,sound.width)
  Soccer.Hit(p,origin,direction,length,sound.width,sound.power)
@@ -183,7 +288,7 @@ local function cast(p,request)
 end
 local function dodge(p)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
- if s then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
+ if s then cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
  if not s or not r or not s.micReady or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
  local cooldown=Entitlements.CanUseMovement(p,r.Position) and Config.DodgeDuration or Config.DodgeCooldown
  s.nextDodge=now+cooldown;s.dodgingUntil=now+Config.DodgeDuration
@@ -299,7 +404,7 @@ World.OnVehicleSweep=function(car,previous,nextFrame)
  for player,s in pairs(sessions) do
   local character,root,humanoid=parts(player);local now=os.clock()
   if root and now>=s.protectedUntil and now>=(s.nextCarHit or 0) and Rules.VehicleSweep(previous*CFrame.new(0,.55,0),nextFrame*CFrame.new(0,.55,0),root.Position,Vector3.new(8,4,4.5)) then
-   VoiceCombat.Cancel(s.voice);player:SetAttribute("CaptureStarted",0)
+   cancelSustained(player,s,now);VoiceCombat.Cancel(s.voice);player:SetAttribute("CaptureStarted",0)
    s.nextCarHit=now+4;s.knockedUntil=now+1.3;s.dodgingUntil=0;s.sprintRequested=false;s.nextHeal=now+10
    player:SetAttribute("DodgeEnds",0);player:SetAttribute("KnockdownEnds",workspace:GetServerTimeNow()+1.3)
    local damage=math.clamp(math.floor(car.speed*1.1),15,35)
@@ -361,12 +466,24 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  s.requestWindow=s.requestWindow or now;s.requestCount=s.requestCount or 0
  if now-s.requestWindow>=1 then s.requestWindow=now;s.requestCount=0 end
  s.requestCount+=1;if s.requestCount>30 then return end
+ if s.sustained then
+  if verb=="BeginCast" or verb=="Cast" or verb=="CancelCast" then return end
+  if verb=="SustainedBegin" then
+   local ok,_,ended=sustained.Begin(s.sustained,now,arg,sustainedContext(p,s,now))
+   sustainedEnd(p,ended,now)
+   if ok then p:SetAttribute("SustainedActive",true);p:SetAttribute("SustainedSequence",arg.sequence) end
+   return
+  elseif verb=="SustainedPulse" then
+   local _,_,ended=sustained.Pulse(s.sustained,now,arg,sustainedContext(p,s,now))
+   sustainedEnd(p,ended,now);return
+  elseif verb=="SustainedStop" then sustainedEnd(p,sustained.Stop(s.sustained,now,arg),now);return end
+ end
  if verb=="BeginCast" then
   p:SetAttribute("CaptureStarted",0)
   if VoiceCombat.Begin(s.voice,now,arg,canCapture(p,s,now)) then p:SetAttribute("CaptureStarted",workspace:GetServerTimeNow()) end;return
  elseif verb=="CancelCast" then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0);return
  elseif verb=="EndConversation" then closeConversation(p);return
- elseif verb=="MicReady" then s.micReady=arg==true;if not s.micReady then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end;return
+ elseif verb=="MicReady" then s.micReady=arg==true;if not s.micReady then cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end;return
  elseif verb=="Cast" then cast(p,arg);return elseif verb=="Dodge" then dodge(p);return
  elseif verb=="ExtraJump" then
   local _,root,h=parts(p)
@@ -412,9 +529,16 @@ action.OnServerEvent:Connect(function(p,verb,arg)
 end)
 local function joined(p)
  task.spawn(Entitlements.Refresh,p)
- local data,save,loadMessage=Profiles.Load(p.UserId);if not p.Parent then if save then Profiles.Save(p.UserId,data,true) end;return end
+ local data,save,loadMessage
+ if sustainedEnabled then data,save,loadMessage=Profiles.Default(),false,"Local sustained prototype · saving disabled"
+ else data,save,loadMessage=Profiles.Load(p.UserId) end
+ if not p.Parent then if save then Profiles.Save(p.UserId,data,true) end;return end
  local s={data=data,canSave=save,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+10,
  botRewards={},koRewards={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
+ if sustainedEnabled then
+  s.sustained=sustained.New()
+  p:SetAttribute("SustainedActive",false);p:SetAttribute("SustainedReadyAt",0)
+ end
  local function spawn(c)
   local h=c:WaitForChild("Humanoid",10);if not h or p.Character~=c then return end
   s.jumpPower=h.JumpPower;s.jumpHeight=h.JumpHeight
@@ -435,6 +559,7 @@ task.spawn(function()
    if r and Config.InArena(r.Position) and s.lastDodge then
     if s.premiumRoll then s.premiumRoll=false;s.dodgingUntil=0;p:SetAttribute("DodgeEnds",0) end
     s.nextDodge=math.max(s.nextDodge,s.lastDodge+Config.DodgeCooldown);p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+math.max(0,s.nextDodge-now)) end
+   if s.sustained and s.sustained.protocol.active then stepSustained(p,s,os.clock()) end
    if s.voice.capture and now-s.voice.capture.started>VoiceCombat.CaptureExpiry then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
    if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then s.sprintLockedUntil=0;s.sprintCharge=10 end
    local running=h and s.sprintRequested and s.sprintCharge>0 and now>=s.sprintLockedUntil

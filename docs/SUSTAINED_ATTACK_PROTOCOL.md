@@ -1,6 +1,6 @@
 # Sustained voice prototype contract
 
-November 7, 2026. This is a tested pure-rule foundation, **not a playable continuous attack yet**. Existing Microphone, Client, Bootstrap and VFX entry points still use hold/release. The new modules are included by Rojo but not required by those entry points.
+November 7, 2026. This is a tested pure-rule foundation, **not a playable continuous attack yet**. Existing Microphone, Client, Bootstrap and VFX entry points still use hold/release. Bootstrap wires the prototype only in an unpublished, explicitly opted-in Studio place; normal gameplay still uses hold/release.
 
 ## Local voice activation
 
@@ -31,14 +31,22 @@ The adapter must supply unique stable IDs for players, bots and destructible obj
 
 `ServerScriptService.SustainedAttackAdapter` is ready for Bootstrap wiring. Supply the two rules modules and `SustainedAim` to its factory. Begin/pulse take a server context with current character identity and origin, or nil when gameplay state forbids an attack. Begin also reads the server level and amplifier flag, which remain fixed for that attack. Each pulse carries an increasing per-attack `sample` integer in addition to its attack `sequence`. Fresh but rate-rejected samples are consumed; only accepted pulses update aim.
 
-Step rechecks character identity and reconstructs direction from the current origin. Its resolver callback is invoked only for a due damage tick with fresh input. Return server-selected target IDs, an ID-to-target detail map and optional beam metadata. Apply returned damage only to those resolved details. Begin and pulse may also return expiry metadata even when the new request is rejected. No network handlers, actual target resolver, damage application or VFX are wired yet.
+Step rechecks character identity and reconstructs direction from the current origin. Its resolver callback is invoked only for a due damage tick with fresh input. Return server-selected target IDs, an ID-to-target detail map and optional beam metadata. Apply returned damage only to those resolved details. Begin and pulse may also return expiry metadata even when the new request is rejected. The opt-in Bootstrap path now supplies the network handlers, target resolver and damage application. Sustained beam VFX remain unwired.
 
 `luau tests/SustainedAttackAdapter.luau` passes 28 checks with mocked geometry, including client-forged fields, aim reconstruction after movement, sample replay, respawn, expiration and duplicate ticks. Roblox raycasts and gameplay remain untested.
+
+## Disposable server prototype
+
+Open a local build with PlaceId 0 and set the boolean Workspace attribute `LocalSustainedPrototype` to true **before** Play. The server reads it once at startup. This mode uses temporary profiles and rejects legacy begin/cast/cancel requests. Normal places ignore the opt-in.
+
+Send `SustainedBegin` and `SustainedPulse` on the existing Action remote with aim, power, sequence and (for pulses) an increasing sample ID. Send `SustainedStop` with the sequence number. Player attributes `SustainedActive`, `SustainedSequence` and `SustainedReadyAt` expose accepted attack and cooldown state. Server ticks use raycasts and the existing cover/PvP eligibility rules. NPC hit rewards are limited to first damage per target and five paid targets per attack; knockout cooldown and destruction level checks are retained. Practice targets, soccer, volleyball, and crowd/evade quest updates remain legacy-only pending design and testing.
+
+`tests/StudioSustainedDamage.server.luau` can be appended to Bootstrap in the disposable copy to check cover, tick damage, first-hit rewards and stale input. It compiled but was not run natively. Do not publish that fixture or infer verified engine behavior from the build.
 
 ## Integration still required
 
 1. Add explicit local armed/paused UI, microphone onset handling and aim/power start/pulse/stop messages. Preserve Roblox voice/mute controls and cancel on all invalid states.
-2. Add a server adapter with server-selected DPS/sequence state, fresh aim validation, heartbeat expiry and server target resolution. Retire old burst remotes rather than accepting both damage paths.
+2. Verify the wired adapter in Studio, including cover, PvP, destruction, legacy remote rejection and expiry.
 3. Replace repeated burst VFX with one bounded updated beam per attacker, cleanup on end/disconnect and a measured replication rate. Handle server rejection/acknowledgement in the UI.
 4. Keep NPC/KO/destruction rewards bounded per sustained attack. Review existing soccer/volley handlers separately: calling them on every damage tick would change their difficulty and ball physics.
 5. Revisit healing: current 20% regeneration begins ten seconds after damage, matching the proposed cooldown. Measure how much healing happens between bursts and how that changes time-to-knockout.
