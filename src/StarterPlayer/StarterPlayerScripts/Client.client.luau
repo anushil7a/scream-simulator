@@ -65,7 +65,10 @@ local toastUntil=0;local toastWidth=0
 local function notify(t) toast.Text=t;toastUntil=os.clock()+math.clamp(#t/22,4,12);toastWidth=0 end
 local conversationPanel,showConversation,closeConversation
 local nextCast=0;local sequence=0;local captureSource=nil
+local sustainedControl
+local windowFocused=true
 local function cancelCapture()
+ if sustainedControl then sustainedControl:Cancel();return end
  captureSource=nil;mic:Cancel();action:FireServer("CancelCast")
 end
 local function toggleCamera()
@@ -96,7 +99,7 @@ local function blocked()
  return UIS:GetFocusedTextBox()~=nil or (conversationPanel and conversationPanel.Visible) or modal.Visible or (devPanel and devPanel.Visible) or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
 end
 local function beginCapture(source)
- if captureSource or blocked() or os.clock()<nextCast then return end
+ if sustainedControl or captureSource or blocked() or os.clock()<nextCast then return end
  if mic:Begin() then sequence+=1;captureSource=source;action:FireServer("BeginCast",sequence) end
 end
 local function aimRay()
@@ -105,6 +108,19 @@ local function aimRay()
  local ray=camera:ViewportPointToRay(location.X,location.Y)
  local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
  return ray,workspace:Raycast(ray.Origin,ray.Direction*1000,params)
+end
+if remotes:GetAttribute("LocalSustainedPrototype")==true then
+ local VoiceActivation=require(RS.Shared:WaitForChild("VoiceActivation"))
+ sustainedControl=require(script.Parent:WaitForChild("SustainedControls")).new(VoiceActivation.new(),
+  function(verb,arg) action:FireServer(verb,arg) end,
+  function()
+   if not workspace.CurrentCamera then return nil end
+   local ray,hit=aimRay()
+   return hit and hit.Position or ray.Origin+ray.Direction*1000
+  end)
+end
+local function toggleVoice()
+ if sustainedControl then sustainedControl:SetArmed(not sustainedControl.armed) end
 end
 local function releaseCapture(source)
  if captureSource~=source then return end
@@ -120,7 +136,7 @@ local function dodge()
  if not blocked() then action:FireServer("Dodge") end
 end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
-local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),function() end,gold);castButton.TextColor3=dark
+local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),toggleVoice,gold);castButton.TextColor3=dark
 castButton.InputBegan:Connect(function(input)
  if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then beginCapture(input) end
 end)
@@ -270,7 +286,8 @@ render=function()
   info("Coffee: collect at the west café, then check your objective for the assigned stop. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
-  info("Hold E / SCREAM, use mic, release: fire toward aim\nV / view button: first or third person\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",145)
+  local attackHelp=sustainedControl and "E / VOICE: arm or pause; aim and speak to attack" or "Hold E / SCREAM, use mic, release: fire toward aim"
+  info(attackHelp.."\nV / view button: first or third person\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",145)
   local cameraCard=card(58);button(cameraCard,"CameraMode", "VIEW: "..(firstPerson and "FIRST PERSON" or "THIRD PERSON"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),toggleCamera)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
@@ -354,7 +371,7 @@ end)
 UIS.InputBegan:Connect(function(input,processed)
  if processed or UIS:GetFocusedTextBox() then return end
  local k=input.KeyCode
- if k==Enum.KeyCode.E then beginCapture("keyboard") elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
+ if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
  elseif k==Enum.KeyCode.V then toggleCamera()
  elseif k==Enum.KeyCode.M then selected="Map";modal.Visible=not modal.Visible;render()
  elseif k==Enum.KeyCode.LeftShift then action:FireServer("Sprint",true)
@@ -365,8 +382,9 @@ UIS.InputEnded:Connect(function(input)
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
  if input.KeyCode==Enum.KeyCode.LeftShift then action:FireServer("Sprint",false) end
 end)
-p.CharacterRemoving:Connect(function() cancelCapture();if closeConversation then closeConversation() end end)
-UIS.WindowFocusReleased:Connect(function() sprinting=false;cancelCapture();action:FireServer("Sprint",false) end)
+p.CharacterRemoving:Connect(function() if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
+UIS.WindowFocused:Connect(function() windowFocused=true end)
+UIS.WindowFocusReleased:Connect(function() windowFocused=false;if sustainedControl then sustainedControl:SetArmed(false) end;sprinting=false;cancelCapture();action:FireServer("Sprint",false) end)
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
@@ -420,6 +438,17 @@ Run.RenderStepped:Connect(function(dt)
  end
  micPanel.Visible=not mic.ready and not modal.Visible and not devPanel.Visible;micStatus.Text=mic.status
  if reportedReady~=mic.ready or (data.micReady~=mic.ready and os.clock()>readyReportAt) then reportedReady=mic.ready;readyReportAt=os.clock()+1;action:FireServer("MicReady",mic.ready) end
+ local voiceCooldown,voiceActive
+ if sustainedControl then
+  local character=p.Character
+  local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+  local alive=humanoid~=nil and humanoid.Health>0
+  if not alive or not mic.ready then sustainedControl:SetArmed(false) end
+  voiceCooldown=math.max(0,(p:GetAttribute("SustainedReadyAt") or 0)-workspace:GetServerTimeNow())
+  voiceActive=p:GetAttribute("SustainedActive")==true
+  sustainedControl:Step(dt,os.clock(),mic.power,alive and windowFocused and not blocked(),
+   voiceCooldown<=0 and data.micReady==true,voiceActive,p:GetAttribute("SustainedSequence"))
+ end
  if captureSource and blocked() then cancelCapture() end
  if captureSource and mic.captureStarted and os.clock()-mic.captureStarted>Config.VoiceCombat.CaptureExpiry then
   cancelCapture();notify("Capture expired. Hold attack again and use a fresh live scream.")
@@ -433,6 +462,13 @@ Run.RenderStepped:Connect(function(dt)
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
+ if sustainedControl then
+  captureHint=not sustainedControl.armed and "Voice paused • press E or tap VOICE"
+   or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
+   or sustainedControl.attack and (voiceActive and "Attacking • quiet to stop" or "Starting attack…")
+   or sustainedControl.gate.needsQuiet and "Armed • quiet before speaking"
+   or "Armed • aim and speak"
+ end
  meterText.Text=string.format("%s %d%% • up to %.0f studs\n%s",captureSource and "SCREAM POWER" or "LIVE MIC",math.floor(power*100),range,captureHint)
  if layoutChanged then
  local short=viewport.Y<550
@@ -468,7 +504,8 @@ Run.RenderStepped:Connect(function(dt)
  tracked.Visible=gameplayVisible and tracked.Text~="";zone.Visible=viewport.X>740 and mic.ready
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD SCREAM [E]"
- castButton.BackgroundColor3=protected>0 and muted or gold
+ if sustainedControl then castButton.Text=sustainedControl.armed and "PAUSE VOICE [E]" or "ARM VOICE [E]" end
+ castButton.BackgroundColor3=(sustainedControl and not sustainedControl.armed or protected>0) and muted or gold
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
  local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs [SHIFT]",p:GetAttribute("SprintCharge") or 10)
  if os.clock()>toastUntil then toast.Text="" end

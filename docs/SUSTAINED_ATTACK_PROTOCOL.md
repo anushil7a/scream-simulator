@@ -1,6 +1,6 @@
 # Sustained voice prototype contract
 
-November 7, 2026. This is a tested pure-rule foundation, **not a playable continuous attack yet**. Existing Microphone, Client, Bootstrap and VFX entry points still use hold/release. Bootstrap wires the prototype only in an unpublished, explicitly opted-in Studio place; normal gameplay still uses hold/release.
+November 8, 2026. The client and server are wired in the disposable local prototype; native Studio behavior and real microphones have not been verified. Normal gameplay still uses hold/release.
 
 ## Local voice activation
 
@@ -43,9 +43,15 @@ Send `SustainedBegin` and `SustainedPulse` on the existing Action remote with ai
 
 `tests/StudioSustainedDamage.server.luau` can be appended to Bootstrap in the disposable copy to check cover, tick damage, first-hit rewards and stale input. It compiled but was not run natively. Do not publish that fixture or infer verified engine behavior from the build.
 
+## Disposable client controls
+
+In the same opt-in place, calibrate the microphone, then press E or tap **ARM VOICE**. Aim and speak after a short quiet interval. The HUD displays pending start, active attack and server cooldown. E or **PAUSE VOICE** cancels immediately. Menus, dialogue, typing, and movement/protection states suppress attacks; focus loss, unavailable microphone and character removal disarm voice. The client waits for the matching server sequence before sending pulses, sends at most eight pulses per second, and stops waiting after 0.4 seconds. Voice transport remains Roblox proximity audio.
+
+`luau tests/SustainedControls.luau` exercises the controller with synthetic power, time, aim and acknowledgements. It does not execute the Studio UI or remote transport. `build/SustainedClientReview.rbxl` requires the Workspace opt-in attribute before Play.
+
 ## Integration still required
 
-1. Add explicit local armed/paused UI, microphone onset handling and aim/power start/pulse/stop messages. Preserve Roblox voice/mute controls and cancel on all invalid states.
+1. Verify arm/pause, microphone onset, cancellation, and acknowledgement in a local Studio session.
 2. Verify the wired adapter in Studio, including cover, PvP, destruction, legacy remote rejection and expiry.
 3. Replace repeated burst VFX with one bounded updated beam per attacker, cleanup on end/disconnect and a measured replication rate. Handle server rejection/acknowledgement in the UI.
 4. Keep NPC/KO/destruction rewards bounded per sustained attack. Review existing soccer/volley handlers separately: calling them on every damage tick would change their difficulty and ball physics.

@@ -38,7 +38,9 @@ World.FinishMaintenance=function(bot,station)
  return false
 end
 local old=ReplicatedStorage:FindFirstChild("ScreamRemotes");if old then old:Destroy() end
-local remotes=Instance.new("Folder");remotes.Name="ScreamRemotes";remotes.Parent=ReplicatedStorage
+local remotes=Instance.new("Folder");remotes.Name="ScreamRemotes"
+remotes:SetAttribute("LocalSustainedPrototype",sustainedEnabled)
+remotes.Parent=ReplicatedStorage
 local function remote(name) local r=Instance.new("RemoteEvent");r.Name=name;r.Parent=remotes;return r end
 local action=remote("Action");local stateRemote=remote("State");local effect=remote("Effect")
 local sessions={}
@@ -471,7 +473,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   if verb=="SustainedBegin" then
    local ok,_,ended=sustained.Begin(s.sustained,now,arg,sustainedContext(p,s,now))
    sustainedEnd(p,ended,now)
-   if ok then p:SetAttribute("SustainedActive",true);p:SetAttribute("SustainedSequence",arg.sequence) end
+   if ok then p:SetAttribute("SustainedSequence",arg.sequence);p:SetAttribute("SustainedActive",true) end
    return
   elseif verb=="SustainedPulse" then
    local _,_,ended=sustained.Pulse(s.sustained,now,arg,sustainedContext(p,s,now))

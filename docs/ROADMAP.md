@@ -1,6 +1,6 @@
 # Scream Simulator development roadmap
 
-Updated November 7, 2026. Owner direction in this document supersedes older 300-level/hold-E specifications. Current local baseline: `83d716b`; connected City Preview reports version 15. No publication is authorized by this management request.
+Updated November 8, 2026. Owner direction in this document supersedes older 300-level/hold-E specifications. Current local baseline: `83d716b`; connected City Preview reports version 15. No publication is authorized by this management request.
 
 ## Product direction
 
@@ -21,7 +21,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Verify unlock boundaries, overflow XP, retired styles, idempotent migration and reload. Produce a local build; do not publish.
 - Why first: continuous damage and destruction need a coherent level/balance model, and a cap change must not erase progress.
 
-### P0 — voice-triggered continuous combat (local server prototype wired; client and native verification pending)
+### P0 — voice-triggered continuous combat (local client/server prototype wired; beam feedback and native verification pending)
 
 - Replace hold/release as the default attack trigger. Sustained calibrated voice starts an attack, aiming tracks during the scream, quiet/mute stops it.
 - Prototype 4 seconds maximum active time, then 10 seconds cooldown from attack end. Compare with shorter active windows in timed playtests; keep tuning data-driven.
@@ -29,7 +29,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Server owns start/end deadlines, tick rate, damage budget, range/cover/PvP and reward limits. One sustained scream must not become repeated full-damage casts, per-tick XP farming or unlimited destruction. Reject stale/replayed pulses, missing stop messages and aim/power abuse; use server expiry even if the client disappears.
 - Rework beam effects as one updated bounded effect per attacker rather than creating an entire old burst every tick. Rework feedback, mic controller and server acknowledgement together.
 - Re-test mouse/first-person/touch aim, rolling interruption, short noises, noise during cooldown, reconnect, respawn and silence. Prototype locally before requesting real-mic friend tests.
-- Pure modules and integration contract: [SUSTAINED_ATTACK_PROTOCOL.md](SUSTAINED_ATTACK_PROTOCOL.md). They are not wired into the playable client/server yet; do not present a rules-only build as playable automatic voice combat.
+- Pure modules and integration contract: [SUSTAINED_ATTACK_PROTOCOL.md](SUSTAINED_ATTACK_PROTOCOL.md). The disposable local prototype has client/server wiring, but native Studio and real microphones are unverified.
 
 ### P1 — destruction as combat design
 
@@ -88,6 +88,8 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 - November 8 heartbeat: added opt-in local server wiring. Sustained hits use current server raycasts, PvP/roll/protection checks, level-gated destruction, and bounded NPC and knockout rewards. The prototype rejects legacy cast remotes and uses temporary profiles without loading saves. Adapter (28), sustained rules (9,094), and legacy combat/mic/destruction (1,419) checks passed. Bootstrap and the native fixture compile; `build/SustainedServerReview.rbxl` builds. The fixture was not executed in Studio; no live or external writes.
 
+- November 8 heartbeat: connected the opt-in microphone onset gate to server begin/pulse/stop. Voice starts paused; E or the action button arms it. The HUD reports pending, attacking and cooldown states. Controls wait for the matching server acknowledgement before sending aim updates, stop on blocked input and disarm on focus loss, respawn or unavailable mic. Passed 13 synthetic client checks, 9,094 rules checks and 28 mocked adapter checks. Changed scripts compile and `build/SustainedClientReview.rbxl` builds. No native Studio, real microphone or published behavior verified.
+
 ## Next action
 
-Check usage, then wire the opt-in client onset and arm/pause UI to the sustained remotes. Add bounded persistent beam feedback. Run the disposable Studio server fixture before claiming native damage or cover verification, then test PvP, destruction and real microphones separately. Keep normal mode on legacy combat until review.
+Check usage, then add bounded persistent beam feedback to the opt-in mode. Run the disposable Studio server fixture and a local client/server session before claiming native damage, cover or controls verification. Test PvP, destruction and real microphones separately. Keep normal mode on legacy combat until review.
