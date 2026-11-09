@@ -336,3 +336,7 @@ Pending native/latency check: delay or suppress attack acknowledgement in a disp
 ### Delayed acknowledgement ordering
 
 Pending native check: delay attack acknowledgement beyond the client timeout, then deliver the old active state. Verify there are no pulses/new starts while that state is active, no held-voice restart after it ends, and fresh quiet/onset starts a new sequence. Old-sequence state must not acknowledge the newer attempt. Seven synthetic controller assertions cover this ordering locally; they do not demonstrate actual network timing or microphone behavior.
+
+### Muted calibration cleanup
+
+Pending native check: with a calibrated microphone, mute and press Calibrate while an attack/capture is active. Check readiness and live power clear immediately, partial calibration/capture stops, and unmute still requires deliberate attack resume. Mocked controller tests cover the pre-Heartbeat state; actual device timing and UI appearance remain untested.

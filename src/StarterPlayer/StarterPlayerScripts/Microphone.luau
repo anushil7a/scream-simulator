@@ -47,7 +47,7 @@ function Microphone:Calibrate()
  if self.destroyed or self.checkPending then return end
  local input=self:FindInput()
  if not self.eligible or not input then self.status='Enable Roblox voice and reconnect your microphone first.';return end
- if input.Muted then self.status='Unmute using the Roblox microphone control, then calibrate.';return end
+ if input.Muted then self:HandleMute();self.status='Unmute using the Roblox microphone control, then calibrate.';return end
  -- A new attempt supersedes the previous calibration, including failed retries.
  self:Cancel();self.model=Power.new();self.power=0;self.ready=false;self.phase='quiet';self.phaseStarted=os.clock();self.quiet={};self.spoken={}
  self.status='Calibration 1/2: stay quiet for two seconds.'
@@ -72,13 +72,17 @@ function Microphone:Release()
  local power=self.model:Release()
  return power,power<.08 and 'Hold attack FIRST, speak immediately, then release within 1.25 seconds.' or nil
 end
+function Microphone:HandleMute()
+ self.wasMuted=true;self.ready=false;self:CancelCalibration();self:Cancel();self.model:Reset();self.power=0
+ self.status='Microphone muted. Unmute in Roblox to continue.'
+end
 function Microphone:Step(dt)
  if self.destroyed then return end
  if not self.eligible then self.power=0;return end
  local input=self:FindInput()
  if not input then self.status='Waiting for Roblox mic input. The experience needs Voice Chat and the Audio API enabled.';self.power=0;return end
  if input.Muted then
-  self.wasMuted=true;self.ready=false;self:CancelCalibration();self:Cancel();self.model:Reset();self.power=0;self.status='Microphone muted. Unmute in Roblox to continue.';return
+  self:HandleMute();return
  end
  if self.wasMuted then
   self.wasMuted=false
