@@ -270,11 +270,11 @@ local function refreshResidentLabels(root,camera,residents)
  local visible={}
  for _,bot in ipairs(residents) do
   local r=bot:FindFirstChild("HumanoidRootPart");local head=bot:FindFirstChild("Head");local h=bot:FindFirstChildOfClass("Humanoid")
-  if not r or not head then continue end
+  if not head then continue end
   local nameplate=head:FindFirstChild("Nameplate");local speech=head:FindFirstChild("SpeechBubble")
   if nameplate then nameplate.Enabled=false end
   if speech then speech.Enabled=false end
-  if not root or not camera or not h or h.Health<=0 or bot:GetAttribute("ResidentActive")==false then continue end
+  if not r or not root or not camera or not h or h.Health<=0 or bot:GetAttribute("ResidentActive")==false then continue end
   local distance=(r.Position-root.Position).Magnitude
   local _,onScreen=camera:WorldToViewportPoint(head.Position)
   if not onScreen then continue end

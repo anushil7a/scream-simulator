@@ -250,3 +250,7 @@ Pending native developer check: in a disposable place, restart the destruction s
 ### Voice button timing bar
 
 Pending visual/native check: on desktop and phone layouts, verify the thin voice-button bar drains green over an active attack, then fills muted through cooldown and hides at readiness. Confirm paused voice still shows remaining cooldown, protection/death hides it, and button taps retain arm/pause behavior. Check contrast and server deadline replication under latency. Build/compile passes; no rendered UI verification or timing measurement claimed.
+
+### Incomplete resident labels
+
+Pending native check: while a nearby NPC has a visible name or speech bubble, remove its root locally in a disposable client or observe partial streaming. Labels should hide and the NPC should no longer be a talk target; restoring the complete NPC should restore normal selection. Six mocked label checks pass; actual streaming and billboard rendering remain unverified.
