@@ -722,8 +722,12 @@ Run.RenderStepped:Connect(function(dt)
    local kind=object:GetAttribute("ObjectName") or object:GetAttribute("DestructibleType") or object.Name
    aimInfo.Text=string.format("%s · LEVEL %d\n%s",kind,required,data.level<required and "LOCKED" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or string.format("%d / %d durability",hp,object:GetAttribute("ObjectMaxHealth") or hp))
    local repairSeconds=math.max(0,math.ceil((object:GetAttribute("RepairAt") or 0)-workspace:GetServerTimeNow()))
-   if repairSeconds>0 and hp<(object:GetAttribute("ObjectMaxHealth") or hp) then
-    aimInfo.Text..=string.format("\nRepair in %d:%02d",math.floor(repairSeconds/60),repairSeconds%60)
+   if hp<(object:GetAttribute("ObjectMaxHealth") or hp) then
+    if object:GetAttribute("RepairBlocked")==true then
+     aimInfo.Text..="\nRepair waiting · clear the area"
+    elseif repairSeconds>0 then
+     aimInfo.Text..=string.format("\nRepair in %d:%02d",math.floor(repairSeconds/60),repairSeconds%60)
+    end
    end
    aimInfo.TextColor3=(data.level<required or far or currentFar) and muted or gold
   end

@@ -188,3 +188,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Ambience interrupted startup
 - Pending native: stop the ambience script while its remotes are unavailable; supplying them afterward must not create a new subscription or send a stale Sync. Confirm normal city volume settings still work.
 - Evidence: nine actual remote-hookup checks with coroutine waits and simulated teardown, plus full verification/build; no device/audio result.
+
+### Occupied repair explanation
+- Pending native: aim at a damaged object when its repair is deferred by a player/NPC in the repair volume. Readout should explain that the area must clear; after successful repair, the message disappears. New accepted damage restarts its normal countdown.
+- Evidence: 45 actual service checks with mocked engine/scheduler including four status checks, plus full verification/build. No native occupancy/replication/UI result.

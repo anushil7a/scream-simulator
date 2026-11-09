@@ -18,7 +18,7 @@ function Service.Register(model)
  Service.ids[id]=model;model:SetAttribute("ObjectId",id)
  Service.objects[model]={parts=parts,kind=kind,health=spec.health,box=cf,size=size,version=0,prompts={}}
  for _,item in ipairs(model:GetDescendants()) do if item:IsA("ProximityPrompt") then Service.objects[model].prompts[item]=item.Enabled end end
- model:SetAttribute('ObjectName',spec.name);model:SetAttribute('ObjectHealth',spec.health);model:SetAttribute('ObjectMaxHealth',spec.health);model:SetAttribute('RequiredLevel',spec.level);model:SetAttribute('Destroyed',false)
+ model:SetAttribute('ObjectName',spec.name);model:SetAttribute('ObjectHealth',spec.health);model:SetAttribute('ObjectMaxHealth',spec.health);model:SetAttribute('RequiredLevel',spec.level);model:SetAttribute('Destroyed',false);model:SetAttribute('RepairBlocked',false)
 end
 local function occupied(object)
  local characters={};for _,p in ipairs(Players:GetPlayers()) do if p.Character then table.insert(characters,p.Character) end end
@@ -34,7 +34,7 @@ local function restore(model,object,version)
  local spec=Rules.Types[object.kind];object.health=spec.health
  for part,original in pairs(object.parts) do if part.Parent then part.Transparency=original.transparency;part.CanCollide=original.collide;part.CanQuery=original.query;part.CanTouch=original.touch;part.Color=original.color;if part:IsA("Seat") then part.Disabled=original.seatDisabled end end end
  for prompt,enabled in pairs(object.prompts) do if prompt.Parent then prompt.Enabled=enabled end end
- model:SetAttribute('ObjectHealth',spec.health);model:SetAttribute('Destroyed',false);model:SetAttribute('RepairAt',0);model:SetAttribute('DamageStage',0)
+ model:SetAttribute('ObjectHealth',spec.health);model:SetAttribute('Destroyed',false);model:SetAttribute('RepairBlocked',false);model:SetAttribute('RepairAt',0);model:SetAttribute('DamageStage',0)
  return true
 end
 function Service.Damage(instance,level,damage)
@@ -57,7 +57,7 @@ function Service.Damage(instance,level,damage)
  -- Every accepted hit restarts repair, including damage that leaves the object standing.
  -- A single pending callback follows the latest deadline instead of accumulating per-hit tasks.
  object.version+=1;local duration=Rules.Types[object.kind].repair
- model:SetAttribute('RepairAt',workspace:GetServerTimeNow()+duration)
+ model:SetAttribute('RepairBlocked',false);model:SetAttribute('RepairAt',workspace:GetServerTimeNow()+duration)
  if not object.timer then
   object.timer=RepairTimer.new(os.clock,task.delay,
    function() return model.Parent~=nil and Service.objects[model]==object end,
@@ -66,7 +66,7 @@ function Service.Damage(instance,level,damage)
     if object.health>=Rules.Types[object.kind].health then return true end
     return restore(model,object,object.version)
    end,
-   function(delay) model:SetAttribute("RepairAt",workspace:GetServerTimeNow()+delay) end)
+   function(delay) model:SetAttribute("RepairBlocked",true);model:SetAttribute("RepairAt",workspace:GetServerTimeNow()+delay) end)
  end
  object.timer:Touch(duration)
  return {model=model,destroyed=destroyed,health=health,kind=object.kind,position=object.box.Position}
