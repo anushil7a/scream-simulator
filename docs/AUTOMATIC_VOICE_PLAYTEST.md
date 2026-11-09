@@ -61,3 +61,5 @@ Record commit/build, devices, exact reproduction steps and expected/observed beh
 - Seated actions: press dodge while sitting and attempt extra jumps during seat/stand transitions. Neither action should move attached furniture or consume a dodge cooldown; standing normally should restore eligibility. Also test temporary ragdoll/anchored roots in a disposable fixture. Sixteen extracted guard checks pass with mocked state; native physics/input pending.
 
 - Delayed input: use an isolated native fixture with simulated network delay to verify late begin/pulse/stop packets never revive expired attacks or bypass cooldown. Adapter coverage now includes 79 synthetic checks; actual Roblox transport latency and real mic behavior remain unverified.
+
+- Resident social interruption: approach two chatting NPCs and start dialogue before the second replies; also interrupt with a scream. The old delayed reply must not overwrite player dialogue or reaction text. Ordinary uninterrupted replies should still occur. Ten mocked callback checks pass; native timing/speech-label review pending.

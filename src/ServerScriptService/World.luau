@@ -438,8 +438,12 @@ local function socialize(bot)
     faceToward(bot, friend.root.Position)
     faceToward(friend, bot.root.Position)
     World.Speak(bot, roleLines[bot.role][rng:NextInteger(1, #roleLines[bot.role])])
+    local botVersion,friendVersion=bot.pathVersion,friend.pathVersion
     task.delay(1.8, function()
-        if friend.alive and friend.model.Parent then
+        if bot.alive and bot.model.Parent and friend.alive and friend.model.Parent
+            and bot.pathVersion==botVersion and friend.pathVersion==friendVersion
+            and not bot.talkingTo and not friend.talkingTo
+            and os.clock()<(bot.socialUntil or 0) and os.clock()<(friend.socialUntil or 0) then
             World.Speak(friend, roleLines[friend.role][rng:NextInteger(1, #roleLines[friend.role])])
         end
     end)
