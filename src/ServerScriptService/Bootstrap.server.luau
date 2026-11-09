@@ -600,11 +600,22 @@ local function joined(p)
   p:SetAttribute("SustainedActive",false);p:SetAttribute("SustainedReadyAt",0);p:SetAttribute("SustainedEndsAt",0)
  end
  local function spawn(c)
-  local h=c:WaitForChild("Humanoid",10);if not h or p.Character~=c then return end
+  local h=c:WaitForChild("Humanoid",10)
+  if not h or not p.Parent or sessions[p]~=s or p.Character~=c or s.character==c then return end
+  s.character=c;closeConversation(p)
   s.jumpPower=h.JumpPower;s.jumpHeight=h.JumpHeight
-  h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=s.micReady and 16 or 0;s.sprintCharge=10;s.sprintRequested=false;s.sprintLockedUntil=0;s.dodgingUntil=0
+  h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=s.micReady and 16 or 0
+  s.sprintCharge=10;s.sprintRequested=false;s.sprintLockedUntil=0;s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false
+  s.nextHeal=os.clock()+Config.HealQuietSeconds
+  p:SetAttribute("DodgeEnds",0);p:SetAttribute("DodgeStarted",0);p:SetAttribute("KnockdownEnds",0)
+  p:SetAttribute("Sprinting",false);p:SetAttribute("SprintCooldown",0);p:SetAttribute("SprintCharge",10)
   protect(p,s);state(p)
  end
+ p.CharacterRemoving:Connect(function(c)
+  if sessions[p]~=s or s.character~=c then return end
+  closeConversation(p);cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
+  p:SetAttribute("CaptureStarted",0);s.sprintRequested=false;s.character=nil
+ end)
  p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
  state(p,loadMessage or "Welcome · train for XP, unlock screams, and explore the coast")
 end
