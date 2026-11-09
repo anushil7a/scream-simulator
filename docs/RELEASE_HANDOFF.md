@@ -1,3 +1,7 @@
+## Latest verified release — November 8, 2026
+
+City Preview 90337242377543 is now at cloud version 19. Owner completed the publishing dialog; agent verified all 36 production source fingerprints and four place-configuration checks after cloud reopen. Level cap 100 is present. Sustained voice remains local-only; published controls still use hold/release. Real microphone, save round trips and representative multiplayer soak remain unverified. This completes the current release authorization; later uploads require approval.
+
 # Resume the microphone city release
 
 Updated November 6, 2026. Gameplay source: `8f0bb60`, branch `feature/microphone-city-redesign`.
