@@ -43,15 +43,18 @@ for _,model in ipairs(Collection:GetTagged("CityResident")) do register(model) e
 table.insert(connections,Run.PreSimulation:Connect(function(dt)
  local camera=workspace.CurrentCamera;if not camera then return end
  for model,rig in pairs(rigs) do
-  if not model:IsDescendantOf(workspace) then continue end
-  if model:GetAttribute("ResidentActive")==false then
+  if not model:IsDescendantOf(workspace) or model:GetAttribute("ResidentActive")==false then
+   if not rig.suspended then suspendRig(rig);rig.suspended=true end
+   continue
+  end
+  local root=model:FindFirstChild("HumanoidRootPart");local torso=model:FindFirstChild("Torso")
+  local humanoid=model:FindFirstChildOfClass("Humanoid")
+  if not root or not torso or not humanoid then
+   -- Partial streaming must not leave a detached local practice prop visible.
    if not rig.suspended then suspendRig(rig);rig.suspended=true end
    continue
   end
   rig.suspended=false
-  local root=model:FindFirstChild("HumanoidRootPart");local torso=model:FindFirstChild("Torso")
-  local humanoid=model:FindFirstChildOfClass("Humanoid")
-  if not root or not torso or not humanoid then continue end -- streaming may deliver limbs later
   local distance=(root.Position-camera.CFrame.Position).Magnitude
   rig.elapsed+=dt
   local interval=distance<70 and 0 or distance<160 and 1/20 or 1/5

@@ -107,6 +107,19 @@ check(limb.Transform=='identity' and neck.Transform=='identity' and piece.Transp
 run.PreSimulation:Fire(.1)
 check(not ball.destroyed and rigs[m]~=nil,'Suspension destroyed reusable resident visuals')
 
+
+-- Actual frame callback, with partial/out-of-workspace mocked streaming states.
+m.active=true
+function m:FindFirstChild()return nil end
+function m:FindFirstChildOfClass()return nil end
+for _,inWorld in ipairs({true,false}) do
+ function m:IsDescendantOf()return inWorld end
+ rigs[m].suspended=false;rigs[m].blend=1;piece.Transparency=0;limb.Transform='pose'
+ run.PreSimulation:Fire(.1)
+ check(rigs[m].suspended and piece.Transparency==1 and limb.Transform=='identity','Unavailable rig retained detached animation/prop')
+ check(not ball.destroyed and rigs[m]~=nil,'Streaming suspension discarded reusable rig')
+end
+
 collection.removed:Fire(m)
 check(rigs[m]==nil and ball.destroyed,'Streamed-out resident retained visual')
 check(limb.Transform=='identity' and neck.Transform=='identity','Resident cleanup retained pose')

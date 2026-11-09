@@ -145,3 +145,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Destruction confirmation: break a prop with a sustained scream and verify one named repair notice. Sweep across several props during the same scream to confirm no per-tick spam; hit a locked object and then an unlocked prop to verify distinct feedback. Helper tests use synthetic results; native toast/geometry remains pending.
 
 - Resident animation recovery: KO Nick and a working resident, verify local practice props and work poses clear during recovery, then confirm walking/job animations resume normally. Mock frame checks cover suspension/pose clearing, not native Animator/replication timing.
+
+### Resident partial streaming cleanup
+- Pending native: approach/leave Nick across streaming boundaries, including partial limb/root delivery. No detached practice ball should remain when his rig is unavailable; returning to a complete active rig should resume normal practice visuals.
+- Evidence: actual frame callback with mocked incomplete/out-of-workspace models clears poses and hides props without destroying reusable rigs (four added checks). Full local verification/build passed; no native streaming or appearance verification.
