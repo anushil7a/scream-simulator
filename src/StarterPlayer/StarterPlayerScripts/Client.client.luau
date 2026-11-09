@@ -44,9 +44,21 @@ button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function(
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
 local selected="Screams";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
-local function toggle() modal.Visible=not modal.Visible;if modal.Visible then if devPanel then devPanel.Visible=false end;render() end end
-local shop=button(top,"ShopToggle","SCREAMS  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),toggle,gold);shop.TextColor3=dark
-local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() if devPanel then devPanel.Visible=false end;selected="Quests";modal.Visible=not(modal.Visible and title.Text=="CITY QUESTS");render() end)
+local conversationPanel,showConversation,closeConversation
+local function toggleTab(name)
+ local opening=not modal.Visible or selected~=name
+ selected=name;modal.Visible=opening
+ if opening then
+  if closeConversation then closeConversation() end
+  if devPanel then devPanel.Visible=false end
+  render()
+ end
+end
+local function toggle()
+ if modal.Visible then modal.Visible=false else toggleTab(selected) end
+end
+local shop=button(top,"ShopToggle","SCREAMS  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),function() toggleTab("Screams") end,gold);shop.TextColor3=dark
+local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests") end)
 local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.08
 local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-24,0,22),UDim2.fromOffset(12,7),14,gold)
 local health=label(hud,"100 HP",UDim2.fromOffset(65,20),UDim2.fromOffset(12,31),12)
@@ -78,7 +90,6 @@ local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);to
 local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
 local toastUntil=0;local toastWidth=0
 local function notify(t) toast.Text=t;toastUntil=os.clock()+math.clamp(#t/22,4,12);toastWidth=0 end
-local conversationPanel,showConversation,closeConversation
 local nextCast=0;local sequence=0;local captureSource=nil
 local sustainedControl,sustainedRules
 local windowFocused=true
@@ -339,7 +350,7 @@ render=function()
   else attackHelp=touch and "Hold SCREAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / SCREAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
   info(string.format("%s: first or third person\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint, then %.0fs rest",touch and "View button" or "V / view button",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery),touch and 110 or 90)
-  info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SCREAMS opens and closes the menu." or "T: talk to nearby residents · F: quest interactions · B: toggle menu",touch and 80 or 54)
+  info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SCREAMS opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
   local micCard=card(58)
   button(micCard,"Recalibrate","RECALIBRATE MICROPHONE",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
    if sustainedControl then sustainedControl:SetArmed(false) end
@@ -431,7 +442,7 @@ UIS.InputBegan:Connect(function(input,processed)
  local k=input.KeyCode
  if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
  elseif k==Enum.KeyCode.V then toggleCamera()
- elseif k==Enum.KeyCode.M then selected="Map";modal.Visible=not modal.Visible;render()
+ elseif k==Enum.KeyCode.M then toggleTab("Map")
  elseif k==Enum.KeyCode.LeftShift then setSprint(true)
  elseif k==Enum.KeyCode.T and talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end
 end)

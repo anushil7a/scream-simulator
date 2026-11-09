@@ -87,3 +87,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Hidden voice toggle: pause voice, open Settings/Quests or NPC dialogue, press E and close the panel. Voice must remain paused until a fresh available E/ARM VOICE action. Also verify E can still pause an armed mic while a panel is open. Seven mocked toggle checks pass; native input/menu checks pending.
 
 - Build identification: `python3 tests/verify_local.py --build` now creates `build/AutomaticVoiceCandidate.provenance.json` alongside the normal candidate. Record its artifact/source hashes with test results. This confirms build contents only; it does not mean a build passed native tests or is approved for publication. Disposable fixtures remain separately named and must never be published.
+
+- Menu navigation: open Settings then press M; Map should appear, and a second M should close it. SCREAMS/QUESTS should open their matching tab from any tab and close on repeat. B should still close any open menu. Open a menu during NPC dialogue and confirm dialogue closes, freeing the resident. Native keyboard/touch behavior remains pending.
