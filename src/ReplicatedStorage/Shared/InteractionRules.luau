@@ -5,7 +5,7 @@ function Rules.CanReachNpc(character,npc,maxDistance)
  local target=npc and npc:FindFirstChild("HumanoidRootPart")
  local humanoid=character and character:FindFirstChildOfClass("Humanoid")
  local resident=npc and npc:FindFirstChildOfClass("Humanoid")
- if not root or not target or not humanoid or not resident or humanoid.Health<=0 or resident.Health<=0
+ if not root or not target or not humanoid or not resident or humanoid.Health<=0 or resident.Health<=0 or humanoid.PlatformStand or resident.PlatformStand
   or (root.Position-target.Position).Magnitude>maxDistance then return false end
  local origin=(character:FindFirstChild("Head") or root).Position
  local destination=(npc:FindFirstChild("Head") or target).Position

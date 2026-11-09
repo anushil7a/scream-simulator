@@ -254,3 +254,7 @@ Pending visual/native check: on desktop and phone layouts, verify the thin voice
 ### Incomplete resident labels
 
 Pending native check: while a nearby NPC has a visible name or speech bubble, remove its root locally in a disposable client or observe partial streaming. Labels should hide and the NPC should no longer be a talk target; restoring the complete NPC should restore normal selection. Six mocked label checks pass; actual streaming and billboard rendering remain unverified.
+
+### Conversation during knockdown
+
+Pending native check: get knocked down by a vehicle near a quest giver/vendor. Talk targeting and new conversation/purchase requests should be unavailable while either participant is in PlatformStand, then recover normally. Existing open-dialogue lifetime is unchanged. Six shared-rule mocked checks pass; actual ragdoll transitions and replication remain unverified.
