@@ -13,10 +13,15 @@ task.spawn(function()
   mic=fake;modal.Visible=false;devPanel.Visible=false;conversationPanel.Visible=false
   local camera=workspace.CurrentCamera
   check(not firstPerson,"Expected default third person")
-  captureSource="fixture";fake.captureStarted=os.clock()
+  if sustainedControl then
+   sustainedControl:SetArmed(true)
+   sustainedControl.attack={sequence=1};sustainedControl.gate.active=true
+  else captureSource="fixture";fake.captureStarted=os.clock() end
   toggleCamera();task.wait(.4)
   check(firstPerson and p.CameraMode==Enum.CameraMode.LockFirstPerson,"First person not applied")
-  check(captureSource==nil and fake.captureStarted==nil and cancels>0,"Switch retained pending attack")
+  if sustainedControl then
+   check(sustainedControl.attack==nil and sustainedControl.gate.needsQuiet,"View switch retained automatic attack")
+  else check(captureSource==nil and fake.captureStarted==nil and cancels>0,"Switch retained pending attack") end
   check(reticle.Visible and viewButton.Text=="3RD [V]","First person HUD missing")
   local ray=aimRay()
   check(ray.Direction:Dot(camera.CFrame.LookVector)>.99999,"Attack ray does not match camera center")
