@@ -213,3 +213,14 @@ The lab scripts booted in the existing disposable Studio copy with unrelated aut
 ## Navigation map follow-up — 2026-10-02
 
 CityMap now replaces broad zone blocks with actual road positions, beach extent, six numbered landmarks, a destination legend and correctly centered position/heading arrow. Preserves world aspect ratio and hides stale player position during respawn. Twelve synthetic native UI checks at648/270holder widths passed; wide/narrow renders reviewed in disposable FountainReview, then fixtures removed and Play stopped. Both city builds succeed;29production sources now. This addition has not been synced/published to the private city preview and does not establish physical-device usability or frame rate.
+
+## November 8 native sustained prototype review
+
+Disposable `build/SustainedNativeFixture.rbxl`, gameplay source `42108cf`; no cloud writes or saved-player mutations.
+
+- Native server fixture: `SustainedDamageResult = {"passed":true,"checks":6}`. Real engine cover, bounded damage, first-hit reward and stale-input expiry; synthetic power.
+- Actual client remote receiver: repeated synthetic server beam updates produced one `SustainedVoiceBeam` (size approximately 0.48 × 0.48 × 20), with CanCollide=false and CanQuery=false. After explicit stop, client enumeration reported zero beam parts. This is a single-client rendering/cleanup check, not a multiplayer performance measurement.
+- Actual native Config/Profiles sanitize: 28 assertions passed for nine legacy levels through 300, cap100, archived level/XP/style, retained coins, idempotent sanitize and 11 styles. No actual DataStore round trip was performed.
+- Local client started successfully but showed waiting for Roblox microphone input. No live microphone/audibility verification established.
+
+- Native R15 animation check passed: accepted sustained state held the braced pose, stop blended it out, and three synthetic roll cycles suppressed the scream pose while preserving default Animator tracks. Temporary test appendix was removed afterward. This does not verify physical input combinations, R6, real mic triggers or multiplayer animation replication.
