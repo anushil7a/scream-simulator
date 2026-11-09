@@ -103,3 +103,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Voice meter clarity: verify respawn, window-focus loss, PlatformStand recovery and mic-ready synchronization show the corresponding status rather than an armed instruction. Check desktop/mobile text fit and return to cooldown/quiet/onset messages. Source/build checks pass; visual/device verification remains pending.
 
 - Delayed acknowledgement/stop: test automatic voice under Studio network emulation or a real higher-latency connection. Observe starting/timeout feedback, cooldown, quiet-before-retry and beam expiry on disconnect. Selectively suppressed fake acknowledgements/stops pass local flow tests, but do not establish Roblox packet timing or real-network behavior.
+
+- Expired NPC conversations: allow player dialogue to expire, then observe that resident talking to another NPC, including the delayed reply. Closing the old player panel must not interrupt the new conversation. Active player conversations must remain exclusive. Full function mocked tests pass; native social timing remains pending.

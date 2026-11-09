@@ -437,6 +437,9 @@ local function socialize(bot)
     local friend = friends[rng:NextInteger(1, #friends)]
     if not InteractionRules.CanReachNpc(bot.model,friend.model,22) then return false end
     stopWalking(bot);stopWalking(friend)
+    -- Both previous social windows have expired. Do not let an old player
+    -- reference suppress this conversation or let its late close cancel it.
+    bot.talkingTo=nil;friend.talkingTo=nil
     bot.socialUntil, friend.socialUntil = os.clock() + 8, os.clock() + 8
     bot.gestureUntil, friend.gestureUntil = os.clock() + 3, os.clock() + 3
     faceToward(bot, friend.root.Position)
