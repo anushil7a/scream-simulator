@@ -45,3 +45,5 @@ Record commit/build, devices, exact reproduction steps and expected/observed beh
 - Destruction level feedback: below level 26, aim an automatic scream at a small tree. Confirm one required-level message for the whole attack, no damage/reward, and no message flicker on subsequent ticks. Repeat after unlocking the tier and confirm normal damage. Synthetic response checks pass; native targeting/HUD behavior remains pending.
 
 - Microphone teardown: in a disposable client, remove the gameplay client/controller during calibration or a ready microphone session; check its analyzer stays removed and no queued retry recreates it. Rejoining should create a fresh controller and require calibration. Twenty-two mocked lifecycle checks pass; hardware and native event ordering remain pending.
+
+- Worker navigation: block a station approach in a disposable place and inspect workers near steps/gaps. They should stop/replan rather than walk the final direct segment after a jump-required waypoint. Confirm ordinary unobstructed arrivals still reach tools. Fifteen actual-coroutine checks use synthetic paths/time, not native pathfinding or physics.

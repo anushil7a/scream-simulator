@@ -313,7 +313,7 @@ local function roamTo(bot, destination, precise)
     for index, waypoint in ipairs(path:GetWaypoints()) do
         currentWaypoint=index
         if bot.pathVersion~=version or blocked or not bot.alive or not bot.model.Parent or (bot.reactionUntil or 0) > os.clock() then break end
-        if waypoint.Action == Enum.PathWaypointAction.Jump then break end
+        if waypoint.Action == Enum.PathWaypointAction.Jump then blocked=true;break end
         bot.humanoid:MoveTo(waypoint.Position)
         local started, lastProgress, previous = os.clock(), os.clock(), bot.root.Position
         while (Vector3.new(waypoint.Position.X,bot.root.Position.Y,waypoint.Position.Z)-bot.root.Position).Magnitude > 2.8 do
