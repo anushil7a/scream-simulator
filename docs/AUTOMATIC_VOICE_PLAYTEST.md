@@ -109,3 +109,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Calibration recovery: mute midway through quiet sampling and midway through voice sampling; unmute and verify calibration must restart. Disconnect/reconnect the microphone during voice sampling and complete a fresh calibration. Retry access after a transient failure. The controller passes mocked lifecycle regressions; actual audio-device/permission behavior remains pending.
 
 - NPC aim readout: aim at residents beyond nameplate distance in first person, third person and touch mode. Verify name/health, current-power versus maximum-range messages, walls obscuring target selection, and clearing on loss of aim. Mocked formatting/range-state tests pass; actual raycast selection and layout remain pending.
+
+- Resident active flag: KO an NPC while another player aims at or talks to it. Verify dialogue/readout/talk prompt clear when ResidentActive becomes false and return after recovery. Humanoid is intentionally retained; confirm repeated KO/recovery preserves walking and animations. Mocked UI checks pass; native replication ordering remains unverified.

@@ -493,6 +493,7 @@ local function makeBot(parent, index, x, z, role, job)
     model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
     model.Parent = parent
     model:SetAttribute("NpcId", "Bot" .. index)
+    model:SetAttribute("ResidentActive",true)
     model:SetAttribute("DisplayName", displayName)
     model:SetAttribute("Role", role)
     local avatarRng = Random.new(8044 + index * 479)
@@ -846,6 +847,7 @@ function World.Build()
     return parent
 end
 function World.UpdateBot(bot)
+    bot.model:SetAttribute("ResidentActive",bot.alive==true)
     -- A normal hit already started its flee reaction. Do not cancel that MoveTo here.
     if not bot.alive or bot.health==Config.BotMaxHealth then
         stopWalking(bot);bot.model:SetAttribute("Working",false)

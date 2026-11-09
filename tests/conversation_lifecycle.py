@@ -16,6 +16,7 @@ local function closeConversation() closes+=1;conversationPanel.Visible=false end
 local mt={__sub=function(a,b)return {Magnitude=math.abs(a.x-b.x)}end}
 local function character(x)
  local c={Parent=true,root={Position=setmetatable({x=x},mt)},humanoid={Health=100}}
+ function c:GetAttribute() return self.active end
  function c:FindFirstChild() return self.root end
  function c:FindFirstChildOfClass() return self.humanoid end
  return c
@@ -29,9 +30,10 @@ local function reset()
  p={Character=character(0)};conversationNPC=character(10)
 end
 reset();refreshConversation();check(closes==0,'Valid conversation closed')
-for _,case in ipairs({'player dead','npc dead','player missing','npc removed','player root','npc root','player humanoid','npc humanoid','range','expired','menu'}) do
+for _,case in ipairs({'player dead','npc dead','npc recovering','player missing','npc removed','player root','npc root','player humanoid','npc humanoid','range','expired','menu'}) do
  reset()
  if case=='player dead' then p.Character.humanoid.Health=0
+ elseif case=='npc recovering' then conversationNPC.active=false
  elseif case=='npc dead' then conversationNPC.humanoid.Health=0
  elseif case=='player missing' then p.Character=nil
  elseif case=='npc removed' then conversationNPC.Parent=nil

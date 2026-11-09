@@ -218,6 +218,7 @@ local function playerTargetInfo(target,humanoid,canFight,far,now,currentFar)
   canFight and protection<=0 and not rolling and not far and not currentFar
 end
 local function residentTargetInfo(model,humanoid,far,currentFar)
+ if model:GetAttribute("ResidentActive")==false then return nil,false end
  if not humanoid or humanoid.Health<=0 then return nil,false end
  local status=far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or "TRAINING RESIDENT"
  return string.format("%s\n%d / %d HP\n%s",model:GetAttribute("DisplayName") or model.Name,
@@ -238,7 +239,7 @@ local function refreshResidentLabels(root,camera,residents)
   local nameplate=head:FindFirstChild("Nameplate");local speech=head:FindFirstChild("SpeechBubble")
   if nameplate then nameplate.Enabled=false end
   if speech then speech.Enabled=false end
-  if not root or not camera or not h or h.Health<=0 then continue end
+  if not root or not camera or not h or h.Health<=0 or bot:GetAttribute("ResidentActive")==false then continue end
   local distance=(r.Position-root.Position).Magnitude
   local _,onScreen=camera:WorldToViewportPoint(head.Position)
   if not onScreen then continue end
@@ -396,7 +397,7 @@ local function refreshConversation()
  local npc=conversationNPC and conversationNPC.Parent and conversationNPC
  local npcRoot=npc and npc:FindFirstChild("HumanoidRootPart")
  local npcHumanoid=npc and npc:FindFirstChildOfClass("Humanoid")
- if modal.Visible or not root or not humanoid or humanoid.Health<=0 or not npcRoot or not npcHumanoid or npcHumanoid.Health<=0
+ if modal.Visible or not root or not humanoid or humanoid.Health<=0 or not npcRoot or not npcHumanoid or npcHumanoid.Health<=0 or npc:GetAttribute("ResidentActive")==false
   or (root.Position-npcRoot.Position).Magnitude>18 or os.clock()>=conversationUntil then closeConversation() end
 end
 button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
