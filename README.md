@@ -1,12 +1,12 @@
 # Scream Simulator — microphone city redesign
 
-**Current direction (November 8):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 10 seconds cooldown), preserving normal profiles. Calibrate once, stay quiet briefly, then aim and speak; E/VOICE pauses/resumes. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue development while Codex allowance remains.
+**Current direction (November 9):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 10 seconds cooldown), preserving normal profiles. Calibrate once, stay quiet briefly, then aim and speak; E/VOICE pauses/resumes. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue development while Codex allowance remains.
 
-[GitHub repository](https://github.com/anushil7a/scream-simulator) · [Roblox experience](https://www.roblox.com/games/122465114514497/Scream-Simulator)
+[GitHub repository](https://github.com/anushil7a/scream-simulator) · [City Preview](https://www.roblox.com/games/90337242377543/Scream-Simulator-City-Preview) · [Separate original experience](https://www.roblox.com/games/122465114514497/Scream-Simulator)
 
 [Draft redesign review and developer handoff](https://github.com/anushil7a/scream-simulator/pull/1) — includes build instructions, scoped test evidence and remaining release gates.
 
-**Active development, not a completed release.** Current work is on `feature/microphone-city-redesign`. The live experience was last verified at version 32; this branch has not been published over it. [Historical release notes](docs/RELEASE_32_NOTES.md) describe that older build.
+**Active development, not a completed release.** Current work is on `feature/microphone-city-redesign`. The last recorded City Preview release is version 19; subsequent automatic-voice changes are unpublished. Original-experience version numbers are separate. [Historical release notes](docs/RELEASE_32_NOTES.md) describe that older build.
 
 ## Build the current source
 
@@ -20,14 +20,16 @@ rojo build default.project.json -o build/MicrophoneCity.rbxlx
 
 Open `build/MicrophoneCity.rbxl` in Roblox Studio and press Play. The city is generated on startup; an empty Edit viewport is expected. Build from `src/` rather than assuming older root-level place files contain this redesign. Rojo 7.7 was used. Generated `build/` outputs are ignored by Git.
 
+For isolated local gameplay review, run `python3 tests/verify_local.py --build` and open `build/SustainedLocalPlay.rbxl`. It uses temporary profiles and must never be published. `build/SustainedNativeFixture.rbxl` adds synthetic checks; `build/PerformanceReview.rbxl` adds the manual performance collector. The same command builds `build/AutomaticVoiceCandidate.rbxl` with normal profile handling and a provenance sidecar; it is not a disposable save sandbox and is not approved for upload. See the [manual test plan](docs/AUTOMATIC_VOICE_PLAYTEST.md).
+
 Read the [current QA report and release gates](docs/QA_REPORT.md), [development brief](docs/PROFESSIONAL_REDESIGN_PROMPT.md), [implementation evidence and remaining work](docs/IMPLEMENTATION_STATUS.md), [asset inventory](docs/ASSET_INVENTORY.md), and [contributor guide](CONTRIBUTING.md).
 
 The [release handoff](docs/RELEASE_HANDOFF.md) records the latest local build, last verified playable preview, publishing recovery steps and human test requirements.
 
 ## Implemented in this branch
 
-- Hold attack, use microphone, release an aimed beam. Client calibration/power processing and server bounds/cooldowns are implemented; real microphone/proximity-voice validation remains outstanding.
-- Levels 1–100 in local source, four-second burst cooldown pending the sustained-voice prototype, bounded power/level scaling, visual style unlocks every ten levels, compact menus, mouse aim and touch controls. The published version still uses the older 300-level progression.
+- Automatic live-mic attacks: calibrate, allow a brief quiet interval, then aim and speak. Sustained beams follow aim for up to four seconds, followed by ten seconds cooldown from attack end. E/VOICE arms or pauses; real microphone/proximity-voice validation remains outstanding.
+- Levels 1–100, bounded power/level scaling, visual style unlocks every ten levels, compact menus, mouse aim and touch controls. City Preview version 19 already has the 100-level cap but retains hold/release combat.
 - Central PvP district, safe city surroundings, spawn protection, separate dodge, sprint stamina, level-scaled health and quiet-time healing.
 - Barcelona-inspired city with courtyards, enterable shops, market, beach, usable seating, pier, lookout, swimming area and lifeguard boundary recovery. Art and performance are still being refined.
 - 46 residents with grounded navigation, conversations, work activities, reading/resting and reactions. Nick has practice routines and a multi-stage optional soccer quest.
@@ -38,10 +40,10 @@ These are source/integration milestones, not blanket verification of every devic
 
 ## Controls
 
-- Hold **E** / **HOLD SCREAM**, use your mic, then release to fire toward the aim point.
-- **Q** / **DODGE**: roll with cooldown; dodge cancels an unfinished attack capture.
+- Current local candidate: aim and use your calibrated mic to attack. **E** / **ARM VOICE–PAUSE VOICE** toggles voice attacks; it is not required for each scream. After interruption/cooldown, allow quiet before a fresh onset. City Preview version 19 still uses hold/use mic/release.
+- **Q** / **DODGE**: roll with cooldown; dodge cancels the active voice attack.
 - Hold **Shift** / tap **SPRINT**: up to ten seconds of sprint, then five seconds of recovery.
-- **T** / **TALK**: nearby NPC dialogue. **F**: world interactions.
+- **T** / **TALK**: nearby NPC dialogue. Use world interaction prompts (**F** on keyboard; on-screen prompts on touch).
 - **B** / **SCREAMS**: toggle collection. **M**: map. Quests, Style and Settings are menu tabs.
 - **V** / **1ST–3RD view button** / **Settings → View**: switch first/third person for this session. First person aims through a centered crosshair; switching views cancels a pending capture. Menus free the cursor.
 

@@ -3,7 +3,7 @@
 ## Start here
 
 1. Fork this repository on GitHub and clone your fork.
-2. Check out `feature/microphone-city-redesign`, build the current source, then open `build/MicrophoneCity.rbxl` in Roblox Studio and press **Play**. The city generates when play starts; an empty Edit viewport in the local build is expected.
+2. Check out `feature/microphone-city-redesign`, run `python3 tests/verify_local.py --build`, then open the disposable `build/SustainedLocalPlay.rbxl` in Roblox Studio and press **Play**. The city generates when play starts; an empty Edit viewport in the local build is expected.
 3. For code changes, edit the files in `src/`. Rojo 7.7.0 was used for the included builds.
 4. Rebuild from the repository root:
 
@@ -30,13 +30,13 @@ The `src/` files are the source of truth. Rebuild place files locally; generated
 
 Use a separate local or private test place. Read `docs/IMPLEMENTATION_STATUS.md` before stopping any ongoing test run. Never commit temporary fixture appendices to production scripts. Real microphone, multi-touch and multiplayer checks must be labeled separately from synthetic fixtures.
 
-Studio DataStore warnings are expected when API access is disabled; temporary profiles let you test without touching live saves. Do not connect experiments to the production data store.
+Use the explicitly guarded disposable local fixtures for temporary profiles. Normal candidate builds retain normal profile handling; do not assume every Studio build is a save sandbox. Never publish disposable fixtures or connect experiments to production player data.
 
 Test tools are intentionally available to all players during friend testing. Using a test command disables saving for that session. The switch is `DeveloperAccess.PublicTestingEnabled`.
 
 For relevant gameplay changes check:
 
-- Mic hold/release beams follow the aim point, stop at walls, and respect safe areas and spawn protection.
+- Automatic mic onset starts sustained beams; quiet/interruption ends them, with fresh onset required after cooldown. Aim, cover, safe areas and spawn protection remain server-controlled. E pauses/resumes rather than firing each attack.
 - Rolling has a cooldown and cannot cross car or wall collisions.
 - Moving cars damage, knock down, and release the player to recover.
 - Residents remain grounded and walk through usable routes.
