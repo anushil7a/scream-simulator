@@ -348,3 +348,7 @@ Pending native check: add CityDestructible to a valid disposable prop and remove
 ### All-tier destruction lifecycle
 
 Pending native check: test a representative bench, bin, tree, bike, house front, apartment front and tower front just below and at their unlock levels. Verify complete break, preserved navigation, occupied-repair deferral and restoration of the actual authored parts. Local service tests cover all seven configurations using simplified mock geometry and simulated deadlines, not physical city geometry or measured balance.
+
+### NPC final approach to work
+
+Pending native check: observe workers reaching their work surfaces, interrupt the last few studs with dialogue or a scream, and temporarily obstruct the final approach in a disposable place. Check tools align after arrival, old movement does not cancel the reaction, and workers recover normal speed after timeout/interruption. Synthetic route tests pass for these control-flow boundaries; actual navigation and animation alignment remain unverified.

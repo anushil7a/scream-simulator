@@ -44,7 +44,11 @@ local function run(options)
   if scenario.blockIndex then path.onBlocked(scenario.blockIndex) end
   if scenario.arrive then bot.root.Position=pos end
  end
- function bot.humanoid:Move()bot.preciseMoves+=1 end
+ function bot.humanoid:Move(direction)
+  bot.preciseMoves+=1
+  if direction.Magnitude==0 then bot.stoppedPrecisely=true
+  elseif scenario.preciseArrival then bot.root.Position=scenario.destination end
+ end
  roamTo(bot,options.destination or Vector3.new(3,0,0),true)
  check(path.destroyed,'Route leaked path')
 end
@@ -63,6 +67,14 @@ run({waypoints={{Position=Vector3.new(10,0,0)}},interrupt=true})
 check(#bot.moves==1 and bot.preciseMoves==0,'Interrupted route overwrote replacement movement')
 run({waypoints={{Position=Vector3.new(10,0,0)},{Position=Vector3.new(20,0,0)}},arrive=true,blockIndex=0,destination=Vector3.new(20,0,0)})
 check(#bot.moves==2 and bot.root.Position.X==20,'Obstruction behind route stopped forward travel')
+run({waypoints={{Position=Vector3.new(1,0,0)}},destination=Vector3.new(3,0,0),preciseArrival=true})
+check(bot.root.Position.X==3 and bot.preciseMoves==2 and bot.stoppedPrecisely,'Final approach did not move then stop at work surface')
+check(bot.humanoid.WalkSpeed==9 and path.disconnected,'Completed precision approach retained slow speed or path listener')
+run({waypoints={{Position=Vector3.new(1,0,0)}},destination=Vector3.new(3,0,0),interrupt=true})
+check(bot.preciseMoves==1 and not bot.stoppedPrecisely,'Interrupted precision approach stopped replacement movement')
+check(bot.humanoid.WalkSpeed==9 and now<.1,'Interrupted precision approach retained slow speed or kept waiting')
+run({waypoints={{Position=Vector3.new(1,0,0)}},destination=Vector3.new(3,0,0)})
+check(now>=2 and now<2.1 and bot.stoppedPrecisely and bot.humanoid.WalkSpeed==9,'Stalled precision approach did not stop and restore speed within its deadline')
 print('PASS '..count..' actual NPC route checks with synthetic paths/time; no native navigation evidence')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.route_',dir=root/'tests',delete=False) as f:
