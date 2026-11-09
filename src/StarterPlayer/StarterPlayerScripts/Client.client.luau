@@ -213,24 +213,32 @@ local function setSprint(requested)
  if sprinting==requested then return end
  sprinting=requested;action:FireServer("Sprint",requested)
 end
-local function playerTargetInfo(target,humanoid,canFight,far,now,currentFar)
+local function targetCovered(root,targetRoot,targetModel)
+ local character=p.Character;local head=character and character:FindFirstChild("Head")
+ local origin=root.Position+Vector3.new(0,1,0)
+ if head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
+ local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
+ params.FilterDescendantsInstances={character,targetModel};params.RespectCanCollide=true
+ return workspace:Raycast(origin,targetRoot.Position-origin,params)~=nil
+end
+local function playerTargetInfo(target,humanoid,canFight,far,now,currentFar,covered)
  if humanoid.Health<=0 then return nil,false end
  local protection=math.max(0,(target:GetAttribute("ProtectionEnds") or 0)-now)
  local rolling=now<(target:GetAttribute("DodgeEnds") or 0)
  local status=not canFight and "SAFE · PvP OFF"
   or protection>0 and string.format("PROTECTED · %.1fs",protection)
-  or rolling and "DODGING" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or "ARENA OPPONENT"
+  or rolling and "DODGING" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "ARENA OPPONENT"
  local level=target:GetAttribute("ScreamLevel")
  local name=target.DisplayName..(type(level)=="number" and string.format(" · LV %d",level) or "")
  return string.format("%s\n%d / %d HP\n%s",name,math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),
-  canFight and protection<=0 and not rolling and not far and not currentFar
+  canFight and protection<=0 and not rolling and not far and not currentFar and not covered
 end
-local function residentTargetInfo(model,humanoid,far,currentFar)
+local function residentTargetInfo(model,humanoid,far,currentFar,covered)
  if model:GetAttribute("ResidentActive")==false then return nil,false end
  if not humanoid or humanoid.Health<=0 then return nil,false end
- local status=far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or "TRAINING RESIDENT"
+ local status=far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "TRAINING RESIDENT"
  return string.format("%s\n%d / %d HP\n%s",model:GetAttribute("DisplayName") or model.Name,
-  math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),not far and not currentFar
+  math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),not far and not currentFar and not covered
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end)
 local viewButton=button(controls,"CameraToggle","1ST [V]",UDim2.fromOffset(88,32),UDim2.fromOffset(0,52),toggleCamera)
@@ -702,7 +710,7 @@ Run.RenderStepped:Connect(function(dt)
     local canFight=Config.InArena(root.Position) and Config.InArena(targetRoot.Position)
     local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
     local currentFar=(targetRoot.Position-root.Position).Magnitude>range+2
-    local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow(),currentFar)
+    local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(root,targetRoot,object))
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
    end
   elseif object and object~=workspace and object:IsA("Model") and object:GetAttribute("NpcId") then
@@ -711,7 +719,7 @@ Run.RenderStepped:Connect(function(dt)
    if root and npcRoot then
     local distance=(npcRoot.Position-root.Position).Magnitude
     local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
-    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2)
+    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2,not far and targetCovered(root,npcRoot,object))
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then

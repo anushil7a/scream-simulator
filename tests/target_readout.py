@@ -50,6 +50,17 @@ h.Health=0;text,ready=residentTargetInfo(resident,h,false,false)
 check(text==nil and not ready,'Dead resident retained readout')
 text,ready=residentTargetInfo(resident,nil,false,false)
 check(text==nil and not ready,'Missing resident humanoid retained readout')
+h.Health=40
+text,ready=residentTargetInfo(resident,h,false,false,true)
+check(not ready and string.find(text,'BEHIND COVER',1,true),'Covered resident labeled available')
+text,ready=playerTargetInfo(target,h,true,false,10,false,true)
+check(not ready and string.find(text,'BEHIND COVER',1,true),'Covered player labeled available')
+text,ready=playerTargetInfo(target,h,false,false,10,false,true)
+check(not ready and string.find(text,'SAFE · PvP OFF',1,true),'Cover hid safe-zone restriction')
+text,ready=playerTargetInfo(target,h,true,true,10,true,true)
+check(not ready and string.find(text,'OUT OF MAX RANGE',1,true),'Cover hid maximum range')
+text,ready=playerTargetInfo(target,h,true,false,10,false,false)
+check(ready,'Cleared cover retained unavailable status')
 print('PASS '..checks..' actual target readout checks with mocked replicated state')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.target_',dir=root/'tests',delete=False) as file:
