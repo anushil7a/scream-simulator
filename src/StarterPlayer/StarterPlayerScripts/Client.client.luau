@@ -560,10 +560,10 @@ Run.RenderStepped:Connect(function(dt)
  local rolling=serverNow<(p:GetAttribute("DodgeEnds") or 0)
  local knocked=serverNow<(p:GetAttribute("KnockdownEnds") or 0)
  local voiceCooldown,voiceActive
+ local character=p.Character
+ local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ local alive=humanoid~=nil and humanoid.Health>0
  if sustainedControl then
-  local character=p.Character
-  local humanoid=character and character:FindFirstChildOfClass("Humanoid")
-  local alive=humanoid~=nil and humanoid.Health>0
   sustainedControl:ObserveAvailability(alive and mic.ready,windowFocused and not GuiService.MenuIsOpen)
   voiceCooldown=math.max(0,(p:GetAttribute("SustainedReadyAt") or 0)-workspace:GetServerTimeNow())
   voiceActive=p:GetAttribute("SustainedActive")==true
@@ -588,10 +588,13 @@ Run.RenderStepped:Connect(function(dt)
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
  if sustainedControl then
-  captureHint=protectionRemaining>0 and string.format("Spawn protection • %.1fs",protectionRemaining)
-   or knocked and "Recovering • attack unavailable"
+  captureHint=not alive and "Respawning • voice paused"
+   or not windowFocused and "Window inactive • attack paused"
+   or protectionRemaining>0 and string.format("Spawn protection • %.1fs",protectionRemaining)
+   or (knocked or humanoid.PlatformStand) and "Recovering • attack unavailable"
    or rolling and "Rolling • attack cancelled"
    or UIS:GetFocusedTextBox()~=nil and "Typing • attack paused"
+   or data.micReady~=true and "Connecting microphone…"
    or not sustainedControl.armed and (touch and "Voice paused • tap ARM VOICE" or "Voice paused • E to resume")
    or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")

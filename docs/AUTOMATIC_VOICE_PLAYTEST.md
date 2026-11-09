@@ -99,3 +99,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Ragdoll combat: enter PlatformStand during a sustained scream with no active KnockdownEnds timer, then recover. Verify the beam/damage stops, attempts while ragdolled fail, and recovery still requires normal cooldown and quiet/new onset. Repeat with a moving-car hit and actual microphone. Client/server eligibility is mocked-tested; native replication and real voice remain unverified.
 
 - Maintenance safety: occupy a damaged bench repair volume with a character while a worker finishes, then leave and verify later repair succeeds. Verify renewed damage interrupts maintenance and repeated screams at an already-destroyed prop do not postpone its repair. Service-level mock regressions cover state/deadline invariants; actual overlap geometry remains pending.
+
+- Voice meter clarity: verify respawn, window-focus loss, PlatformStand recovery and mic-ready synchronization show the corresponding status rather than an armed instruction. Check desktop/mobile text fit and return to cooldown/quiet/onset messages. Source/build checks pass; visual/device verification remains pending.
