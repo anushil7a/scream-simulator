@@ -44,7 +44,7 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
 '''
     bootstrap = (source / "Bootstrap.server.luau").read_text()
     fixture = "\n".join((ROOT / "tests" / name).read_text() for name in
-                         ["StudioSustainedDamage.server.luau", "StudioSustainedDestruction.server.luau"])
+                         ["StudioSustainedDamage.server.luau", "StudioSustainedDestruction.server.luau", "StudioSustainedPvp.server.luau"])
     output = ROOT / "build"
     output.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="scream-review-") as temp:

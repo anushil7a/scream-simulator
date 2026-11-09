@@ -70,3 +70,7 @@ Run `python3 tests/build_sustained_review.py`. This builds two **DO NOT PUBLISH*
 - `build/SustainedNativeFixture.rbxl`: additionally appends synthetic server fixtures; press Play and inspect Workspace `SustainedDamageResult` and `SustainedDestructionResult` for JSON results. This checks server cover/damage/rewards/expiry with synthetic power, not real audio.
 
 Both use temporary profiles through the existing prototype guard. The normal project and production Bootstrap source are unchanged by the builder. Do not publish either artifact. Successful assembly/compilation is not native execution evidence.
+
+### Two-player local arena check
+
+The native fixture build also provides `_G.RunSustainedPvp()` in the server context. Start **Server & Clients** with two local players, wait for both avatars and startup fixtures, then execute it from the **server** command bar. It uses temporary profiles and synthetic voice to check protected/rolling targets, arena-only damage, KO ejection, protection/rewards and repeat-KO reward suppression. It does not establish real microphones or multiplayer performance. Native execution pending.
