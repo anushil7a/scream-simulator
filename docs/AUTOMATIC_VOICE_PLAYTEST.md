@@ -137,3 +137,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Delivery attempts: pick up twice, visit a wrong destination, then the assigned destination. Verify the order/deadline survives wrong stops, completion is awarded once and expired orders fail. Eight added actual-handler mocks pass; native route timing, prompts and HUD remain pending.
 
 - Map arena bounds: compare the red map outline and 40% label with the current world arena edges. In a disposable bounds-change fixture, verify outline/fill/percentage follow Config.ZoneMin/ZoneMax. Source/build checks pass; native map layout and boundary alignment remain pending.
+
+- PvP rewards: with two local clients, KO/reenter against the same opponent inside and after the reward cooldown. Verify ejection/protection works each time while XP/coins/Underdog progress award only when eligible; compare a different opponent and victim levels. Actual hit-branch mocks pass, but native multiplayer and real geometry remain pending.
