@@ -190,6 +190,10 @@ local meter=frame(gui,"MicPower",UDim2.fromOffset(230,62),UDim2.new(.5,-115,1,-7
 local meterText=label(meter,"LIVE MIC 0%\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,gold)
 local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,49),panel)
 local meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
+if sustainedControl then
+ local threshold=frame(meterTrack,"VoiceStartThreshold",UDim2.fromOffset(2,11),UDim2.new(sustainedControl.gate.OnPower,0,.5,0),white)
+ threshold.AnchorPoint=Vector2.new(.5,.5);threshold.ZIndex=meterFill.ZIndex+1
+end
 local aimGui=Instance.new("ScreenGui");aimGui.Name="ScreamAim";aimGui.ResetOnSpawn=false;aimGui.ScreenInsets=Enum.ScreenInsets.None;aimGui.Parent=p.PlayerGui
 script.Destroying:Connect(function() aimGui:Destroy() end)
 local reticle=label(aimGui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.Name="Crosshair";reticle.TextXAlignment=Enum.TextXAlignment.Center
@@ -630,7 +634,8 @@ Run.RenderStepped:Connect(function(dt)
    or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
    or sustainedControl.gate.needsQuiet and "Armed • quiet before speaking"
-   or "Armed • aim and speak"
+   or sustainedControl.gate.onset>0 and "Voice detected • keep speaking"
+   or string.format("Armed • speak past %d%% marker",math.floor(sustainedControl.gate.OnPower*100))
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
    or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
  end

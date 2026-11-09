@@ -180,3 +180,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Evidence: six actual-script checks using deferred mock asset loading, plus full local verification/build. Real asset fetching, streaming and visual appearance are unverified.
 
 - Landmark follow-up: test failed asset loading and stream-out/re-entry during loading. Fallback should remain until the current load succeeds; an older result must not swap current visuals. Eleven actual-loader checks now cover these with fake asset status/errors and coroutine/deferred scheduling, not Roblox CDN/streaming.
+
+### Live voice threshold feedback
+- Pending visual/device: confirm the white start marker aligns with the configured onset threshold, voiced onset briefly shows the detection hint, and paused/quiet/cooldown/interruption guidance remains clear on small screens. Use comfortable calibrated speech; the marker is normalized input power, not a physical loudness target.
+- Evidence: full local verification/build only. No native layout or real-microphone usability result; attack tuning is unchanged.
