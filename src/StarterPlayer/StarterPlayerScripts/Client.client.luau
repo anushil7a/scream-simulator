@@ -453,7 +453,7 @@ local function refreshConversation()
  local npc=conversationNPC and conversationNPC.Parent and conversationNPC
  local npcRoot=npc and npc:FindFirstChild("HumanoidRootPart")
  local npcHumanoid=npc and npc:FindFirstChildOfClass("Humanoid")
- if modal.Visible or not root or not humanoid or humanoid.Health<=0 or not npcRoot or not npcHumanoid or npcHumanoid.Health<=0 or npc:GetAttribute("ResidentActive")==false
+ if modal.Visible or not root or not humanoid or humanoid.Health<=0 or humanoid.PlatformStand or not npcRoot or not npcHumanoid or npcHumanoid.Health<=0 or npcHumanoid.PlatformStand or npc:GetAttribute("ResidentActive")==false
   or (root.Position-npcRoot.Position).Magnitude>18 or os.clock()>=conversationUntil then closeConversation() end
 end
 button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)

@@ -257,4 +257,4 @@ Pending native check: while a nearby NPC has a visible name or speech bubble, re
 
 ### Conversation during knockdown
 
-Pending native check: get knocked down by a vehicle near a quest giver/vendor. Talk targeting and new conversation/purchase requests should be unavailable while either participant is in PlatformStand, then recover normally. Existing open-dialogue lifetime is unchanged. Six shared-rule mocked checks pass; actual ragdoll transitions and replication remain unverified.
+Pending native check: get knocked down by a vehicle near a quest giver/vendor. Talk targeting and new conversation/purchase requests should be unavailable while either participant is in PlatformStand, then recover normally. Open dialogue now also closes on either participant entering PlatformStand; verify NPC conversation ownership clears and reopening works after recovery. Six shared-rule and four added dialogue-lifetime mocked checks pass; actual ragdoll transitions and replication remain unverified.

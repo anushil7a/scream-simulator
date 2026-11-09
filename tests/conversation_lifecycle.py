@@ -30,9 +30,11 @@ local function reset()
  p={Character=character(0)};conversationNPC=character(10)
 end
 reset();refreshConversation();check(closes==0,'Valid conversation closed')
-for _,case in ipairs({'player dead','npc dead','npc recovering','player missing','npc removed','player root','npc root','player humanoid','npc humanoid','range','expired','menu'}) do
+for _,case in ipairs({'player knocked','npc knocked','player dead','npc dead','npc recovering','player missing','npc removed','player root','npc root','player humanoid','npc humanoid','range','expired','menu'}) do
  reset()
- if case=='player dead' then p.Character.humanoid.Health=0
+ if case=='player knocked' then p.Character.humanoid.PlatformStand=true
+ elseif case=='npc knocked' then conversationNPC.humanoid.PlatformStand=true
+ elseif case=='player dead' then p.Character.humanoid.Health=0
  elseif case=='npc recovering' then conversationNPC.active=false
  elseif case=='npc dead' then conversationNPC.humanoid.Health=0
  elseif case=='player missing' then p.Character=nil
