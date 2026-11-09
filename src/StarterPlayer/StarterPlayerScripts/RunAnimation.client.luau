@@ -68,7 +68,12 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
   local grounded=rig.humanoid.FloorMaterial~=Enum.Material.Air
   if rig.airborne and grounded then rig.landing=now end
   rig.airborne=not grounded
-  if rig.humanoid.Health<=0 or rig.humanoid.Sit or now<(player:GetAttribute("KnockdownEnds") or 0) then rig.charge=0;rig.blend=0;continue end
+  if rig.humanoid.Health<=0 or rig.humanoid.Sit or rig.humanoid.PlatformStand or now<(player:GetAttribute("KnockdownEnds") or 0) then
+   rig.charge=0;rig.blend=0;rig.airborne=false;rig.landing=0
+   rig.character:SetAttribute("RollAnimationProgress",-1)
+   rig.character:SetAttribute("SprintAnimationBlend",0)
+   continue
+  end
   if now<ends and started>0 then
    rig.charge=0
    local t=math.clamp((now-started)/Config.DodgeDuration,0,1);local tuck=math.sin(t*math.pi)

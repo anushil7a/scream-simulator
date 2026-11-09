@@ -47,10 +47,29 @@ local services={Players=players,RunService=run,CollectionService=collection,Repl
 local game={GetService=function(_,name)return services[name] end}
 local require=function(name)assert(name=='config');return {} end
 local CFrame={identity='identity'}
+local workspace={GetServerTimeNow=function()return 100 end}
+local Enum={Material={Air='Air'}}
 '''
 player_checks=r'''
 drain()
 check(rigs[initial]~=nil and initial.Character.DescendantAdded:Count()==1,'Initial rig not watched')
+local current=rigs[initial]
+local attrs={}
+function initial.Character:SetAttribute(name,value)attrs[name]=value end
+local knocked=0
+function initial:GetAttribute(name)return name=='KnockdownEnds' and knocked or 0 end
+for _,condition in ipairs({'PlatformStand','Sit','dead','knocked'}) do
+ current.humanoid.Health=100;current.humanoid.Sit=false;current.humanoid.PlatformStand=false;knocked=0
+ if condition=='dead' then current.humanoid.Health=0
+ elseif condition=='knocked' then knocked=101
+ else current.humanoid[condition]=true end
+ current.charge=1;current.blend=1;current.airborne=true;current.landing=99
+ run.PreAnimation:Fire();run.PreSimulation:Fire(.016)
+ check(current.charge==0 and current.blend==0,'Combat/locomotion pose survived '..condition)
+ check(attrs.RollAnimationProgress==-1 and attrs.SprintAnimationBlend==0,'Stale visual indicators survived '..condition)
+ check(not current.airborne and current.landing==0,'Stale landing survived '..condition)
+end
+
 players.PlayerAdded:Fire(initial)
 check(initial.CharacterAdded:Count()==1,'Duplicate player observer')
 local joint={Parent=true,Transform=3}

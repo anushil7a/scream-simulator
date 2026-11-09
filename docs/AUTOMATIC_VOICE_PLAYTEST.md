@@ -93,3 +93,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - NPC work interruptions: interrupt gardening/maintenance with dialogue, attacks and grounding recovery. Verify watering/work poses stop promptly, residents resume appropriate activity, and canceled maintenance does not repair the target, including near the end of the routine. Local mocked clock/activity tests cover cancellation; real animation/navigation remains pending.
 
 - Dialogue death/respawn: while speaking to a resident, reset your character or have the resident knocked out. Verify the panel closes immediately, stays closed through respawn, and automatic voice still respects protection and fresh onset. Mocked character/UI tests pass; native input/event ordering remains unverified.
+
+- Ragdoll animation: on R6 and R15, enter PlatformStand while screaming, sprinting or rolling. Verify additive poses yield, recovery has no stale roll or landing snap, and normal locomotion resumes. Mocked frame-hook tests cover state clearing only; real Animator/physics blending remains pending.
