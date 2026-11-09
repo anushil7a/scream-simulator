@@ -11,8 +11,8 @@ setup = r'''
 local Power=require('../src/ReplicatedStorage/Shared/MicPower')
 local now=0
 local os={clock=function()return now end}
-local pending={};local deferCheck=false
-local task={delay=function()end,spawn=function(fn) if deferCheck then table.insert(pending,fn) else fn() end end}
+local pending={};local timeouts={};local deferCheck=false
+local task={delay=function(_,fn)table.insert(timeouts,fn)end,spawn=function(fn) if deferCheck then table.insert(pending,fn) else fn() end end}
 local disconnected=false
 local run={Heartbeat={Connect=function(_,fn)return {Disconnect=function()disconnected=true end}end}}
 local player={UserId=1,input={Parent=true,Muted=false}}
@@ -106,6 +106,19 @@ voice.IsVoiceEnabledForUserIdAsync=function()error('offline') end
 pending[1]()
 check(not racing.eligible and not racing.ready and not racing.checkPending,'Access error retained readiness')
 racing:Destroy()
+pending={};timeouts={}
+local timed=Mic.new();local oldTimeout=timeouts[1]
+timed:Check();oldTimeout()
+check(timed.checkPending and timed.status=='Checking Roblox voice access…','Stale timeout changed newer retry status')
+timeouts[2]()
+check(timed.checkPending and not timed.ready and string.find(timed.status,'timed out',1,true),'Current timeout lacked retry guidance or allowed attacks')
+voice.IsVoiceEnabledForUserIdAsync=function()return true end
+pending[2]()
+check(timed.eligible and not timed.checkPending,'Successful result after timeout failed to recover access')
+local status=timed.status;timeouts[2]();oldTimeout()
+check(timed.status==status and timed.eligible,'Late timeout overwrote completed success')
+timed:Check();local afterDestroy=timeouts[#timeouts];timed:Destroy();status=timed.status;afterDestroy()
+check(timed.status==status and not timed.eligible and not timed.ready,'Timeout changed destroyed controller')
 print('PASS '..checks..' actual microphone lifecycle checks with mocked audio/time; no device evidence')
 '''
 with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.mic_', dir=root / 'tests', delete=False) as file:

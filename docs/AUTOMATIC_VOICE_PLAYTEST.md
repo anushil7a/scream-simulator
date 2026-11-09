@@ -226,3 +226,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Main HUD teardown
 - Pending native: remove/restart Client while a scrolled menu has a queued layout update. The old main HUD should disappear and no delayed scroll update should touch it; the replacement should display one working HUD.
 - Evidence: five actual teardown/scroll callback checks with mocked GUI/scheduling and full verification/build; no native GUI lifecycle test.
+
+### Voice access timeout and retry ordering
+
+Pending device check: with a slow voice eligibility response, confirm timeout guidance appears, retry access, and verify an older timeout cannot replace the newer result. A late successful response should recover access; calibration and explicit arming requirements still apply. End the client during a pending check and confirm no stale UI changes. Five additional mocked timer checks pass (43 microphone lifecycle checks total); these do not verify Roblox eligibility timing or microphone hardware.
