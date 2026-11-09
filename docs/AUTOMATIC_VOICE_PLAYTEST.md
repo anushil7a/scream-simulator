@@ -212,3 +212,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Aimed-target cover preview
 - Pending native: aim over a low wall in third person at a player/NPC whose root is blocked from the character scream origin. Expect BEHIND COVER; step clear and verify the normal range/status returns. Repeat first person and around streamed obstacles.
 - Evidence: 23 mocked presentation checks (five added status/priority cases) and full verification/build. Actual cover ray geometry, streaming differences and performance have not been tested. Server hit validation remains authoritative.
+
+- Cover preview contract follow-up: 60 mocked assertions now compare actual client/server ray origin, endpoint and filters across six head states with blocked/clear responses. This does not replace the pending native geometry/streaming test or establish full beam hit equivalence.
