@@ -76,4 +76,27 @@ check(not teardown.armed and not teardown.attack and #teardownMessages==2,"Late 
 local idle=Controls.new(Gate.new(),function()error("Idle teardown sent packet")end,function()return 1 end)
 idle:Destroy();idle:ObserveAvailability(true);idle:SetArmed(true)
 check(not idle.armed,"Never-initialized destroyed controller auto-armed")
+local packets={};local availableAim=true
+local recovery=Controls.new(Gate.new(),function(verb,arg)table.insert(packets,{verb,arg})end,function()return availableAim and 1 or nil end)
+recovery:SetArmed(true)
+for i=1,4 do recovery:Step(.05,i*.05,0,true,true,false) end
+for i=5,9 do recovery:Step(.05,i*.05,1,true,true,false) end
+recovery:Step(.05,.5,1,true,true,true,1)
+local before=#packets
+recovery:Step(2,2.5,1,true,true,true,1)
+check(#packets==before+1 and packets[#packets][1]=="SustainedPulse","Frame hitch burst multiple catch-up pulses")
+availableAim=false;recovery:Step(.2,2.7,1,true,true,true,1)
+check(not recovery.attack and packets[#packets][1]=="SustainedStop" and packets[#packets][2]==1,"Lost camera during active attack did not stop")
+before=#packets;availableAim=true
+for i=1,20 do recovery:Step(.05,2.7+i*.05,1,true,true,false) end
+check(#packets==before and recovery.gate.needsQuiet,"Restored camera retriggered held voice without quiet")
+for i=1,4 do recovery:Step(.05,3.7+i*.05,0,true,true,false) end
+for i=1,5 do recovery:Step(.05,3.9+i*.05,1,true,true,false) end
+check(recovery.attack and recovery.attack.sequence==2,"Fresh onset after camera recovery failed")
+recovery:Step(.05,4.2,1,true,true,true,2)
+recovery:Step(.05,4.25,0/0,true,true,true,2)
+check(not recovery.attack and packets[#packets][1]=="SustainedStop","Invalid live power retained an active attack")
+before=#packets
+for i=1,20 do recovery:Step(.05,4.25+i*.05,i<6 and 0 or 1,true,true,true,2) end
+check(#packets==before,"Server-active state without local ownership started another attack")
 print("PASS "..checks.." synthetic sustained control checks")

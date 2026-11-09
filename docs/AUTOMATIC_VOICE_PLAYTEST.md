@@ -218,3 +218,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Seated animation overlay
 - Pending native: on R6/R15, enter a seat while sprint/scream poses are active and verify custom overlays yield even if SeatPart is occupied before Sit updates. Check clean recovery into default locomotion.
 - Evidence: 26 actual player animation lifecycle assertions with mocked events/rigs (three added), plus full build; no native Animator/replication result.
+
+### Controller recovery coverage
+- Pending native: lose/replace the aiming camera during an active scream, then restore it while still speaking. Attack should stop and require quiet plus fresh onset. Observe recovery from a real frame stall without a burst of input pulses.
+- Evidence: 30 synthetic controller checks, six added for camera/hitch/invalid-power/server-ownership cases. No actual device, scheduler stall or network test.
