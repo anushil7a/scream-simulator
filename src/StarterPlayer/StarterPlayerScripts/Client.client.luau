@@ -337,6 +337,12 @@ render=function()
   info(attackHelp,touch and 130 or 100)
   info(string.format("%s: first or third person\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint, then %.0fs rest",touch and "View button" or "V / view button",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery),touch and 110 or 90)
   info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SCREAMS opens and closes the menu." or "T: talk to nearby residents · F: quest interactions · B: toggle menu",touch and 80 or 54)
+  local micCard=card(58)
+  button(micCard,"Recalibrate","RECALIBRATE MICROPHONE",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
+   if sustainedControl then sustainedControl:SetArmed(false) end
+   cancelCapture();setSprint(false);mic:Calibrate();modal.Visible=false
+  end)
+  info("Changed microphone or room noise? Recalibrate with a comfortable strong voice. "..(sustainedControl and "Voice attacks stay paused afterward; use ARM VOICE to resume." or "After calibration, hold SCREAM and use a fresh live voice input."),80)
   local cameraCard=card(58);button(cameraCard,"CameraMode", "VIEW: "..(firstPerson and "FIRST PERSON" or "THIRD PERSON"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),toggleCamera)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
