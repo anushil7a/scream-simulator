@@ -1,6 +1,6 @@
 # Scream Simulator development roadmap
 
-Updated November 8, 2026. Owner direction in this document supersedes older 300-level/hold-E specifications. Current local baseline: `83d716b`; connected City Preview reports version 15. November 8 owner follow-up authorizes the current update to the main Roblox game after verification and ongoing tested GitHub development-branch pushes. Publication is still blocked by native Studio access; later releases need approval.
+Updated November 8, 2026. City Preview version 19 is published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Studio runtime control currently times out; owner permits continuing independent work while recording pending manual checks.
 
 ## Product direction
 
@@ -94,7 +94,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 ## Next action
 
-Check usage, then prepare real-microphone review and inspect current cloud/collaborator state before the authorized City Preview release (90337242377543). The owner screenshot confirms NATIVE_PVP_RESULT true 13 using two local players and synthetic voice, plus SUSTAINED_DESTRUCTION_NATIVE true 11. No repeat of the server-window handoff is needed. Real voice, real save round trips and representative performance remain open. Normal mode stays on legacy combat until review; never publish the disposable fixture.
+Check usage and current tree. Continue bounded automatic-voice integration review, destruction/progression balance, and measured performance; inspect district color and NPC pose/path changes when Studio becomes available. Use build/AutomaticVoiceCandidate.rbxl for the normal-profile candidate or build/SustainedLocalPlay.rbxl for isolated temporary-profile tests. Do not retry the same Studio timeout repeatedly. Human/device checks are listed in docs/AUTOMATIC_VOICE_PLAYTEST.md and may remain pending while independent work proceeds. Version 19 is already published; do not upload again without approval.
 
 - November 8 owner follow-up: usage 49% used. Authorized tested GitHub development-branch pushes and requested the current update in the main Roblox game. Native Studio access again returned timeoutReached; no Roblox publication attempted. Sustained combat remains local-only pending engine verification. Future work includes city color/readability, purposeful NPC activity and animations after combat gates.
 
@@ -142,3 +142,5 @@ Check usage, then prepare real-microphone review and inspect current cloud/colla
 - Aim lifecycle hardening: camera-ray lookup now returns no aim while CurrentCamera is absent or its viewport is not initialized; both automatic and legacy callers cancel/skip rather than indexing a missing ray. This protects spawn/camera replacement transitions. Client compilation and automatic control/flow checks pass; engine camera-replacement reproduction remains pending.
 
 - Added local resident secondary animation: subtle footfall body motion, idle breathing/glances, reading head tilt and work lean. These reuse existing custom R6 root/neck joints and distance-based update frequency, with no new replicated instances or per-frame server messages. Residents compiles and candidate rebuilds; appearance/rig blending still awaits native visual review.
+
+- Scheduled continuation updated in place (existing active four-hour heartbeat): recognizes completed version-19 release, unpublished automatic candidate, pending manual tests and permission to continue independent work. No duplicate automation or background process installed. All current work pushed; generated candidate and disposable fixtures rebuilt from current source.
