@@ -96,7 +96,7 @@ script.Destroying:Connect(function()
 end)
 local function blocked()
  local now=workspace:GetServerTimeNow()
- return UIS:GetFocusedTextBox()~=nil or (conversationPanel and conversationPanel.Visible) or modal.Visible or (devPanel and devPanel.Visible) or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
+ return GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil or (conversationPanel and conversationPanel.Visible) or modal.Visible or (devPanel and devPanel.Visible) or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
 end
 local function beginCapture(source)
  if sustainedControl or captureSource or blocked() or os.clock()<nextCast then return end
@@ -374,7 +374,7 @@ remotes.State.OnClientEvent:Connect(function(nextData)
  if modal.Visible then render() end
 end)
 UIS.InputBegan:Connect(function(input,processed)
- if processed or UIS:GetFocusedTextBox() then return end
+ if processed or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() then return end
  local k=input.KeyCode
  if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
  elseif k==Enum.KeyCode.V then toggleCamera()
@@ -389,7 +389,12 @@ UIS.InputEnded:Connect(function(input)
 end)
 p.CharacterRemoving:Connect(function() if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
 UIS.WindowFocused:Connect(function() windowFocused=true end)
-UIS.WindowFocusReleased:Connect(function() windowFocused=false;if sustainedControl then sustainedControl:SetArmed(false) end;sprinting=false;cancelCapture();action:FireServer("Sprint",false) end)
+local function suspendGameplay()
+ if sustainedControl then sustainedControl:SetArmed(false) end
+ sprinting=false;cancelCapture();action:FireServer("Sprint",false)
+end
+UIS.WindowFocusReleased:Connect(function() windowFocused=false;suspendGameplay() end)
+GuiService.MenuOpened:Connect(suspendGameplay)
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
@@ -493,8 +498,8 @@ Run.RenderStepped:Connect(function(dt)
  if captureSource and mic.captureStarted and os.clock()-mic.captureStarted>Config.VoiceCombat.CaptureExpiry then
   cancelCapture();notify("Capture expired. Hold attack again and use a fresh live scream.")
  end
- local gameplayVisible=mic.ready and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
- local showTouchControls=originalTouchControls and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
+ local gameplayVisible=mic.ready and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
+ local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
  local confirmed=hitFeedback:Read(os.clock())
  hitText.Visible=gameplayVisible and confirmed~=nil
