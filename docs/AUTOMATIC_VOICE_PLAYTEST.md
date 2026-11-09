@@ -246,3 +246,7 @@ Pending native/device check: in a disposable client, remove the meter Wire or cl
 ### Destruction registry restart
 
 Pending native developer check: in a disposable place, restart the destruction service while tag registration is deferred. Confirm old tag callbacks cannot change the new registry and current tagged objects still register/remove correctly. Six mocked lifecycle assertions pass; native CollectionService event ordering remains unverified.
+
+### Voice button timing bar
+
+Pending visual/native check: on desktop and phone layouts, verify the thin voice-button bar drains green over an active attack, then fills muted through cooldown and hides at readiness. Confirm paused voice still shows remaining cooldown, protection/death hides it, and button taps retain arm/pause behavior. Check contrast and server deadline replication under latency. Build/compile passes; no rendered UI verification or timing measurement claimed.

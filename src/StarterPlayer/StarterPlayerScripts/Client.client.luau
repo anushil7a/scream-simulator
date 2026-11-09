@@ -192,6 +192,9 @@ local function dodge()
 end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
 local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),toggleVoice,gold);castButton.TextColor3=dark
+local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-12,0,3),UDim2.new(0,6,1,-6),panel)
+local voiceTimeFill=frame(voiceTimeTrack,"RemainingOrRecovery",UDim2.fromScale(0,1),UDim2.new(),muted)
+voiceTimeTrack.Visible=false
 castButton.InputBegan:Connect(function(input)
  if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then beginCapture(input) end
 end)
@@ -706,6 +709,19 @@ connectClient(Run.RenderStepped,function(dt)
  if sustainedControl then
   castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s"
    or (sustainedControl.armed and "PAUSE VOICE" or "ARM VOICE")..(touch and "" or " [E]")
+ end
+ -- Keep attack duration/cooldown distinct from live microphone loudness.
+ voiceTimeTrack.Visible=sustainedControl~=nil and alive and protected<=0 and (voiceActive or (voiceCooldown or 0)>0)
+ if voiceTimeTrack.Visible then
+  local fraction
+  if voiceActive then
+   fraction=math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)/sustainedRules.MaxDuration
+   voiceTimeFill.BackgroundColor3=Color3.fromRGB(104,222,157)
+  else
+   fraction=1-voiceCooldown/sustainedRules.Cooldown
+   voiceTimeFill.BackgroundColor3=muted
+  end
+  voiceTimeFill.Size=UDim2.fromScale(math.clamp(fraction,0,1),1)
  end
  castButton.BackgroundColor3=(sustainedControl and not sustainedControl.armed or protected>0) and muted or gold
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or (touch and "DODGE" or "DODGE [Q]")
