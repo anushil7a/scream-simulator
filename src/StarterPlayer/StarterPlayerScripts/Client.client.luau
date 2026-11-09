@@ -52,6 +52,20 @@ local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-24,0,22),UDim2.
 local health=label(hud,"100 HP",UDim2.fromOffset(65,20),UDim2.fromOffset(12,31),12)
 local hb=frame(hud,"HealthTrack",UDim2.fromOffset(142,6),UDim2.fromOffset(83,38),panel)
 local hf=frame(hb,"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
+local displayedHealth,displayedMaximum
+local function refreshHealth()
+ local character=p.Character
+ local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ -- Keep the last observed value between characters; a generic server snapshot
+ -- must not briefly show full health over a dead or missing character.
+ if not humanoid and displayedHealth~=nil then return end
+ local maximum=math.max(1,humanoid and humanoid.MaxHealth or data.maxHealth or 100)
+ local current=math.clamp(humanoid and humanoid.Health or data.health or maximum,0,maximum)
+ if current==displayedHealth and maximum==displayedMaximum then return end
+ displayedHealth,displayedMaximum=current,maximum
+ health.Text=string.format("%d/%d",math.ceil(current),math.ceil(maximum))
+ hf.Size=UDim2.fromScale(current/maximum,1)
+end
 local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-24,0,19),UDim2.fromOffset(12,52),12,muted)
 local xb=frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,79),panel)
 local xf=frame(xb,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
@@ -236,7 +250,7 @@ render=function()
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Screams" then
-  title.Text="SCREAM COLLECTION";subtitle.Text="Unlock effects every 10 levels. Aim and use your live voice."
+  title.Text="SCREAM COLLECTION"
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
   for _,s in ipairs(Config.Sounds) do
    local c=card(narrow and 194 or 118);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
@@ -367,7 +381,7 @@ local function refreshQuestObjects()
  end
 end
 remotes.State.OnClientEvent:Connect(function(nextData)
- data=nextData;refreshQuestObjects();stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";health.Text=data.health.."/"..(data.maxHealth or 100);hf.Size=UDim2.fromScale(data.health/(data.maxHealth or 100),1)
+ data=nextData;refreshQuestObjects();stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";refreshHealth()
  xpText.Text=data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP";xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
  zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
  testButton.Visible=data.devAccess==true
@@ -451,6 +465,7 @@ local lastViewport,lastTouch
 modal.Close.Modal=true;micPanel.Calibrate.Modal=true;conversationPanel.Close.Modal=true
 testContent.XP.Modal=true
 Run.RenderStepped:Connect(function(dt)
+ refreshHealth()
  local viewport=gui.AbsoluteSize
  local touch=UIS.TouchEnabled
  local layoutChanged=viewport~=lastViewport or touch~=lastTouch
