@@ -622,6 +622,20 @@ local function joined(p)
 end
 Players.PlayerAdded:Connect(joined);for _,p in ipairs(Players:GetPlayers()) do task.spawn(joined,p) end
 Players.PlayerRemoving:Connect(function(p) closeConversation(p);local s=sessions[p];if s then cancelSustained(p,s,os.clock());if s.canSave then Profiles.Save(p.UserId,s.testBaseline or s.data,true) end end;sessions[p]=nil end)
+local function stepSprint(s,root,humanoid,now,dt)
+ if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then s.sprintLockedUntil=0;s.sprintCharge=Config.SprintDuration end
+ local velocity=root and root.AssemblyLinearVelocity
+ local moving=velocity and velocity.X*velocity.X+velocity.Z*velocity.Z>2.25
+ local running=humanoid~=nil and not humanoid.Sit and not humanoid.PlatformStand and s.micReady and s.sprintRequested and moving==true
+  and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and s.sprintCharge>0 and now>=s.sprintLockedUntil
+ if running then
+  s.sprintCharge=math.max(0,s.sprintCharge-dt)
+  if s.sprintCharge==0 then running=false;s.sprintLockedUntil=now+Config.SprintRecovery end
+ elseif now>=s.sprintLockedUntil then
+  s.sprintCharge=math.min(Config.SprintDuration,s.sprintCharge+dt*2)
+ end
+ return running
+end
 task.spawn(function()
  local tick=0
  while true do task.wait(0.1);tick+=1;local now=os.clock()
@@ -633,10 +647,7 @@ task.spawn(function()
     s.nextDodge=math.max(s.nextDodge,s.lastDodge+Config.DodgeCooldown);p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+math.max(0,s.nextDodge-now)) end
    if s.sustained and s.sustained.protocol.active then stepSustained(p,s,os.clock()) end
    if s.voice.capture and now-s.voice.capture.started>VoiceCombat.CaptureExpiry then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
-   if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then s.sprintLockedUntil=0;s.sprintCharge=10 end
-   local running=h and s.sprintRequested and s.sprintCharge>0 and now>=s.sprintLockedUntil
-   if running then s.sprintCharge=math.max(0,s.sprintCharge-dt);if s.sprintCharge==0 then running=false;s.sprintLockedUntil=now+5 end
-   elseif now>=s.sprintLockedUntil then s.sprintCharge=math.min(10,s.sprintCharge+dt*2) end
+   local running=stepSprint(s,r,h,now,dt)
    if h then
     if h.FloorMaterial~=Enum.Material.Air then s.jumpOriginY=r.Position.Y end
     h.WalkSpeed=not s.micReady and 0 or now<(s.knockedUntil or 0) and 0 or now<s.dodgingUntil and 0 or running and 25 or 16
