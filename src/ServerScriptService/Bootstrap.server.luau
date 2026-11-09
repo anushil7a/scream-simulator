@@ -365,7 +365,7 @@ end
 local function dodge(p)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
  if s then cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
- if not s or not r or not s.micReady or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
+ if not s or not r or r.Anchored or h.Sit or h.SeatPart or h.PlatformStand or not s.micReady or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
  local cooldown=Entitlements.CanUseMovement(p,r.Position) and Config.DodgeDuration or Config.DodgeCooldown
  s.nextDodge=now+cooldown;s.dodgingUntil=now+Config.DodgeDuration
  s.lastDodge=now;s.premiumRoll=cooldown<Config.DodgeCooldown
@@ -571,7 +571,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="Cast" then cast(p,arg);return elseif verb=="Dodge" then dodge(p);return
  elseif verb=="ExtraJump" then
   local _,root,h=parts(p)
-  if root and s.micReady and Entitlements.CanUseMovement(p,root.Position) and now>=(s.nextExtraJump or 0) and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and h.FloorMaterial==Enum.Material.Air and s.jumpOriginY and root.Position.Y<s.jumpOriginY+24 then
+  if root and not root.Anchored and not h.Sit and not h.SeatPart and not h.PlatformStand and s.micReady and Entitlements.CanUseMovement(p,root.Position) and now>=(s.nextExtraJump or 0) and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and h.FloorMaterial==Enum.Material.Air and s.jumpOriginY and root.Position.Y<s.jumpOriginY+24 then
    s.nextExtraJump=now+.25
    local v=root.AssemblyLinearVelocity
    local remaining=math.max(0,s.jumpOriginY+24-root.Position.Y)
