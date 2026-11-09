@@ -149,3 +149,8 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Resident partial streaming cleanup
 - Pending native: approach/leave Nick across streaming boundaries, including partial limb/root delivery. No detached practice ball should remain when his rig is unavailable; returning to a complete active rig should resume normal practice visuals.
 - Evidence: actual frame callback with mocked incomplete/out-of-workspace models clears poses and hides props without destroying reusable rigs (four added checks). Full local verification/build passed; no native streaming or appearance verification.
+
+### Arena quest HUD focus
+- Pending native UI: enter/leave the arena while tracking untimed gardening/beach work. The tracker should hide inside and return outside; Quests remains accessible.
+- Repeat with Underdog/dodge/training objectives and an active delivery/race/Nick countdown: these stay visible. Confirm expiration and quest switching update visibility naturally.
+- Evidence: full source compilation and local verification/build only; no visual or device test claimed.

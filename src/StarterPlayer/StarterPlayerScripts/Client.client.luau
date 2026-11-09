@@ -665,7 +665,10 @@ Run.RenderStepped:Connect(function(dt)
  viewButton.Size=UDim2.fromOffset(88,touch and 44 or 32)
  end
  hud.Visible=gameplayVisible;controls.Visible=gameplayVisible
- tracked.Visible=gameplayVisible and tracked.Text~="";zone.Visible=viewport.X>740 and gameplayVisible
+ -- Keep the fight readable without hiding a running quest deadline.
+ local combatQuest=data.activeQuest=="arena" or data.activeQuest=="dodge" or data.activeQuest=="crowd"
+ local showQuest=not data.inWarZone or combatQuest or (data.questTime or 0)>0
+ tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=viewport.X>740 and gameplayVisible
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD SCREAM [E]"
  if sustainedControl then
