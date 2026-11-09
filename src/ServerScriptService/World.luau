@@ -1,4 +1,5 @@
 local Config = require(game:GetService("ReplicatedStorage").Shared.Config)
+local InteractionRules=require(game:GetService("ReplicatedStorage").Shared.InteractionRules)
 local RunService = game:GetService("RunService")
 local PathfindingService = game:GetService("PathfindingService")
 local Collection=game:GetService("CollectionService")
@@ -422,16 +423,17 @@ function World.WatchPerformance(bot)
 end
 
 local function socialize(bot)
-    if (bot.socialUntil or 0) > os.clock() then return false end
+    if not bot.alive or (bot.socialUntil or 0)>os.clock() or (bot.reactionUntil or 0)>os.clock() then return false end
     local friends = {}
     for _, other in ipairs(World.Bots) do
         if other ~= bot and other.alive and not other.working and not other.watchingPerformer and (other.socialUntil or 0) < os.clock()
-            and (other.root.Position - bot.root.Position).Magnitude < 22 then
+            and (other.reactionUntil or 0)<=os.clock() and (other.root.Position - bot.root.Position).Magnitude < 22 then
             table.insert(friends, other)
         end
     end
     if #friends == 0 then return false end
     local friend = friends[rng:NextInteger(1, #friends)]
+    if not InteractionRules.CanReachNpc(bot.model,friend.model,22) then return false end
     stopWalking(bot);stopWalking(friend)
     bot.socialUntil, friend.socialUntil = os.clock() + 8, os.clock() + 8
     bot.gestureUntil, friend.gestureUntil = os.clock() + 3, os.clock() + 3
@@ -451,12 +453,12 @@ local function socialize(bot)
 end
 
 local function noticePlayers(bot)
-    if bot.restSeat or bot.watchingPerformer or (bot.socialUntil or 0)>os.clock() then return end
+    if not bot.alive or bot.working or bot.restSeat or bot.watchingPerformer or (bot.socialUntil or 0)>os.clock() or (bot.reactionUntil or 0)>os.clock() then return end
     if (bot.lastGreeting or 0) + 14 > os.clock() then return end
     for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
-        if root and (root.Position - bot.root.Position).Magnitude < 16 then
+        if root and (root.Position - bot.root.Position).Magnitude < 16 and InteractionRules.CanReachNpc(character,bot.model,16) then
             bot.lastGreeting = os.clock()
             bot.gestureUntil = os.clock() + 1.5
             faceToward(bot, root.Position)
