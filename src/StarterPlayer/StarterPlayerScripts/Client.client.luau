@@ -404,7 +404,7 @@ render=function()
   local holder=frame(c,"MapHolder",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13));holder.BackgroundTransparency=1
   mapDot=CityMap.create(holder)
   CityMap.update(mapDot,p.Character and p.Character:FindFirstChild("HumanoidRootPart"))
-  info("Gold arrow: you and your facing direction. Red: PvP. Green and sand: safe. North is up.",64)
+  info("Gold arrow: you and your facing direction. Red: PvP. Green and sand: safe. Pale coast path: promenade. North is up.",64)
   info(CityMap.legend,94)
   info("Coffee: collect at the west café, then check your objective for the assigned stop. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
  else

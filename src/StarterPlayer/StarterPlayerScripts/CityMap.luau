@@ -24,12 +24,16 @@ local landmarks={
  {name='4 · Market',x=120,z=0},
  {name='5 · Old town',x=600,z=0},
  {name='6 · Beach & promenade',x=0,z=515},
+ {name='7 · Timber pier',x=525,z=537},
 }
 function CityMap.create(parent)
  local map=box(parent,'CityMap',.5,.5,1,1,Color3.fromRGB(50,93,82));map.AnchorPoint=Vector2.new(.5,.5)
  local ratio=Instance.new('UIAspectRatioConstraint');ratio.AspectRatio=1.2;ratio.AspectType=Enum.AspectType.FitWithinMaxSize;ratio.Parent=map
  box(map,'Arena',arenaX,arenaZ,arenaWidth,arenaHeight,Color3.fromRGB(136,65,70))
  box(map,'Beach',0,1030/1200,1,170/1200,Color3.fromRGB(179,153,104))
+ -- PasseigMaritim and TimberPier dimensions mirror the generated waterfront.
+ box(map,'Promenade',0,(401-26+600)/1200,1,52/1200,Color3.fromRGB(197,176,141))
+ box(map,'TimberPier',(525-14+720)/1440,(537-62.5+600)/1200,28/1440,125/1200,Color3.fromRGB(111,82,56))
  -- Street widths and extents are world-derived, not decorative subdivisions.
  for x=-720,720,240 do box(map,'Avenue',math.max(0,(x+720-14)/1440),0,(x==-720 or x==720) and 14/1440 or 28/1440,.8,Color3.fromRGB(34,47,54)) end
  for z=-600,360,240 do box(map,'Street',0,math.max(0,(z+600-14)/1200),1,z==-600 and 14/1200 or 28/1200,Color3.fromRGB(34,47,54)) end
@@ -53,5 +57,5 @@ function CityMap.update(view,root)
  local look=root.CFrame.LookVector
  view.arrow.Rotation=math.deg(math.atan2(look.X,-look.Z))
 end
-CityMap.legend='1  Plaça del Sol / spawn     2  Rambla gardens\n3  Basilica     4  Market     5  Old town\n6  Beach & promenade'
+CityMap.legend='1  Plaça del Sol / spawn     2  Rambla gardens\n3  Basilica     4  Market     5  Old town\n6  Beach & promenade     7  Timber pier'
 return CityMap

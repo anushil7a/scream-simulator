@@ -262,3 +262,7 @@ Pending native check: get knocked down by a vehicle near a quest giver/vendor. T
 ### Busker activity and ambience teardown
 
 Pending listening check: near the stage, confirm guitar fades out when the busker stops working, becomes inactive or leaves Workspace, then resumes for a valid returning performer. Remove the ambience script and confirm no late settings/load/frame callback restarts or updates its audio. Fifteen mocked startup/activity checks pass; actual asset playback and fade quality remain unverified.
+
+### Coastal map landmarks
+
+Pending visual check: open Map on desktop and narrow phone layouts. Verify promenade strip, pier footprint and numbered pier landmark 7 are readable, the legend wraps without clipping, and the player arrow follows the promenade/pier correctly. Coordinates were compared with generated City geometry and the UI harness compiles; native rendering was not verified.
