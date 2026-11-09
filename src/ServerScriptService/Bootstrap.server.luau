@@ -113,9 +113,7 @@ local function protect(p,s)
   task.delay(Config.SpawnProtection,function() if f.Parent then f:Destroy() end end)
  end
 end
-local function eject(p,h)
- local s=sessions[p];local character=p.Character;local root=character and character:FindFirstChild("HumanoidRootPart")
- h.Health=Config.HealthForLevel(s.data.level)
+local function resetMovement(p,s,h,root)
  s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false;s.sprintRequested=false
  p:SetAttribute("DodgeEnds",0);p:SetAttribute("DodgeStarted",0);p:SetAttribute("KnockdownEnds",0);p:SetAttribute("Sprinting",false)
  h.PlatformStand=false;h.AutoRotate=true
@@ -123,6 +121,11 @@ local function eject(p,h)
   root.AssemblyLinearVelocity=Vector3.zero;root.AssemblyAngularVelocity=Vector3.zero
   if not root.Anchored then root:SetNetworkOwnershipAuto() end
  end
+end
+local function eject(p,h)
+ local s=sessions[p];local character=p.Character;local root=character and character:FindFirstChild("HumanoidRootPart")
+ h.Health=Config.HealthForLevel(s.data.level)
+ resetMovement(p,s,h,root)
  character:PivotTo(World.SafeSpawn);protect(p,s)
  s.nextHeal=os.clock()+Config.HealQuietSeconds;state(p,"Knocked out · back at the safe hub")
 end
@@ -667,11 +670,12 @@ task.spawn(function()
     if h.Health<h.MaxHealth and now>=s.nextHeal then h.Health=math.min(h.MaxHealth,h.Health+h.MaxHealth*.2);s.nextHeal=now+10 end
     if r.Position.Z>600 and (r.Position.Z>780 or math.abs(r.Position.X)>700) then
      p.Character:PivotTo(CFrame.new(math.clamp(r.Position.X,-670,670),5,594))
-     r.AssemblyLinearVelocity=Vector3.zero;r.AssemblyAngularVelocity=Vector3.zero
-     s.sprintRequested=false;s.dodgingUntil=0;s.knockedUntil=0;h.PlatformStand=false;h.AutoRotate=true
-     p:SetAttribute("DodgeEnds",0);p:SetAttribute("KnockdownEnds",0);protect(p,s)
+     resetMovement(p,s,h,r);running=false;protect(p,s)
      state(p,"Lifeguard rescue · stay inside the gold buoys.")
-    elseif r.Position.Y< -20 then p.Character:PivotTo(World.SafeSpawn);protect(p,s) end
+    elseif r.Position.Y< -20 then
+     resetMovement(p,s,h,r);running=false;p.Character:PivotTo(World.SafeSpawn);protect(p,s)
+     state(p,"Rescued · back at the safe hub")
+    end
    end
    if s.questDeadline and now>s.questDeadline then stopQuest(p);state(p,"Time's up · accept the task again to restart.") end
    p:SetAttribute("SprintCharge",s.sprintCharge);p:SetAttribute("SprintCooldown",math.max(0,s.sprintLockedUntil-now));p:SetAttribute("Sprinting",running==true)

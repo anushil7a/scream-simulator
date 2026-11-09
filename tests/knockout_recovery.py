@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 root=Path(__file__).resolve().parents[1]
 source=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
-start=source.index('local function eject(p,h)')
+start=source.index('local function resetMovement(')
 end=source.index('local function audible(',start)
 setup='''
 local Vector3={zero='zero'};local os={clock=function()return 50 end}
@@ -36,6 +36,12 @@ check(s.dodgingUntil==0 and s.knockedUntil==0 and not s.premiumRoll and not s.sp
 check(p.attributes.DodgeEnds==0 and p.attributes.DodgeStarted==0 and p.attributes.KnockdownEnds==0 and p.attributes.Sprinting==false,'KO retained animation attributes')
 check(s.nextDodge==64 and s.sprintCharge==3,'KO reset movement budgets')
 check(protected==1 and s.protectedUntil==55 and s.nextHeal==60 and messages==1,'KO protection/heal/status changed')
+h.Health=42;s.dodgingUntil=70;s.knockedUntil=71;s.sprintRequested=true;s.premiumRoll=true
+root.AssemblyLinearVelocity='falling';root.AssemblyAngularVelocity='spinning';h.PlatformStand=true;h.AutoRotate=false
+resetMovement(p,s,h,root)
+check(h.Health==42 and s.nextDodge==64 and s.sprintCharge==3,'Rescue reset healed or reset movement budgets')
+check(s.dodgingUntil==0 and s.knockedUntil==0 and not s.sprintRequested and not s.premiumRoll,'Rescue retained active movement state')
+check(root.AssemblyLinearVelocity=='zero' and root.AssemblyAngularVelocity=='zero' and h.AutoRotate and not h.PlatformStand,'Rescue retained falling/ragdoll motion')
 root.Anchored=true;root.auto=false;eject(p,h)
 check(not root.auto,'Anchored fixture attempted ownership mutation')
 local player=p;local humanoid={Parent=true,Health=20,PlatformStand=true}
