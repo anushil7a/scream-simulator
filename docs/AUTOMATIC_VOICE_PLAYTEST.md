@@ -119,3 +119,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Transient effects: while another player breaks props/dodges, reset the local character and observe that no new transient effects are allocated during the rootless gap; normal nearby effects should resume on spawn. Verify removing the client disconnects effect delivery. Build checks pass; native allocation/event timing remains pending.
 
 - Attack-controller teardown: destroy the client script during a pending/active automatic attack. Observe one stop request when transport is available, no new pulses/rearming from late callbacks, and server expiry if delivery is unavailable. Synthetic controller checks pass; native shutdown/event order remains pending.
+
+- Departing session save: leave during an active scream and a delayed save, then test server shutdown while a departure save is pending. Confirm no further gameplay activity from the detached session and legitimate progress survives rejoin; test baseline remains preserved. Mocked yielding/exception saves cover ownership and counters only; actual DataStore and shutdown behavior remains pending.

@@ -655,7 +655,23 @@ local function joined(p)
  state(p,loadMessage or "Welcome · train for XP, unlock screams, and explore the coast")
 end
 Players.PlayerAdded:Connect(joined);for _,p in ipairs(Players:GetPlayers()) do task.spawn(joined,p) end
-Players.PlayerRemoving:Connect(function(p) closeConversation(p);local s=sessions[p];if s then cancelSustained(p,s,os.clock());if s.canSave then Profiles.Save(p.UserId,s.testBaseline or s.data,true) end end;sessions[p]=nil end)
+local departuresInFlight=0
+local function leaving(p)
+ closeConversation(p)
+ local s=sessions[p]
+ if not s then return end
+ cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
+ -- Release gameplay ownership before Save yields. Delayed gameplay callbacks
+ -- must not mutate a departing profile or clear a replacement session later.
+ sessions[p]=nil
+ if s.canSave then
+  departuresInFlight+=1
+  local ok,err=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true)
+  departuresInFlight-=1
+  if not ok then warn("ScreamSimulator departure save failed",err) end
+ end
+end
+Players.PlayerRemoving:Connect(leaving)
 local function stepSprint(s,root,humanoid,now,dt)
  if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then s.sprintLockedUntil=0;s.sprintCharge=Config.SprintDuration end
  local velocity=root and root.AssemblyLinearVelocity
@@ -717,4 +733,4 @@ local function autosave(p,s)
  end
 end
 task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(autosave,p,s) end end end end)
-game:BindToClose(function() local pending=0;for p,s in pairs(sessions) do if s.canSave then pending+=1;task.spawn(function() Profiles.Save(p.UserId,s.testBaseline or s.data,true);pending-=1 end) end end;local deadline=os.clock()+25;while pending>0 and os.clock()<deadline do task.wait(.1) end end)
+game:BindToClose(function() local pending=0;for p,s in pairs(sessions) do if s.canSave then pending+=1;task.spawn(function() Profiles.Save(p.UserId,s.testBaseline or s.data,true);pending-=1 end) end end;local deadline=os.clock()+25;while (pending>0 or departuresInFlight>0) and os.clock()<deadline do task.wait(.1) end end)
