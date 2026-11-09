@@ -180,6 +180,14 @@ local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,
 local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge)
 local sprinting=false
+local function setSprint(requested)
+ local character=p.Character;local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ if requested and (not windowFocused or not mic.ready or GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil
+  or modal.Visible or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible)
+  or not humanoid or humanoid.Health<=0 or workspace:GetServerTimeNow()<(p:GetAttribute("KnockdownEnds") or 0)) then requested=false end
+ if sprinting==requested then return end
+ sprinting=requested;action:FireServer("Sprint",requested)
+end
 local function playerTargetInfo(target,humanoid,canFight,far,now)
  if humanoid.Health<=0 then return nil,false end
  local protection=math.max(0,(target:GetAttribute("ProtectionEnds") or 0)-now)
@@ -192,7 +200,7 @@ local function playerTargetInfo(target,humanoid,canFight,far,now)
  return string.format("%s\n%d / %d HP\n%s",name,math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),
   canFight and protection<=0 and not rolling and not far
 end
-local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() sprinting=not sprinting;action:FireServer("Sprint",sprinting) end)
+local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end)
 local viewButton=button(controls,"CameraToggle","1ST [V]",UDim2.fromOffset(88,32),UDim2.fromOffset(0,52),toggleCamera)
 local talkTarget
 local nextResidentUi=0
@@ -415,22 +423,23 @@ UIS.InputBegan:Connect(function(input,processed)
  if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
  elseif k==Enum.KeyCode.V then toggleCamera()
  elseif k==Enum.KeyCode.M then selected="Map";modal.Visible=not modal.Visible;render()
- elseif k==Enum.KeyCode.LeftShift then action:FireServer("Sprint",true)
+ elseif k==Enum.KeyCode.LeftShift then setSprint(true)
  elseif k==Enum.KeyCode.T and talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end
 end)
 UIS.InputEnded:Connect(function(input)
  if input.KeyCode==Enum.KeyCode.E then releaseCapture("keyboard")
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
- if input.KeyCode==Enum.KeyCode.LeftShift then action:FireServer("Sprint",false) end
+ if input.KeyCode==Enum.KeyCode.LeftShift then setSprint(false) end
 end)
-p.CharacterRemoving:Connect(function() if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
+p.CharacterRemoving:Connect(function() setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
 UIS.WindowFocused:Connect(function() windowFocused=true end)
 local function suspendGameplay()
  if sustainedControl then sustainedControl:SetArmed(false) end
- sprinting=false;cancelCapture();action:FireServer("Sprint",false)
+ setSprint(false);cancelCapture()
 end
 UIS.WindowFocusReleased:Connect(function() windowFocused=false;suspendGameplay() end)
 GuiService.MenuOpened:Connect(suspendGameplay)
+p:GetAttributeChangedSignal("ProtectionEnds"):Connect(function() setSprint(false) end)
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
@@ -535,6 +544,7 @@ Run.RenderStepped:Connect(function(dt)
  if captureSource and mic.captureStarted and os.clock()-mic.captureStarted>Config.VoiceCombat.CaptureExpiry then
   cancelCapture();notify("Capture expired. Hold attack again and use a fresh live scream.")
  end
+ if sprinting then setSprint(true) end
  local gameplayVisible=mic.ready and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
