@@ -101,3 +101,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Maintenance safety: occupy a damaged bench repair volume with a character while a worker finishes, then leave and verify later repair succeeds. Verify renewed damage interrupts maintenance and repeated screams at an already-destroyed prop do not postpone its repair. Service-level mock regressions cover state/deadline invariants; actual overlap geometry remains pending.
 
 - Voice meter clarity: verify respawn, window-focus loss, PlatformStand recovery and mic-ready synchronization show the corresponding status rather than an armed instruction. Check desktop/mobile text fit and return to cooldown/quiet/onset messages. Source/build checks pass; visual/device verification remains pending.
+
+- Delayed acknowledgement/stop: test automatic voice under Studio network emulation or a real higher-latency connection. Observe starting/timeout feedback, cooldown, quiet-before-retry and beam expiry on disconnect. Selectively suppressed fake acknowledgements/stops pass local flow tests, but do not establish Roblox packet timing or real-network behavior.

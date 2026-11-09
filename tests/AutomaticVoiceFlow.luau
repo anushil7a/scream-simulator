@@ -13,11 +13,13 @@ local server=api.New()
 local context={origin=0,character={},level=1,amplifier=false}
 local now,damage,begins,checks=0,0,0,0
 local losePulses=false
+local loseStops=false
+local hideAcknowledgement=false
 local control=Controls.new(Gate.new(),function(verb,arg)
  if verb=="SustainedBegin" then
   if api.Begin(server,now,arg,context) then begins+=1 end
  elseif verb=="SustainedPulse" and not losePulses then api.Pulse(server,now,arg,context)
- elseif verb=="SustainedStop" then api.Stop(server,now,arg) end
+ elseif verb=="SustainedStop" and not loseStops then api.Stop(server,now,arg) end
 end,function() return 20 end)
 local function check(v,message) assert(v,message);checks+=1 end
 local function advance(seconds,rms,allowed)
@@ -25,7 +27,7 @@ local function advance(seconds,rms,allowed)
   now+=.05
   local active=server.protocol.active
   control:Step(.05,now,mic:Step(rms,.05),allowed~=false,now>=server.protocol.nextStart,
-   active~=nil,active and active.sequence)
+   not hideAcknowledgement and active~=nil,not hideAcknowledgement and active and active.sequence)
   local hits=api.Step(server,now,context,function() return {"target"},{target={}} end)
   for _,hit in ipairs(hits) do damage+=hit.damage end
  end
@@ -62,4 +64,36 @@ control:SetArmed(true);advance(1,.08)
 check(begins==4,"Resume while speaking bypassed quiet gate")
 losePulses=false;advance(.8,.001);advance(1,.08)
 check(begins==5,"Fresh quiet and voice after manual resume failed")
+-- Fault injection is synthetic: no claims about Roblox packet delivery/order.
+local oldSequence=server.protocol.active.sequence
+loseStops=true;control:SetArmed(false)
+check(server.protocol.active~=nil and not control.attack,"Lost stop scenario did not retain server state")
+advance(.6,.08)
+check(not server.protocol.active,"Missing stop failed server input expiry")
+local afterLostStop=damage
+advance(2,.08)
+check(damage==afterLostStop,"Damage continued after lost-stop timeout")
+local readyAt=server.protocol.nextStart
+check(readyAt>now,"Lost stop bypassed cooldown")
+local replayOK=api.Pulse(server,now,{sequence=oldSequence,sample=999,power=1,aim=20},context)
+check(not replayOK and server.protocol.nextStart==readyAt,"Late pulse revived expired scream or altered cooldown")
+loseStops=false;advance(11,.001)
+-- Server accepts the begin, but the client never sees its acknowledgement.
+hideAcknowledgement=true;control:SetArmed(true)
+advance(.8,.001);advance(1,.08)
+check(begins==6 and not control.attack and not server.protocol.active,"Missing acknowledgement left attack running")
+local afterAckLoss=damage
+advance(12,.08)
+check(begins==6 and damage==afterAckLoss,"Missing acknowledgement retried held voice")
+hideAcknowledgement=false
+advance(.8,.001);advance(1,.08)
+check(begins==7 and control.attack and server.protocol.active,"Fresh scream failed after acknowledgement loss")
+local newSequence=server.protocol.active.sequence
+api.Stop(server,now,oldSequence)
+check(server.protocol.active and server.protocol.active.sequence==newSequence,"Delayed old stop canceled a newer scream")
+local sample=server.intent.sample
+replayOK=api.Pulse(server,now,{sequence=oldSequence,sample=9999,power=1,aim=20},context)
+check(not replayOK and server.intent.sample==sample,"Delayed old pulse mutated new attack input")
+control:SetArmed(false)
+check(not server.protocol.active,"Final test cancellation failed")
 print("PASS "..checks.." simulated calibrated-mic-to-server flow checks; no real audio/network/geometry")
