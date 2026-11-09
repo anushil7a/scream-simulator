@@ -44,7 +44,7 @@ function Microphone:FindInput()
  return input
 end
 function Microphone:Calibrate()
- if self.destroyed then return end
+ if self.destroyed or self.checkPending then return end
  local input=self:FindInput()
  if not self.eligible or not input then self.status='Enable Roblox voice and reconnect your microphone first.';return end
  if input.Muted then self.status='Unmute using the Roblox microphone control, then calibrate.';return end

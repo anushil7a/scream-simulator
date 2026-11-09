@@ -116,7 +116,11 @@ check(#instances==instanceCount and m.analyzer==nil and m.input==nil,'Late callb
 check(not m:Begin() and m:FindInput()==nil and m:Release()==0,'Destroyed microphone accepted a new capture')
 check(not m.model.calibrated and m.phase==nil,'Destroyed microphone retained calibration')
 deferCheck=true
-local late=Mic.new();late:Destroy()
+local late=Mic.new();local beforePendingCalibration=#instances
+late:Calibrate()
+check(late.status=='Checking Roblox voice access…' and late.checkPending,'Calibration replaced pending access guidance')
+check(#instances==beforePendingCalibration and late.input==nil and late.phase==nil,'Pending access calibration created audio resources or started sampling')
+late:Destroy()
 for _,fn in ipairs(pending) do fn() end
 check(not late.eligible,'Late eligibility check revived destroyed controller')
 -- Simulate yielded access checks finishing out of order.

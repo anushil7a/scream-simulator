@@ -324,3 +324,7 @@ Pending device/UI check: mute separately during the quiet and voice calibration 
 ### Player animation component gaps
 
 Pending native animation check: detach/restore the cached player root or humanoid in a disposable R6/R15 client. Additive charge/sprint/landing state should clear during the gap without retained roll/sprint indicators. Six mocked interruption assertions pass; actual Animator/streaming recovery is unverified. Replacing components with entirely new objects is not covered by this change.
+
+### Calibration during access checks
+
+Pending device check: press Calibrate while access is checking or timed out but unresolved. Existing guidance should remain; no calibration begins until eligibility resolves. Retry access and calibrate after success. Two mocked pending-state assertions pass; actual Roblox access timing remains unverified.
