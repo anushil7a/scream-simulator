@@ -7,6 +7,22 @@ local Tween=game:GetService("TweenService")
 local Debris=game:GetService("Debris")
 local TextService=game:GetService("TextService")
 local GuiService=game:GetService("GuiService")
+-- External signals outlive the HUD; suppress queued callbacks during teardown too.
+local clientConnections={}
+local clientDestroyed=false
+local function connectClient(signal,callback)
+ if clientDestroyed then return end
+ local connection=signal:Connect(function(...)
+  if not clientDestroyed then callback(...) end
+ end)
+ table.insert(clientConnections,connection)
+ return connection
+end
+script.Destroying:Connect(function()
+ clientDestroyed=true
+ for _,connection in ipairs(clientConnections) do connection:Disconnect() end
+ table.clear(clientConnections)
+end)
 local originalTouchControls=GuiService.TouchControlsEnabled
 script.Destroying:Connect(function() GuiService.TouchControlsEnabled=originalTouchControls end)
 local p=Players.LocalPlayer
@@ -484,7 +500,7 @@ local function refreshQuestObjects()
   end
  end
 end
-remotes.State.OnClientEvent:Connect(function(nextData)
+connectClient(remotes.State.OnClientEvent,function(nextData)
  data=nextData;refreshQuestObjects();stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";refreshHealth()
  xpText.Text=data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP";xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
  zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
@@ -495,7 +511,7 @@ remotes.State.OnClientEvent:Connect(function(nextData)
  if data.conversation then showConversation(data.conversation) end
  if modal.Visible then render() end
 end)
-UIS.InputBegan:Connect(function(input,processed)
+connectClient(UIS.InputBegan,function(input,processed)
  if processed or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() then return end
  local k=input.KeyCode
  if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
@@ -504,20 +520,20 @@ UIS.InputBegan:Connect(function(input,processed)
  elseif k==Enum.KeyCode.LeftShift then setSprint(true)
  elseif k==Enum.KeyCode.T then requestTalk() end
 end)
-UIS.InputEnded:Connect(function(input)
+connectClient(UIS.InputEnded,function(input)
  if input.KeyCode==Enum.KeyCode.E then releaseCapture("keyboard")
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
  if input.KeyCode==Enum.KeyCode.LeftShift then setSprint(false) end
 end)
-p.CharacterRemoving:Connect(function() hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
-UIS.WindowFocused:Connect(function() windowFocused=true end)
+connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
+connectClient(UIS.WindowFocused,function() windowFocused=true end)
 local function suspendGameplay()
  if sustainedControl then sustainedControl:SetArmed(false) end
  setSprint(false);cancelCapture()
 end
-UIS.WindowFocusReleased:Connect(function() windowFocused=false;suspendGameplay() end)
-GuiService.MenuOpened:Connect(suspendGameplay)
-p:GetAttributeChangedSignal("ProtectionEnds"):Connect(function() setSprint(false) end)
+connectClient(UIS.WindowFocusReleased,function() windowFocused=false;suspendGameplay() end)
+connectClient(GuiService.MenuOpened,suspendGameplay)
+connectClient(p:GetAttributeChangedSignal("ProtectionEnds"),function() setSprint(false) end)
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
@@ -570,7 +586,7 @@ local lastViewport,lastTouch
 -- A visible modal button frees the cursor for Roblox's first-person camera.
 modal.Close.Modal=true;micPanel.Calibrate.Modal=true;conversationPanel.Close.Modal=true
 testContent.XP.Modal=true
-Run.RenderStepped:Connect(function(dt)
+connectClient(Run.RenderStepped,function(dt)
  refreshHealth()
  local viewport=gui.AbsoluteSize
  local touch=UIS.TouchEnabled
@@ -754,7 +770,7 @@ end)
 action:FireServer("Sync")
 
 -- JumpRequest supports the built-in keyboard, controller and touch jump controls.
-UIS.JumpRequest:Connect(function()
+connectClient(UIS.JumpRequest,function()
  local character=p.Character;local h=character and character:FindFirstChildOfClass("Humanoid")
  if h and h.FloorMaterial==Enum.Material.Air and data.movementPass and not data.inWarZone and not blocked() then action:FireServer("ExtraJump") end
 end)

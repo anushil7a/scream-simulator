@@ -230,3 +230,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Voice access timeout and retry ordering
 
 Pending device check: with a slow voice eligibility response, confirm timeout guidance appears, retry access, and verify an older timeout cannot replace the newer result. A late successful response should recover access; calibration and explicit arming requirements still apply. End the client during a pending check and confirm no stale UI changes. Five additional mocked timer checks pass (43 microphone lifecycle checks total); these do not verify Roblox eligibility timing or microphone hardware.
+
+### Client external-signal teardown
+
+Pending native check: remove/replace Client while its HUD is open and an automatic attack is active. Confirm the old client stops frame/state updates and keyboard, jump and focus responses, and the replacement handles input once. Existing sustained-controller teardown should stop its attack. Six mocked signal tests verify cleanup, queued-callback suppression and late-registration rejection; no native event scheduling or memory measurement is claimed.
