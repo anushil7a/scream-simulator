@@ -1,6 +1,7 @@
 local Players=game:GetService('Players')
 local Collection=game:GetService('CollectionService')
 local Rules=require(game.ReplicatedStorage.Shared.DestructionRules)
+local RepairTimer=require(script.Parent.RepairTimer)
 local Service={objects={},ids={}}
 function Service.Register(model)
  if Service.objects[model] then return end
@@ -28,12 +29,13 @@ local function occupied(object)
  return #workspace:GetPartBoundsInBox(object.box,object.size+Vector3.new(2,3,2),params)>0
 end
 local function restore(model,object,version)
- if not model.Parent or Service.objects[model]~=object or object.version~=version then return end
- if occupied(object) then model:SetAttribute('RepairAt',workspace:GetServerTimeNow()+5);task.delay(5,function() restore(model,object,version) end);return end
+ if not model.Parent or Service.objects[model]~=object or object.version~=version then return true end
+ if occupied(object) then return false end
  local spec=Rules.Types[object.kind];object.health=spec.health
  for part,original in pairs(object.parts) do if part.Parent then part.Transparency=original.transparency;part.CanCollide=original.collide;part.CanQuery=original.query;part.CanTouch=original.touch;part.Color=original.color;if part:IsA("Seat") then part.Disabled=original.seatDisabled end end end
  for prompt,enabled in pairs(object.prompts) do if prompt.Parent then prompt.Enabled=enabled end end
  model:SetAttribute('ObjectHealth',spec.health);model:SetAttribute('Destroyed',false);model:SetAttribute('RepairAt',0);model:SetAttribute('DamageStage',0)
+ return true
 end
 function Service.Damage(instance,level,damage)
  local model=instance
@@ -53,10 +55,20 @@ function Service.Damage(instance,level,damage)
   model:SetAttribute('Destroyed',true)
  end
  -- Every accepted hit restarts repair, including damage that leaves the object standing.
- -- The version guard prevents an older deadline restoring through a newer hit.
- object.version+=1;local version=object.version;local duration=Rules.Types[object.kind].repair
+ -- A single pending callback follows the latest deadline instead of accumulating per-hit tasks.
+ object.version+=1;local duration=Rules.Types[object.kind].repair
  model:SetAttribute('RepairAt',workspace:GetServerTimeNow()+duration)
- task.delay(duration,function() restore(model,object,version) end)
+ if not object.timer then
+  object.timer=RepairTimer.new(os.clock,task.delay,
+   function() return model.Parent~=nil and Service.objects[model]==object end,
+   function()
+    -- A maintenance worker may have repaired it while this timer was waiting.
+    if object.health>=Rules.Types[object.kind].health then return true end
+    return restore(model,object,object.version)
+   end,
+   function(delay) model:SetAttribute("RepairAt",workspace:GetServerTimeNow()+delay) end)
+ end
+ object.timer:Touch(duration)
  return {model=model,destroyed=destroyed,health=health,kind=object.kind,position=object.box.Position}
 end
 -- Local maintenance complements the automatic repair timer. A worker must
