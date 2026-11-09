@@ -70,6 +70,7 @@ for _,phase in ipairs({'quiet','voice'})do
  check(m.phase==nil and #m.quiet==0 and #m.spoken==0,'Mute retained partial '..phase..' calibration')
  player.input.Muted=false;m:Step(.05)
  check(not m.ready and not m.model.calibrated,'Unmute completed interrupted '..phase..' calibration')
+ check(m.status=='Microphone unmuted. Calibrate before attacking.','Interrupted calibration retained muted status after unmute')
 end
 m:Calibrate();samples('quiet',.001)
 local disconnectedAnalyzer=m.analyzer

@@ -78,7 +78,11 @@ function Microphone:Step(dt)
  local input=self:FindInput()
  if not input then self.status='Waiting for Roblox mic input. The experience needs Voice Chat and the Audio API enabled.';self.power=0;return end
  if input.Muted then
-  self.ready=false;self:CancelCalibration();self:Cancel();self.model:Reset();self.power=0;self.status='Microphone muted. Unmute in Roblox to continue.';return
+  self.wasMuted=true;self.ready=false;self:CancelCalibration();self:Cancel();self.model:Reset();self.power=0;self.status='Microphone muted. Unmute in Roblox to continue.';return
+ end
+ if self.wasMuted then
+  self.wasMuted=false
+  if not self.model.calibrated and not self.phase then self.status='Microphone unmuted. Calibrate before attacking.' end
  end
  local rms=self.analyzer.RmsLevel
  self.power=self.model:Step(rms,dt)

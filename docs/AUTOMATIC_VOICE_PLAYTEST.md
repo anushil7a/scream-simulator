@@ -316,3 +316,7 @@ Pending UI check: an unfinished active task should show CURRENT/ABANDON; an earn
 ### Microphone recovery guidance
 
 During input/analyzer/wire recovery checks, confirm the setup panel explicitly asks for calibration instead of retaining “Microphone ready.” Four new mocked message assertions pass; native device/UI behavior remains pending.
+
+### Interrupted calibration and unmute
+
+Pending device/UI check: mute separately during the quiet and voice calibration phases. After unmuting, the panel should request fresh calibration rather than continue displaying “Microphone muted.” An already calibrated microphone should retain its valid calibration; deliberate attack resume remains required. Two new mocked transition assertions pass; real mute/device timing remains unverified.
