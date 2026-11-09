@@ -365,7 +365,7 @@ render=function()
    button(c,name,data.aura==name and "EQUIPPED" or "USE COLOR",UDim2.fromOffset(126,36),UDim2.new(1,-140,0,10),function() action:FireServer("SetAura",name) end)
   end
  elseif selected=="Map" then
-  title.Text="CITY & COAST";subtitle.Text="Arena District: 40% PvP. Outer neighborhoods and beach: 60% safe."
+  title.Text="CITY & COAST";subtitle.Text=string.format("Arena District: %d%% PvP. Rest of the map: %d%% safe.",CityMap.arenaPercent,100-CityMap.arenaPercent)
   local c=card(300)
   local holder=frame(c,"MapHolder",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13));holder.BackgroundTransparency=1
   mapDot=CityMap.create(holder)

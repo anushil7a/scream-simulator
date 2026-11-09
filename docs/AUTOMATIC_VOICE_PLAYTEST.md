@@ -135,3 +135,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Boardwalk race: trigger the start twice and confirm the original countdown remains. Verify early finish rejection, normal completion and no duplicate progress from repeated finish activation. Mock handler tests pass; route timing and native prompt input remain pending.
 
 - Delivery attempts: pick up twice, visit a wrong destination, then the assigned destination. Verify the order/deadline survives wrong stops, completion is awarded once and expired orders fail. Eight added actual-handler mocks pass; native route timing, prompts and HUD remain pending.
+
+- Map arena bounds: compare the red map outline and 40% label with the current world arena edges. In a disposable bounds-change fixture, verify outline/fill/percentage follow Config.ZoneMin/ZoneMax. Source/build checks pass; native map layout and boundary alignment remain pending.
