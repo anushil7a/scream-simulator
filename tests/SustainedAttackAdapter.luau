@@ -55,4 +55,31 @@ local expired=api.New()
 check(api.Begin(expired,0,request(1,0,50,.5),context),"Timeout precondition")
 local accepted,why,expiry=api.Begin(expired,1,request(2,0,50,.5),context)
 check(not accepted and why=="cooldown" and expiry.reason=="timeout" and expired.intent==nil,"Begin hid expiry from caller")
+-- Adversarial payloads exercise the actual adapter/protocol. Geometry is still
+-- scalar and transport synchronous: this does not establish network behavior.
+for _,bad in ipairs({"loud",false,0/0,math.huge,-1,1.01}) do
+ local test=api.New()
+ check(not api.Begin(test,0,request(1,0,50,bad),context) and not test.protocol.active,"Malformed begin power started attack")
+ check(api.Begin(test,0,request(2,0,50,.5),context),"Bad begin poisoned next valid sequence")
+ local ok,_,ended=api.Pulse(test,.125,request(2,1,50,bad),context)
+ check(not ok and ended~=nil and test.intent==nil and not test.protocol.active,"Malformed pulse power retained attack")
+ check(not api.Pulse(test,.25,request(2,2,50,1),context),"Later pulse revived canceled attack")
+ check(not api.Begin(test,1,request(3,0,50,1),context),"Malformed pulse bypassed cooldown")
+ local called=false
+ check(#api.Step(test,1,context,function()called=true;return {"victim"},{} end)==0 and not called,"Canceled attack still resolved targets")
+end
+local replay=api.New()
+check(api.Begin(replay,0,request(1,0,50,.5),context),"Replay scenario setup failed")
+local originalIntent=replay.intent
+for _,packet in ipairs({false,"packet",42,{sequence=2,aim=50,power=.9}}) do
+ check(not api.Begin(replay,.01,packet,context) and replay.intent==originalIntent,"Rejected begin replaced live intent")
+end
+for _,sample in ipairs({0,-1,.5,math.huge,0/0,"sample",2^31+1}) do
+ check(not api.Pulse(replay,.1,request(1,sample,-50,.5),context) and replay.intent.sample==0,"Invalid sample consumed valid ordering")
+end
+check(api.Pulse(replay,.125,request(1,1,50,.5),context),"Valid sample rejected after malformed samples")
+local geometryCalls=0
+local _,staleEnd=api.Step(replay,.626,context,function()geometryCalls+=1;return {"victim"},{} end)
+check(staleEnd and staleEnd.reason=="timeout" and geometryCalls==0,"Expired input ran target geometry")
+check(not api.Pulse(replay,.7,request(1,2,50,1),context),"Delayed packet revived timed-out attack")
 print("PASS "..checks.." sustained adapter checks with mocked geometry")

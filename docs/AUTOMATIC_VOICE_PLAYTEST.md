@@ -59,3 +59,5 @@ Record commit/build, devices, exact reproduction steps and expected/observed beh
 - Seated recovery: knock out a seated player in the arena and test a seated rescue in a disposable place. They must leave the seat before teleporting, without dragging furniture or affecting another occupant. Verify ordinary sitting works afterward. Sixteen mocked recovery checks pass, including ownership-scoped weld cleanup; native seating physics pending.
 
 - Seated actions: press dodge while sitting and attempt extra jumps during seat/stand transitions. Neither action should move attached furniture or consume a dodge cooldown; standing normally should restore eligibility. Also test temporary ragdoll/anchored roots in a disposable fixture. Sixteen extracted guard checks pass with mocked state; native physics/input pending.
+
+- Delayed input: use an isolated native fixture with simulated network delay to verify late begin/pulse/stop packets never revive expired attacks or bypass cooldown. Adapter coverage now includes 79 synthetic checks; actual Roblox transport latency and real mic behavior remain unverified.
