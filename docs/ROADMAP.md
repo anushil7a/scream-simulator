@@ -1,6 +1,6 @@
 # Scream Simulator development roadmap
 
-Updated November 8, 2026. Owner direction in this document supersedes older 300-level/hold-E specifications. Current local baseline: `83d716b`; connected City Preview reports version 15. No publication is authorized by this management request.
+Updated November 8, 2026. Owner direction in this document supersedes older 300-level/hold-E specifications. Current local baseline: `83d716b`; connected City Preview reports version 15. November 8 owner follow-up authorizes the current update to the main Roblox game after verification and ongoing tested GitHub development-branch pushes. Publication is still blocked by native Studio access; later releases need approval.
 
 ## Product direction
 
@@ -8,7 +8,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 ## Operating policy
 
-- Usage ceiling: finish the current bounded task, then start nothing new once an applicable Codex window reaches 80% used. Initial check: 27% used / 73% remaining.
+- Usage policy updated by owner November 8: continue while allowance remains; check usage at task boundaries and keep work checkpointed. The former 20%-remaining cutoff is superseded.
 - Work locally in focused commits and disposable Studio copies. Publishing requires fresh owner approval. Preserve externally changed cloud state and existing saves.
 - Maintain completed evidence, known failures and the next concrete action here. Actual audio, hardware and multiplayer gates stay open until observed.
 
@@ -95,3 +95,5 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 ## Next action
 
 Check usage, then run the disposable Studio server fixture and a local client/server session. Verify that beams track aim, stop at cover, and disappear on stop, death and disconnect. Confirm PvP and destruction with real engine tests before real microphone testing. Normal mode stays on legacy combat until review.
+
+- November 8 owner follow-up: usage 49% used. Authorized tested GitHub development-branch pushes and requested the current update in the main Roblox game. Native Studio access again returned timeoutReached; no Roblox publication attempted. Sustained combat remains local-only pending engine verification. Future work includes city color/readability, purposeful NPC activity and animations after combat gates.
