@@ -16,6 +16,7 @@ local originalMinZoom,originalMaxZoom=p.CameraMinZoomDistance,p.CameraMaxZoomDis
 local cameraGeneration=0;local thirdPersonDistance=12
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
 local InteractionRules=require(RS.Shared:WaitForChild("InteractionRules"))
+local DestructionRules=require(RS.Shared:WaitForChild("DestructionRules"))
 local mic=require(script.Parent:WaitForChild("Microphone")).new()
 script.Destroying:Connect(function() mic:Destroy() end)
 local ScreamEffects=require(script.Parent:WaitForChild("ScreamEffects"))
@@ -292,7 +293,7 @@ local function menuKey()
 end
 render=function()
  if selected=="Screams" then
-  subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  Styles change visuals • level and mic power set strength"
+  subtitle.Text=data.level>=Config.MaxLevel and ("Level "..Config.MaxLevel.." • MAX LEVEL") or ("Level "..data.level.." • "..data.xp.." / "..data.xpNext.." XP")
  end
  local key=menuKey()
  if key==renderedMenuKey then return end
@@ -305,6 +306,17 @@ render=function()
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Screams" then
   title.Text="SCREAM COLLECTION"
+  local nextStyle
+  for _,style in ipairs(Config.Sounds) do
+   if style.level>data.level and (not nextStyle or style.level<nextStyle.level) then nextStyle=style end
+  end
+  local nextDestruction
+  for _,spec in pairs(DestructionRules.Types) do
+   if spec.level>data.level and (not nextDestruction or spec.level<nextDestruction.level) then nextDestruction=spec end
+  end
+  local progress=nextStyle and string.format("Next style: %s · level %d",nextStyle.name,nextStyle.level) or "All scream styles unlocked"
+  progress..=nextDestruction and string.format("\nNext destruction tier: %s · level %d",nextDestruction.name,nextDestruction.level) or "\nAll destruction tiers unlocked"
+  info(progress.."\nStyles change visuals. Your level and live mic power set damage and reach.")
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
   for _,s in ipairs(Config.Sounds) do
    local c=card(narrow and 194 or 118);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)

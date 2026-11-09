@@ -125,3 +125,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Shutdown saving: verify normal shutdown persists legitimate progress and test sessions persist their baseline. In a disposable failure-injection harness, confirm one save exception does not hold the pending counter while other saves finish, and a hung save stays within the existing deadline. Mock scheduler tests cover coordination only; real persistence remains pending.
 
 - Autosave status: in a disposable failure-injection test, verify an unexpected save exception shows Save delayed once, subsequent success clears it, and permanent ownership/unavailable errors show temporary progress. Actual-helper mocks pass; real DataStore persistence and UI delivery remain pending.
+
+- Progression summary: open Screams at levels 9/10, 25/26 and 99/100. Verify next style/destruction tier advances at each unlock, max level reads correctly, and the summary wraps cleanly on mobile without hiding equip controls. Source/build checks pass; visual layout remains pending.
