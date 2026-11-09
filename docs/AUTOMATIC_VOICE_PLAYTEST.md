@@ -133,3 +133,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Quest prompt availability: disable or remove a prompt while a player is interacting in a disposable test. Verify no progress is awarded from a stale callback and a valid re-enabled nearby prompt works once. Nine mocked handler checks pass; native prompt event ordering remains pending.
 
 - Boardwalk race: trigger the start twice and confirm the original countdown remains. Verify early finish rejection, normal completion and no duplicate progress from repeated finish activation. Mock handler tests pass; route timing and native prompt input remain pending.
+
+- Delivery attempts: pick up twice, visit a wrong destination, then the assigned destination. Verify the order/deadline survives wrong stops, completion is awarded once and expired orders fail. Eight added actual-handler mocks pass; native route timing, prompts and HUD remain pending.

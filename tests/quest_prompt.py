@@ -10,7 +10,9 @@ local now=0;local os={clock=function()return now end}
 local sessions={};local workspace={ScreamSimulatorWorld={}}
 local distance=5;local position=setmetatable({},{__sub=function()return {Magnitude=distance}end})
 local root={Position=position};local function parts()return {},root end
-local Config={GetQuest=function(id)return id=='garden' and {id=id,goal=3} or id=='sprint' and {id=id,goal=1} or nil end}
+local Config={GetQuest=function(id)return id=='garden' and {id=id,goal=3} or (id=='sprint' or id=='delivery') and {id=id,goal=1} or nil end}
+Config.DeliveryStops={{id='Pier',name='pier'}}
+Config.GetDeliveryStop=function()return Config.DeliveryStops[1] end
 local messages=0;local function state()messages+=1 end
 local awards=0;local function questProgress(p)awards+=1;sessions[p].data.quests[sessions[p].activeQuest].progress+=1 end
 '''
@@ -18,8 +20,8 @@ checks='''
 local checks=0;local function check(v,msg)assert(v,msg);checks+=1 end
 local p={};local session={activeQuest='garden',collected={},data={quests={garden={progress=0}}}}
 sessions[p]=session
-local kind='Garden'
-local marker={Name='Bed1',Position=position,IsA=function()return true end,GetAttribute=function()return kind end}
+local kind='Garden';local deliveryStop='Pier'
+local marker={Name='Bed1',Position=position,IsA=function()return true end,GetAttribute=function(_,key)return key=="DeliveryStop" and deliveryStop or kind end}
 local obj={Enabled=true,Parent=marker,inWorld=true}
 function obj:IsDescendantOf(world)assert(world==workspace.ScreamSimulatorWorld);return self.inWorld end
 obj.Enabled=false;interactQuest(p,obj)
@@ -51,6 +53,25 @@ check(awards==before+1 and not session.raceStart and not session.questDeadline,'
 interactQuest(p,obj);check(awards==before+1,'Repeated finish awarded progress twice')
 kind='RaceStart';interactQuest(p,obj)
 check(not session.raceStart,'Completed race restarted before reward claim')
+session.activeQuest='delivery';session.data.quests.delivery={progress=0}
+kind='Dropoff';before=awards;interactQuest(p,obj)
+check(awards==before,'Delivery without pickup awarded progress')
+kind='Pickup';now=100;interactQuest(p,obj)
+check(session.carrying and session.deliveryStop=='Pier' and session.questDeadline==190,'Pickup did not set route/deadline')
+now=110;interactQuest(p,obj)
+check(session.deliveryStop=='Pier' and session.questDeadline==190,'Duplicate pickup replaced route/deadline')
+kind='Dropoff';deliveryStop='Wrong';interactQuest(p,obj)
+check(awards==before and session.carrying and session.deliveryStop=='Pier' and session.questDeadline==190,'Wrong destination consumed order or awarded progress')
+deliveryStop='Pier';now=191;interactQuest(p,obj)
+check(awards==before and session.carrying,'Expired delivery awarded progress')
+-- Start a fresh attempt, simulating the existing timeout/reaccept flow.
+session.carrying=false;session.deliveryStop=nil;session.questDeadline=nil
+kind='Pickup';now=200;interactQuest(p,obj)
+kind='Dropoff';now=290;interactQuest(p,obj)
+check(awards==before+1 and not session.carrying and not session.deliveryStop and not session.questDeadline,'Delivery at exact deadline failed to complete/clear attempt')
+interactQuest(p,obj);check(awards==before+1,'Duplicate dropoff awarded twice')
+kind='Pickup';interactQuest(p,obj)
+check(not session.carrying,'Completed delivery allowed another pickup before reward claim')
 print('PASS '..checks..' actual quest prompt checks with mocked instances')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
