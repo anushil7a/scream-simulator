@@ -117,3 +117,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Beam teardown: end a disposable local test or destroy the client script while a sustained beam is visible. Verify beam parts disappear and late effect delivery cannot recreate them. Mock visual manager tests pass; native instance cleanup/memory remains unmeasured.
 
 - Transient effects: while another player breaks props/dodges, reset the local character and observe that no new transient effects are allocated during the rootless gap; normal nearby effects should resume on spawn. Verify removing the client disconnects effect delivery. Build checks pass; native allocation/event timing remains pending.
+
+- Attack-controller teardown: destroy the client script during a pending/active automatic attack. Observe one stop request when transport is available, no new pulses/rearming from late callbacks, and server expiry if delivery is unavailable. Synthetic controller checks pass; native shutdown/event order remains pending.

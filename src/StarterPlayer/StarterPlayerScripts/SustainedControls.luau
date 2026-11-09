@@ -16,6 +16,7 @@ function Controls:Cancel()
  if attack then self.send("SustainedStop",attack.sequence) end
 end
 function Controls:SetArmed(armed)
+ if self.destroyed then return end
  if self.armed==armed then return end
  self.armed=armed
  self:Cancel()
@@ -23,10 +24,12 @@ end
 -- Auto-arm only on the first valid calibration. A mute, death or explicit pause
 -- requires a deliberate resume; returning focus must never silently re-arm.
 function Controls:ObserveAvailability(available,autoArmAllowed)
+ if self.destroyed then return end
  if not available then self:SetArmed(false);return end
  if not self.initialized then self.initialized=true;self:SetArmed(autoArmAllowed~=false) end
 end
 function Controls:Step(dt,now,power,allowed,ready,active,serverSequence)
+ if self.destroyed then return end
  if not self.armed or not allowed or not ready then self:Cancel();return end
  local attack=self.attack
  if attack then
@@ -54,5 +57,10 @@ function Controls:Step(dt,now,power,allowed,ready,active,serverSequence)
   attack.sample+=1;attack.nextPulse=now+PULSE_INTERVAL
   self.send("SustainedPulse",{sequence=attack.sequence,sample=attack.sample,power=power,aim=aim})
  end
+end
+function Controls:Destroy()
+ if self.destroyed then return end
+ self.destroyed=true;self.armed=false
+ self:Cancel()
 end
 return Controls

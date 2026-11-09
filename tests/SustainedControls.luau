@@ -62,4 +62,18 @@ background:ObserveAvailability(true,true)
 check(not background.armed,"Returning from background silently armed microphone")
 background:SetArmed(true)
 check(background.armed and background.gate.needsQuiet,"Explicit resume did not require quiet after background calibration")
+local teardownMessages={}
+local teardown=Controls.new(Gate.new(),function(verb,arg)table.insert(teardownMessages,{verb,arg}) end,function()return 1 end)
+teardown:SetArmed(true)
+for i=1,4 do teardown:Step(.05,i*.05,0,true,true,false) end
+for i=5,9 do teardown:Step(.05,i*.05,1,true,true,false) end
+check(teardown.attack~=nil and #teardownMessages==1,"Teardown fixture failed to start")
+teardown:Destroy()
+check(not teardown.armed and not teardown.attack and #teardownMessages==2 and teardownMessages[2][1]=="SustainedStop" and teardownMessages[2][2]==1,"Teardown did not stop pending attack")
+teardown:Destroy();teardown:Cancel();teardown:SetArmed(true);teardown:ObserveAvailability(true)
+for i=1,30 do teardown:Step(.05,1+i*.05,i<10 and 0 or 1,true,true,false) end
+check(not teardown.armed and not teardown.attack and #teardownMessages==2,"Late callbacks revived controller or sent duplicate stop")
+local idle=Controls.new(Gate.new(),function()error("Idle teardown sent packet")end,function()return 1 end)
+idle:Destroy();idle:ObserveAvailability(true);idle:SetArmed(true)
+check(not idle.armed,"Never-initialized destroyed controller auto-armed")
 print("PASS "..checks.." synthetic sustained control checks")

@@ -150,6 +150,7 @@ if remotes:GetAttribute("AutomaticVoice")==true then
    if not ray then return nil end
    return hit and hit.Position or ray.Origin+ray.Direction*1000
   end)
+ script.Destroying:Connect(function() sustainedControl:Destroy() end)
 end
 local function toggleVoice()
  if not sustainedControl then return end
