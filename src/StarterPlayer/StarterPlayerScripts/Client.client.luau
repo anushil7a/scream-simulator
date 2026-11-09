@@ -255,7 +255,16 @@ local function refreshResidentLabels(root,camera,residents)
  if speaker and visible[speaker].speech then visible[speaker].speech.Enabled=true end
  return nearest
 end
-local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),function() if talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end end);talkButton.Visible=false
+local function requestTalk()
+ if not windowFocused or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() or modal.Visible
+  or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible) or not mic.ready then return end
+ local target=talkTarget
+ if not target or not target.Parent or target:GetAttribute("ResidentActive")==false
+  or not InteractionRules.CanReachNpc(p.Character,target,13) then return end
+ cancelCapture()
+ action:FireServer("Talk",target:GetAttribute("NpcId") or target.Name)
+end
+local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),requestTalk);talkButton.Visible=false
 devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false;devPanel.ZIndex=10
 local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
 label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
@@ -465,7 +474,7 @@ UIS.InputBegan:Connect(function(input,processed)
  elseif k==Enum.KeyCode.V then toggleCamera()
  elseif k==Enum.KeyCode.M then toggleTab("Map")
  elseif k==Enum.KeyCode.LeftShift then setSprint(true)
- elseif k==Enum.KeyCode.T and talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end
+ elseif k==Enum.KeyCode.T then requestTalk() end
 end)
 UIS.InputEnded:Connect(function(input)
  if input.KeyCode==Enum.KeyCode.E then releaseCapture("keyboard")
