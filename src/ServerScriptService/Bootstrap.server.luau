@@ -521,6 +521,7 @@ World.OnVehicleSweep=function(car,previous,nextFrame)
  end
 end
 local function interactQuest(p,obj)
+  if not obj.Enabled or not obj:IsDescendantOf(workspace.ScreamSimulatorWorld) then return end
   local s=sessions[p];local _,r=parts(p);local marker=obj.Parent
   if not s or not r or not marker or not marker:IsA("BasePart") or (r.Position-marker.Position).Magnitude>12 then return end
   local active=Config.GetQuest(s.activeQuest)
