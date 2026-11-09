@@ -352,3 +352,7 @@ Pending native check: test a representative bench, bin, tree, bike, house front,
 ### NPC final approach to work
 
 Pending native check: observe workers reaching their work surfaces, interrupt the last few studs with dialogue or a scream, and temporarily obstruct the final approach in a disposable place. Check tools align after arrival, old movement does not cancel the reaction, and workers recover normal speed after timeout/interruption. Synthetic route tests pass for these control-flow boundaries; actual navigation and animation alignment remain unverified.
+
+### Calibration countdown
+
+Pending visual/device check: each quiet/voice calibration phase should show its own countdown from two seconds, with RESTART SETUP during sampling. Completion or interruption should remove the countdown and restore CALIBRATE MIC. Check status wrapping on narrow phones and that restart really begins the quiet phase. The UI fixture compiled; appearance and real audio timing remain unverified.

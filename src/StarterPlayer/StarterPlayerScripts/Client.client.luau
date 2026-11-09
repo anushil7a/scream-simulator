@@ -633,7 +633,10 @@ connectClient(Run.RenderStepped,function(dt)
  calibrate.Size=UDim2.fromOffset(micNarrow and micWidth-36 or 188,UIS.TouchEnabled and 44 or 36);retry.Size=calibrate.Size
  calibrate.Position=UDim2.fromOffset(18,micNarrow and 224 or 208);retry.Position=UDim2.fromOffset(micNarrow and 18 or 224,micNarrow and 270 or 208)
  end
- micPanel.Visible=not mic.ready and not modal.Visible and not devPanel.Visible;micStatus.Text=mic.status
+ micPanel.Visible=not mic.ready and not modal.Visible and not devPanel.Visible
+ local calibrationActive=mic.phase~=nil and mic.phaseStarted~=nil
+ micStatus.Text=calibrationActive and string.format("%s\n%.1fs remaining",mic.status,math.max(0,2-(os.clock()-mic.phaseStarted))) or mic.status
+ micPanel.Calibrate.Text=calibrationActive and "RESTART SETUP" or "CALIBRATE MIC"
  if reportedReady~=mic.ready or (data.micReady~=mic.ready and os.clock()>readyReportAt) then reportedReady=mic.ready;readyReportAt=os.clock()+1;action:FireServer("MicReady",mic.ready) end
  local serverNow=workspace:GetServerTimeNow()
  local protectionRemaining=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-serverNow)
