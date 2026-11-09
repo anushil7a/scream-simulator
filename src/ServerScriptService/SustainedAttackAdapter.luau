@@ -1,4 +1,4 @@
--- Unwired server adapter. Context (including origin and character identity)
+-- Automatic voice server adapter. Context (including origin and character identity)
 -- must come from the server; only aim, power and sequence fields come from remotes.
 local Adapter={}
 function Adapter.new(Attack, Combat, directionFor)
@@ -23,7 +23,7 @@ function Adapter.new(Attack, Combat, directionFor)
   local amplifier=context~=nil and context.amplifier==true
   local stats=power and Combat.Stats(level,power,amplifier)
   local ok,reason,ended=Attack.Begin(s.protocol,now,request.sequence,
-   Combat.Stats(level,1,false).damage*.75,stats and stats.power,
+   Combat.Stats(level,1,false).damage*Attack.DamageScale,stats and stats.power,
    context~=nil and context.character~=nil and direction~=nil)
   if not s.protocol.active then clear(s) end
   if ok then

@@ -13,7 +13,7 @@ local function scenario(level,power,health,kind,healing)
   now+=.05
   if not s.active and now>=s.nextStart+.3 then
    casts+=1
-   assert(Attack.Begin(s,now,casts,Combat.Stats(level,1,false).damage*.75,power,true))
+   assert(Attack.Begin(s,now,casts,Combat.Stats(level,1,false).damage*Attack.DamageScale,power,true))
   end
   if s.active and now-s.active.lastPulse>=.125 then Attack.Pulse(s,now,s.active.sequence,power,true) end
   local hits=Attack.Step(s,now,true,{"target"})

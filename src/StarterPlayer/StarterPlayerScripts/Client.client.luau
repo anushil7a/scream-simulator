@@ -65,7 +65,7 @@ local toastUntil=0;local toastWidth=0
 local function notify(t) toast.Text=t;toastUntil=os.clock()+math.clamp(#t/22,4,12);toastWidth=0 end
 local conversationPanel,showConversation,closeConversation
 local nextCast=0;local sequence=0;local captureSource=nil
-local sustainedControl
+local sustainedControl,sustainedRules
 local windowFocused=true
 local function cancelCapture()
  if sustainedControl then sustainedControl:Cancel();return end
@@ -111,6 +111,7 @@ local function aimRay()
  return ray,workspace:Raycast(ray.Origin,ray.Direction*1000,params)
 end
 if remotes:GetAttribute("AutomaticVoice")==true then
+ sustainedRules=require(RS.Shared:WaitForChild("SustainedAttack"))
  local VoiceActivation=require(RS.Shared:WaitForChild("VoiceActivation"))
  sustainedControl=require(script.Parent:WaitForChild("SustainedControls")).new(VoiceActivation.new(),
   function(verb,arg) action:FireServer(verb,arg) end,
@@ -234,14 +235,16 @@ render=function()
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Screams" then
-  title.Text="SCREAM COLLECTION"
+  title.Text="SCREAM COLLECTION";subtitle.Text="Unlock effects every 10 levels. Aim and use your live voice."
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
   for _,s in ipairs(Config.Sounds) do
-   local c=card(narrow and 178 or 101);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
+   local c=card(narrow and 194 or 118);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
    label(c,s.description,UDim2.new(1,narrow and -28 or -158,0,narrow and 40 or 25),UDim2.fromOffset(14,narrow and 54 or 36),13)
-   label(c,string.format("UP TO %d DAMAGE / %.1f STUDS • 4s COOLDOWN",maximum.damage,maximum.maxRange),UDim2.new(1,-28,0,narrow and 30 or 23),UDim2.fromOffset(14,narrow and 95 or 69),12,muted)
+   local combatSummary=sustainedRules and string.format("UP TO %.1f DPS · %.1f STUDS\n%.0fs MAX ATTACK · %.0fs COOLDOWN",maximum.damage*sustainedRules.DamageScale,maximum.maxRange,sustainedRules.MaxDuration,sustainedRules.Cooldown)
+    or string.format("UP TO %d DAMAGE · %.1f STUDS\n%.0fs COOLDOWN",maximum.damage,maximum.maxRange,maximum.cooldown)
+   label(c,combatSummary,UDim2.new(1,-28,0,40),UDim2.fromOffset(14,narrow and 95 or 69),12,muted)
    local unlocked=data.level>=s.level
-   local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,narrow and 132 or 21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
+   local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,narrow and 145 or 21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
    if not unlocked then b.TextColor3=muted end
   end
  elseif selected=="Quests" then
@@ -563,8 +566,8 @@ Run.RenderStepped:Connect(function(dt)
    or (sustainedControl.armed and "PAUSE VOICE" or "ARM VOICE")..(touch and "" or " [E]")
  end
  castButton.BackgroundColor3=(sustainedControl and not sustainedControl.armed or protected>0) and muted or gold
- local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
- local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs [SHIFT]",p:GetAttribute("SprintCharge") or 10)
+ local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or (touch and "DODGE" or "DODGE [Q]")
+ local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",p:GetAttribute("SprintCharge") or 10)..(touch and "" or " [SHIFT]")
  if os.clock()>toastUntil then toast.Text="" end
  aimInfo.Visible=gameplayVisible
  elapsed+=dt;if elapsed<.15 then return end;elapsed=0
