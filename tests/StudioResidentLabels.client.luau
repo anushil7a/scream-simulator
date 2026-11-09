@@ -16,6 +16,8 @@ task.spawn(function()
    local bot=template:Clone();bot.Parent=workspace;bot.HumanoidRootPart.Anchored=true;bot:PivotTo(CFrame.new(i-2,3,-3-i*2));bot.Humanoid.Health=bot.Humanoid.MaxHealth
    bot.Head.SpeechBubble:FindFirstChildOfClass("TextLabel").Visible=true;table.insert(residents,bot)
   end
+  check(refreshResidentLabels(root,nil,residents)==nil,"Missing camera retained talk target")
+  check(enabled("Nameplate")==0 and enabled("SpeechBubble")==0,"Missing camera retained labels")
   check(refreshResidentLabels(root,camera,residents)==residents[1],"Wrong nearby target")
   check(enabled("Nameplate")==1,"Healthy crowd name clutter")
   check(enabled("SpeechBubble")==1,"Crowd speech overlap")

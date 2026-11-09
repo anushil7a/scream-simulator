@@ -180,7 +180,7 @@ local function refreshResidentLabels(root,camera,residents)
   local nameplate=head:FindFirstChild("Nameplate");local speech=head:FindFirstChild("SpeechBubble")
   if nameplate then nameplate.Enabled=false end
   if speech then speech.Enabled=false end
-  if not root or not h or h.Health<=0 then continue end
+  if not root or not camera or not h or h.Health<=0 then continue end
   local distance=(r.Position-root.Position).Magnitude
   local _,onScreen=camera:WorldToViewportPoint(head.Position)
   if not onScreen then continue end
@@ -558,7 +558,7 @@ Run.RenderStepped:Connect(function(dt)
  viewButton.Size=UDim2.fromOffset(88,touch and 44 or 32)
  end
  hud.Visible=gameplayVisible;controls.Visible=gameplayVisible
- tracked.Visible=gameplayVisible and tracked.Text~="";zone.Visible=viewport.X>740 and mic.ready
+ tracked.Visible=gameplayVisible and tracked.Text~="";zone.Visible=viewport.X>740 and gameplayVisible
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD SCREAM [E]"
  if sustainedControl then
@@ -596,7 +596,7 @@ Run.RenderStepped:Connect(function(dt)
   talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
  end
  if mapDot then CityMap.update(mapDot,root) end
- talkButton.Visible=talkTarget~=nil and mic.ready and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
+ talkButton.Visible=talkTarget~=nil and gameplayVisible
 end)
 action:FireServer("Sync")
 
