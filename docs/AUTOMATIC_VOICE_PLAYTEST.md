@@ -234,3 +234,7 @@ Pending device check: with a slow voice eligibility response, confirm timeout gu
 ### Client external-signal teardown
 
 Pending native check: remove/replace Client while its HUD is open and an automatic attack is active. Confirm the old client stops frame/state updates and keyboard, jump and focus responses, and the replacement handles input once. Existing sustained-controller teardown should stop its attack. Six mocked signal tests verify cleanup, queued-callback suppression and late-registration rejection; no native event scheduling or memory measurement is claimed.
+
+### Removed microphone analyzer recovery
+
+Pending native/device check: during capture in a disposable client, remove the local ScreamInputMeter AudioAnalyzer. Confirm it is rebuilt, the active capture cancels, attack readiness is lost, and fresh calibration plus deliberate resume restores use. Mocked removal/recalibration coverage passes; it does not establish actual audio-engine reconnection.

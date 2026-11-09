@@ -27,7 +27,7 @@ function Microphone:CancelCalibration()
 end
 function Microphone:FindInput()
  if self.destroyed then return nil end
- if self.input and self.input.Parent then return self.input end
+ if self.input and self.input.Parent and self.analyzer and self.analyzer.Parent then return self.input end
  self:Cancel();self:CancelCalibration();self.ready=false
  if self.analyzer then self.analyzer:Destroy();self.analyzer=nil end
  local input=Players.LocalPlayer:FindFirstChildWhichIsA('AudioDeviceInput',true)
