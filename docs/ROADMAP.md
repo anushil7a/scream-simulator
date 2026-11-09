@@ -21,7 +21,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Verify unlock boundaries, overflow XP, retired styles, idempotent migration and reload. Produce a local build; do not publish.
 - Why first: continuous damage and destruction need a coherent level/balance model, and a cap change must not erase progress.
 
-### P0 — voice-triggered continuous combat (local client/server prototype wired; beam feedback and native verification pending)
+### P0 — voice-triggered continuous combat (local client/server prototype wired; beam feedback wired; native verification pending)
 
 - Replace hold/release as the default attack trigger. Sustained calibrated voice starts an attack, aiming tracks during the scream, quiet/mute stops it.
 - Prototype 4 seconds maximum active time, then 10 seconds cooldown from attack end. Compare with shorter active windows in timed playtests; keep tuning data-driven.
@@ -90,6 +90,8 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 - November 8 heartbeat: connected the opt-in microphone onset gate to server begin/pulse/stop. Voice starts paused; E or the action button arms it. The HUD reports pending, attacking and cooldown states. Controls wait for the matching server acknowledgement before sending aim updates, stop on blocked input and disarm on focus loss, respawn or unavailable mic. Passed 13 synthetic client checks, 9,094 rules checks and 28 mocked adapter checks. Changed scripts compile and `build/SustainedClientReview.rbxl` builds. No native Studio, real microphone or published behavior verified.
 
+- November 8 heartbeat: added server-driven sustained beams for nearby viewers using the same raycast length as damage. Client updates reuse one part per attacker, capped at 24, with explicit stop/disconnect cleanup and a half-second expiry fallback. Mocked visual lifecycle, adapter and synthetic control tests passed. Changed scripts compile and `build/SustainedBeamReview.rbxl` builds. No Studio rendering or multiplayer performance was measured. Usage was 46% at both boundaries; nothing published or pushed.
+
 ## Next action
 
-Check usage, then add bounded persistent beam feedback to the opt-in mode. Run the disposable Studio server fixture and a local client/server session before claiming native damage, cover or controls verification. Test PvP, destruction and real microphones separately. Keep normal mode on legacy combat until review.
+Check usage, then run the disposable Studio server fixture and a local client/server session. Verify that beams track aim, stop at cover, and disappear on stop, death and disconnect. Confirm PvP and destruction with real engine tests before real microphone testing. Normal mode stays on legacy combat until review.

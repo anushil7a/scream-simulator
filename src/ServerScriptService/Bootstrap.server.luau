@@ -50,6 +50,7 @@ local function parts(p)
 end
 local function sustainedEnd(p,ended,now)
  if not ended then return end
+ effect:FireAllClients("SustainedBeamEnd",nil,p.UserId)
  p:SetAttribute("SustainedActive",false)
  p:SetAttribute("SustainedReadyAt",workspace:GetServerTimeNow()+math.max(0,ended.nextStart-now))
 end
@@ -170,13 +171,21 @@ local function resolveSustained(ctx,direction,stats,now)
    add("bot:"..tostring(bot.id),{bot=bot})
   end
  end
- return ids,details
+ return ids,details,{origin=ctx.origin,direction=direction,length=length,width=stats.width}
 end
 local function stepSustained(p,s,now)
  local intent=s.sustained.intent
  local context=sustainedContext(p,s,now)
- local hits,ended,details=sustained.Step(s.sustained,now,context,resolveSustained)
+ local hits,ended,details,beam=sustained.Step(s.sustained,now,context,resolveSustained)
  sustainedEnd(p,ended,now)
+ if beam and not ended then
+  for _,viewer in ipairs(Players:GetPlayers()) do
+   local _,root=parts(viewer)
+   if root and (root.Position-beam.origin).Magnitude<=180 then
+    effect:FireClient(viewer,"SustainedBeam",beam.origin,p.UserId,s.data.aura,beam.direction,beam.length,beam.width)
+   end
+  end
+ end
  for _,hit in ipairs(hits) do
   local target=details[hit.id]
   if target.player then
@@ -551,7 +560,7 @@ local function joined(p)
  state(p,loadMessage or "Welcome · train for XP, unlock screams, and explore the coast")
 end
 Players.PlayerAdded:Connect(joined);for _,p in ipairs(Players:GetPlayers()) do task.spawn(joined,p) end
-Players.PlayerRemoving:Connect(function(p) closeConversation(p);local s=sessions[p];if s and s.canSave then Profiles.Save(p.UserId,s.testBaseline or s.data,true) end;sessions[p]=nil end)
+Players.PlayerRemoving:Connect(function(p) closeConversation(p);local s=sessions[p];if s then cancelSustained(p,s,os.clock());if s.canSave then Profiles.Save(p.UserId,s.testBaseline or s.data,true) end end;sessions[p]=nil end)
 task.spawn(function()
  local tick=0
  while true do task.wait(0.1);tick+=1;local now=os.clock()

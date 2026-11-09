@@ -31,7 +31,7 @@ The adapter must supply unique stable IDs for players, bots and destructible obj
 
 `ServerScriptService.SustainedAttackAdapter` is ready for Bootstrap wiring. Supply the two rules modules and `SustainedAim` to its factory. Begin/pulse take a server context with current character identity and origin, or nil when gameplay state forbids an attack. Begin also reads the server level and amplifier flag, which remain fixed for that attack. Each pulse carries an increasing per-attack `sample` integer in addition to its attack `sequence`. Fresh but rate-rejected samples are consumed; only accepted pulses update aim.
 
-Step rechecks character identity and reconstructs direction from the current origin. Its resolver callback is invoked only for a due damage tick with fresh input. Return server-selected target IDs, an ID-to-target detail map and optional beam metadata. Apply returned damage only to those resolved details. Begin and pulse may also return expiry metadata even when the new request is rejected. The opt-in Bootstrap path now supplies the network handlers, target resolver and damage application. Sustained beam VFX remain unwired.
+Step rechecks character identity and reconstructs direction from the current origin. Its resolver callback is invoked only for a due damage tick with fresh input. Return server-selected target IDs, an ID-to-target detail map and optional beam metadata. Apply returned damage only to those resolved details. Begin and pulse may also return expiry metadata even when the new request is rejected. The opt-in Bootstrap path now supplies the network handlers, target resolver and damage application. Sustained beam visuals use the resolved server geometry.
 
 `luau tests/SustainedAttackAdapter.luau` passes 28 checks with mocked geometry, including client-forged fields, aim reconstruction after movement, sample replay, respawn, expiration and duplicate ticks. Roblox raycasts and gameplay remain untested.
 
@@ -53,7 +53,7 @@ In the same opt-in place, calibrate the microphone, then press E or tap **ARM VO
 
 1. Verify arm/pause, microphone onset, cancellation, and acknowledgement in a local Studio session.
 2. Verify the wired adapter in Studio, including cover, PvP, destruction, legacy remote rejection and expiry.
-3. Replace repeated burst VFX with one bounded updated beam per attacker, cleanup on end/disconnect and a measured replication rate. Handle server rejection/acknowledgement in the UI.
+3. Verify beam rendering, cleanup and measured replication rate in Studio. The local renderer reuses one part per attacker, caps visuals at 24, and expires missing updates after 0.5 seconds plus the cleanup poll interval. Server updates are limited to due damage ticks (at most five per second per attacker) and viewers within 180 studs. These bounds are design limits, not measured performance.
 4. Keep NPC/KO/destruction rewards bounded per sustained attack. Review existing soccer/volley handlers separately: calling them on every damage tick would change their difficulty and ball physics.
 5. Revisit healing: current 20% regeneration begins ten seconds after damage, matching the proposed cooldown. Measure how much healing happens between bursts and how that changes time-to-knockout.
 6. Verify in a disposable local city, then request owner-approved real mic/multiplayer testing. No cloud edits or publication are authorized.

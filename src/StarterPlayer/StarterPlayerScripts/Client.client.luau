@@ -388,7 +388,37 @@ UIS.WindowFocusReleased:Connect(function() windowFocused=false;if sustainedContr
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
+local sustainedBeams
+if sustainedControl then
+ sustainedBeams=require(script.Parent:WaitForChild("SustainedBeams")).new(function()
+  local part=Instance.new("Part");part.Name="SustainedVoiceBeam"
+  part.Anchored=true;part.CanCollide=false;part.CanTouch=false;part.CanQuery=false;part.CastShadow=false
+  part.Material=Enum.Material.Neon
+  return part
+ end,function(part,pos,direction,length,width,color)
+  local thickness=math.clamp(width*.12,.15,.8)
+  part.Size=Vector3.new(thickness,thickness,length)
+  local up=math.abs(direction.Y)>.99 and Vector3.xAxis or Vector3.yAxis
+  part.CFrame=CFrame.lookAt(pos+direction*length/2,pos+direction*length,up)
+  part.Color=color;part.Transparency=data.settings.reducedShake and .65 or .35
+  part.Parent=workspace
+ end,function(part) part:Destroy() end)
+ script.Destroying:Connect(function() sustainedBeams:Clear() end)
+end
 remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,beamWidth)
+ if kind=="SustainedBeamEnd" then
+  if sustainedBeams then sustainedBeams:Remove(id) end
+  return
+ end
+ if kind=="SustainedBeam" then
+  if not sustainedBeams then return end
+  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+  if not root or (root.Position-pos).Magnitude>180 or length<.05 then
+   sustainedBeams:Remove(id);return
+  end
+  sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,Config.Auras[aura] or gold)
+  return
+ end
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root and (root.Position-pos).Magnitude>180 then return end
  if kind=="Break" then
   for i=1,6 do local chip=fxPart(pos,Config.Auras[id] or gold,Vector3.new(.5,.5,.5));Tween:Create(chip,TweenInfo.new(.45),{Position=pos+Vector3.new(math.cos(i)*3,2,math.sin(i)*3),Transparency=1}):Play() end;return
@@ -511,6 +541,7 @@ Run.RenderStepped:Connect(function(dt)
  if os.clock()>toastUntil then toast.Text="" end
  aimInfo.Visible=gameplayVisible
  elapsed+=dt;if elapsed<.15 then return end;elapsed=0
+ if sustainedBeams then sustainedBeams:Expire(os.clock()) end
  aimInfo.Text=""
  if aimInfo.Visible then
   local _,hit=aimRay();local object=hit and hit.Instance
