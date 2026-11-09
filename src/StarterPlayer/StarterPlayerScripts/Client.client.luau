@@ -104,6 +104,7 @@ local function beginCapture(source)
 end
 local function aimRay()
  local camera=workspace.CurrentCamera
+ if not camera or camera.ViewportSize.X<2 or camera.ViewportSize.Y<2 then return nil end
  local location=(firstPerson or UIS.TouchEnabled) and camera.ViewportSize/2 or UIS:GetMouseLocation()
  local ray=camera:ViewportPointToRay(location.X,location.Y)
  local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
@@ -116,6 +117,7 @@ if remotes:GetAttribute("AutomaticVoice")==true then
   function()
    if not workspace.CurrentCamera then return nil end
    local ray,hit=aimRay()
+   if not ray then return nil end
    return hit and hit.Position or ray.Origin+ray.Direction*1000
   end)
 end
@@ -128,6 +130,7 @@ local function releaseCapture(source)
  if blocked() then cancelCapture();return end
  local power,reason=mic:Release();if power<.08 then action:FireServer("CancelCast");notify(reason or "Use your voice while holding attack.");return end
  local ray,hit=aimRay()
+ if not ray then action:FireServer("CancelCast");return end
  action:FireServer("Cast",{sequence=sequence,power=power,aim=hit and hit.Position or ray.Origin+ray.Direction*1000})
  nextCast=os.clock()+4
 end
