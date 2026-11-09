@@ -34,11 +34,11 @@ function Controls:Step(dt,now,power,allowed,ready,active,serverSequence)
  local attack=self.attack
  if attack then
   if active and serverSequence==attack.sequence then
-   attack.acknowledged=true
+   attack.acknowledged=true;self.unconfirmedUntil=0
   elseif attack.acknowledged then
    self.attack=nil;self.gate:Cancel();return
   elseif now>=attack.ackDeadline then
-   self:Cancel();return
+   self.unconfirmedUntil=now+2;self:Cancel();return
   end
  elseif active then
   self.gate:Cancel();return
@@ -48,7 +48,7 @@ function Controls:Step(dt,now,power,allowed,ready,active,serverSequence)
  if transition=="start" then
   local aim=self.getAim()
   if not aim then self:Cancel();return end
-  self.sequence+=1
+  self.unconfirmedUntil=0;self.sequence+=1
   self.attack={sequence=self.sequence,sample=0,nextPulse=now+PULSE_INTERVAL,ackDeadline=now+ACK_TIMEOUT}
   self.send("SustainedBegin",{sequence=self.sequence,power=power,aim=aim})
  elseif attack and attack.acknowledged and now>=attack.nextPulse and power>=MIN_PULSE_POWER then

@@ -328,3 +328,7 @@ Pending native animation check: detach/restore the cached player root or humanoi
 ### Calibration during access checks
 
 Pending device check: press Calibrate while access is checking or timed out but unresolved. Existing guidance should remain; no calibration begins until eligibility resolves. Retry access and calibrate after success. Two mocked pending-state assertions pass; actual Roblox access timing remains unverified.
+
+### Unconfirmed attack feedback
+
+Pending native/latency check: delay or suppress attack acknowledgement in a disposable test. After the local timeout, the meter should briefly explain “Not confirmed • quiet, then retry”; it must not send sustained pulses before acceptance or bypass the fresh-quiet requirement. A fresh start clears the notice. Two added synthetic controller assertions pass; no real network cause or timing has been verified.

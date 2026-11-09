@@ -678,6 +678,7 @@ connectClient(Run.RenderStepped,function(dt)
    or not sustainedControl.armed and (touch and "Voice paused • tap ARM VOICE" or "Voice paused • E to resume")
    or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
+   or os.clock()<(sustainedControl.unconfirmedUntil or 0) and "Not confirmed • quiet, then retry"
    or sustainedControl.gate.needsQuiet and "Armed • quiet before speaking"
    or sustainedControl.gate.onset>0 and "Voice detected • keep speaking"
    or string.format("Armed • speak past %d%% marker",math.floor(sustainedControl.gate.OnPower*100))
