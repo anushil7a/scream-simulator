@@ -3,7 +3,8 @@
 local Players=game:GetService("Players")
 local Run=game:GetService("RunService")
 local Config=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config"))
-local rigs={}
+local rigs,watchers,connections={},{},{}
+local destroyed=false
 local function clearRig(player)
  local rig=rigs[player]
  if not rig then return end
@@ -13,10 +14,17 @@ local function clearRig(player)
  end
  rigs[player]=nil
 end
+local function clearPlayer(player)
+ local links=watchers[player]
+ if links then for _,connection in ipairs(links) do connection:Disconnect() end end
+ watchers[player]=nil;clearRig(player)
+end
 local function watch(player)
+ if destroyed or watchers[player] then return end
+ local links={};watchers[player]=links
  local function added(character)
   local humanoid=character:WaitForChild("Humanoid",10);local root=character:WaitForChild("HumanoidRootPart",10)
-  if not humanoid or not root or player.Character~=character then return end
+  if destroyed or watchers[player]~=links or not humanoid or not root or player.Character~=character then return end
   clearRig(player)
   local rig={character=character,humanoid=humanoid,root=root,joints={},offsets={},phase=0,blend=0,airborne=false,landing=0,charge=0,connections={}};rigs[player]=rig
   local function collect(item)
@@ -28,18 +36,20 @@ local function watch(player)
   for _,item in ipairs(character:GetDescendants()) do collect(item) end
   table.insert(rig.connections,character.DescendantAdded:Connect(collect))
  end
- player.CharacterRemoving:Connect(function(character)
+ table.insert(links,player.CharacterRemoving:Connect(function(character)
   local rig=rigs[player];if rig and rig.character==character then
    clearRig(player)
   end
- end)
- player.CharacterAdded:Connect(added);if player.Character then task.spawn(added,player.Character) end
+ end))
+ table.insert(links,player.CharacterAdded:Connect(added));if player.Character then task.spawn(added,player.Character) end
 end
-for _,p in ipairs(Players:GetPlayers()) do watch(p) end;Players.PlayerAdded:Connect(watch);Players.PlayerRemoving:Connect(clearRig)
-Run.PreAnimation:Connect(function()
+table.insert(connections,Players.PlayerAdded:Connect(watch))
+table.insert(connections,Players.PlayerRemoving:Connect(clearPlayer))
+for _,p in ipairs(Players:GetPlayers()) do watch(p) end
+table.insert(connections,Run.PreAnimation:Connect(function()
  for _,rig in pairs(rigs) do for joint,offset in pairs(rig.offsets) do if joint.Parent then joint.Transform=joint.Transform*offset:Inverse() end end;table.clear(rig.offsets) end
-end)
-Run.PreSimulation:Connect(function(dt)
+end))
+table.insert(connections,Run.PreSimulation:Connect(function(dt)
  for player,rig in pairs(rigs) do
   if not rig.character.Parent then continue end
   local function pose(name,offset,jointSpace)
@@ -111,4 +121,9 @@ Run.PreSimulation:Connect(function(dt)
   for _,spec in ipairs({{"Left Shoulder",swing},{"Right Shoulder",-swing},{"Left Hip",-swing},{"Right Hip",swing},{"LeftShoulder",swing},{"RightShoulder",-swing},{"LeftHip",-swing},{"RightHip",swing},{"LeftKnee",math.max(0,swing)*.7},{"RightKnee",math.max(0,-swing)*.7}}) do pose(spec[1],CFrame.Angles(spec[2],0,0)) end
   pose("Waist",CFrame.Angles(-.14*rig.blend,math.sin(rig.phase)*.04*rig.blend,0));rig.character:SetAttribute("SprintAnimationBlend",rig.blend)
  end
+end))
+script.Destroying:Connect(function()
+ destroyed=true
+ for _,connection in ipairs(connections) do connection:Disconnect() end
+ for player in pairs(watchers) do clearPlayer(player) end
 end)

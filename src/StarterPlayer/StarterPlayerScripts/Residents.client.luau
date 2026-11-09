@@ -2,6 +2,8 @@
 local Collection=game:GetService("CollectionService")
 local Run=game:GetService("RunService")
 local rigs={}
+local connections={}
+local destroyed=false
 local jointNames={"Left Shoulder","Right Shoulder","Left Hip","Right Hip"}
 local function makePracticeBall()
  local model=Instance.new("Model");model.Name="NickPracticeVisual"
@@ -14,15 +16,22 @@ local function makePracticeBall()
  end
  model.Parent=workspace;return model
 end
+local function clearRig(model)
+ local rig=rigs[model];if not rig then return end
+ if rig.practiceBall then rig.practiceBall:Destroy() end
+ for _,joint in pairs(rig.joints) do if joint.Parent then joint.Transform=CFrame.identity end end
+ for _,joint in pairs({rig.rootJoint,rig.neck}) do if joint.Parent then joint.Transform=CFrame.identity end end
+ rigs[model]=nil
+end
 local function register(model)
- if rigs[model] then return end
+ if destroyed or rigs[model] then return end
  rigs[model]={model=model,joints={},phase=(model:GetAttribute("AnimationSeed") or 1)*.71,blend=0,elapsed=0}
  if model:GetAttribute("DisplayName")=="Nick Booty" then rigs[model].practiceBall=makePracticeBall() end
 end
+table.insert(connections,Collection:GetInstanceAddedSignal("CityResident"):Connect(register))
+table.insert(connections,Collection:GetInstanceRemovedSignal("CityResident"):Connect(clearRig))
 for _,model in ipairs(Collection:GetTagged("CityResident")) do register(model) end
-Collection:GetInstanceAddedSignal("CityResident"):Connect(register)
-Collection:GetInstanceRemovedSignal("CityResident"):Connect(function(model) local rig=rigs[model];if rig and rig.practiceBall then rig.practiceBall:Destroy() end;rigs[model]=nil end)
-Run.PreSimulation:Connect(function(dt)
+table.insert(connections,Run.PreSimulation:Connect(function(dt)
  local camera=workspace.CurrentCamera;if not camera then return end
  for model,rig in pairs(rigs) do
   if not model:IsDescendantOf(workspace) then continue end
@@ -127,4 +136,9 @@ Run.PreSimulation:Connect(function(dt)
    end
   end
  end
+end))
+script.Destroying:Connect(function()
+ destroyed=true
+ for _,connection in ipairs(connections) do connection:Disconnect() end
+ for model in pairs(rigs) do clearRig(model) end
 end)
