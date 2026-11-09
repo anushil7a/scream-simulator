@@ -50,10 +50,13 @@ end)
 local connection
 script.Destroying:Connect(function() destroyed=true;heartbeat:Disconnect();if connection then connection:Disconnect() end;folder:Destroy();group:Destroy() end)
 local remotes=game:GetService("ReplicatedStorage"):WaitForChild("ScreamRemotes")
+if destroyed then return end
 local state=remotes:WaitForChild("State")
 if destroyed then return end
 connection=state.OnClientEvent:Connect(function(data)
  local volume=type(data)=="table" and type(data.settings)=="table" and data.settings.volume
  if type(volume)=="number" and volume==volume then group.Volume=math.clamp(volume,0,1) end
 end)
-remotes:WaitForChild("Action"):FireServer("Sync")
+local action=remotes:WaitForChild("Action")
+if destroyed then return end
+action:FireServer("Sync")

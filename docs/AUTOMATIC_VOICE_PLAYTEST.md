@@ -184,3 +184,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Live voice threshold feedback
 - Pending visual/device: confirm the white start marker aligns with the configured onset threshold, voiced onset briefly shows the detection hint, and paused/quiet/cooldown/interruption guidance remains clear on small screens. Use comfortable calibrated speech; the marker is normalized input power, not a physical loudness target.
 - Evidence: full local verification/build only. No native layout or real-microphone usability result; attack tuning is unchanged.
+
+### Ambience interrupted startup
+- Pending native: stop the ambience script while its remotes are unavailable; supplying them afterward must not create a new subscription or send a stale Sync. Confirm normal city volume settings still work.
+- Evidence: nine actual remote-hookup checks with coroutine waits and simulated teardown, plus full verification/build; no device/audio result.
