@@ -45,14 +45,15 @@ function CityMap.create(parent)
   local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=pin;text(pin,tostring(i),13)
  end
  local dot=box(map,'Player',0,0,0,0,gold);dot.Size=UDim2.fromOffset(18,18);dot.AnchorPoint=Vector2.new(.5,.5);dot.ZIndex=5
+ dot.Visible=false
  local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=dot
  local arrow=text(dot,'▲',14,Color3.fromRGB(19,32,40));arrow.ZIndex=6
  return {map=map,dot=dot,arrow=arrow}
 end
 function CityMap.update(view,root)
  if not view or not view.map.Parent then return end
- view.dot.Visible=root~=nil
- if not root then return end
+ view.dot.Visible=root~=nil and root.Parent~=nil
+ if not view.dot.Visible then return end
  view.dot.Position=position(root.Position.X,root.Position.Z)
  local look=root.CFrame.LookVector
  view.arrow.Rotation=math.deg(math.atan2(look.X,-look.Z))

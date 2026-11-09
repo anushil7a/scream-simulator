@@ -266,3 +266,7 @@ Pending listening check: near the stage, confirm guitar fades out when the buske
 ### Coastal map landmarks
 
 Pending visual check: open Map on desktop and narrow phone layouts. Verify promenade strip, pier footprint and numbered pier landmark 7 are readable, the legend wraps without clipping, and the player arrow follows the promenade/pier correctly. Coordinates were compared with generated City geometry and the UI harness compiles; native rendering was not verified.
+
+### Map marker respawn
+
+Pending native visual check: open Map before/during respawn. The marker should hide while no valid root exists and return at the new spawn with the correct heading. Check no initial top-left marker flash. Nine mocked update checks pass; native character timing and rendered layout remain unverified.
