@@ -764,6 +764,8 @@ local function coast(parent,walk,activities)
   local x=-660+(i-1)*77;local z=470+(i%3)*25;local color=i%2==0 and Color3.fromRGB(215,116,85) or Color3.fromRGB(78,153,157)
   -- Reserve a run-up margin around the playable volleyball court.
   if x> -82 and x< -18 and z>455 and z<551 then z=455 end
+  -- Keep the three sparring pads and their approach clear.
+  if x> -495 and x< -125 and z>505 then continue end
   parasol(m,x,z,color)
   part(m,"BeachLounger",V(3,.5,7),V(x+4,1.6,z+5),cream,Enum.Material.Fabric)
   part(m,"LoungerBack",V(3,3,.4),CFrame.new(x+4,2.8,z+8)*CFrame.Angles(.4,0,0),color,Enum.Material.Fabric)
@@ -784,7 +786,7 @@ local function coast(parent,walk,activities)
    if humanoid and humanoid.Health>0 and root and not seat.Occupant and (root.Position-seat.Position).Magnitude<9 then seat:Sit(humanoid) end
   end)
   if i%3==1 then table.insert(walk,V(x+4,4,z-2));table.insert(activities,{position=V(x+4,4,z-2),kind="Rest"}) end
-  if i%3==0 and x<590 then ellipsoid(m,"SandDune",V(27,4,18),V(x,.7,565),Color3.fromRGB(219,200,148),Enum.Material.Sand) end
+  if i%3==0 and x<590 and not (x> -495 and x< -125) then ellipsoid(m,"SandDune",V(27,4,18),V(x,.7,565),Color3.fromRGB(219,200,148),Enum.Material.Sand) end
  end
  for x=-700,700,60 do local p=part(m,"SurfLine",V(40,.05,1.2),V(x,.08,600),Color3.fromRGB(214,235,225),nil,false);p.Transparency=.35 end
  part(m,"TimberPier",V(28,1.5,125),V(525,1.5,537),Color3.fromRGB(144,113,78),Enum.Material.WoodPlanks)

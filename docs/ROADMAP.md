@@ -15,6 +15,14 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 ## Ordered backlog
 
+### P0 — combat progression redesign (implemented locally; human balance testing next)
+
+- Three west-beach training tiers, server-owned telegraphed retaliation, level-band rewards, shared KO/assist credit, stronger repeat-opponent limits, three persistent renewing combat challenges and ten-level milestone/stat previews. Map marker 8 identifies the training pads.
+- XP curve and rewards tuned together. Deterministic steady solo-training scenario estimates level 10 in 10.8 minutes, 25 in 62.4 minutes, 50 in 3.9 hours and 100 in 15.9 hours; these are assumptions, not measured playtime. See [balance specification](PROGRESSION_BALANCE.md).
+- Follow-up bug/optimization review: reproduced and fixed missing/expired damage becoming a full last-hit payout; combined KO/challenge notices to preserve completion feedback and reduce one recipient's double-challenge payout from three reward state sends to one (excluding level-up messages). No frame-rate gain is claimed.
+- Automated verification/build: 20 pure/synthetic suites, 48 mocked-service suites, 46 production scripts. Native fixture and build identity are recorded in [evidence](../tests/evidence/progression-redesign-2026-11-09.json). Real voice, multiplayer, physical-phone layouts, live saves and actual pacing remain open.
+- Next: owner/friend tests at levels 1/25/60/100; measure deaths, KOs/minute, assist credit and progress per session. GitHub development sync authorized; Roblox publication still requires approval. No schedule created.
+
 ### P0 — progression foundation (implemented locally; native review pending)
 
 - Cap progression/combat at level 100, with a base scream at level 1 and unlocks at 10, 20, …, 100.

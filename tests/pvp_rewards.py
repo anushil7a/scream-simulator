@@ -1,51 +1,73 @@
-"""Actual sustained PvP hit branch with fake players/health; no geometry/network evidence."""
+"""Actual payout helpers and sustained PvP handler, mocked players/health."""
 from pathlib import Path
-import subprocess
-import tempfile
+import subprocess,tempfile
 root=Path(__file__).resolve().parents[1]
 s=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
-helper=s[s.index('local function claimKoReward('):s.index('local function questProgress(')]
+helpers=s[s.index('local function combatChallenge('):s.index('local function stopQuest(')]
 a=s.index('  if target.player then',s.index('local dealt=0'))
 b=s.index('  elseif target.object then',a)
-setup='''
-local Config={HealQuietSeconds=10,PlayerKOXP=function(level)return level*7 end}
-local rewards,ejections,quests=0,0,0
-local notices={};local function state(_,message)table.insert(notices,message)end
-local function xp(_,amount)rewards+=amount end
+setup="""
+local Credit=require('../src/ReplicatedStorage/Shared/CombatCredit')
+local Progression=require('../src/ReplicatedStorage/Shared/Progression')
+local TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
+local Config={Progression=Progression,HealQuietSeconds=12,PlayerKOXP=function()return 100 end}
+local rewardHistory={pairs={}};local coverRewards={}
+local one={UserId=1};local two={UserId=2};local victim={UserId=3,DisplayName='Opponent'}
+local players={[1]=one,[2]=two,[3]=victim}
+local Players={GetPlayerByUserId=function(_,id)return players[id]end}
+local sessions={}
+for _,p in pairs(players) do sessions[p]={data={level=20,xp=0,coins=0,combatChallenges={}},credit={}} end
+local notices={};local updates={};local quests=0;local ejections=0
+local function state(p,message)notices[p]=message;updates[p]=(updates[p] or 0)+1 end
+local function xp(p,amount)sessions[p].data.xp+=amount end
+local function questProgress()quests+=1 end
 local function eject(_,h)ejections+=1;h.Health=h.MaxHealth end
-local function questProgress(_,event)assert(event=='Underdog');quests+=1 end
-local function hitPlayer(s,target,damage,now,level)
- local dealt=0;local hit={damage=damage};local intent={level=level};local p={}
-'''
-checks='''
+"""
+wrapper="""
+local function hitPlayer(p,target,damage,now)
+ local s=sessions[p];local dealt=0;local hit={damage=damage};local intent={level=s.data.level}
+"""
+checks="""
  end
  return dealt
 end
 local checks=0;local function check(v,msg)assert(v,msg);checks+=1 end
-local s={koRewards={},data={coins=0}}
-local h={Health=10,MaxHealth=100}
-local target={player={UserId=2,DisplayName="Opponent"},humanoid=h,session={data={level=20}}}
-check(hitPlayer(s,target,4,100,10)==4 and h.Health==6,'Nonlethal applied damage incorrect')
-check(#notices==0,'Nonlethal hit emitted KO notice')
-check(target.session.nextHeal==110 and rewards==0 and s.data.coins==0,'Nonlethal reward/healing state incorrect')
-check(hitPlayer(s,target,9,101,10)==6 and h.Health==100 and ejections==1,'KO feedback exceeded remaining health or recovery failed')
-check(notices[1]=='Arena KO · Opponent · reward earned','KO confirmation missing')
-check(rewards==140 and s.data.coins==20 and quests==1 and s.koRewards[2]==131,'KO reward/cooldown/underdog incorrect')
-h.Health=1;hitPlayer(s,target,2,130.9,10)
-check(ejections==2 and rewards==140 and s.data.coins==20 and quests==1,'Repeated opponent paid before cooldown')
-check(notices[2]=='Arena KO · Opponent · repeat-opponent reward cooldown','Repeated KO claimed another reward')
-check(s.koRewards[2]==131,'Rejected repeat extended reward cooldown')
-h.Health=1;hitPlayer(s,target,2,131,30)
-check(rewards==280 and s.data.coins==40 and quests==1,'Cooldown boundary or higher-attacker underdog rule incorrect')
-target.player={UserId=3,DisplayName="Other"};target.session.data.level=50;h.Health=1
-hitPlayer(s,target,2,132,50)
-check(rewards==630 and s.data.coins==60 and quests==2,'Different/equal-level opponent reward was suppressed')
-check(s.koRewards[2]==161 and s.koRewards[3]==162,'Opponent cooldowns were not independent')
-print('PASS '..checks..' actual PvP reward branch checks with mocked players/health')
-'''
-with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
-    path=Path(f.name);f.write(helper+setup+s[a:b]+checks)
-try:
-    subprocess.run(['luau',str(path)],cwd=root,check=True)
-finally:
-    path.unlink()
+local h={Health=100,MaxHealth=100}
+local target={player=victim,humanoid=h,session=sessions[victim]}
+check(hitPlayer(one,target,70,100)==70 and h.Health==30,'Nonlethal damage wrong')
+check(sessions[one].data.xp==0 and sessions[victim].nextHeal==112,'Per-hit XP or missing heal delay')
+check(hitPlayer(two,target,50,101)==30 and h.Health==100 and ejections==1,'Overkill credit or ejection wrong')
+check(sessions[one].data.xp==70 and sessions[two].data.xp==30,'Assist pool not damage-proportional')
+check(sessions[one].data.coins==14 and sessions[two].data.coins==6 and quests==1,'Coins/underdog wrong')
+check(notices[one]=='Assist · +70 XP' and notices[two]=='KO · +30 XP','Assist/KO feedback missing')
+hitPlayer(two,target,100,102)
+check(ejections==2 and sessions[two].data.xp==30,'Repeat victim paid')
+hitPlayer(two,target,100,161)
+check(sessions[two].data.xp==80,'Second eligible victim must pay half')
+sessions[one].data.level=100;hitPlayer(one,target,100,162)
+check(sessions[one].data.xp==72,'Weak victim and repeat factors not combined')
+sessions[one].data.level=20;hitPlayer(one,target,80,800);players[1]=nil;hitPlayer(two,target,20,801)
+check(sessions[two].data.xp==100,'Offline credit redistributed into last-hit bonus')
+players[1]=one
+local ledger={};local tier=TrainingRules.Tiers[3]
+sessions[one].data.level=100;local before=sessions[one].data.xp
+Credit.Add(ledger,1,378,900,420);Credit.Add(ledger,2,42,900,420)
+awardCombatKO(ledger,two,60,420,420,900,nil,tier)
+check(sessions[one].data.xp==before+378 and sessions[one].data.combatChallenges.elite==1,'Elite reward band or assist challenge broken')
+sessions[one].data.level=60;sessions[one].data.combatChallenges={fighters=2,elite=1}
+ledger={};Credit.Add(ledger,1,420,901,420);local sent=updates[one];before=sessions[one].data.xp
+awardCombatKO(ledger,one,60,420,420,901,nil,tier)
+check(sessions[one].data.xp==before+720,'KO plus two challenges lost XP')
+check(updates[one]==sent+1 and notices[one]=='KO · +720 XP · challenge completed & renewed','Challenge feedback overwritten or emitted redundant state updates')
+local model={};coverChallenge(one,{destroyed=true,model=model},1000);coverChallenge(one,{destroyed=true,model=model},1001)
+check(sessions[one].data.combatChallenges.cover==1,'Duplicate cover credit')
+coverChallenge(one,{destroyed=true,model=model,reason='level'},1120)
+check(sessions[one].data.combatChallenges.cover==1,'Locked cover credit')
+coverChallenge(one,{destroyed=true,model=model},1120)
+check(sessions[one].data.combatChallenges.cover==2,'Repaired cover never eligible')
+print('PASS '..checks..' actual combat payouts and PvP damage checks (mocked services)')
+"""
+with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False,encoding='utf-8') as f:
+ path=Path(f.name);f.write(setup+helpers+wrapper+s[a:b]+checks)
+try: subprocess.run(['luau',str(path)],cwd=root,check=True)
+finally: path.unlink()

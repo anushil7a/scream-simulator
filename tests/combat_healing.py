@@ -14,6 +14,8 @@ local sustained={Step=function()return queuedHits,nil,queuedDetails,nil end}
 local function sustainedContext()return {position=0}end
 local function sustainedEnd()end
 local function resolveSustained()end
+local function recordCredit()end
+local function coverChallenge()end
 local function xp()end
 local function questProgress()end
 local function state()end

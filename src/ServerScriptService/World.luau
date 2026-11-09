@@ -1,4 +1,5 @@
 local Config = require(game:GetService("ReplicatedStorage").Shared.Config)
+local TrainingRules=require(game:GetService("ReplicatedStorage").Shared.TrainingRules)
 local InteractionRules=require(game:GetService("ReplicatedStorage").Shared.InteractionRules)
 local RunService = game:GetService("RunService")
 local PathfindingService = game:GetService("PathfindingService")
@@ -474,6 +475,7 @@ local function noticePlayers(bot)
 end
 
 function World.ReactToScream(bot, origin)
+    if bot.training then return end
     stopWalking(bot)
     bot.reactionUntil = os.clock() + 2.3
     bot.gestureUntil = bot.reactionUntil
@@ -485,9 +487,10 @@ function World.ReactToScream(bot, origin)
     World.Speak(bot, ({"Whoa, my ears!", "That echoed down the block!", "Careful with that scream!"})[rng:NextInteger(1, 3)])
 end
 
-local function makeBot(parent, index, x, z, role, job)
+local function makeBot(parent, index, x, z, role, job, training)
     local displayName = names[(index - 1) % #names + 1] .. (index > #names and " " .. ({"Park", "Reed", "Chen", "Rivera", "Brooks", "Shah"})[(index-1)%6+1] or "")
     if job then displayName=job.name end
+    if training then displayName=training.name.." · Lv "..training.level end
     local model = Instance.new("Model")
     model.Name = displayName .. "_TrainingNPC"
     model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
@@ -497,7 +500,7 @@ local function makeBot(parent, index, x, z, role, job)
     model:SetAttribute("DisplayName", displayName)
     model:SetAttribute("Role", role)
     local avatarRng = Random.new(8044 + index * 479)
-    local home=Vector3.new(x,job and job.stations[1].position.Y or 3.9,z)
+    local home=Vector3.new(x,training and 4.2 or job and job.stations[1].position.Y or 3.9,z)
     local cf = CFrame.new(home)
     local skin = skinColors[avatarRng:NextInteger(1, #skinColors)]
     local shirt = shirtColors[avatarRng:NextInteger(1, #shirtColors)]
@@ -620,7 +623,8 @@ local function makeBot(parent, index, x, z, role, job)
     humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
     humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
     humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
-    humanoid.MaxHealth, humanoid.Health = Config.BotMaxHealth, Config.BotMaxHealth
+    local maximum=training and training.health or Config.BotMaxHealth
+    humanoid.MaxHealth, humanoid.Health = maximum, maximum
     humanoid.WalkSpeed = avatarRng:NextInteger(7, 11)
     humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
     humanoid.Parent = model
@@ -636,12 +640,18 @@ local function makeBot(parent, index, x, z, role, job)
     speech.BackgroundColor3 = Color3.fromRGB(244, 237, 211)
     speech.TextColor3 = C.dark
     local bot = {id = "Bot" .. index, name = displayName, role = role, model = model, root = root, humanoid = humanoid,
-        health = Config.BotMaxHealth, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"} or nil, job=job, jobTool=jobTool, water=water, carryParts=carryParts, cleaningParts=cleaningParts, repairParts=repairParts, jobStep=0,
+        training=training,credit={},maxHealth=maximum,health = maximum, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"} or nil, job=job, jobTool=jobTool, water=water, carryParts=carryParts, cleaningParts=cleaningParts, repairParts=repairParts, jobStep=0,
         start = home, lastGrounded=home, roamRadius = role == "Commuter" and 200 or 125,
         joints = {ls, rs, lh, rh}, lastGreeting = -1000}
     for _, limb in ipairs(bot.joints) do limb:SetAttribute("RestPose", limb.C0) end
     table.insert(World.Bots, bot)
     model:SetAttribute("AnimationSeed",index);Collection:AddTag(model,"CityResident")
+    if training then
+        root.Anchored=true;humanoid.WalkSpeed=0
+        model:SetAttribute("TrainingTier",training.id)
+        nameLabel.Parent.MaxDistance=65
+        return bot
+    end
     if RunService:IsRunning() then
         task.spawn(function()
             task.wait(index * 0.08)
@@ -794,6 +804,14 @@ function World.Build()
     for i=1,20 do local point=layout.walk[((i-1)*29+5)%#layout.walk+1];table.insert(seeds,{point.X,point.Z}) end
     for i,spot in ipairs(seeds) do makeBot(parent,i,spot[1],spot[2],roles[(i-1)%#roles+1]) end
     for i,job in ipairs(layout.jobs or {}) do local point=job.stations[1].position;makeBot(parent,#seeds+i,point.X,point.Z,job.role,job) end
+    -- Dedicated sparring pads sit outside PvP and do not recruit city workers.
+    for _,tier in ipairs(TrainingRules.Tiers) do
+        local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,1.1,tier.z),C.green,Enum.Material.SmoothPlastic)
+        local sign=part(parent,"TrainingSign_"..tier.id,Vector3.new(1,1,1),Vector3.new(tier.x,7,tier.z+30),C.gold,nil,false);sign.Transparency=1
+        local words=billboard(sign,tier.name.." · recommended Lv "..tier.level.."\n"..tier.health.." HP · "..tier.xp.." base XP\nHit to spar · move out of red strikes",Vector3.zero,280)
+        words.Parent.Size=UDim2.fromOffset(280,76);words.Parent.MaxDistance=100
+        makeBot(parent,#World.Bots+1,tier.x,tier.z,"Fighter",nil,tier)
+    end
     for i,spec in ipairs({{-368,1,23},{-352,-1,21},{112,1,20},{128,-1,24},{352,1,18},{368,-1,22}}) do
         local m=vehicle(parent,i%2==0 and "Sedan" or "Taxi",i%2==0 and Color3.fromRGB(65+i*15,104,115) or Color3.fromRGB(226,177,64));m.Name="TrafficCar"..i
         local car={model=m,hull=m.CollisionHull,lane=spec[1],direction=spec[2],speed=spec[3],cruiseSpeed=spec[3],distance=(i-1)*210};m:PivotTo(carAt(car,car.distance));table.insert(World.Cars,car)
@@ -849,16 +867,16 @@ end
 function World.UpdateBot(bot)
     bot.model:SetAttribute("ResidentActive",bot.alive==true)
     -- A normal hit already started its flee reaction. Do not cancel that MoveTo here.
-    if not bot.alive or bot.health==Config.BotMaxHealth then
+    if not bot.alive or bot.health==(bot.maxHealth or Config.BotMaxHealth) then
         stopWalking(bot);bot.model:SetAttribute("Working",false)
         bot.socialUntil=0;bot.talkingTo=nil;bot.reactionUntil=0;bot.gestureUntil=0
         bot.speechToken=(bot.speechToken or 0)+1;bot.speech.Visible=false
     end
-    bot.label.Text=bot.alive and (bot.health<Config.BotMaxHealth and (bot.name.."  "..bot.health.."/"..Config.BotMaxHealth) or bot.name) or "RECOVERING"
+    bot.label.Text=bot.alive and (bot.health<(bot.maxHealth or Config.BotMaxHealth) and (bot.name.."  "..bot.health.."/"..(bot.maxHealth or Config.BotMaxHealth)) or bot.name) or "RECOVERING"
     if bot.alive then
         bot.humanoid.Health=bot.health
-        if bot.health==Config.BotMaxHealth then
-            bot.root.Anchored=false;bot.model:PivotTo(CFrame.new(bot.start));bot.root.AssemblyLinearVelocity=Vector3.zero;bot.root:SetNetworkOwner(nil)
+        if bot.health==(bot.maxHealth or Config.BotMaxHealth) then
+            bot.root.Anchored=bot.training~=nil;bot.model:PivotTo(CFrame.new(bot.start));bot.root.AssemblyLinearVelocity=Vector3.zero;if not bot.root.Anchored then bot.root:SetNetworkOwner(nil) end
         end
     else
         bot.humanoid:MoveTo(bot.root.Position);bot.root.Anchored=true;bot.model:PivotTo(CFrame.new(bot.start-Vector3.new(0,100,0)));bot.speech.Visible=false

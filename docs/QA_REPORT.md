@@ -1,5 +1,13 @@
 # Redesign QA and release readiness
 
+## November 9 progression loop and follow-up reward review
+
+Added three west-beach training tiers with telegraphed counterattacks, new XP costs and tier rewards, damage-shared KO/assist payouts, server-local repeat-opponent limits, saved renewing combat challenges, map marker and milestone/stat previews. Existing HP/DPS strength differences and 4s/10s attack timing remain. Full local verification passes 20 pure/synthetic suites, 48 mocked-service suites and all 46 production compiles; candidate/disposable builds pass. [Design, pacing assumptions and remaining checks](PROGRESSION_BALANCE.md).
+
+Follow-up regression: a one-damage finisher could receive an entire reward pool when other damage credit expired or was excluded. The new test failed before the denominator fix and passes afterward. Missing credit is no longer redistributed. Actual payout-helper tests also verify two simultaneous challenge completions preserve all XP and produce one combined reward state message rather than three overwritten notices. This is a message-count optimization, not measured networking or frame-time performance.
+
+Native observations and exact loaded identity: [progression evidence](../tests/evidence/progression-redesign-2026-11-09.json). Challenge menu visually reviewed in desktop Studio. No real microphone, two-player PvP, physical phone or real DataStore claim; no Roblox publication.
+
 ## November 9 combat progression
 
 Current unpublished source uses the owner-approved 100–450 HP and 15–68 full-power sustained DPS curves. Equal-level fights take two attacks in the perfect-aim simulation; level 100 defeats level 1 and 50 in one attack. Four-second attacks and ten-second cooldowns remain; healing waits twelve seconds after dealing or taking damage. Passed 18 pure/synthetic suites, 48 mocked-service suites, all 44 production compiles and candidate/disposable builds. [Matchup evidence](../tests/evidence/level-progression-2026-11-09.json). One-client native Studio passed six damage and eleven destruction checks with synthetic input and confirmed the loaded progression constants. This supersedes older combat values below; real-player balance and two-player PvP with this tuning remain unverified.

@@ -1,3 +1,5 @@
+local Credit=require(game:GetService("ReplicatedStorage").Shared.CombatCredit)
+local TrainingRules=require(game:GetService("ReplicatedStorage").Shared.TrainingRules)
 local Healing=require(game:GetService("ReplicatedStorage").Shared.Healing)
 local SustainedRewards=require(game:GetService("ReplicatedStorage").Shared.SustainedRewards)
 local InteractionRules=require(game:GetService("ReplicatedStorage").Shared.InteractionRules)
@@ -47,6 +49,8 @@ remotes.Parent=ReplicatedStorage
 local function remote(name) local r=Instance.new("RemoteEvent");r.Name=name;r.Parent=remotes;return r end
 local action=remote("Action");local stateRemote=remote("State");local effect=remote("Effect")
 local sessions={}
+local rewardHistory={pairs={}} -- survives reconnects in this server
+local coverRewards=setmetatable({},{__mode="k"})
 local function parts(p)
  local c=p.Character;local r=c and c:FindFirstChild("HumanoidRootPart");local h=c and c:FindFirstChildOfClass("Humanoid")
  if r and h and h.Health>0 then return c,r,h end
@@ -71,6 +75,7 @@ local function state(p,message,conversation)
  local step=QuestGuide.Step(quest,progress and progress.progress or 0,s.carrying,s.raceStart~=nil,soccer and soccer.detail,deliveryStop and deliveryStop.name)
  Equipment.Sync(p,s.data.amplifierEquipped)
  stateRemote:FireClient(p,{coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
+ combatChallenges=s.data.combatChallenges,training=TrainingRules.Recommended(s.data.level).name,milestone=s.milestone,
  amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
  availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
@@ -91,19 +96,12 @@ local function xp(p,amount)
  if d.level>before then
   syncHealth(p,false)
   local unlock="";for _,v in ipairs(Config.Sounds) do if v.level>before and v.level<=d.level then unlock=" · Unlocked "..v.name end end
-  state(p,"Level "..d.level..unlock)
- end
-end
-local function claimKoReward(s,id,now)
- if now>=(s.nextKoRewardCleanup or 0) then
-  for victim,deadline in pairs(s.koRewards) do
-   if deadline<=now then s.koRewards[victim]=nil end
+  local stats=VoiceCombat.Stats(d.level,1,false)
+  if math.floor(before/10)<math.floor(d.level/10) then
+   s.milestone=string.format("LEVEL %d%s · %d HP · %.1f max DPS · Train: %s",d.level,unlock,stats.health,stats.maxDps,TrainingRules.Recommended(d.level).name)
   end
-  s.nextKoRewardCleanup=now+30
+  state(p,string.format("Level %d%s · %d HP · %.1f max DPS",d.level,unlock,stats.health,stats.maxDps))
  end
- if now<(s.koRewards[id] or 0) then return false end
- s.koRewards[id]=now+30
- return true
 end
 local function questProgress(p,event,amount)
  local s=sessions[p];if not s or not s.activeQuest then return end
@@ -111,11 +109,53 @@ local function questProgress(p,event,amount)
  local v=s.data.quests[q.id];if not v or v.claimed or v.progress>=q.goal then return end
  v.progress=math.min(q.goal,v.progress+(amount or 1));state(p,v.progress==q.goal and "Quest complete! Claim your reward in Quests." or nil)
 end
+local function combatChallenge(p,id,quiet)
+ local s=sessions[p];if not s then return 0 end
+ local reward,name=Config.Progression.Advance(s.data.combatChallenges,id,s.data.level)
+ if reward>0 then
+  xp(p,reward)
+  if not quiet then state(p,name.." · +"..reward.." XP · challenge renewed") end
+ end
+ return reward
+end
+local function recordCredit(ledger,p,damage,maximum,now)
+ Credit.Add(ledger,p.UserId,damage,now,maximum)
+end
+local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim,tier)
+ local shares,meaningful=Credit.Split(ledger,finisher.UserId,now,maximum)
+ for id,share in pairs(shares) do
+  local recipient=Players:GetPlayerByUserId(id);local rs=recipient and sessions[recipient]
+  if not rs then continue end
+  local factor=Config.Progression.RewardFactor(rs.data.level,tier and TrainingRules.RewardLevel(tier,rs.data.level) or targetLevel)
+  local repeatFactor=victim and Credit.RepeatFactor(rewardHistory,id,victim.UserId,now) or 1
+  local reward=math.floor(pool*share*factor*repeatFactor)
+  if reward>0 then
+   local underdog=targetLevel>=rs.data.level
+   xp(recipient,reward);rs.data.coins+=math.floor((victim and 20 or 5)*share*factor*repeatFactor)
+   if victim and recipient==finisher and underdog then questProgress(recipient,"Underdog") end
+   local bonus=0
+   if tier and factor>=.5 and meaningful[id] then
+    bonus+=combatChallenge(recipient,"fighters",true)
+    if tier.id=="elite" then bonus+=combatChallenge(recipient,"elite",true) end
+   end
+   state(recipient,(recipient==finisher and "KO" or "Assist").." · +"..(reward+bonus).." XP"..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
+  elseif recipient==finisher then state(recipient,"KO · repeat-opponent reward limited") end
+ end
+end
+local function coverChallenge(p,result,now)
+ if not result or result.reason or not result.destroyed then return end
+ local model=result.model
+ -- One credit per object repair cycle across all players; no repeat damage XP.
+ if now<(coverRewards[model] or 0) then return end
+ coverRewards[model]=now+120
+ combatChallenge(p,"cover")
+end
 local function stopQuest(p)
  local s=sessions[p];if not s then return end
  Soccer.Cancel(p);QuestLifecycle.Clear(s,Config.GetQuest)
 end
 local function protect(p,s)
+ s.credit={}
  cancelSustained(p,s,os.clock())
  VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
  s.protectedUntil=os.clock()+Config.SpawnProtection
@@ -206,7 +246,7 @@ local function resolveSustained(ctx,direction,stats,now)
   if type(id)=="string" and not model:GetAttribute("Destroyed") then add("object:"..id,{object=model}) end
  end
  for _,bot in ipairs(World.Bots) do
-  if bot.alive and bot.root.Parent and Rules.InBeam(ctx.origin,direction,bot.root.Position,length,stats.width,1)
+  if bot.alive and bot.root.Parent and (not bot.training or (ctx.position-bot.start).Magnitude<=TrainingRules.Radius) and Rules.InBeam(ctx.origin,direction,bot.root.Position,length,stats.width,1)
    and audible(ctx.character,ctx.origin,bot.root.Position,bot.model) then
    add("bot:"..tostring(bot.id),{bot=bot})
   end
@@ -216,11 +256,11 @@ end
 local function restoreBot(bot)
  if not bot.model.Parent then return end
  bot.recoveryVersion=(bot.recoveryVersion or 0)+1
- bot.health=Config.BotMaxHealth;bot.alive=true;World.UpdateBot(bot)
+ bot.health=bot.maxHealth or Config.BotMaxHealth;bot.alive=true;bot.credit={};bot.trainingTarget=nil;bot.strike=nil;World.UpdateBot(bot)
 end
 local function knockOutBot(bot)
  if not bot.alive then return end
- bot.alive=false;bot.recoveryVersion=(bot.recoveryVersion or 0)+1
+ bot.trainingTarget=nil;bot.strike=nil;bot.alive=false;bot.recoveryVersion=(bot.recoveryVersion or 0)+1
  local version=bot.recoveryVersion
  task.delay(Config.BotRespawnSeconds,function()
   if bot.model.Parent and not bot.alive and bot.recoveryVersion==version then restoreBot(bot) end
@@ -271,17 +311,12 @@ local function stepSustained(p,s,now)
   local target=details[hit.id]
   if target.player then
    local ts,h=target.session,target.humanoid
-   dealt+=math.min(hit.damage,h.Health)
+   local actual=math.min(hit.damage,h.Health);dealt+=actual
+   ts.credit=ts.credit or {};recordCredit(ts.credit,p,actual,h.MaxHealth,now)
    ts.nextHeal=now+Config.HealQuietSeconds
    if h.Health<=hit.damage then
+    awardCombatKO(ts.credit,p,ts.data.level,h.MaxHealth,Config.PlayerKOXP(ts.data.level),now,target.player)
     eject(target.player,h)
-    if claimKoReward(s,target.player.UserId,now) then
-     xp(p,Config.PlayerKOXP(ts.data.level));s.data.coins+=20
-     if ts.data.level>=intent.level then questProgress(p,"Underdog") end
-     state(p,"Arena KO · "..target.player.DisplayName.." · reward earned")
-    else
-     state(p,"Arena KO · "..target.player.DisplayName.." · repeat-opponent reward cooldown")
-    end
    else h.Health-=hit.damage end
   elseif target.object then
    local previous=target.object:GetAttribute("ObjectHealth") or 0
@@ -289,7 +324,7 @@ local function stepSustained(p,s,now)
    local hint=destructionHint(intent,result);if hint then state(p,hint) end
    if result and not result.reason then dealt+=math.max(0,previous-result.health) end
    if result and result.destroyed then
-    effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition")
+    effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition");coverChallenge(p,result,now)
    end
   else
    local bot=target.bot
@@ -298,14 +333,21 @@ local function stepSustained(p,s,now)
     intent.crowdHits=(intent.crowdHits or 0)+1
     if intent.crowdHits==3 then questProgress(p,"Crowd") end
    end
+   if bot.training then
+    recordCredit(bot.credit,p,math.min(hit.damage,bot.health),bot.maxHealth,now)
+    bot.trainingTarget=p;bot.lastTrainingHit=now
+   end
    bot.health=math.max(0,bot.health-hit.damage)
    local ko=bot.health==0
    if ko then
+    if bot.training then awardCombatKO(bot.credit,p,bot.training.level,bot.maxHealth,bot.training.xp,now,nil,bot.training) end
     knockOutBot(bot)
    elseif hit.firstHit then World.ReactToScream(bot,context.position) end
    World.UpdateBot(bot)
-   local coins,rewardXP=SustainedRewards.Hit(intent,s.botRewards,bot.id,now,hit.firstHit,ko)
-   if coins>0 or rewardXP>0 then s.data.coins+=coins;xp(p,rewardXP) end
+   if not bot.training then
+    local coins,rewardXP=SustainedRewards.Hit(intent,s.botRewards,bot.id,now,hit.firstHit,ko)
+    if coins>0 or rewardXP>0 then s.data.coins+=coins;xp(p,rewardXP) end
+   end
   end
  end
  if dealt>0 then
@@ -346,19 +388,23 @@ local function cast(p,request)
     s.nextHeal=now+Config.HealQuietSeconds
     local name=result.model:GetAttribute("ObjectName") or result.kind
     castMessage=result.destroyed and name.." destroyed" or string.format("%s hit · %d durability left",name,result.health)
-    if result.destroyed then effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition") end
+    if result.destroyed then effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition");coverChallenge(p,result,now) end
    end
   end
  end
  local hits=0;local paid=0;local playerHits=0;local evades=0;local knockoutMessage
  for _,bot in ipairs(World.Bots) do
-  if bot.alive and bot.root.Parent and Rules.InBeam(origin,direction,bot.root.Position,length,sound.width,1) and audible(c,origin,bot.root.Position,bot.model) then
-   hits+=1;bot.health=math.max(0,bot.health-sound.damage);local ko=bot.health==0
-   if ko then knockOutBot(bot)
+  if bot.alive and bot.root.Parent and (not bot.training or (r.Position-bot.start).Magnitude<=TrainingRules.Radius) and Rules.InBeam(origin,direction,bot.root.Position,length,sound.width,1) and audible(c,origin,bot.root.Position,bot.model) then
+   hits+=1
+   if bot.training then recordCredit(bot.credit,p,math.min(sound.damage,bot.health),bot.maxHealth,now);bot.trainingTarget=p;bot.lastTrainingHit=now end
+   bot.health=math.max(0,bot.health-sound.damage);local ko=bot.health==0
+   if ko then
+    if bot.training then awardCombatKO(bot.credit,p,bot.training.level,bot.maxHealth,bot.training.xp,now,nil,bot.training) end
+    knockOutBot(bot)
    else World.ReactToScream(bot,r.Position) end
    World.UpdateBot(bot)
-   if now>=(s.botRewards[bot.id] or 0) and paid<5 then
-    s.botRewards[bot.id]=now+VoiceCombat.Cooldown;paid+=1;s.data.coins+=ko and 5 or 2;xp(p,ko and 16 or 5)
+   if not bot.training and now>=(s.botRewards[bot.id] or 0) and paid<5 then
+    s.botRewards[bot.id]=now+VoiceCombat.Cooldown;paid+=1;s.data.coins+=ko and 5 or 2;xp(p,ko and SustainedRewards.KOXP or SustainedRewards.HitXP)
    end
   end
  end
@@ -371,14 +417,10 @@ local function cast(p,request)
     else
      playerHits+=1
      ts.nextHeal=now+Config.HealQuietSeconds
+     ts.credit=ts.credit or {};recordCredit(ts.credit,p,math.min(sound.damage,th.Health),th.MaxHealth,now)
      if th.Health<=sound.damage then
-      local targetLevel=ts.data.level;local attackerLevel=s.data.level;eject(target,th)
-      -- A repeated victim has a reward cooldown, independent from hit rewards.
-      if claimKoReward(s,target.UserId,now) then
-       local reward=Config.PlayerKOXP(targetLevel);xp(p,reward);s.data.coins+=20
-       if targetLevel>=attackerLevel then questProgress(p,"Underdog") end
-       knockoutMessage="Player knockout · +"..reward.." XP"
-      end
+      awardCombatKO(ts.credit,p,ts.data.level,th.MaxHealth,Config.PlayerKOXP(ts.data.level),now,target)
+      eject(target,th);knockoutMessage="Player knockout"
      else th.Health-=sound.damage;state(target) end
     end
    end
@@ -455,6 +497,7 @@ end
 local function talk(p,id)
  local s=sessions[p];local _,r=parts(p);if not s or not r or type(id)~="string" or os.clock()<(s.nextTalk or 0) then return end
  for _,b in ipairs(World.Bots) do if b.id==id and b.alive and b.root.Parent and InteractionRules.CanReachNpc(p.Character,b.model,14) then
+  if b.training then state(p,"Stand on the pad and hit to spar. Move out of red strikes or dodge.");return end
   if b.talkingTo and b.talkingTo~=p and (b.socialUntil or 0)>os.clock() then state(p,b.name.." is speaking with someone. Try again shortly.");return end
   -- Dialogue cancellation is authoritative, even if the client stop packet
   -- is delayed or omitted. The availability gate keeps subsequent pulses out.
@@ -658,7 +701,7 @@ local function joined(p)
  else data,save,loadMessage=Profiles.Load(p.UserId) end
  if not p.Parent then if save then Profiles.Save(p.UserId,data,true) end;return end
  local s={data=data,canSave=save,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
- botRewards={},koRewards={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
+ botRewards={},credit={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  if sustainedEnabled then
   s.sustained=sustained.New()
   p:SetAttribute("SustainedActive",false);p:SetAttribute("SustainedReadyAt",0);p:SetAttribute("SustainedEndsAt",0)
@@ -701,6 +744,36 @@ local function leaving(p)
  end
 end
 Players.PlayerRemoving:Connect(leaving)
+local function stepTraining(now)
+ for _,bot in ipairs(World.Bots) do
+  if not bot.training or not bot.alive then continue end
+  if now-(bot.lastTrainingHit or now)>TrainingRules.ResetAfter and bot.health<bot.maxHealth then restoreBot(bot) end
+  local p=bot.trainingTarget;local s=p and sessions[p];local c,r,h
+  if p then c,r,h=parts(p) end
+  local valid=s and r and s.micReady and not Config.InArena(r.Position) and (r.Position-bot.start).Magnitude<=TrainingRules.Radius
+   and now>=s.protectedUntil and now>=(s.knockedUntil or 0) and audible(bot.model,bot.root.Position,r.Position,c)
+  if not valid then bot.strike=nil;bot.trainingTarget=nil;continue end
+  if bot.strike then
+   if now>=bot.strike.at then
+    local strike=bot.strike;bot.strike=nil
+    local delta=r.Position-strike.position
+    if TrainingRules.Hits(Vector3.new(delta.X,0,delta.Z).Magnitude,now<s.protectedUntil,now<s.dodgingUntil) then
+     s.nextHeal=now+Config.HealQuietSeconds
+     if h.Health<=bot.training.damage then eject(p,h) else h.Health-=bot.training.damage;state(p) end
+    end
+   end
+  elseif now>=(bot.nextStrike or 0) then
+   bot.nextStrike=now+TrainingRules.AttackInterval
+   bot.strike={at=now+TrainingRules.Windup,position=r.Position}
+   -- Replicated, bounded warning disc; never collides or blocks the player's beam.
+   local disc=Instance.new("Part");disc.Name="TrainingStrikeWarning";disc.Anchored=true
+   disc.CanCollide=false;disc.CanTouch=false;disc.CanQuery=false;disc.Shape=Enum.PartType.Cylinder
+   disc.Size=Vector3.new(.1,8,8);disc.CFrame=CFrame.new(r.Position.X,1.4,r.Position.Z)*CFrame.Angles(0,0,math.pi/2)
+   disc.Color=Color3.fromRGB(255,90,70);disc.Material=Enum.Material.Neon;disc.Transparency=.45;disc.Parent=workspace
+   game:GetService("Debris"):AddItem(disc,TrainingRules.Windup)
+  end
+ end
+end
 local function stepSprint(s,root,humanoid,now,dt)
  if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then s.sprintLockedUntil=0;s.sprintCharge=Config.SprintDuration end
  local velocity=root and root.AssemblyLinearVelocity
@@ -718,6 +791,7 @@ end
 task.spawn(function()
  local tick=0
  while true do task.wait(0.1);tick+=1;local now=os.clock()
+  stepTraining(now)
   for p,s in pairs(sessions) do
    local dt=math.clamp(now-s.lastStep,0,.25);s.lastStep=now;local _,r,h=parts(p)
    -- Crossing into PvP immediately restores the full dodge cooldown.

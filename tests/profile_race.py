@@ -14,7 +14,7 @@ function store:UpdateAsync(key,transform)
  if failures>0 then failures-=1;error("Injected store failure") end
  local result=transform(records[key]);if result~=nil then records[key]=result end;return result
 end
-local config={Progression={Normalize=function(l,x)return l or 1,x or 0 end},Quests={},Auras={Gold=true},GetSound=function()return {id="TinyAah",level=1} end}
+local config={Progression={Challenges={},Normalize=function(l,x)return l or 1,x or 0 end},Quests={},Auras={Gold=true},GetSound=function()return {id="TinyAah",level=1} end}
 local services={DataStoreService={GetDataStore=function()return store end},ReplicatedStorage={Shared={Config="Config",ProfileLease="Lease"}},RunService={IsStudio=function()return true end},HttpService={GenerateGUID=function()return "test-owner" end}}
 local game={JobId="test-job",GetService=function(_,name)return services[name] end}
 local task={wait=function()coroutine.yield("wait") end}

@@ -25,6 +25,7 @@ local landmarks={
  {name='5 · Old town',x=600,z=0},
  {name='6 · Beach & promenade',x=0,z=515},
  {name='7 · Timber pier',x=525,z=537},
+ {name='8 · Training fighters',x=-320,z=545},
 }
 function CityMap.create(parent)
  local map=box(parent,'CityMap',.5,.5,1,1,Color3.fromRGB(50,93,82));map.AnchorPoint=Vector2.new(.5,.5)
@@ -58,5 +59,5 @@ function CityMap.update(view,root)
  local look=root.CFrame.LookVector
  view.arrow.Rotation=math.deg(math.atan2(look.X,-look.Z))
 end
-CityMap.legend='1  Plaça del Sol / spawn     2  Rambla gardens\n3  Basilica     4  Market     5  Old town\n6  Beach & promenade     7  Timber pier'
+CityMap.legend='1  Plaça del Sol / spawn     2  Rambla gardens\n3  Basilica     4  Market     5  Old town\n6  Beach & promenade     7  Timber pier\n8  Training fighters (west beach)'
 return CityMap

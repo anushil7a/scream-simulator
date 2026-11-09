@@ -44,7 +44,7 @@ local remotes=RS:WaitForChild("ScreamRemotes")
 local action=remotes:WaitForChild("Action")
 local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")
 local dark=Color3.fromRGB(19,32,40);local panel=Color3.fromRGB(29,47,55);local gold=Color3.fromRGB(255,205,111);local white=Color3.fromRGB(239,244,240);local muted=Color3.fromRGB(165,188,193)
-local data={level=1,xp=0,xpNext=103,coins=0,health=100,sound="TinyAah",aura="Gold",quests={},settings={volume=.55,reducedShake=false}}
+local data={level=1,xp=0,xpNext=Config.XPToNext(1),coins=0,health=100,sound="TinyAah",aura="Gold",quests={},settings={volume=.55,reducedShake=false}}
 local function frame(parent,name,size,pos,color)
  local f=Instance.new("Frame");f.Name=name;f.Size=size;f.Position=pos;f.BackgroundColor3=color or dark;f.BorderSizePixel=0;f.Parent=parent
  local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,10);c.Parent=f;return f
@@ -322,7 +322,7 @@ script.Destroying:Connect(function() renderRevision+=1;gui:Destroy() end)
 local function menuKey()
  local fields
  if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped}
- elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests}
+ elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,challenges=data.combatChallenges,level=data.level}
  elseif selected=="Style" then fields={aura=data.aura,owned=data.amplifierOwned,equipped=data.amplifierEquipped}
  elseif selected=="Settings" then fields={settings=data.settings,firstPerson=firstPerson}
  else fields={} end
@@ -353,7 +353,12 @@ render=function()
   end
   local progress=nextStyle and string.format("Next style: %s · level %d",nextStyle.name,nextStyle.level) or "All scream styles unlocked"
   progress..=nextDestruction and string.format("\nNext destruction tier: %s · level %d",nextDestruction.name,nextDestruction.level) or "\nAll destruction tiers unlocked"
-  info(progress.."\nStyles change visuals. Your level and live mic power set damage and reach.")
+  local stats=Config.VoiceCombat.Stats(data.level,1,false)
+  if nextStyle then
+   local nextStats=Config.VoiceCombat.Stats(nextStyle.level,1,false)
+   progress..=string.format("\nAt level %d: %d HP · %.1f max DPS",nextStyle.level,nextStats.health,nextStats.maxDps)
+  end
+  info(progress..string.format("\nNow: %d HP · %.1f max DPS\nTrain at the %s beach pad. Challenges are in Quests.",stats.health,stats.maxDps,data.training or "Rookie"))
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
   for _,s in ipairs(Config.Sounds) do
    local c=card(narrow and 194 or 118);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
@@ -366,7 +371,12 @@ render=function()
    if not unlocked then b.TextColor3=muted end
   end
  elseif selected=="Quests" then
-  title.Text="CITY QUESTS";subtitle.Text="One active task. Switching or abandoning resets unfinished progress."
+  title.Text="QUESTS & COMBAT";subtitle.Text="Combat challenges renew automatically. City quests: one active task."
+  info("BEACH TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads on the west beach. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
+  for _,spec in ipairs(Config.Progression.Challenges) do
+   info(spec.name.." · "..((data.combatChallenges or {})[spec.id] or 0).."/"..spec.goal.."\n+"..Config.Progression.ChallengeXP(data.level).." XP on completion · renews automatically",68)
+  end
+  info("Fighter challenges need at least 10% damage credit against a fighter within 20 levels of its reward band (Rookie 1–24, Brawler 25–59, Elite 60–100). Elite assists count. Cover progress requires an eligible object to break. PvP XP is shared by damage; weak and repeated opponents pay less.")
   if data.activeQuest then
    local current=Config.GetQuest(data.activeQuest);local c=card(96)
    local progress=current and data.quests[current.id]
@@ -521,6 +531,7 @@ local function progressLabel(compact)
  end
  return data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP"
 end
+local lastMilestone,milestoneUntil=nil,0
 connectClient(remotes.State.OnClientEvent,function(nextData)
  data=nextData
  local unclaimed=0
@@ -535,8 +546,10 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
  testButton.Visible=data.devAccess==true
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
- tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ""
- if data.message then notify(data.message) end
+ tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west beach\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
+ if data.milestone and data.milestone~=lastMilestone then
+  lastMilestone=data.milestone;milestoneUntil=os.clock()+6;notify(data.milestone)
+ elseif data.message and os.clock()>=milestoneUntil then notify(data.message) end
  if data.conversation then showConversation(data.conversation) end
  if modal.Visible then render() end
 end)

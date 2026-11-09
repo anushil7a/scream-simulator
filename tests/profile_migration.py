@@ -69,6 +69,10 @@ for _,level in ipairs({1,5,9,10,25,50,99,100,101,150,299,300}) do
  check(c.coins==253 and c.level==a.level and c.sound==a.sound,"Repeated sanitize changed live data")
  check(c.legacyProgress~=b.legacyProgress,"Archive retained mutable reference")
 end
+local objectives=P.Sanitize({schemaVersion=4,level=50,xp=12,combatChallenges={fighters=2,elite=99,cover=0/0,unknown=7}})
+check(objectives.combatChallenges.fighters==2 and objectives.combatChallenges.elite==1 and objectives.combatChallenges.cover==0 and objectives.combatChallenges.unknown==nil,"Challenge sanitization failed")
+local reload=P.Sanitize(objectives)
+check(reload.combatChallenges.fighters==2 and reload.level==50 and reload.xp==12,"Challenge reload changed progress")
 local new=P.Sanitize(P.Default());check(new.legacyProgress==nil,"New profile archived synthetic old data")
 local bad=P.Sanitize({schemaVersion=4,level=math.huge,xp=0/0,legacyProgress={level=math.huge,xp="bad",sound={}}})
 check(bad.level==1 and bad.xp==0 and bad.legacyProgress.level==1 and bad.legacyProgress.xp==0 and bad.legacyProgress.sound==nil,"Malformed archive not sanitized")
