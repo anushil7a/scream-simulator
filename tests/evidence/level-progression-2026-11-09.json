@@ -1,0 +1,216 @@
+{
+  "date": "2026-11-09",
+  "kind": "synthetic perfect-aim full-calibrated-power matchups",
+  "anchors": [
+    {
+      "level": 1,
+      "health": 100,
+      "maxDps": 15
+    },
+    {
+      "level": 25,
+      "health": 150,
+      "maxDps": 23
+    },
+    {
+      "level": 50,
+      "health": 225,
+      "maxDps": 34
+    },
+    {
+      "level": 75,
+      "health": 325,
+      "maxDps": 49
+    },
+    {
+      "level": 100,
+      "health": 450,
+      "maxDps": 68
+    }
+  ],
+  "settings": {
+    "maxAttackSeconds": 4,
+    "cooldownSeconds": 10,
+    "healQuietSeconds": 12,
+    "healFraction": 0.2
+  },
+  "timingNote": "Elapsed time starts at scenario clock zero and includes 0.3s initial/retry delays, 0.05s observations, damage ticks, cooldown and shared healing. Not real player timing.",
+  "matchups": [
+    {
+      "attackerLevel": 1,
+      "defenderLevel": 1,
+      "attacks": 2,
+      "elapsedSeconds": 17.4
+    },
+    {
+      "attackerLevel": 1,
+      "defenderLevel": 25,
+      "attacks": 3,
+      "elapsedSeconds": 30.9
+    },
+    {
+      "attackerLevel": 1,
+      "defenderLevel": 50,
+      "attacks": 4,
+      "elapsedSeconds": 46.25
+    },
+    {
+      "attackerLevel": 1,
+      "defenderLevel": 75,
+      "attacks": 6,
+      "elapsedSeconds": 73.75
+    },
+    {
+      "attackerLevel": 1,
+      "defenderLevel": 100,
+      "attacks": 8,
+      "elapsedSeconds": 102.65
+    },
+    {
+      "attackerLevel": 25,
+      "defenderLevel": 1,
+      "attacks": 2,
+      "elapsedSeconds": 15.0
+    },
+    {
+      "attackerLevel": 25,
+      "defenderLevel": 25,
+      "attacks": 2,
+      "elapsedSeconds": 17.2
+    },
+    {
+      "attackerLevel": 25,
+      "defenderLevel": 50,
+      "attacks": 3,
+      "elapsedSeconds": 30.7
+    },
+    {
+      "attackerLevel": 25,
+      "defenderLevel": 75,
+      "attacks": 4,
+      "elapsedSeconds": 45.45
+    },
+    {
+      "attackerLevel": 25,
+      "defenderLevel": 100,
+      "attacks": 5,
+      "elapsedSeconds": 61.2
+    },
+    {
+      "attackerLevel": 50,
+      "defenderLevel": 1,
+      "attacks": 1,
+      "elapsedSeconds": 3.3
+    },
+    {
+      "attackerLevel": 50,
+      "defenderLevel": 25,
+      "attacks": 2,
+      "elapsedSeconds": 15.2
+    },
+    {
+      "attackerLevel": 50,
+      "defenderLevel": 50,
+      "attacks": 2,
+      "elapsedSeconds": 17.4
+    },
+    {
+      "attackerLevel": 50,
+      "defenderLevel": 75,
+      "attacks": 3,
+      "elapsedSeconds": 30.5
+    },
+    {
+      "attackerLevel": 50,
+      "defenderLevel": 100,
+      "attacks": 4,
+      "elapsedSeconds": 44.65
+    },
+    {
+      "attackerLevel": 75,
+      "defenderLevel": 1,
+      "attacks": 1,
+      "elapsedSeconds": 2.5
+    },
+    {
+      "attackerLevel": 75,
+      "defenderLevel": 25,
+      "attacks": 1,
+      "elapsedSeconds": 3.5
+    },
+    {
+      "attackerLevel": 75,
+      "defenderLevel": 50,
+      "attacks": 2,
+      "elapsedSeconds": 15.2
+    },
+    {
+      "attackerLevel": 75,
+      "defenderLevel": 75,
+      "attacks": 2,
+      "elapsedSeconds": 17.4
+    },
+    {
+      "attackerLevel": 75,
+      "defenderLevel": 100,
+      "attacks": 3,
+      "elapsedSeconds": 30.1
+    },
+    {
+      "attackerLevel": 100,
+      "defenderLevel": 1,
+      "attacks": 1,
+      "elapsedSeconds": 1.9
+    },
+    {
+      "attackerLevel": 100,
+      "defenderLevel": 25,
+      "attacks": 1,
+      "elapsedSeconds": 2.7
+    },
+    {
+      "attackerLevel": 100,
+      "defenderLevel": 50,
+      "attacks": 1,
+      "elapsedSeconds": 3.7
+    },
+    {
+      "attackerLevel": 100,
+      "defenderLevel": 75,
+      "attacks": 2,
+      "elapsedSeconds": 15.4
+    },
+    {
+      "attackerLevel": 100,
+      "defenderLevel": 100,
+      "attacks": 2,
+      "elapsedSeconds": 17.4
+    }
+  ],
+  "verification": {
+    "pureSyntheticSuites": 18,
+    "mockedServiceSuites": 48,
+    "compiledProductionSources": 44,
+    "builds": "passed"
+  },
+  "limitations": [
+    "Synthetic input and target identity; no real microphone, live latency or multiplayer balance claim."
+  ],
+  "nativeStudio": {
+    "healingDelay": 12,
+    "destruction": {
+      "passed": true,
+      "checks": 11
+    },
+    "health100": 450,
+    "dps100": 68,
+    "placeId": 0,
+    "source": "2ecf060beab04f4a8ec07dbbb35738475687559760cb60fa06f9930dcb05ad53",
+    "damage": {
+      "passed": true,
+      "checks": 6
+    },
+    "observedAtUtc": "2026-11-09T22:36:06.572Z",
+    "scope": "One-client disposable local Studio: synthetic input, real geometry and destruction; 6 damage and 11 destruction checks. Two-player PvP, live voice and latency not tested."
+  }
+}

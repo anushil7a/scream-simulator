@@ -33,7 +33,7 @@ November 8, 2026. The client and server are wired in the disposable local protot
 - Duration: at most four seconds from accepted begin. Cooldown is ten seconds from the actual stop/earliest expiry time, even if expiry is observed late.
 - Damage: accumulate fractional damage separately per target while it is present. Late entrants do not inherit earlier damage; duplicate target IDs or steps cannot duplicate damage. Target tracking is bounded to 128 identities per attack and cleared at end.
 - `firstHit` is emitted once per target when positive damage first applies. The adapter must retain normal reward/KO guards; it must not pay per tick. The pure module does not award XP/coins, apply Humanoid damage or destroy anything.
-- Current hard DPS ceiling is 24. Proposed adapter budget: `VoiceCombat.Stats(level, 1, false).damage * 0.75`, giving 13.5–21 full-power DPS across levels 1–100, with `(0.45 + 0.55 * effectivePower)` scaling. This is initial tuning, not a balanced live result.
+- Current hard DPS ceiling is 68. The adapter uses server-derived `VoiceCombat.Stats(level, 1, false).maxDps`: 15/23/34/49/68 full-power DPS at levels 1/25/50/75/100, interpolated between anchors. Health follows 100/150/225/325/450 at those levels. Existing `(0.45 + 0.55 * effectivePower)` scaling remains. These are owner-approved starting values; large level gaps intentionally allow one-attack knockouts. Range and width are unchanged; the old burst-mode `damage` field is separate.
 
 The adapter must supply unique stable IDs for players, bots and destructible objects, after reconstructing origin/aim/range/width/cover/PvP/protection/dodge eligibility on the server. Re-evaluate permission each tick; preserve exact whole damage and per-object eligibility when applying returned budgets. Do not trust client lists of targets or damage.
 
@@ -65,7 +65,7 @@ In the same opt-in place, calibrate the microphone, then press E or tap **ARM VO
 2. Verify the wired adapter in Studio, including cover, PvP, destruction, legacy remote rejection and expiry.
 3. Verify beam rendering, cleanup and measured replication rate in Studio. The local renderer reuses one part per attacker, caps visuals at 24, and expires missing updates after 0.5 seconds plus the cleanup poll interval. Server updates are limited to due damage ticks (at most five per second per attacker) and viewers within 180 studs. These bounds are design limits, not measured performance.
 4. Keep NPC/KO/destruction rewards bounded per sustained attack. Review existing soccer/volley handlers separately: calling them on every damage tick would change their difficulty and ball physics.
-5. Revisit healing: current 20% regeneration begins ten seconds after damage, matching the proposed cooldown. Measure how much healing happens between bursts and how that changes time-to-knockout.
+5. Verify healing: 20% regeneration starts after twelve seconds without dealing or taking damage, then repeats every twelve quiet seconds. Successful player, NPC and object damage delays attacker healing; misses and rejected hits do not. Test interruption and escape with real players. Current full-power synthetic equal-level fights take two attacks; level 100 defeats level 1 or 50 in one attack.
 6. Verify in a disposable local city, then request owner-approved real mic/multiplayer testing. No cloud edits or publication are authorized.
 
 ## Evidence

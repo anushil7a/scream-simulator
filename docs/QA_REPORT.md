@@ -1,5 +1,9 @@
 # Redesign QA and release readiness
 
+## November 9 combat progression
+
+Current unpublished source uses the owner-approved 100–450 HP and 15–68 full-power sustained DPS curves. Equal-level fights take two attacks in the perfect-aim simulation; level 100 defeats level 1 and 50 in one attack. Four-second attacks and ten-second cooldowns remain; healing waits twelve seconds after dealing or taking damage. Passed 18 pure/synthetic suites, 48 mocked-service suites, all 44 production compiles and candidate/disposable builds. [Matchup evidence](../tests/evidence/level-progression-2026-11-09.json). One-client native Studio passed six damage and eleven destruction checks with synthetic input and confirmed the loaded progression constants. This supersedes older combat values below; real-player balance and two-player PvP with this tuning remain unverified.
+
 ## November 7 management and unpublished progression work
 
 **Sustained-voice pure prototype:** added VoiceActivation and SustainedAttack modules, not yet connected to gameplay. Passed 9,094 pure assertions for all-level damage budgets, 4s duration / 10s end-based cooldown, quiet/onset/hysteresis, invalid-state cancellation, replay/spam and missing-input handling, late-target accounting and bounded tracking. All 32 production sources compile; SustainedRulesReview builds in binary/XML. [Contract and remaining integration](SUSTAINED_ATTACK_PROTOCOL.md). No real voice, remote, geometry, Humanoid or multiplayer pass is implied, and current playable controls are unchanged. Existing ten-second healing versus the proposed ten-second cooldown is recorded for balance testing.

@@ -17,7 +17,7 @@ local s=api.New()
 check(not api.Begin(s,0,request(1,0,50,.5),nil),"Missing server context accepted")
 check(not api.Begin(s,0,request(2,0,0,.5),context),"Degenerate aim accepted")
 check(api.Begin(s,0,request(3,0,50,.5),context),"Valid begin rejected")
-check(s.protocol.active.maxDps==13.5 and s.intent.level==1,"Client overrode server level/budget")
+check(s.protocol.active.maxDps==15 and s.intent.level==1,"Client overrode server level/budget")
 check(not api.Pulse(s,.01,request(3,1,-50,.5),context),"Fast pulse accepted")
 check(not api.Pulse(s,.1,request(3,1,-50,.5),context),"Rate-rejected sample replayed")
 check(not api.Pulse(s,.1,request(2,2,-50,.5),context),"Old attack sample accepted")
@@ -97,7 +97,7 @@ for tick=1,20 do
  for _,hit in ipairs(damage) do total+=hit.damage end
  if ended then finalEnd=ended end
 end
-check(total==math.floor(Combat.Stats(100,1,false).damage*Attack.DamageScale*Attack.MaxDuration+1e-7),"Full attack exceeded or missed its expected synthetic budget")
+check(total==math.floor(Combat.Stats(100,1,false).maxDps*Attack.MaxDuration+1e-7),"Full attack exceeded or missed its expected synthetic budget")
 check(finalEnd and finalEnd.reason=="duration" and finalEnd.nextStart==14 and cycle.intent==nil,"Duration end/cooldown metadata incorrect")
 local before=resolutions
 check(#api.Step(cycle,4.2,high,fullResolve)==0 and resolutions==before,"Completed attack kept resolving geometry")

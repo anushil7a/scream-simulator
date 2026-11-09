@@ -25,7 +25,7 @@ _G.RunSustainedPvp=function()
   end
   local health=th.Health;ts.protectedUntil=os.clock()+5;hit();check(th.Health==health,"Protected target damaged")
   ts.protectedUntil=0;ts.dodgingUntil=os.clock()+5;hit();check(th.Health==health,"Rolling target damaged")
-  ts.dodgingUntil=0;hit();check(th.Health==health-2,"Arena player not damaged")
+  ts.dodgingUntil=0;hit();check(th.Health==health-3,"Arena player not damaged")
   c:PivotTo(CFrame.new(0,210,0));tc:PivotTo(CFrame.new(0,210,-12));health=th.Health;hit();check(th.Health==health,"Safe area PvP damage")
   c:PivotTo(CFrame.new(0,190,0));tc:PivotTo(CFrame.new(0,190,-12));th.Health=1;local coins=s.data.coins;local x=s.data.xp;hit()
   check(not Config.InArena(tr.Position) and th.Health>1,"KO did not eject/heal")

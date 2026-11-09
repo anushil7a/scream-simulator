@@ -358,7 +358,7 @@ render=function()
   for _,s in ipairs(Config.Sounds) do
    local c=card(narrow and 194 or 118);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
    label(c,s.description,UDim2.new(1,narrow and -28 or -158,0,narrow and 40 or 25),UDim2.fromOffset(14,narrow and 54 or 36),13)
-   local combatSummary=sustainedRules and string.format("UP TO %.1f DPS · %.1f STUDS\n%.0fs MAX ATTACK · %.0fs COOLDOWN",maximum.damage*sustainedRules.DamageScale,maximum.maxRange,sustainedRules.MaxDuration,sustainedRules.Cooldown)
+   local combatSummary=sustainedRules and string.format("UP TO %.1f DPS · %.1f STUDS\n%.0fs MAX ATTACK · %.0fs COOLDOWN",maximum.maxDps,maximum.maxRange,sustainedRules.MaxDuration,sustainedRules.Cooldown)
     or string.format("UP TO %d DAMAGE · %.1f STUDS\n%.0fs COOLDOWN",maximum.damage,maximum.maxRange,maximum.cooldown)
    label(c,combatSummary,UDim2.new(1,-28,0,40),UDim2.fromOffset(14,narrow and 95 or 69),12,muted)
    local unlocked=data.level>=s.level

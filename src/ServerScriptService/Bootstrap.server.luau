@@ -309,6 +309,7 @@ local function stepSustained(p,s,now)
   end
  end
  if dealt>0 then
+  s.nextHeal=now+Config.HealQuietSeconds
   intent.damageTotal=(intent.damageTotal or 0)+dealt
   effect:FireClient(p,"SustainedHit",nil,p:GetAttribute("SustainedSequence"),math.floor(intent.damageTotal+.5))
  end
@@ -342,6 +343,7 @@ local function cast(p,request)
   if result then
    if result.reason=="level" then castMessage="Requires level "..result.required
    elseif not result.reason then
+    s.nextHeal=now+Config.HealQuietSeconds
     local name=result.model:GetAttribute("ObjectName") or result.kind
     castMessage=result.destroyed and name.." destroyed" or string.format("%s hit · %d durability left",name,result.health)
     if result.destroyed then effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition") end
@@ -383,6 +385,7 @@ local function cast(p,request)
   end
  end
  local totalHits=hits+playerHits
+ if totalHits>0 then s.nextHeal=now+Config.HealQuietSeconds end
  if knockoutMessage then castMessage=knockoutMessage
  elseif totalHits>0 then castMessage=string.format("Hit %d %s · %d damage each",totalHits,totalHits==1 and "target" or "targets",sound.damage)
  elseif not castMessage then castMessage=evades>0 and "Scream dodged" or obstruction and "Scream stopped by cover" or "Scream missed" end

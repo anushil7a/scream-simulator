@@ -14,8 +14,25 @@ function VoiceCombat.Level(value)
  if not VoiceCombat.IsFinite(value) then return 1 end
  return math.clamp(math.floor(value), 1, VoiceCombat.MaxLevel)
 end
+-- Approved progression anchors; interpolate each level without widening reach.
+local tiers = {
+ {level=1,health=100,dps=15}, {level=25,health=150,dps=23},
+ {level=50,health=225,dps=34}, {level=75,health=325,dps=49},
+ {level=100,health=450,dps=68},
+}
+local function progression(level)
+ for i=2,#tiers do
+  local lower,upper=tiers[i-1],tiers[i]
+  if level<=upper.level then
+   local t=(level-lower.level)/(upper.level-lower.level)
+   return math.floor(lower.health+(upper.health-lower.health)*t+.5),
+    lower.dps+(upper.dps-lower.dps)*t
+  end
+ end
+end
 function VoiceCombat.Stats(level, power, amplifier)
  local l = VoiceCombat.Level(level)
+ local health,maxDps = progression(l)
  local p = VoiceCombat.IsFinite(power) and math.clamp(power, 0, 1) or 0
  if amplifier then p = math.min(1, p * 1.12) end
  local maximum = 30 + 0.25 * (l - 1)
@@ -24,7 +41,8 @@ function VoiceCombat.Stats(level, power, amplifier)
   range = math.min(110, maximum * (0.4 + 0.6 * p)),
   damage = math.min(48, math.floor((18 + 0.1 * (l - 1)) * (0.45 + 0.55 * p) + 0.5)),
   width = 4 + 3 * (l - 1) / (VoiceCombat.MaxLevel - 1),
-  health = math.floor(100 + 0.35 * (l - 1) + 0.5),
+  health = health,
+  maxDps = maxDps, -- sustained full-power budget; legacy burst damage stays separate
   power = p,
   cooldown = VoiceCombat.Cooldown,
  }

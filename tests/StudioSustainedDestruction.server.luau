@@ -28,7 +28,7 @@ task.spawn(function()
    return now
   end
   local now=start(1);stepSustained(p,s,now+.2)
-  check(bench:GetAttribute("ObjectHealth")==48,"Sustained beam missed destructible")
+  check(bench:GetAttribute("ObjectHealth")==47,"Sustained beam missed destructible")
   Destruction.Damage(bench,1,46)
   check(sustained.Pulse(s.sustained,now+.3,{sequence=1,sample=1,power=1,aim=body.Position},sustainedContext(p,s,now+.3)),"Pulse rejected")
   stepSustained(p,s,now+.4)

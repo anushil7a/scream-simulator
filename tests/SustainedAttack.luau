@@ -7,7 +7,7 @@ local function near(a,b) return math.abs(a-b)<1e-6 end
 local function total(hits) local n=0;for _,hit in hits do n+=hit.damage end;return n end
 local function begin(level)
  local s=Attack.New()
- check(Attack.Begin(s,0,1,Combat.Stats(level or 1,1,false).damage*.75,1,true),"Initial start")
+ check(Attack.Begin(s,0,1,Combat.Stats(level or 1,1,false).maxDps,1,true),"Initial start")
  return s
 end
 -- Full sustained attack, moving target enters halfway, duplicate IDs cannot
@@ -25,7 +25,7 @@ for level=1,100 do
   if finish then ended=finish end
   check(#Attack.Step(s,now,true,{"one"})==0,"Duplicate step deals damage")
  end
- local dps=Combat.Stats(level,1,false).damage*.75
+ local dps=Combat.Stats(level,1,false).maxDps
  check(damage==math.floor(dps*4+1e-7),"Four-second damage budget")
  check(lateDamage==math.floor(dps*2+1e-7),"Late target inherited old damage")
  check(rewards==1,"Repeated first-hit reward")
@@ -73,7 +73,7 @@ do
   if i<400 then Attack.Pulse(s,now,1,1,true) end
   damage+=total(Attack.Step(s,now,true,{"one","one"}))
  end
- check(damage==54,"Pulse/step spam increased legal level-one damage")
+ check(damage==60,"Pulse/step spam increased legal level-one damage")
 end
 do
  local s=begin();check(Attack.Pulse(s,.4,1,1,true),"Pulse before delayed tick")
@@ -85,7 +85,7 @@ end
 for _,bad in ipairs({0/0,math.huge,-1,0,2^31+1,"1"}) do
  local s=Attack.New();check(not Attack.Begin(s,0,bad,10,1,true),"Invalid sequence accepted")
 end
-for _,bad in ipairs({0/0,math.huge,-1,0,25,"10"}) do
+for _,bad in ipairs({0/0,math.huge,-1,0,68.01,"10"}) do
  local s=Attack.New();check(not Attack.Begin(s,0,1,bad,1,true),"Invalid server budget accepted")
 end
 for _,bad in ipairs({0/0,math.huge,-1,0,1.01,"1"}) do

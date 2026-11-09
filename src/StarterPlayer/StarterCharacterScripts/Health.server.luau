@@ -1,2 +1,2 @@
 -- This script intentionally replaces Roblox default health regeneration.
--- The server uses Shared.Healing: 20% of maximum health after ten quiet seconds.
+-- The server uses Shared.Healing: 20% after twelve seconds without dealing/taking damage.

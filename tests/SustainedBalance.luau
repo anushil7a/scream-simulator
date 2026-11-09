@@ -14,7 +14,7 @@ local function scenario(level,power,health,kind,healing)
   now+=.05
   if not s.active and now>=s.nextStart+.3 then
    casts+=1
-   assert(Attack.Begin(s,now,casts,Combat.Stats(level,1,false).damage*Attack.DamageScale,power,true))
+   assert(Attack.Begin(s,now,casts,Combat.Stats(level,1,false).maxDps,power,true))
   end
   if s.active and now-s.active.lastPulse>=.125 then Attack.Pulse(s,now,s.active.sequence,power,true) end
   local hits=Attack.Step(s,now,true,{"target"})
@@ -30,13 +30,19 @@ local function scenario(level,power,health,kind,healing)
  end
  return {casts=casts,time=math.huge,damage=total}
 end
+local matchups={}
 for _,attacker in ipairs({1,25,50,75,100}) do
  for _,defender in ipairs({1,25,50,75,100}) do
   local outcome=scenario(attacker,1,Combat.Stats(defender,1,false).health,nil,true)
-  check(outcome.casts>=2,"Full health player killed by a single uninterrupted attack")
-  check(outcome.casts<=5,"Perfect-aim full-power duel cannot overcome quiet healing promptly")
+  matchups[attacker..":"..defender]=outcome
+  check(outcome.time<150,"Full-power matchup failed to finish")
+  if attacker==defender then check(outcome.casts==2,"Equal-level fight should take two full-power attacks") end
+  print(string.format("MATCHUP,%d,%d,%d,%.2f",attacker,defender,outcome.casts,outcome.time))
  end
 end
+check(matchups["100:1"].casts==1 and matchups["100:1"].time<2,"Level 100 should overwhelm level 1")
+check(matchups["100:50"].casts==1 and matchups["100:50"].time<4,"Level 100 should defeat level 50 within one beam")
+check(matchups["1:100"].casts==8,"Level 1 should need eight full attacks against level 100")
 local weak=scenario(1,.35,Combat.Stats(100,1,false).health,nil,true)
 check(weak.time<300,"Low-level onset-strength attack cannot overcome regeneration")
 for kind,spec in pairs(Rules.Types) do

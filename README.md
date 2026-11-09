@@ -1,5 +1,7 @@
 # Scream Simulator — microphone city redesign
 
+**Combat progression:** health / full-power DPS at levels 1, 25, 50, 75 and 100 are **100/15, 150/23, 225/34, 325/49 and 450/68**, interpolated between levels. Large level gaps intentionally favor the stronger player; equal-level perfect-aim simulations take two attacks. Healing restores 20% after 12 seconds without dealing or taking damage, then every 12 quiet seconds. [Balance evidence](tests/evidence/level-progression-2026-11-09.json).
+
 **Attack audio:** [owner-selected tier effects](assets/audio/README.md) now map levels 10 through 100 to the ten supplied Roblox IDs, with original pitch, quiet mixing and local-mic ducking. All ten loaded in a silent local Studio check; gameplay listening and City Preview access remain unverified. Level 1 stays voice-only. Attack duration stays four seconds.
 
 **Current direction (November 9):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 10 seconds cooldown), preserving normal profiles. Calibrate once, stay quiet briefly, then aim and speak; E/VOICE pauses/resumes. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue development while Codex allowance remains.
