@@ -9,19 +9,44 @@ shared=ROOT/'src/ReplicatedStorage/Shared'
 server=ROOT/'src/ServerScriptService'
 client=ROOT/'src/StarterPlayer/StarterPlayerScripts'
 
+# Resolve only repository-owned, literal module paths. Unknown forms fail closed.
+MODULES={}
+for directory in (shared,server,client):
+    for path in directory.glob('*.luau'):
+        if path.name.endswith(('.server.luau','.client.luau')):
+            continue
+        if path.stem in MODULES:
+            raise RuntimeError(f"Ambiguous harness module: {path.stem}")
+        MODULES[path.stem]=path
+REQUIRE=re.compile(r'require\((?:script\.Parent|RS|ReplicatedStorage|game\.ReplicatedStorage|game:GetService\("ReplicatedStorage"\))(?:(?:\.[A-Za-z0-9_]+)|(?::WaitForChild\("[A-Za-z0-9_]+"\)))+\)')
+
 def inline(path):
-    text=path.read_text()
-    text=text.replace('require(RS:WaitForChild("Shared"):WaitForChild("Config"))','modules.Config')
-    text=re.sub(r'require\((?:script.Parent|game:GetService\("ReplicatedStorage"\)(?::WaitForChild\("Shared"\))?):WaitForChild\("([A-Za-z0-9_]+)"\)\)',r'modules.\1',text)
-    text=re.sub(r'require\((?:game:GetService\("ReplicatedStorage"\)|[^()])+\)',lambda m:'modules.'+re.search(r'\.([A-Za-z0-9_]+)\)$',m[0])[1],text)
-    assert 'require(' not in text, path
+    def replace(match):
+        names=re.findall(r'\.([A-Za-z0-9_]+)|:WaitForChild\("([A-Za-z0-9_]+)"\)',match[0])
+        name=next(value for value in names[-1] if value)
+        if name not in MODULES:
+            raise RuntimeError(f"Unknown dependency {name} in {path}")
+        return 'modules.'+name
+    text=REQUIRE.sub(replace,path.read_text())
+    if re.search(r'\brequire\s*\(',text):
+        raise RuntimeError(f"Unsupported require expression in {path}")
     return text
 
 def bundle(paths,entry):
     chunks=['assert(game:GetService("RunService"):IsStudio() and game.PlaceId==0,"Disposable local Studio place required")','local modules={}']
-    for path in paths:
-        chunks.append('modules.'+path.stem+'=(function()\n'+inline(path)+'\nend)()')
-    chunks.append(inline(entry))
+    visited=set();visiting=set()
+    def dependencies(text):
+        for name in dict.fromkeys(re.findall(r'\bmodules\.([A-Za-z0-9_]+)',text)):
+            visit(MODULES[name])
+    def visit(path):
+        if path in visited: return
+        if path in visiting: raise RuntimeError(f"Circular harness dependency: {path}")
+        visiting.add(path)
+        text=inline(path);dependencies(text)
+        chunks.append('modules.'+path.stem+'=(function()\n'+text+'\nend)()')
+        visiting.remove(path);visited.add(path)
+    for path in paths: visit(path)
+    text=inline(entry);dependencies(text);chunks.append(text)
     return '\n'.join(chunks)
 
 out=ROOT/'build';out.mkdir(exist_ok=True)

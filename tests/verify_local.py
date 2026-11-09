@@ -1,0 +1,53 @@
+"""Run repository checks without Studio, network access, saves or publication.
+
+Pure/mocked suites and compilation cannot prove live microphones, Roblox physics,
+UI layout, real persistence or multiplayer performance. See manual playtest list.
+"""
+import argparse
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--build', action='store_true', help='Also build disposable review places and UI harnesses')
+    args = parser.parse_args()
+    env = os.environ.copy()
+    env['PATH'] = env.get('PATH', '') + os.pathsep + '/opt/homebrew/bin'
+    for tool in ('luau', 'luau-compile') + (('rojo',) if args.build else ()):
+        if not shutil.which(tool, path=env['PATH']):
+            raise SystemExit(f'Required local tool missing: {tool}')
+
+    def run(command, quiet=False):
+        subprocess.run(command, cwd=ROOT, env=env, check=True,
+                       stdout=subprocess.DEVNULL if quiet else None)
+
+    suites = sorted(path for path in (ROOT / 'tests').glob('*.luau')
+                    if not path.name.startswith(('Studio', '.')))
+    for path in suites:
+        print(f'Checking {path.name}', flush=True)
+        run(['luau', str(path)])
+    for name in ('profile_migration.py', 'profile_race.py', 'entitlements.py', 'destruction_service.py'):
+        print(f'Checking {name} (mocked services)', flush=True)
+        run([sys.executable, str(ROOT / 'tests' / name)])
+    sources = sorted((ROOT / 'src').rglob('*.luau'))
+    for path in sources:
+        run(['luau-compile', str(path)], quiet=True)
+    print(f'Compiled {len(sources)} production scripts; no Studio execution.', flush=True)
+    if args.build:
+        run([sys.executable, 'tests/build_sustained_review.py'])
+        run([sys.executable, 'tests/build_studio_harness.py'])
+        run([sys.executable, 'tests/build_ui_preview.py', '390', '844'])
+        for path in sorted((ROOT / 'build').glob('Studio*Harness.luau')) + [ROOT / 'build/StudioUIPreview.luau']:
+            run(['luau-compile', str(path)], quiet=True)
+        print('Built/compiled review fixtures; native runtime and UI appearance remain untested.', flush=True)
+    print(f'PASS: {len(suites)} pure/synthetic suites, 4 mocked-service suites, production compilation.')
+
+
+if __name__ == '__main__':
+    main()

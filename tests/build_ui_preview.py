@@ -13,7 +13,7 @@ source=source.replace('local remotes=RS:WaitForChild("ScreamRemotes")','''local 
 local sample={level=100,xp=30,xpNext=1800,coins=1500,activeQuest="garden",health=135,maxHealth=135,sound="TinyAah",aura="Gold",quests={},availableQuests={},settings={volume=.55,reducedShake=false},micReady=true,devAccess=true,savingAvailable=true,protection=0,dodgeCooldown=0,castCooldown=0,questTime=90}
 for _,q in ipairs(Config.Quests) do sample.availableQuests[q.id]=true;sample.quests[q.id]={progress=0} end
 local actionMock={FireServer=function(_,verb) if verb=="Sync" and receiver then receiver(sample) end end}
-local remotes={WaitForChild=function() return actionMock end,State={OnClientEvent={Connect=function(_,fn) receiver=fn end}},Effect={OnClientEvent={Connect=function() end}}}''')
+local remotes={GetAttribute=function(_,name) return name=="AutomaticVoice" and true or nil end,WaitForChild=function() return actionMock end,State={OnClientEvent={Connect=function(_,fn) receiver=fn end}},Effect={OnClientEvent={Connect=function() end}}}''')
 original='local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")'
 replacement=f'''local screen=Instance.new("ScreenGui");screen.Name="LayoutPreview";screen.ResetOnSpawn=false;screen.Parent=p:WaitForChild("PlayerGui")
 local gui=Instance.new("Frame");gui.Name="ScreamUI";gui.Size=UDim2.fromOffset({width},{height});gui.Position=UDim2.fromOffset(10,10);gui.BackgroundTransparency=1;gui.Parent=screen'''

@@ -65,14 +65,12 @@ Outstanding release gates include real microphones and eligible accounts, physic
 ## Quick source checks
 
 ```sh
-luau tests/VoiceCombat.luau
-luau tests/Progression.luau
-luau tests/ProfileLease.luau
-luau tests/QuestLifecycle.luau
-python3 tests/profile_race.py
+python3 tests/verify_local.py
+# Also generate and compile disposable Studio review fixtures:
+python3 tests/verify_local.py --build
 ```
 
-Compile changed scripts with `luau-compile`, build both place formats, then run the relevant native Studio regression. Document failures and untested cases. [Report an issue](https://github.com/anushil7a/scream-simulator/issues) with reproduction steps, build/commit, device and expected behavior.
+Requires local `luau` and `luau-compile`, plus `rojo` for `--build`. This runs pure/synthetic and mocked-service suites and compiles production scripts; it does not execute Studio, access real saves, upload, or publish. Follow it with the relevant native Studio regression and [manual microphone/device checks](docs/AUTOMATIC_VOICE_PLAYTEST.md). Document failures and untested cases. [Report an issue](https://github.com/anushil7a/scream-simulator/issues) with reproduction steps, build/commit, device and expected behavior.
 
 ### Studio movement-pass testing
 
