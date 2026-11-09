@@ -1,3 +1,4 @@
+local Healing=require(game:GetService("ReplicatedStorage").Shared.Healing)
 local SustainedRewards=require(game:GetService("ReplicatedStorage").Shared.SustainedRewards)
 local InteractionRules=require(game:GetService("ReplicatedStorage").Shared.InteractionRules)
 local Players=game:GetService("Players")
@@ -493,7 +494,7 @@ World.OnVehicleSweep=function(car,previous,nextFrame)
   local character,root,humanoid=parts(player);local now=os.clock()
   if root and now>=s.protectedUntil and now>=(s.nextCarHit or 0) and Rules.VehicleSweep(previous*CFrame.new(0,.55,0),nextFrame*CFrame.new(0,.55,0),root.Position,Vector3.new(8,4,4.5)) then
    cancelSustained(player,s,now);VoiceCombat.Cancel(s.voice);player:SetAttribute("CaptureStarted",0)
-   s.nextCarHit=now+4;s.knockedUntil=now+1.3;s.dodgingUntil=0;s.sprintRequested=false;s.nextHeal=now+10
+   s.nextCarHit=now+4;s.knockedUntil=now+1.3;s.dodgingUntil=0;s.sprintRequested=false;s.nextHeal=now+Config.HealQuietSeconds
    player:SetAttribute("DodgeEnds",0);player:SetAttribute("KnockdownEnds",workspace:GetServerTimeNow()+1.3)
    local damage=math.clamp(math.floor(car.speed*1.1),15,35)
    if humanoid.Health<=damage then eject(player,humanoid);s.knockedUntil=0
@@ -627,7 +628,7 @@ local function joined(p)
  if localFixture then data,save,loadMessage=Profiles.Default(),false,"Local sustained prototype · saving disabled"
  else data,save,loadMessage=Profiles.Load(p.UserId) end
  if not p.Parent then if save then Profiles.Save(p.UserId,data,true) end;return end
- local s={data=data,canSave=save,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+10,
+ local s={data=data,canSave=save,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
  botRewards={},koRewards={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  if sustainedEnabled then
   s.sustained=sustained.New()
@@ -686,7 +687,8 @@ task.spawn(function()
     h.WalkSpeed=not s.micReady and 0 or now<(s.knockedUntil or 0) and 0 or now<s.dodgingUntil and 0 or running and 25 or 16
     h.JumpPower=s.micReady and (s.jumpPower or 50) or 0;h.JumpHeight=s.micReady and (s.jumpHeight or 7.2) or 0
     if not s.micReady then h.Jump=false end
-    if h.Health<h.MaxHealth and now>=s.nextHeal then h.Health=math.min(h.MaxHealth,h.Health+h.MaxHealth*.2);s.nextHeal=now+10 end
+    local healed,nextHeal=Healing.Step(h.Health,h.MaxHealth,s.nextHeal,now)
+    if healed~=h.Health then h.Health=healed end;s.nextHeal=nextHeal
     if r.Position.Z>600 and (r.Position.Z>780 or math.abs(r.Position.X)>700) then
      resetMovement(p,s,h,r);running=false
      p.Character:PivotTo(CFrame.new(math.clamp(r.Position.X,-670,670),5,594));protect(p,s)

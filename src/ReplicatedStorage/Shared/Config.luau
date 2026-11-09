@@ -1,3 +1,4 @@
+local Healing=require(script.Parent:WaitForChild("Healing"))
 local VoiceCombat=require(script.Parent:WaitForChild("VoiceCombat"))
 local Progression=require(script.Parent:WaitForChild("Progression"))
 local Config = {}
@@ -9,8 +10,8 @@ Config.MaxHealth = 100
 Config.MapMin=Vector3.new(-720,-20,-600)
 Config.MapMax=Vector3.new(720,200,600)
 function Config.HealthForLevel(level) return VoiceCombat.Stats(level,1,false).health end
-Config.HealQuietSeconds = 10
-Config.HealAmount = 20
+Config.HealQuietSeconds = Healing.QuietSeconds
+Config.HealAmount = Healing.Fraction*100 -- percent of maximum health
 Config.BotMaxHealth = 60
 Config.BotRespawnSeconds = 6
 Config.WalkSpeed = 16

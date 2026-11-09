@@ -11,6 +11,7 @@ root = Path(__file__).resolve().parents[1]
 config = (root / "src/ReplicatedStorage/Shared/Config.luau").read_text()
 profiles = (root / "src/ServerScriptService/Profiles.luau").read_text()
 preamble = r'''
+local Healing=require("../src/ReplicatedStorage/Shared/Healing")
 local Combat=require("../src/ReplicatedStorage/Shared/VoiceCombat")
 local Progression=require("../src/ReplicatedStorage/Shared/Progression")
 local Lease=require("../src/ReplicatedStorage/Shared/ProfileLease")
@@ -19,7 +20,7 @@ local Color3={fromRGB=function(r,g,b)return {r,g,b}end}
 local script={Parent={WaitForChild=function(_,name)return name end}}
 local config
 local require=function(name)
- if name=="VoiceCombat" then return Combat elseif name=="Progression" then return Progression
+ if name=="Healing" then return Healing elseif name=="VoiceCombat" then return Combat elseif name=="Progression" then return Progression
  elseif name=="Config" then return config elseif name=="Lease" then return Lease end
  error("Unexpected dependency "..tostring(name))
 end

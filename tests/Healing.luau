@@ -1,0 +1,11 @@
+local Healing=require('../src/ReplicatedStorage/Shared/Healing')
+local n=0;local function check(v,msg)assert(v,msg);n+=1 end
+local hp,due=Healing.Step(50,100,10,9.99);check(hp==50 and due==10,'Healed before quiet deadline')
+hp,due=Healing.Step(50,100,10,10);check(hp==70 and due==20,'Deadline heal incorrect')
+hp,due=Healing.Step(70,100,due,10.1);check(hp==70 and due==20,'Repeated observation healed twice')
+hp,due=Healing.Step(1,135,10,40);check(hp==28 and due==50,'Lag caught up multiple heals or scaling incorrect')
+hp,due=Healing.Step(90,100,10,10);check(hp==100,'Healing exceeded maximum')
+hp,due=Healing.Step(0,100,10,20);check(hp==0 and due==10,'Healing resurrected dead character')
+hp,due=Healing.Step(100,100,10,20);check(hp==100 and due==10,'Full health changed deadline')
+hp,due=Healing.Step(50,100,25,20);check(hp==50 and due==25,'Recent damage deadline ignored')
+print('PASS '..n..' shared healing checks with synthetic health/time')

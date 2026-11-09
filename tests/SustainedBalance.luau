@@ -1,3 +1,4 @@
+local Healing=require("../src/ReplicatedStorage/Shared/Healing")
 -- Deterministic combat scenarios: actual protocol/stats/destruction rules with
 -- perfect aim and synthetic pulses. No geometry, human voice or network claims.
 local Attack=require("../src/ReplicatedStorage/Shared/SustainedAttack")
@@ -21,11 +22,11 @@ local function scenario(level,power,health,kind,healing)
    local before=health
    if kind then health=Rules.Hit(kind,level,health,hit.damage) else health=math.max(0,health-hit.damage) end
    total+=before-health
-   if health<before then nextHeal=now+10 end
+   if health<before then nextHeal=now+Healing.QuietSeconds end
   end
   if health<=0 then return {casts=casts,time=now,damage=total} end
-  -- Matches current server regeneration: 20% after ten quiet seconds.
-  if healing and now>=nextHeal then health=math.min(initial,health+initial*.2);nextHeal=now+10 end
+  -- Execute the same regeneration rule as the authoritative server.
+  if healing then health,nextHeal=Healing.Step(health,initial,nextHeal,now) end
  end
  return {casts=casts,time=math.huge,damage=total}
 end
