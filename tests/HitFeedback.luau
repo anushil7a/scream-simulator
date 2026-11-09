@@ -11,4 +11,10 @@ check(not f:Accept(1,100,3.1) and f:Read(3.1)==2,'Previous scream replaced curre
 for _,args in ipairs({{0,2,4},{2,0,4},{2,-1,4},{2,math.huge,4},{2,0/0,4},{2,32769,4},{2,3,0/0}})do
  check(not f:Accept(table.unpack(args)),'Invalid payload accepted')
 end
+check(f:DiscardThrough(4) and f:Read(3.2)==nil,'Respawn did not clear displayed damage')
+check(not f:Accept(3,20,4) and not f:Accept(4,30,4),'Pre-respawn delayed attack revived feedback')
+check(f:Accept(5,2,5) and f:Read(5)==2,'New attack after respawn lost feedback')
+check(f:DiscardThrough(1) and not f:Accept(5,10,6),'Stale discard allowed current attack feedback to revive')
+check(not f:DiscardThrough(0/0) and not f:DiscardThrough(-1) and not f:DiscardThrough(1.5),'Invalid discard accepted')
+check(f:Accept(6,3,7) and f:Read(7)==3,'Repeated respawn blocked fresh sequence')
 print('PASS '..checks..' pure server-confirmed hit presentation checks')

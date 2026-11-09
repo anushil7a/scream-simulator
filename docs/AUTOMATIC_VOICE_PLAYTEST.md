@@ -204,3 +204,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Pooled scream effect teardown
 - Pending native: stop/replace Client while legacy burst visuals are active and after their parts enter the cache. Verify cleanup removes both, delayed expiry does not recreate them, and a later client can render again using the cached module.
 - Evidence: nine actual particle/pool checks with fake tweens/instances, plus full verification/build. No visual/memory measurement claimed; automatic beam damage is unchanged.
+
+### Damage confirmation after respawn
+- Pending native/network: remove/respawn the attacking character with damage feedback in flight. Old attack confirmations should stay cleared; a fresh post-recovery attack should display damage normally.
+- Evidence: 20 pure feedback checks including six discard/late-sequence cases, plus full local verification/build. No actual delayed Roblox remote or CharacterRemoving ordering test.

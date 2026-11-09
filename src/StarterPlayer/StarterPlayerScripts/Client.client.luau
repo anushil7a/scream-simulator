@@ -500,7 +500,7 @@ UIS.InputEnded:Connect(function(input)
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
  if input.KeyCode==Enum.KeyCode.LeftShift then setSprint(false) end
 end)
-p.CharacterRemoving:Connect(function() setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
+p.CharacterRemoving:Connect(function() hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
 UIS.WindowFocused:Connect(function() windowFocused=true end)
 local function suspendGameplay()
  if sustainedControl then sustainedControl:SetArmed(false) end
