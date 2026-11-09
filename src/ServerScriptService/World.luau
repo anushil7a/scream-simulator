@@ -387,11 +387,11 @@ end
 -- or drawing a crowd into the through-route. Interruptions use stopWalking.
 function World.WatchPerformance(bot)
     local now=os.clock()
-    if not bot.alive or bot.job or bot.restSeat or (bot.socialUntil or 0)>now
+    if not bot.alive or not bot.model.Parent or not bot.root.Parent or bot.job or bot.restSeat or (bot.socialUntil or 0)>now
         or (bot.reactionUntil or 0)>now or (bot.nextPerformance or 0)>now then return false end
     local performer
     for _,other in ipairs(World.Bots) do
-        if other~=bot and other.role=="Busker" and other.job and other.alive and other.working
+        if other~=bot and other.model.Parent and other.root.Parent and other.role=="Busker" and other.job and other.alive and other.working
             and (other.root.Position-bot.root.Position).Magnitude<26 then
             performer=other;break
         end
@@ -411,7 +411,7 @@ function World.WatchPerformance(bot)
     bot.nextPerformance=now+30
     bot.model:SetAttribute("Activity","Listening to Èric's performance")
     faceToward(bot,performer.root.Position)
-    while bot.model.Parent and bot.alive and bot.pathVersion==version and performer.alive and performer.working
+    while bot.model.Parent and bot.root.Parent and bot.alive and bot.pathVersion==version and performer.model.Parent and performer.root.Parent and performer.alive and performer.working
         and os.clock()<(bot.watchingUntil or 0) and (bot.reactionUntil or 0)<=os.clock() do
         bot.model:SetAttribute("Applauding",bot.watchingUntil-os.clock()<2.5)
         task.wait(.2)

@@ -370,3 +370,7 @@ Synthetic integration update: actual microphone/gate/controls pass seven outage-
 Pending native check: disconnect an attacking player while another client watches, then respawn the observing client during nearby attacks. Old beams should clear immediately on the respective player/character event; late updates from departed players should not recreate them. Fresh attacks after respawn should render normally. Existing mocked beam lifecycle checks pass, but Roblox event ordering and appearance remain untested.
 
 Performance sampler validation update: mocked runner tests cover bounded duration/sample count, overlapping-call rejection, retry after an injected Heartbeat error and build identity. No native sample was collected; test-generated intervals must not be reported as measured game performance.
+
+### Audience participant removal
+
+Pending native check: remove the performing busker or detach its root while nearby residents listen. Audience state/applause should end promptly, and removed listeners must not start watching. Restore valid participants and verify normal performance watching later, respecting the existing cooldown. Seven mocked lifecycle checks pass; native animation/streaming behavior remains untested.
