@@ -114,6 +114,15 @@ local function protect(p,s)
  end
 end
 local function resetMovement(p,s,h,root)
+ -- Detach only this avatar before relocating; a seat weld can otherwise keep
+ -- the rescued character attached to anchored furniture.
+ local seat=h.SeatPart
+ if seat and p.Character then
+  for _,weld in ipairs(seat:GetChildren()) do
+   if weld:IsA("Weld") and weld.Name=="SeatWeld" and weld.Part1 and weld.Part1:IsDescendantOf(p.Character) then weld:Destroy() end
+  end
+ end
+ h.Sit=false
  s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false;s.sprintRequested=false
  p:SetAttribute("DodgeEnds",0);p:SetAttribute("DodgeStarted",0);p:SetAttribute("KnockdownEnds",0);p:SetAttribute("Sprinting",false)
  h.PlatformStand=false;h.AutoRotate=true
@@ -669,8 +678,8 @@ task.spawn(function()
     if not s.micReady then h.Jump=false end
     if h.Health<h.MaxHealth and now>=s.nextHeal then h.Health=math.min(h.MaxHealth,h.Health+h.MaxHealth*.2);s.nextHeal=now+10 end
     if r.Position.Z>600 and (r.Position.Z>780 or math.abs(r.Position.X)>700) then
-     p.Character:PivotTo(CFrame.new(math.clamp(r.Position.X,-670,670),5,594))
-     resetMovement(p,s,h,r);running=false;protect(p,s)
+     resetMovement(p,s,h,r);running=false
+     p.Character:PivotTo(CFrame.new(math.clamp(r.Position.X,-670,670),5,594));protect(p,s)
      state(p,"Lifeguard rescue · stay inside the gold buoys.")
     elseif r.Position.Y< -20 then
      resetMovement(p,s,h,r);running=false;p.Character:PivotTo(World.SafeSpawn);protect(p,s)

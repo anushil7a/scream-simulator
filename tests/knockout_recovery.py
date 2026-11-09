@@ -42,6 +42,18 @@ resetMovement(p,s,h,root)
 check(h.Health==42 and s.nextDodge==64 and s.sprintCharge==3,'Rescue reset healed or reset movement budgets')
 check(s.dodgingUntil==0 and s.knockedUntil==0 and not s.sprintRequested and not s.premiumRoll,'Rescue retained active movement state')
 check(root.AssemblyLinearVelocity=='zero' and root.AssemblyAngularVelocity=='zero' and h.AutoRotate and not h.PlatformStand,'Rescue retained falling/ragdoll motion')
+local function weld(name,owned)
+ local w={Name=name,Part1={IsDescendantOf=function(_,model)return owned and model==character end},destroyed=false}
+ function w:IsA(kind)return kind=='Weld' end
+ function w:Destroy()self.destroyed=true end
+ return w
+end
+local own=weld('SeatWeld',true);local other=weld('SeatWeld',false);local furniture=weld('BenchJoint',true)
+h.SeatPart={GetChildren=function()return {own,other,furniture} end};h.Sit=true
+resetMovement(p,s,h,root)
+check(own.destroyed and not h.Sit,'Rescue retained seat attachment')
+check(not other.destroyed and not furniture.destroyed,'Rescue removed another occupant/furniture joint')
+h.SeatPart=nil
 root.Anchored=true;root.auto=false;eject(p,h)
 check(not root.auto,'Anchored fixture attempted ownership mutation')
 local player=p;local humanoid={Parent=true,Health=20,PlatformStand=true}
