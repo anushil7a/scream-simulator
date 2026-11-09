@@ -1,7 +1,7 @@
 """Build disposable native Studio review places using normal ModuleScript loading.
 
 This only assembles/compiles artifacts. It does not run Studio or verify audio.
-Both outputs refuse to run Bootstrap outside unpublished local Studio places.
+All outputs refuse to run Bootstrap outside unpublished local Studio places.
 """
 import json
 from pathlib import Path
@@ -45,11 +45,12 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
     bootstrap = (source / "Bootstrap.server.luau").read_text()
     fixture = "\n".join((ROOT / "tests" / name).read_text() for name in
                          ["StudioSustainedDamage.server.luau", "StudioSustainedDestruction.server.luau", "StudioSustainedPvp.server.luau"])
+    performance = "local summarizeHeartbeat=(function()\n" + (ROOT / "tests/support/HeartbeatSummary.luau").read_text() + "\nend)()\n" + (ROOT / "tests/StudioPerformance.server.luau").read_text()
     output = ROOT / "build"
     output.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="scream-review-") as temp:
         temp = Path(temp)
-        for name, appendix in [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture)]:
+        for name, appendix in [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance)]:
             script = temp / "Bootstrap.server.luau"
             script.write_text(guard + bootstrap + "\n" + appendix)
             subprocess.run([compiler, str(script)], check=True, stdout=subprocess.DEVNULL)
@@ -58,7 +59,7 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
             project_path = temp / "review.project.json"
             project_path.write_text(json.dumps(project, indent=2))
             subprocess.run([rojo, "build", str(project_path), "-o", str(output / (name + ".rbxl"))], check=True)
-    print("Built local play and synthetic native fixture places; neither was executed in Studio.")
+    print("Built local play, synthetic native fixture and performance review places; none was executed in Studio.")
 
 if __name__ == "__main__":
     main()

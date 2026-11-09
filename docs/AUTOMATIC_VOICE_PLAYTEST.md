@@ -63,3 +63,11 @@ Record commit/build, devices, exact reproduction steps and expected/observed beh
 - Delayed input: use an isolated native fixture with simulated network delay to verify late begin/pulse/stop packets never revive expired attacks or bypass cooldown. Adapter coverage now includes 79 synthetic checks; actual Roblox transport latency and real mic behavior remain unverified.
 
 - Resident social interruption: approach two chatting NPCs and start dialogue before the second replies; also interrupt with a scream. The old delayed reply must not overwrite player dialogue or reaction text. Ordinary uninterrupted replies should still occur. Ten mocked callback checks pass; native timing/speech-label review pending.
+
+## Local server performance sampling (not yet executed)
+
+Open `build/PerformanceReview.rbxl` as an unpublished local Studio file. It uses temporary profiles and contains no auto-running combat fixtures. Never publish this file. Start Server & Clients, then in the **server** Command Bar run `game.ServerStorage.RunServerSample:Invoke(30, "idle")`. Wait for `SERVER_SAMPLE` in Output. Repeat with labels such as `two-player-combat` and `destruction-repair` while clients perform the named activity.
+
+Record commit, computer, player count, scenario and the complete JSON output. Compare mean/p95/max **server heartbeat intervals**, intervals over 50ms and before/after world instance/part counts under the same conditions. The sampler measures 10–120 seconds, rejects overlapping runs and caps stored intervals at 20,000. A capped run is incomplete. Counting instances occurs outside the timing window. Do not interpret these intervals as client FPS, CPU profiling, network latency, a live-server load test or real-voice verification. Use Roblox's native profiler separately to identify causes; do not optimize from an isolated noisy sample.
+
+Seven synthetic statistics checks pass and the fixture compiles/builds. No engine sample or performance improvement is claimed.
