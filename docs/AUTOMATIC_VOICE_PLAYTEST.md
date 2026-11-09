@@ -242,3 +242,7 @@ Pending native/device check: during capture in a disposable client, remove the l
 ### Broken microphone meter wire
 
 Pending native/device check: in a disposable client, remove the meter Wire or clear either endpoint during capture. Verify capture cancels, the old wire/meter is removed, and a new wire connects the local input to its replacement analyzer. Fresh calibration and deliberate resume should restore attacks. Mocked endpoint/lifecycle checks pass; actual audio flow remains unverified.
+
+### Destruction registry restart
+
+Pending native developer check: in a disposable place, restart the destruction service while tag registration is deferred. Confirm old tag callbacks cannot change the new registry and current tagged objects still register/remove correctly. Six mocked lifecycle assertions pass; native CollectionService event ordering remains unverified.

@@ -22,7 +22,8 @@ local function advance(t)
  now=t
 end
 local os={clock=function()return now end}
-local task={delay=schedule}
+local deferred={}
+local task={delay=schedule,defer=function(fn)table.insert(deferred,fn)end}
 local V={};V.__index=function(v,k) if k=='Magnitude' then return math.sqrt(v.X*v.X+v.Y*v.Y+v.Z*v.Z) end;return V[k] end
 local function vector(x,y,z)return setmetatable({X=x,Y=y,Z=z},V) end
 V.__add=function(a,b)return vector(a.X+b.X,a.Y+b.Y,a.Z+b.Z) end
@@ -33,7 +34,11 @@ local Color3={fromRGB=function()return color end}
 local Enum={RaycastFilterType={Include=1}}
 local OverlapParams={new=function()return {} end}
 local players={GetPlayers=function()return {{Character={}}} end}
-local collection={GetTagged=function()return {} end}
+local addedCallbacks={};local removedCallbacks={}
+local function signal(list)return {Connect=function(_,fn)table.insert(list,fn);return {Disconnect=function()end}end}end
+local collection={GetTagged=function()return {} end,
+ GetInstanceAddedSignal=function()return signal(addedCallbacks)end,
+ GetInstanceRemovedSignal=function()return signal(removedCallbacks)end}
 local game={ReplicatedStorage={Shared={DestructionRules='rules'}},GetService=function(_,name)
  if name=='Players' then return players elseif name=='CollectionService' then return collection end
  error(name)
@@ -130,6 +135,23 @@ check(D.Damage(seat,1,1).reason=='health','Destroyed object accepted another hit
 check(m:GetAttribute('RepairAt')==brokenDeadline and D.objects[m].version==beforeVersion and #queue==1,'Hit on destroyed prop postponed repair')
 advance(brokenDeadline)
 check(m:GetAttribute('ObjectHealth')==50 and #queue==0,'Destroyed object failed to repair after rejected repeat')
+local world={}
+function m:IsDescendantOf(candidate)return candidate==world end
+D.Start(world)
+addedCallbacks[1](m)
+check(#deferred==1,'Added tag did not defer registration')
+D.Start(world)
+deferred[1]()
+check(D.objects[m]==nil,'Stale deferred registration survived service restart')
+addedCallbacks[1](m)
+check(#deferred==1,'Stale added callback queued work after restart')
+addedCallbacks[2](m);deferred[2]()
+check(D.objects[m]~=nil,'Current added callback failed registration')
+local registered=D.objects[m]
+removedCallbacks[1](m)
+check(D.objects[m]==registered,'Stale removal deleted current registration')
+removedCallbacks[2](m)
+check(D.objects[m]==nil and D.ids[m:GetAttribute('ObjectId')]==nil,'Current removal failed cleanup')
 print('PASS '..checks..' actual Destruction service checks with mocked engine/scheduler')
 '''
 with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.destruction_', dir=root/'tests', delete=False) as f:
