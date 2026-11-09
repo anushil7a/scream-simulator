@@ -101,4 +101,27 @@ check(not recovery.attack and packets[#packets][1]=="SustainedStop","Invalid liv
 before=#packets
 for i=1,20 do recovery:Step(.05,4.25+i*.05,i<6 and 0 or 1,true,true,true,2) end
 check(#packets==before,"Server-active state without local ownership started another attack")
+local delayedPackets={}
+local delayed=Controls.new(Gate.new(),function(verb,arg)table.insert(delayedPackets,{verb,arg})end,function()return 1 end)
+local delayedNow=0
+local function delayedRun(n,power,active,sequence)
+ for _=1,n do
+  delayedNow+=.05;delayed:Step(.05,delayedNow,power,true,true,active,sequence)
+ end
+end
+delayed:SetArmed(true)
+delayedRun(4,0,false);delayedRun(5,1,false)
+check(delayed.attack and delayed.attack.sequence==1,"Delayed acknowledgement fixture did not start")
+delayedRun(9,1,false)
+check(not delayed.attack and #delayedPackets==2 and delayedPackets[2][1]=="SustainedStop","Timeout did not send exactly one stop")
+delayedRun(10,0,true,1);delayedRun(10,1,true,1)
+check(#delayedPackets==2 and delayed.gate.needsQuiet,"Late server acknowledgement revived timed-out attack or accumulated quiet")
+delayedRun(10,1,false,1)
+check(#delayedPackets==2,"Server end restarted held voice after late acknowledgement")
+delayedRun(4,0,false,1);delayedRun(5,1,false,1)
+check(delayed.attack and delayed.attack.sequence==2 and #delayedPackets==3,"Fresh onset did not recover with a new sequence")
+delayedRun(3,1,true,1)
+check(#delayedPackets==3 and not delayed.attack.acknowledged,"Old sequence acknowledged a newer attempt")
+delayedRun(1,1,true,2)
+check(delayed.attack.acknowledged and #delayedPackets==4 and delayedPackets[4][1]=="SustainedPulse" and delayedPackets[4][2].sequence==2,"Current acknowledgement did not resume correctly sequenced pulses")
 print("PASS "..checks.." synthetic sustained control checks")

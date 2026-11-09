@@ -332,3 +332,7 @@ Pending device check: press Calibrate while access is checking or timed out but 
 ### Unconfirmed attack feedback
 
 Pending native/latency check: delay or suppress attack acknowledgement in a disposable test. After the local timeout, the meter should briefly explain “Not confirmed • quiet, then retry”; it must not send sustained pulses before acceptance or bypass the fresh-quiet requirement. A fresh start clears the notice. Two added synthetic controller assertions pass; no real network cause or timing has been verified.
+
+### Delayed acknowledgement ordering
+
+Pending native check: delay attack acknowledgement beyond the client timeout, then deliver the old active state. Verify there are no pulses/new starts while that state is active, no held-voice restart after it ends, and fresh quiet/onset starts a new sequence. Old-sequence state must not acknowledge the newer attempt. Seven synthetic controller assertions cover this ordering locally; they do not demonstrate actual network timing or microphone behavior.
