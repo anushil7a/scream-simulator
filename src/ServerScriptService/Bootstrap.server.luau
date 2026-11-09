@@ -144,11 +144,11 @@ local function audible(c,origin,target,targetModel)
  return workspace:Raycast(origin,target-origin,params)==nil
 end
 local function canCapture(p,s,now)
- local _,r=parts(p)
+ local _,r,h=parts(p)
  local bot=s.conversationBot
  if r and bot and bot.alive and bot.root.Parent and bot.talkingTo==p and (bot.socialUntil or 0)>now
   and (bot.root.Position-r.Position).Magnitude<=14 then return false end
- return r~=nil and s.micReady and now>=s.protectedUntil and now>=s.dodgingUntil and now>=(s.knockedUntil or 0)
+ return r~=nil and h~=nil and not h.PlatformStand and s.micReady and now>=s.protectedUntil and now>=s.dodgingUntil and now>=(s.knockedUntil or 0)
 end
 local function attackOrigin(c,r)
  local head=c:FindFirstChild("Head")

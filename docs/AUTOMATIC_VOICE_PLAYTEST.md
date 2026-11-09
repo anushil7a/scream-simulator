@@ -95,3 +95,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Dialogue death/respawn: while speaking to a resident, reset your character or have the resident knocked out. Verify the panel closes immediately, stays closed through respawn, and automatic voice still respects protection and fresh onset. Mocked character/UI tests pass; native input/event ordering remains unverified.
 
 - Ragdoll animation: on R6 and R15, enter PlatformStand while screaming, sprinting or rolling. Verify additive poses yield, recovery has no stale roll or landing snap, and normal locomotion resumes. Mocked frame-hook tests cover state clearing only; real Animator/physics blending remains pending.
+
+- Ragdoll combat: enter PlatformStand during a sustained scream with no active KnockdownEnds timer, then recover. Verify the beam/damage stops, attempts while ragdolled fail, and recovery still requires normal cooldown and quiet/new onset. Repeat with a moving-car hit and actual microphone. Client/server eligibility is mocked-tested; native replication and real voice remain unverified.

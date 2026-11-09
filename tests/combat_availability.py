@@ -10,7 +10,8 @@ setup='''
 local mt={__sub=function(a,b)return {Magnitude=math.abs(a.x-b.x)}end}
 local function position(x)return setmetatable({x=x},mt)end
 local root={Position=position(0)}
-local parts=function()return {},root end
+local humanoid={PlatformStand=false}
+local parts=function()return {},root,humanoid end
 '''
 checks='''
 local checks=0
@@ -31,6 +32,9 @@ check(not canCapture(p,s,10),'Boundary dialogue accepted attack')
 bot.alive=false;check(canCapture(p,s,10),'Dead resident locked attack');bot.alive=true
 bot.root.Parent=nil;check(canCapture(p,s,10),'Removed resident locked attack');bot.root.Parent=true
 s.conversationBot=nil;check(canCapture(p,s,10),'Closing conversation did not unblock')
+humanoid.PlatformStand=true;check(not canCapture(p,s,10),'Ragdoll accepted attack without knockdown timer')
+humanoid.PlatformStand=false;check(canCapture(p,s,10),'Recovered character remained blocked')
+humanoid=nil;check(not canCapture(p,s,10),'Missing humanoid accepted attack')
 root=nil;check(not canCapture(p,s,10),'Missing character accepted attack')
 print('PASS '..checks..' actual server combat availability checks with mocked character/dialogue')
 '''

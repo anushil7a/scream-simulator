@@ -121,6 +121,9 @@ script.Destroying:Connect(function()
  p.CameraMinZoomDistance=originalMinZoom;p.CameraMaxZoomDistance=originalMaxZoom
 end)
 local function blocked()
+ local character=p.Character
+ local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ if not humanoid or humanoid.Health<=0 or humanoid.PlatformStand then return true end
  local now=workspace:GetServerTimeNow()
  return GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil or (conversationPanel and conversationPanel.Visible) or modal.Visible or (devPanel and devPanel.Visible) or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
 end
