@@ -296,3 +296,7 @@ Pending native visual check: open Map before/during respawn. The marker should h
 ### Queued combat effects after cleanup
 
 Pending native check: remove/replace Client during break, dodge and sustained beam events. Confirm the old listener creates no late particles, updates no damage feedback, and leaves no beam behind. Effect delivery now shares the tested client connection teardown guard; native event queue ordering/rendering is unverified.
+
+### Responsive XP/save status
+
+Pending visual check: with temporary/test progress or a simulated delayed-save status, resize across 820px. Compact HUD should show save status; wide HUD should restore XP/MAX LEVEL while its separate save notice remains visible. No new server packet should be required for resizing. Eight mocked selector checks pass; this is not persistence or native layout evidence.

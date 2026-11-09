@@ -503,9 +503,16 @@ local function refreshQuestObjects()
   end
  end
 end
+local function progressLabel(compact)
+ if compact then
+  if data.testSession or data.savingAvailable==false then return "TEMPORARY PROGRESS • not saved" end
+  if data.savingDelayed then return "SAVE DELAYED • retrying" end
+ end
+ return data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP"
+end
 connectClient(remotes.State.OnClientEvent,function(nextData)
  data=nextData;refreshQuestObjects();stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";refreshHealth()
- xpText.Text=data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP";xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
+ xpText.Text=progressLabel(gui.AbsoluteSize.X<820);xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
  zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
  testButton.Visible=data.devAccess==true
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
@@ -604,10 +611,8 @@ connectClient(Run.RenderStepped,function(dt)
  refreshConversation()
  saveNotice.Text=data.testSession and "TEST SESSION · progress is temporary" or data.savingDelayed and "Save delayed · retrying automatically" or data.savingAvailable==false and "Temporary progress · saving unavailable" or ""
  saveNotice.Visible=not modal.Visible and viewport.X>=820
- if viewport.X<820 then
-  if data.testSession or data.savingAvailable==false then xpText.Text="TEMPORARY PROGRESS • not saved"
-  elseif data.savingDelayed then xpText.Text="SAVE DELAYED • retrying" end
- end
+ local progress=progressLabel(viewport.X<820)
+ if xpText.Text~=progress then xpText.Text=progress end
  if layoutChanged then
  micScale.Scale=1
  local micWidth=math.min(430,viewport.X-24);local micNarrow=micWidth<400
