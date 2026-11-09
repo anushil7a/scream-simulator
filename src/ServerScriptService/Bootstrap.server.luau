@@ -733,4 +733,19 @@ local function autosave(p,s)
  end
 end
 task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(autosave,p,s) end end end end)
-game:BindToClose(function() local pending=0;for p,s in pairs(sessions) do if s.canSave then pending+=1;task.spawn(function() Profiles.Save(p.UserId,s.testBaseline or s.data,true);pending-=1 end) end end;local deadline=os.clock()+25;while (pending>0 or departuresInFlight>0) and os.clock()<deadline do task.wait(.1) end end)
+local function shutdown()
+ local pending=0
+ local deadline=os.clock()+25
+ for p,s in pairs(sessions) do
+  if s.canSave then
+   pending+=1
+   task.spawn(function()
+    local ok,err=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true)
+    pending-=1
+    if not ok then warn("ScreamSimulator shutdown save failed",err) end
+   end)
+  end
+ end
+ while (pending>0 or departuresInFlight>0) and os.clock()<deadline do task.wait(.1) end
+end
+game:BindToClose(shutdown)
