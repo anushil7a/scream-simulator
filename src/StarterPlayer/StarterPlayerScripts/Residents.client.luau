@@ -48,7 +48,18 @@ Run.PreSimulation:Connect(function(dt)
   rig.rootJoint=rig.rootJoint and rig.rootJoint.Parent and rig.rootJoint or torso:FindFirstChild("RootJoint")
   if rig.rootJoint then
    local stumble=working and role=="Soccer" and routine=="Trip" and workAge>=1.3 and workAge<4.3 and math.sin((workAge-1.3)/3*math.pi) or 0
-   rig.rootJoint.Transform=rig.rootJoint.Transform:Lerp(CFrame.Angles(-.65*stumble,0,math.sin(workAge*8)*.12*stumble),poseAlpha)
+   local gaitBob=math.sin(rig.phase*2)*.035*rig.blend
+   local breath=math.sin(now*1.7+rig.phase)*.012*(1-rig.blend)
+   local workLean=working and (role=="Gardener" or role=="Sanitation") and .09 or 0
+   local pose=CFrame.new(0,gaitBob+breath,0)*CFrame.Angles(-.65*stumble-workLean-.05*rig.blend,0,math.sin(workAge*8)*.12*stumble)
+   rig.rootJoint.Transform=rig.rootJoint.Transform:Lerp(pose,poseAlpha)
+  end
+  rig.neck=rig.neck and rig.neck.Parent and rig.neck or torso:FindFirstChild("Neck")
+  if rig.neck then
+   local reading=seated and model:GetAttribute("Reading")==true
+   local idle=not moving and not working and not seated and not model:GetAttribute("Gesturing")
+   local glance=idle and distance<100 and math.sin(now*.55+(model:GetAttribute("AnimationSeed") or 1))* .13 or 0
+   rig.neck.Transform=rig.neck.Transform:Lerp(CFrame.Angles(reading and -.22 or working and -.06 or 0,glance,0),poseAlpha)
   end
   if rig.practiceBall then
    local visible=working and distance<180
