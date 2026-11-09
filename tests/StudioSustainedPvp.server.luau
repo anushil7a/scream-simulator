@@ -1,5 +1,6 @@
 -- Append to Bootstrap only in a disposable PlaceId=0 Studio test.
--- Start Server & Clients with two players, then run _G.RunSustainedPvp()
+-- Start Server & Clients with two players, then run
+-- game.ServerStorage.RunSustainedPvp:Invoke()
 -- in the SERVER command bar. Uses real avatars and synthetic voice input.
 assert(sustainedEnabled and RunService:IsStudio() and game.PlaceId==0)
 _G.RunSustainedPvp=function()
@@ -39,4 +40,20 @@ _G.RunSustainedPvp=function()
   q:SetAttribute("SustainedActive",false);q:SetAttribute("SustainedReadyAt",0)
  end
  print("NATIVE_PVP_RESULT",ok,n,err or "two local players; synthetic voice")
+ return ok,n,err
 end
+-- Command Bar globals may differ from the running script environment. Expose
+-- an explicit server-only entry point in this disposable fixture instead.
+local runner=Instance.new("BindableFunction")
+runner.Name="RunSustainedPvp"
+local running=false
+runner.OnInvoke=function()
+ assert(not running,"PvP fixture is already running")
+ running=true
+ local result=table.pack(pcall(_G.RunSustainedPvp))
+ running=false
+ if not result[1] then error(result[2]) end
+ return table.unpack(result,2,result.n)
+end
+runner.Parent=game:GetService("ServerStorage")
+print("NATIVE_PVP_READY", "game.ServerStorage.RunSustainedPvp:Invoke()")
