@@ -338,6 +338,12 @@ local function cast(p,request)
  elseif not castMessage then castMessage=evades>0 and "Scream dodged" or obstruction and "Scream stopped by cover" or "Scream missed" end
  state(p,castMessage)
 end
+local function finishDodge(p,s,c,r,h,started,now)
+ if sessions[p]~=s or p.Character~=c or s.lastDodge~=started or not h.Parent or h.Health<=0
+  or now<(s.knockedUntil or 0) or h.PlatformStand then return end
+ h.AutoRotate=true
+ if r.Parent and not r.Anchored then r:SetNetworkOwnershipAuto() end
+end
 local function dodge(p)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
  if s then cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
@@ -358,7 +364,7 @@ local function dodge(p)
  effect:FireAllClients("Dodge",r.Position,s.data.aura)
  task.spawn(function()
   local previousDistance=0
-  while c.Parent and p.Character==c and h.Health>0 and s.dodgingUntil>os.clock() and os.clock()-now<Config.DodgeDuration do
+  while sessions[p]==s and s.lastDodge==now and c.Parent and p.Character==c and h.Health>0 and s.dodgingUntil>os.clock() and os.clock()-now<Config.DodgeDuration do
    local t=math.clamp((os.clock()-now)/Config.DodgeDuration,0,1)
    local desired=distance*(t*t*(3-2*t));local step=desired-previousDistance
    local blocked=step>0 and workspace:Blockcast(r.CFrame,Vector3.new(2,2.5,2),direction*step,params)
@@ -366,8 +372,7 @@ local function dodge(p)
    r.CFrame=CFrame.lookAt(r.Position+direction*step,r.Position+direction*(step+1));previousDistance=desired
    r.AssemblyLinearVelocity=Vector3.zero;RunService.Heartbeat:Wait()
   end
-  if h.Parent then h.AutoRotate=true end
-  if r.Parent and os.clock()>=(s.knockedUntil or 0) then r:SetNetworkOwnershipAuto() end
+  finishDodge(p,s,c,r,h,now,os.clock())
  end)
  state(p)
 end
