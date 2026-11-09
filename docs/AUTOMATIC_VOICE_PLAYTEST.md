@@ -360,3 +360,5 @@ Pending visual/device check: each quiet/voice calibration phase should show its 
 ### Invalid microphone signal recovery
 
 Pending integration check: in a disposable fixture with explicitly injected synthetic meter samples, nonfinite/negative RMS should clear readiness/capture and show unavailable guidance. Valid zero must remain normal silence. Recovery after interrupted calibration must request fresh calibration; verify the automatic controls observe unavailable state and require deliberate resume after a sustained outage. These samples are not real device evidence; real voice recovery still needs eligible-account testing.
+
+Synthetic integration update: actual microphone/gate/controls pass seven outage-to-recovery assertions, including one stop, no silent rearm and fresh quiet after manual resume. The harness orders microphone sampling before each controls frame and supplies fake acknowledgement; native scheduling, server delivery and real-device recovery remain pending.

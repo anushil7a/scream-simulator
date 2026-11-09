@@ -9,6 +9,8 @@ root = Path(__file__).resolve().parents[1]
 source = (root / 'src/StarterPlayer/StarterPlayerScripts/Microphone.luau').read_text()
 setup = r'''
 local Power=require('../src/ReplicatedStorage/Shared/MicPower')
+local Gate=require('../src/ReplicatedStorage/Shared/VoiceActivation')
+local Controls=require('../src/StarterPlayer/StarterPlayerScripts/SustainedControls')
 local now=0
 local os={clock=function()return now end}
 local pending={};local timeouts={};local deferCheck=false
@@ -125,6 +127,31 @@ for _,breakLink in ipairs({
  m:Calibrate();samples('quiet',.001);samples('voice',.08)
  check(m.ready,'Fresh calibration after wire repair failed')
 end
+local packets={}
+local controls=Controls.new(Gate.new(),function(verb,arg)table.insert(packets,{verb,arg})end,function()return 1 end)
+local function frames(n,rms)
+ for _=1,n do
+  now+=.05;m.analyzer.RmsLevel=rms;m:Step(.05)
+  controls:ObserveAvailability(m.ready,true)
+  local attack=controls.attack
+  controls:Step(.05,now,m.power,true,true,attack~=nil,attack and attack.sequence)
+ end
+end
+frames(15,0);frames(15,.08)
+check(controls.attack~=nil and controls.attack.acknowledged,'Integrated mic/controller fixture did not start acknowledged attack')
+frames(1,0/0)
+check(not m.ready and not controls.armed and not controls.attack and packets[#packets][1]=='SustainedStop','Invalid microphone signal did not stop automatic attack')
+local stopped=#packets
+frames(5,math.huge)
+check(#packets==stopped,'Continuing signal outage duplicated stop or sent pulses')
+frames(20,.08);frames(15,0);frames(15,.08)
+check(m.ready and not controls.armed and #packets==stopped,'Recovered microphone silently rearmed attack')
+controls:SetArmed(true);frames(15,.08)
+check(#packets==stopped,'Explicit resume bypassed quiet gate with held voice')
+frames(15,0);frames(15,.08)
+check(controls.attack and controls.attack.sequence==2 and controls.attack.acknowledged,'Fresh quiet and voice failed to recover attack')
+controls:Destroy()
+check(not controls.attack and packets[#packets][1]=='SustainedStop','Integrated controller cleanup left attack running')
 local analyzer=m.analyzer;m.ready=true;m.power=1;m:Destroy()
 check(disconnected and analyzer.destroyed,'Destroy leaked heartbeat/analyzer')
 check(not m.ready and not m.eligible and m.power==0 and m.captureStarted==nil,'Destroyed microphone retained attack readiness')
