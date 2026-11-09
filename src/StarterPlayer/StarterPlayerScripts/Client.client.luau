@@ -468,6 +468,10 @@ Run.RenderStepped:Connect(function(dt)
  end
  micPanel.Visible=not mic.ready and not modal.Visible and not devPanel.Visible;micStatus.Text=mic.status
  if reportedReady~=mic.ready or (data.micReady~=mic.ready and os.clock()>readyReportAt) then reportedReady=mic.ready;readyReportAt=os.clock()+1;action:FireServer("MicReady",mic.ready) end
+ local serverNow=workspace:GetServerTimeNow()
+ local protectionRemaining=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-serverNow)
+ local rolling=serverNow<(p:GetAttribute("DodgeEnds") or 0)
+ local knocked=serverNow<(p:GetAttribute("KnockdownEnds") or 0)
  local voiceCooldown,voiceActive
  if sustainedControl then
   local character=p.Character
@@ -493,11 +497,17 @@ Run.RenderStepped:Connect(function(dt)
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
  if sustainedControl then
-  captureHint=not sustainedControl.armed and "Voice paused • press E or tap VOICE"
+  captureHint=protectionRemaining>0 and string.format("Spawn protection • %.1fs",protectionRemaining)
+   or knocked and "Recovering • attack unavailable"
+   or rolling and "Rolling • attack cancelled"
+   or UIS:GetFocusedTextBox()~=nil and "Typing • attack paused"
+   or not sustainedControl.armed and "Voice paused • press E or tap VOICE"
    or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
    or sustainedControl.attack and (voiceActive and "Attacking • quiet to stop" or "Starting attack…")
    or sustainedControl.gate.needsQuiet and "Armed • quiet before speaking"
    or "Armed • aim and speak"
+  meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
+   or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
  end
  meterText.Text=string.format("%s %d%% • up to %.0f studs\n%s",captureSource and "SCREAM POWER" or "LIVE MIC",math.floor(power*100),range,captureHint)
  if layoutChanged then
@@ -534,7 +544,10 @@ Run.RenderStepped:Connect(function(dt)
  tracked.Visible=gameplayVisible and tracked.Text~="";zone.Visible=viewport.X>740 and mic.ready
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD SCREAM [E]"
- if sustainedControl then castButton.Text=sustainedControl.armed and "PAUSE VOICE [E]" or "ARM VOICE [E]" end
+ if sustainedControl then
+  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s"
+   or sustainedControl.armed and "PAUSE VOICE [E]" or "ARM VOICE [E]"
+ end
  castButton.BackgroundColor3=(sustainedControl and not sustainedControl.armed or protected>0) and muted or gold
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
  local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs [SHIFT]",p:GetAttribute("SprintCharge") or 10)
