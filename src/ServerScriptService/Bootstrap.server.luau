@@ -260,6 +260,9 @@ local function stepSustained(p,s,now)
      s.koRewards[target.player.UserId]=now+30
      xp(p,Config.PlayerKOXP(ts.data.level));s.data.coins+=20
      if ts.data.level>=intent.level then questProgress(p,"Underdog") end
+     state(p,"Arena KO · "..target.player.DisplayName.." · reward earned")
+    else
+     state(p,"Arena KO · "..target.player.DisplayName.." · repeat-opponent reward cooldown")
     end
    else h.Health-=hit.damage end
   elseif target.object then
