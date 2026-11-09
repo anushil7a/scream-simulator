@@ -178,3 +178,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Landmark loader cleanup
 - Pending native: stop/replace the local landmark loader during asset loading and after a detailed mesh is visible. Fallback geometry should remain visible, detailed parts hidden on teardown, and late old loads must not override a restarted loader.
 - Evidence: six actual-script checks using deferred mock asset loading, plus full local verification/build. Real asset fetching, streaming and visual appearance are unverified.
+
+- Landmark follow-up: test failed asset loading and stream-out/re-entry during loading. Fallback should remain until the current load succeeds; an older result must not swap current visuals. Eleven actual-loader checks now cover these with fake asset status/errors and coroutine/deferred scheduling, not Roblox CDN/streaming.

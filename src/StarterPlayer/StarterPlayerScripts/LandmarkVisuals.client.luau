@@ -21,6 +21,7 @@ local function apply(model)
   end
  end
  task.spawn(function()
+  if destroyed or pending[model]~=ticket then return end
   local ok=pcall(function()
    Content:PreloadAsync(meshes,function(id,status)
     if expected[id]~=nil then expected[id]=status==Enum.AssetFetchStatus.Success end
