@@ -94,7 +94,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 ## Next action
 
-Check usage, then run the disposable Studio server fixture and a local client/server session. Verify that beams track aim, stop at cover, and disappear on stop, death and disconnect. Confirm PvP and destruction with real engine tests before real microphone testing. Normal mode stays on legacy combat until review.
+Check usage, then obtain the pending two-player native result. The owner has been asked to run `_G.RunSustainedPvp()` in the local server Command Bar and return its `NATIVE_PVP_RESULT` output: reconnecting computer control still targets the editor instance. Do not repeat the same foreground-window request. Server damage/cover, destruction/protection, beam cleanup, in-memory migration and R15 animation checks have passed as recorded below. Two-player PvP, real voice, real save round trips and representative performance remain open. Normal mode stays on legacy combat until review; the authorized release destination is City Preview `90337242377543`.
 
 - November 8 owner follow-up: usage 49% used. Authorized tested GitHub development-branch pushes and requested the current update in the main Roblox game. Native Studio access again returned timeoutReached; no Roblox publication attempted. Sustained combat remains local-only pending engine verification. Future work includes city color/readability, purposeful NPC activity and animations after combat gates.
 
@@ -109,3 +109,5 @@ Check usage, then run the disposable Studio server fixture and a local client/se
 - Two-player fixture prepared and compiled, not executed. Native UI coordinate actions return `noWindowsAvailable` for the inaccessible client-count control even though menu/command-bar accessibility works. Requested owner set Server & Clients to 2 and start the disposable session. `_G.RunSustainedPvp()` is ready in its server context. Current fixture copy contains test appendices and must never be published.
 
 - Owner confirmed the current release destination: City Preview `90337242377543`. Usage 52% used. Two-client count is visibly 2, but the connected Studio window reports Edit mode, zero players and no runtime helper; requested launch or foreground of the actual server window. No PvP pass or publication claimed.
+
+- November 8 late heartbeat: usage 53% used, working tree clean at entry. Owner-command handoff remains pending after a fresh connection still selected the editor; no new runtime result, publication or feature change. Updated next action to avoid repeating completed tests or asking the owner to foreground the same window again.
