@@ -1,5 +1,9 @@
 # Automatic voice candidate — manual checks
 
+## Quiet attack audio review (pending upload)
+
+The original loop and audition are in `assets/audio/`; the asset ID is intentionally empty until approved for Roblox upload. After configuring the permitted asset, compare one and four simultaneous beams near/far, with headphones and speakers. Player voice must remain intelligible; check local-mic ducking, silence during calibration, LOW/OFF control, end/dodge/respawn/departure and missing-update cleanup. Check that speaker playback does not falsely trigger microphone attacks. Synthetic mix/adapter tests do not establish listening balance or actual audio loading. See `assets/audio/README.md` for the exact mix and approval status.
+
 Current candidate is local and unpublished. City Preview version 19 still uses hold/release. Run `python3 tests/verify_local.py --build` to check sources and regenerate identified review builds, then open `build/SustainedLocalPlay.rbxl` for isolated temporary-profile gameplay. Never publish disposable fixtures. `AutomaticVoiceCandidate.rbxl` uses normal profiles and is not the default sandbox for experiments.
 
 Review builds now include matching `build/<name>.provenance.json` files with source and artifact SHA-256. In Studio, `workspace:GetAttribute("ReviewBuildName")` and `workspace:GetAttribute("ReviewSourceSha256")` identify the loaded fixture; performance sample output includes these fields automatically. Record them with results. Hashes identify the assembled sources/artifact; they do not establish runtime correctness or real-voice evidence.

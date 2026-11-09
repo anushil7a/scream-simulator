@@ -34,6 +34,9 @@ local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
 local InteractionRules=require(RS.Shared:WaitForChild("InteractionRules"))
 local DestructionRules=require(RS.Shared:WaitForChild("DestructionRules"))
 local mic=require(script.Parent:WaitForChild("Microphone")).new()
+local attackAudio=require(script.Parent:WaitForChild("AttackAudio")).new()
+local attackAudioSettings=require(RS.Shared.AttackAudioConfig)
+script.Destroying:Connect(function() attackAudio:Destroy() end)
 script.Destroying:Connect(function() mic:Destroy() end)
 local ScreamEffects=require(script.Parent:WaitForChild("ScreamEffects"))
 script.Destroying:Connect(function() ScreamEffects.Clear() end)
@@ -429,6 +432,10 @@ render=function()
   info("Changed microphone or room noise? Recalibrate with a comfortable strong voice. "..(sustainedControl and "Voice attacks stay paused afterward; use ARM VOICE to resume." or "After calibration, hold SCREAM and use a fresh live voice input."),80)
   local cameraCard=card(58);button(cameraCard,"CameraMode", "VIEW: "..(firstPerson and "FIRST PERSON" or "THIRD PERSON"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),toggleCamera)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
+  local audioCard=card(58);local audioButton
+  audioButton=button(audioCard,"AttackAudio","ATTACK SFX: "..(attackAudio.enabled and "LOW" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
+   attackAudio:SetEnabled(not attackAudio.enabled);audioButton.Text="ATTACK SFX: "..(attackAudio.enabled and "LOW" or "OFF")
+  end)
   info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
   local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
  end
@@ -575,12 +582,15 @@ if sustainedControl then
   part.Parent=workspace
  end,function(part) part:Destroy() end)
  connectClient(p.CharacterRemoving,function() sustainedBeams:Clear() end)
+ connectClient(p.CharacterRemoving,function() attackAudio:Clear() end)
  connectClient(Players.PlayerRemoving,function(leaving) sustainedBeams:Remove(leaving.UserId) end)
+ connectClient(Players.PlayerRemoving,function(leaving) attackAudio:Remove(leaving.UserId) end)
  script.Destroying:Connect(function() sustainedBeams:Destroy() end)
 end
 connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth)
  if kind=="SustainedHit" then hitFeedback:Accept(id,aura,os.clock());return end
  if kind=="SustainedBeamEnd" then
+  attackAudio:Stop(id,os.clock())
   if sustainedBeams then sustainedBeams:Remove(id) end
   return
  end
@@ -588,9 +598,12 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   if not sustainedBeams then return end
   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
   if not Players:GetPlayerByUserId(id) or not root or (root.Position-pos).Magnitude>180 or length<.05 then
-   sustainedBeams:Remove(id);return
+   sustainedBeams:Remove(id);attackAudio:Remove(id);return
   end
   sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,Config.Auras[aura] or gold)
+  if (root.Position-pos).Magnitude<=attackAudioSettings.Range then
+   attackAudio:Pulse(id,os.clock(),pos,id==p.UserId)
+  else attackAudio:Remove(id) end
   return
  end
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if not root or (root.Position-pos).Magnitude>180 then return end
@@ -600,7 +613,7 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  local color=Config.Auras[kind=="Dodge" and id or aura] or gold
  if kind=="Dodge" then local f=fxPart(pos,color,Vector3.new(2,3,2));Tween:Create(f,TweenInfo.new(.35),{Transparency=1,Size=Vector3.new(5,1,5)}):Play();return end
  local s=Config.GetSound(id);if not s then return end
- -- Actual voice is carried by Roblox proximity audio. Never play a recorded attack.
+ -- Actual voice stays on Roblox proximity audio. Original synthetic SFX are separate.
  direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range
  ScreamEffects.Render(s.effect,pos,direction,length,beamWidth or 4,color,data.settings.reducedShake,s.variant)
 end)
@@ -752,6 +765,7 @@ connectClient(Run.RenderStepped,function(dt)
  aimInfo.Visible=gameplayVisible
  elapsed+=dt;if elapsed<.15 then return end;elapsed=0
  if sustainedBeams then sustainedBeams:Expire(os.clock()) end
+ attackAudio:Step(os.clock(),dt,mic.ready and mic.power>.12,mic.phase~=nil)
  aimInfo.Text=""
  if aimInfo.Visible then
   local _,hit=aimRay();local object=hit and hit.Instance

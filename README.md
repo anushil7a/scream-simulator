@@ -1,5 +1,7 @@
 # Scream Simulator — microphone city redesign
 
+**Attack audio draft:** [original quiet energy-beam SFX](assets/audio/README.md) and quiet mixing are prepared. Roblox audio upload/permission is pending owner approval, so the asset ID remains empty and these effects are not audible in-game yet. Attack duration stays four seconds.
+
 **Current direction (November 9):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 10 seconds cooldown), preserving normal profiles. Calibrate once, stay quiet briefly, then aim and speak; E/VOICE pauses/resumes. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue development while Codex allowance remains.
 
 [GitHub repository](https://github.com/anushil7a/scream-simulator) · [City Preview](https://www.roblox.com/games/90337242377543/Scream-Simulator-City-Preview) · [Separate original experience](https://www.roblox.com/games/122465114514497/Scream-Simulator)

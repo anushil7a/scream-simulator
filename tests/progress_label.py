@@ -25,5 +25,5 @@ print('PASS '..checks..' actual progress label checks with mocked state')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
  path=Path(f.name);f.write('local Config={MaxLevel=100};local data={level=1,xp=30,xpNext=103}\n'+s[a:b]+checks)
-try: subprocess.run(['/opt/homebrew/bin/luau',str(path)],cwd=root,check=True)
+try: subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally: path.unlink()

@@ -186,6 +186,6 @@ with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.destruction_
     path=Path(f.name)
     f.write(preamble+source+checks)
 try:
-    subprocess.run(['/opt/homebrew/bin/luau',str(path)],cwd=root,check=True)
+    subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally:
     path.unlink()

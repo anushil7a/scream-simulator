@@ -37,5 +37,5 @@ print('PASS '..checks..' actual settings validation checks with mocked session')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
  path=Path(f.name);f.write(setup+branch+checks)
-try: subprocess.run(['/opt/homebrew/bin/luau',str(path)],cwd=root,check=True)
+try: subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally: path.unlink()

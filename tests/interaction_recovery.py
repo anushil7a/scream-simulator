@@ -36,5 +36,5 @@ print('PASS '..checks..' shared interaction recovery checks with mocked geometry
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
  path=Path(f.name);f.write(setup+s+checks)
-try: subprocess.run(['/opt/homebrew/bin/luau',str(path)],cwd=root,check=True)
+try: subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally: path.unlink()

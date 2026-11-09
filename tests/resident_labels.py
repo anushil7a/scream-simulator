@@ -34,5 +34,5 @@ print('PASS '..checks..' actual resident label checks with mocked objects')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
  path=Path(f.name);f.write(setup+s[a:b]+checks)
-try: subprocess.run(['/opt/homebrew/bin/luau',str(path)],cwd=root,check=True)
+try: subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally: path.unlink()
