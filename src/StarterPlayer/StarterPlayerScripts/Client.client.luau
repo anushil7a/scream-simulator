@@ -510,7 +510,7 @@ if sustainedControl then
  end,function(part) part:Destroy() end)
  script.Destroying:Connect(function() sustainedBeams:Destroy() end)
 end
-remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,beamWidth)
+local effectConnection=remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,beamWidth)
  if kind=="SustainedHit" then hitFeedback:Accept(id,aura,os.clock());return end
  if kind=="SustainedBeamEnd" then
   if sustainedBeams then sustainedBeams:Remove(id) end
@@ -525,7 +525,7 @@ remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,
   sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,Config.Auras[aura] or gold)
   return
  end
- local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root and (root.Position-pos).Magnitude>180 then return end
+ local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if not root or (root.Position-pos).Magnitude>180 then return end
  if kind=="Break" then
   for i=1,6 do local chip=fxPart(pos,Config.Auras[id] or gold,Vector3.new(.5,.5,.5));Tween:Create(chip,TweenInfo.new(.45),{Position=pos+Vector3.new(math.cos(i)*3,2,math.sin(i)*3),Transparency=1}):Play() end;return
  end
@@ -536,6 +536,7 @@ remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,
  direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range
  ScreamEffects.Render(s.effect,pos,direction,length,beamWidth or 4,color,data.settings.reducedShake,s.variant)
 end)
+script.Destroying:Connect(function() effectConnection:Disconnect() end)
 local elapsed=0
 local lastViewport,lastTouch
 -- A visible modal button frees the cursor for Roblox's first-person camera.

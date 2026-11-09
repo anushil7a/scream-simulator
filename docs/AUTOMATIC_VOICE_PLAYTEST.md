@@ -115,3 +115,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Talk input: T must not replace open Screams/Quests/Map/Settings/test-tool panels or an existing conversation. Move the cached resident out of range/behind cover or into recovery before pressing Talk; no dialogue should start. Verify normal T/touch activation and immediate capture cancellation on a valid request. Build checks pass; native input/raycast behavior remains pending.
 
 - Beam teardown: end a disposable local test or destroy the client script while a sustained beam is visible. Verify beam parts disappear and late effect delivery cannot recreate them. Mock visual manager tests pass; native instance cleanup/memory remains unmeasured.
+
+- Transient effects: while another player breaks props/dodges, reset the local character and observe that no new transient effects are allocated during the rootless gap; normal nearby effects should resume on spawn. Verify removing the client disconnects effect delivery. Build checks pass; native allocation/event timing remains pending.
