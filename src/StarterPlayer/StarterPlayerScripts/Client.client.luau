@@ -574,6 +574,8 @@ if sustainedControl then
   part.Color=color;part.Transparency=data.settings.reducedShake and .65 or .35
   part.Parent=workspace
  end,function(part) part:Destroy() end)
+ connectClient(p.CharacterRemoving,function() sustainedBeams:Clear() end)
+ connectClient(Players.PlayerRemoving,function(leaving) sustainedBeams:Remove(leaving.UserId) end)
  script.Destroying:Connect(function() sustainedBeams:Destroy() end)
 end
 connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth)
@@ -585,7 +587,7 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  if kind=="SustainedBeam" then
   if not sustainedBeams then return end
   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-  if not root or (root.Position-pos).Magnitude>180 or length<.05 then
+  if not Players:GetPlayerByUserId(id) or not root or (root.Position-pos).Magnitude>180 or length<.05 then
    sustainedBeams:Remove(id);return
   end
   sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,Config.Auras[aura] or gold)
