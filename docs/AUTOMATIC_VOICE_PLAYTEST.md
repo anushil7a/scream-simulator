@@ -304,3 +304,7 @@ Pending visual check: with temporary/test progress or a simulated delayed-save s
 ### Unclaimed quest count
 
 Pending UI check: complete a quest without claiming, then switch tasks and complete another. Quests should show the earned/unclaimed count in gold; claims reduce it and the ordinary label returns at zero. Check narrow phone text fit. Full local verification/build passes; native reward/UI replication is not verified by that build.
+
+### Nick active-task control
+
+Pending UI check: during each Nick stage, open Quests and tap TRACKING; it should preserve the current attempt and timer. To restart, explicitly Abandon then Accept. After completion, CLAIM must remain available and grant once. Existing acceptance/claim tests and full build pass; native menu behavior remains unverified.
