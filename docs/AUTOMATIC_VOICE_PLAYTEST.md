@@ -1,6 +1,28 @@
 # Automatic voice candidate — manual checks
 
-Current candidate is local and unpublished. City Preview version 19 still uses hold/release. Build with `rojo build default.project.json -o build/AutomaticVoiceCandidate.rbxl`; for isolated temporary profiles, run `python3 tests/build_sustained_review.py` and open `build/SustainedLocalPlay.rbxl`. Never publish either disposable fixture.
+Current candidate is local and unpublished. City Preview version 19 still uses hold/release. Run `python3 tests/verify_local.py --build` to check sources and regenerate identified review builds, then open `build/SustainedLocalPlay.rbxl` for isolated temporary-profile gameplay. Never publish disposable fixtures. `AutomaticVoiceCandidate.rbxl` uses normal profiles and is not the default sandbox for experiments.
+
+## Start here: first owner smoke test
+
+These are **pending checks**, not completed results. Save your open Studio work first. Open the disposable local file, start Play and let the city generate. Stop at a reproducible failure in a step; other independent checks may still proceed. A failed mic setup is not a reason to enable live APIs or change production settings.
+
+1. **Mic and aiming:** with eligible voice input available, calibrate, stay quiet briefly, aim and speak. Expect automatic onset without holding E, a beam aimed at the mouse (screen center in first person/touch), and silence stopping it. Confirm the live-power meter changes independently of the voice-button timing bar. A meter reaching 100% alone is not a pass.
+2. **Attack boundaries:** sustain one attack up to four seconds, then verify ten seconds of cooldown after it ends. Continuous speech through cooldown must not restart it; quiet followed by fresh voice must. Pause with E/ARM VOICE, speak and verify no attack. Resume explicitly.
+3. **Interruptions:** during an attack, try dodge, NPC dialogue, text chat and the Roblox menu separately. Damage must stop while blocked. Dodge alone must not scream. Mute, respawn and focus loss must require deliberate voice resume. If real input is unavailable, leave this untested rather than substituting synthetic input and calling it a voice pass.
+4. **Combat and destruction:** use the disposable two-client fixture for safe-zone/arena, five-second spawn protection and blocked attacks during protection. Compare level-locked versus unlocked props, then stand in a damaged prop’s repair volume and verify repair waits until clear. Synthetic fixtures can establish only their named engine checks; real voice/PvP behavior still needs eligible players.
+5. **City and recovery:** talk to a quest giver, walk away, and return. Try a car knockdown with dialogue open: it should close and become available again after recovery. Watch NPC work/sit/walk transitions and busker activity; look for floating, stuck routes or stale speech labels. Open Map at the promenade/pier and across respawn; check the player marker and landmark 7.
+6. **Small-screen UI:** inspect the mic setup, open/close Screams, Quests and Map, and check text wrapping, timing-bar contrast and tap targets. Record the viewport/device. Studio phone emulation is a layout check, not a real phone microphone/performance pass.
+
+### Tests requiring a separate environment
+
+- **Live proximity voice:** two eligible accounts/devices, near/far listening and a real scream-driven hit. Hearing your own mic loopback is not required.
+- **Legitimate saves/migration:** an explicitly approved test environment using normal profiles and legitimate earned progress. Disposable fixtures intentionally do not save. Do not publish a fixture or experiment with production keys to perform this check.
+- **Performance:** use the labeled PerformanceReview collector described below, and native client profiling on representative desktop/phone hardware. No measured performance result exists for this candidate.
+
+### Record one result per scenario
+
+Record commit, build filename/provenance, device/viewport, local versus uploaded environment, real versus synthetic input, expected result, observed result, reproduction steps and Output errors. Mark each **PASS**, **FAIL** or **NOT TESTED**; attach the first useful screenshot/log instead of treating absence of visible errors as proof. Do not record microphone audio or include credentials. Pending detailed checks below remain pending until matching evidence is recorded.
+
 
 ## Human microphone checks (pending)
 

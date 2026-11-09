@@ -22,7 +22,7 @@ Never publish a disposable fixture. Older root-level or `CityPreviewLatest` bina
 ## Before requesting the next release
 
 1. Record the exact commit and candidate provenance. Preserve collaborators' work and inspect the current cloud source/configuration before planning an overwrite.
-2. Run focused source checks and relevant disposable native tests. Record failures and unavailable tests honestly. Follow the automatic-voice playtest plan rather than historical hold/release lab instructions for this candidate.
+2. Run focused source checks and relevant disposable native tests. Record failures and unavailable tests honestly. Begin with the “Start here” smoke test in the automatic-voice playtest plan, then complete relevant detailed checks rather than historical hold/release lab instructions for this candidate.
 3. Complete real voice/listener, physical input, multiplayer and save migration/rejoin checks in an explicitly approved test environment. Use legitimate progress for persistence evidence, not test-tool mutations. Do not experiment on production player keys.
 4. Present the concrete candidate, outstanding risks and target to the owner for new upload/publication approval. Do not change live access/settings as part of that action without authorization.
 5. After an approved publication, reopen the cloud place, record the new version, compare source/configuration against that candidate and check a fresh-server startup. Mark that authorization complete; do not reuse it for later releases.
