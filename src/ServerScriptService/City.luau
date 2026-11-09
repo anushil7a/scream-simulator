@@ -313,6 +313,11 @@ local function building(parent,cf,w,d,floors,index,style)
   end
  end
  sign(m,shops[shopIndex],cf*CFrame.new(0,8.7,-d/2-(refined and .85 or .5)),math.min(w-3,26))
+ -- A few authored courtyard landmarks, placed against rear ground-floor walls.
+ -- These never cover shop entrances, windows, roads or pathfinding surfaces.
+ if refined and ({[28]=true,[88]=true,[1690]=true,[1790]=true,[2210]=true,[2310]=true,[2410]=true})[index] then
+  require(script.Parent.StreetArt).create(m,cf*CFrame.new(0,4.8,d/2+.07)*CFrame.Angles(0,math.pi,0),math.min(w-4,18),district=="Maritime")
+ end
  if style=="Modernista" then
   for i=-2,2 do
    local ornament=b("CeramicCrown",V(3,2.8+math.abs(i),2),V(i*w/6,h+2.5,-d/2),i%2==0 and Color3.fromRGB(78,146,145) or cream,Enum.Material.CeramicTiles,false)
