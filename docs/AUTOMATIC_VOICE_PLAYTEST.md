@@ -2,6 +2,8 @@
 
 Current candidate is local and unpublished. City Preview version 19 still uses hold/release. Run `python3 tests/verify_local.py --build` to check sources and regenerate identified review builds, then open `build/SustainedLocalPlay.rbxl` for isolated temporary-profile gameplay. Never publish disposable fixtures. `AutomaticVoiceCandidate.rbxl` uses normal profiles and is not the default sandbox for experiments.
 
+Review builds now include matching `build/<name>.provenance.json` files with source and artifact SHA-256. In Studio, `workspace:GetAttribute("ReviewBuildName")` and `workspace:GetAttribute("ReviewSourceSha256")` identify the loaded fixture; performance sample output includes these fields automatically. Record them with results. Hashes identify the assembled sources/artifact; they do not establish runtime correctness or real-voice evidence.
+
 ## Start here: first owner smoke test
 
 These are **pending checks**, not completed results. Save your open Studio work first. Open the disposable local file, start Play and let the city generate. Stop at a reproducible failure in a step; other independent checks may still proceed. A failed mic setup is not a reason to enable live APIs or change production settings.

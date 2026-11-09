@@ -44,6 +44,7 @@ do
    end
    local elapsed=os.clock()-start
    return {scenario=scenario,durationSeconds=elapsed,requestedSeconds=seconds,
+    build=workspace:GetAttribute("ReviewBuildName"),sourceSha256=workspace:GetAttribute("ReviewSourceSha256"),
     sampleCapReached=#values>=20000,heartbeat=summarizeHeartbeat(values),before=before,after=worldCounts(),
     scope="Local Studio SERVER heartbeat intervals only; not client FPS, CPU time, live network or voice verification"}
   end)
