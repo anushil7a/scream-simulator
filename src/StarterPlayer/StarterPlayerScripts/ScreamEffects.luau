@@ -4,6 +4,7 @@ local Effects={}
 local limits={core=64,detail=144}
 local active={core=0,detail=0}
 local pools={core={},detail={}}
+local live={}
 local function facing(a,b)
  local direction=(b-a).Unit
  return CFrame.lookAt(a,b,math.abs(direction.Y)>.98 and Vector3.zAxis or Vector3.yAxis)
@@ -16,9 +17,11 @@ local function particle(kind,cf,size,color,shape,lifetime,goal)
  p.Size=size;p.CFrame=cf;p.Transparency=kind=="core" and .55 or .25;p.Parent=workspace
  active[kind]+=1
  local target=goal or {};target.Transparency=1
- Tween:Create(p,TweenInfo.new(lifetime,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),target):Play()
+ local tween=Tween:Create(p,TweenInfo.new(lifetime,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),target)
+ live[p]=tween;tween:Play()
  task.delay(lifetime+.05,function()
-  p.Parent=nil;active[kind]-=1;table.insert(pools[kind],p)
+  if live[p]~=tween then return end
+  live[p]=nil;p.Parent=nil;active[kind]-=1;table.insert(pools[kind],p)
  end)
 end
 local function line(kind,a,b,thickness,color,lifetime)
@@ -79,6 +82,13 @@ function Effects.Render(family,origin,direction,length,width,color,reduced,varia
   ring(length,width*.45,.4)
  else -- Pulse
   ring(math.min(length,4),width*.4,.3)
+ end
+end
+function Effects.Clear()
+ for part,tween in pairs(live) do live[part]=nil;tween:Cancel();part:Destroy() end
+ for kind,pool in pairs(pools) do
+  for _,part in ipairs(pool) do part:Destroy() end
+  table.clear(pool);active[kind]=0
  end
 end
 function Effects.Budget()

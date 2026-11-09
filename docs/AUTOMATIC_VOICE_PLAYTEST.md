@@ -200,3 +200,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### KO reward cooldown retention
 - Pending native: KO the same opponent before/at the 30-second reward deadline, including a quick opponent rejoin. Cleanup must not permit early rewards; different opponents remain independent.
 - Evidence: nine actual helper checks with synthetic time and 1,000 expired entries, 12 mocked PvP branch checks, full verification/build. No measured memory, network or multiplayer result.
+
+### Pooled scream effect teardown
+- Pending native: stop/replace Client while legacy burst visuals are active and after their parts enter the cache. Verify cleanup removes both, delayed expiry does not recreate them, and a later client can render again using the cached module.
+- Evidence: nine actual particle/pool checks with fake tweens/instances, plus full verification/build. No visual/memory measurement claimed; automatic beam damage is unchanged.
