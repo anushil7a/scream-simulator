@@ -300,3 +300,7 @@ Pending native check: remove/replace Client during break, dodge and sustained be
 ### Responsive XP/save status
 
 Pending visual check: with temporary/test progress or a simulated delayed-save status, resize across 820px. Compact HUD should show save status; wide HUD should restore XP/MAX LEVEL while its separate save notice remains visible. No new server packet should be required for resizing. Eight mocked selector checks pass; this is not persistence or native layout evidence.
+
+### Unclaimed quest count
+
+Pending UI check: complete a quest without claiming, then switch tasks and complete another. Quests should show the earned/unclaimed count in gold; claims reduce it and the ordinary label returns at zero. Check narrow phone text fit. Full local verification/build passes; native reward/UI replication is not verified by that build.

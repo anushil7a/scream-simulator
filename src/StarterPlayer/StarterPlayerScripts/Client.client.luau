@@ -511,7 +511,15 @@ local function progressLabel(compact)
  return data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP"
 end
 connectClient(remotes.State.OnClientEvent,function(nextData)
- data=nextData;refreshQuestObjects();stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";refreshHealth()
+ data=nextData
+ local unclaimed=0
+ for _,quest in ipairs(Config.Quests) do
+  local progress=data.quests[quest.id]
+  if progress and not progress.claimed and progress.progress>=quest.goal then unclaimed+=1 end
+ end
+ questsToggle.Text=unclaimed>0 and ("QUESTS "..unclaimed) or "QUESTS"
+ questsToggle.TextColor3=unclaimed>0 and gold or white
+ refreshQuestObjects();stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";refreshHealth()
  xpText.Text=progressLabel(gui.AbsoluteSize.X<820);xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
  zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
  testButton.Visible=data.devAccess==true
