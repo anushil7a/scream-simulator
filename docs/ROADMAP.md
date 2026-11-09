@@ -10,6 +10,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 - Usage policy reaffirmed by owner November 9: continue while allowance remains; check usage at task boundaries and keep work checkpointed.
 - Work locally in focused commits and disposable Studio copies. Publishing requires fresh owner approval. Preserve externally changed cloud state and existing saves.
+- The current chat's scheduled development follow-up was removed at the owner's request on November 9. Continue work on request; do not recreate scheduled work without a new request. Earlier scheduling entries below are historical.
 - Maintain completed evidence, known failures and the next concrete action here. Actual audio, hardware and multiplayer gates stay open until observed.
 
 ## Ordered backlog
@@ -76,7 +77,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 ## Session log
 
-- November 9 branch coordination: owner selected `feature/microphone-city-redesign` for ongoing work and GitHub updates, retaining the existing four-second attack maximum, ten-second cooldown, level-100 cap and ten-level unlock cadence. The separate prototype is superseded; its code and test claims are not imported into this branch. Updated development instructions and the current chat's daily follow-up to use this branch and `docs/ROADMAP.md`. Documentation/workflow change only: production source, saves and balance unchanged; no new native or microphone tests claimed. Next: fetch contributor changes, then select one bounded task from this roadmap and maintain PR #1. Roblox publication still requires approval.
+- November 9 branch coordination: owner selected `feature/microphone-city-redesign` for ongoing work and GitHub updates, retaining the existing four-second attack maximum, ten-second cooldown, level-100 cap and ten-level unlock cadence. The separate prototype PR #2 was closed as superseded; its code and test claims are not imported into this branch. Updated development instructions to use this branch and `docs/ROADMAP.md`. The owner then removed the daily follow-up; its deletion was confirmed in the app. Documentation/workflow change only: production source, saves and balance unchanged; no new native or microphone tests claimed. Next requested work: fetch contributor changes, select one bounded task from this roadmap and maintain PR #1. Roblox publication still requires approval.
 
 - November 7: management policy and priorities established; owner clarified the cutoff as 20% remaining. Repository clean at review start. Studio in Edit, City Preview version 15 / 30 sources. No cloud writes or publication performed.
 - November 7: all 30 version-15 cloud sources match the verified version-14 source record; no collaborator script difference detected. Local progression now caps at 100 and provides 11 styles (base + ten unlocks). Profile schema 4 retains a validated level/XP/style archive and resolves retired style IDs without equipping locked tiers.

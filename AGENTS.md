@@ -13,5 +13,5 @@ Use `feature/microphone-city-redesign` as the shared development branch and upda
 - Work in small reviewable tasks. Prefer fixing reproduced failures over adding unrelated content. Protect navigation/quest dependencies during destruction; keep real voice transport and client-reported power limitations explicit.
 - Do not discard old level/XP/style data when lowering the cap. Preserve a validated legacy snapshot and test migration/reload behavior before release.
 - Tests must match their claims. Synthetic microphone/Studio tests do not establish human voice, actual phone behavior, real saves or multiplayer performance. Never store recordings or credentials.
-- Between conversations, use only the configured thread follow-up automation. Do not claim work continues when no scheduler is active. Notify the owner for a completed meaningful change, blocker or approval-ready build; stay quiet on unchanged checks.
+- The owner removed the current chat's scheduled development follow-up on November 9. Work on request; do not recreate a schedule without a new request or claim background work continues. Notify the owner for a completed meaningful change, blocker or approval-ready build; stay quiet on unchanged checks.
 
