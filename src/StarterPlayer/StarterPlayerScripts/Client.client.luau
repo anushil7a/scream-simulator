@@ -366,8 +366,12 @@ render=function()
   title.Text="CITY QUESTS";subtitle.Text="One active task. Switching or abandoning resets unfinished progress."
   if data.activeQuest then
    local current=Config.GetQuest(data.activeQuest);local c=card(96)
-   label(c,"CURRENT: "..(current and current.name or data.activeQuest),UDim2.new(1,-28,0,38),UDim2.fromOffset(14,6),14,gold)
-   button(c,"AbandonQuest","ABANDON",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,50),function() action:FireServer("AbandonQuest") end)
+   local progress=current and data.quests[current.id]
+   local rewardReady=progress and not progress.claimed and progress.progress>=current.goal
+   label(c,(rewardReady and "COMPLETE: " or "CURRENT: ")..(current and current.name or data.activeQuest),UDim2.new(1,-28,0,38),UDim2.fromOffset(14,6),14,gold)
+   button(c,"ActiveQuestAction",rewardReady and "CLAIM" or "ABANDON",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,50),function()
+    if rewardReady then action:FireServer("ClaimQuest",current.id) else action:FireServer("AbandonQuest") end
+   end)
   end
   for _,q in ipairs(Config.Quests) do
    local available=data.availableQuests and data.availableQuests[q.id]
