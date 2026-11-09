@@ -113,3 +113,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Resident active flag: KO an NPC while another player aims at or talks to it. Verify dialogue/readout/talk prompt clear when ResidentActive becomes false and return after recovery. Humanoid is intentionally retained; confirm repeated KO/recovery preserves walking and animations. Mocked UI checks pass; native replication ordering remains unverified.
 
 - Talk input: T must not replace open Screams/Quests/Map/Settings/test-tool panels or an existing conversation. Move the cached resident out of range/behind cover or into recovery before pressing Talk; no dialogue should start. Verify normal T/touch activation and immediate capture cancellation on a valid request. Build checks pass; native input/raycast behavior remains pending.
+
+- Beam teardown: end a disposable local test or destroy the client script while a sustained beam is visible. Verify beam parts disappear and late effect delivery cannot recreate them. Mock visual manager tests pass; native instance cleanup/memory remains unmeasured.

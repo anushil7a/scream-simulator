@@ -508,7 +508,7 @@ if sustainedControl then
   part.Color=color;part.Transparency=data.settings.reducedShake and .65 or .35
   part.Parent=workspace
  end,function(part) part:Destroy() end)
- script.Destroying:Connect(function() sustainedBeams:Clear() end)
+ script.Destroying:Connect(function() sustainedBeams:Destroy() end)
 end
 remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,beamWidth)
  if kind=="SustainedHit" then hitFeedback:Accept(id,aura,os.clock());return end

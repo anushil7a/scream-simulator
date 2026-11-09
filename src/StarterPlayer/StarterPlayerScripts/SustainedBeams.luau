@@ -20,6 +20,7 @@ function Beams:Expire(now)
  end
 end
 function Beams:Update(id,now,...)
+ if self.destroyed then return false end
  local entry=self.entries[id]
  if not entry then
   if self.count>=Beams.Limit then self:Expire(now) end
@@ -34,5 +35,10 @@ function Beams:Update(id,now,...)
 end
 function Beams:Clear()
  for id in pairs(self.entries) do self:Remove(id) end
+end
+function Beams:Destroy()
+ if self.destroyed then return end
+ self.destroyed=true
+ self:Clear()
 end
 return Beams

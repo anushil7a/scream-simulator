@@ -23,4 +23,10 @@ assert(beams:Update(99,5.1,"replacement") and beams.count==Beams.Limit,"Explicit
 assert(beams:Update(100,5.6,"after expiry") and beams.count==1,"Expired entries blocked new attackers")
 beams:Clear()
 assert(beams.count==0 and next(beams.entries)==nil and created==destroyed,"Cleanup leaked effects")
-print("PASS sustained beam reuse, capacity, stop and timeout checks (mock visuals)")
+assert(beams:Update(101,6,"after clear"),"Clear unexpectedly disabled reusable manager")
+beams:Destroy()
+local countAtDestroy=created
+beams:Destroy();beams:Clear();beams:Remove(101);beams:Expire(7)
+assert(not beams:Update(102,7,"late callback"),"Late callback recreated destroyed manager")
+assert(created==countAtDestroy and destroyed==created and beams.count==0,"Teardown leaked or recreated beam visuals")
+print("PASS sustained beam reuse, capacity, stop, timeout and terminal teardown checks (mock visuals)")
