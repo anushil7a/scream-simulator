@@ -67,6 +67,6 @@ In the same opt-in place, calibrate the microphone, then press E or tap **ARM VO
 Run `python3 tests/build_sustained_review.py`. This builds two **DO NOT PUBLISH** local places with normal ModuleScript loading and a startup guard requiring Studio and PlaceId 0:
 
 - `build/SustainedLocalPlay.rbxl`: prototype enabled before server startup; use for manual client/server and real-microphone review.
-- `build/SustainedNativeFixture.rbxl`: additionally appends the synthetic server fixture; press Play and inspect Workspace `SustainedDamageResult` for its JSON result. This checks server cover/damage/rewards/expiry with synthetic power, not real audio.
+- `build/SustainedNativeFixture.rbxl`: additionally appends synthetic server fixtures; press Play and inspect Workspace `SustainedDamageResult` and `SustainedDestructionResult` for JSON results. This checks server cover/damage/rewards/expiry with synthetic power, not real audio.
 
 Both use temporary profiles through the existing prototype guard. The normal project and production Bootstrap source are unchanged by the builder. Do not publish either artifact. Successful assembly/compilation is not native execution evidence.

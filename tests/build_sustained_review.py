@@ -43,7 +43,8 @@ assert(game:GetService("RunService"):IsStudio() and game.PlaceId == 0,
 workspace:SetAttribute("LocalSustainedPrototype", true)
 '''
     bootstrap = (source / "Bootstrap.server.luau").read_text()
-    fixture = (ROOT / "tests/StudioSustainedDamage.server.luau").read_text()
+    fixture = "\n".join((ROOT / "tests" / name).read_text() for name in
+                         ["StudioSustainedDamage.server.luau", "StudioSustainedDestruction.server.luau"])
     output = ROOT / "build"
     output.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="scream-review-") as temp:

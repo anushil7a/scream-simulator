@@ -224,3 +224,5 @@ Disposable `build/SustainedNativeFixture.rbxl`, gameplay source `42108cf`; no cl
 - Local client started successfully but showed waiting for Roblox microphone input. No live microphone/audibility verification established.
 
 - Native R15 animation check passed: accepted sustained state held the braced pose, stop blended it out, and three synthetic roll cycles suppressed the scream pose while preserving default Animator tracks. Temporary test appendix was removed afterward. This does not verify physical input combinations, R6, real mic triggers or multiplayer animation replication.
+
+- Native sustained destruction/protection fixture: 11 checks passed using actual Bootstrap, raycasts and Destruction service with synthetic power. Bench damage/destruction removed collision/query; level25 could not damage a small tree, level26 could; spawn protection rejected an attack; dodge canceled active damage. Temporary test targets were removed and the local session stopped.
