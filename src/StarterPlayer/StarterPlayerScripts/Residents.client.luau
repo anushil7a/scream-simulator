@@ -34,6 +34,7 @@ Run.PreSimulation:Connect(function(dt)
   local interval=distance<70 and 0 or distance<160 and 1/20 or 1/5
   if rig.elapsed<interval then continue end
   local elapsed=math.min(rig.elapsed,.2);rig.elapsed=0
+  local poseAlpha=1-math.exp(-elapsed*14)
   local speed=Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z).Magnitude
   local seated=humanoid.SeatPart~=nil
   local moving=not seated and humanoid.Health>0 and speed>.4 and humanoid.FloorMaterial~=Enum.Material.Air
@@ -47,7 +48,7 @@ Run.PreSimulation:Connect(function(dt)
   rig.rootJoint=rig.rootJoint and rig.rootJoint.Parent and rig.rootJoint or torso:FindFirstChild("RootJoint")
   if rig.rootJoint then
    local stumble=working and role=="Soccer" and routine=="Trip" and workAge>=1.3 and workAge<4.3 and math.sin((workAge-1.3)/3*math.pi) or 0
-   rig.rootJoint.Transform=CFrame.Angles(-.65*stumble,0,math.sin(workAge*8)*.12*stumble)
+   rig.rootJoint.Transform=rig.rootJoint.Transform:Lerp(CFrame.Angles(-.65*stumble,0,math.sin(workAge*8)*.12*stumble),poseAlpha)
   end
   if rig.practiceBall then
    local visible=working and distance<180
@@ -109,9 +110,9 @@ Run.PreSimulation:Connect(function(dt)
     -- Bring both hands together in front of the chest; phase offsets keep
     -- several spectators from clapping in perfect synchronization.
     local inward=.55+math.sin(now*9+(model:GetAttribute("AnimationSeed") or 1))*.2
-    joint.Transform=CFrame.Angles(1.15,0,(i==1 and 1 or -1)*inward)
+    joint.Transform=joint.Transform:Lerp(CFrame.Angles(1.15,0,(i==1 and 1 or -1)*inward),poseAlpha)
    else
-    joint.Transform=CFrame.Angles(-angle,0,0)
+    joint.Transform=joint.Transform:Lerp(CFrame.Angles(-angle,0,0),poseAlpha)
    end
   end
  end

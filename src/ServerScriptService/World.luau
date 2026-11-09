@@ -305,20 +305,28 @@ local function roamTo(bot, destination, precise)
     local ok = pcall(function() path:ComputeAsync(bot.root.Position, destination) end)
     if not ok or path.Status ~= Enum.PathStatus.Success or bot.pathVersion~=version then path:Destroy();task.wait(0.3); return end
     local blocked = false
-    local connection = path.Blocked:Connect(function() blocked = true end)
-    for _, waypoint in ipairs(path:GetWaypoints()) do
+    local currentWaypoint=1
+    -- Roblox can report an obstruction behind an agent that has already passed it.
+    local connection = path.Blocked:Connect(function(index)
+        if index>=currentWaypoint then blocked=true end
+    end)
+    for index, waypoint in ipairs(path:GetWaypoints()) do
+        currentWaypoint=index
         if bot.pathVersion~=version or blocked or not bot.alive or not bot.model.Parent or (bot.reactionUntil or 0) > os.clock() then break end
         if waypoint.Action == Enum.PathWaypointAction.Jump then break end
         bot.humanoid:MoveTo(waypoint.Position)
         local started, lastProgress, previous = os.clock(), os.clock(), bot.root.Position
         while (Vector3.new(waypoint.Position.X,bot.root.Position.Y,waypoint.Position.Z)-bot.root.Position).Magnitude > 2.8 do
-            if bot.pathVersion~=version or not bot.alive or blocked or (bot.reactionUntil or 0) > os.clock() or os.clock()-started > 4 then break end
+            if bot.pathVersion~=version or not bot.alive or not bot.model.Parent or blocked or (bot.reactionUntil or 0) > os.clock() then break end
+            -- Never skip ahead to the next waypoint through an obstruction.
+            if os.clock()-started>4 then blocked=true;break end
             if (bot.root.Position-previous).Magnitude > 0.7 then previous = bot.root.Position; lastProgress = os.clock() end
             if os.clock()-lastProgress > 0.8 then bot.humanoid:MoveTo(bot.root.Position); blocked=true; break end
             task.wait(0.06)
         end
     end
     connection:Disconnect();path:Destroy()
+    if blocked and bot.pathVersion==version and bot.model.Parent then bot.humanoid:MoveTo(bot.root.Position) end
     -- MoveTo's broad arrival tolerance is fine for strolling, but leaves tools
     -- out of reach of work surfaces after an interrupted route. Finish the last
     -- short, path-checked segment using physical movement, never a position snap.
