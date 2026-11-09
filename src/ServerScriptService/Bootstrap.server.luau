@@ -262,7 +262,7 @@ local function stepSustained(p,s,now)
   for _,viewer in ipairs(Players:GetPlayers()) do
    local _,root=parts(viewer)
    if root and (root.Position-beam.origin).Magnitude<=180 then
-    effect:FireClient(viewer,"SustainedBeam",beam.origin,p.UserId,s.data.aura,beam.direction,beam.length,beam.width)
+    effect:FireClient(viewer,"SustainedBeam",beam.origin,p.UserId,s.data.aura,beam.direction,beam.length,beam.width,intent.audioStyleId)
    end
   end
  end
@@ -587,6 +587,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
    local ok,_,ended=sustained.Begin(s.sustained,now,arg,sustainedContext(p,s,now))
    sustainedEnd(p,ended,now)
    if ok then
+    s.sustained.intent.audioStyleId=s.data.sound
     p:SetAttribute("SustainedSequence",arg.sequence)
     p:SetAttribute("SustainedEndsAt",workspace:GetServerTimeNow()+require(ReplicatedStorage.Shared.SustainedAttack).MaxDuration)
     p:SetAttribute("SustainedActive",true)

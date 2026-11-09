@@ -587,7 +587,7 @@ if sustainedControl then
  connectClient(Players.PlayerRemoving,function(leaving) attackAudio:Remove(leaving.UserId) end)
  script.Destroying:Connect(function() sustainedBeams:Destroy() end)
 end
-connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth)
+connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth,audioStyleId)
  if kind=="SustainedHit" then hitFeedback:Accept(id,aura,os.clock());return end
  if kind=="SustainedBeamEnd" then
   attackAudio:Stop(id,os.clock())
@@ -602,7 +602,8 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   end
   sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,Config.Auras[aura] or gold)
   if (root.Position-pos).Magnitude<=attackAudioSettings.Range then
-   attackAudio:Pulse(id,os.clock(),pos,id==p.UserId)
+   local style=type(audioStyleId)=="string" and Config.GetSound(audioStyleId)
+   attackAudio:Pulse(id,os.clock(),pos,id==p.UserId,style and style.level)
   else attackAudio:Remove(id) end
   return
  end
@@ -613,7 +614,7 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  local color=Config.Auras[kind=="Dodge" and id or aura] or gold
  if kind=="Dodge" then local f=fxPart(pos,color,Vector3.new(2,3,2));Tween:Create(f,TweenInfo.new(.35),{Transparency=1,Size=Vector3.new(5,1,5)}):Play();return end
  local s=Config.GetSound(id);if not s then return end
- -- Actual voice stays on Roblox proximity audio. Original synthetic SFX are separate.
+ -- Actual voice stays on Roblox proximity audio. Owner-selected SFX are separate.
  direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range
  ScreamEffects.Render(s.effect,pos,direction,length,beamWidth or 4,color,data.settings.reducedShake,s.variant)
 end)

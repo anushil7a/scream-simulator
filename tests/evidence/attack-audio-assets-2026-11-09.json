@@ -1,0 +1,110 @@
+{
+  "date": "2026-11-09",
+  "environment": "Roblox Studio Edit mode, disposable SyntheticCombatTest.rbxl",
+  "placeId": 0,
+  "universeId": 0,
+  "method": "Temporary volume-zero Sound instances parented to SoundService; ContentProvider.PreloadAsync; inspect IsLoaded and TimeLength; destroy instances. No Play call.",
+  "results": [
+    {
+      "level": 10,
+      "assetId": "112589551277234",
+      "preloadSucceeded": true,
+      "fetchStatus": "Success",
+      "isLoaded": true,
+      "durationSeconds": 2.112,
+      "observedAtUtc": "2026-11-09T22:06:48.126Z"
+    },
+    {
+      "level": 20,
+      "assetId": "71125574109613",
+      "preloadSucceeded": true,
+      "fetchStatus": "Success",
+      "isLoaded": true,
+      "durationSeconds": 4.11321875,
+      "observedAtUtc": "2026-11-09T22:06:48.242Z"
+    },
+    {
+      "level": 30,
+      "assetId": "72820033812084",
+      "preloadSucceeded": true,
+      "fetchStatus": "Success",
+      "isLoaded": true,
+      "durationSeconds": 4.272471655328798,
+      "observedAtUtc": "2026-11-09T22:06:48.260Z"
+    },
+    {
+      "level": 40,
+      "assetId": "116444869617367",
+      "preloadSucceeded": true,
+      "fetchStatus": "Success",
+      "isLoaded": true,
+      "durationSeconds": 3.32265625,
+      "observedAtUtc": "2026-11-09T22:06:48.226Z"
+    },
+    {
+      "level": 50,
+      "assetId": "110531388862916",
+      "preloadSucceeded": true,
+      "fetchStatus": "Success",
+      "isLoaded": true,
+      "durationSeconds": 3.076625,
+      "observedAtUtc": "2026-11-09T22:06:48.126Z"
+    },
+    {
+      "level": 60,
+      "assetId": "72657289722275",
+      "preloadSucceeded": true,
+      "fetchStatus": "Success",
+      "isLoaded": true,
+      "durationSeconds": 2.8240136054421767,
+      "observedAtUtc": "2026-11-09T22:06:48.260Z"
+    },
+    {
+      "level": 70,
+      "assetId": "8899285496",
+      "preloadSucceeded": true,
+      "fetchStatus": "Success",
+      "isLoaded": true,
+      "durationSeconds": 5.4,
+      "observedAtUtc": "2026-11-09T22:06:48.242Z"
+    },
+    {
+      "level": 80,
+      "assetId": "102380291908556",
+      "preloadSucceeded": true,
+      "fetchStatus": "Success",
+      "isLoaded": true,
+      "durationSeconds": 5.783854875283446,
+      "observedAtUtc": "2026-11-09T22:06:48.242Z"
+    },
+    {
+      "level": 90,
+      "assetId": "80523108386394",
+      "preloadSucceeded": true,
+      "fetchStatus": "Success",
+      "isLoaded": true,
+      "durationSeconds": 4.214988662131519,
+      "observedAtUtc": "2026-11-09T22:06:48.260Z"
+    },
+    {
+      "level": 100,
+      "assetId": "79853512837585",
+      "preloadSucceeded": true,
+      "fetchStatus": "Success",
+      "isLoaded": true,
+      "durationSeconds": 4.231836734693878,
+      "observedAtUtc": "2026-11-09T22:06:48.242Z"
+    }
+  ],
+  "limitations": [
+    "Silent asset load check only; no human listening or microphone balance validation.",
+    "Does not establish City Preview universe permission or native gameplay integration.",
+    "Owner supplied these asset IDs; creator and licensing metadata not independently reviewed."
+  ],
+  "automatedVerification": {
+    "pureSyntheticSuites": 18,
+    "mockedServiceSuites": 47,
+    "productionScriptsCompiled": 44,
+    "candidateAndDisposableBuilds": "passed"
+  }
+}

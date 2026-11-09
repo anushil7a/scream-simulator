@@ -1,8 +1,8 @@
 # Automatic voice candidate — manual checks
 
-## Quiet attack audio review (pending upload)
+## Owner-selected attack audio review
 
-The original loop and audition are in `assets/audio/`; the asset ID is intentionally empty until approved for Roblox upload. After configuring the permitted asset, compare one and four simultaneous beams near/far, with headphones and speakers. Player voice must remain intelligible; check local-mic ducking, silence during calibration, LOW/OFF control, end/dodge/respawn/departure and missing-update cleanup. Check that speaker playback does not falsely trigger microphone attacks. Synthetic mix/adapter tests do not establish listening balance or actual audio loading. See `assets/audio/README.md` for the exact mix and approval status.
+All ten tier assets passed silent local Studio loading; see `tests/evidence/attack-audio-assets-2026-11-09.json`. Actual gameplay listening and City Preview asset access remain pending. Equip each tier 10 through 100 and confirm its assigned sound plays once at original pitch; level 1 is voice-only. Change equipped style between attacks and verify remote listeners hear the attacker's selection, not their own. Short clips should finish naturally; long clips fade with attack end. Compare one and four simultaneous beams near/far, with headphones and speakers. Player voice must remain intelligible; check local-mic ducking, calibration silence, LOW/OFF, end/dodge/respawn/departure and missing-update cleanup. Check that speaker playback does not falsely trigger microphone attacks. Synthetic mix/adapter tests do not establish listening balance. See `assets/audio/README.md` for the exact mapping and mix.
 
 Current candidate is local and unpublished. City Preview version 19 still uses hold/release. Run `python3 tests/verify_local.py --build` to check sources and regenerate identified review builds, then open `build/SustainedLocalPlay.rbxl` for isolated temporary-profile gameplay. Never publish disposable fixtures. `AutomaticVoiceCandidate.rbxl` uses normal profiles and is not the default sandbox for experiments.
 

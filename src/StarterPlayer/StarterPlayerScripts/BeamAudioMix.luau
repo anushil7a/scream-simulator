@@ -15,13 +15,13 @@ function Mix:SetEnabled(enabled)
  self.enabled=enabled==true
  if not self.enabled then self:Clear() end
 end
-function Mix:Pulse(id,now,position,isLocal)
+function Mix:Pulse(id,now,position,isLocal,tier)
  if self.destroyed or not self.enabled then return false end
  local entry=self.entries[id]
  if entry and entry.stopped then return false end -- never revive a fading attack
  if not entry then
   if self.count>=self.settings.Limit then return false end
-  local sound=self.create(position);if not sound then return false end
+  local sound=self.create(position,tier);if not sound then return false end
   entry={sound=sound,started=now,isLocal=isLocal};self.entries[id]=entry;self.count+=1
  end
  entry.position=position;entry.lastPulse=now
@@ -45,10 +45,10 @@ function Mix:Step(now,dt,voiceActive,calibrating)
  for _,entry in pairs(self.entries) do
   local age=math.max(0,now-entry.started)
   local envelope=math.clamp(age/self.settings.FadeIn,0,1)
-  local pitch=.68+.32*math.clamp(age/.22,0,1)
+  local pitch=1 -- preserve the supplied recording's pitch and timing
   if entry.stopped then
    local release=math.clamp((now-entry.stopped)/self.settings.FadeOut,0,1)
-   envelope*=1-release;pitch*=1-.24*release
+   envelope*=1-release
   end
   self.update(entry.sound,entry.position,gain*envelope*(entry.isLocal and self.settings.LocalMultiplier or 1),pitch)
  end
