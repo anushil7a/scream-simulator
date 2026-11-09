@@ -1,9 +1,17 @@
 local Config = {}
-Config.MaxLevel = 30
+Config.MaxLevel = 100
+Config.Scream = {
+ MaxDuration = 5, Cooldown = 10, TickInterval = 0.2,
+ PulseInterval = 0.1, PulseTimeout = 0.45,
+}
+Config.LegacySoundLevels = {TinyAah=1,IyoPop=5,PanicChicken=10,Laughquake=15,MegaChaos=20,Supernova=25}
+function Config.CanUseSound(data, sound)
+ return type(sound) == "table" and (sound.level <= data.level or (data.legacySounds and data.legacySounds[sound.id] == true))
+end
 Config.MaxHealth = 100
 Config.MapMin=Vector3.new(-720,-20,-600)
 Config.MapMax=Vector3.new(720,200,600)
-function Config.HealthForLevel(level) return 100+8*(math.clamp(level,1,Config.MaxLevel)-1) end
+function Config.HealthForLevel(level) return math.round(100+1.05*(math.clamp(level,1,Config.MaxLevel)-1)) end
 Config.HealQuietSeconds = 10
 Config.HealAmount = 20
 Config.BotMaxHealth = 60
@@ -20,12 +28,26 @@ Config.ZoneMin = Vector3.new(-480,-20,-360)
 Config.ZoneMax = Vector3.new(480,200,360)
 Config.Sounds = {
  {id="TinyAah",name="Tiny Aah",level=1,damage=12,range=30,width=4,cooldown=2.4,effect="Pulse",description="A focused forward sound beam.",assetId=""},
- {id="IyoPop",name="Echo Pop",level=5,damage=18,range=42,width=5,cooldown=2.6,effect="Echo",description="A longer beam wrapped in echo rings.",assetId=""},
- {id="PanicChicken",name="Panic Chicken",level=10,damage=25,range=56,width=6,cooldown=2.8,effect="Feathers",description="A piercing stream of golden feathers.",assetId=""},
- {id="Laughquake",name="Laughquake",level=15,damage=32,range=72,width=7,cooldown=3,effect="Quake",description="A broad ground-rumbling sound beam.",assetId=""},
- {id="MegaChaos",name="Storm Siren",level=20,damage=40,range=90,width=8,cooldown=3.2,effect="Storm",description="A crackling electric sound lance.",assetId=""},
- {id="Supernova",name="Supernova",level=25,damage=48,range=112,width=10,cooldown=3.5,effect="Nova",description="A brilliant long-range sound ray.",assetId=""},
+ {id="IyoPop",name="Echo Pop",level=10,damage=18,range=42,width=5,cooldown=2.6,effect="Echo",description="A longer beam wrapped in echo rings.",assetId=""},
+ {id="PanicChicken",name="Panic Chicken",level=20,damage=25,range=56,width=6,cooldown=2.8,effect="Feathers",description="A piercing stream of golden feathers.",assetId=""},
+ {id="Laughquake",name="Laughquake",level=30,damage=32,range=72,width=7,cooldown=3,effect="Quake",description="A broad ground-rumbling sound beam.",assetId=""},
+ {id="MegaChaos",name="Storm Siren",level=40,damage=40,range=90,width=8,cooldown=3.2,effect="Storm",description="A crackling electric sound lance.",assetId=""},
+ {id="Supernova",name="Supernova",level=50,damage=48,range=112,width=10,cooldown=3.5,effect="Nova",description="A brilliant long-range sound ray.",assetId=""},
 }
+local advancedSounds = {
+ {"Resonance","Resonance",60,"Echo"}, {"Thunder","Thunder",70,"Quake"},
+ {"SolarCry","Solar Cry",80,"Nova"}, {"Tempest","Tempest",90,"Storm"},
+ {"CityVoice","Voice of the City",100,"Pulse"},
+}
+for _, entry in ipairs(advancedSounds) do
+ table.insert(Config.Sounds, {id=entry[1],name=entry[2],level=entry[3],effect=entry[4],assetId="",description="A live-voice scream with a distinct visual style."})
+end
+for _, sound in ipairs(Config.Sounds) do
+ sound.damage = math.round(10 + sound.level * 0.12) -- Damage per second at full power.
+ sound.range = math.round(30 + sound.level * 0.75)
+ sound.width = 4 + sound.level * 0.03
+ sound.cooldown = Config.Scream.Cooldown
+end
 Config.Auras={Gold=Color3.fromRGB(255,203,99),Mint=Color3.fromRGB(98,244,187),Violet=Color3.fromRGB(188,137,255),Ice=Color3.fromRGB(110,207,255),Coral=Color3.fromRGB(255,128,128)}
 Config.Quests={
  {id="beach",name="Leave Only Footprints",description="Collect 6 washed-up bottles on the beach. Hold F near litter.",goal=6,xp=100,coins=50,event="Litter"},

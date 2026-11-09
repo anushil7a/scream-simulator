@@ -26,7 +26,7 @@ local top=frame(gui,"Navigation",UDim2.fromOffset(250,40),UDim2.fromOffset(14,12
 local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,.5);modal.Visible=false
 local menuScale=Instance.new("UIScale");menuScale.Parent=modal
 local title=label(modal,"SCREAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
-local subtitle=label(modal,"Train for XP. Unlock a new scream every five levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
+local subtitle=label(modal,"Train for XP. Unlock a new scream every ten levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
 button(modal,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-52,0,16),function() modal.Visible=false end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
@@ -47,14 +47,15 @@ local tracked=label(gui,"",UDim2.fromOffset(250,66),UDim2.fromOffset(16,56),13);
 local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center
 local toastUntil=0
 local function notify(t) toast.Text=t;toastUntil=os.clock()+4 end
-local nextCast=0
-local function cast()
- if modal.Visible or (p:GetAttribute("ProtectionEnds") or 0)>workspace:GetServerTimeNow() or os.clock()<nextCast then return end
- local sound=Config.GetSound(data.sound);nextCast=os.clock()+sound.cooldown;action:FireServer("Cast")
-end
-local function dodge() if not modal.Visible then action:FireServer("Dodge") end end
+local Microphone=require(script.Parent.Microphone)
+local microphone=Microphone.new(action)
+local focused=true
+local voiceBlockedUntil=0
+local function setupMicrophone() microphone:Toggle() end
+local function dodge() if not modal.Visible then microphone:Cancel();voiceBlockedUntil=workspace:GetServerTimeNow()+Config.DodgeDuration;action:FireServer("Dodge") end end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
-local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),cast,gold);castButton.TextColor3=dark
+local castButton=button(controls,"Cast","SET UP MIC",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),setupMicrophone,gold);castButton.TextColor3=dark
+local micStatus=label(controls,"",UDim2.fromOffset(260,58),UDim2.fromOffset(0,-64),12,gold)
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge)
 local sprinting=false
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() sprinting=not sprinting;action:FireServer("Sprint",sprinting) end)
@@ -63,7 +64,7 @@ local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new
 local devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false
 label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
 label(devPanel,"Test commands disable saving this session.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
-for i,item in ipairs({{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level 30"},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}) do
+for i,item in ipairs({{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level "..Config.MaxLevel},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}) do
  button(devPanel,item[1],item[2],UDim2.fromOffset(100,39),UDim2.fromOffset(10+((i-1)%2)*110,80+math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
 end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible end);testButton.Visible=false
@@ -73,12 +74,12 @@ render=function()
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Screams" then
-  title.Text="SCREAM COLLECTION";subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  New unlocks at 5, 10, 15, 20, 25"
+  title.Text="SCREAM COLLECTION";subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  New screams every 10 levels · Max 100"
   for _,s in ipairs(Config.Sounds) do
    local c=card(101);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,-156,0,26),UDim2.fromOffset(14,8),17,gold)
    label(c,s.description,UDim2.new(1,-158,0,25),UDim2.fromOffset(14,36),13)
-   label(c,s.damage.." DAMAGE    "..s.range.." RANGE / "..s.width.." WIDTH    "..s.cooldown.."s COOLDOWN",UDim2.new(1,-28,0,23),UDim2.fromOffset(14,69),12,muted)
-   local unlocked=data.level>=s.level
+   label(c,s.damage.." DPS    "..s.range.." RANGE / "..s.width.." WIDTH    "..s.cooldown.."s COOLDOWN",UDim2.new(1,-28,0,23),UDim2.fromOffset(14,69),12,muted)
+   local unlocked=Config.CanUseSound(data,s)
    local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
    if not unlocked then b.TextColor3=muted end
   end
@@ -110,7 +111,7 @@ render=function()
   info("Spawn: Plaça del Sol, southwest. Beach: south. Coffee: west promenade café → music stage. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
-  info("E / tap SCREAM: fire a beam straight ahead\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",125)
+  info("Set up your mic, then use your voice to attack (up to 5s).\nRest 10s after each attack. Tap PAUSE MIC to disable attacks.\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",125)
   local c=card(58);button(c,"Volume","AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.fromOffset(260,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.fromOffset(260,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
  end
@@ -131,13 +132,15 @@ end)
 UIS.InputBegan:Connect(function(input,processed)
  if processed then return end
  local k=input.KeyCode
- if k==Enum.KeyCode.E then cast() elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
+ if k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
  elseif k==Enum.KeyCode.M then selected="Map";modal.Visible=not modal.Visible;render()
  elseif k==Enum.KeyCode.LeftShift then action:FireServer("Sprint",true)
  elseif k==Enum.KeyCode.T and talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end
 end)
 UIS.InputEnded:Connect(function(input) if input.KeyCode==Enum.KeyCode.LeftShift then action:FireServer("Sprint",false) end end)
-UIS.WindowFocusReleased:Connect(function() sprinting=false;action:FireServer("Sprint",false) end)
+UIS.WindowFocusReleased:Connect(function() focused=false;microphone:Cancel();sprinting=false;action:FireServer("Sprint",false) end)
+UIS.WindowFocused:Connect(function() focused=true end)
+p.CharacterAdded:Connect(function() microphone:Cancel() end)
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
@@ -148,13 +151,6 @@ remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length)
  local color=Config.Auras[kind=="Dodge" and id or aura] or gold
  if kind=="Dodge" then local f=fxPart(pos,color,Vector3.new(2,3,2));Tween:Create(f,TweenInfo.new(.35),{Transparency=1,Size=Vector3.new(5,1,5)}):Play();return end
  local s=Config.GetSound(id);if not s then return end
- do
-  local carrier=Instance.new("Part");carrier.Anchored=true;carrier.CanCollide=false;carrier.CanQuery=false;carrier.Transparency=1;carrier.Position=pos;carrier.Parent=workspace
-  local audio=Instance.new("Sound");audio.SoundId=s.assetId~="" and s.assetId or "rbxasset://sounds/oof.ogg";audio.PlaybackSpeed=({Pulse=1.4,Echo=1.1,Feathers=1.9,Quake=.65,Storm=.85,Nova=.5})[s.effect] or 1
-  audio.Volume=data.settings.volume;audio.RollOffMaxDistance=s.range*1.5;audio.Parent=carrier
-  if s.effect=="Echo" then local echo=Instance.new("EchoSoundEffect");echo.Delay=.15;echo.Feedback=.4;echo.Parent=audio end
-  audio:Play();Debris:AddItem(carrier,5)
- end
  direction=direction or Vector3.new(0,0,-1);length=length or s.range
  local width=s.width;local center=pos+direction*length/2
  local beam=fxPart(center,color,Vector3.new(width,width,length));beam.Name="ScreamBeam";beam.CFrame=CFrame.lookAt(center,center+direction);beam.Transparency=.55
@@ -162,7 +158,7 @@ remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length)
  Tween:Create(beam,TweenInfo.new(.38),{Transparency=1,Size=Vector3.new(width*.5,width*.5,length)}):Play()
  Tween:Create(core,TweenInfo.new(.25),{Transparency=1}):Play()
  if not data.settings.reducedShake then
-  local count=s.effect=="Pulse" and 4 or 9
+  local count=s.effect=="Pulse" and 2 or 3
   for i=1,count do
    local side=Vector3.new(-direction.Z,0,direction.X);local phase=i*math.pi*2/count
    local offset=(side*math.cos(phase)+Vector3.yAxis*math.sin(phase))*width*.35
@@ -191,8 +187,17 @@ Run.RenderStepped:Connect(function(dt)
  if touch then sprintButton.TextSize=12 end
  tracked.Visible=not modal.Visible;zone.Visible=viewport.X>740
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
- castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or "SCREAM [E]"
- castButton.BackgroundColor3=protected>0 and muted or gold
+ local character=p.Character
+ local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ local allowed=focused and not modal.Visible and not devPanel.Visible and UIS:GetFocusedTextBox()==nil
+  and not game:GetService("GuiService").MenuIsOpen and humanoid~=nil and humanoid.Health>0
+  and protected<=0 and now>=voiceBlockedUntil and now>=(p:GetAttribute("DodgeEnds") or 0)
+  and now>=(p:GetAttribute("KnockdownEnds") or 0)
+ microphone:Update(dt,allowed,data.voiceEligible==true)
+ micStatus.Text=microphone.status
+ castButton.Text=microphone.enabled and "PAUSE MIC" or "SET UP MIC"
+ castButton.BackgroundColor3=microphone.enabled and gold or panel
+ castButton.TextColor3=microphone.enabled and dark or white
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
  local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs [SHIFT]",p:GetAttribute("SprintCharge") or 10)
  if os.clock()>toastUntil then toast.Text="" end

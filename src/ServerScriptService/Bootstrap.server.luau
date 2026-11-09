@@ -6,6 +6,15 @@ local World=require(script.Parent.World)
 local Profiles=require(script.Parent.Profiles)
 local Access=require(script.Parent.DeveloperAccess)
 local Rules=require(script.Parent.CombatRules)
+local ScreamWindow=require(ReplicatedStorage.Shared.ScreamWindow)
+local VoiceChatService=game:GetService("VoiceChatService")
+local function stopScream(p,s)
+ if s.scream:Stop(os.clock()) then
+  s.nextCast=s.scream.cooldownUntil
+  p:SetAttribute("ScreamCooldownEnds",workspace:GetServerTimeNow()+Config.Scream.Cooldown)
+  p:SetAttribute("ScreamActive",false)
+ end
+end
 World.Build()
 local old=ReplicatedStorage:FindFirstChild("ScreamRemotes");if old then old:Destroy() end
 local remotes=Instance.new("Folder");remotes.Name="ScreamRemotes";remotes.Parent=ReplicatedStorage
@@ -23,7 +32,7 @@ local function state(p,message)
  quests=s.data.quests,activeQuest=s.activeQuest,questTime=s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave,message=message})
+ legacySounds=s.data.legacySounds,voiceEligible=s.voiceEligible,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave,message=message})
 end
 local function syncHealth(p,full)
  local s=sessions[p];local _,_,h=parts(p);if not s or not h then return end
@@ -49,6 +58,7 @@ local function questProgress(p,event,amount)
  v.progress=math.min(q.goal,v.progress+(amount or 1));state(p,v.progress==q.goal and "Quest complete! Claim your reward in Quests." or nil)
 end
 local function protect(p,s)
+ stopScream(p,s)
  s.protectedUntil=os.clock()+Config.SpawnProtection
  p:SetAttribute("ProtectionEnds",workspace:GetServerTimeNow()+Config.SpawnProtection)
  local c=p.Character;if c then local oldField=c:FindFirstChild("SpawnProtection");if oldField then oldField:Destroy() end
@@ -64,24 +74,24 @@ local function audible(c,origin,target,targetModel)
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c,targetModel}
  return workspace:Raycast(origin,target-origin,params)==nil
 end
-local function cast(p)
+local function cast(p,power,damageSeconds)
  local s=sessions[p];local c,r=parts(p);if not s or not r then return end
- local now=os.clock();local sound=Config.GetSound(s.data.sound)
- if not Rules.CanCast(s,sound,now) then return end
- s.nextCast=now+sound.cooldown
+ local now=os.clock();local sound=Config.GetSound(s.scream.active.soundId)
+ local damage=sound.damage*damageSeconds*(0.5+0.5*power)
+ local range=sound.range*(0.5+0.5*power)
  local origin=r.Position+Vector3.new(0,1,0)
  local direction=Vector3.new(r.CFrame.LookVector.X,0,r.CFrame.LookVector.Z)
  if direction.Magnitude<.01 then return end;direction=direction.Unit
  local exclude={c};for _,bot in ipairs(World.Bots) do table.insert(exclude,bot.model) end
  for _,other in ipairs(Players:GetPlayers()) do if other.Character then table.insert(exclude,other.Character) end end
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances=exclude;params.RespectCanCollide=true
- local obstruction=workspace:Raycast(origin,direction*sound.range,params)
- local length=obstruction and obstruction.Distance or sound.range
+ local obstruction=workspace:Raycast(origin,direction*range,params)
+ local length=obstruction and obstruction.Distance or range
  effect:FireAllClients("Scream",origin,sound.id,s.data.aura,direction,length)
  local hits=0;local paid=0
  for _,bot in ipairs(World.Bots) do
   if bot.alive and bot.root.Parent and Rules.InBeam(origin,direction,bot.root.Position,length,sound.width,1) and audible(c,origin,bot.root.Position,bot.model) then
-   hits+=1;bot.health=math.max(0,bot.health-sound.damage);local ko=bot.health==0
+   hits+=1;bot.health=math.max(0,bot.health-damage);local ko=bot.health==0
    if ko then bot.alive=false;task.delay(Config.BotRespawnSeconds,function() if bot.model.Parent then bot.health=Config.BotMaxHealth;bot.alive=true;World.UpdateBot(bot) end end)
    else World.ReactToScream(bot,r.Position) end
    World.UpdateBot(bot)
@@ -94,11 +104,14 @@ local function cast(p)
  if Config.InArena(r.Position) then
   for _,target in ipairs(Players:GetPlayers()) do
    local ts=sessions[target];local tc,tr,th=parts(target)
-   if target~=p and ts and tr and Rules.CanTarget(r.Position,tr.Position,ts.protectedUntil,now,sound.range+2) and Rules.InBeam(origin,direction,tr.Position,length,sound.width,1) and audible(c,origin,tr.Position,tc) then
-    if now<ts.dodgingUntil then questProgress(target,"Evade")
+   if target~=p and ts and tr and Rules.CanTarget(r.Position,tr.Position,ts.protectedUntil,now,range+2) and Rules.InBeam(origin,direction,tr.Position,length,sound.width,1) and audible(c,origin,tr.Position,tc) then
+    if now<ts.dodgingUntil then
+     if not s.scream.active.evaded[target] then
+      s.scream.active.evaded[target]=true;questProgress(target,"Evade")
+     end
     else
      ts.nextHeal=now+Config.HealQuietSeconds
-     if th.Health<=sound.damage then
+     if th.Health<=damage then
       local targetLevel=ts.data.level;local attackerLevel=s.data.level;eject(target,th)
       -- A repeated victim has a reward cooldown, independent from hit rewards.
       if now>=(s.koRewards[target.UserId] or 0) then
@@ -106,7 +119,7 @@ local function cast(p)
        if targetLevel>=attackerLevel then questProgress(p,"Underdog") end
        state(p,"Player knockout · +"..reward.." XP")
       end
-     else th.Health-=sound.damage;state(target) end
+     else th.Health-=damage;state(target) end
     end
    end
   end
@@ -116,6 +129,7 @@ end
 local function dodge(p)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
  if not s or not r or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
+ stopScream(p,s)
  s.nextDodge=now+Config.DodgeCooldown;s.dodgingUntil=now+Config.DodgeDuration
  p:SetAttribute("DodgeEnds",workspace:GetServerTimeNow()+Config.DodgeDuration)
  p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+Config.DodgeCooldown)
@@ -151,6 +165,7 @@ local function talk(p,id)
 end
 local function dev(p,command)
  local s=sessions[p];if not s or not Access.IsAuthorized(p,game.CreatorType,game.CreatorId) then return end
+ stopScream(p,s)
  local c,_,h=parts(p)
  local positions={Hub=World.SafeSpawn,Arena=CFrame.new(0,6,0),Beach=CFrame.new(0,4,403)}
  if command=="Coins" then s.data.coins+=1000
@@ -168,6 +183,7 @@ World.OnVehicleSweep=function(car,previous,nextFrame)
  for player,s in pairs(sessions) do
   local character,root,humanoid=parts(player);local now=os.clock()
   if root and now>=s.protectedUntil and now>=(s.nextCarHit or 0) and Rules.VehicleSweep(previous*CFrame.new(0,.55,0),nextFrame*CFrame.new(0,.55,0),root.Position,Vector3.new(8,4,4.5)) then
+   stopScream(player,s)
    s.nextCarHit=now+4;s.knockedUntil=now+1.3;s.dodgingUntil=0;s.sprintRequested=false;s.nextHeal=now+10
    player:SetAttribute("DodgeEnds",0);player:SetAttribute("KnockdownEnds",workspace:GetServerTimeNow()+1.3)
    local damage=math.clamp(math.floor(car.speed*1.1),15,35)
@@ -213,13 +229,28 @@ for _,obj in ipairs(workspace.ScreamSimulatorWorld.QuestObjects:GetDescendants()
 end
 action.OnServerEvent:Connect(function(p,verb,arg)
  local s=sessions[p];if not s or type(verb)~="string" then return end
- if verb=="Cast" then cast(p);return elseif verb=="Dodge" then dodge(p);return
+ if verb=="VoiceStart" or verb=="VoicePulse" or verb=="VoiceStop" then
+  local now=os.clock()
+  if verb=="VoiceStop" then
+   if s.scream.active and arg==s.scream.active.id then stopScream(p,s) end
+   return
+  end
+  if type(arg)~="table" then return end
+  if verb=="VoicePulse" then s.scream:Pulse(now,arg.id,arg.sequence,arg.power);return end
+  local _,root=parts(p)
+  local sound=Config.GetSound(s.data.sound)
+  if root and s.voiceEligible==true and Rules.CanCast(s,sound,now) and s.scream:Start(now,arg.id,arg.power) then
+   s.scream.active.soundId=sound.id
+   p:SetAttribute("ScreamActive",true)
+  end
+  return
+ elseif verb=="Dodge" then dodge(p);return
  elseif verb=="Sprint" then if type(arg)=="boolean" then s.sprintRequested=arg end;return end
  local now=os.clock();if now<s.nextAction then return end;s.nextAction=now+0.15
  if verb=="Sync" then state(p)
  elseif verb=="Talk" then talk(p,arg)
  elseif verb=="DevCommand" then dev(p,arg)
- elseif verb=="EquipSound" then local sound=type(arg)=="string" and Config.GetSound(arg);if sound and sound.level<=s.data.level then s.data.sound=sound.id;state(p,sound.name.." equipped") end
+ elseif verb=="EquipSound" then local sound=type(arg)=="string" and Config.GetSound(arg);if Config.CanUseSound(s.data,sound) then stopScream(p,s);s.data.sound=sound.id;state(p,sound.name.." equipped") end
  elseif verb=="SetAura" and type(arg)=="string" and Config.Auras[arg] then s.data.aura=arg;state(p)
  elseif verb=="AcceptQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg)
@@ -236,8 +267,13 @@ end)
 local function joined(p)
  local data,save=Profiles.Load(p.UserId);if not p.Parent then return end
  local s={data=data,canSave=save,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+10,
- botRewards={},koRewards={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
+ scream=ScreamWindow.new(Config.Scream),voiceEligible=false,botRewards={},koRewards={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
+ task.spawn(function()
+  local ok,enabled=pcall(VoiceChatService.IsVoiceEnabledForUserIdAsync,VoiceChatService,p.UserId)
+  if sessions[p]==s then s.voiceEligible=ok and enabled==true;state(p) end
+ end)
  local function spawn(c)
+  stopScream(p,s)
   local h=c:WaitForChild("Humanoid",10);if not h or p.Character~=c then return end
   h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=16;s.sprintCharge=10;s.sprintRequested=false;s.sprintLockedUntil=0;s.dodgingUntil=0
   protect(p,s);state(p)
@@ -252,6 +288,15 @@ task.spawn(function()
  while true do task.wait(0.1);tick+=1;local now=os.clock()
   for p,s in pairs(sessions) do
    local dt=math.clamp(now-s.lastStep,0,.25);s.lastStep=now;local _,r,h=parts(p)
+   local active=s.scream.active
+   local allowed=h~=nil and s.voiceEligible and now>=s.protectedUntil and now>=s.dodgingUntil and now>=(s.knockedUntil or 0)
+   local power,damageSeconds=s.scream:Step(now,allowed)
+   if active and not s.scream.active then
+    s.nextCast=s.scream.cooldownUntil
+    p:SetAttribute("ScreamCooldownEnds",workspace:GetServerTimeNow()+math.max(0,s.nextCast-now))
+    p:SetAttribute("ScreamActive",false)
+   end
+   if power then cast(p,power,damageSeconds) end
    if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then s.sprintLockedUntil=0;s.sprintCharge=10 end
    local running=h and s.sprintRequested and s.sprintCharge>0 and now>=s.sprintLockedUntil
    if running then s.sprintCharge=math.max(0,s.sprintCharge-dt);if s.sprintCharge==0 then running=false;s.sprintLockedUntil=now+5 end

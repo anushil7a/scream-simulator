@@ -1,5 +1,13 @@
 # Scream Simulator
 
+## Local microphone prototype — November 9, 2026
+
+The current local build adds microphone-triggered attacks with a **5-second maximum**, a provisional **10-second cooldown after the attack ends**, level cap **100**, and scream unlocks at 1, 10, 20, …, 100. Use **SET UP MIC** to calibrate a comfortable voice; E no longer attacks. Existing earned scream unlocks are preserved. Live microphone and multiplayer acceptance testing remain pending. These changes have not been published.
+
+See the [development roadmap](docs/DEVELOPMENT_ROADMAP.md) for current requirements, verification and next tasks. The September sections below describe the historical shipped version, not the new local prototype; their level, damage, audio and E-key details are superseded for this branch.
+
+## Historical shipped version
+
 Experience: **Scream Simulator** · Place `122465114514497` · Universe `10767534975`.
 
 [Play Scream Simulator](https://www.roblox.com/games/122465114514497/Scream-Simulator)

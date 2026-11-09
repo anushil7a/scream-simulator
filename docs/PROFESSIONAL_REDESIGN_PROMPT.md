@@ -1,5 +1,7 @@
 # Scream Simulator — professional redesign development prompt
 
+**Current requirements override:** The owner-approved [development roadmap](DEVELOPMENT_ROADMAP.md) supersedes conflicting values in this earlier brief: automatic microphone activation, maximum attack duration 5 seconds, initial cooldown 10 seconds after the attack ends, level cap 100 and unlocks every 10 levels. Publishing requires approval. The rest of this document is historical planning context.
+
 Prepared October 1, 2026. Status: ready-to-use implementation brief incorporating the owner’s five design answers. Numeric balance and device targets remain proposed defaults. This document specifies future work, not completed implementation or test results.
 
 ## Copyable implementation prompt

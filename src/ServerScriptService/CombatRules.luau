@@ -1,7 +1,7 @@
 local Config=require(game:GetService("ReplicatedStorage").Shared.Config)
 local Rules={}
 function Rules.CanCast(session,sound,now)
- return sound~=nil and sound.level<=session.data.level and now>=session.protectedUntil and now>=session.dodgingUntil and now>=session.nextCast and now>=(session.knockedUntil or 0)
+ return Config.CanUseSound(session.data,sound) and now>=session.protectedUntil and now>=session.dodgingUntil and now>=session.nextCast and now>=(session.knockedUntil or 0)
 end
 function Rules.CanTarget(attackerPosition,targetPosition,targetProtectedUntil,now,radius)
  return Config.InArena(attackerPosition) and Config.InArena(targetPosition) and now>=targetProtectedUntil and (targetPosition-attackerPosition).Magnitude<=radius

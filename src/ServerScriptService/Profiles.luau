@@ -21,7 +21,7 @@ local function wholeNumber(value, fallback, minimum, maximum)
 end
 
 function Profiles.Default()
-    return {coins=0,level=1,xp=0,sound="TinyAah",aura="Gold",quests={},settings={volume=0.55,reducedShake=false}}
+    return {progressionVersion=2,legacySounds={},coins=0,level=1,xp=0,sound="TinyAah",aura="Gold",quests={},settings={volume=0.55,reducedShake=false}}
 end
 function Profiles.Sanitize(raw)
     local data=Profiles.Default()
@@ -29,8 +29,13 @@ function Profiles.Sanitize(raw)
     data.coins=wholeNumber(raw.coins,0,0,1000000000)
     data.level=wholeNumber(raw.level,1,1,Config.MaxLevel)
     data.xp=wholeNumber(raw.xp,0,0,Config.XPToNext(data.level)-1)
+    for id, oldLevel in pairs(Config.LegacySoundLevels) do
+        local previouslyEarned = raw.progressionVersion == nil and data.level >= oldLevel
+        local retained = type(raw.legacySounds) == "table" and raw.legacySounds[id] == true and data.level >= oldLevel
+        if previouslyEarned or retained then data.legacySounds[id] = true end
+    end
     local sound=Config.GetSound(raw.sound)
-    if sound and sound.level<=data.level then data.sound=sound.id end
+    if Config.CanUseSound(data, sound) then data.sound=sound.id end
     if type(raw.aura)=="string" and Config.Auras[raw.aura] then data.aura=raw.aura end
     if type(raw.quests)=="table" then
         for _,q in ipairs(Config.Quests) do
