@@ -53,6 +53,7 @@ local function sustainedEnd(p,ended,now)
  if not ended then return end
  effect:FireAllClients("SustainedBeamEnd",nil,p.UserId)
  p:SetAttribute("SustainedActive",false)
+ p:SetAttribute("SustainedEndsAt",0)
  p:SetAttribute("SustainedReadyAt",workspace:GetServerTimeNow()+math.max(0,ended.nextStart-now))
 end
 local function cancelSustained(p,s,now)
@@ -501,7 +502,11 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   if verb=="SustainedBegin" then
    local ok,_,ended=sustained.Begin(s.sustained,now,arg,sustainedContext(p,s,now))
    sustainedEnd(p,ended,now)
-   if ok then p:SetAttribute("SustainedSequence",arg.sequence);p:SetAttribute("SustainedActive",true) end
+   if ok then
+    p:SetAttribute("SustainedSequence",arg.sequence)
+    p:SetAttribute("SustainedEndsAt",workspace:GetServerTimeNow()+require(ReplicatedStorage.Shared.SustainedAttack).MaxDuration)
+    p:SetAttribute("SustainedActive",true)
+   end
    return
   elseif verb=="SustainedPulse" then
    local _,_,ended=sustained.Pulse(s.sustained,now,arg,sustainedContext(p,s,now))
@@ -567,7 +572,7 @@ local function joined(p)
  botRewards={},koRewards={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  if sustainedEnabled then
   s.sustained=sustained.New()
-  p:SetAttribute("SustainedActive",false);p:SetAttribute("SustainedReadyAt",0)
+  p:SetAttribute("SustainedActive",false);p:SetAttribute("SustainedReadyAt",0);p:SetAttribute("SustainedEndsAt",0)
  end
  local function spawn(c)
   local h=c:WaitForChild("Humanoid",10);if not h or p.Character~=c then return end

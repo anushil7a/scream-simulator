@@ -503,7 +503,7 @@ Run.RenderStepped:Connect(function(dt)
    or UIS:GetFocusedTextBox()~=nil and "Typing • attack paused"
    or not sustainedControl.armed and "Voice paused • press E or tap VOICE"
    or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
-   or sustainedControl.attack and (voiceActive and "Attacking • quiet to stop" or "Starting attack…")
+   or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
    or sustainedControl.gate.needsQuiet and "Armed • quiet before speaking"
    or "Armed • aim and speak"
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
@@ -546,7 +546,7 @@ Run.RenderStepped:Connect(function(dt)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD SCREAM [E]"
  if sustainedControl then
   castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s"
-   or sustainedControl.armed and "PAUSE VOICE [E]" or "ARM VOICE [E]"
+   or (sustainedControl.armed and "PAUSE VOICE" or "ARM VOICE")..(touch and "" or " [E]")
  end
  castButton.BackgroundColor3=(sustainedControl and not sustainedControl.armed or protected>0) and muted or gold
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
