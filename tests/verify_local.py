@@ -32,7 +32,8 @@ def main():
     for path in suites:
         print(f'Checking {path.name}', flush=True)
         run(['luau', str(path)])
-    for name in ('profile_migration.py', 'profile_race.py', 'entitlements.py', 'destruction_service.py'):
+    mocked = ('profile_migration.py', 'profile_race.py', 'entitlements.py', 'destruction_service.py', 'microphone_lifecycle.py')
+    for name in mocked:
         print(f'Checking {name} (mocked services)', flush=True)
         run([sys.executable, str(ROOT / 'tests' / name)])
     sources = sorted((ROOT / 'src').rglob('*.luau'))
@@ -46,7 +47,7 @@ def main():
         for path in sorted((ROOT / 'build').glob('Studio*Harness.luau')) + [ROOT / 'build/StudioUIPreview.luau']:
             run(['luau-compile', str(path)], quiet=True)
         print('Built/compiled review fixtures; native runtime and UI appearance remain untested.', flush=True)
-    print(f'PASS: {len(suites)} pure/synthetic suites, 4 mocked-service suites, production compilation.')
+    print(f'PASS: {len(suites)} pure/synthetic suites, {len(mocked)} mocked-service suites, production compilation.')
 
 
 if __name__ == '__main__':

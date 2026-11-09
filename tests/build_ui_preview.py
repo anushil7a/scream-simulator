@@ -8,7 +8,7 @@ root=Path(__file__).resolve().parents[1]
 width=int(sys.argv[1]) if len(sys.argv)>1 else 390
 height=int(sys.argv[2]) if len(sys.argv)>2 else 844
 source=(root/'build/StudioClientHarness.luau').read_text()
-source=source.replace('local mic=modules.Microphone.new()', '''local mic={ready=true,power=.55,status="UI preview: simulated mic",Cancel=function() end,Begin=function() return false end,Release=function() return 0 end,Check=function() end,Calibrate=function() end}''')
+source=source.replace('local mic=modules.Microphone.new()', '''local mic={Destroy=function() end,ready=true,power=.55,status="UI preview: simulated mic",Cancel=function() end,Begin=function() return false end,Release=function() return 0 end,Check=function() end,Calibrate=function() end}''')
 source=source.replace('local remotes=RS:WaitForChild("ScreamRemotes")','''local receiver
 local sample={level=100,xp=30,xpNext=1800,coins=1500,activeQuest="garden",health=135,maxHealth=135,sound="TinyAah",aura="Gold",quests={},availableQuests={},settings={volume=.55,reducedShake=false},micReady=true,devAccess=true,savingAvailable=true,protection=0,dodgeCooldown=0,castCooldown=0,questTime=90}
 for _,q in ipairs(Config.Quests) do sample.availableQuests[q.id]=true;sample.quests[q.id]={progress=0} end

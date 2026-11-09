@@ -17,6 +17,7 @@ local cameraGeneration=0;local thirdPersonDistance=12
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
 local InteractionRules=require(RS.Shared:WaitForChild("InteractionRules"))
 local mic=require(script.Parent:WaitForChild("Microphone")).new()
+script.Destroying:Connect(function() mic:Destroy() end)
 local ScreamEffects=require(script.Parent:WaitForChild("ScreamEffects"))
 local remotes=RS:WaitForChild("ScreamRemotes")
 local action=remotes:WaitForChild("Action")
