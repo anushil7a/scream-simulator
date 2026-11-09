@@ -91,6 +91,42 @@ occupied=true;occupantCollidable=false;advance(840)
 check(m:GetAttribute('ObjectHealth')==48 and m:GetAttribute('RepairAt')==845,'Queryable noncolliding occupant did not defer repair')
 occupied=false;advance(845)
 check(m:GetAttribute('ObjectHealth')==50 and #queue==0,'Repair did not resume after noncolliding occupant left')
+-- Rejected input must not mutate health, scheduling or repair generations.
+local beforeVersion=D.objects[m].version
+for _,request in ipairs({{level=0,damage=1},{level=0/0,damage=1},{level=math.huge,damage=1},{level=1,damage=0},{level=1,damage=-1},{level=1,damage=49},{level=1,damage=0/0},{level=1,damage=math.huge},{level=1,damage='loud'}})do
+ local result=D.Damage(seat,request.level,request.damage)
+ check(result.reason~=nil and m:GetAttribute('ObjectHealth')==50 and D.objects[m].version==beforeVersion and #queue==0 and m:GetAttribute('RepairAt')==0,'Rejected hit mutated object or timer')
+end
+D.Damage(seat,1,10)
+station.maintenanceVersion=D.objects[m].version
+beforeVersion=D.objects[m].version
+local deadline=m:GetAttribute('RepairAt')
+local function unchanged(message)
+ check(m:GetAttribute('ObjectHealth')==40 and D.objects[m].version==beforeVersion and m:GetAttribute('RepairAt')==deadline and #queue==1,message)
+end
+check(not D.FinishMaintenance(station,station.position),'Maintenance ignored quiet interval')
+unchanged('Early maintenance mutated repair state')
+advance(890)
+check(not D.FinishMaintenance(station,station.position+vector(3,0,0)),'Distant worker repaired object')
+unchanged('Distant maintenance mutated repair state')
+occupied=true;occupantCollidable=false
+check(not D.FinishMaintenance(station,station.position),'Maintenance restored into a noncolliding occupant')
+unchanged('Occupied maintenance mutated repair state')
+occupied=false
+local farStation={maintenanceModel=m,maintenanceVersion=beforeVersion,position=vector(30,2,0)}
+check(not D.FinishMaintenance(farStation,farStation.position),'Fabricated distant station bypassed object distance')
+unchanged('Distant station mutated repair state')
+check(D.FinishMaintenance(station,station.position),'Cleared maintenance guards failed to recover')
+check(m:GetAttribute('ObjectHealth')==50 and m:GetAttribute('RepairAt')==0,'Valid maintenance did not restore state')
+advance(965)
+check(#queue==0,'Completed maintenance left timer queued')
+-- A destruction repeat cannot keep extending the automatic repair deadline.
+D.Damage(seat,1,48);D.Damage(seat,1,2)
+local brokenDeadline=m:GetAttribute('RepairAt');beforeVersion=D.objects[m].version
+check(D.Damage(seat,1,1).reason=='health','Destroyed object accepted another hit')
+check(m:GetAttribute('RepairAt')==brokenDeadline and D.objects[m].version==beforeVersion and #queue==1,'Hit on destroyed prop postponed repair')
+advance(brokenDeadline)
+check(m:GetAttribute('ObjectHealth')==50 and #queue==0,'Destroyed object failed to repair after rejected repeat')
 print('PASS '..checks..' actual Destruction service checks with mocked engine/scheduler')
 '''
 with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.destruction_', dir=root/'tests', delete=False) as f:
