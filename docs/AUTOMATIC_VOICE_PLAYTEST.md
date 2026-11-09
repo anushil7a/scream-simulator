@@ -238,3 +238,7 @@ Pending native check: remove/replace Client while its HUD is open and an automat
 ### Removed microphone analyzer recovery
 
 Pending native/device check: during capture in a disposable client, remove the local ScreamInputMeter AudioAnalyzer. Confirm it is rebuilt, the active capture cancels, attack readiness is lost, and fresh calibration plus deliberate resume restores use. Mocked removal/recalibration coverage passes; it does not establish actual audio-engine reconnection.
+
+### Broken microphone meter wire
+
+Pending native/device check: in a disposable client, remove the meter Wire or clear either endpoint during capture. Verify capture cancels, the old wire/meter is removed, and a new wire connects the local input to its replacement analyzer. Fresh calibration and deliberate resume should restore attacks. Mocked endpoint/lifecycle checks pass; actual audio flow remains unverified.

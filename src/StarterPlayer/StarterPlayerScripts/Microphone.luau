@@ -27,8 +27,11 @@ function Microphone:CancelCalibration()
 end
 function Microphone:FindInput()
  if self.destroyed then return nil end
- if self.input and self.input.Parent and self.analyzer and self.analyzer.Parent then return self.input end
+ if self.input and self.input.Parent and self.analyzer and self.analyzer.Parent
+  and self.wire and self.wire.Parent==self.analyzer
+  and self.wire.SourceInstance==self.input and self.wire.TargetInstance==self.analyzer then return self.input end
  self:Cancel();self:CancelCalibration();self.ready=false
+ if self.wire then self.wire:Destroy();self.wire=nil end
  if self.analyzer then self.analyzer:Destroy();self.analyzer=nil end
  local input=Players.LocalPlayer:FindFirstChildWhichIsA('AudioDeviceInput',true)
  if not input then return nil end
@@ -36,7 +39,7 @@ function Microphone:FindInput()
  self.input=input
  local analyzer=Instance.new('AudioAnalyzer');analyzer.Name='ScreamInputMeter';analyzer.SpectrumEnabled=false;analyzer.Parent=Players.LocalPlayer
  local wire=Instance.new('Wire');wire.SourceInstance=input;wire.TargetInstance=analyzer;wire.Parent=analyzer
- self.analyzer=analyzer
+ self.analyzer=analyzer;self.wire=wire
  return input
 end
 function Microphone:Calibrate()
@@ -93,6 +96,7 @@ function Microphone:Destroy()
  self.ready=false;self.eligible=false;self.power=0
  self:CancelCalibration();self:Cancel();self.model.calibrated=false
  self.connection:Disconnect()
+ if self.wire then self.wire:Destroy();self.wire=nil end
  if self.analyzer then self.analyzer:Destroy();self.analyzer=nil end
  self.input=nil
 end

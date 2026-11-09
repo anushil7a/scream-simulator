@@ -88,6 +88,22 @@ check(not m.ready and not m.model.calibrated and m.captureStarted==nil and m.pow
 check(m:Release()==0,'Analyzer loss released a stale capture')
 m:Calibrate();samples('quiet',.001);samples('voice',.08)
 check(m.ready,'Fresh calibration after analyzer replacement failed')
+for _,breakLink in ipairs({
+ function(wire)wire.Parent=nil end,
+ function(wire)wire.SourceInstance={} end,
+ function(wire)wire.TargetInstance={} end,
+}) do
+ local oldWire=instances[#instances];local oldMeter=m.analyzer
+ check(m:Begin(),'Broken-wire fixture could not begin capture')
+ breakLink(oldWire);m:Step(.05)
+ check(m.analyzer~=oldMeter and oldMeter.destroyed,'Broken wire retained old meter')
+ local wire=instances[#instances]
+ check(wire.SourceInstance==player.input and wire.TargetInstance==m.analyzer and wire.Parent==m.analyzer,'Replacement wire endpoints invalid')
+ check(oldWire.destroyed,'Detached old wire was not cleaned up')
+ check(not m.ready and not m.model.calibrated and m.captureStarted==nil,'Broken wire retained capture readiness')
+ m:Calibrate();samples('quiet',.001);samples('voice',.08)
+ check(m.ready,'Fresh calibration after wire repair failed')
+end
 local analyzer=m.analyzer;m.ready=true;m.power=1;m:Destroy()
 check(disconnected and analyzer.destroyed,'Destroy leaked heartbeat/analyzer')
 check(not m.ready and not m.eligible and m.power==0 and m.captureStarted==nil,'Destroyed microphone retained attack readiness')
