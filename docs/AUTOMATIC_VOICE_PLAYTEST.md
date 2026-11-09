@@ -196,3 +196,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Performance sample workload context
 - RunServerSample now includes endpoint counts for active screams, working/recovering residents and damaged/destroyed/repair-blocked objects. Keep the named workload active across the recording and note any changes; endpoint counts do not establish peak/average load.
 - Five mocked snapshot checks and the rebuilt disposable fixture pass. No new native heartbeat sample, FPS, CPU, network or memory performance result has been collected.
+
+### KO reward cooldown retention
+- Pending native: KO the same opponent before/at the 30-second reward deadline, including a quick opponent rejoin. Cleanup must not permit early rewards; different opponents remain independent.
+- Evidence: nine actual helper checks with synthetic time and 1,000 expired entries, 12 mocked PvP branch checks, full verification/build. No measured memory, network or multiplayer result.

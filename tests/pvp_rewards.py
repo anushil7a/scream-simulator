@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 root=Path(__file__).resolve().parents[1]
 s=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
+helper=s[s.index('local function claimKoReward('):s.index('local function questProgress(')]
 a=s.index('  if target.player then',s.index('local dealt=0'))
 b=s.index('  elseif target.object then',a)
 setup='''
@@ -43,7 +44,7 @@ check(s.koRewards[2]==161 and s.koRewards[3]==162,'Opponent cooldowns were not i
 print('PASS '..checks..' actual PvP reward branch checks with mocked players/health')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
-    path=Path(f.name);f.write(setup+s[a:b]+checks)
+    path=Path(f.name);f.write(helper+setup+s[a:b]+checks)
 try:
     subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally:

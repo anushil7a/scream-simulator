@@ -94,6 +94,17 @@ local function xp(p,amount)
   state(p,"Level "..d.level..unlock)
  end
 end
+local function claimKoReward(s,id,now)
+ if now>=(s.nextKoRewardCleanup or 0) then
+  for victim,deadline in pairs(s.koRewards) do
+   if deadline<=now then s.koRewards[victim]=nil end
+  end
+  s.nextKoRewardCleanup=now+30
+ end
+ if now<(s.koRewards[id] or 0) then return false end
+ s.koRewards[id]=now+30
+ return true
+end
 local function questProgress(p,event,amount)
  local s=sessions[p];if not s or not s.activeQuest then return end
  local q=Config.GetQuest(s.activeQuest);if not q or q.event~=event then return end
@@ -264,8 +275,7 @@ local function stepSustained(p,s,now)
    ts.nextHeal=now+Config.HealQuietSeconds
    if h.Health<=hit.damage then
     eject(target.player,h)
-    if now>=(s.koRewards[target.player.UserId] or 0) then
-     s.koRewards[target.player.UserId]=now+30
+    if claimKoReward(s,target.player.UserId,now) then
      xp(p,Config.PlayerKOXP(ts.data.level));s.data.coins+=20
      if ts.data.level>=intent.level then questProgress(p,"Underdog") end
      state(p,"Arena KO · "..target.player.DisplayName.." · reward earned")
@@ -362,8 +372,8 @@ local function cast(p,request)
      if th.Health<=sound.damage then
       local targetLevel=ts.data.level;local attackerLevel=s.data.level;eject(target,th)
       -- A repeated victim has a reward cooldown, independent from hit rewards.
-      if now>=(s.koRewards[target.UserId] or 0) then
-       s.koRewards[target.UserId]=now+30;local reward=Config.PlayerKOXP(targetLevel);xp(p,reward);s.data.coins+=20
+      if claimKoReward(s,target.UserId,now) then
+       local reward=Config.PlayerKOXP(targetLevel);xp(p,reward);s.data.coins+=20
        if targetLevel>=attackerLevel then questProgress(p,"Underdog") end
        knockoutMessage="Player knockout · +"..reward.." XP"
       end
