@@ -262,6 +262,8 @@ local function stopWalking(bot)
     bot.pathVersion=(bot.pathVersion or 0)+1
     bot.humanoid:MoveTo(bot.root.Position)
     bot.working=false
+    bot.model:SetAttribute("Working",false)
+    if bot.water then bot.water.Enabled=false end
 end
 function World.Talk(bot, player, contextLine)
     stopWalking(bot)
@@ -661,9 +663,10 @@ local function makeBot(parent, index, x, z, role, job)
                                 model:SetAttribute("PracticeRoutine",({"Miss","Trip","OwnGoal"})[(bot.practiceCycle-1)%3+1])
                             end
                             bot.working=true;model:SetAttribute("Repairing",station.maintenanceModel~=nil);model:SetAttribute("WorkStarted",workspace:GetServerTimeNow());model:SetAttribute("Activity",station.action or role=="Soccer" and "Practicing missed kicks" or role=="Gardener" and "Watering flowers" or role=="Artist" and "Painting the coast" or "Arranging produce")
+                            local workVersion=bot.pathVersion
                             local untilTime=os.clock()+(role=="Soccer" and 6.5 or rng:NextNumber(5,9))
-                            while model.Parent and bot.alive and os.clock()<untilTime and (bot.socialUntil or 0)<=os.clock() and (bot.reactionUntil or 0)<=os.clock() do task.wait(.2) end
-                            if bot.working and bot.alive and os.clock()>=untilTime and station.maintenanceModel and World.FinishMaintenance then
+                            while model.Parent and bot.alive and bot.working and bot.pathVersion==workVersion and os.clock()<untilTime and (bot.socialUntil or 0)<=os.clock() and (bot.reactionUntil or 0)<=os.clock() do task.wait(.2) end
+                            if model.Parent and bot.working and bot.alive and bot.pathVersion==workVersion and (bot.socialUntil or 0)<=os.clock() and (bot.reactionUntil or 0)<=os.clock() and os.clock()>=untilTime and station.maintenanceModel and World.FinishMaintenance then
                                 World.FinishMaintenance(bot,station)
                             end
                             bot.working=false;model:SetAttribute("Repairing",false)
