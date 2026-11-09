@@ -201,6 +201,19 @@ local function resolveSustained(ctx,direction,stats,now)
  end
  return ids,details,{origin=ctx.origin,direction=direction,length=length,width=stats.width,power=stats.power,obstruction=obstruction,dodged=dodged}
 end
+local function restoreBot(bot)
+ if not bot.model.Parent then return end
+ bot.recoveryVersion=(bot.recoveryVersion or 0)+1
+ bot.health=Config.BotMaxHealth;bot.alive=true;World.UpdateBot(bot)
+end
+local function knockOutBot(bot)
+ if not bot.alive then return end
+ bot.alive=false;bot.recoveryVersion=(bot.recoveryVersion or 0)+1
+ local version=bot.recoveryVersion
+ task.delay(Config.BotRespawnSeconds,function()
+  if bot.model.Parent and not bot.alive and bot.recoveryVersion==version then restoreBot(bot) end
+ end)
+end
 local function destructionHint(intent,result)
  if not result or result.reason~="level" or intent.destructionHintShown then return nil end
  intent.destructionHintShown=true
@@ -266,10 +279,7 @@ local function stepSustained(p,s,now)
    bot.health=math.max(0,bot.health-hit.damage)
    local ko=bot.health==0
    if ko then
-    bot.alive=false
-    task.delay(Config.BotRespawnSeconds,function()
-     if bot.model.Parent then bot.health=Config.BotMaxHealth;bot.alive=true;World.UpdateBot(bot) end
-    end)
+    knockOutBot(bot)
    elseif hit.firstHit then World.ReactToScream(bot,context.position) end
    World.UpdateBot(bot)
    local coins,rewardXP=SustainedRewards.Hit(intent,s.botRewards,bot.id,now,hit.firstHit,ko)
@@ -320,7 +330,7 @@ local function cast(p,request)
  for _,bot in ipairs(World.Bots) do
   if bot.alive and bot.root.Parent and Rules.InBeam(origin,direction,bot.root.Position,length,sound.width,1) and audible(c,origin,bot.root.Position,bot.model) then
    hits+=1;bot.health=math.max(0,bot.health-sound.damage);local ko=bot.health==0
-   if ko then bot.alive=false;task.delay(Config.BotRespawnSeconds,function() if bot.model.Parent then bot.health=Config.BotMaxHealth;bot.alive=true;World.UpdateBot(bot) end end)
+   if ko then knockOutBot(bot)
    else World.ReactToScream(bot,r.Position) end
    World.UpdateBot(bot)
    if now>=(s.botRewards[bot.id] or 0) and paid<5 then
@@ -474,7 +484,7 @@ local function dev(p,command)
  elseif positions[command] and c then c:PivotTo(positions[command]);protect(p,s)
  elseif command=="ResetQuests" then stopQuest(p);s.data.quests={}
  elseif command=="StudioMovement" then Entitlements.SetStudioMovement(p,not Entitlements.HasStudioMovement(p))
- elseif command=="ResetBots" then for _,b in ipairs(World.Bots) do b.health=Config.BotMaxHealth;b.alive=true;World.UpdateBot(b) end
+ elseif command=="ResetBots" then for _,b in ipairs(World.Bots) do restoreBot(b) end
  else return end
  syncHealth(p,command=="Heal");state(p,command=="StudioMovement" and ("Studio movement test "..(Entitlements.HasStudioMovement(p) and "ON" or "OFF").." · safe areas only · not saved") or "Test applied · this session does not save")
 end
