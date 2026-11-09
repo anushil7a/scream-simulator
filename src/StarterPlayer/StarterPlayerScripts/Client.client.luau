@@ -296,6 +296,7 @@ local function card(height) return frame(content,"Card",UDim2.new(1,-8,0,height)
 local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
 local renderedMenuKey,renderedTab
 local renderRevision=0
+script.Destroying:Connect(function() renderRevision+=1;gui:Destroy() end)
 local function menuKey()
  local fields
  if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped}

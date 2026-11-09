@@ -222,3 +222,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Controller recovery coverage
 - Pending native: lose/replace the aiming camera during an active scream, then restore it while still speaking. Attack should stop and require quiet plus fresh onset. Observe recovery from a real frame stall without a burst of input pulses.
 - Evidence: 30 synthetic controller checks, six added for camera/hitch/invalid-power/server-ownership cases. No actual device, scheduler stall or network test.
+
+### Main HUD teardown
+- Pending native: remove/restart Client while a scrolled menu has a queued layout update. The old main HUD should disappear and no delayed scroll update should touch it; the replacement should display one working HUD.
+- Evidence: five actual teardown/scroll callback checks with mocked GUI/scheduling and full verification/build; no native GUI lifecycle test.
