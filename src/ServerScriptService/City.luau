@@ -85,12 +85,28 @@ local function building(parent,cf,w,d,floors,index,style)
  local m=model(parent,"Casa_"..index)
  local h=floors*8+7;local color=palette[Random.new(index*7919):NextInteger(1,#palette)]
  local refined=parent:GetAttribute("RefinedFrontages")==true
+ local district=parent:GetAttribute("ColorDistrict") or style or "Eixample"
  local frontage=index%4
  local accents={Color3.fromRGB(57,112,105),Color3.fromRGB(130,72,65),Color3.fromRGB(69,94,121),Color3.fromRGB(136,116,64)}
  local accent=accents[frontage+1]
  if refined then
-  local paints={Color3.fromRGB(230,207,165),Color3.fromRGB(204,146,117),Color3.fromRGB(183,199,177),Color3.fromRGB(237,220,185)}
-  color=paints[frontage+1];m:SetAttribute("FrontageStyle",({"Gallery","Terracotta","TileHouse","Atelier"})[frontage+1])
+  -- District-specific plaster and shutters keep the coast, old lanes and
+  -- boulevard blocks readable without adding geometry or blocking routes.
+  local schemes={
+   Maritime={{235,218,177},{157,194,190},{226,168,137},{173,193,211}},
+   Born={{218,167,126},{231,190,151},{198,143,115},{225,202,165}},
+   Modernista={{203,212,179},{232,199,155},{208,178,185},{186,207,199}},
+   Eixample={{232,207,164},{216,161,132},{183,202,178},{236,221,191}},
+  }
+  local paints=schemes[district] or schemes.Eixample
+  local choice=paints[(frontage+math.floor(index/7))%#paints+1]
+  local shade=Random.new(index*7919):NextInteger(-6,6)
+  color=Color3.fromRGB(choice[1]+shade,choice[2]+shade,choice[3]+shade)
+  if district=="Maritime" then
+   accent=({Color3.fromRGB(49,121,137),Color3.fromRGB(61,135,121),Color3.fromRGB(164,99,71),Color3.fromRGB(80,115,155)})[frontage+1]
+  end
+  m:SetAttribute("ColorDistrict",district)
+  m:SetAttribute("FrontageStyle",({"Gallery","Terracotta","TileHouse","Atelier"})[frontage+1])
  end
  local function b(name,size,pos,c,mat,solid) return part(m,name,size,cf*CFrame.new(pos),c,mat,solid) end
  local shopIndex=index==501 and 2 or index==266 and 3 or (index-1)%#shops+1
@@ -433,7 +449,7 @@ local function oldTown(parent,x,z,index,walk,activities)
  sign(m,"CARRER DEL SOL",CFrame.new(x-60,6,z-48),19)
 end
 local function waterfrontHomes(parent,x,z,index,walk,activities)
- local m=model(parent,"MaritimeQuarter_"..index);m:SetAttribute("RefinedFrontages",true);octagon(m,x,z)
+ local m=model(parent,"MaritimeQuarter_"..index);m:SetAttribute("RefinedFrontages",true);m:SetAttribute("ColorDistrict","Maritime");octagon(m,x,z)
  for row=-1,1,2 do for j=-2,2 do
   building(m,CFrame.new(x+j*37,0,z+row*59)*CFrame.Angles(0,row==1 and math.pi or 0,0),31,32,2+(j+index)%2,index*100+j+row*10,"Born")
  end end
