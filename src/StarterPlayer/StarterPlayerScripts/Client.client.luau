@@ -203,7 +203,8 @@ local function setSprint(requested)
  local character=p.Character;local humanoid=character and character:FindFirstChildOfClass("Humanoid")
  if requested and (not windowFocused or not mic.ready or GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil
   or modal.Visible or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible)
-  or not humanoid or humanoid.Health<=0 or workspace:GetServerTimeNow()<(p:GetAttribute("KnockdownEnds") or 0)) then requested=false end
+  or not humanoid or humanoid.Health<=0 or humanoid.PlatformStand or humanoid.Sit or humanoid.SeatPart
+  or workspace:GetServerTimeNow()<(p:GetAttribute("KnockdownEnds") or 0)) then requested=false end
  if sprinting==requested then return end
  sprinting=requested;action:FireServer("Sprint",requested)
 end

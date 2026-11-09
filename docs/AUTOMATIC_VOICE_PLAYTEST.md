@@ -154,3 +154,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Pending native UI: enter/leave the arena while tracking untimed gardening/beach work. The tracker should hide inside and return outside; Quests remains accessible.
 - Repeat with Underdog/dodge/training objectives and an active delivery/race/Nick countdown: these stay visible. Confirm expiration and quest switching update visibility naturally.
 - Evidence: full source compilation and local verification/build only; no visual or device test claimed.
+
+### Sprint after sitting/ragdoll
+- Pending native: activate sprint with keyboard and touch, sit or enter PlatformStand, then recover. Sprint should cancel and require fresh input; stamina/server rules remain unchanged. Repeat with SeatPart replication arriving separately from Sit.
+- Evidence: reproduced retained request in the actual input helper with mocked humanoid state; 43 input checks and full local verification/build pass after the fix. No native physics/input result claimed.

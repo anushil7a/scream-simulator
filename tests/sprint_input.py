@@ -26,6 +26,8 @@ local cases={
  function(v)conversationPanel.Visible=v end,function(v)h.Health=v and 0 or 100 end,
  function(v)if v then p.Character=nil else p.Character=character end end,
  function(v)attrs.KnockdownEnds=v and 11 or 0 end,
+ function(v)h.PlatformStand=v end,function(v)h.Sit=v end,
+ function(v)h.SeatPart=v and {} or nil end,
 }
 for i,block in ipairs(cases) do
  setSprint(true);block(true);setSprint(true)
