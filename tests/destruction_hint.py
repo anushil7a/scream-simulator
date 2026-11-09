@@ -17,6 +17,14 @@ check(not intent.destructionHintShown,'Non-level outcome consumed hint')
 check(destructionHint(intent,{reason='level',required=26})=='This object needs scream level 26 to damage','Unlock level not explained')
 for i=1,20 do check(destructionHint(intent,{reason='level',required=51})==nil,'Continuous damage spammed hint') end
 check(destructionHint({}, {reason='level',required=51})=='This object needs scream level 51 to damage','Next attack did not reset hint')
+local model={GetAttribute=function()return 'Bench' end}
+local broken={model=model,kind='Bench',destroyed=true,health=0}
+check(destructionHint(intent,broken)=='Bench destroyed · repairs automatically','Prior level hint suppressed successful break notice')
+for i=1,20 do check(destructionHint(intent,broken)==nil,'Repeated break observation spammed notice') end
+local fresh={}
+check(destructionHint(fresh,{model=model,destroyed=true,reason='health'})==nil and not fresh.destructionBreakShown,'Rejected result announced a break')
+check(destructionHint(fresh,broken)=='Bench destroyed · repairs automatically','Next scream did not reset break notice')
+check(destructionHint(fresh,{reason='level',required=100})~=nil,'Break notice suppressed later level requirement')
 print('PASS '..count..' actual destruction hint checks with synthetic responses')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.hint_',dir=root/'tests',delete=False) as f:

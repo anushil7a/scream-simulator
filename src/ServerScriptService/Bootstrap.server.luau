@@ -216,9 +216,17 @@ local function knockOutBot(bot)
  end)
 end
 local function destructionHint(intent,result)
- if not result or result.reason~="level" or intent.destructionHintShown then return nil end
- intent.destructionHintShown=true
- return "This object needs scream level "..tostring(result.required).." to damage"
+ if not result then return nil end
+ if result.reason=="level" and not intent.destructionHintShown then
+  intent.destructionHintShown=true
+  return "This object needs scream level "..tostring(result.required).." to damage"
+ end
+ if not result.reason and result.destroyed and not intent.destructionBreakShown then
+  intent.destructionBreakShown=true
+  local name=result.model:GetAttribute("ObjectName") or result.kind or "Object"
+  return name.." destroyed · repairs automatically"
+ end
+ return nil
 end
 local function stepSustained(p,s,now)
  local intent=s.sustained.intent
