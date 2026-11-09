@@ -534,7 +534,7 @@ Run.RenderStepped:Connect(function(dt)
   local character=p.Character
   local humanoid=character and character:FindFirstChildOfClass("Humanoid")
   local alive=humanoid~=nil and humanoid.Health>0
-  sustainedControl:ObserveAvailability(alive and mic.ready)
+  sustainedControl:ObserveAvailability(alive and mic.ready,windowFocused and not GuiService.MenuIsOpen)
   voiceCooldown=math.max(0,(p:GetAttribute("SustainedReadyAt") or 0)-workspace:GetServerTimeNow())
   voiceActive=p:GetAttribute("SustainedActive")==true
   sustainedControl:Step(dt,os.clock(),mic.power,alive and windowFocused and not blocked(),

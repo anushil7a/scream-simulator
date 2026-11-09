@@ -75,3 +75,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Resident attention/cover: approach a worker and a resident reacting to a scream; greetings must not interrupt their activity. Stand across a wall and watch nearby NPC pairs: greetings/social conversations should require clear sight. Unblocked idle greetings should retain their cooldown. Ten mocked greeting checks pass; native collision-group/raycast behavior remains pending.
 
 - NPC recovery/reset: knock out a bot, use Reset bots before its recovery, damage/knock it out again and wait past the original deadline. It must keep the new damage or remain down until its own later recovery. Verify the test session remains non-saving. Nine mocked callback checks pass; native timing pending.
+
+- First calibration in background: during the first successful calibration, switch away from the window or open Roblox's menu. After returning, voice attacks must remain paused until ARM VOICE/E and a fresh quiet period. Twenty synthetic control checks pass; real microphone/focus/menu event testing pending.
