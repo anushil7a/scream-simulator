@@ -131,3 +131,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Quest controls: on touch, confirm Talk omits the keyboard shortcut and garden/beach instructions direct players to the visible interaction prompt. Verify the prompt remains usable and descriptions wrap in the quest list/dialogue. Full build checks pass; native touch activation/layout remains pending.
 
 - Quest prompt availability: disable or remove a prompt while a player is interacting in a disposable test. Verify no progress is awarded from a stale callback and a valid re-enabled nearby prompt works once. Nine mocked handler checks pass; native prompt event ordering remains pending.
+
+- Boardwalk race: trigger the start twice and confirm the original countdown remains. Verify early finish rejection, normal completion and no duplicate progress from repeated finish activation. Mock handler tests pass; route timing and native prompt input remain pending.
