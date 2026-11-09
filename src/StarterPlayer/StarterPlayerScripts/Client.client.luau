@@ -557,7 +557,7 @@ if sustainedControl then
  end,function(part) part:Destroy() end)
  script.Destroying:Connect(function() sustainedBeams:Destroy() end)
 end
-local effectConnection=remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,beamWidth)
+connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth)
  if kind=="SustainedHit" then hitFeedback:Accept(id,aura,os.clock());return end
  if kind=="SustainedBeamEnd" then
   if sustainedBeams then sustainedBeams:Remove(id) end
@@ -583,7 +583,6 @@ local effectConnection=remotes.Effect.OnClientEvent:Connect(function(kind,pos,id
  direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range
  ScreamEffects.Render(s.effect,pos,direction,length,beamWidth or 4,color,data.settings.reducedShake,s.variant)
 end)
-script.Destroying:Connect(function() effectConnection:Disconnect() end)
 local elapsed=0
 local lastViewport,lastTouch
 -- A visible modal button frees the cursor for Roblox's first-person camera.

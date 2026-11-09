@@ -270,3 +270,7 @@ Pending visual check: open Map on desktop and narrow phone layouts. Verify prome
 ### Map marker respawn
 
 Pending native visual check: open Map before/during respawn. The marker should hide while no valid root exists and return at the new spawn with the correct heading. Check no initial top-left marker flash. Nine mocked update checks pass; native character timing and rendered layout remain unverified.
+
+### Queued combat effects after cleanup
+
+Pending native check: remove/replace Client during break, dodge and sustained beam events. Confirm the old listener creates no late particles, updates no damage feedback, and leaves no beam behind. Effect delivery now shares the tested client connection teardown guard; native event queue ordering/rendering is unverified.
