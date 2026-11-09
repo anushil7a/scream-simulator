@@ -51,3 +51,5 @@ Record commit/build, devices, exact reproduction steps and expected/observed beh
 - Controls help: review Settings on a 390-pixel-wide phone viewport and desktop. Check all three help cards wrap without clipping, automatic attack timings match config, and touch camera/shop/paused-voice labels contain no keyboard shortcuts. Source compilation/build is not visual validation.
 
 - Sprint input: start via Shift, then toggle using the button; repeat on touch. Open Screams/Quests/dialogue, start typing, mute, lose focus, reset or get hit by a car. Sprint should stop and require fresh input after interruption. After KO/lifeguard rescue, one tap should start sprint rather than consume a stale toggle. Thirty-four mocked helper checks pass; device/events remain pending.
+
+- Mic-dependent aim range: aim at a player or destructible between minimum and maximum range, then vary comfortable calibrated input. The readout should change between BEYOND CURRENT RANGE and normal target information; beyond the cap must remain OUT OF MAX RANGE. Server cover/hit rules remain authoritative. Twelve mocked player text checks pass; native distances and HUD fit pending.

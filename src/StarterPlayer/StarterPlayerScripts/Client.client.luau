@@ -188,17 +188,17 @@ local function setSprint(requested)
  if sprinting==requested then return end
  sprinting=requested;action:FireServer("Sprint",requested)
 end
-local function playerTargetInfo(target,humanoid,canFight,far,now)
+local function playerTargetInfo(target,humanoid,canFight,far,now,currentFar)
  if humanoid.Health<=0 then return nil,false end
  local protection=math.max(0,(target:GetAttribute("ProtectionEnds") or 0)-now)
  local rolling=now<(target:GetAttribute("DodgeEnds") or 0)
  local status=not canFight and "SAFE · PvP OFF"
   or protection>0 and string.format("PROTECTED · %.1fs",protection)
-  or rolling and "DODGING" or far and "OUT OF MAX RANGE" or "ARENA OPPONENT"
+  or rolling and "DODGING" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or "ARENA OPPONENT"
  local level=target:GetAttribute("ScreamLevel")
  local name=target.DisplayName..(type(level)=="number" and string.format(" · LV %d",level) or "")
  return string.format("%s\n%d / %d HP\n%s",name,math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),
-  canFight and protection<=0 and not rolling and not far
+  canFight and protection<=0 and not rolling and not far and not currentFar
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end)
 local viewButton=button(controls,"CameraToggle","1ST [V]",UDim2.fromOffset(88,32),UDim2.fromOffset(0,52),toggleCamera)
@@ -628,7 +628,8 @@ Run.RenderStepped:Connect(function(dt)
    if root and targetRoot and humanoid then
     local canFight=Config.InArena(root.Position) and Config.InArena(targetRoot.Position)
     local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
-    local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow())
+    local currentFar=(targetRoot.Position-root.Position).Magnitude>range+2
+    local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow(),currentFar)
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then
@@ -636,13 +637,14 @@ Run.RenderStepped:Connect(function(dt)
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
    local rangeLimit=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange
    local far=root and (hit.Position-root.Position).Magnitude>rangeLimit+2
+   local currentFar=root and (hit.Position-root.Position).Magnitude>range+2
    local kind=object:GetAttribute("ObjectName") or object:GetAttribute("DestructibleType") or object.Name
-   aimInfo.Text=string.format("%s · LEVEL %d\n%s",kind,required,data.level<required and "LOCKED" or far and "OUT OF MAX RANGE" or string.format("%d / %d durability",hp,object:GetAttribute("ObjectMaxHealth") or hp))
+   aimInfo.Text=string.format("%s · LEVEL %d\n%s",kind,required,data.level<required and "LOCKED" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or string.format("%d / %d durability",hp,object:GetAttribute("ObjectMaxHealth") or hp))
    local repairSeconds=math.max(0,math.ceil((object:GetAttribute("RepairAt") or 0)-workspace:GetServerTimeNow()))
    if repairSeconds>0 and hp<(object:GetAttribute("ObjectMaxHealth") or hp) then
     aimInfo.Text..=string.format("\nRepair in %d:%02d",math.floor(repairSeconds/60),repairSeconds%60)
    end
-   aimInfo.TextColor3=(data.level<required or far) and muted or gold
+   aimInfo.TextColor3=(data.level<required or far or currentFar) and muted or gold
   end
  end
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
