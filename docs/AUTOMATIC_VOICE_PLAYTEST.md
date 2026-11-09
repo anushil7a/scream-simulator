@@ -91,3 +91,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Menu navigation: open Settings then press M; Map should appear, and a second M should close it. SCREAMS/QUESTS should open their matching tab from any tab and close on repeat. B should still close any open menu. Open a menu during NPC dialogue and confirm dialogue closes, freeing the resident. Native keyboard/touch behavior remains pending.
 
 - NPC work interruptions: interrupt gardening/maintenance with dialogue, attacks and grounding recovery. Verify watering/work poses stop promptly, residents resume appropriate activity, and canceled maintenance does not repair the target, including near the end of the routine. Local mocked clock/activity tests cover cancellation; real animation/navigation remains pending.
+
+- Dialogue death/respawn: while speaking to a resident, reset your character or have the resident knocked out. Verify the panel closes immediately, stays closed through respawn, and automatic voice still respects protection and fresh onset. Mocked character/UI tests pass; native input/event ordering remains unverified.

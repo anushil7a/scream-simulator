@@ -379,6 +379,17 @@ closeConversation=function()
  if conversationPanel.Visible then action:FireServer("EndConversation") end
  conversationPanel.Visible=false;conversationNPC=nil
 end
+local function refreshConversation()
+ if not conversationPanel.Visible then return end
+ local character=p.Character
+ local root=character and character:FindFirstChild("HumanoidRootPart")
+ local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ local npc=conversationNPC and conversationNPC.Parent and conversationNPC
+ local npcRoot=npc and npc:FindFirstChild("HumanoidRootPart")
+ local npcHumanoid=npc and npc:FindFirstChildOfClass("Humanoid")
+ if modal.Visible or not root or not humanoid or humanoid.Health<=0 or not npcRoot or not npcHumanoid or npcHumanoid.Health<=0
+  or (root.Position-npcRoot.Position).Magnitude>18 or os.clock()>=conversationUntil then closeConversation() end
+end
 button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
 showConversation=function(info)
  cancelCapture();modal.Visible=false;if devPanel then devPanel.Visible=false end
@@ -524,11 +535,7 @@ Run.RenderStepped:Connect(function(dt)
   toast.Size=UDim2.fromOffset(notificationWidth,math.min(viewport.Y*.35,textHeight+12))
  end
  if layoutChanged then conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-36)) end
- if conversationPanel.Visible then
-  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-  local npcRoot=conversationNPC and conversationNPC.Parent and conversationNPC:FindFirstChild("HumanoidRootPart")
-  if modal.Visible or not root or not npcRoot or (root.Position-npcRoot.Position).Magnitude>18 or os.clock()>conversationUntil then closeConversation() end
- end
+ refreshConversation()
  saveNotice.Text=data.testSession and "TEST SESSION · progress is temporary" or data.savingDelayed and "Save delayed · retrying automatically" or data.savingAvailable==false and "Temporary progress · saving unavailable" or ""
  saveNotice.Visible=not modal.Visible and viewport.X>=820
  if viewport.X<820 then
