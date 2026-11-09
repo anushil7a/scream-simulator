@@ -6,7 +6,7 @@ task.spawn(function()
  local player=Players.LocalPlayer
  local character=player.Character or player.CharacterAdded:Wait()
  local checks=0;local samples={};local original={}
- local names={"CaptureStarted","DodgeStarted","DodgeEnds","ScreamReleased"}
+ local names={"CaptureStarted","DodgeStarted","DodgeEnds","ScreamReleased","SustainedActive"}
  for _,name in names do original[name]=player:GetAttribute(name) end
  local function check(value,message) assert(value,message);checks+=1 end
  local ok,err=xpcall(function()
@@ -18,6 +18,14 @@ task.spawn(function()
   local animator=assert(rig.humanoid:FindFirstChildOfClass("Animator"),"Missing Animator")
   task.wait(2)
   check(#animator:GetPlayingAnimationTracks()>0,"No base animation playing")
+  player:SetAttribute("CaptureStarted",0)
+  player:SetAttribute("SustainedActive",true)
+  task.wait(.5)
+  check(rig.charge>.9,"Sustained attack did not hold scream pose")
+  player:SetAttribute("SustainedActive",false)
+  task.wait(.8)
+  check(rig.charge<.002,"Sustained stop did not release pose")
+  check(#animator:GetPlayingAnimationTracks()>0,"Sustained pose stopped default Animator")
   for cycle=1,8 do
    player:SetAttribute("CaptureStarted",workspace:GetServerTimeNow())
    task.wait(.35)

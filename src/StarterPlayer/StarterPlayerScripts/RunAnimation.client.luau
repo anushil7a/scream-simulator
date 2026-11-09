@@ -4,10 +4,20 @@ local Players=game:GetService("Players")
 local Run=game:GetService("RunService")
 local Config=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config"))
 local rigs={}
+local function clearRig(player)
+ local rig=rigs[player]
+ if not rig then return end
+ for _,connection in ipairs(rig.connections) do connection:Disconnect() end
+ for joint,offset in pairs(rig.offsets) do
+  if joint.Parent then joint.Transform=joint.Transform*offset:Inverse() end
+ end
+ rigs[player]=nil
+end
 local function watch(player)
  local function added(character)
   local humanoid=character:WaitForChild("Humanoid",10);local root=character:WaitForChild("HumanoidRootPart",10)
   if not humanoid or not root or player.Character~=character then return end
+  clearRig(player)
   local rig={character=character,humanoid=humanoid,root=root,joints={},offsets={},phase=0,blend=0,airborne=false,landing=0,charge=0,connections={}};rigs[player]=rig
   local function collect(item)
    if item:IsA("Motor6D") or item:IsA("AnimationConstraint") then
@@ -20,13 +30,12 @@ local function watch(player)
  end
  player.CharacterRemoving:Connect(function(character)
   local rig=rigs[player];if rig and rig.character==character then
-   for _,connection in ipairs(rig.connections) do connection:Disconnect() end
-   rigs[player]=nil
+   clearRig(player)
   end
  end)
  player.CharacterAdded:Connect(added);if player.Character then task.spawn(added,player.Character) end
 end
-for _,p in ipairs(Players:GetPlayers()) do watch(p) end;Players.PlayerAdded:Connect(watch);Players.PlayerRemoving:Connect(function(p) rigs[p]=nil end)
+for _,p in ipairs(Players:GetPlayers()) do watch(p) end;Players.PlayerAdded:Connect(watch);Players.PlayerRemoving:Connect(clearRig)
 Run.PreAnimation:Connect(function()
  for _,rig in pairs(rigs) do for joint,offset in pairs(rig.offsets) do if joint.Parent then joint.Transform=joint.Transform*offset:Inverse() end end;table.clear(rig.offsets) end
 end)
@@ -71,8 +80,10 @@ Run.PreSimulation:Connect(function(dt)
   local v=rig.root.AssemblyLinearVelocity;local speed=Vector3.new(v.X,0,v.Z).Magnitude
   local sprinting=player:GetAttribute("Sprinting") and speed>3 and rig.humanoid.FloorMaterial~=Enum.Material.Air and now>=(player:GetAttribute("KnockdownEnds") or 0)
   rig.blend+=((sprinting and 1 or 0)-rig.blend)*math.min(dt*12,1)
-  -- Charge/release is driven solely by accepted server state, independent of E/Q.
-  local charging=(player:GetAttribute("CaptureStarted") or 0)>0
+  -- Both attack modes use accepted server state; movement input never fires attacks.
+  -- Sustained attacks hold the existing braced scream pose until cancellation,
+  -- then blend back into the default Animator instead of snapping to idle.
+  local charging=(player:GetAttribute("CaptureStarted") or 0)>0 or player:GetAttribute("SustainedActive")==true
   rig.charge+=((charging and 1 or 0)-rig.charge)*math.min(dt*14,1)
   local released=player:GetAttribute("ScreamReleased") or 0
   local age=now-released
