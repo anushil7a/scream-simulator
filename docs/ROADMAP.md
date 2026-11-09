@@ -1,6 +1,6 @@
 # Scream Simulator development roadmap
 
-Updated November 8, 2026. City Preview version 19 is published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Studio runtime control currently times out; owner permits continuing independent work while recording pending manual checks.
+Updated November 9, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch, retaining its four-second maximum attack and ten-second cooldown. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
 ## Product direction
 
@@ -8,7 +8,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 ## Operating policy
 
-- Usage policy updated by owner November 8: continue while allowance remains; check usage at task boundaries and keep work checkpointed. The former 20%-remaining cutoff is superseded.
+- Usage policy reaffirmed by owner November 9: continue while allowance remains; check usage at task boundaries and keep work checkpointed.
 - Work locally in focused commits and disposable Studio copies. Publishing requires fresh owner approval. Preserve externally changed cloud state and existing saves.
 - Maintain completed evidence, known failures and the next concrete action here. Actual audio, hardware and multiplayer gates stay open until observed.
 
@@ -75,6 +75,8 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - **Validation gaps:** source/unit/Studio passes do not establish live voice audibility, real-device comfort, saved-data safety or representative multiplayer load.
 
 ## Session log
+
+- November 9 branch coordination: owner selected `feature/microphone-city-redesign` for ongoing work and GitHub updates, retaining the existing four-second attack maximum, ten-second cooldown, level-100 cap and ten-level unlock cadence. The separate prototype is superseded; its code and test claims are not imported into this branch. Updated development instructions and the current chat's daily follow-up to use this branch and `docs/ROADMAP.md`. Documentation/workflow change only: production source, saves and balance unchanged; no new native or microphone tests claimed. Next: fetch contributor changes, then select one bounded task from this roadmap and maintain PR #1. Roblox publication still requires approval.
 
 - November 7: management policy and priorities established; owner clarified the cutoff as 20% remaining. Repository clean at review start. Studio in Edit, City Preview version 15 / 30 sources. No cloud writes or publication performed.
 - November 7: all 30 version-15 cloud sources match the verified version-14 source record; no collaborator script difference detected. Local progression now caps at 100 and provides 11 styles (base + ten unlocks). Profile schema 4 retains a validated level/XP/style archive and resolves retired style IDs without equipping locked tiers.
