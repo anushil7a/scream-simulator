@@ -49,7 +49,7 @@ Run.PreSimulation:Connect(function(dt)
   if rig.rootJoint then
    local stumble=working and role=="Soccer" and routine=="Trip" and workAge>=1.3 and workAge<4.3 and math.sin((workAge-1.3)/3*math.pi) or 0
    local gaitBob=math.sin(rig.phase*2)*.035*rig.blend
-   local breath=math.sin(now*1.7+rig.phase)*.012*(1-rig.blend)
+   local breath=math.sin(now*1.7+(model:GetAttribute("AnimationSeed") or 1))*.012*(1-rig.blend)
    local workLean=working and (role=="Gardener" or role=="Sanitation") and .09 or 0
    local pose=CFrame.new(0,gaitBob+breath,0)*CFrame.Angles(-.65*stumble-workLean-.05*rig.blend,0,math.sin(workAge*8)*.12*stumble)
    rig.rootJoint.Transform=rig.rootJoint.Transform:Lerp(pose,poseAlpha)
