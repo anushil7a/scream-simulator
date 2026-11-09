@@ -61,3 +61,12 @@ In the same opt-in place, calibrate the microphone, then press E or tap **ARM VO
 ## Evidence
 
 `luau tests/SustainedAttack.luau` passes **9,094** pure assertions across all 100 levels, deadline/cooldown boundaries, stale and spammed messages, interruptions, late targets, fractional budgets, resource caps and voice onset/quiet/cancellation. All 32 production sources compile, and binary/XML `SustainedRulesReview` builds succeed. These tests have no remote transport, geometry, humanoids, real microphones, devices or multiplayer participants; they cannot establish those behaviors.
+
+## Reproducible native review builds
+
+Run `python3 tests/build_sustained_review.py`. This builds two **DO NOT PUBLISH** local places with normal ModuleScript loading and a startup guard requiring Studio and PlaceId 0:
+
+- `build/SustainedLocalPlay.rbxl`: prototype enabled before server startup; use for manual client/server and real-microphone review.
+- `build/SustainedNativeFixture.rbxl`: additionally appends the synthetic server fixture; press Play and inspect Workspace `SustainedDamageResult` for its JSON result. This checks server cover/damage/rewards/expiry with synthetic power, not real audio.
+
+Both use temporary profiles through the existing prototype guard. The normal project and production Bootstrap source are unchanged by the builder. Do not publish either artifact. Successful assembly/compilation is not native execution evidence.
