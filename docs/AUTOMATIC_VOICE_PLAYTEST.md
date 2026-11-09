@@ -312,3 +312,7 @@ Pending UI check: during each Nick stage, open Quests and tap TRACKING; it shoul
 ### Active quest summary action
 
 Pending UI check: an unfinished active task should show CURRENT/ABANDON; an earned unclaimed task should show COMPLETE/CLAIM at the top. Claim there and verify one reward, no duplicate reward from the lower quest card, and normal return to task selection. Server claim regression checks pass; native menu behavior remains unverified.
+
+### Microphone recovery guidance
+
+During input/analyzer/wire recovery checks, confirm the setup panel explicitly asks for calibration instead of retaining “Microphone ready.” Four new mocked message assertions pass; native device/UI behavior remains pending.

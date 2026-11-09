@@ -40,6 +40,7 @@ function Microphone:FindInput()
  local analyzer=Instance.new('AudioAnalyzer');analyzer.Name='ScreamInputMeter';analyzer.SpectrumEnabled=false;analyzer.Parent=Players.LocalPlayer
  local wire=Instance.new('Wire');wire.SourceInstance=input;wire.TargetInstance=analyzer;wire.Parent=analyzer
  self.analyzer=analyzer;self.wire=wire
+ self.status='Microphone input found. Calibrate before attacking.'
  return input
 end
 function Microphone:Calibrate()
