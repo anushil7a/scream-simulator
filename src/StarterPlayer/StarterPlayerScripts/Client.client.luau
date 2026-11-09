@@ -217,6 +217,12 @@ local function playerTargetInfo(target,humanoid,canFight,far,now,currentFar)
  return string.format("%s\n%d / %d HP\n%s",name,math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),
   canFight and protection<=0 and not rolling and not far and not currentFar
 end
+local function residentTargetInfo(model,humanoid,far,currentFar)
+ if not humanoid or humanoid.Health<=0 then return nil,false end
+ local status=far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or "TRAINING RESIDENT"
+ return string.format("%s\n%d / %d HP\n%s",model:GetAttribute("DisplayName") or model.Name,
+  math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),not far and not currentFar
+end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end)
 local viewButton=button(controls,"CameraToggle","1ST [V]",UDim2.fromOffset(88,32),UDim2.fromOffset(0,52),toggleCamera)
 local talkTarget
@@ -653,7 +659,7 @@ Run.RenderStepped:Connect(function(dt)
  if aimInfo.Visible then
   local _,hit=aimRay();local object=hit and hit.Instance
   while object and object~=workspace and not object:GetAttribute("RequiredLevel")
-   and not (object:IsA("Model") and Players:GetPlayerFromCharacter(object)) do object=object.Parent end
+   and not (object:IsA("Model") and (Players:GetPlayerFromCharacter(object) or object:GetAttribute("NpcId"))) do object=object.Parent end
   local targetPlayer=object and object~=workspace and object:IsA("Model") and Players:GetPlayerFromCharacter(object)
   if targetPlayer and targetPlayer~=p then
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
@@ -663,6 +669,15 @@ Run.RenderStepped:Connect(function(dt)
     local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
     local currentFar=(targetRoot.Position-root.Position).Magnitude>range+2
     local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow(),currentFar)
+    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
+   end
+  elseif object and object~=workspace and object:IsA("Model") and object:GetAttribute("NpcId") then
+   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+   local npcRoot=object:FindFirstChild("HumanoidRootPart")
+   if root and npcRoot then
+    local distance=(npcRoot.Position-root.Position).Magnitude
+    local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
+    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2)
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then

@@ -34,7 +34,19 @@ text,ready=playerTargetInfo(target,h,true,false,10,false)
 check(ready and string.find(text,'ARENA OPPONENT',1,true),'In-range target stayed unavailable')
 h.Health=0;text,ready=playerTargetInfo(target,h,true,false,10)
 check(text==nil and not ready,'Dead target retained health readout')
-print('PASS '..checks..' actual aimed-player readout checks with mocked replicated state')
+local resident={Name='Fallback',GetAttribute=function()return 'Gardener' end}
+h.Health=40;h.MaxHealth=60
+text,ready=residentTargetInfo(resident,h,false,false)
+check(ready and text=='Gardener\\n40 / 60 HP\\nTRAINING RESIDENT','Resident health/name missing')
+text,ready=residentTargetInfo(resident,h,true,true)
+check(not ready and string.find(text,'OUT OF MAX RANGE',1,true),'Resident maximum range ignored')
+text,ready=residentTargetInfo(resident,h,false,true)
+check(not ready and string.find(text,'BEYOND CURRENT RANGE',1,true),'Resident current range ignored')
+h.Health=0;text,ready=residentTargetInfo(resident,h,false,false)
+check(text==nil and not ready,'Dead resident retained readout')
+text,ready=residentTargetInfo(resident,nil,false,false)
+check(text==nil and not ready,'Missing resident humanoid retained readout')
+print('PASS '..checks..' actual target readout checks with mocked replicated state')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.target_',dir=root/'tests',delete=False) as file:
     path=Path(file.name);file.write(source[start:end]+checks)

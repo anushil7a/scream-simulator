@@ -107,3 +107,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Expired NPC conversations: allow player dialogue to expire, then observe that resident talking to another NPC, including the delayed reply. Closing the old player panel must not interrupt the new conversation. Active player conversations must remain exclusive. Full function mocked tests pass; native social timing remains pending.
 
 - Calibration recovery: mute midway through quiet sampling and midway through voice sampling; unmute and verify calibration must restart. Disconnect/reconnect the microphone during voice sampling and complete a fresh calibration. Retry access after a transient failure. The controller passes mocked lifecycle regressions; actual audio-device/permission behavior remains pending.
+
+- NPC aim readout: aim at residents beyond nameplate distance in first person, third person and touch mode. Verify name/health, current-power versus maximum-range messages, walls obscuring target selection, and clearing on loss of aim. Mocked formatting/range-state tests pass; actual raycast selection and layout remain pending.
