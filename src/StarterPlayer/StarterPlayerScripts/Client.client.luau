@@ -180,6 +180,18 @@ local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,
 local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge)
 local sprinting=false
+local function playerTargetInfo(target,humanoid,canFight,far,now)
+ if humanoid.Health<=0 then return nil,false end
+ local protection=math.max(0,(target:GetAttribute("ProtectionEnds") or 0)-now)
+ local rolling=now<(target:GetAttribute("DodgeEnds") or 0)
+ local status=not canFight and "SAFE · PvP OFF"
+  or protection>0 and string.format("PROTECTED · %.1fs",protection)
+  or rolling and "DODGING" or far and "OUT OF MAX RANGE" or "ARENA OPPONENT"
+ local level=target:GetAttribute("ScreamLevel")
+ local name=target.DisplayName..(type(level)=="number" and string.format(" · LV %d",level) or "")
+ return string.format("%s\n%d / %d HP\n%s",name,math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),
+  canFight and protection<=0 and not rolling and not far
+end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() sprinting=not sprinting;action:FireServer("Sprint",sprinting) end)
 local viewButton=button(controls,"CameraToggle","1ST [V]",UDim2.fromOffset(88,32),UDim2.fromOffset(0,52),toggleCamera)
 local talkTarget
@@ -591,8 +603,19 @@ Run.RenderStepped:Connect(function(dt)
  aimInfo.Text=""
  if aimInfo.Visible then
   local _,hit=aimRay();local object=hit and hit.Instance
-  while object and object~=workspace and not object:GetAttribute("RequiredLevel") do object=object.Parent end
-  if object and object~=workspace then
+  while object and object~=workspace and not object:GetAttribute("RequiredLevel")
+   and not (object:IsA("Model") and Players:GetPlayerFromCharacter(object)) do object=object.Parent end
+  local targetPlayer=object and object~=workspace and object:IsA("Model") and Players:GetPlayerFromCharacter(object)
+  if targetPlayer and targetPlayer~=p then
+   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+   local targetRoot=object:FindFirstChild("HumanoidRootPart");local humanoid=object:FindFirstChildOfClass("Humanoid")
+   if root and targetRoot and humanoid then
+    local canFight=Config.InArena(root.Position) and Config.InArena(targetRoot.Position)
+    local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
+    local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow())
+    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
+   end
+  elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then
    local required=object:GetAttribute("RequiredLevel");local hp=object:GetAttribute("ObjectHealth") or 0
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
    local rangeLimit=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange

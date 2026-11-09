@@ -62,6 +62,7 @@ local function cancelSustained(p,s,now)
 end
 local function state(p,message,conversation)
  local s=sessions[p];if not s or not p.Parent then return end
+ if p:GetAttribute("ScreamLevel")~=s.data.level then p:SetAttribute("ScreamLevel",s.data.level) end
  local _,r,h=parts(p)
  local soccer=Soccer.Status(p)
  local quest=Config.GetQuest(s.activeQuest);local progress=quest and s.data.quests[quest.id]

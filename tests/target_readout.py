@@ -1,0 +1,38 @@
+"""Actual aimed-player text helper with mocked replicated state; no raycast/UI evidence."""
+from pathlib import Path
+import subprocess
+import tempfile
+root=Path(__file__).resolve().parents[1]
+source=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
+start=source.index('local function playerTargetInfo(')
+end=source.index('local sprintButton=',start)
+checks='''
+local attrs={ScreamLevel=100};local target={DisplayName='Test Player',GetAttribute=function(_,key)return attrs[key] end}
+local h={Health=72.5,MaxHealth=135};local checks=0
+local function check(v,msg)assert(v,msg);checks+=1 end
+local text,ready=playerTargetInfo(target,h,true,false,10)
+check(ready and text=='Test Player · LV 100\\n73 / 135 HP\\nARENA OPPONENT','Opponent health/level text incorrect')
+text,ready=playerTargetInfo(target,h,false,false,10)
+check(not ready and string.find(text,'SAFE · PvP OFF',1,true),'Safe opponent labeled attackable')
+attrs.ProtectionEnds=12;text,ready=playerTargetInfo(target,h,true,false,10)
+check(not ready and string.find(text,'PROTECTED · 2.0s',1,true),'Protection not displayed')
+attrs.DodgeEnds=11;text,ready=playerTargetInfo(target,h,true,false,10)
+check(not ready and string.find(text,'PROTECTED',1,true),'Roll hid protection')
+attrs.ProtectionEnds=10;text,ready=playerTargetInfo(target,h,true,false,10)
+check(not ready and string.find(text,'DODGING',1,true),'Roll not displayed at protection expiry')
+attrs.DodgeEnds=10;text,ready=playerTargetInfo(target,h,true,true,10)
+check(not ready and string.find(text,'OUT OF MAX RANGE',1,true),'Distant target labeled reachable')
+text,ready=playerTargetInfo(target,h,true,false,10)
+check(ready,'Expired protection/roll retained stale status')
+attrs.ScreamLevel=nil;text=playerTargetInfo(target,h,true,false,10)
+check(not string.find(text,'LV',1,true),'Unreplicated level was fabricated')
+h.Health=0;text,ready=playerTargetInfo(target,h,true,false,10)
+check(text==nil and not ready,'Dead target retained health readout')
+print('PASS '..checks..' actual aimed-player readout checks with mocked replicated state')
+'''
+with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.target_',dir=root/'tests',delete=False) as file:
+    path=Path(file.name);file.write(source[start:end]+checks)
+try:
+    subprocess.run(['luau',str(path)],cwd=root,check=True)
+finally:
+    path.unlink()
