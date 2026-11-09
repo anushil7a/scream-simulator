@@ -61,6 +61,25 @@ m:Calibrate();samples('quiet',.001);samples('voice',.08)
 check(m:Begin(),'Legacy capture did not start after replacement calibration')
 now+=.3;player.input.Muted=true;m:Step(.05)
 check(m:Release()==0,'Muted capture returned stale energy')
+player.input.Muted=false
+for _,phase in ipairs({'quiet','voice'})do
+ m:Calibrate()
+ if phase=='voice' then samples('quiet',.001) end
+ now+=.05;m.analyzer.RmsLevel=.08;m:Step(.05)
+ player.input.Muted=true;m:Step(.05)
+ check(m.phase==nil and #m.quiet==0 and #m.spoken==0,'Mute retained partial '..phase..' calibration')
+ player.input.Muted=false;m:Step(.05)
+ check(not m.ready and not m.model.calibrated,'Unmute completed interrupted '..phase..' calibration')
+end
+m:Calibrate();samples('quiet',.001)
+local disconnectedAnalyzer=m.analyzer
+player.input.Parent=nil;player.input=nil;m:Step(.05)
+check(m.phase==nil and #m.quiet==0 and #m.spoken==0 and not m.ready,'Disconnected input retained calibration samples')
+check(disconnectedAnalyzer.destroyed and m.analyzer==nil,'Disconnect retained old analyzer')
+player.input={Parent=true,Muted=false};m:Step(.05)
+check(not m.model.calibrated and not m.ready,'Reconnected input inherited calibration')
+m:Calibrate();samples('quiet',.001);samples('voice',.08)
+check(m.ready,'Fresh calibration after interrupted input failed')
 local analyzer=m.analyzer;m.ready=true;m.power=1;m:Destroy()
 check(disconnected and analyzer.destroyed,'Destroy leaked heartbeat/analyzer')
 check(not m.ready and not m.eligible and m.power==0 and m.captureStarted==nil,'Destroyed microphone retained attack readiness')
@@ -73,6 +92,20 @@ deferCheck=true
 local late=Mic.new();late:Destroy()
 for _,fn in ipairs(pending) do fn() end
 check(not late.eligible,'Late eligibility check revived destroyed controller')
+-- Simulate yielded access checks finishing out of order.
+pending={};local racing=Mic.new();racing:Check()
+check(#pending==2,'Retry did not create two pending checks')
+voice.IsVoiceEnabledForUserIdAsync=function()return true end
+pending[2]()
+check(racing.eligible and not racing.checkPending,'Latest successful access result missing')
+voice.IsVoiceEnabledForUserIdAsync=function()return false end
+pending[1]()
+check(racing.eligible,'Stale failed access check overwrote newest success')
+pending={};racing:Check()
+voice.IsVoiceEnabledForUserIdAsync=function()error('offline') end
+pending[1]()
+check(not racing.eligible and not racing.ready and not racing.checkPending,'Access error retained readiness')
+racing:Destroy()
 print('PASS '..checks..' actual microphone lifecycle checks with mocked audio/time; no device evidence')
 '''
 with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.mic_', dir=root / 'tests', delete=False) as file:
