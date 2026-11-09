@@ -189,6 +189,11 @@ local function resolveSustained(ctx,direction,stats,now)
  end
  return ids,details,{origin=ctx.origin,direction=direction,length=length,width=stats.width,power=stats.power,obstruction=obstruction,dodged=dodged}
 end
+local function destructionHint(intent,result)
+ if not result or result.reason~="level" or intent.destructionHintShown then return nil end
+ intent.destructionHintShown=true
+ return "This object needs scream level "..tostring(result.required).." to damage"
+end
 local function stepSustained(p,s,now)
  local intent=s.sustained.intent
  local context=sustainedContext(p,s,now)
@@ -234,6 +239,7 @@ local function stepSustained(p,s,now)
   elseif target.object then
    local previous=target.object:GetAttribute("ObjectHealth") or 0
    local result=Destruction.Damage(target.object,intent.level,hit.damage)
+   local hint=destructionHint(intent,result);if hint then state(p,hint) end
    if result and not result.reason then dealt+=math.max(0,previous-result.health) end
    if result and result.destroyed then
     effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition")
