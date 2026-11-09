@@ -47,3 +47,5 @@ Record commit/build, devices, exact reproduction steps and expected/observed beh
 - Microphone teardown: in a disposable client, remove the gameplay client/controller during calibration or a ready microphone session; check its analyzer stays removed and no queued retry recreates it. Rejoining should create a fresh controller and require calibration. Twenty-two mocked lifecycle checks pass; hardware and native event ordering remain pending.
 
 - Worker navigation: block a station approach in a disposable place and inspect workers near steps/gaps. They should stop/replan rather than walk the final direct segment after a jump-required waypoint. Confirm ordinary unobstructed arrivals still reach tools. Fifteen actual-coroutine checks use synthetic paths/time, not native pathfinding or physics.
+
+- Controls help: review Settings on a 390-pixel-wide phone viewport and desktop. Check all three help cards wrap without clipping, automatic attack timings match config, and touch camera/shop/paused-voice labels contain no keyboard shortcuts. Source compilation/build is not visual validation.

@@ -321,8 +321,14 @@ render=function()
   info("Coffee: collect at the west café, then check your objective for the assigned stop. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
-  local attackHelp=sustainedControl and "Calibrate once, then aim and speak to attack. E / VOICE pauses or resumes" or "Hold E / SCREAM, use mic, release: fire toward aim"
-  info(attackHelp.."\nV / view button: first or third person\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",145)
+  local touch=UIS.TouchEnabled
+  local attackHelp
+  if sustainedControl then
+   attackHelp=string.format("Calibrate once, aim, then speak to attack. Up to %.0fs active, followed by %.0fs cooldown.\n%s pauses/resumes voice attacks. Be quiet briefly before starting another scream.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap VOICE" or "E / VOICE")
+  else attackHelp=touch and "Hold SCREAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / SCREAM, speak into your mic, then release to fire toward your aim." end
+  info(attackHelp,touch and 130 or 100)
+  info(string.format("%s: first or third person\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint, then %.0fs rest",touch and "View button" or "V / view button",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery),touch and 110 or 90)
+  info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SCREAMS opens and closes the menu." or "T: talk to nearby residents · F: quest interactions · B: toggle menu",touch and 80 or 54)
   local cameraCard=card(58);button(cameraCard,"CameraMode", "VIEW: "..(firstPerson and "FIRST PERSON" or "THIRD PERSON"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),toggleCamera)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
@@ -536,7 +542,7 @@ Run.RenderStepped:Connect(function(dt)
  hitText.Visible=gameplayVisible and confirmed~=nil
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
  meter.Visible=gameplayVisible;reticle.Visible=(firstPerson or UIS.TouchEnabled) and gameplayVisible
- viewButton.Text=firstPerson and "3RD [V]" or "1ST [V]"
+ viewButton.Text=(firstPerson and "3RD" or "1ST")..(touch and "" or " [V]")
  local power=captureSource and mic:CapturePower() or mic.power;meterFill.Size=UDim2.fromScale(power,1)
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
@@ -546,7 +552,7 @@ Run.RenderStepped:Connect(function(dt)
    or knocked and "Recovering • attack unavailable"
    or rolling and "Rolling • attack cancelled"
    or UIS:GetFocusedTextBox()~=nil and "Typing • attack paused"
-   or not sustainedControl.armed and "Voice paused • press E or tap VOICE"
+   or not sustainedControl.armed and (touch and "Voice paused • tap ARM VOICE" or "Voice paused • E to resume")
    or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
    or sustainedControl.gate.needsQuiet and "Armed • quiet before speaking"
@@ -573,7 +579,7 @@ Run.RenderStepped:Connect(function(dt)
  if width~=lastLayoutWidth then lastLayoutWidth=width;if modal.Visible then render() end end
  -- Keep desktop controls compact; smaller displays retain readable button text.
  local tight=viewport.X<380
- shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=tight and "SCREAMS" or "SCREAMS [B]"
+ shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "SCREAMS" or "SCREAMS [B]"
  questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
  testButton.Size=UDim2.fromOffset(tight and 90 or 112,touch and 44 or 32);testButton.Position=UDim2.new(1,tight and -104 or -126,0,14)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,64) or UDim2.new(0,14,1,-108)
