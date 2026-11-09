@@ -113,7 +113,16 @@ local function protect(p,s)
  end
 end
 local function eject(p,h)
- local s=sessions[p];h.Health=Config.HealthForLevel(s.data.level);p.Character:PivotTo(World.SafeSpawn);s.dodgingUntil=0;protect(p,s)
+ local s=sessions[p];local character=p.Character;local root=character and character:FindFirstChild("HumanoidRootPart")
+ h.Health=Config.HealthForLevel(s.data.level)
+ s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false;s.sprintRequested=false
+ p:SetAttribute("DodgeEnds",0);p:SetAttribute("DodgeStarted",0);p:SetAttribute("KnockdownEnds",0);p:SetAttribute("Sprinting",false)
+ h.PlatformStand=false;h.AutoRotate=true
+ if root then
+  root.AssemblyLinearVelocity=Vector3.zero;root.AssemblyAngularVelocity=Vector3.zero
+  if not root.Anchored then root:SetNetworkOwnershipAuto() end
+ end
+ character:PivotTo(World.SafeSpawn);protect(p,s)
  s.nextHeal=os.clock()+Config.HealQuietSeconds;state(p,"Knocked out · back at the safe hub")
 end
 local function audible(c,origin,target,targetModel)
@@ -453,8 +462,10 @@ World.OnVehicleSweep=function(car,previous,nextFrame)
     local direction=(nextFrame.Position-previous.Position).Unit
     local sideways=Vector3.new(0,0,car.lane%240<120 and -1 or 1)
     root.AssemblyLinearVelocity=direction*8+sideways*28+Vector3.new(0,12,0);root.AssemblyAngularVelocity=Vector3.new(0,0,4)*car.direction
+    local recoveryEnds=s.knockedUntil
     task.delay(1.3,function()
-     if player.Character==character and humanoid.Parent and humanoid.Health>0 then
+     if sessions[player]==s and s.knockedUntil==recoveryEnds and player.Character==character and humanoid.Parent and humanoid.Health>0 then
+      s.knockedUntil=0;player:SetAttribute("KnockdownEnds",0)
       humanoid.PlatformStand=false;humanoid.AutoRotate=true;root.AssemblyAngularVelocity=Vector3.zero
       local look=root.CFrame.LookVector;look=Vector3.new(look.X,0,look.Z);if look.Magnitude<.01 then look=Vector3.new(0,0,-1) end
       local recovered=root.Position+Vector3.new(0,2,0)
