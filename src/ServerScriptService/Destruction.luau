@@ -110,7 +110,7 @@ function Service.Start(world)
  Service.objects={};Service.ids={};Service.world=world
  for _,model in ipairs(Collection:GetTagged('CityDestructible')) do if model:IsDescendantOf(world) then Service.Register(model) end end
  if Service.added then Service.added:Disconnect() end
- Service.added=Collection:GetInstanceAddedSignal('CityDestructible'):Connect(function(model) if Service.generation==generation and model:IsDescendantOf(world) then task.defer(function() if Service.generation==generation and model:IsDescendantOf(world) then Service.Register(model) end end) end end)
+ Service.added=Collection:GetInstanceAddedSignal('CityDestructible'):Connect(function(model) if Service.generation==generation and model:IsDescendantOf(world) then task.defer(function() if Service.generation==generation and model:IsDescendantOf(world) and Collection:HasTag(model,"CityDestructible") then Service.Register(model) end end) end end)
  if Service.removed then Service.removed:Disconnect() end
  Service.removed=Collection:GetInstanceRemovedSignal("CityDestructible"):Connect(function(model) if Service.generation~=generation then return end;local id=model:GetAttribute("ObjectId");if id and Service.ids[id]==model then Service.ids[id]=nil end;Service.objects[model]=nil end)
 end

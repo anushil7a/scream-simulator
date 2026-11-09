@@ -340,3 +340,7 @@ Pending native check: delay attack acknowledgement beyond the client timeout, th
 ### Muted calibration cleanup
 
 Pending native check: with a calibrated microphone, mute and press Calibrate while an attack/capture is active. Check readiness and live power clear immediately, partial calibration/capture stops, and unmute still requires deliberate attack resume. Mocked controller tests cover the pre-Heartbeat state; actual device timing and UI appearance remain untested.
+
+### Destructible tag removal before registration
+
+Pending native check: add CityDestructible to a valid disposable prop and remove it before deferred registration runs. It must remain absent from the destruction registry and reject damage; explicitly re-adding the tag should register it again. Three mocked scheduler checks pass, but native CollectionService ordering is not yet verified.

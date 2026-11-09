@@ -36,7 +36,7 @@ local OverlapParams={new=function()return {} end}
 local players={GetPlayers=function()return {{Character={}}} end}
 local addedCallbacks={};local removedCallbacks={}
 local function signal(list)return {Connect=function(_,fn)table.insert(list,fn);return {Disconnect=function()end}end}end
-local collection={GetTagged=function()return {} end,
+local collection={GetTagged=function()return {} end,HasTag=function(_,model)return model.tagged~=false end,
  GetInstanceAddedSignal=function()return signal(addedCallbacks)end,
  GetInstanceRemovedSignal=function()return signal(removedCallbacks)end}
 local game={ReplicatedStorage={Shared={DestructionRules='rules'}},GetService=function(_,name)
@@ -152,6 +152,13 @@ removedCallbacks[1](m)
 check(D.objects[m]==registered,'Stale removal deleted current registration')
 removedCallbacks[2](m)
 check(D.objects[m]==nil and D.ids[m:GetAttribute('ObjectId')]==nil,'Current removal failed cleanup')
+m.tagged=true;addedCallbacks[2](m)
+m.tagged=false;removedCallbacks[2](m)
+deferred[3]()
+check(D.objects[m]==nil and D.ids[m:GetAttribute('ObjectId')]==nil,'Removed tag was resurrected by pending registration')
+check(D.Damage(seat,1,1)==nil,'Untagged object remained damageable after pending registration')
+m.tagged=true;addedCallbacks[2](m);deferred[4]()
+check(D.objects[m]~=nil,'Retagged object did not register after canceled pending registration')
 print('PASS '..checks..' actual Destruction service checks with mocked engine/scheduler')
 '''
 with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.destruction_', dir=root/'tests', delete=False) as f:
