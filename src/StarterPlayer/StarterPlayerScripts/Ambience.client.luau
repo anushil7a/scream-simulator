@@ -37,12 +37,13 @@ for _,sounds in pairs(assets) do
 end
 local performing=false;local elapsed=0
 local heartbeat=Run.Heartbeat:Connect(function(dt)
+ if destroyed then return end
  elapsed+=dt
  if elapsed>=.5 then
   elapsed=0;performing=false
   for _,model in Collection:GetTagged("CityResident") do
    local root=model:FindFirstChild("HumanoidRootPart");local humanoid=model:FindFirstChildOfClass("Humanoid")
-   if model:GetAttribute("Role")=="Busker" and model:GetAttribute("Working") and root and humanoid and humanoid.Health>0 and (root.Position-stage).Magnitude<35 then performing=true;break end
+   if model:IsDescendantOf(workspace) and model:GetAttribute("ResidentActive")~=false and model:GetAttribute("Role")=="Busker" and model:GetAttribute("Working") and root and humanoid and humanoid.Health>0 and (root.Position-stage).Magnitude<35 then performing=true;break end
   end
  end
  guitar.Volume+=((performing and .2 or 0)-guitar.Volume)*math.min(dt*3,1)
@@ -54,6 +55,7 @@ if destroyed then return end
 local state=remotes:WaitForChild("State")
 if destroyed then return end
 connection=state.OnClientEvent:Connect(function(data)
+ if destroyed then return end
  local volume=type(data)=="table" and type(data.settings)=="table" and data.settings.volume
  if type(volume)=="number" and volume==volume then group.Volume=math.clamp(volume,0,1) end
 end)

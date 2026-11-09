@@ -258,3 +258,7 @@ Pending native check: while a nearby NPC has a visible name or speech bubble, re
 ### Conversation during knockdown
 
 Pending native check: get knocked down by a vehicle near a quest giver/vendor. Talk targeting and new conversation/purchase requests should be unavailable while either participant is in PlatformStand, then recover normally. Open dialogue now also closes on either participant entering PlatformStand; verify NPC conversation ownership clears and reopening works after recovery. Six shared-rule and four added dialogue-lifetime mocked checks pass; actual ragdoll transitions and replication remain unverified.
+
+### Busker activity and ambience teardown
+
+Pending listening check: near the stage, confirm guitar fades out when the busker stops working, becomes inactive or leaves Workspace, then resumes for a valid returning performer. Remove the ambience script and confirm no late settings/load/frame callback restarts or updates its audio. Fifteen mocked startup/activity checks pass; actual asset playback and fade quality remain unverified.
