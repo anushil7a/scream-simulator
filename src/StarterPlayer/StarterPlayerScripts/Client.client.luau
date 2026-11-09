@@ -339,7 +339,7 @@ render=function()
    local available=data.availableQuests and data.availableQuests[q.id]
    if q.hidden and not available then continue end
    local v=data.quests[q.id] or {progress=0}
-   local description=available and q.description or "Meet "..(q.giver or "a resident").." and press T to talk."
+   local description=available and q.description or "Meet "..(q.giver or "a resident").." and use Talk to speak with them."
    local textWidth=math.min(720,gui.AbsoluteSize.X-24)-48-(narrow and 28 or 158)
    local nameHeight=math.max(26,TextService:GetTextSize(q.name,17,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+4)
    local descriptionHeight=math.max(49,TextService:GetTextSize(description,13,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+8)
@@ -725,6 +725,7 @@ Run.RenderStepped:Connect(function(dt)
   talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
  end
  if mapDot then CityMap.update(mapDot,root) end
+ talkButton.Text=touch and "TALK" or "TALK [T]"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
 end)
 action:FireServer("Sync")

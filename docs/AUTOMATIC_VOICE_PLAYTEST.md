@@ -127,3 +127,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Autosave status: in a disposable failure-injection test, verify an unexpected save exception shows Save delayed once, subsequent success clears it, and permanent ownership/unavailable errors show temporary progress. Actual-helper mocks pass; real DataStore persistence and UI delivery remain pending.
 
 - Progression summary: open Screams at levels 9/10, 25/26 and 99/100. Verify next style/destruction tier advances at each unlock, max level reads correctly, and the summary wraps cleanly on mobile without hiding equip controls. Source/build checks pass; visual layout remains pending.
+
+- Quest controls: on touch, confirm Talk omits the keyboard shortcut and garden/beach instructions direct players to the visible interaction prompt. Verify the prompt remains usable and descriptions wrap in the quest list/dialogue. Full build checks pass; native touch activation/layout remains pending.

@@ -54,8 +54,8 @@ for _,style in ipairs(Config.Sounds) do style.cooldown=4 end
 Config.Auras={Gold=Color3.fromRGB(255,203,99),Mint=Color3.fromRGB(98,244,187),Violet=Color3.fromRGB(188,137,255),Ice=Color3.fromRGB(110,207,255),Coral=Color3.fromRGB(255,128,128)}
 Config.Quests={
  {id="nick",name="The Worst Striker’s Best Assist",hidden=true,giver="Nick Booty · hidden coastal court",description="Find Nick’s three lost balls (120s), steer through four cone-course gates (90s), then hit five targets (120s). Final targets move and Nick’s assist drifts right. Soft mic shots give control. Restart at his court.",goal=1,xp=1800,coins=1200,event="Soccer"},
- {id="garden",name="A Little More Color",description="Help Mar Soler water the three raised flowerbeds in Rambla Gardens. Hold F beside each bed.",giver="Mar Soler · Rambla Gardens",goal=3,xp=130,coins=80,event="Garden"},
- {id="beach",name="Leave Only Footprints",description="Collect 6 washed-up bottles on the beach. Hold F near litter.",goal=6,xp=100,coins=50,event="Litter"},
+ {id="garden",name="A Little More Color",description="Help Mar Soler water the three raised flowerbeds in Rambla Gardens. Use the interaction prompt beside each bed.",giver="Mar Soler · Rambla Gardens",goal=3,xp=130,coins=80,event="Garden"},
+ {id="beach",name="Leave Only Footprints",description="Collect 6 washed-up bottles on the beach. Use the interaction prompt beside each bottle.",goal=6,xp=100,coins=50,event="Litter"},
  {id="delivery",name="Coffee on the Coast",description="Collect a café order, then deliver it to your assigned waterfront stop within 90 seconds. Check your objective for the recipient.",goal=1,xp=120,coins=60,event="Delivery"},
  {id="crowd",name="Three's a Crowd",description="Line up 3 training residents and hit them with one beam.",goal=1,xp=100,coins=40,event="Crowd"},
  {id="sprint",name="Boardwalk Dash",description="Start beside the lifeguard tower and follow the promenade east to the finish in 25 seconds.",goal=1,xp=120,coins=50,event="Race"},
