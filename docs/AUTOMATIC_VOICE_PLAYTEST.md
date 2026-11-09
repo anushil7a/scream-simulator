@@ -368,3 +368,5 @@ Synthetic integration update: actual microphone/gate/controls pass seven outage-
 ### Beam cleanup on departure and respawn
 
 Pending native check: disconnect an attacking player while another client watches, then respawn the observing client during nearby attacks. Old beams should clear immediately on the respective player/character event; late updates from departed players should not recreate them. Fresh attacks after respawn should render normally. Existing mocked beam lifecycle checks pass, but Roblox event ordering and appearance remain untested.
+
+Performance sampler validation update: mocked runner tests cover bounded duration/sample count, overlapping-call rejection, retry after an injected Heartbeat error and build identity. No native sample was collected; test-generated intervals must not be reported as measured game performance.
