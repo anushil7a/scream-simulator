@@ -214,3 +214,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Evidence: 23 mocked presentation checks (five added status/priority cases) and full verification/build. Actual cover ray geometry, streaming differences and performance have not been tested. Server hit validation remains authoritative.
 
 - Cover preview contract follow-up: 60 mocked assertions now compare actual client/server ray origin, endpoint and filters across six head states with blocked/clear responses. This does not replace the pending native geometry/streaming test or establish full beam hit equivalence.
+
+### Seated animation overlay
+- Pending native: on R6/R15, enter a seat while sprint/scream poses are active and verify custom overlays yield even if SeatPart is occupied before Sit updates. Check clean recovery into default locomotion.
+- Evidence: 26 actual player animation lifecycle assertions with mocked events/rigs (three added), plus full build; no native Animator/replication result.
