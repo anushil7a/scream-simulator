@@ -320,3 +320,7 @@ During input/analyzer/wire recovery checks, confirm the setup panel explicitly a
 ### Interrupted calibration and unmute
 
 Pending device/UI check: mute separately during the quiet and voice calibration phases. After unmuting, the panel should request fresh calibration rather than continue displaying “Microphone muted.” An already calibrated microphone should retain its valid calibration; deliberate attack resume remains required. Two new mocked transition assertions pass; real mute/device timing remains unverified.
+
+### Player animation component gaps
+
+Pending native animation check: detach/restore the cached player root or humanoid in a disposable R6/R15 client. Additive charge/sprint/landing state should clear during the gap without retained roll/sprint indicators. Six mocked interruption assertions pass; actual Animator/streaming recovery is unverified. Replacing components with entirely new objects is not covered by this change.

@@ -58,9 +58,12 @@ local attrs={}
 function initial.Character:SetAttribute(name,value)attrs[name]=value end
 local knocked=0
 function initial:GetAttribute(name)return name=='KnockdownEnds' and knocked or 0 end
-for _,condition in ipairs({'PlatformStand','Sit','seatPart','dead','knocked'}) do
+for _,condition in ipairs({'PlatformStand','Sit','seatPart','dead','knocked','missingRoot','missingHumanoid'}) do
+ current.root.Parent=true;current.humanoid.Parent=true
  current.humanoid.Health=100;current.humanoid.Sit=false;current.humanoid.SeatPart=nil;current.humanoid.PlatformStand=false;knocked=0
- if condition=='seatPart' then current.humanoid.SeatPart={}
+ if condition=='missingRoot' then current.root.Parent=nil
+ elseif condition=='missingHumanoid' then current.humanoid.Parent=nil
+ elseif condition=='seatPart' then current.humanoid.SeatPart={}
  elseif condition=='dead' then current.humanoid.Health=0
  elseif condition=='knocked' then knocked=101
  else current.humanoid[condition]=true end
