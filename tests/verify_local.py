@@ -41,6 +41,7 @@ def main():
         run(['luau-compile', str(path)], quiet=True)
     print(f'Compiled {len(sources)} production scripts; no Studio execution.', flush=True)
     if args.build:
+        run([sys.executable, 'tests/build_candidate.py'])
         run([sys.executable, 'tests/build_sustained_review.py'])
         run([sys.executable, 'tests/build_studio_harness.py'])
         run([sys.executable, 'tests/build_ui_preview.py', '390', '844'])
