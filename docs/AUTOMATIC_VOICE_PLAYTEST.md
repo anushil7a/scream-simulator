@@ -344,3 +344,7 @@ Pending native check: with a calibrated microphone, mute and press Calibrate whi
 ### Destructible tag removal before registration
 
 Pending native check: add CityDestructible to a valid disposable prop and remove it before deferred registration runs. It must remain absent from the destruction registry and reject damage; explicitly re-adding the tag should register it again. Three mocked scheduler checks pass, but native CollectionService ordering is not yet verified.
+
+### All-tier destruction lifecycle
+
+Pending native check: test a representative bench, bin, tree, bike, house front, apartment front and tower front just below and at their unlock levels. Verify complete break, preserved navigation, occupied-repair deferral and restoration of the actual authored parts. Local service tests cover all seven configurations using simplified mock geometry and simulated deadlines, not physical city geometry or measured balance.

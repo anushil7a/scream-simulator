@@ -159,6 +159,27 @@ check(D.objects[m]==nil and D.ids[m:GetAttribute('ObjectId')]==nil,'Removed tag 
 check(D.Damage(seat,1,1)==nil,'Untagged object remained damageable after pending registration')
 m.tagged=true;addedCallbacks[2](m);deferred[4]()
 check(D.objects[m]~=nil,'Retagged object did not register after canceled pending registration')
+-- Exercise each configured tier through the actual service and repair timer.
+local kinds={'Bench','Bin','SmallTree','Bike','HouseFacade','ApartmentFacade','TowerFacade'}
+for i,kind in ipairs(kinds) do
+ local spec=Rules.Types[kind]
+ local tier,part,interaction=model(kind,100+i*20)
+ local result=D.Damage(part,spec.level-1,1)
+ check(result.reason=='level' and tier:GetAttribute('ObjectHealth')==spec.health and #queue==0,kind..' accepted damage below unlock')
+ local remaining=spec.health
+ while remaining>0 do
+  local amount=math.min(48,remaining)
+  result=D.Damage(part,spec.level,amount);remaining-=amount
+  assert(result.health==remaining,kind..' lost bounded cumulative damage')
+ end
+ check(result.destroyed and tier:GetAttribute('Destroyed') and not part.CanCollide and not interaction.Enabled,kind..' did not fully break at exact unlock')
+ check(#queue==1 and tier:GetAttribute('RepairAt')==now+spec.repair,kind..' did not use one configured repair deadline')
+ local due=now+spec.repair
+ advance(due-.001)
+ check(tier:GetAttribute('ObjectHealth')==0 and tier:GetAttribute('Destroyed'),kind..' repaired before its deadline')
+ advance(due)
+ check(tier:GetAttribute('ObjectHealth')==spec.health and not tier:GetAttribute('Destroyed') and part.CanCollide and interaction.Enabled and #queue==0,kind..' failed full repair at deadline')
+end
 print('PASS '..checks..' actual Destruction service checks with mocked engine/scheduler')
 '''
 with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.destruction_', dir=root/'tests', delete=False) as f:
