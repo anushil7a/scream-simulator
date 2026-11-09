@@ -109,7 +109,7 @@ local function aimRay()
  local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
  return ray,workspace:Raycast(ray.Origin,ray.Direction*1000,params)
 end
-if remotes:GetAttribute("LocalSustainedPrototype")==true then
+if remotes:GetAttribute("AutomaticVoice")==true then
  local VoiceActivation=require(RS.Shared:WaitForChild("VoiceActivation"))
  sustainedControl=require(script.Parent:WaitForChild("SustainedControls")).new(VoiceActivation.new(),
   function(verb,arg) action:FireServer(verb,arg) end,
@@ -286,7 +286,7 @@ render=function()
   info("Coffee: collect at the west café, then check your objective for the assigned stop. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
-  local attackHelp=sustainedControl and "E / VOICE: arm or pause; aim and speak to attack" or "Hold E / SCREAM, use mic, release: fire toward aim"
+  local attackHelp=sustainedControl and "Calibrate once, then aim and speak to attack. E / VOICE pauses or resumes" or "Hold E / SCREAM, use mic, release: fire toward aim"
   info(attackHelp.."\nV / view button: first or third person\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",145)
   local cameraCard=card(58);button(cameraCard,"CameraMode", "VIEW: "..(firstPerson and "FIRST PERSON" or "THIRD PERSON"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),toggleCamera)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
@@ -477,7 +477,7 @@ Run.RenderStepped:Connect(function(dt)
   local character=p.Character
   local humanoid=character and character:FindFirstChildOfClass("Humanoid")
   local alive=humanoid~=nil and humanoid.Health>0
-  if not alive or not mic.ready then sustainedControl:SetArmed(false) end
+  sustainedControl:ObserveAvailability(alive and mic.ready)
   voiceCooldown=math.max(0,(p:GetAttribute("SustainedReadyAt") or 0)-workspace:GetServerTimeNow())
   voiceActive=p:GetAttribute("SustainedActive")==true
   sustainedControl:Step(dt,os.clock(),mic.power,alive and windowFocused and not blocked(),

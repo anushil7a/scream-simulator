@@ -20,6 +20,12 @@ function Controls:SetArmed(armed)
  self.armed=armed
  self:Cancel()
 end
+-- Auto-arm only on the first valid calibration. A mute, death or explicit pause
+-- requires a deliberate resume; returning focus must never silently re-arm.
+function Controls:ObserveAvailability(available)
+ if not available then self:SetArmed(false);return end
+ if not self.initialized then self.initialized=true;self:SetArmed(true) end
+end
 function Controls:Step(dt,now,power,allowed,ready,active,serverSequence)
  if not self.armed or not allowed or not ready then self:Cancel();return end
  local attack=self.attack

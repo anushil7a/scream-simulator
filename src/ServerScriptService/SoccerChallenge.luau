@@ -75,6 +75,7 @@ function Soccer.Hit(player,beamOrigin,direction,length,width,power)
  if (run.position-beamOrigin).Magnitude>35 or not Rules.InBeam(beamOrigin,direction,run.position,length,width,1.1) then return end
  local flat=V(direction.X,0,direction.Z);if flat.Magnitude<.05 then return end
  run.velocity=flat.Unit*(12+math.clamp(power,0,1)*34)
+ return true
 end
 local function segmentDistance(a,step,point)
  local denominator=step:Dot(step);local alpha=denominator>.000001 and math.clamp((point-a):Dot(step)/denominator,0,1) or 0

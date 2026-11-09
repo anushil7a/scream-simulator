@@ -1,6 +1,6 @@
 # Scream Simulator — microphone city redesign
 
-**Current direction (November 7):** see [the prioritized roadmap](docs/ROADMAP.md). Core microphone PvP and level-based destruction come first; level cap is now 100 in local source, with new styles every ten levels. Voice-triggered sustained attacks (initial 4s active / 10s cooldown proposal) are next; the current published build still uses hold/release. Publishing requires fresh owner approval. Development stops starting tasks at 20% Codex allowance remaining.
+**Current direction (November 8):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 10 seconds cooldown), preserving normal profiles. Calibrate once, stay quiet briefly, then aim and speak; E/VOICE pauses/resumes. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue development while Codex allowance remains.
 
 [GitHub repository](https://github.com/anushil7a/scream-simulator) · [Roblox experience](https://www.roblox.com/games/122465114514497/Scream-Simulator)
 

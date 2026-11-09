@@ -14,8 +14,9 @@ local BeachVolley=require(script.Parent.BeachVolley)
 local QuestLifecycle=require(ReplicatedStorage.Shared.QuestLifecycle)
 local QuestGuide=require(ReplicatedStorage.Shared.QuestGuide)
 local Equipment=require(script.Parent.Equipment)
--- Only an explicitly opted-in, unpublished Studio place can use this prototype.
-local sustainedEnabled=RunService:IsStudio() and game.PlaceId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
+-- Only disposable local fixtures bypass persistent profiles. Attack mode is independent.
+local localFixture=RunService:IsStudio() and game.PlaceId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
+local sustainedEnabled=Config.AutomaticVoice==true or localFixture
 local sustained
 if sustainedEnabled then
  sustained=require(script.Parent.SustainedAttackAdapter).new(require(ReplicatedStorage.Shared.SustainedAttack),
@@ -39,7 +40,7 @@ World.FinishMaintenance=function(bot,station)
 end
 local old=ReplicatedStorage:FindFirstChild("ScreamRemotes");if old then old:Destroy() end
 local remotes=Instance.new("Folder");remotes.Name="ScreamRemotes"
-remotes:SetAttribute("LocalSustainedPrototype",sustainedEnabled)
+remotes:SetAttribute("AutomaticVoice",sustainedEnabled)
 remotes.Parent=ReplicatedStorage
 local function remote(name) local r=Instance.new("RemoteEvent");r.Name=name;r.Parent=remotes;return r end
 local action=remote("Action");local stateRemote=remote("State");local effect=remote("Effect")
@@ -142,7 +143,7 @@ local function sustainedContext(p,s,now)
   level=s.data.level,amplifier=s.data.amplifierEquipped}
 end
 local function resolveSustained(ctx,direction,stats,now)
- local ids,details={},{}
+ local ids,details,dodged={},{},{}
  local function add(id,detail)
   if not details[id] then table.insert(ids,id);details[id]=detail end
  end
@@ -153,9 +154,9 @@ local function resolveSustained(ctx,direction,stats,now)
   for _,p in ipairs(players) do
    local ts=sessions[p];local c,r,h=parts(p)
    if p~=ctx.player and ts and r and Rules.CanTarget(ctx.position,r.Position,ts.protectedUntil,now,stats.range+2)
-    and (now>=ts.dodgingUntil or ts.premiumRoll)
     and Rules.InBeam(ctx.origin,direction,r.Position,length,stats.width,1) and audible(ctx.character,ctx.origin,r.Position,c) then
-    add("player:"..p.UserId,{player=p,session=ts,humanoid=h})
+    if now<ts.dodgingUntil and not ts.premiumRoll then table.insert(dodged,p)
+    else add("player:"..p.UserId,{player=p,session=ts,humanoid=h}) end
    end
   end
  end
@@ -171,7 +172,7 @@ local function resolveSustained(ctx,direction,stats,now)
    add("bot:"..tostring(bot.id),{bot=bot})
   end
  end
- return ids,details,{origin=ctx.origin,direction=direction,length=length,width=stats.width}
+ return ids,details,{origin=ctx.origin,direction=direction,length=length,width=stats.width,power=stats.power,obstruction=obstruction,dodged=dodged}
 end
 local function stepSustained(p,s,now)
  local intent=s.sustained.intent
@@ -179,6 +180,20 @@ local function stepSustained(p,s,now)
  local hits,ended,details,beam=sustained.Step(s.sustained,now,context,resolveSustained)
  sustainedEnd(p,ended,now)
  if beam and not ended then
+  intent.evaded=intent.evaded or {}
+  for _,target in ipairs(beam.dodged) do
+   if not intent.evaded[target.UserId] then intent.evaded[target.UserId]=true;questProgress(target,"Evade") end
+  end
+  -- One successful impulse per activity per scream, not five impulses per second.
+  if not intent.soccerHit then intent.soccerHit=Soccer.Hit(p,beam.origin,beam.direction,beam.length,beam.width,beam.power)==true end
+  if not intent.volleyHit then intent.volleyHit=BeachVolley.Hit(p,beam.origin,beam.direction,beam.length,beam.width,beam.power)==true end
+  local practice=beam.obstruction and beam.obstruction.Instance
+  if not intent.practiceHit and practice and practice:GetAttribute("MicPracticeTarget")==true then
+   intent.practiceHit=true
+   state(p,string.format("Practice hit · %d%% power · %.0f studs",math.floor(beam.power*100+.5),beam.length))
+   local pulse=(practice:GetAttribute("PracticePulse") or 0)+1;practice:SetAttribute("PracticePulse",pulse);practice.Color=Color3.fromRGB(255,205,111)
+   task.delay(.3,function() if practice.Parent and practice:GetAttribute("PracticePulse")==pulse then practice.Color=practice:GetAttribute("RestColor") end end)
+  end
   for _,viewer in ipairs(Players:GetPlayers()) do
    local _,root=parts(viewer)
    if root and (root.Position-beam.origin).Magnitude<=180 then
@@ -206,6 +221,10 @@ local function stepSustained(p,s,now)
    end
   else
    local bot=target.bot
+   if hit.firstHit then
+    intent.crowdHits=(intent.crowdHits or 0)+1
+    if intent.crowdHits==3 then questProgress(p,"Crowd") end
+   end
    bot.health=math.max(0,bot.health-hit.damage)
    local ko=bot.health==0
    if ko then
@@ -541,7 +560,7 @@ end)
 local function joined(p)
  task.spawn(Entitlements.Refresh,p)
  local data,save,loadMessage
- if sustainedEnabled then data,save,loadMessage=Profiles.Default(),false,"Local sustained prototype · saving disabled"
+ if localFixture then data,save,loadMessage=Profiles.Default(),false,"Local sustained prototype · saving disabled"
  else data,save,loadMessage=Profiles.Load(p.UserId) end
  if not p.Parent then if save then Profiles.Save(p.UserId,data,true) end;return end
  local s={data=data,canSave=save,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+10,

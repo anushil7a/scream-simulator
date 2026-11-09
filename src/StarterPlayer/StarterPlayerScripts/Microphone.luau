@@ -77,7 +77,7 @@ function Microphone:Step(dt)
   table.insert(self.phase=='quiet' and self.quiet or self.spoken,rms)
   if os.clock()-self.phaseStarted>=2 then
    if self.phase=='quiet' then self.phase='voice';self.phaseStarted=os.clock();self.status='Calibration 2/2: use a comfortable strong voice for two seconds.'
-   else local ok,message=self.model:Calibrate(self.quiet,self.spoken);self.phase=nil;self.ready=ok;self.status=ok and 'Ready. Hold E, use your voice, then release to aim a scream.' or message end
+   else local ok,message=self.model:Calibrate(self.quiet,self.spoken);self.phase=nil;self.ready=ok;self.status=ok and 'Calibration complete. Follow the voice meter to attack.' or message end
   end
  elseif self.model.calibrated then self.ready=true;self.status='Microphone ready • live input detected' end
  if self.captureStarted and os.clock()-self.captureStarted<=1.25 then self.model:Capture(self.power) end

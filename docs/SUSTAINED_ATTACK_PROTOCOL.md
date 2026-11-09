@@ -1,3 +1,13 @@
+## November 8 candidate update (unpublished)
+
+AutomaticVoice in Config now selects sustained combat independently from disposable fixture saving. Normal gameplay uses Profiles.Load/Save; only unpublished Studio fixtures with LocalSustainedPrototype=true bypass saves. The server replicates AutomaticVoice to the client. Version 19 remains unchanged in Roblox.
+
+Initial successful calibration auto-arms behind the quiet/onset gate. Pause, mute, death and focus loss cannot silently re-arm afterward; E/VOICE resumes. Maximum duration is 4 seconds, then a 10-second end-based cooldown. Live audio stays on Roblox voice routing, with no recordings stored by game code.
+
+Sustained attacks now retain practice feedback, one successful soccer/volleyball impulse per attack, one crowd quest increment after three distinct bots and one evade credit per dodging victim per attack. Existing server PvP, cover, reward and destruction rules remain authoritative. These new interaction paths still need native gameplay verification.
+
+Evidence: 17 synthetic control, 9,094 pure onset/attack and 28 mocked adapter checks pass; all sources compile and both disposable builds succeed. Previous native two-player PvP (13) and destruction (11) passed before this candidate's integration changes. Human live-mic, real saves, touch controls and representative performance remain unverified. The notes below are historical prototype implementation details.
+
 # Sustained voice prototype contract
 
 November 8, 2026. The client and server are wired in the disposable local prototype; native Studio behavior and real microphones have not been verified. Normal gameplay still uses hold/release.
