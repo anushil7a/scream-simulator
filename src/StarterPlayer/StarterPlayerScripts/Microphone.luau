@@ -10,6 +10,7 @@ function Microphone.new()
  return self
 end
 function Microphone:Check()
+ if self.destroyed then return end
  self.generation+=1;local generation=self.generation
  self.status='Checking Roblox voice access…';self.eligible=false;self.ready=false;self.checkPending=true;self:CancelCalibration();self:Cancel()
  task.delay(10,function() if self.generation==generation and self.checkPending then self.status='Voice access check timed out. Check Roblox voice settings, then retry.' end end)
@@ -25,6 +26,7 @@ function Microphone:CancelCalibration()
  self.phase=nil;self.phaseStarted=nil;self.quiet={};self.spoken={}
 end
 function Microphone:FindInput()
+ if self.destroyed then return nil end
  if self.input and self.input.Parent then return self.input end
  self:Cancel();self:CancelCalibration();self.ready=false
  if self.analyzer then self.analyzer:Destroy();self.analyzer=nil end
@@ -38,6 +40,7 @@ function Microphone:FindInput()
  return input
 end
 function Microphone:Calibrate()
+ if self.destroyed then return end
  local input=self:FindInput()
  if not self.eligible or not input then self.status='Enable Roblox voice and reconnect your microphone first.';return end
  if input.Muted then self.status='Unmute using the Roblox microphone control, then calibrate.';return end
@@ -49,6 +52,7 @@ function Microphone:Cancel()
  self.captureStarted=nil;self.model:BeginCapture()
 end
 function Microphone:Begin()
+ if self.destroyed then return false end
  if not self.ready then return false end
  self.model:BeginCapture();self.captureStarted=os.clock();return true
 end
@@ -65,6 +69,7 @@ function Microphone:Release()
  return power,power<.08 and 'Hold attack FIRST, speak immediately, then release within 1.25 seconds.' or nil
 end
 function Microphone:Step(dt)
+ if self.destroyed then return end
  if not self.eligible then self.power=0;return end
  local input=self:FindInput()
  if not input then self.status='Waiting for Roblox mic input. The experience needs Voice Chat and the Audio API enabled.';self.power=0;return end
@@ -83,6 +88,12 @@ function Microphone:Step(dt)
  if self.captureStarted and os.clock()-self.captureStarted<=1.25 then self.model:Capture(self.power) end
 end
 function Microphone:Destroy()
- self.generation+=1;self.connection:Disconnect();if self.analyzer then self.analyzer:Destroy() end
+ if self.destroyed then return end
+ self.destroyed=true;self.generation+=1;self.checkPending=false
+ self.ready=false;self.eligible=false;self.power=0
+ self:CancelCalibration();self:Cancel();self.model.calibrated=false
+ self.connection:Disconnect()
+ if self.analyzer then self.analyzer:Destroy();self.analyzer=nil end
+ self.input=nil
 end
 return Microphone

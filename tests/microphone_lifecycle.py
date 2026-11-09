@@ -61,8 +61,14 @@ m:Calibrate();samples('quiet',.001);samples('voice',.08)
 check(m:Begin(),'Legacy capture did not start after replacement calibration')
 now+=.3;player.input.Muted=true;m:Step(.05)
 check(m:Release()==0,'Muted capture returned stale energy')
-local analyzer=m.analyzer;m:Destroy()
+local analyzer=m.analyzer;m.ready=true;m.power=1;m:Destroy()
 check(disconnected and analyzer.destroyed,'Destroy leaked heartbeat/analyzer')
+check(not m.ready and not m.eligible and m.power==0 and m.captureStarted==nil,'Destroyed microphone retained attack readiness')
+local instanceCount=#instances
+m:Step(.05);m:Check();m:Calibrate();m:Destroy()
+check(#instances==instanceCount and m.analyzer==nil and m.input==nil,'Late callback recreated destroyed microphone resources')
+check(not m:Begin() and m:FindInput()==nil and m:Release()==0,'Destroyed microphone accepted a new capture')
+check(not m.model.calibrated and m.phase==nil,'Destroyed microphone retained calibration')
 deferCheck=true
 local late=Mic.new();late:Destroy()
 for _,fn in ipairs(pending) do fn() end
