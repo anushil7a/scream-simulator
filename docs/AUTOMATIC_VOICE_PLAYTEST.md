@@ -170,3 +170,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Quest reward claim persistence
 - Pending native/save: claim a completed quest twice, claim Nick reward, and claim an older earned reward during an active delivery. Verify one award, retained delivery state, and persistence after rejoin in a disposable test environment.
 - Evidence: eight actual claim-branch checks with mocked XP/state/cleanup callbacks, including synthetic reentry. No real DataStore or network result.
+
+### Conversation ownership handoff
+- Pending native two-player: after A’s conversation expires and B begins talking to the resident, A’s late close must not end B’s conversation. Repeat with the resident starting an ambient conversation instead.
+- Evidence: seven actual close-helper checks with mocked sessions/ownership states, plus full local verification. No multiplayer transport/timing test claimed.
