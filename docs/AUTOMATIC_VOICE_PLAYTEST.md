@@ -123,3 +123,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Departing session save: leave during an active scream and a delayed save, then test server shutdown while a departure save is pending. Confirm no further gameplay activity from the detached session and legitimate progress survives rejoin; test baseline remains preserved. Mocked yielding/exception saves cover ownership and counters only; actual DataStore and shutdown behavior remains pending.
 
 - Shutdown saving: verify normal shutdown persists legitimate progress and test sessions persist their baseline. In a disposable failure-injection harness, confirm one save exception does not hold the pending counter while other saves finish, and a hung save stays within the existing deadline. Mock scheduler tests cover coordination only; real persistence remains pending.
+
+- Autosave status: in a disposable failure-injection test, verify an unexpected save exception shows Save delayed once, subsequent success clears it, and permanent ownership/unavailable errors show temporary progress. Actual-helper mocks pass; real DataStore persistence and UI delivery remain pending.

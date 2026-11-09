@@ -721,7 +721,8 @@ task.spawn(function()
  end
 end)
 local function autosave(p,s)
- local ok,reason=Profiles.Save(p.UserId,s.testBaseline or s.data)
+ local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data)
+ if not completed then ok=false;reason="exception" end
  -- A leave/rejoin can finish while UpdateAsync is yielding.
  if sessions[p]~=s or not p.Parent then return end
  if ok then s.saveDelayed=false
