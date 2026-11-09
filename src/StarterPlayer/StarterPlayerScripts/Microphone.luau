@@ -89,6 +89,14 @@ function Microphone:Step(dt)
   if not self.model.calibrated and not self.phase then self.status='Microphone unmuted. Calibrate before attacking.' end
  end
  local rms=self.analyzer.RmsLevel
+ if type(rms)~="number" or rms~=rms or math.abs(rms)==math.huge or rms<0 then
+  self.signalUnavailable=true;self.ready=false;self.power=0;self:CancelCalibration();self:Cancel()
+  self.status='Microphone signal unavailable. Check your input.';return
+ end
+ if self.signalUnavailable then
+  self.signalUnavailable=false
+  if not self.model.calibrated and not self.phase then self.status='Microphone signal restored. Calibrate before attacking.' end
+ end
  self.power=self.model:Step(rms,dt)
  if self.phase then
   table.insert(self.phase=='quiet' and self.quiet or self.spoken,rms)

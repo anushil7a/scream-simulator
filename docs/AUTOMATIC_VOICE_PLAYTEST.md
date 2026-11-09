@@ -356,3 +356,7 @@ Pending native check: observe workers reaching their work surfaces, interrupt th
 ### Calibration countdown
 
 Pending visual/device check: each quiet/voice calibration phase should show its own countdown from two seconds, with RESTART SETUP during sampling. Completion or interruption should remove the countdown and restore CALIBRATE MIC. Check status wrapping on narrow phones and that restart really begins the quiet phase. The UI fixture compiled; appearance and real audio timing remain unverified.
+
+### Invalid microphone signal recovery
+
+Pending integration check: in a disposable fixture with explicitly injected synthetic meter samples, nonfinite/negative RMS should clear readiness/capture and show unavailable guidance. Valid zero must remain normal silence. Recovery after interrupted calibration must request fresh calibration; verify the automatic controls observe unavailable state and require deliberate resume after a sustained outage. These samples are not real device evidence; real voice recovery still needs eligible-account testing.
