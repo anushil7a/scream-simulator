@@ -82,4 +82,25 @@ local geometryCalls=0
 local _,staleEnd=api.Step(replay,.626,context,function()geometryCalls+=1;return {"victim"},{} end)
 check(staleEnd and staleEnd.reason=="timeout" and geometryCalls==0,"Expired input ran target geometry")
 check(not api.Pulse(replay,.7,request(1,2,50,1),context),"Delayed packet revived timed-out attack")
+-- Full duration and cooldown through the adapter, with scalar mocked geometry.
+local cycle=api.New()
+local high={origin=0,character=character,level=100,amplifier=false}
+check(api.Begin(cycle,0,request(1,0,50,1),high),"Full-cycle begin failed")
+local total=0;local resolutions=0;local finalEnd
+local function fullResolve()
+ resolutions+=1;return {"victim"},{},"beam"
+end
+for tick=1,20 do
+ local now=tick*.2
+ if tick<20 then check(api.Pulse(cycle,now,request(1,tick,50,1),high),"Full-cycle pulse rejected") end
+ local damage,ended=api.Step(cycle,now,high,fullResolve)
+ for _,hit in ipairs(damage) do total+=hit.damage end
+ if ended then finalEnd=ended end
+end
+check(total==math.floor(Combat.Stats(100,1,false).damage*Attack.DamageScale*Attack.MaxDuration+1e-7),"Full attack exceeded or missed its expected synthetic budget")
+check(finalEnd and finalEnd.reason=="duration" and finalEnd.nextStart==14 and cycle.intent==nil,"Duration end/cooldown metadata incorrect")
+local before=resolutions
+check(#api.Step(cycle,4.2,high,fullResolve)==0 and resolutions==before,"Completed attack kept resolving geometry")
+check(not api.Begin(cycle,13.999,request(2,0,50,1),high),"Restart before cooldown accepted")
+check(api.Begin(cycle,14,request(3,0,50,1),high),"Exact cooldown boundary rejected")
 print("PASS "..checks.." sustained adapter checks with mocked geometry")
