@@ -143,3 +143,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - KO confirmation: knock out an arena opponent with automatic voice and verify the named confirmation. Repeat inside reward cooldown and confirm the notice explains withheld repeat rewards; nonlethal hits should not show KO messages. Twelve mocked branch checks pass; native toast/multiplayer behavior remains pending.
 
 - Destruction confirmation: break a prop with a sustained scream and verify one named repair notice. Sweep across several props during the same scream to confirm no per-tick spam; hit a locked object and then an unlocked prop to verify distinct feedback. Helper tests use synthetic results; native toast/geometry remains pending.
+
+- Resident animation recovery: KO Nick and a working resident, verify local practice props and work poses clear during recovery, then confirm walking/job animations resume normally. Mock frame checks cover suspension/pose clearing, not native Animator/replication timing.

@@ -16,6 +16,15 @@ local function makePracticeBall()
  end
  model.Parent=workspace;return model
 end
+local function suspendRig(rig)
+ rig.blend=0;rig.elapsed=0
+ for _,joint in pairs(rig.joints) do if joint.Parent then joint.Transform=CFrame.identity end end
+ for _,joint in pairs({rig.rootJoint,rig.neck}) do if joint.Parent then joint.Transform=CFrame.identity end end
+ if rig.practiceBall then
+  rig.ballVisible=false
+  for _,piece in ipairs(rig.practiceBall:GetChildren()) do piece.Transparency=1 end
+ end
+end
 local function clearRig(model)
  local rig=rigs[model];if not rig then return end
  if rig.practiceBall then rig.practiceBall:Destroy() end
@@ -35,6 +44,11 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
  local camera=workspace.CurrentCamera;if not camera then return end
  for model,rig in pairs(rigs) do
   if not model:IsDescendantOf(workspace) then continue end
+  if model:GetAttribute("ResidentActive")==false then
+   if not rig.suspended then suspendRig(rig);rig.suspended=true end
+   continue
+  end
+  rig.suspended=false
   local root=model:FindFirstChild("HumanoidRootPart");local torso=model:FindFirstChild("Torso")
   local humanoid=model:FindFirstChildOfClass("Humanoid")
   if not root or not torso or not humanoid then continue end -- streaming may deliver limbs later

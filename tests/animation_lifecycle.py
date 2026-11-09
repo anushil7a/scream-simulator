@@ -92,13 +92,21 @@ check(live.CharacterAdded:Count()==0 and live.Character.DescendantAdded:Count()=
 '''
 resident_checks=r'''
 local function resident()
- return {GetAttribute=function(_,name)return name=='DisplayName' and 'Resident' or nil end}
+ return {IsDescendantOf=function()return true end,GetAttribute=function(self,name)if name=='ResidentActive' then return self.active end;return name=='DisplayName' and 'Resident' or nil end}
 end
 local m=resident();collection.added:Fire(m)
 check(rigs[m]~=nil,'Resident not registered')
 local limb={Parent=true,Transform='pose'};local neck={Parent=true,Transform='pose'}
-local ball={Destroy=function(self)self.destroyed=true end}
+local piece={Transparency=0}
+local ball={GetChildren=function()return {piece} end,Destroy=function(self)self.destroyed=true end}
 rigs[m].joints={limb};rigs[m].neck=neck;rigs[m].practiceBall=ball
+workspace.CurrentCamera={};m.active=false;rigs[m].blend=1
+run.PreSimulation:Fire(.1)
+check(rigs[m].suspended and rigs[m].blend==0,'Recovering resident animation was not suspended')
+check(limb.Transform=='identity' and neck.Transform=='identity' and piece.Transparency==1,'Recovery retained pose or practice prop')
+run.PreSimulation:Fire(.1)
+check(not ball.destroyed and rigs[m]~=nil,'Suspension destroyed reusable resident visuals')
+
 collection.removed:Fire(m)
 check(rigs[m]==nil and ball.destroyed,'Streamed-out resident retained visual')
 check(limb.Transform=='identity' and neck.Transform=='identity','Resident cleanup retained pose')
