@@ -1,3 +1,4 @@
+local SustainedRewards=require(game:GetService("ReplicatedStorage").Shared.SustainedRewards)
 local InteractionRules=require(game:GetService("ReplicatedStorage").Shared.InteractionRules)
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
@@ -240,10 +241,8 @@ local function stepSustained(p,s,now)
     end)
    elseif hit.firstHit then World.ReactToScream(bot,context.position) end
    World.UpdateBot(bot)
-   if hit.firstHit and (intent.paid or 0)<5 and now>=(s.botRewards[bot.id] or 0) then
-    intent.paid=(intent.paid or 0)+1;s.botRewards[bot.id]=now+10
-    s.data.coins+=ko and 5 or 2;xp(p,ko and 16 or 5)
-   end
+   local coins,rewardXP=SustainedRewards.Hit(intent,s.botRewards,bot.id,now,hit.firstHit,ko)
+   if coins>0 or rewardXP>0 then s.data.coins+=coins;xp(p,rewardXP) end
   end
  end
  if dealt>0 then
