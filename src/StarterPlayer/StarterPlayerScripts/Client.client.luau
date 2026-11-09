@@ -138,7 +138,10 @@ if remotes:GetAttribute("AutomaticVoice")==true then
   end)
 end
 local function toggleVoice()
- if sustainedControl then sustainedControl:SetArmed(not sustainedControl.armed) end
+ if not sustainedControl then return end
+ -- Pausing is always allowed; arming must be an available gameplay action.
+ if not sustainedControl.armed and (not windowFocused or blocked()) then return end
+ sustainedControl:SetArmed(not sustainedControl.armed)
 end
 local function releaseCapture(source)
  if captureSource~=source then return end
