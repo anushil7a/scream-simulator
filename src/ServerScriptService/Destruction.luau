@@ -25,7 +25,7 @@ local function occupied(object)
  local world=Service.world
  if world then for _,model in ipairs(game:GetService("CollectionService"):GetTagged("CityResident")) do if model:IsDescendantOf(world) then table.insert(characters,model) end end end
  if #characters==0 then return false end
- local params=OverlapParams.new();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=characters;params.MaxParts=1;params.RespectCanCollide=true
+ local params=OverlapParams.new();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=characters;params.MaxParts=1;params.RespectCanCollide=false
  return #workspace:GetPartBoundsInBox(object.box,object.size+Vector3.new(2,3,2),params)>0
 end
 local function restore(model,object,version)

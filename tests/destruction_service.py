@@ -10,7 +10,7 @@ source = (root / 'src/ServerScriptService/Destruction.luau').read_text()
 preamble = r'''
 local Rules=require('../src/ReplicatedStorage/Shared/DestructionRules')
 local Timer=require('../src/ServerScriptService/RepairTimer')
-local now=0;local queue={};local occupied=false;local checks=0
+local now=0;local queue={};local occupied=false;local occupantCollidable=true;local checks=0
 local function check(v,msg) assert(v,msg);checks+=1 end
 local function schedule(seconds,fn) table.insert(queue,{at=now+seconds,fn=fn}) end
 local function advance(t)
@@ -38,7 +38,7 @@ local game={ReplicatedStorage={Shared={DestructionRules='rules'}},GetService=fun
  if name=='Players' then return players elseif name=='CollectionService' then return collection end
  error(name)
 end}
-local workspace={GetServerTimeNow=function()return now end,GetPartBoundsInBox=function()return occupied and {1} or {} end}
+local workspace={GetServerTimeNow=function()return now end,GetPartBoundsInBox=function(_,box,size,params)return occupied and (occupantCollidable or not params.RespectCanCollide) and {1} or {} end}
 local script={Parent={RepairTimer='timer'}}
 local require=function(key) if key=='rules' then return Rules elseif key=='timer' then return Timer end;error(key) end
 local function loadService()
@@ -87,6 +87,10 @@ D.Damage(seat,1,1);advance(720)
 station.maintenanceVersion=D.objects[m].version
 D.Damage(seat,1,1)
 check(not D.FinishMaintenance(station,station.position),'Stale maintenance repaired newer damage')
+occupied=true;occupantCollidable=false;advance(840)
+check(m:GetAttribute('ObjectHealth')==48 and m:GetAttribute('RepairAt')==845,'Queryable noncolliding occupant did not defer repair')
+occupied=false;advance(845)
+check(m:GetAttribute('ObjectHealth')==50 and #queue==0,'Repair did not resume after noncolliding occupant left')
 print('PASS '..checks..' actual Destruction service checks with mocked engine/scheduler')
 '''
 with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.destruction_', dir=root/'tests', delete=False) as f:

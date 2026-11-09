@@ -79,3 +79,5 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - First calibration in background: during the first successful calibration, switch away from the window or open Roblox's menu. After returning, voice attacks must remain paused until ARM VOICE/E and a fresh quiet period. Twenty synthetic control checks pass; real microphone/focus/menu event testing pending.
 
 - Recalibration from Settings: with a ready mic, open Settings and select RECALIBRATE MICROPHONE. Confirm attacks/sprint stop, the live calibration panel opens, and completion leaves attacks paused until ARM VOICE/E. Try failed calibration and retry as well. Existing mocked calibration checks pass; actual input quality and phone/desktop UI fit remain pending.
+
+- Noncolliding occupants: in a disposable fixture, keep a queryable character part with CanCollide=false inside a damaged object's repair bounds at its deadline. Repair must defer until clear; also recheck ordinary players/residents. Eighteen mocked service checks model the documented query behavior; actual Roblox geometry remains pending.
