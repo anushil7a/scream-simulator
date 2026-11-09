@@ -192,3 +192,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Occupied repair explanation
 - Pending native: aim at a damaged object when its repair is deferred by a player/NPC in the repair volume. Readout should explain that the area must clear; after successful repair, the message disappears. New accepted damage restarts its normal countdown.
 - Evidence: 45 actual service checks with mocked engine/scheduler including four status checks, plus full verification/build. No native occupancy/replication/UI result.
+
+### Performance sample workload context
+- RunServerSample now includes endpoint counts for active screams, working/recovering residents and damaged/destroyed/repair-blocked objects. Keep the named workload active across the recording and note any changes; endpoint counts do not establish peak/average load.
+- Five mocked snapshot checks and the rebuilt disposable fixture pass. No new native heartbeat sample, FPS, CPU, network or memory performance result has been collected.
