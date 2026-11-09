@@ -202,10 +202,12 @@ local function stepSustained(p,s,now)
    end
   end
  end
+ local dealt=0
  for _,hit in ipairs(hits) do
   local target=details[hit.id]
   if target.player then
    local ts,h=target.session,target.humanoid
+   dealt+=math.min(hit.damage,h.Health)
    ts.nextHeal=now+Config.HealQuietSeconds
    if h.Health<=hit.damage then
     eject(target.player,h)
@@ -216,12 +218,15 @@ local function stepSustained(p,s,now)
     end
    else h.Health-=hit.damage end
   elseif target.object then
+   local previous=target.object:GetAttribute("ObjectHealth") or 0
    local result=Destruction.Damage(target.object,intent.level,hit.damage)
+   if result and not result.reason then dealt+=math.max(0,previous-result.health) end
    if result and result.destroyed then
     effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition")
    end
   else
    local bot=target.bot
+   dealt+=math.min(hit.damage,bot.health)
    if hit.firstHit then
     intent.crowdHits=(intent.crowdHits or 0)+1
     if intent.crowdHits==3 then questProgress(p,"Crowd") end
@@ -240,6 +245,10 @@ local function stepSustained(p,s,now)
     s.data.coins+=ko and 5 or 2;xp(p,ko and 16 or 5)
    end
   end
+ end
+ if dealt>0 then
+  intent.damageTotal=(intent.damageTotal or 0)+dealt
+  effect:FireClient(p,"SustainedHit",nil,p:GetAttribute("SustainedSequence"),math.floor(intent.damageTotal+.5))
  end
 end
 local function cast(p,request)

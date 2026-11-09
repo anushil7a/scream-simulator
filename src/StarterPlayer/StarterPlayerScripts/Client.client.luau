@@ -158,6 +158,8 @@ local meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 local aimGui=Instance.new("ScreenGui");aimGui.Name="ScreamAim";aimGui.ResetOnSpawn=false;aimGui.ScreenInsets=Enum.ScreenInsets.None;aimGui.Parent=p.PlayerGui
 script.Destroying:Connect(function() aimGui:Destroy() end)
 local reticle=label(aimGui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.Name="Crosshair";reticle.TextXAlignment=Enum.TextXAlignment.Center
+local hitFeedback=require(script.Parent:WaitForChild("HitFeedback")).new()
+local hitText=label(aimGui,"",UDim2.fromOffset(210,26),UDim2.new(.5,-105,.5,-48),16,gold);hitText.Name="ConfirmedDamage";hitText.TextXAlignment=Enum.TextXAlignment.Center;hitText.Visible=false
 local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
 local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge)
@@ -409,6 +411,7 @@ if sustainedControl then
  script.Destroying:Connect(function() sustainedBeams:Clear() end)
 end
 remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length,beamWidth)
+ if kind=="SustainedHit" then hitFeedback:Accept(id,aura,os.clock());return end
  if kind=="SustainedBeamEnd" then
   if sustainedBeams then sustainedBeams:Remove(id) end
   return
@@ -493,6 +496,9 @@ Run.RenderStepped:Connect(function(dt)
  local gameplayVisible=mic.ready and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
  local showTouchControls=originalTouchControls and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
+ local confirmed=hitFeedback:Read(os.clock())
+ hitText.Visible=gameplayVisible and confirmed~=nil
+ if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
  meter.Visible=gameplayVisible;reticle.Visible=(firstPerson or UIS.TouchEnabled) and gameplayVisible
  viewButton.Text=firstPerson and "3RD [V]" or "1ST [V]"
  local power=captureSource and mic:CapturePower() or mic.power;meterFill.Size=UDim2.fromScale(power,1)
