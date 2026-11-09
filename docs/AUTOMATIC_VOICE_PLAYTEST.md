@@ -162,3 +162,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Server stamina while movement is unavailable
 - Pending native: verify occupied SeatPart independently blocks sprint drain when Sit differs, and anchored characters cannot consume stamina or report Sprinting from retained velocity. After restoring normal movement, an eligible requested sprint should work.
 - Evidence: actual server helper with synthetic velocity/time, 17 checks plus full local verification/build; no physical replication result.
+
+### Duplicate quest acceptance
+- Pending native: repeat Accept for active garden, delivery, race and Nick tasks; current progress/route/deadline should remain unchanged. Verify switching and explicit Abandon then Accept still begin fresh attempts, and completed rewards remain claimable.
+- Evidence: eight actual acceptance-branch checks with mocked session callbacks and full local verification/build. Nick soccer runtime and real UI/remote event ordering were not executed.

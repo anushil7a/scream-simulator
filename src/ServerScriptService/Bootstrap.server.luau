@@ -622,6 +622,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   end
   if q then local v=s.data.quests[q.id];if not v then v={progress=0,claimed=false};s.data.quests[q.id]=v end
    if not v.claimed and v.progress>=q.goal then state(p,"Task complete · claim your reward.");return end
+   if s.activeQuest==q.id then state(p,"Task already active · continue your current attempt.");return end
    if not v.claimed then stopQuest(p);v.progress=0;s.activeQuest=q.id;state(p,q.name.." accepted")
     if q.id=="nick" then Soccer.Start(p,function(message) state(p,message) end,function()
      if sessions[p]==s and s.activeQuest=="nick" then s.questDeadline=nil;questProgress(p,"Soccer");state(p,"Nick: WE DID IT! Claim your reward in Quests.") end
