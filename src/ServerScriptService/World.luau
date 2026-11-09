@@ -817,6 +817,11 @@ function World.Build()
                         if gap>5 or gap<1.5 or bot.root.Position.Y>8 or bot.root.Position.Y< -3 then
                             bot.airSince=bot.airSince or now
                             if now-bot.airSince>.45 then
+                                -- Invalidate the old path/precision approach before moving
+                                -- the resident back. Otherwise its sleeping route coroutine
+                                -- can resume toward the waypoint that caused the fall.
+                                stopWalking(bot)
+                                bot.model:SetAttribute("Activity","Finding a safe route")
                                 bot.model:PivotTo(CFrame.new(bot.lastGrounded or bot.start));bot.root.AssemblyLinearVelocity=Vector3.zero;bot.root.AssemblyAngularVelocity=Vector3.zero;bot.humanoid:MoveTo(bot.root.Position);bot.airSince=nil
                             end
                         else bot.airSince=nil;bot.lastGrounded=bot.root.Position end
