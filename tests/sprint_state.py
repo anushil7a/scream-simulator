@@ -25,6 +25,11 @@ s.micReady=false;check(not stepSprint(s,root,h,1,.1),'Unavailable microphone all
 check(not stepSprint(s,nil,nil,1,.1),'Missing character allowed sprint')
 h.Sit=true;check(not stepSprint(s,root,h,1,.1),'Seated passenger drained sprint');h.Sit=false
 h.PlatformStand=true;check(not stepSprint(s,root,h,1,.1),'Ragdoll drained sprint');h.PlatformStand=false
+h.SeatPart={};s.sprintCharge=5
+check(not stepSprint(s,root,h,1,.1) and s.sprintCharge>=5,'SeatPart without Sit drained sprint');h.SeatPart=nil
+root.Anchored=true;s.sprintCharge=5
+check(not stepSprint(s,root,h,1,.1) and s.sprintCharge>=5,'Anchored root with stale velocity drained sprint');root.Anchored=false
+check(stepSprint(s,root,h,1,.1),'Available moving root stayed blocked')
 s=session()
 for i=1,40 do stepSprint(s,root,h,i*.25,.25) end
 check(s.sprintCharge==0 and s.sprintLockedUntil==15,'Ten seconds of movement did not exhaust stamina')

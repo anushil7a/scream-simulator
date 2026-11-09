@@ -690,7 +690,7 @@ local function stepSprint(s,root,humanoid,now,dt)
  if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then s.sprintLockedUntil=0;s.sprintCharge=Config.SprintDuration end
  local velocity=root and root.AssemblyLinearVelocity
  local moving=velocity and velocity.X*velocity.X+velocity.Z*velocity.Z>2.25
- local running=humanoid~=nil and not humanoid.Sit and not humanoid.PlatformStand and s.micReady and s.sprintRequested and moving==true
+ local running=root~=nil and not root.Anchored and humanoid~=nil and not humanoid.Sit and not humanoid.SeatPart and not humanoid.PlatformStand and s.micReady and s.sprintRequested and moving==true
   and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and s.sprintCharge>0 and now>=s.sprintLockedUntil
  if running then
   s.sprintCharge=math.max(0,s.sprintCharge-dt)

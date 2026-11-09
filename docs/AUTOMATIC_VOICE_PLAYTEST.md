@@ -158,3 +158,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 ### Sprint after sitting/ragdoll
 - Pending native: activate sprint with keyboard and touch, sit or enter PlatformStand, then recover. Sprint should cancel and require fresh input; stamina/server rules remain unchanged. Repeat with SeatPart replication arriving separately from Sit.
 - Evidence: reproduced retained request in the actual input helper with mocked humanoid state; 43 input checks and full local verification/build pass after the fix. No native physics/input result claimed.
+
+### Server stamina while movement is unavailable
+- Pending native: verify occupied SeatPart independently blocks sprint drain when Sit differs, and anchored characters cannot consume stamina or report Sprinting from retained velocity. After restoring normal movement, an eligible requested sprint should work.
+- Evidence: actual server helper with synthetic velocity/time, 17 checks plus full local verification/build; no physical replication result.
