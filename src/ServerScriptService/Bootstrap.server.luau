@@ -131,6 +131,9 @@ local function audible(c,origin,target,targetModel)
 end
 local function canCapture(p,s,now)
  local _,r=parts(p)
+ local bot=s.conversationBot
+ if r and bot and bot.alive and bot.root.Parent and bot.talkingTo==p and (bot.socialUntil or 0)>now
+  and (bot.root.Position-r.Position).Magnitude<=14 then return false end
  return r~=nil and s.micReady and now>=s.protectedUntil and now>=s.dodgingUntil and now>=(s.knockedUntil or 0)
 end
 local function attackOrigin(c,r)
@@ -394,6 +397,9 @@ local function talk(p,id)
  local s=sessions[p];local _,r=parts(p);if not s or not r or type(id)~="string" or os.clock()<(s.nextTalk or 0) then return end
  for _,b in ipairs(World.Bots) do if b.id==id and b.alive and b.root.Parent and InteractionRules.CanReachNpc(p.Character,b.model,14) then
   if b.talkingTo and b.talkingTo~=p and (b.socialUntil or 0)>os.clock() then state(p,b.name.." is speaking with someone. Try again shortly.");return end
+  -- Dialogue cancellation is authoritative, even if the client stop packet
+  -- is delayed or omitted. The availability gate keeps subsequent pulses out.
+  cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
   closeConversation(p);s.conversationBot=b;b.talkingTo=p
   s.nextTalk=os.clock()+2
   local contextLine
