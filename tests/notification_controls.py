@@ -9,6 +9,9 @@ cases=[
  ('if urgent and self.active and not self.active.urgent then','if false then','Critical failure queued behind routine notice'),
  ('math.clamp(utf8.len(text) or #text,88,264)/22','0.01','Notice overwritten before readable dwell'),
  ('for _,entry in ipairs(self.pending) do if entry.text==text then return end end','','Pending duplicate queued'),
+ ('if self.active and self.active.key==key then self.active=table.remove(self.pending,1) end',
+  'if self.active and self.active.key==key then self.active=nil end',
+  'Keyed normal replacement bypassed waiting critical warning'),
 ]
 for old,new,failure in cases:
  assert module.count(old)==1,old

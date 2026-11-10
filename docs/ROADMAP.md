@@ -2,7 +2,13 @@
 
 Updated November 10, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch, retaining its four-second maximum attack and ten-second cooldown. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
-## November 10 readable notification bursts
+## November 10 keyed notification priority correction
+
+- Reconciled clean local/fetched `3022fe7`. Executed the reviewer's exact active urgent voice / waiting save warning / normal voice replacement sequence against the real module; regression failed before the fix. Coalescing now promotes existing queued work before processing replacement status, preserving urgency and FIFO rather than letting a fresh normal status take the active slot.
+- Passed 1,661 queue assertions (247 added), five queue negative controls, 14 action-feedback checks/four controls, all 25 pure/synthetic + 57 mocked suites, 57 compiles and all builds. Separate self-review found no blocker. [Updated review](NOTIFICATION_QUEUE_REVIEW.md) and [exact evidence](../tests/evidence/notification-priority-2026-11-10.json).
+- No native run this correction; actual-module Luau tests use synthetic timing. No apps/tabs/test windows opened, no pre-existing activity touched. No publication, audio, purchases or live DataStores. Next: independent review and native interaction/real-player readability checks; retain physical-device, accessibility, voice/network and persistence gates.
+
+## November 10 readable notification bursts (keyed priority interaction corrected above)
 
 - Reconciled clean remote `5ec4827`. Actual-source reproduction confirmed milestone/reward and completion/Flowers watered overwrite before a render. Added a bounded client queue with 4–12-second displayed intervals, duplicate/state coalescing, urgent error preemption and interrupted-notice resumption. Server changes add urgency metadata only; no reward, purchase, voice or persistence behavior changed.
 - Native disposable UI fixture also reproduced shop occlusion and landscape control overlap; corrected layering/background/placement. Final production run passed in 23.50 seconds: save warning 254 frames/4.23 seconds; resumed milestone/reward/completion/Flowers watered each 241–242 frames/about 4.02–4.03 seconds. Zero clipping/script errors/overlap failures across three viewport sizes. Readiness, input, state delivery and layout selection are synthetic; no real device/service claim.

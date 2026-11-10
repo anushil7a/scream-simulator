@@ -1,5 +1,17 @@
 # Readable notification bursts
 
+## Keyed replacement priority correction
+
+Follow-up base: `3022fe7c27f2f896974be380322c52fd55891cfc`, clean local/fetched shared head. Executing the reviewer's exact three-message sequence against the actual Queue module in Luau reproduced `Keyed normal replacement bypassed waiting critical warning`: an active urgent voice status was removed by its normal replacement, which occupied the empty active slot ahead of the pending save warning. This was an executed deterministic regression, not source tracing alone.
+
+When coalescing removes the active keyed entry, promote the oldest already queued entry before processing its replacement. Existing urgency insertion/preemption then applies normally. The save warning now displays next, retains its reading interval, and is followed by the latest voice status. Urgent replacements respect waiting critical order; subsequent toggles coalesce pending status without interrupting/resetting the active warning. Routine-only pending work retains FIFO. The production change is one assignment plus an explanatory comment; no message text, UI layout, dwell policy, gameplay, server or save behavior changed.
+
+Validation: all 1,661 queue assertions pass (247 added), including the exact sequence, warning dwell, repeated toggles, urgent replacement and routine FIFO. Five queue negative controls pass; the new control restores the old assignment and fails at the reported priority regression. All 25 pure/synthetic + 57 mocked suites, 57 production compiles, candidate correspondence checks and all builds pass. Action receiver/helper tests retain 14 checks/four controls. Separate implementing-agent self-review covered the empty slot, pending urgency ordering, same-key removal, existing preemption/resumption and overflow behavior; no blocker found, no independent reviewer claimed.
+
+This follow-up has **no native Studio execution**. All new results are actual-module Luau execution with synthetic frame timing; the earlier native evidence below describes the preceding checkpoint, not native validation of this interaction. Real-player comprehension, physical touch/accessibility, voice/network/multiplayer and persistence gates remain. No programs, tabs or test windows were opened for this correction, so there was nothing new to close; pre-existing activity was untouched. No publication, purchases, audio configuration or live DataStores. [Exact follow-up evidence](../tests/evidence/notification-priority-2026-11-10.json).
+
+## Original queue checkpoint
+
 Base: `5ec4827397df054a4dac46ebbdc7218349b419f1`, fetched before editing and again before preparing this checkpoint. This follows the narrow suppression correction in [the previous audit](ACTION_FEEDBACK_REVIEW.md).
 
 ## Reproduction and correction

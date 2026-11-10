@@ -11,7 +11,8 @@ function Queue:Push(text,urgent,key)
  -- Stateful local controls replace obsolete ON/OFF instructions.
  if key then
   for i=#self.pending,1,-1 do if self.pending[i].key==key then table.remove(self.pending,i) end end
-  if self.active and self.active.key==key then self.active=nil end
+  -- Removing active status opens a slot for existing queued work first.
+  if self.active and self.active.key==key then self.active=table.remove(self.pending,1) end
  end
  local entry={text=text,urgent=urgent,key=key,remaining=duration(text)}
  if urgent and self.active and not self.active.urgent then
