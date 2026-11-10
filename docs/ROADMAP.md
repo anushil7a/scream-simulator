@@ -19,6 +19,13 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Corrected the spawn practice sign for automatic voice attacks. Added a bounded 120ms beam launch expansion, bypassed by reduced effects.
 - Verification and next action: the isolated commit passed 23 pure/synthetic suites, 50 mocked-service suites, 53 production compiles and disposable builds; native visual review, real microphone onboarding timing, physical-phone overlap tests and multiplayer profiling remain pending. No Roblox publication.
 
+## November 10 gameplay audio checkpoint
+
+- Original hit-confirm, dodge, prop-break and level-up WAVs, generator, mixer and client hooks are reviewed and integrated. Gain is bounded before playback, overlapping sources share one budget, voice ducks cues, and calibration/mute/character removal/teardown clear sounds. Existing attack assets and onboarding work are preserved.
+- Review found Windows checkout line endings could invalidate the generator hash. Explicit LF/binary Git attributes and regenerated provenance fix reproducibility.
+- Full verification/build passed 24 pure/synthetic suites, 51 mocked-service suites and 56 production compiles. Focused audio checks passed 55 mixer assertions, 26 mocked adapter assertions and 6 source-hook checks. Evidence: [gameplay audio](../tests/evidence/gameplay-audio-2026-11-10.json).
+- All four asset IDs are empty, so new cues remain silent. Earlier browser URL verification blocked upload. Next: owner import using Studio Asset Manager or a verified Creator Dashboard, grant destination access and supply IDs; then test native playback, microphone mix and phone/speaker feedback. No Roblox publication.
+
 ## Ordered backlog
 
 ### P0 — combat progression redesign (implemented locally; human balance testing next)

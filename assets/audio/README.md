@@ -32,3 +32,40 @@ Use the disposable current-source build to check all equipped tiers, interrupted
 ## Superseded synthesized draft
 
 `energy-beam-loop.wav`, `energy-beam-preview.wav`, `audio-audit.json` and `tools/make_energy_audio.py` preserve the earlier original synthesized draft for history. They are not used by the current runtime. Their peak/RMS measurements do not describe the owner-selected Roblox assets. No upload of these drafts is needed for this implementation.
+
+
+## Original gameplay feedback candidates (November 10)
+
+The separate [gameplay pack](gameplay/README.md) adds an original hit-confirm tick,
+dodge whoosh, restrained prop-break/debris cue and gentle level-up reward. Its
+reproducible generator, WAVs, acoustic audit and combined audition are local.
+The ten owner-selected equipped-scream assets above are unchanged.
+
+`Shared/GameplayAudioConfig` maps the four new cues. All IDs are currently empty,
+so these cues are intentionally silent in-game until their original WAVs are
+uploaded and permitted for City Preview (universe 10769005350). The Settings
+control shows `GAMEPLAY SFX: PENDING UPLOAD` while no asset is configured.
+Importing audio assets is separate from publishing a place. No experience
+publication is authorized by this sound-design work.
+
+The client hooks existing server-confirmed hit, dodge and destruction events.
+A level increase cues once, excluding first profile sync, repeated state,
+level reductions and temporary test sessions. Cosmetic behavior does not modify
+combat rules, rewards, saves or voice transport.
+
+Up to six one-shots share total volume 0.12 through a 0.5 SoundGroup; voice ducks
+them to 35% of that level. Calibration/not-ready microphone state clears and
+suppresses cues. Hit/dodge/break rate limits are 0.16/0.15/0.12 seconds; level-up
+is limited to once per second. Dodge/break are spatial within 50 studs; hit and
+level-up are local. Short bounded lifetimes, mute, character removal and script
+teardown clean every emitter. This is an additional quiet SFX budget beside the
+existing attack mix, not a change to that mix.
+
+Local evidence: 55 pure mixer checks, 26 mocked actual-adapter checks and six
+source hookup checks. Full repository validation passed 24 pure/synthetic suites,
+51 mocked suites, 56 production compiles and all current candidate/disposable
+builds. These are not native playback, audibility, human preference, physical
+phone, multiplayer or speaker-feedback results. Audition and test with real
+microphones before release. See `tests/evidence/gameplay-audio-2026-11-10.json`.
+
+Upload remains pending after the earlier browser URL verification blocker. The supported next step is for the owner to import the four individual WAVs through Roblox Studio Asset Manager or a verified Creator Dashboard, grant the intended experience access, and supply the returned IDs. Then configure and test playback in a disposable local place. See https://create.roblox.com/docs/audio/assets.

@@ -37,6 +37,21 @@ local DestructionRules=require(RS.Shared:WaitForChild("DestructionRules"))
 local mic=require(script.Parent:WaitForChild("Microphone")).new()
 local attackAudio=require(script.Parent:WaitForChild("AttackAudio")).new()
 local attackAudioSettings=require(RS.Shared.AttackAudioConfig)
+local gameplayAudio=require(script.Parent:WaitForChild("GameplayAudio")).new()
+local gameplayAudioSettings=require(RS.Shared.GameplayAudioConfig)
+script.Destroying:Connect(function() gameplayAudio:Destroy() end)
+connectClient(p.CharacterRemoving,function() gameplayAudio:Clear() end)
+local function cueContext()
+ gameplayAudio:SetContext(mic.ready and mic.power>.12,mic.phase~=nil or not mic.ready)
+end
+local function playGameplayCue(kind,position)
+ cueContext()
+ if position then
+  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+  if not root or (root.Position-position).Magnitude>gameplayAudioSettings.Range then return end
+ end
+ gameplayAudio:Play(kind,os.clock(),position)
+end
 script.Destroying:Connect(function() attackAudio:Destroy() end)
 script.Destroying:Connect(function() mic:Destroy() end)
 local ShopUI=require(script.Parent:WaitForChild("ShopUI"))
@@ -465,6 +480,11 @@ render=function()
   audioButton=button(audioCard,"AttackAudio","ATTACK SFX: "..(attackAudio.enabled and "LOW" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
    attackAudio:SetEnabled(not attackAudio.enabled);audioButton.Text="ATTACK SFX: "..(attackAudio.enabled and "LOW" or "OFF")
   end)
+  local cueCard=card(58);local cueButton
+  local function cueLabel()return not gameplayAudioSettings.Ready() and "GAMEPLAY SFX: PENDING UPLOAD" or "GAMEPLAY SFX: "..(gameplayAudio.enabled and "LOW" or "OFF") end
+  cueButton=button(cueCard,"GameplayAudio",cueLabel(),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
+   gameplayAudio:SetEnabled(not gameplayAudio.enabled);cueButton.Text=cueLabel()
+  end)
   info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
   local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
  end
@@ -553,6 +573,7 @@ end
 local trackedQuestText=""
 local lastMilestone,milestoneUntil=nil,0
 connectClient(remotes.State.OnClientEvent,function(nextData)
+ cueContext();gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())
  data=nextData
  local unclaimed=0
  for _,quest in ipairs(Config.Quests) do
@@ -613,7 +634,10 @@ if sustainedControl then
  script.Destroying:Connect(function() sustainedBeams:Destroy() end)
 end
 connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth,audioStyleId,attackLevel)
- if kind=="SustainedHit" then hitFeedback:Accept(id,aura,os.clock());return end
+ if kind=="SustainedHit" then
+  if hitFeedback:Accept(id,aura,os.clock()) then playGameplayCue("Hit") end
+  return
+ end
  if kind=="SustainedBeamEnd" then
   attackAudio:Stop(id,os.clock())
   if sustainedBeams then sustainedBeams:Remove(id) end
@@ -634,11 +658,12 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  end
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if not root or (root.Position-pos).Magnitude>180 then return end
  if kind=="Break" then
+  playGameplayCue("Break",pos)
   for i=1,6 do local chip=fxPart(pos,(typeof(id)=="Color3" and id or Config.Auras[id] or gold),Vector3.new(.5,.5,.5));Tween:Create(chip,TweenInfo.new(.45),{Position=pos+Vector3.new(math.cos(i)*3,2,math.sin(i)*3),Transparency=1}):Play() end;return
  end
  local chosenColor=kind=="Dodge" and id or aura
  local color=typeof(chosenColor)=="Color3" and chosenColor or Config.Auras[chosenColor] or gold
- if kind=="Dodge" then local f=fxPart(pos,color,Vector3.new(2,3,2));Tween:Create(f,TweenInfo.new(.35),{Transparency=1,Size=Vector3.new(5,1,5)}):Play();return end
+ if kind=="Dodge" then playGameplayCue("Dodge",pos);local f=fxPart(pos,color,Vector3.new(2,3,2));Tween:Create(f,TweenInfo.new(.35),{Transparency=1,Size=Vector3.new(5,1,5)}):Play();return end
  local s=Config.GetSound(id);if not s then return end
  -- Actual voice stays on Roblox proximity audio. Owner-selected SFX are separate.
  direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range
@@ -804,6 +829,7 @@ connectClient(Run.RenderStepped,function(dt)
    end
   end
  end
+ cueContext();gameplayAudio:Step(os.clock(),dt)
  elapsed+=dt;if elapsed<.15 then return end;elapsed=0
  attackAudio:Step(os.clock(),dt,mic.ready and mic.power>.12,mic.phase~=nil)
  aimInfo.Text=""

@@ -1,0 +1,118 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "6c777a7b7254f2118beceff9eeb318ed08429a44",
+  "review": {
+    "method": "Fresh diff/source review of the inherited implementation, with focused mock execution and full repository rebuild. No separate human review or native listening claimed.",
+    "areas": [
+      "preload failures and bounded retries",
+      "gain applied before Play and existing voices rebudgeted first",
+      "voice ducking and suppression",
+      "rate limits and six-source cap",
+      "level transitions and temporary sessions",
+      "character teardown and queued callback cleanup",
+      "server-confirmed client hooks",
+      "original PCM generation and reproducibility"
+    ],
+    "fixed": "Windows autocrlf could change generator hash or generated text bytes. Added scoped LF and binary attributes, normalized generator and regenerated provenance."
+  },
+  "tests": {
+    "full": "python tests/verify_local.py --build",
+    "passed": true,
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 51,
+    "productionScripts": 56,
+    "mixerChecks": 55,
+    "adapterChecks": 26,
+    "clientSourceContractChecks": 6,
+    "assets": "python tools/make_gameplay_audio.py --check; seven generated files compare exactly; decoded PCM validates format, duration, bounds, endpoints and no clipping",
+    "checkoutReproducibility": "PASS: git checkout-index copy under core.autocrlf=true also reproduces all seven files byte-for-byte."
+  },
+  "localPlay": {
+    "build": "SustainedLocalPlay",
+    "sourceSha256": "7ed8e666653edb2e026514b078f4a003b7cacfdd7b6f71c631e764919ffadb0c",
+    "artifactSha256": "2f43d6c1b015d0459502b91ac6f338a36d1f6610be7656a538023bf33349dc06",
+    "scope": "Compiled disposable local fixture; not executed or published"
+  },
+  "assets": [
+    {
+      "file": "hit-confirm.wav",
+      "frames": 3969,
+      "seconds": 0.09,
+      "bytes": 7982,
+      "peak_dbfs": -14.0001,
+      "rms_dbfs": -27.80563,
+      "crest_factor_db": 13.80553,
+      "mean_dc_full_scale": 1.153e-07,
+      "max_adjacent_delta_full_scale": 0.03933716,
+      "clipped_samples": 0,
+      "first_sample": 0,
+      "last_sample": 0,
+      "sha256": "f18691c0f6266a528ce2f97c353390aef3ab1e971f90128a97c26f1e5579a51f",
+      "purpose": "Tight rounded tick for a confirmed hit; rate-limit sustained-hit playback.",
+      "design_peak_dbfs": -14.0,
+      "roblox_asset_id": null
+    },
+    {
+      "file": "dodge-whoosh.wav",
+      "frames": 11025,
+      "seconds": 0.25,
+      "bytes": 22094,
+      "peak_dbfs": -16.00063,
+      "rms_dbfs": -30.44909,
+      "crest_factor_db": 14.44846,
+      "mean_dc_full_scale": 1.66e-08,
+      "max_adjacent_delta_full_scale": 0.07427979,
+      "clipped_samples": 0,
+      "first_sample": 0,
+      "last_sample": 0,
+      "sha256": "6bdeeadf23791b2d1bc1489493689abd5cfc6d2c65e0991029e4bfcde6afb97e",
+      "purpose": "Soft filtered-air sweep for a confirmed roll/dodge.",
+      "design_peak_dbfs": -16.0,
+      "roblox_asset_id": null
+    },
+    {
+      "file": "prop-break.wav",
+      "frames": 17640,
+      "seconds": 0.4,
+      "bytes": 35324,
+      "peak_dbfs": -13.5006,
+      "rms_dbfs": -35.52885,
+      "crest_factor_db": 22.02825,
+      "mean_dc_full_scale": -7.79e-08,
+      "max_adjacent_delta_full_scale": 0.07424927,
+      "clipped_samples": 0,
+      "first_sample": 0,
+      "last_sample": 0,
+      "sha256": "68ac79916c7cb9d22018c32dbabeac39e8d478e9a24a9c12c8f0740dcb64e7e2",
+      "purpose": "Muted material crack with restrained debris for an actual prop break.",
+      "design_peak_dbfs": -13.5,
+      "roblox_asset_id": null
+    },
+    {
+      "file": "level-up.wav",
+      "frames": 28665,
+      "seconds": 0.65,
+      "bytes": 57374,
+      "peak_dbfs": -15.50017,
+      "rms_dbfs": -24.74135,
+      "crest_factor_db": 9.24119,
+      "mean_dc_full_scale": -3.2e-09,
+      "max_adjacent_delta_full_scale": 0.0255127,
+      "clipped_samples": 0,
+      "first_sample": 0,
+      "last_sample": 0,
+      "sha256": "41529ad6a8b266598be27c069c11bfaeae95fa6422bc8d305a02d8dba4b8d94d",
+      "purpose": "Gentle rising three-tone reward for an actual level increase.",
+      "design_peak_dbfs": -15.5,
+      "roblox_asset_id": null
+    }
+  ],
+  "limitations": [
+    "Empty asset IDs; gameplay cues are silent in Roblox.",
+    "No native playback, perceived loudness, phone, multiplayer or microphone/speaker-feedback test.",
+    "Earlier browser URL verification blocker remains unresolved; no upload workaround attempted.",
+    "No Roblox experience publication."
+  ],
+  "nextStep": "Owner imports four individual cue WAVs via Studio Asset Manager or a verified Creator Dashboard, grants intended experience permissions, supplies IDs, then native testing follows.",
+  "reference": "https://create.roblox.com/docs/audio/assets"
+}

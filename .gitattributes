@@ -1,0 +1,5 @@
+# Keep generated audio and its provenance reproducible across Windows checkouts.
+assets/audio/gameplay/*.wav binary
+assets/audio/gameplay/*.json text eol=lf
+assets/audio/gameplay/README.md text eol=lf
+tools/make_gameplay_audio.py text eol=lf
