@@ -68,10 +68,13 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Favor denser playable routes and cover over increasing the empty map footprint or NPC count. Limit work to representative blocks/arena spaces and compare street-height before/after views.
 - De-emphasize delivery/gardening UI during PvP. Keep Nick as an optional discovery; do not expand side-quest systems before core combat.
 
-### Later — cosmetics and monetization
+### Owner-requested shop, UI and beam effects — implemented locally
 
-- Existing style/aura/entitlement scaffolding may remain, but no new cosmetic catalog, badge configuration or paid pass work is prioritized now.
-- Review any premium movement only after fairness testing; no paid combat advantage.
+- The owner explicitly advanced this work on November 9: one permanent pass for every beam color, separate 30-minute XP/coin boosts that continue offline after activation, a redesigned shop/HUD and stronger VFX at higher levels.
+- Spectrum HSV/hex color mixer, existing free colors, Freerunner safe-area movement, inventory boost activation and server-owned wall-clock multipliers are wired. Unconfigured products display Coming soon. Atomic purchase records are separate from gameplay profiles; receipts and activation retries are idempotent.
+- Animated sustained beam cores, traveling rings, one/two spiral strands and endpoint coronas scale with server attack level. Part pooling, 24 attackers, 512-part global cap, core reservation, reduced-effects and distance limits bound presentation. Damage/timing/audio remain unchanged.
+- Local verification: 22 pure/synthetic suites, 50 mocked-service suites, 52 production compiles and rebuilt candidate/disposable places. Native Studio: 587 beam geometry/pool assertions, 35 integrated damage/destruction/progression checks and 21 UI layout cases passed. Evidence and remaining limits are in [shop/beam evidence](../tests/evidence/shop-beams-2026-11-09.json).
+- [Product configuration, behavior and release checks](SHOP_AND_BEAMS.md). Next: owner reviews local game/visual previews; create/approve product IDs and prices, then use a separate approved test experience to validate actual receipts, pass ownership, saves/rejoins and regional prices before live sales. Physical-phone, real-mic and multiplayer performance checks remain open. No Roblox publication or schedule.
 
 ## Review findings and recommendations
 
@@ -84,6 +87,8 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - **Validation gaps:** source/unit/Studio passes do not establish live voice audibility, real-device comfort, saved-data safety or representative multiplayer load.
 
 ## Session log
+
+- November 9 shop/beam expansion: implemented the owner-approved shop and VFX requests, preserving the four-second attack and existing level advantage. Purchase cache and receipt handling use a separate atomic ledger; Studio/test sessions cannot prompt or consume purchases. Added native preview fixtures and regression coverage. Development GitHub sync remains authorized; Roblox publication requires approval.
 
 - November 9 approved level advantage: implemented health/full-power sustained DPS anchors 1=100/15, 25=150/23, 50=225/34, 75=325/49, 100=450/68, with per-level interpolation. Health rounds to whole HP; DPS retains fractional interpolation and bounded whole-damage accumulation. The server adapter now uses an explicit full-power DPS field with ceiling 68; legacy burst damage is separate. Range/width, four-second attacks, ten-second cooldown, safe hub and spawn protection remain. Recovery retains 20% steps but waits twelve seconds after dealing or receiving damage (including NPC/object hits); misses/rejected hits do not tag combat. Updated HUD summaries, fixtures, regression checks and protocol/manual docs. Passed 18 pure/synthetic suites, 48 mocked-service suites, all 44 production compiles and candidate/disposable builds. Full-power perfect-aim simulation: equal levels take two attacks; 100 versus 1/50 takes one; 1 versus 100 takes eight. Native disposable one-client Studio passed six damage and eleven destruction checks and confirmed loaded progression/healing constants; exact source hash and timings in `tests/evidence/level-progression-2026-11-09.json`. Real-player balance, two-client PvP with this tuning and actual voice/network conditions remain unverified. Native run stopped; no Roblox publication. Next: reopen rebuilt `build/SustainedLocalPlay.rbxl` and playtest mixed-level PvP with two eligible players.
 

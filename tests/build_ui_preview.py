@@ -17,17 +17,22 @@ source=(root/'build/StudioClientHarness.luau').read_text()
 source=replace_once(source,'local mic=modules.Microphone.new()', '''local mic={Destroy=function() end,ready=true,power=.55,status="UI preview: simulated mic",Cancel=function() end,Begin=function() return false end,Release=function() return 0 end,Check=function() end,Calibrate=function() end}''')
 source=replace_once(source,'local remotes=RS:WaitForChild("ScreamRemotes")','''local receiver
 local sample={level=100,xp=30,xpNext=1800,coins=1500,activeQuest="garden",health=450,maxHealth=450,sound="TinyAah",aura="Gold",quests={},availableQuests={},settings={volume=.55,reducedShake=false},micReady=true,devAccess=true,savingAvailable=true,protection=0,dodgeCooldown=0,castCooldown=0,questTime=90}
+sample.shop={ready=true,inventory={xp=2,coins=1},ends={xp=os.time()+1800,coins=0},serverNow=os.time()}
 for _,q in ipairs(Config.Quests) do sample.availableQuests[q.id]=true;sample.quests[q.id]={progress=0} end
 local actionMock={FireServer=function(_,verb) if verb=="Sync" and receiver then receiver(sample) end end}
 local remotes={GetAttribute=function(_,name) return name=="AutomaticVoice" and true or nil end,WaitForChild=function() return actionMock end,State={OnClientEvent={Connect=function(_,fn) receiver=fn;return {Disconnect=function() if receiver==fn then receiver=nil end end} end}},Effect={OnClientEvent={Connect=function() return {Disconnect=function() end} end}}}''')
 original='local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")'
-replacement=f'''local screen=Instance.new("ScreenGui");screen.Name="LayoutPreview";screen.ResetOnSpawn=false;screen.Parent=p:WaitForChild("PlayerGui")
+replacement=f'''local screen=Instance.new("ScreenGui");screen.Name="LayoutPreview";screen.ResetOnSpawn=false;screen.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;screen.Parent=p:WaitForChild("PlayerGui")
 local gui=Instance.new("Frame");gui.Name="ScreamUI";gui.Size=UDim2.fromOffset({width},{height});gui.Position=UDim2.fromOffset(10,10);gui.BackgroundTransparency=1;gui.Parent=screen'''
-source=replace_once(source,original,replacement).replace('workspace.CurrentCamera.ViewportSize',f'Vector2.new({width},{height})').replace('UIS.TouchEnabled','true' if width<820 else 'false')
+source=replace_once(source,original,replacement).replace('workspace.CurrentCamera.ViewportSize',f'Vector2.new({width},{height})').replace('UIS.TouchEnabled','fixtureTouch')
+source='local fixtureTouch=true\n'+source
 source+='''
 local report={}
-for _,tab in ipairs({"Screams","Quests","Style","Map","Settings"}) do
- selected=tab;modal.Visible=true;render();task.wait(.15)
+for _,view in ipairs({{390,844,true},{844,390,true},{1280,720,false}}) do
+ gui.Size=UDim2.fromOffset(view[1],view[2]);fixtureTouch=view[3]
+ Run.RenderStepped:Wait();Run.RenderStepped:Wait()
+for _,tab in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do
+ selected=tab;modal.Visible=true;render();Run.RenderStepped:Wait();Run.RenderStepped:Wait()
  local clipped={};local undersized={};local overflow={}
  for _,obj in ipairs(modal:GetDescendants()) do
   if obj:IsA("GuiObject") and obj.Parent:IsA("GuiObject") and not obj.Parent:IsA("ScrollingFrame") then
@@ -38,8 +43,10 @@ for _,tab in ipairs({"Screams","Quests","Style","Map","Settings"}) do
    if obj.TextSize<12 then table.insert(undersized,obj.Text) end
   end
  end
- table.insert(report,{tab=tab,clipped=clipped,undersized=undersized,horizontalOverflow=overflow,menuSize=tostring(modal.AbsoluteSize)})
+ table.insert(report,{viewport=tostring(gui.AbsoluteSize),tab=tab,clipped=clipped,undersized=undersized,horizontalOverflow=overflow,menuSize=tostring(modal.AbsoluteSize)})
 end
+end
+gui.Size=UDim2.fromOffset(390,844);fixtureTouch=true;Run.RenderStepped:Wait()
 modal.Visible=false
 showConversation({npc=p.Character,name="Mar Soler",line="The neighborhood flowerbeds could use a little care. Can you lend a hand today?",hint="Visit the three raised flowerbeds in Rambla Gardens.",quests={Config.Quests[2],Config.Quests[3]}})
 task.wait(.15)

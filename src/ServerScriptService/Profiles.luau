@@ -51,6 +51,7 @@ function Profiles.Sanitize(raw)
     end
     local sound=Config.GetSound(raw.sound)
     if sound then data.sound=(sound.level<=data.level and sound or Config.SoundForLevel(data.level)).id end
+    if type(raw.customColor)=="string" and #raw.customColor==6 and raw.customColor:match("^%x+$") then data.customColor=raw.customColor:upper();data.useCustomColor=raw.useCustomColor==true end
     if type(raw.aura)=="string" and Config.Auras[raw.aura] then data.aura=raw.aura end
     if type(raw.availableQuests)=="table" then
         for _,q in ipairs(Config.Quests) do if raw.availableQuests[q.id]==true then data.availableQuests[q.id]=true end end

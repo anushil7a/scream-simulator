@@ -38,12 +38,14 @@ local attackAudio=require(script.Parent:WaitForChild("AttackAudio")).new()
 local attackAudioSettings=require(RS.Shared.AttackAudioConfig)
 script.Destroying:Connect(function() attackAudio:Destroy() end)
 script.Destroying:Connect(function() mic:Destroy() end)
+local ShopUI=require(script.Parent:WaitForChild("ShopUI"))
+script.Destroying:Connect(function() ShopUI.Clear() end)
 local ScreamEffects=require(script.Parent:WaitForChild("ScreamEffects"))
 script.Destroying:Connect(function() ScreamEffects.Clear() end)
 local remotes=RS:WaitForChild("ScreamRemotes")
 local action=remotes:WaitForChild("Action")
 local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")
-local dark=Color3.fromRGB(19,32,40);local panel=Color3.fromRGB(29,47,55);local gold=Color3.fromRGB(255,205,111);local white=Color3.fromRGB(239,244,240);local muted=Color3.fromRGB(165,188,193)
+local dark=Color3.fromRGB(10,16,31);local panel=Color3.fromRGB(23,34,55);local gold=Color3.fromRGB(80,226,255);local white=Color3.fromRGB(240,247,255);local muted=Color3.fromRGB(159,178,207)
 local data={level=1,xp=0,xpNext=Config.XPToNext(1),coins=0,health=100,sound="TinyAah",aura="Gold",quests={},settings={volume=.55,reducedShake=false}}
 local function frame(parent,name,size,pos,color)
  local f=Instance.new("Frame");f.Name=name;f.Size=size;f.Position=pos;f.BackgroundColor3=color or dark;f.BorderSizePixel=0;f.Parent=parent
@@ -58,18 +60,23 @@ local function button(parent,name,text,size,pos,callback,color)
 end
 local top=frame(gui,"Navigation",UDim2.fromOffset(250,40),UDim2.fromOffset(14,12));top.BackgroundTransparency=1
 local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,0);modal.ZIndex=10;modal.Visible=false
+local menuEdge=Instance.new("UIStroke");menuEdge.Color=gold;menuEdge.Transparency=.5;menuEdge.Parent=modal
+modal.BackgroundColor3=Color3.new(1,1,1)
+local menuGlow=Instance.new("UIGradient");menuGlow.Color=ColorSequence.new(Color3.fromRGB(36,50,76),dark);menuGlow.Rotation=80;menuGlow.Parent=modal
+local brandStripe=frame(modal,"SignalStripe",UDim2.new(1,-44,0,2),UDim2.fromOffset(22,8),gold)
 local menuScale=Instance.new("UIScale");menuScale.Parent=modal
 local title=label(modal,"SCREAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
 local subtitle=label(modal,"Train for XP. Unlock a new scream every ten levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
 button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function() modal.Visible=false end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
-local selected="Screams";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
+local selected="Shop";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local conversationPanel,showConversation,closeConversation
 local function toggleTab(name)
  local opening=not modal.Visible or selected~=name
  selected=name;modal.Visible=opening
  if opening then
+  if name=="Shop" then action:FireServer("ShopRefresh") end
   if closeConversation then closeConversation() end
   if devPanel then devPanel.Visible=false end
   render()
@@ -78,9 +85,10 @@ end
 local function toggle()
  if modal.Visible then modal.Visible=false else toggleTab(selected) end
 end
-local shop=button(top,"ShopToggle","SCREAMS  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),function() toggleTab("Screams") end,gold);shop.TextColor3=dark
+local shop=button(top,"ShopToggle","SHOP  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),function() toggleTab("Shop") end,gold);shop.TextColor3=dark
 local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests") end)
 local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.08
+frame(hud,"EnergyAccent",UDim2.new(1,-24,0,2),UDim2.fromOffset(12,2),gold)
 local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-24,0,22),UDim2.fromOffset(12,7),14,gold)
 local health=label(hud,"100 HP",UDim2.fromOffset(65,20),UDim2.fromOffset(12,31),12)
 local hb=frame(hud,"HealthTrack",UDim2.fromOffset(142,6),UDim2.fromOffset(83,38),panel)
@@ -314,7 +322,11 @@ for i,item in ipairs(testCommands) do
  button(testContent,item[1],item[2],UDim2.fromOffset(98,44),UDim2.fromOffset(((i-1)%2)*108,math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
 end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then modal.Visible=false end end);testButton.Visible=false
-local function card(height) return frame(content,"Card",UDim2.new(1,-8,0,height),UDim2.new(),panel) end
+local function card(height)
+ local c=frame(content,"Card",UDim2.new(1,-8,0,height),UDim2.new(),panel)
+ local edge=Instance.new("UIStroke");edge.Color=Color3.fromRGB(64,91,125);edge.Transparency=.65;edge.Parent=c
+ return c
+end
 local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
 local renderedMenuKey,renderedTab
 local renderRevision=0
@@ -323,7 +335,8 @@ local function menuKey()
  local fields
  if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped}
  elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,challenges=data.combatChallenges,level=data.level}
- elseif selected=="Style" then fields={aura=data.aura,owned=data.amplifierOwned,equipped=data.amplifierEquipped}
+ elseif selected=="Style" then fields={aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped}
+ elseif selected=="Shop" then fields={spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,firstPerson=firstPerson}
  else fields={} end
  return selected..":"..gui.AbsoluteSize.X..":"..game:GetService("HttpService"):JSONEncode(fields)
@@ -337,11 +350,15 @@ render=function()
  local scroll=renderedTab==selected and content.CanvasPosition or Vector2.zero
  renderedMenuKey=key;renderedTab=selected;renderRevision+=1
  local revision=renderRevision
+ ShopUI.Clear()
  mapDot=nil
  narrow=gui.AbsoluteSize.X-24<620
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
- if selected=="Screams" then
+ if selected=="Shop" then
+  title.Text="THE AMPLIFIER";subtitle.Text="SIGNATURE COLORS / POWER YOUR PROGRESS"
+  ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow},action)
+ elseif selected=="Screams" then
   title.Text="SCREAM COLLECTION"
   local nextStyle
   for _,style in ipairs(Config.Sounds) do
@@ -406,6 +423,7 @@ render=function()
   end
  elseif selected=="Style" then
   title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your scream effects."
+  ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
   local equipment=card(narrow and 142 or 90)
   label(equipment,"MICRO-SPEAKER",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
   label(equipment,"+12% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
@@ -413,7 +431,7 @@ render=function()
   info("Movement pass: repeated jumps (24-stud height limit) and consecutive rolls only in safe areas. Arena cooldowns always apply."..(Config.MovementPassId==0 and " Purchase setup is not available yet." or ""),70)
   for name,color in pairs(Config.Auras) do
    local c=card(56);label(c,name,UDim2.new(1,-158,0,36),UDim2.fromOffset(15,10),17,color)
-   button(c,name,data.aura==name and "EQUIPPED" or "USE COLOR",UDim2.fromOffset(126,36),UDim2.new(1,-140,0,10),function() action:FireServer("SetAura",name) end)
+   button(c,name,data.aura==name and not data.useCustomColor and "EQUIPPED" or "USE COLOR",UDim2.fromOffset(126,36),UDim2.new(1,-140,0,10),function() action:FireServer("SetAura",name) end)
   end
  elseif selected=="Map" then
   title.Text="CITY & COAST";subtitle.Text=string.format("Arena District: %d%% PvP. Rest of the map: %d%% safe.",CityMap.arenaPercent,100-CityMap.arenaPercent)
@@ -433,7 +451,7 @@ render=function()
   else attackHelp=touch and "Hold SCREAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / SCREAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
   info(string.format("%s: first or third person\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint, then %.0fs rest",touch and "View button" or "V / view button",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery),touch and 110 or 90)
-  info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SCREAMS opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
+  info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
   local micCard=card(58)
   button(micCard,"Recalibrate","RECALIBRATE MICROPHONE",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
    if sustainedControl then sustainedControl:SetArmed(false) end
@@ -456,7 +474,7 @@ render=function()
   content.CanvasPosition=Vector2.new(0,math.clamp(scroll.Y,0,math.max(0,content.AbsoluteCanvasSize.Y-content.AbsoluteWindowSize.Y)))
  end)
 end
-for i,name in ipairs({"Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() selected=name;render() end) end
+for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() selected=name;render() end) end
 local conversationNPC,conversationUntil
 conversationPanel=frame(gui,"Conversation",UDim2.fromOffset(460,300),UDim2.fromScale(.5,.5));conversationPanel.AnchorPoint=Vector2.new(.5,.5);conversationPanel.Visible=false;conversationPanel.ZIndex=10
 local conversationName=label(conversationPanel,"",UDim2.new(1,-80,0,36),UDim2.fromOffset(18,12),19,gold)
@@ -579,28 +597,19 @@ connectClient(p:GetAttributeChangedSignal("ProtectionEnds"),function() setSprint
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
+local BeamVisuals=require(script.Parent:WaitForChild("BeamVisuals"))
+script.Destroying:Connect(function() BeamVisuals.Clear() end)
+local beamFrame=0
 local sustainedBeams
 if sustainedControl then
- sustainedBeams=require(script.Parent:WaitForChild("SustainedBeams")).new(function()
-  local part=Instance.new("Part");part.Name="SustainedVoiceBeam"
-  part.Anchored=true;part.CanCollide=false;part.CanTouch=false;part.CanQuery=false;part.CastShadow=false
-  part.Material=Enum.Material.Neon
-  return part
- end,function(part,pos,direction,length,width,color)
-  local thickness=math.clamp(width*.12,.15,.8)
-  part.Size=Vector3.new(thickness,thickness,length)
-  local up=math.abs(direction.Y)>.99 and Vector3.xAxis or Vector3.yAxis
-  part.CFrame=CFrame.lookAt(pos+direction*length/2,pos+direction*length,up)
-  part.Color=color;part.Transparency=data.settings.reducedShake and .65 or .35
-  part.Parent=workspace
- end,function(part) part:Destroy() end)
+ sustainedBeams=require(script.Parent:WaitForChild("SustainedBeams")).new(BeamVisuals.Create,BeamVisuals.Update,BeamVisuals.Destroy)
  connectClient(p.CharacterRemoving,function() sustainedBeams:Clear() end)
  connectClient(p.CharacterRemoving,function() attackAudio:Clear() end)
  connectClient(Players.PlayerRemoving,function(leaving) sustainedBeams:Remove(leaving.UserId) end)
  connectClient(Players.PlayerRemoving,function(leaving) attackAudio:Remove(leaving.UserId) end)
  script.Destroying:Connect(function() sustainedBeams:Destroy() end)
 end
-connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth,audioStyleId)
+connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth,audioStyleId,attackLevel)
  if kind=="SustainedHit" then hitFeedback:Accept(id,aura,os.clock());return end
  if kind=="SustainedBeamEnd" then
   attackAudio:Stop(id,os.clock())
@@ -613,7 +622,7 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   if not Players:GetPlayerByUserId(id) or not root or (root.Position-pos).Magnitude>180 or length<.05 then
    sustainedBeams:Remove(id);attackAudio:Remove(id);return
   end
-  sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,Config.Auras[aura] or gold)
+  sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,(typeof(aura)=="Color3" and aura or Config.Auras[aura] or gold),attackLevel or 1,data.settings.reducedShake)
   if (root.Position-pos).Magnitude<=attackAudioSettings.Range then
    local style=type(audioStyleId)=="string" and Config.GetSound(audioStyleId)
    attackAudio:Pulse(id,os.clock(),pos,id==p.UserId,style and style.level)
@@ -622,9 +631,10 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  end
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if not root or (root.Position-pos).Magnitude>180 then return end
  if kind=="Break" then
-  for i=1,6 do local chip=fxPart(pos,Config.Auras[id] or gold,Vector3.new(.5,.5,.5));Tween:Create(chip,TweenInfo.new(.45),{Position=pos+Vector3.new(math.cos(i)*3,2,math.sin(i)*3),Transparency=1}):Play() end;return
+  for i=1,6 do local chip=fxPart(pos,(typeof(id)=="Color3" and id or Config.Auras[id] or gold),Vector3.new(.5,.5,.5));Tween:Create(chip,TweenInfo.new(.45),{Position=pos+Vector3.new(math.cos(i)*3,2,math.sin(i)*3),Transparency=1}):Play() end;return
  end
- local color=Config.Auras[kind=="Dodge" and id or aura] or gold
+ local chosenColor=kind=="Dodge" and id or aura
+ local color=typeof(chosenColor)=="Color3" and chosenColor or Config.Auras[chosenColor] or gold
  if kind=="Dodge" then local f=fxPart(pos,color,Vector3.new(2,3,2));Tween:Create(f,TweenInfo.new(.35),{Transparency=1,Size=Vector3.new(5,1,5)}):Play();return end
  local s=Config.GetSound(id);if not s then return end
  -- Actual voice stays on Roblox proximity audio. Owner-selected SFX are separate.
@@ -637,6 +647,7 @@ local lastViewport,lastTouch
 modal.Close.Modal=true;micPanel.Calibrate.Modal=true;conversationPanel.Close.Modal=true
 testContent.XP.Modal=true
 connectClient(Run.RenderStepped,function(dt)
+ ShopUI.Tick()
  refreshHealth()
  local viewport=gui.AbsoluteSize
  local touch=UIS.TouchEnabled
@@ -727,16 +738,16 @@ connectClient(Run.RenderStepped,function(dt)
  title.TextSize=width<620 and 20 or 23
  subtitle.Visible=not short;subtitle.Size=UDim2.new(1,-44,0,width<620 and 42 or 25)
  local tabY=short and 54 or width<620 and 102 or 88
- local columns=width<360 and 3 or 5;local rows=math.ceil(5/columns)
+ local columns=width<620 and 3 or 6;local rows=math.ceil(6/columns)
  local tabWidth=(width-40-(columns-1)*6)/columns
- for i,name in ipairs({"Screams","Quests","Style","Map","Settings"}) do
+ for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do
   local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(20+((i-1)%columns)*(tabWidth+6),tabY+math.floor((i-1)/columns)*50);b.TextSize=width<620 and 12 or 14
  end
  content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
  if width~=lastLayoutWidth then lastLayoutWidth=width;if modal.Visible then render() end end
  -- Keep desktop controls compact; smaller displays retain readable button text.
  local tight=viewport.X<380
- shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "SCREAMS" or "SCREAMS [B]"
+ shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "SHOP" or "SHOP [B]"
  questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
  testButton.Size=UDim2.fromOffset(tight and 90 or 112,touch and 44 or 32);testButton.Position=UDim2.new(1,tight and -104 or -126,0,14)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,64) or UDim2.new(0,14,1,-108)
@@ -777,8 +788,18 @@ connectClient(Run.RenderStepped,function(dt)
  local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",p:GetAttribute("SprintCharge") or 10)..(touch and "" or " [SHIFT]")
  if os.clock()>toastUntil then toast.Text="" end
  aimInfo.Visible=gameplayVisible
+ if sustainedBeams then
+  local now=os.clock();sustainedBeams:Expire(now)
+  beamFrame+=dt
+  if beamFrame>=1/30 then
+   beamFrame=0
+   local camera=workspace.CurrentCamera
+   if camera then
+    for _,entry in pairs(sustainedBeams.entries) do BeamVisuals.Animate(entry.visual,now,camera.CFrame.Position,data.settings.reducedShake) end
+   end
+  end
+ end
  elapsed+=dt;if elapsed<.15 then return end;elapsed=0
- if sustainedBeams then sustainedBeams:Expire(os.clock()) end
  attackAudio:Step(os.clock(),dt,mic.ready and mic.power>.12,mic.phase~=nil)
  aimInfo.Text=""
  if aimInfo.Visible then

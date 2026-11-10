@@ -13,6 +13,8 @@ local Access=require(script.Parent.DeveloperAccess)
 local Rules=require(script.Parent.CombatRules)
 local VoiceCombat=require(ReplicatedStorage.Shared.VoiceCombat)
 local Entitlements=require(script.Parent.Entitlements)
+local Commerce=require(script.Parent.Commerce)
+local ShopCatalog=require(ReplicatedStorage.Shared.ShopCatalog)
 local Soccer=require(script.Parent.SoccerChallenge)
 local BeachVolley=require(script.Parent.BeachVolley)
 local QuestLifecycle=require(ReplicatedStorage.Shared.QuestLifecycle)
@@ -65,6 +67,10 @@ end
 local function cancelSustained(p,s,now)
  if s.sustained then sustainedEnd(p,sustained.Cancel(s.sustained,now),now) end
 end
+local function beamColor(p,s)
+ if s.data.useCustomColor and s.data.customColor and Entitlements.HasSpectrum(p) then return Color3.fromHex(s.data.customColor) end
+ return s.data.aura
+end
 local function state(p,message,conversation)
  local s=sessions[p];if not s or not p.Parent then return end
  if p:GetAttribute("ScreamLevel")~=s.data.level then p:SetAttribute("ScreamLevel",s.data.level) end
@@ -75,12 +81,22 @@ local function state(p,message,conversation)
  local step=QuestGuide.Step(quest,progress and progress.progress or 0,s.carrying,s.raceStart~=nil,soccer and soccer.detail,deliveryStop and deliveryStop.name)
  Equipment.Sync(p,s.data.amplifierEquipped)
  stateRemote:FireClient(p,{coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
+ shop=Commerce.Status(p),spectrumPass=Entitlements.HasSpectrum(p),customColor=s.data.customColor,useCustomColor=s.data.useCustomColor,
  combatChallenges=s.data.combatChallenges,training=TrainingRules.Recommended(s.data.level).name,milestone=s.milestone,
  amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
  availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,testSession=s.testBaseline~=nil,message=message})
+end
+Commerce.Start(function(p)
+ local s=sessions[p]
+ return s~=nil and s.canSave and not s.testBaseline and not localFixture and not RunService:IsStudio()
+end,state)
+local function coins(p,amount)
+ local s=sessions[p];if not s then return 0 end
+ local reward=math.max(0,math.floor(amount*Commerce.Multiplier(p,"coins")))
+ s.data.coins=math.min(1000000000,s.data.coins+reward);return reward
 end
 local function syncHealth(p,full)
  local s=sessions[p];local _,_,h=parts(p);if not s or not h then return end
@@ -89,6 +105,7 @@ local function syncHealth(p,full)
 end
 local function xp(p,amount)
  local s=sessions[p];if not s then return end
+ amount=amount*Commerce.Multiplier(p,"xp")
  local d=s.data;if d.level>=Config.MaxLevel then return end
  d.xp+=math.max(0,math.floor(amount));local before=d.level
  while d.level<Config.MaxLevel and d.xp>=Config.XPToNext(d.level) do d.xp-=Config.XPToNext(d.level);d.level+=1 end
@@ -114,7 +131,7 @@ local function combatChallenge(p,id,quiet)
  local reward,name=Config.Progression.Advance(s.data.combatChallenges,id,s.data.level)
  if reward>0 then
   xp(p,reward)
-  if not quiet then state(p,name.." · +"..reward.." XP · challenge renewed") end
+  if not quiet then state(p,name.." · +"..(reward*Commerce.Multiplier(p,"xp")).." XP · challenge renewed") end
  end
  return reward
 end
@@ -131,14 +148,14 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
   local reward=math.floor(pool*share*factor*repeatFactor)
   if reward>0 then
    local underdog=targetLevel>=rs.data.level
-   xp(recipient,reward);rs.data.coins+=math.floor((victim and 20 or 5)*share*factor*repeatFactor)
+   xp(recipient,reward);coins(recipient,math.floor((victim and 20 or 5)*share*factor*repeatFactor))
    if victim and recipient==finisher and underdog then questProgress(recipient,"Underdog") end
    local bonus=0
    if tier and factor>=.5 and meaningful[id] then
     bonus+=combatChallenge(recipient,"fighters",true)
     if tier.id=="elite" then bonus+=combatChallenge(recipient,"elite",true) end
    end
-   state(recipient,(recipient==finisher and "KO" or "Assist").." · +"..(reward+bonus).." XP"..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
+   state(recipient,(recipient==finisher and "KO" or "Assist").." · +"..((reward+bonus)*Commerce.Multiplier(recipient,"xp")).." XP"..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
   elseif recipient==finisher then state(recipient,"KO · repeat-opponent reward limited") end
  end
 end
@@ -302,7 +319,7 @@ local function stepSustained(p,s,now)
   for _,viewer in ipairs(Players:GetPlayers()) do
    local _,root=parts(viewer)
    if root and (root.Position-beam.origin).Magnitude<=180 then
-    effect:FireClient(viewer,"SustainedBeam",beam.origin,p.UserId,s.data.aura,beam.direction,beam.length,beam.width,intent.audioStyleId)
+    effect:FireClient(viewer,"SustainedBeam",beam.origin,p.UserId,beamColor(p,s),beam.direction,beam.length,beam.width,intent.audioStyleId,intent.level)
    end
   end
  end
@@ -324,7 +341,7 @@ local function stepSustained(p,s,now)
    local hint=destructionHint(intent,result);if hint then state(p,hint) end
    if result and not result.reason then dealt+=math.max(0,previous-result.health) end
    if result and result.destroyed then
-    effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition");coverChallenge(p,result,now)
+    effect:FireAllClients("Break",result.position,beamColor(p,s));questProgress(p,"Demolition");coverChallenge(p,result,now)
    end
   else
    local bot=target.bot
@@ -345,8 +362,8 @@ local function stepSustained(p,s,now)
    elseif hit.firstHit then World.ReactToScream(bot,context.position) end
    World.UpdateBot(bot)
    if not bot.training then
-    local coins,rewardXP=SustainedRewards.Hit(intent,s.botRewards,bot.id,now,hit.firstHit,ko)
-    if coins>0 or rewardXP>0 then s.data.coins+=coins;xp(p,rewardXP) end
+    local rewardCoins,rewardXP=SustainedRewards.Hit(intent,s.botRewards,bot.id,now,hit.firstHit,ko)
+    if rewardCoins>0 or rewardXP>0 then coins(p,rewardCoins);xp(p,rewardXP) end
    end
   end
  end
@@ -371,7 +388,7 @@ local function cast(p,request)
  s.nextCast=s.voice.nextCast;p:SetAttribute("ScreamReleased",workspace:GetServerTimeNow());p:SetAttribute("CaptureStarted",0)
  local obstruction=beamObstruction(c,origin,direction,sound.range,Players:GetPlayers())
  local length=obstruction and obstruction.Distance or sound.range
- effect:FireAllClients("Scream",origin,style.id,s.data.aura,direction,length,sound.width)
+ effect:FireAllClients("Scream",origin,style.id,beamColor(p,s),direction,length,sound.width)
  Soccer.Hit(p,origin,direction,length,sound.width,sound.power)
  BeachVolley.Hit(p,origin,direction,length,sound.width,sound.power)
  local castMessage
@@ -388,7 +405,7 @@ local function cast(p,request)
     s.nextHeal=now+Config.HealQuietSeconds
     local name=result.model:GetAttribute("ObjectName") or result.kind
     castMessage=result.destroyed and name.." destroyed" or string.format("%s hit · %d durability left",name,result.health)
-    if result.destroyed then effect:FireAllClients("Break",result.position,s.data.aura);questProgress(p,"Demolition");coverChallenge(p,result,now) end
+    if result.destroyed then effect:FireAllClients("Break",result.position,beamColor(p,s));questProgress(p,"Demolition");coverChallenge(p,result,now) end
    end
   end
  end
@@ -404,7 +421,7 @@ local function cast(p,request)
    else World.ReactToScream(bot,r.Position) end
    World.UpdateBot(bot)
    if not bot.training and now>=(s.botRewards[bot.id] or 0) and paid<5 then
-    s.botRewards[bot.id]=now+VoiceCombat.Cooldown;paid+=1;s.data.coins+=ko and 5 or 2;xp(p,ko and SustainedRewards.KOXP or SustainedRewards.HitXP)
+    s.botRewards[bot.id]=now+VoiceCombat.Cooldown;paid+=1;coins(p,ko and 5 or 2);xp(p,ko and SustainedRewards.KOXP or SustainedRewards.HitXP)
    end
   end
  end
@@ -456,7 +473,7 @@ local function dodge(p)
  local start=r.CFrame;r:SetNetworkOwner(nil);h.AutoRotate=false
  r.CFrame=CFrame.lookAt(r.Position,r.Position+direction)
  p:SetAttribute("DodgeStarted",workspace:GetServerTimeNow());p:SetAttribute("DodgeDirection",direction)
- effect:FireAllClients("Dodge",r.Position,s.data.aura)
+ effect:FireAllClients("Dodge",r.Position,beamColor(p,s))
  task.spawn(function()
   local previousDistance=0
   while sessions[p]==s and s.lastDodge==now and c.Parent and p.Character==c and h.Health>0 and s.dodgingUntil>os.clock() and os.clock()-now<Config.DodgeDuration do
@@ -519,7 +536,7 @@ local function talk(p,id)
   if not contextLine and b.name=="Nick Booty" and s.data.achievements.NickChampion then contextLine="My champion is back! I have practiced. The goal is still winning." end
   local message=b.name..": "..World.Talk(b,p,contextLine)
   if b.name=="Nick Booty" and not s.data.achievements.FoundNick then
-   s.data.achievements.FoundNick=true;s.data.coins+=50;message="Hidden achievement: Found Nick Booty! +50 coins. "..message
+   s.data.achievements.FoundNick=true;local foundCoins=coins(p,50);message="Hidden achievement: Found Nick Booty! +"..foundCoins.." coins. "..message
   end
   if b.questIds then
    for _,questId in ipairs(b.questIds) do s.data.availableQuests[questId]=true end
@@ -536,6 +553,7 @@ local function talk(p,id)
  end end
 end
 local function dev(p,command)
+ if Commerce.Busy(p) then state(p,"Wait for your purchase to finish saving.");return end
  local s=sessions[p];if not s or not Access.IsAuthorized(p,game.CreatorType,game.CreatorId) then return end
  local valid={Coins=true,XP=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true,StudioMovement=true}
  if type(command)~="string" or not valid[command] then return end
@@ -669,7 +687,13 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="EquipSound" then local sound=type(arg)=="string" and Config.GetSound(arg);if sound and sound.level<=s.data.level then s.data.sound=sound.id;state(p,sound.name.." equipped") end
  elseif verb=="MicroSpeaker" then microSpeaker(p,s,true)
  elseif verb=="VendorPurchase" then vendorPurchase(p,s,arg)
- elseif verb=="SetAura" and type(arg)=="string" and Config.Auras[arg] then s.data.aura=arg;state(p)
+ elseif verb=="ShopPurchase" then Commerce.Prompt(p,arg)
+ elseif verb=="ActivateBoost" then Commerce.Activate(p,arg)
+ elseif verb=="ShopRefresh" then task.spawn(Commerce.Load,p)
+ elseif verb=="SetCustomColor" then
+  local hex=ShopCatalog.Hex(arg)
+  if hex and Entitlements.HasSpectrum(p) then s.data.customColor=hex;s.data.useCustomColor=true;state(p,"Signature color equipped") end
+ elseif verb=="SetAura" and type(arg)=="string" and Config.Auras[arg] then s.data.aura=arg;s.data.useCustomColor=false;state(p)
  elseif verb=="AcceptQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg)
   if q and not s.data.availableQuests[q.id] then state(p,"Meet "..(q.giver or "the quest giver").." to unlock this task.");return end
@@ -688,7 +712,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="AbandonQuest" then stopQuest(p);state(p,"Task abandoned. Unfinished progress was reset; earned rewards remain claimable.")
  elseif verb=="ClaimQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg);local v=q and s.data.quests[q.id]
-  if v and not v.claimed and v.progress>=q.goal then v.claimed=true;if q.id=="nick" then s.data.achievements.NickChampion=true end;s.data.coins+=q.coins;xp(p,q.xp);if s.activeQuest==q.id then stopQuest(p) end;state(p,"Quest reward · +"..q.xp.." XP · +"..q.coins.." coins") end
+  if v and not v.claimed and v.progress>=q.goal then v.claimed=true;if q.id=="nick" then s.data.achievements.NickChampion=true end;coins(p,q.coins);xp(p,q.xp);if s.activeQuest==q.id then stopQuest(p) end;state(p,"Quest reward · +"..(q.xp*Commerce.Multiplier(p,"xp")).." XP · +"..(q.coins*Commerce.Multiplier(p,"coins")).." coins") end
  elseif verb=="SetSettings" and type(arg)=="table" then
   if type(arg.volume)=="number" and arg.volume==arg.volume then s.data.settings.volume=math.clamp(arg.volume,0,1) end
   if type(arg.reducedShake)=="boolean" then s.data.settings.reducedShake=arg.reducedShake end;state(p)
@@ -702,6 +726,7 @@ local function joined(p)
  if not p.Parent then if save then Profiles.Save(p.UserId,data,true) end;return end
  local s={data=data,canSave=save,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
  botRewards={},credit={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
+ task.spawn(Commerce.Load,p)
  if sustainedEnabled then
   s.sustained=sustained.New()
   p:SetAttribute("SustainedActive",false);p:SetAttribute("SustainedReadyAt",0);p:SetAttribute("SustainedEndsAt",0)

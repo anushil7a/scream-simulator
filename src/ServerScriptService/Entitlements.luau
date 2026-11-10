@@ -2,7 +2,9 @@
 local Marketplace=game:GetService("MarketplaceService")
 local Players=game:GetService("Players")
 local Config=require(game.ReplicatedStorage.Shared.Config)
+local Catalog=require(game.ReplicatedStorage.Shared.ShopCatalog)
 local Entitlements={}
+local spectrum={}
 local owned={}
 local testOwned={}
 function Entitlements.SetStudioMovement(player,enabled)
@@ -14,12 +16,18 @@ function Entitlements.HasStudioMovement(player)
  return game:GetService("RunService"):IsStudio() and testOwned[player]==true
 end
 function Entitlements.Refresh(player)
+ local spectrumId=Catalog.Get("Spectrum").id
+ if spectrumId>0 then
+  local success,result=pcall(Marketplace.UserOwnsGamePassAsync,Marketplace,player.UserId,spectrumId)
+  if player.Parent and success then spectrum[player]=result==true end
+ else spectrum[player]=false end
  local id=Config.MovementPassId
  if type(id)~="number" or id<=0 then owned[player]=false;return false end
  local success,result=pcall(Marketplace.UserOwnsGamePassAsync,Marketplace,player.UserId,id)
  if player.Parent and success then owned[player]=result==true end
  return owned[player]==true
 end
+function Entitlements.HasSpectrum(player) return spectrum[player]==true end
 function Entitlements.HasMovement(player)
  return owned[player]==true or Entitlements.HasStudioMovement(player)
 end
@@ -27,7 +35,7 @@ function Entitlements.CanUseMovement(player,position)
  return Entitlements.HasMovement(player) and not Config.InArena(position)
 end
 Marketplace.PromptGamePassPurchaseFinished:Connect(function(player,id,purchased)
- if id==Config.MovementPassId and purchased then task.spawn(Entitlements.Refresh,player) end
+ if (id==Config.MovementPassId or id==Catalog.Get("Spectrum").id) and purchased then task.spawn(Entitlements.Refresh,player) end
 end)
-Players.PlayerRemoving:Connect(function(player) owned[player]=nil;testOwned[player]=nil end)
+Players.PlayerRemoving:Connect(function(player) owned[player]=nil;testOwned[player]=nil;spectrum[player]=nil end)
 return Entitlements

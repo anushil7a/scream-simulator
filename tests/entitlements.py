@@ -11,6 +11,7 @@ local config={MovementPassId=0,InArena=function(position) return position=="aren
 local services={RunService={IsStudio=function() return studio end},Players={PlayerRemoving=event("removed")},MarketplaceService={PromptGamePassPurchaseFinished=event("purchase"),UserOwnsGamePassAsync=function() error("No purchase/ownership calls permitted") end}}
 local game={ReplicatedStorage={Shared={Config={}}},GetService=function(_,name) return services[name] end}
 local function require(_) return config end
+config.Get=function()return {id=0}end
 local Entitlements=(function()
 '''
 checks = '''
