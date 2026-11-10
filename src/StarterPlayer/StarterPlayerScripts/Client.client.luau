@@ -200,8 +200,15 @@ end
 local function toggleVoice()
  if not sustainedControl then return end
  -- Pausing is always allowed; arming must be an available gameplay action.
- if not sustainedControl.armed and (not windowFocused or blocked()) then return end
+ if not sustainedControl.armed and (not windowFocused or blocked()) then
+  notify("Screams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.");return
+ end
  sustainedControl:SetArmed(not sustainedControl.armed)
+ notify(sustainedControl.armed and "Screams ON. Go quiet, then speak to attack. Voice chat is unchanged."
+  or "Screams OFF. Talk freely without attacking. Voice chat is unchanged.")
+end
+local function screamToggleLabel(armed,touch)
+ return (armed and "SCREAMS: ON" or "SCREAMS: OFF").."\n"..(touch and "Tap" or "[E]")..(armed and " to turn off" or " to turn on")
 end
 local function releaseCapture(source)
  if captureSource~=source then return end
@@ -219,6 +226,7 @@ local function dodge()
 end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
 local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),toggleVoice,gold);castButton.TextColor3=dark
+castButton.TextWrapped=true;castButton.Selectable=true
 local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-12,0,3),UDim2.new(0,6,1,-6),panel)
 local voiceTimeFill=frame(voiceTimeTrack,"RemainingOrRecovery",UDim2.fromScale(0,1),UDim2.new(),muted)
 voiceTimeTrack.Visible=false
@@ -463,7 +471,7 @@ render=function()
   local touch=UIS.TouchEnabled
   local attackHelp
   if sustainedControl then
-   attackHelp=string.format("Calibrate once, aim, then speak to attack. Up to %.0fs active, followed by %.0fs cooldown.\n%s pauses/resumes voice attacks. Be quiet briefly before starting another scream.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap VOICE" or "E / VOICE")
+   attackHelp=string.format("Calibrate once, aim, then speak to attack. Up to %.0fs active, followed by %.0fs cooldown.\n%s toggles SCREAMS ON/OFF. OFF lets you talk without attacking; voice chat is unchanged. Go quiet before starting another scream.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap SCREAMS" or "E / SCREAMS")
   else attackHelp=touch and "Hold SCREAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / SCREAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
   info(string.format("%s: first or third person\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint, then %.0fs rest",touch and "View button" or "V / view button",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery),touch and 110 or 90)
@@ -473,7 +481,7 @@ render=function()
    if sustainedControl then sustainedControl:SetArmed(false) end
    cancelCapture();setSprint(false);mic:Calibrate();modal.Visible=false
   end)
-  info("Changed microphone or room noise? Recalibrate with a comfortable strong voice. "..(sustainedControl and "Voice attacks stay paused afterward; use ARM VOICE to resume." or "After calibration, hold SCREAM and use a fresh live voice input."),80)
+  info("Changed microphone or room noise? Recalibrate with a comfortable strong voice. "..(sustainedControl and "Screams stay OFF afterward; use SCREAMS to turn attacks back on. Voice chat is unchanged." or "After calibration, hold SCREAM and use a fresh live voice input."),80)
   local cameraCard=card(58);button(cameraCard,"CameraMode", "VIEW: "..(firstPerson and "FIRST PERSON" or "THIRD PERSON"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),toggleCamera)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   local audioCard=card(58);local audioButton
@@ -741,14 +749,14 @@ connectClient(Run.RenderStepped,function(dt)
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
  if sustainedControl then
-  captureHint=not alive and "Respawning • voice paused"
+  captureHint=not alive and "Respawning • screams OFF"
    or not windowFocused and "Window inactive • attack paused"
    or protectionRemaining>0 and string.format("Spawn protection • %.1fs",protectionRemaining)
    or (knocked or humanoid.PlatformStand) and "Recovering • attack unavailable"
    or rolling and "Rolling • attack cancelled"
    or UIS:GetFocusedTextBox()~=nil and "Typing • attack paused"
    or data.micReady~=true and "Connecting microphone…"
-   or not sustainedControl.armed and (touch and "Voice paused • tap ARM VOICE" or "Voice paused • E to resume")
+   or not sustainedControl.armed and (touch and "Screams OFF • tap to turn on" or "Screams OFF • E to turn on")
    or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
    or os.clock()<(sustainedControl.unconfirmedUntil or 0) and "Not confirmed • quiet, then retry"
@@ -759,6 +767,9 @@ connectClient(Run.RenderStepped,function(dt)
    or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
  end
  meterText.Text=string.format("%s %d%% • up to %.0f studs\n%s",captureSource and "SCREAM POWER" or "LIVE MIC",math.floor(power*100),range,captureHint)
+ if sustainedControl and not sustainedControl.armed then
+  meterText.Text="SCREAMS OFF · TALK FREELY\nVoice chat is unchanged"
+ end
  if layoutChanged then
  local short=viewport.Y<550
  menuScale.Scale=1
@@ -797,8 +808,10 @@ connectClient(Run.RenderStepped,function(dt)
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD SCREAM [E]"
  if sustainedControl then
-  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s"
-   or (sustainedControl.armed and "PAUSE VOICE" or "ARM VOICE")..(touch and "" or " [E]")
+  -- Keep the toggle state visible even during protection/cooldown; those gates
+  -- still control attacks, but never disguise an OFF choice as a mic mute.
+  castButton.Text=screamToggleLabel(sustainedControl.armed,touch)
+  castButton.TextSize=12
  end
  -- Keep attack duration/cooldown distinct from live microphone loudness.
  voiceTimeTrack.Visible=sustainedControl~=nil and alive and protected<=0 and (voiceActive or (voiceCooldown or 0)>0)

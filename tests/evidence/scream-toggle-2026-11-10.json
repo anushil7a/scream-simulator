@@ -1,0 +1,553 @@
+{
+  "date": "2026-11-10",
+  "baseCommit": "1416fc6ef51cd94f97440b8fc57dfc1c78ba2361",
+  "behavior": [
+    "Automatic mode has explicit SCREAMS ON/OFF text, E keyboard shortcut and 144x44 selectable button with touch action hint.",
+    "OFF disarms attacks and sends one matching SustainedStop when active; it does not mute, destroy or reconfigure microphone/proximity voice.",
+    "OFF remains off through cooldown expiry, quiet/speech and character availability recovery. Actual CharacterRemoving callback disarms; resume requires explicit ON and fresh quiet.",
+    "First successful calibration still initially arms as before. Choice is session-local, not a saved preference across rejoins.",
+    "Server validation, four-second maximum, ten-second cooldown, and legacy hold/release mode are unchanged."
+  ],
+  "checks": {
+    "command": "python tests/verify_local.py --build",
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 53,
+    "productionCompiles": 56,
+    "builds": "all passed",
+    "focusedCommand": "python tests/voice_toggle.py --negative-controls",
+    "focusedChecks": 28,
+    "negativeControls": [
+      "No-op Cancel rejected at explicit active-stop assertion",
+      "Forced rearm rejected at OFF recovery assertion"
+    ],
+    "native": {
+      "log": "0.747.0.7471481_20261110T200252Z_Studio_C2314_last.log",
+      "report": {
+        "serverCounts": {
+          "SustainedBegin": 12,
+          "MicReady": 3,
+          "SustainedPulse": 14,
+          "SustainedStop": 7,
+          "nonstring": 1
+        },
+        "checks": 49,
+        "elapsed": 52.37905000000001,
+        "passed": true,
+        "sourceSha256": "e9a7d8f189ac2fa20cc2fb0a669ea577b547ea23ce34a1857690189924f6d166",
+        "toggleStopEvidence": {
+          "sequence": 6,
+          "id": 33,
+          "requestKind": "number",
+          "accepted": true,
+          "before": {
+            "aimY": 5.099999904632568,
+            "sequence": 6,
+            "active": true,
+            "aimZ": 222,
+            "aimX": -683,
+            "sample": 1,
+            "lastSequence": 6,
+            "power": 0.5,
+            "started": 61.199566100000084,
+            "nextStart": 60.51759080000011,
+            "lastPulse": 61.33322739999994
+          },
+          "now": 61.416661100000056,
+          "after": {
+            "lastSequence": 6,
+            "nextStart": 71.41666110000006,
+            "active": false
+          },
+          "ended": {
+            "endedAt": 61.416661100000056,
+            "nextStart": 71.41666110000006,
+            "sequence": 6,
+            "reason": "stop"
+          },
+          "operation": "Stop"
+        },
+        "stages": [
+          {
+            "name": "malformed",
+            "elapsed": 3.180696600000374
+          },
+          {
+            "name": "scheduled attack",
+            "elapsed": 4.597910899999988
+          },
+          {
+            "name": "cooldown rejection",
+            "elapsed": 5.963917700000366
+          },
+          {
+            "name": "availability interruption",
+            "elapsed": 18.51305709999997
+          },
+          {
+            "name": "screams toggle",
+            "elapsed": 31.17979170000035
+          },
+          {
+            "name": "complete",
+            "elapsed": 52.37904610000032
+          }
+        ],
+        "scheduledMessages": 22,
+        "savingDisabled": true,
+        "replayEvidence": [
+          {
+            "sequence": 2,
+            "id": 12,
+            "requestKind": "table",
+            "accepted": false,
+            "before": {
+              "aimY": 5.099999904632568,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 25.218160200000057,
+              "nextStart": 0,
+              "lastPulse": 25.7510585
+            },
+            "now": 25.80185449999999,
+            "after": {
+              "aimY": 5.099999904632568,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 25.218160200000057,
+              "nextStart": 0,
+              "lastPulse": 25.7510585
+            },
+            "reason": "replay",
+            "operation": "Begin"
+          },
+          {
+            "sequence": 2,
+            "id": 13,
+            "requestKind": "table",
+            "accepted": false,
+            "before": {
+              "aimY": 5.099999904632568,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 25.218160200000057,
+              "nextStart": 0,
+              "lastPulse": 25.7510585
+            },
+            "now": 25.80189419999988,
+            "after": {
+              "aimY": 5.099999904632568,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 25.218160200000057,
+              "nextStart": 0,
+              "lastPulse": 25.7510585
+            },
+            "reason": "sample",
+            "sample": 1,
+            "operation": "Pulse"
+          },
+          {
+            "before": {
+              "aimY": 5.099999904632568,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 25.218160200000057,
+              "nextStart": 0,
+              "lastPulse": 25.7510585
+            },
+            "id": 14,
+            "after": {
+              "aimY": 5.099999904632568,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 25.218160200000057,
+              "nextStart": 0,
+              "lastPulse": 25.7510585
+            },
+            "accepted": false,
+            "operation": "Pulse",
+            "requestKind": "string",
+            "now": 25.80190700000003,
+            "reason": "sequence"
+          },
+          {
+            "sequence": 2,
+            "id": 15,
+            "requestKind": "table",
+            "accepted": false,
+            "before": {
+              "aimY": 5.099999904632568,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 25.218160200000057,
+              "nextStart": 0,
+              "lastPulse": 25.7510585
+            },
+            "now": 25.80192050000005,
+            "after": {
+              "aimY": 5.099999904632568,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 25.218160200000057,
+              "nextStart": 0,
+              "lastPulse": 25.7510585
+            },
+            "reason": "sample",
+            "sample": "nonfinite",
+            "operation": "Pulse"
+          },
+          {
+            "sequence": 1,
+            "id": 16,
+            "requestKind": "number",
+            "accepted": false,
+            "before": {
+              "aimY": 5.099999904632568,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 25.218160200000057,
+              "nextStart": 0,
+              "lastPulse": 25.7510585
+            },
+            "now": 25.801929199999904,
+            "after": {
+              "aimY": 5.099999904632568,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 25.218160200000057,
+              "nextStart": 0,
+              "lastPulse": 25.7510585
+            },
+            "reason": "sequence",
+            "operation": "Stop"
+          }
+        ],
+        "quietStopEvidence": {
+          "sequence": 5,
+          "id": 30,
+          "requestKind": "number",
+          "accepted": true,
+          "before": {
+            "aimY": 5.099999904632568,
+            "sequence": 5,
+            "active": true,
+            "aimZ": 222,
+            "aimX": -683,
+            "sample": 2,
+            "lastSequence": 5,
+            "power": 0.5,
+            "started": 49.96686749999981,
+            "nextStart": 48.501599799999894,
+            "lastPulse": 50.233972500000164
+          },
+          "now": 50.51759080000011,
+          "after": {
+            "lastSequence": 5,
+            "nextStart": 60.51759080000011,
+            "active": false
+          },
+          "ended": {
+            "endedAt": 50.51759080000011,
+            "nextStart": 60.51759080000011,
+            "sequence": 5,
+            "reason": "stop"
+          },
+          "operation": "Stop"
+        }
+      }
+    },
+    "nativeBuild": {
+      "build": "VoiceTransportReview",
+      "sourceSha256": "e9a7d8f189ac2fa20cc2fb0a669ea577b547ea23ce34a1857690189924f6d166",
+      "mutation": null,
+      "artifactSha256": "c96180d5e11fb76dc735c0fd5c68af6ba8a4b44d98e050757ca27d7994d2f3f0",
+      "scope": "Compiled disposable local fixture; not executed or published"
+    },
+    "toggleStopSecondsBeforeInputTimeout": 0.4165662999998858,
+    "layout": {
+      "log": "0.747.0.7471481_20261110T200431Z_Studio_5CDE5_last.log",
+      "cases": [
+        {
+          "tab": "Shop",
+          "horizontalOverflow": [],
+          "viewport": "390, 844",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "366, 620"
+        },
+        {
+          "tab": "Screams",
+          "horizontalOverflow": [],
+          "viewport": "390, 844",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "366, 620"
+        },
+        {
+          "tab": "Quests",
+          "horizontalOverflow": [],
+          "viewport": "390, 844",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "366, 620"
+        },
+        {
+          "tab": "Style",
+          "horizontalOverflow": [],
+          "viewport": "390, 844",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "366, 620"
+        },
+        {
+          "tab": "Map",
+          "horizontalOverflow": [],
+          "viewport": "390, 844",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "366, 620"
+        },
+        {
+          "tab": "Settings",
+          "horizontalOverflow": [],
+          "viewport": "390, 844",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "366, 620"
+        },
+        {
+          "tab": "SCREAMS: OFF",
+          "viewport": "390, 844",
+          "clipped": [],
+          "text": "SCREAMS: OFF\nTap to turn on",
+          "size": "144, 44"
+        },
+        {
+          "tab": "SCREAMS: ON",
+          "viewport": "390, 844",
+          "clipped": [],
+          "text": "SCREAMS: ON\nTap to turn off",
+          "size": "144, 44"
+        },
+        {
+          "tab": "Shop",
+          "horizontalOverflow": [],
+          "viewport": "844, 390",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 314"
+        },
+        {
+          "tab": "Screams",
+          "horizontalOverflow": [],
+          "viewport": "844, 390",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 314"
+        },
+        {
+          "tab": "Quests",
+          "horizontalOverflow": [],
+          "viewport": "844, 390",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 314"
+        },
+        {
+          "tab": "Style",
+          "horizontalOverflow": [],
+          "viewport": "844, 390",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 314"
+        },
+        {
+          "tab": "Map",
+          "horizontalOverflow": [],
+          "viewport": "844, 390",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 314"
+        },
+        {
+          "tab": "Settings",
+          "horizontalOverflow": [],
+          "viewport": "844, 390",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 314"
+        },
+        {
+          "tab": "SCREAMS: OFF",
+          "viewport": "844, 390",
+          "clipped": [],
+          "text": "SCREAMS: OFF\nTap to turn on",
+          "size": "144, 44"
+        },
+        {
+          "tab": "SCREAMS: ON",
+          "viewport": "844, 390",
+          "clipped": [],
+          "text": "SCREAMS: ON\nTap to turn off",
+          "size": "144, 44"
+        },
+        {
+          "tab": "Shop",
+          "horizontalOverflow": [],
+          "viewport": "1280, 720",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 620"
+        },
+        {
+          "tab": "Screams",
+          "horizontalOverflow": [],
+          "viewport": "1280, 720",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 620"
+        },
+        {
+          "tab": "Quests",
+          "horizontalOverflow": [],
+          "viewport": "1280, 720",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 620"
+        },
+        {
+          "tab": "Style",
+          "horizontalOverflow": [],
+          "viewport": "1280, 720",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 620"
+        },
+        {
+          "tab": "Map",
+          "horizontalOverflow": [],
+          "viewport": "1280, 720",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 620"
+        },
+        {
+          "tab": "Settings",
+          "horizontalOverflow": [],
+          "viewport": "1280, 720",
+          "clipped": [],
+          "undersized": [],
+          "menuSize": "720, 620"
+        },
+        {
+          "tab": "SCREAMS: OFF",
+          "viewport": "1280, 720",
+          "clipped": [],
+          "text": "SCREAMS: OFF\n[E] to turn on",
+          "size": "144, 44"
+        },
+        {
+          "tab": "SCREAMS: ON",
+          "viewport": "1280, 720",
+          "clipped": [],
+          "text": "SCREAMS: ON\n[E] to turn off",
+          "size": "144, 44"
+        },
+        {
+          "tab": "Conversation",
+          "menuSize": "366, 340",
+          "clipped": []
+        },
+        {
+          "tab": "Mic setup",
+          "menuSize": "366, 320",
+          "clipped": []
+        },
+        {
+          "tab": "Long notification",
+          "clipped": false,
+          "size": "358, 52"
+        }
+      ],
+      "failures": 0
+    },
+    "uiAutomation": "Observed mouse click OFF to ON and E key ON to OFF in actual UI preview callback; injected OS input and synthetic microphone, not physical phone/human voice."
+  },
+  "selfReview": {
+    "reviewer": "Implementing agent in a separate post-implementation diff/source pass; no independent agent or human review claimed",
+    "result": "No blocking issue found",
+    "checked": [
+      "Toggle owns attack arming only; no microphone or voice API writes added",
+      "Off bypasses arm eligibility restriction so active cancellation is always allowed",
+      "Character removal/focus/menu disarm behavior preserved",
+      "Stop evidence requires accepted matching sequence before both expiry deadlines; pulses cannot mask it",
+      "PC and mobile-sized labels are explicit rather than color-only; text fits and target is at least 44 pixels",
+      "No server balance/save/product changes; contributor head preserved"
+    ]
+  },
+  "limitations": [
+    "No real microphone/proximity-audio listening or calibration validation",
+    "No physical phone, screen reader/gamepad navigation or human input validation",
+    "CharacterRemoving regression uses mocked event dispatch/availability, not a new native respawn run",
+    "Single local Studio client/server does not establish internet latency, packet loss or multiplayer contention",
+    "No live DataStore writes, audio configuration or Roblox publication"
+  ],
+  "sha256": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "f0423af50a5c03325abbe681c4f8601c308b477fe153136054bd37e8eda96a5f",
+    "src/ReplicatedStorage/Shared/FirstBeamGuide.luau": "4e3ffa8a7b2edd76e36660f4c32663ff4055991a045f6da577cbc673a793ea55",
+    "tests/voice_toggle.py": "fb3f85887fee0ec0fe1223c87677821bb62f8bb704d2951b0d6d613c70311181",
+    "tests/build_ui_preview.py": "a241ca4887367f2b7f9fd7ae9e4845e388875b027743c5209ebf955483d50877",
+    "build/ShopReviewVerified.rbxl": "8beb353a1154fccdc626a3942182e65fb14f22ed6344b55589a0b573b2ed10b4",
+    "build/ShopReview.client.luau": "f3575763663f2b479749f8f7aec9fea206024358d337cd3ff60af27cc3d0a0a2"
+  }
+}

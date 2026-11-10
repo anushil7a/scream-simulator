@@ -13,7 +13,7 @@ task.spawn(function()
  end
  local function snapshot() return probe:InvokeServer("snapshot") end
  local function stage(name) table.insert(stages,{name=name,elapsed=os.clock()-started}) end
- local source;local replayEvidence={};local quietStopEvidence
+ local source;local replayEvidence={};local quietStopEvidence;local toggleStopEvidence
  local function unchangedRejection(entry,reason)
   if entry then table.insert(replayEvidence,entry) end
   check(entry~=nil and not entry.accepted and entry.reason==reason and entry.ended==nil,"Replay was not explicitly rejected: "..reason)
@@ -143,10 +143,36 @@ task.spawn(function()
   check(not sustainedControl.attack and snapshot().cooldown>7,"Quiet-stop acknowledgement or cooldown missing")
   local finalPulse=snapshot().practicePulse;task.wait(.4)
   check(snapshot().practicePulse==finalPulse,"Practice hit continued after quiet stop")
+  stage("screams toggle")
+  waitFor(function() return (p:GetAttribute("SustainedReadyAt") or 0)<=workspace:GetServerTimeNow() end,12,"Toggle setup cooldown did not expire")
+  mic.power=0;task.wait(.4);mic.power=.5
+  waitFor(function() local v=snapshot();return v.active and v.sequence==6 and (v.sample or 0)>=1 end,4,"Toggle setup attack did not start")
+  local toggleCursor=snapshot().auditCount
+  toggleVoice()
+  check(not sustainedControl.armed and not sustainedControl.attack and mic.ready and mic.power==.5,"OFF altered mic readiness/input or retained local attack")
+  waitFor(function()
+   for _,entry in ipairs(probe:InvokeServer("audit",toggleCursor)) do
+    if entry.operation=="Stop" and entry.sequence==6 then toggleStopEvidence=entry;return true end
+   end
+   return false
+  end,1.5,"Toggle OFF did not deliver an explicit SustainedStop")
+  local toggleStop=toggleStopEvidence
+  check(toggleStop.accepted and toggleStop.ended and toggleStop.ended.reason=="stop" and toggleStop.before.active and not toggleStop.after.active,"Toggle OFF did not explicitly stop server combat")
+  check(toggleStop.now<toggleStop.before.lastPulse+sustainedRules.InputTimeout and toggleStop.now<toggleStop.before.started+sustainedRules.MaxDuration,"Toggle stop was masked by server expiry")
+  local toggleSends=0;for _,entry in ipairs(sent) do if entry.verb=="SustainedStop" and entry.sequence==6 then toggleSends+=1 end end
+  check(toggleSends==1 and snapshot().micReady,"Toggle duplicated stop or disabled server mic readiness")
+  local toggleCount=#sent;local readyAt=p:GetAttribute("SustainedReadyAt")
+  check(snapshot().cooldown>8,"Toggle OFF lost cooldown")
+  toggleVoice();mic.power=0;task.wait(.4);mic.power=.5;task.wait(.4)
+  check(sustainedControl.armed and #sent==toggleCount and not snapshot().active and p:GetAttribute("SustainedReadyAt")==readyAt,"Toggle ON bypassed or reset cooldown")
+  toggleVoice()
+  waitFor(function() return (p:GetAttribute("SustainedReadyAt") or 0)<=workspace:GetServerTimeNow() end,12,"Toggle cooldown did not expire")
+  mic.power=0;task.wait(.4);mic.power=.5;task.wait(.4)
+  check(not sustainedControl.armed and #sent==toggleCount and not snapshot().active and snapshot().micReady,"OFF restarted on speech/cooldown expiry or changed readiness")
   stage("complete")
  end,debug.traceback)
  mic.ready=false;mic.power=0;sustainedControl:SetArmed(false)
- local report={passed=ok,checks=checks,error=not ok and tostring(err) or nil,elapsed=os.clock()-started,stages=stages,sourceSha256=source,scheduledMessages=#sent,replayEvidence=replayEvidence,quietStopEvidence=quietStopEvidence}
+ local report={passed=ok,checks=checks,error=not ok and tostring(err) or nil,elapsed=os.clock()-started,stages=stages,sourceSha256=source,scheduledMessages=#sent,replayEvidence=replayEvidence,quietStopEvidence=quietStopEvidence,toggleStopEvidence=toggleStopEvidence}
  local saved,saveError=pcall(function() return probe:InvokeServer("finish",report) end)
  if not saved then warn("VOICE_TRANSPORT_REPORT_FAILED",saveError) end
  print("VOICE_TRANSPORT_CLIENT",game:GetService("HttpService"):JSONEncode(report))

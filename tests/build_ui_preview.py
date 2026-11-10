@@ -45,6 +45,16 @@ for _,tab in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do
  end
  table.insert(report,{viewport=tostring(gui.AbsoluteSize),tab=tab,clipped=clipped,undersized=undersized,horizontalOverflow=overflow,menuSize=tostring(modal.AbsoluteSize)})
 end
+modal.Visible=false
+for _,armed in ipairs({false,true}) do
+ sustainedControl:SetArmed(armed);Run.RenderStepped:Wait();Run.RenderStepped:Wait()
+ local clipped={};if not castButton.TextFits then table.insert(clipped,castButton.Text) end
+ local expected=armed and "SCREAMS: ON" or "SCREAMS: OFF"
+ assert(string.find(castButton.Text,expected,1,true),"Toggle status missing")
+ assert(castButton.AbsoluteSize.X>=44 and castButton.AbsoluteSize.Y>=44,"Toggle touch target too small")
+ assert(castButton.Selectable and controls.Visible,"Toggle unavailable")
+ table.insert(report,{viewport=tostring(gui.AbsoluteSize),tab=expected,clipped=clipped,size=tostring(castButton.AbsoluteSize),text=castButton.Text})
+end
 end
 gui.Size=UDim2.fromOffset(390,844);fixtureTouch=true;Run.RenderStepped:Wait()
 modal.Visible=false
