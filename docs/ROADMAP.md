@@ -34,6 +34,13 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Separate diff/source review found no additional production issue in scope. Studio showed waiting-for-mic guidance; real voice, phone input/layout, proximity audio, multiplayer latency and actual save/reload remain unverified. Owner will configure audio later; no audio/product configuration or publication.
 - Next: real-device calibration-to-first-hit playtest from the closer line, then training; repeat with a physical phone and second eligible player.
 
+## November 10 native low-sustain boundary
+
+- Closed the test gap left by the practice-line fix: a distinct second level-one attack reuses the existing protocol/cooldown state, drops to exact cutoff power 0.18 before its first server tick, and must hit the authored target with a new completion/pulse. Power 0.181 then sustains without duplicate feedback; fresh quiet at the cutoff emits stop and ends the server attack. Exact cutoff is only exercised within the quiet grace window, not claimed to sustain indefinitely.
+- Full checks/build pass: 24 pure/synthetic suites, 52 mocked-service suites, 56 production compiles. Disposable native run passes 19 first-beam checks (12 new), six damage, eleven destruction and eighteen progression checks: 54 total. [Exact evidence and build hashes](../tests/evidence/low-sustain-2026-11-10.json).
+- Test-only change; separate source/diff review completed. Fixture cleanup now respects its injected clock and restores displayed state. All voice power/readiness, gate intervals and cooldown advance are synthetic. Studio still showed waiting-for-microphone guidance. No production/audio/product changes or publication.
+- Next: eligible real-device calibration-to-first-hit and training test, then phone and second-player checks. Live voice, phone, multiplayer timing and real save/rejoin gates remain open.
+
 ## Ordered backlog
 
 ### P0 — combat progression redesign (implemented locally; human balance testing next)
