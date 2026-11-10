@@ -589,7 +589,7 @@ local function progressLabel(compact)
  return data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP"
 end
 local trackedQuestText=""
-local lastMilestone,milestoneUntil=nil,0
+local lastMilestone=nil
 connectClient(remotes.State.OnClientEvent,function(nextData)
  cueContext();gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())
  data=nextData
@@ -608,8 +608,8 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west beach\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
  trackedQuestText=tracked.Text
  if data.milestone and data.milestone~=lastMilestone then
-  lastMilestone=data.milestone;milestoneUntil=os.clock()+6;notify(data.milestone)
- elseif data.message and os.clock()>=milestoneUntil then notify(data.message) end
+  lastMilestone=data.milestone;notify(data.milestone)
+ elseif data.message then notify(data.message) end
  if data.conversation then showConversation(data.conversation) end
  if modal.Visible then render() end
 end)

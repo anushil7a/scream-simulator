@@ -2,6 +2,13 @@
 
 Updated November 10, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch, retaining its four-second maximum attack and ten-second cooldown. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 10 authoritative action feedback
+
+- Started from clean local/fetched `ad7b5fd`. Audited server-owned upgrade, quest and shop outcomes plus duplicate guards. Reproduced actual client receiver dropping upgrade rejection, quest reward confirmation and task completion for six seconds after a milestone. Server balances/rewards remained correct; the issue was missing feedback.
+- Removed only the milestone suppression timer. New milestones still display once, later server messages appear immediately, and repeated milestone snapshots do not replay. No new retention, event, monetization or progression system; no server/reward/save changes.
+- Passed 11 focused receiver/helper checks and three negative controls, all 24 pure/synthetic + 57 mocked suites, 56 production compiles and builds. Separate self-review found no blocker. [Audit/results](ACTION_FEEDBACK_REVIEW.md) and [exact evidence](../tests/evidence/action-feedback-2026-11-10.json).
+- No native Studio run this checkpoint; UI/time/services are mocked. Real device/accessibility, voice, multiplayer, payment delivery and isolated persistence gates remain. Single-toast bursts still have no minimum reading-time guarantee. No publication, purchases, audio or live DataStores. Cleanup inventory listed only Codex: no disposable windows remained; no processes killed or unsaved work discarded. Next: independent review and real-device comprehension/readability validation before release.
+
 ## November 10 first-session scream guidance
 
 - Reconciled clean remote `54e3df2`. Disposable native Studio reproduced missing normal-speech guidance before first auto-arm and in the idle ON HUD. ON already starts attacks from qualifying power, so the focused correction explicitly says normal speech can attack and OFF lets players talk with nearby voice unchanged. Setup, idle status, ON notice, Settings and README agree. Four production strings changed; no input, cooldown, auto-arm, respawn, voice routing or save behavior changed.
