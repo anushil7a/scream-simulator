@@ -69,6 +69,9 @@ for _,level in ipairs({1,5,9,10,25,50,99,100,101,150,299,300}) do
  check(c.coins==253 and c.level==a.level and c.sound==a.sound,"Repeated sanitize changed live data")
  check(c.legacyProgress~=b.legacyProgress,"Archive retained mutable reference")
 end
+local completed=P.Sanitize({schemaVersion=4,achievements={FirstBeam=true}})
+check(P.Sanitize(completed).achievements.FirstBeam==true,"First beam completion lost on reload")
+check(P.Sanitize({achievements={FirstBeam="true"}}).achievements.FirstBeam==nil,"Invalid first beam flag accepted")
 local objectives=P.Sanitize({schemaVersion=4,level=50,xp=12,combatChallenges={fighters=2,elite=99,cover=0/0,unknown=7}})
 check(objectives.combatChallenges.fighters==2 and objectives.combatChallenges.elite==1 and objectives.combatChallenges.cover==0 and objectives.combatChallenges.unknown==nil,"Challenge sanitization failed")
 local reload=P.Sanitize(objectives)

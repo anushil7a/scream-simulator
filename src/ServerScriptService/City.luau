@@ -517,7 +517,7 @@ local function arrivalPlaza(parent,x,z,walk,activities)
   local round=Instance.new("UICorner");round.CornerRadius=UDim.new(1,0);round.Parent=ring
  end
  sign(practice,"MIC PRACTICE",CFrame.new(tx,9.1,tz)*CFrame.Angles(0,math.pi,0),13)
- sign(practice,"HOLD · SPEAK · RELEASE",CFrame.new(tx,1.7,tz+.4)*CFrame.Angles(0,math.pi,0),13)
+ sign(practice,"AIM · SPEAK · GO QUIET",CFrame.new(tx,1.7,tz+.4)*CFrame.Angles(0,math.pi,0),13)
  local kx,kz=x-64,z-65
  local kiosk=model(m,"FlowerKiosk")
  part(kiosk,"Counter",V(17,3.2,5),V(kx,2.5,kz),teal,Enum.Material.WoodPlanks)

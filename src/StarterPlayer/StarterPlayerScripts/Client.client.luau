@@ -31,6 +31,7 @@ local originalCameraMode=p.CameraMode
 local originalMinZoom,originalMaxZoom=p.CameraMinZoomDistance,p.CameraMaxZoomDistance
 local cameraGeneration=0;local thirdPersonDistance=12
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
+local FirstBeamGuide=require(RS.Shared:WaitForChild("FirstBeamGuide"))
 local InteractionRules=require(RS.Shared:WaitForChild("InteractionRules"))
 local DestructionRules=require(RS.Shared:WaitForChild("DestructionRules"))
 local mic=require(script.Parent:WaitForChild("Microphone")).new()
@@ -549,6 +550,7 @@ local function progressLabel(compact)
  end
  return data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP"
 end
+local trackedQuestText=""
 local lastMilestone,milestoneUntil=nil,0
 connectClient(remotes.State.OnClientEvent,function(nextData)
  data=nextData
@@ -565,6 +567,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  testButton.Visible=data.devAccess==true
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
  tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west beach\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
+ trackedQuestText=tracked.Text
  if data.milestone and data.milestone~=lastMilestone then
   lastMilestone=data.milestone;milestoneUntil=os.clock()+6;notify(data.milestone)
  elseif data.message and os.clock()>=milestoneUntil then notify(data.message) end
@@ -701,6 +704,8 @@ connectClient(Run.RenderStepped,function(dt)
  local gameplayVisible=mic.ready and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
+ local guide=sustainedControl and FirstBeamGuide.Text(data,sustainedControl.armed,voiceCooldown or 0,voiceActive,touch)
+ tracked.Text=guide or trackedQuestText
  local confirmed=hitFeedback:Read(os.clock())
  hitText.Visible=gameplayVisible and confirmed~=nil
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end

@@ -13,6 +13,12 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - The current chat's scheduled development follow-up was removed at the owner's request on November 9. Continue work on request; do not recreate scheduled work without a new request. Earlier scheduling entries below are historical.
 - Maintain completed evidence, known failures and the next concrete action here. Actual audio, hardware and multiplayer gates stay open until observed.
 
+## November 10 research follow-through
+
+- Added a first-beam guide in the existing quest tracker for level-one players. Keyboard/touch arming, quiet-before-speech, active aim and cooldown guidance advance with live controls. Active quests retain priority. A server-confirmed practice-target hit persists completion through the existing achievement sanitizer and points toward training/challenges.
+- Corrected the spawn practice sign for automatic voice attacks. Added a bounded 120ms beam launch expansion, bypassed by reduced effects.
+- Verification and next action: the isolated commit passed 23 pure/synthetic suites, 50 mocked-service suites, 53 production compiles and disposable builds; native visual review, real microphone onboarding timing, physical-phone overlap tests and multiplayer profiling remain pending. No Roblox publication.
+
 ## Ordered backlog
 
 ### P0 — combat progression redesign (implemented locally; human balance testing next)
@@ -87,6 +93,8 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - **Validation gaps:** source/unit/Studio passes do not establish live voice audibility, real-device comfort, saved-data safety or representative multiplayer load.
 
 ## Session log
+
+- November 10 requested gameplay audio: prepared four original synthesized one-shots (confirmed hit, dodge, prop break and level-up), separate bounded/voice-ducked playback, calibration silence, mute and cleanup. Existing owner-selected attack sounds are untouched. Source hooks use existing server events; level feedback skips first sync and temporary test sessions. All new IDs remain empty while upload/access is pending, so the new cues are not audible in-game yet. Local pass: 23 pure/synthetic suites, 51 mocked-service suites, 55 production compiles and all candidate/disposable builds. Generator WAV/determinism checks pass; human listening, native playback and real-mic balance remain open. GitHub was fetched at clean 6808a84 with no contributor divergence. Account-usage tool was unavailable; this was explicit owner-requested work, not autonomous continuation. No push or experience publication. Next: complete authorized audio import/access for City Preview universe 10769005350, configure verified IDs, rebuild and listen in a disposable local place. Evidence: `tests/evidence/gameplay-audio-2026-11-10.json`.
 
 - November 9 shop/beam expansion: implemented the owner-approved shop and VFX requests, preserving the four-second attack and existing level advantage. Purchase cache and receipt handling use a separate atomic ledger; Studio/test sessions cannot prompt or consume purchases. Added native preview fixtures and regression coverage. Development GitHub sync remains authorized; Roblox publication requires approval.
 

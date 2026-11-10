@@ -40,7 +40,7 @@ function Profiles.Sanitize(raw)
     data.amplifierOwned=raw.amplifierOwned==true
     data.amplifierEquipped=data.amplifierOwned and raw.amplifierEquipped==true
     if type(raw.achievements)=="table" then
-        for _,id in ipairs({"FoundNick","NickChampion"}) do if raw.achievements[id]==true then data.achievements[id]=true end end
+        for _,id in ipairs({"FoundNick","NickChampion","FirstBeam"}) do if raw.achievements[id]==true then data.achievements[id]=true end end
     end
     data.coins=wholeNumber(raw.coins,0,0,1000000000)
     data.level,data.xp=Config.Progression.Normalize(raw.level,raw.xp)

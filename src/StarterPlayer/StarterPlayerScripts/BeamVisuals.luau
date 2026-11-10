@@ -54,7 +54,7 @@ function Visuals.Animate(rig,now,viewer,reduced)
   local right,up=basis.RightVector,basis.UpVector
   local age=now-rig.born;local tier=spec.tier
   local quiet=reduced or rig.reduced
-  local radius=width*(.24+tier*.012)
+  local radius=width*(.24+tier*.012)*Style.LaunchScale(age,quiet)
   local finish=origin+dir*length
   -- Smooth low-amplitude breathing; no screen flash, camera shake or lights.
   local pulse=quiet and 1 or 1+.035*math.sin(age*9)

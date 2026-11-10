@@ -1,0 +1,11 @@
+local Guide = require("../src/ReplicatedStorage/Shared/FirstBeamGuide")
+local beginner = {level=1, achievements={}}
+assert(string.find(Guide.Text(beginner,false,0,false,false), "Press E", 1, true))
+assert(string.find(Guide.Text(beginner,false,0,false,true), "Tap ARM VOICE", 1, true))
+assert(string.find(Guide.Text(beginner,true,0,false,false), "Go quiet, then speak", 1, true))
+assert(string.find(Guide.Text(beginner,true,5,false,false), "cooldown", 1, true))
+assert(string.find(Guide.Text(beginner,true,0,true,false), "Go quiet to stop", 1, true))
+assert(Guide.Text({level=2},true,0,false,false)==nil)
+assert(Guide.Text({level=1,activeQuest="arena"},true,0,false,false)==nil)
+assert(Guide.Text({level=1,achievements={FirstBeam=true}},true,0,false,false)==nil)
+print("PASS first-beam guidance for keyboard/touch, cooldown, active attack and completed/returning players")

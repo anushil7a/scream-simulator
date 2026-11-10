@@ -1,4 +1,9 @@
 local Style=require("../src/ReplicatedStorage/Shared/BeamStyle")
+assert(Style.LaunchScale(-1,false)==.55)
+assert(Style.LaunchScale(0,false)==.55)
+assert(Style.LaunchScale(.06,false)>.55 and Style.LaunchScale(.06,false)<1)
+assert(Style.LaunchScale(.12,false)==1 and Style.LaunchScale(100,false)==1)
+assert(Style.LaunchScale(0,true)==1)
 assert(Style.Tier(1)==0 and Style.Tier(9)==0 and Style.Tier(10)==1 and Style.Tier(100)==10)
 assert(Style.Tier(0/0)==0 and Style.Tier(999)==10)
 local previous=0

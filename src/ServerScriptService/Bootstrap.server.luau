@@ -312,7 +312,9 @@ local function stepSustained(p,s,now)
   local practice=beam.obstruction and beam.obstruction.Instance
   if not intent.practiceHit and practice and practice:GetAttribute("MicPracticeTarget")==true then
    intent.practiceHit=true
-   state(p,string.format("Practice hit · %d%% power · %.0f studs",math.floor(beam.power*100+.5),beam.length))
+   local firstBeam=not s.data.achievements.FirstBeam
+   s.data.achievements.FirstBeam=true
+   state(p,firstBeam and "First beam landed! Train at the Rookie beach pad for XP and coins. Open Quests for your challenges." or string.format("Practice hit · %d%% power · %.0f studs",math.floor(beam.power*100+.5),beam.length))
    local pulse=(practice:GetAttribute("PracticePulse") or 0)+1;practice:SetAttribute("PracticePulse",pulse);practice.Color=Color3.fromRGB(255,205,111)
    task.delay(.3,function() if practice.Parent and practice:GetAttribute("PracticePulse")==pulse then practice.Color=practice:GetAttribute("RestColor") end end)
   end
@@ -393,6 +395,7 @@ local function cast(p,request)
  BeachVolley.Hit(p,origin,direction,length,sound.width,sound.power)
  local castMessage
  if obstruction and obstruction.Instance:GetAttribute("MicPracticeTarget")==true then
+  s.data.achievements.FirstBeam=true
   castMessage=string.format("Practice hit · %d%% power · %.0f studs · %d damage",math.floor(sound.power*100+.5),length,sound.damage)
   local target=obstruction.Instance;local pulse=(target:GetAttribute("PracticePulse") or 0)+1;target:SetAttribute("PracticePulse",pulse);target.Color=Color3.fromRGB(255,205,111)
   task.delay(.3,function() if target.Parent and target:GetAttribute("PracticePulse")==pulse then target.Color=target:GetAttribute("RestColor") end end)
