@@ -65,6 +65,14 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Separate implementing-agent source/diff review completed; no independent reviewer claimed. [Exact reproduction, checks and build hashes](../tests/evidence/shutdown-rewards-2026-11-10.json). No Studio/native or live DataStore execution this checkpoint; no publication or audio configuration.
 - Next: independent review, then an isolated real DataStore shutdown/leave/rejoin and competing-server lease test before release. Store outages beyond retries and the engine shutdown deadline can still lose unsaved progress; this fix prevents accepting new progress after final saves begin, not guaranteed persistence under outages. Real microphone/phone/multiplayer gates also remain open.
 
+## November 10 late profile release failure reporting
+
+- Independent review of `2ce082b` identified an ignored result in the late-load path. Reproduced before changing production code: actual `Profiles.Save` exhausted three injected write failures and returned `false, "retry"`; the lease remained present, but Bootstrap produced no final release-failure warning. The earlier successful-release regression did not cover this outcome.
+- Late loads finishing after shutdown or player departure now check both `pcall` completion and the Save result, logging a consistent late-release failure with UserId and the returned reason or exception. They remain outside gameplay; tracked work completes only after the release call returns. This attempts release and reports failure; it does not guarantee lease release or add recovery retries beyond the existing Profiles policy.
+- Full checks/build pass: 24 pure/synthetic suites, 53 mocked-service suites, 56 production compiles and all builds. The expanded actual shutdown/reward/join/Profiles regression passes 34 checks; shutdown lifecycle and profile concurrency retain 11 and 13 passing checks. Delayed release is held inside UpdateAsync with the lease still present and shutdown still waiting; success is checked only after the write resumes. Failed releases in both closing/departed paths preserve the lease and emit one final warning after three attempts. Exceptions use the same warning path.
+- Three temporary negative controls fail as intended: ignore returned failure, omit failure reason, and launch an untracked release. Separate post-implementation self-review completed; no external reviewer claimed. [Evidence and build identity](../tests/evidence/late-release-2026-11-10.json).
+- Limits/next: failed writes can still leave a lease held. Native engine shutdown timing, live DataStore contention/outage/rejoin and competing-server lease validation remain required before release. No live DataStore writes, Studio run, publication or audio/product configuration this checkpoint.
+
 ## Ordered backlog
 
 ### P0 — combat progression redesign (implemented locally; human balance testing next)

@@ -729,7 +729,15 @@ local function joined(p)
  local data,save,loadMessage
  if localFixture then data,save,loadMessage=Profiles.Default(),false,"Local sustained prototype · saving disabled"
  else data,save,loadMessage=Profiles.Load(p.UserId) end
- if closing or not p.Parent then if save then Profiles.Save(p.UserId,data,true) end;return end
+ if closing or not p.Parent then
+  if save then
+   local completed,ok,reason=pcall(Profiles.Save,p.UserId,data,true)
+   if not completed or not ok then
+    warn("ScreamSimulator late profile release failed",p.UserId,completed and reason or ok)
+   end
+  end
+  return
+ end
  local s={data=data,canSave=save,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
  botRewards={},credit={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  task.spawn(Commerce.Load,p)

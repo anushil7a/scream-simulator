@@ -13,10 +13,17 @@ local Lease=require('../src/ReplicatedStorage/Shared/ProfileLease')
 local now=0;local os={clock=function()return now end,time=function()return 1000+math.floor(now)end}
 local sessions={};local closing=false;local joinsInFlight=0;local departuresInFlight=0
 local records={};local duringSave;local pauseLoad=false
+local delayRelease,failRelease,releaseAttempts={},{},{}
 local store={UpdateAsync=function(_,key,transform)
  if pauseLoad then pauseLoad=false;coroutine.yield('load') end
  if duringSave and key=='Player_2' then local hook=duringSave;duringSave=nil;hook();coroutine.yield('save') end
- local result=transform(records[key]);if result~=nil then records[key]=result end;return result
+ local result=transform(records[key])
+ if result and result._lease==nil and records[key] and records[key]._lease then
+  releaseAttempts[key]=(releaseAttempts[key] or 0)+1
+  if delayRelease[key] then delayRelease[key]=nil;coroutine.yield('release') end
+  if (failRelease[key] or 0)>0 then failRelease[key]-=1;error('injected release write failure') end
+ end
+ if result~=nil then records[key]=result end;return result
 end}
 local Config={MaxLevel=100,XPToNext=function()return 1000 end,Sounds={},Auras={Gold=true},
  Quests={{id='garden',goal=3,coins=40,xp=100}},Progression={Challenges={},Normalize=function(l,x)return l or 1,x or 0 end},
@@ -82,7 +89,12 @@ check(second.data.coins==10 and second.data.xp==0 and not second.data.quests.gar
 -- Finish every active-player save while the acquisition remains suspended.
 pending=queue;queue={};for _,job in ipairs(pending)do step(job);check(coroutine.status(job)=='dead','Final save did not finish')end
 check(step(closeThread)==.1 and coroutine.status(closeThread)=='suspended','Shutdown returned before the in-flight profile acquisition released')
--- Resume the pending acquisition after close; its owned profile must be released.
+-- The release itself can yield after acquisition completes. Stay tracked until it returns.
+delayRelease.Player_3=true
+check(step(loadThread)=='release','Late release did not reach delayed UpdateAsync')
+check(joinsInFlight==1 and sessions[joining]==nil and records.Player_3._lease~=nil,'Delayed release was treated as completed')
+check(step(closeThread)==.1 and coroutine.status(closeThread)=='suspended','Shutdown returned during delayed late release')
+check(#warnings==0,'Delayed successful release emitted a premature failure')
 step(loadThread)
 check(joinsInFlight==0 and sessions[joining]==nil,'Late load reopened gameplay or leaked join count')
 check(records.Player_3 and records.Player_3._lease==nil,'Late load did not release its acquired lease')
@@ -96,6 +108,38 @@ check(#warnings==0,'Unexpected save/join warning')
 closing=false;local originalLoad=Profiles.Load;Profiles.Load=function()error('injected load failure')end
 joinTracked({UserId=5,Parent=true});check(joinsInFlight==0 and #warnings==1,'Failed load leaked tracked join')
 Profiles.Load=originalLoad
+local function lateJoin(id,departed)
+ closing=false;pauseLoad=true
+ local p={UserId=id,Parent=true};local co=coroutine.create(function()joinTracked(p)end)
+ check(step(co)=='load' and joinsInFlight==1,'Late-release fixture did not suspend acquisition')
+ if departed then p.Parent=nil else closing=true end
+ return p,co
+end
+local function releaseWarnings(from)
+ local found={}
+ for i=from+1,#warnings do if warnings[i][1]=='ScreamSimulator late profile release failed' then table.insert(found,warnings[i]) end end
+ return found
+end
+-- Actual Profiles.Save exhausts its own three attempts; the caller must surface false/retry.
+for _,departed in ipairs({false,true})do
+ local id=departed and 7 or 6;local key='Player_'..id
+ local p,co=lateJoin(id,departed);local before=#warnings
+ failRelease[key]=3
+ check(step(co)==1 and joinsInFlight==1 and records[key]._lease~=nil,'Release retry stopped tracking or claimed success early')
+ check(#releaseWarnings(before)==0,'Release retry emitted final failure before attempts finished')
+ repeat step(co) until coroutine.status(co)=='dead'
+ check(releaseAttempts[key]==3 and records[key]._lease~=nil,'Failed release unexpectedly committed or skipped retries')
+ check(joinsInFlight==0 and sessions[p]==nil,'Failed release reopened gameplay or leaked tracked work')
+ local logged=releaseWarnings(before)
+ check(#logged==1 and logged[1][2]==id and logged[1][3]=='retry','Late release false/retry was not logged with player and reason')
+end
+-- An unexpected Save exception must use the same failure path, without claiming success.
+local p,co=lateJoin(8,false);local before=#warnings;local originalSave=Profiles.Save
+Profiles.Save=function()error('injected late release exception')end
+step(co);Profiles.Save=originalSave
+local logged=releaseWarnings(before)
+check(#logged==1 and logged[1][2]==8 and tostring(logged[1][3]):find('injected late release exception',1,true),'Late release exception was not logged consistently')
+check(joinsInFlight==0 and sessions[p]==nil and records.Player_8._lease~=nil,'Exception claimed release or leaked gameplay/tracking')
 print('PASS '..checks..' actual shutdown/reward/join/profile race checks (synthetic store and scheduler)')
 '''
 code=setup+profiles+between+section('local function coins(','local function syncHealth(')+section('local function xp(','local function questProgress(')+section('action.OnServerEvent:Connect(function(p,verb,arg)','local function joined(p)')+section('local function joined(p)','Players.PlayerAdded:Connect(joinTracked)')+section('local function shutdown()','game:BindToClose(shutdown)')+checks
