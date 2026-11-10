@@ -609,11 +609,12 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
  tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west beach\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
  trackedQuestText=tracked.Text
+ if data.savingAvailable==true and not data.savingDelayed then notifications:Remove("save") end
  local newMilestone=data.milestone and data.milestone~=lastMilestone
  if newMilestone then
   lastMilestone=data.milestone;notify(data.milestone)
  end
- if data.message and (not newMilestone or data.messageUrgent) then notify(data.message,data.messageUrgent) end
+ if data.message and (not newMilestone or data.messageUrgent) then notify(data.message,data.messageUrgent,data.messageKey=="save" and "save" or nil) end
  if data.conversation then showConversation(data.conversation) end
  if modal.Visible then render() end
 end)

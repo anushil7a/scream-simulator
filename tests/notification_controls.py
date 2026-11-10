@@ -6,7 +6,7 @@ module=(root/'src/StarterPlayer/StarterPlayerScripts/NotificationQueue.luau').re
 suite=(root/'tests/notification_queue.luau').read_text().split('\n',1)[1]
 cases=[
  ('else table.insert(self.pending,entry) end','else self.active=entry end','Same-frame milestone lost'),
- ('if urgent and self.active and not self.active.urgent then','if false then','Critical failure queued behind routine notice'),
+ ('if self.active and priority>self.active.priority then','if false then','Critical failure queued behind routine notice'),
  ('math.clamp(utf8.len(text) or #text,88,264)/22','0.01','Notice overwritten before readable dwell'),
  ('for _,entry in ipairs(self.pending) do if entry.text==text then return end end','','Pending duplicate queued'),
  ('if self.active and self.active.key==key then self.active=table.remove(self.pending,1) end',

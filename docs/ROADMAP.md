@@ -2,6 +2,12 @@
 
 Updated November 10, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch, retaining its four-second maximum attack and ten-second cooldown. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 10 bounded save-warning priority
+
+- Reconciled clean `bd6b80b`. Actual autosave/State/upgrade/client/queue path reproduced a save warning evicted before any simulated display frame amid changing insufficient-funds errors and normal rewards. Added explicit `save` metadata at the two autosave warnings, one coalesced highest-priority category, lowest-priority overflow eviction and healthy-state clearing. Existing eight-pending/one-active bound remains; no save, reward, purchase or voice behavior changed.
+- Passed 210 integration assertions/seven negative controls; existing queue 1,661 assertions/five controls, lifecycle 1,217 assertions/two controls and feedback 14 checks/four controls. All 25 pure/synthetic + 59 mocked suites, 57 compiles and builds pass. Separate self-review found no blocker. [Audit/policy](SAVE_NOTIFICATION_REVIEW.md); [exact evidence](../tests/evidence/save-notification-priority-2026-11-10.json).
+- No new native execution; fixtures rebuilt only. Ordinary urgent overflow remains possible; protection covers only the latest classified save warning after client delivery, not human reading/network reliability or initial load messages. Persistent save status unchanged. Next: independent review and native/real-device readability checks, retaining voice/network/persistence gates. No app windows/tabs opened, pre-existing work untouched; no publication, audio, purchases or live DataStores.
+
 ## November 10 voice guidance lifecycle
 
 - Reconciled clean local/fetched `92f7988`. Actual client/controller/queue regression reproduced queued ON guidance surviving the removal callback's disarm. Optional armed-state callback now withdraws active/pending voice notices on real state changes; manual toggles enqueue fresh guidance afterward. Stop/cooldown/voice/server/save behavior unchanged.

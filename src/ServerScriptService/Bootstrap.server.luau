@@ -73,7 +73,7 @@ local function beamColor(p,s)
  if s.data.useCustomColor and s.data.customColor and Entitlements.HasSpectrum(p) then return Color3.fromHex(s.data.customColor) end
  return s.data.aura
 end
-local function state(p,message,conversation,messageUrgent)
+local function state(p,message,conversation,messageUrgent,messageKey)
  local s=sessions[p];if not s or not p.Parent then return end
  if p:GetAttribute("ScreamLevel")~=s.data.level then p:SetAttribute("ScreamLevel",s.data.level) end
  local _,r,h=parts(p)
@@ -89,7 +89,7 @@ local function state(p,message,conversation,messageUrgent)
  availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message,messageUrgent=messageUrgent==true})
+ conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
 end
 Commerce.Start(function(p)
  local s=sessions[p]
@@ -876,10 +876,10 @@ local function autosave(p,s)
  if sessions[p]~=s or not p.Parent then return end
  if ok then s.saveDelayed=false
  elseif reason=="ownership" or reason=="unavailable" then
-  s.canSave=false;s.saveDelayed=false;state(p,"Saving is unavailable. Progress from here is temporary; rejoin before continuing progression.",nil,true)
+  s.canSave=false;s.saveDelayed=false;state(p,"Saving is unavailable. Progress from here is temporary; rejoin before continuing progression.",nil,true,"save")
  else
   local first=not s.saveDelayed;s.saveDelayed=true
-  if first then state(p,"Save delayed. Your progress is still in this server; saving will retry automatically.",nil,true) end
+  if first then state(p,"Save delayed. Your progress is still in this server; saving will retry automatically.",nil,true,"save") end
  end
 end
 task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(autosave,p,s) end end end end)

@@ -1,5 +1,7 @@
 # Readable notification bursts
 
+Current save-warning overflow policy is documented in [Bounded save-warning priority](SAVE_NOTIFICATION_REVIEW.md). It supersedes the historical overflow limitation below for explicitly classified autosave warnings only; ordinary urgent notices remain bounded and may be dropped.
+
 ## Voice guidance lifecycle correction
 
 Base: clean local/fetched `92f7988464e41b43f5243ee8e26862bbd5d7d961`. Actual client constructor/toggle/CharacterRemoving callback plus actual controller/queue reproduced ON guidance remaining queued after the removal callback disarmed attacks (`respawn: stale queued voice notice`). This was executed before changing production. The guidance could outlive the state it described while waiting behind a critical notice.

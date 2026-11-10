@@ -14,22 +14,23 @@ function Queue:Push(text,urgent,key)
  urgent=urgent==true
  if self.active and self.active.text==text then return end
  for _,entry in ipairs(self.pending) do if entry.text==text then return end end
- -- Stateful local controls replace obsolete ON/OFF instructions.
+ -- Stateful keys coalesce obsolete guidance; save has one highest-priority entry.
  if key then self:Remove(key) end
- local entry={text=text,urgent=urgent,key=key,remaining=duration(text)}
- if urgent and self.active and not self.active.urgent then
+ local priority=key=="save" and 2 or urgent and 1 or 0
+ local entry={text=text,urgent=urgent,key=key,priority=priority,remaining=duration(text)}
+ if self.active and priority>self.active.priority then
   self.active.remaining=duration(self.active.text);self.active.presented=false
   table.insert(self.pending,1,self.active);self.active=nil
  end
  if not self.active then self.active=entry
- elseif urgent then
+ elseif priority>0 then
   local index=1
-  while self.pending[index] and self.pending[index].urgent do index+=1 end
+  while self.pending[index] and self.pending[index].priority>=priority do index+=1 end
   table.insert(self.pending,index,entry)
  else table.insert(self.pending,entry) end
  if #self.pending>Queue.Limit then
   local drop=1
-  for i,item in ipairs(self.pending) do if not item.urgent then drop=i;break end end
+  for i,item in ipairs(self.pending) do if item.priority<self.pending[drop].priority then drop=i end end
   table.remove(self.pending,drop)
  end
 end
