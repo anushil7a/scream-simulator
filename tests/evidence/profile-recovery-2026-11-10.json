@@ -1,0 +1,45 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "39beb403e382277b3d3a6dbcd4d01c96ebb0744f",
+  "scope": "Evidence only; production recovery policy unchanged",
+  "diagnostic": {
+    "command": "python tests/profile_recovery.py",
+    "checks": 21,
+    "passed": true,
+    "results": [
+      "Three failed release writes wait 1/2/3 synthetic seconds and retain local ownership",
+      "Same-server rejoin rejects without store access at lease expiry and another hour later",
+      "Other owner acquires at 180-second lease expiry and loads 100 durable coins instead of unsaved 150",
+      "Stale writer is rejected after newer owner saves 200 coins",
+      "Explicit retained-snapshot retry while still owner can recover 80 coins",
+      "Committed release plus response error returns false/ownership despite durable 90 coins and removed lease"
+    ]
+  },
+  "negativeControls": [
+    {
+      "mutation": "remove save owner check",
+      "failure": "Stale snapshot overwrote newer owner progress",
+      "detected": true
+    },
+    {
+      "mutation": "remove acquisition owner check",
+      "failure": "Foreign owner acquired before expiry",
+      "detected": true
+    }
+  ],
+  "fullChecks": {
+    "command": "python tests/verify_local.py --build",
+    "pureSuites": 24,
+    "mockedSuites": 53,
+    "productionCompiles": 56,
+    "allBuilds": "passed"
+  },
+  "review": "Separate self-review of actual Profiles lifecycle callers, serialized two-owner diagnostic and guard omission controls.",
+  "decision": "No automatic recovery patch. Recommend bounded retry of retained immutable snapshots only under atomic ownership checks; choose latest durable checkpoint with rollback notice versus blocked progression after ownership changes.",
+  "limits": [
+    "In-memory store and injected time; no real concurrent servers or engine shutdown",
+    "No live DataStore writes, Studio run, publication or audio configuration",
+    "False Save return does not prove commit failure or retained lease",
+    "Recovery policy awaits owner decision; see docs/PROFILE_RECOVERY_REVIEW.md"
+  ]
+}

@@ -73,6 +73,13 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Three temporary negative controls fail as intended: ignore returned failure, omit failure reason, and launch an untracked release. Separate post-implementation self-review completed; no external reviewer claimed. [Evidence and build identity](../tests/evidence/late-release-2026-11-10.json).
 - Limits/next: failed writes can still leave a lease held. Native engine shutdown timing, live DataStore contention/outage/rejoin and competing-server lease validation remain required before release. No live DataStore writes, Studio run, publication or audio/product configuration this checkpoint.
 
+## November 10 failed-release recovery investigation
+
+- From `39beb40`, reproduced three exhausted release attempts (waits 1/2/3 seconds), retained local ownership, same-server rejoin rejection without datastore access even after lease expiry and another simulated hour, and foreign-owner acquisition at expiry using only last durable progress. A stale write remains correctly rejected after another owner saves. An ambiguous post-commit error can instead return false/ownership even though release and progress were committed.
+- No automatic recovery change: clearing the local marker can abandon unsaved progress; writing a retained snapshot after ownership changes can corrupt newer data. The actual Profiles diagnostic passes 21 checks; deleting either atomic ownership guard fails its negative control. Full existing verification/build passes 24 pure/synthetic suites, 53 mocked-service suites, 56 production compiles and all builds. Production sources are unchanged.
+- [Review and owner decision](PROFILE_RECOVERY_REVIEW.md), [exact evidence](../tests/evidence/profile-recovery-2026-11-10.json). Recommend bounded, ownership-checked retry with an immutable retained final snapshot; after ownership moves, never replay stale data. Owner decision needed: latest durable checkpoint with an explicit rollback notice (recommended), or blocked progression pending recovery/support. Specify retry duration and player messaging before implementation. A durable journal is a separate design.
+- Separate self-review completed. Simulated owners/store/clock only; no native Studio or live datastore activity. Real contention/outage/rejoin and engine deadlines remain release gates. No publication or audio/product configuration.
+
 ## Ordered backlog
 
 ### P0 — combat progression redesign (implemented locally; human balance testing next)
