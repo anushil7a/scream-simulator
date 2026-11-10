@@ -67,6 +67,40 @@ assert(segments[3].text=="LEVEL 10 milestone","Interrupted milestone failed to r
 assert(segments[4].text:find("Quest reward",1,true) and segments[5].text:find("Quest complete",1,true) and segments[6].text:find("Flowers watered",1,true),"Normal FIFO order changed")
 assert(controlOverlapFrames==0,"Notification covered gameplay controls")
 print("TOAST_REVIEW_PASS "..Http:JSONEncode({segments=#segments,seconds=elapsedReview,synthetic=true}))
+-- Last checkpoint's keyed replacement priority, using actual native rendering.
+notifications=modules.NotificationQueue.new()
+local off="Screams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on."
+local saving="Saving is unavailable. Progress from here is temporary; rejoin before continuing progression."
+local on="Screams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
+notify(off,true,"voice");task.wait(.1);notify(saving,true);notify(on,false,"voice")
+Run.RenderStepped:Wait();Run.RenderStepped:Wait()
+local priorityStart=os.clock();local priorityFrames=0
+repeat
+ assert(toast.Text==saving and toast.TextFits,"Waiting critical warning lost rendered priority/dwell")
+ priorityFrames+=1;Run.RenderStepped:Wait()
+until os.clock()-priorityStart>=4
+task.wait(.4)
+assert(toast.Text==on,"Voice replacement did not follow warning")
+print("TOAST_PRIORITY_PASS "..Http:JSONEncode({frames=priorityFrames,seconds=os.clock()-priorityStart,synthetic=true}))
+-- Actual client wiring and native character signal, with synthetic mic readiness.
+for _,kind in ipairs({"mic-unavailable","suspend","character-removal"}) do
+ mic.ready=true;windowFocused=true;sustainedControl:SetArmed(false)
+ notifications=modules.NotificationQueue.new();notify(saving,true);toggleVoice()
+ assert(sustainedControl.armed and #notifications.pending==1,"Lifecycle setup did not queue ON")
+ local removed=0;local connection=p.CharacterRemoving:Connect(function()removed+=1 end)
+ if kind=="mic-unavailable" then mic.ready=false
+ elseif kind=="suspend" then suspendGameplay()
+ else p.Character=nil end
+ Run.RenderStepped:Wait();Run.RenderStepped:Wait()
+ assert(not sustainedControl.armed,"Lifecycle failed to disarm")
+ assert(toast.Text==saving and #notifications.pending==0,"Stale voice guidance survived lifecycle")
+ if kind=="character-removal" then assert(removed==1,"Native removal signal not exercised");p.Character=character end
+ connection:Disconnect()
+ task.wait(4.5)
+ assert(toast.Text=="","Stale voice guidance replayed after warning expired")
+ print("TOAST_LIFECYCLE_PASS "..Http:JSONEncode({kind=kind,removed=removed,pending=#notifications.pending,text=toast.Text,synthetic=true}))
+end
+print("TOAST_INTERACTIONS_PASS synthetic mic/state, native labels and local CharacterRemoving; no real respawn/network")
 '''
 (out/'NotificationReview.client.luau').write_text(s)
 subprocess.run(['luau-compile',str(out/'NotificationReview.client.luau')],stdout=subprocess.DEVNULL,check=True)

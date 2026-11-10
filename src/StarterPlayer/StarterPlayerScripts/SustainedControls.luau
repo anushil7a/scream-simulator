@@ -6,8 +6,8 @@ local PULSE_INTERVAL=.125
 local ACK_TIMEOUT=.4
 local MIN_PULSE_POWER=.08
 
-function Controls.new(gate,send,getAim)
- return setmetatable({gate=gate,send=send,getAim=getAim,armed=false,sequence=0},Controls)
+function Controls.new(gate,send,getAim,onArmedChanged)
+ return setmetatable({gate=gate,send=send,getAim=getAim,onArmedChanged=onArmedChanged,armed=false,sequence=0},Controls)
 end
 function Controls:Cancel()
  self.gate:Cancel()
@@ -20,6 +20,7 @@ function Controls:SetArmed(armed)
  if self.armed==armed then return end
  self.armed=armed
  self:Cancel()
+ if self.onArmedChanged then self.onArmedChanged(armed) end
 end
 -- Auto-arm only on the first valid calibration. A mute, death or explicit pause
 -- requires a deliberate resume; returning focus must never silently re-arm.

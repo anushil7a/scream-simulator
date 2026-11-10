@@ -2,6 +2,13 @@
 
 Updated November 10, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch, retaining its four-second maximum attack and ten-second cooldown. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 10 voice guidance lifecycle
+
+- Reconciled clean local/fetched `92f7988`. Actual client/controller/queue regression reproduced queued ON guidance surviving the removal callback's disarm. Optional armed-state callback now withdraws active/pending voice notices on real state changes; manual toggles enqueue fresh guidance afterward. Stop/cooldown/voice/server/save behavior unchanged.
+- Passed 1,217 new lifecycle assertions/two negative controls, existing 1,661 queue assertions/five controls, 29 toggle checks/two controls and 14 feedback checks/four controls. Full 25 pure/synthetic + 58 mocked suites, 57 compiles and all builds pass; separate self-review found no blocker.
+- Native disposable UI fixture validates preceding keyed priority (241 warning frames over four seconds before ON) and three lifecycle cases: simulated mic loss, suspension handler, locally induced native CharacterRemoving. Stale ON never replayed after the warning expired. Existing burst/layout checks also pass. Synthetic input/state is not real voice, physical touch, OS focus, full server respawn or network validation. [Review and limits](NOTIFICATION_QUEUE_REVIEW.md); [exact evidence](../tests/evidence/voice-notice-lifecycle-2026-11-10.json).
+- Overflow reproduced and documented: ninth distinct pending urgent evicts oldest pending urgent; policy unchanged. Next: independent review, real-device/comprehension testing and semantic critical-category policy review, retaining persistent save status. One disposable Studio session saved/stopped/closed; only pre-existing Codex remains. No publication, purchases, audio or live DataStores.
+
 ## November 10 keyed notification priority correction
 
 - Reconciled clean local/fetched `3022fe7`. Executed the reviewer's exact active urgent voice / waiting save warning / normal voice replacement sequence against the real module; regression failed before the fix. Coalescing now promotes existing queued work before processing replacement status, preserving urgency and FIFO rather than letting a fresh normal status take the active slot.

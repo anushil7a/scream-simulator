@@ -1,0 +1,133 @@
+{
+  "date": "2026-11-10",
+  "base_commit": "92f7988464e41b43f5243ee8e26862bbd5d7d961",
+  "reproduction": {
+    "kind": "Actual client constructor/toggle/removal callback, actual controller/queue; synthetic frame timing; before production edit",
+    "baseline_failure": "Traceback (most recent call last):\r\n  File \"C:\\Users\\Sameer Pudasaini\\Documents\\Codex\\2026-10-01\\files-mentioned-by-the-user-screamsimulator\\outputs\\scream-simulator\\tests\\voice_notice_lifecycle.py\", line 65, in <module>\r\n    run(payload)\r\n    ~~~^^^^^^^^^\r\n  File \"C:\\Users\\Sameer Pudasaini\\Documents\\Codex\\2026-10-01\\files-mentioned-by-the-user-screamsimulator\\outputs\\scream-simulator\\tests\\voice_notice_lifecycle.py\", line 63, in run\r\n    print(result.stdout,end='');assert result.returncode==0,result.stderr\r\n                                       ^^^^^^^^^^^^^^^^^^^^\r\nAssertionError: C:/Users/Sameer Pudasaini/Documents/Codex/2026-10-01/files-mentioned-by-the-user-screamsimulator/outputs/scream-simulator/tests/tmp3sn42gny.luau:39: respawn: stale queued voice notice\r\nstacktrace:\r\n[C] function assert\r\nC:/Users/Sameer Pudasaini/Documents/Codex/2026-10-01/files-mentioned-by-the-user-screamsimulator/outputs/scream-simulator/tests/tmp3sn42gny.luau:39 function check\r\nC:/Users/Sameer Pudasaini/Documents/Codex/2026-10-01/files-mentioned-by-the-user-screamsimulator/outputs/scream-simulator/tests/tmp3sn42gny.luau:42 function noVoice\r\nC:/Users/Sameer Pudasaini/Documents/Codex/2026-10-01/files-mentioned-by-the-user-screamsimulator/outputs/scream-simulator/tests/tmp3sn42gny.luau:52\r\n\r\n",
+    "behavior": "ON queued behind save warning survives the actual CharacterRemoving disarm callback"
+  },
+  "fix": "Optional armed-state-change callback withdraws voice guidance after existing cancellation; Queue.Remove shares priority-preserving coalescing. Manual toggle emits fresh guidance afterward; no-op arm observations retain valid guidance.",
+  "checks": {
+    "lifecycle_assertions": 1217,
+    "lifecycle_negative_controls": 2,
+    "queue_assertions": 1661,
+    "queue_negative_controls": 5,
+    "voice_toggle_checks": 29,
+    "voice_toggle_negative_controls": 2,
+    "action_checks": 14,
+    "action_negative_controls": 4,
+    "focused_outputs": {
+      "voice-notice-controls.txt": "PASS 1217 voice notice lifecycle assertions; synthetic timing and callbacks\r\nPASS lifecycle negative control: respawn: stale queued voice notice\r\nPASS lifecycle negative control: respawn: stale queued voice notice\r\n",
+      "voice-notice-queue-controls.txt": "PASS queue negative control: Same-frame milestone lost\r\nPASS queue negative control: Critical failure queued behind routine notice\r\nPASS queue negative control: Notice overwritten before readable dwell\r\nPASS queue negative control: Pending duplicate queued\r\nPASS queue negative control: Keyed normal replacement bypassed waiting critical warning\r\n",
+      "voice-notice-toggle-controls.txt": "PASS 29 actual voice toggle checks with mocked availability\r\nPASS negative control caught: OFF did not explicitly stop the active attack\r\nPASS negative control caught: Availability/respawn-like recovery re-enabled OFF\r\n",
+      "voice-notice-action-controls.txt": "PASS 14 actual action feedback checks; synthetic client UI/time and server helpers\r\nPASS negative control: Milestone hid upgrade rejection\r\nPASS negative control: Repeated milestone snapshots replayed a notification\r\nPASS negative control: Repeated claim duplicated reward/notice\r\nPASS negative control: Same-packet milestone hid critical warning\r\n"
+    },
+    "full_command": "python tests/verify_local.py --build",
+    "pure_synthetic_suites": 25,
+    "mocked_suites": 58,
+    "production_compiles": 57,
+    "full_output": "Checking AttackAudioConfig.luau\r\nPASS 12 exact owner audio mapping and unassigned-tier checks\r\nChecking AutomaticVoiceFlow.luau\r\nPASS 25 simulated calibrated-mic-to-server flow checks; no real audio/network/geometry\r\nChecking beam_style.luau\r\nPASS beam tier boundaries, bounded increasing detail, reduced and distant effects\r\nChecking BeamAudioMix.luau\r\nPASS 31 attack audio mix checks; synthetic handles, no listening evidence\r\nChecking boost_ledger.luau\r\nPASS 14 boost receipt, activation, offline expiry and capacity checks\r\nChecking CombatCredit.luau\r\nPASS 10019 combat credit, repeat farming, challenge and training rule checks\r\nChecking CueAudioMix.luau\r\nPASS 55 gameplay cue mixer checks; synthetic handles, no playback evidence\r\nChecking first_beam_guide.luau\r\nPASS first-beam guidance for keyboard/touch, cooldown, active attack and completed/returning players\r\nChecking Healing.luau\r\nPASS 9 shared healing checks with synthetic health/time\r\nChecking HeartbeatSummary.luau\r\nPASS 7 synthetic heartbeat summary checks; no engine performance measurement\r\nChecking HitFeedback.luau\r\nPASS 20 pure server-confirmed hit presentation checks\r\nChecking notification_queue.luau\r\nPASS 1661 notification frame/dwell/order/priority/coalescing assertions\r\nChecking ProfileLease.luau\r\nPASS 12 session-lease rule checks\r\nChecking Progression.luau\r\nPASS 508 progression/migration rule checks\r\nChecking ProgressionPacing.luau\r\nPACING learning level 10: 17.6 minutes (18 KOs)\r\nPACING learning level 25: 97.2 minutes (104 KOs)\r\nPACING learning level 50: 355.1 minutes (294 KOs)\r\nPACING learning level 100: 1424.3 minutes (1095 KOs)\r\nPACING steady level 10: 10.8 minutes (18 KOs)\r\nPACING steady level 25: 62.4 minutes (104 KOs)\r\nPACING steady level 50: 233.6 minutes (294 KOs)\r\nPACING steady level 100: 955.0 minutes (1095 KOs)\r\nPACING efficient level 10: 9.6 minutes (18 KOs)\r\nPACING efficient level 25: 51.3 minutes (104 KOs)\r\nPACING efficient level 50: 178.7 minutes (294 KOs)\r\nPACING efficient level 100: 691.8 minutes (1095 KOs)\r\nChecking QuestGuide.luau\r\nPASS 9 delivery guide checks\r\nChecking QuestLifecycle.luau\r\nPASS 5 quest lifecycle scenarios\r\nChecking RepairTimer.luau\r\nPASS 8 simulated repair scheduling checks; 600 hits -> 2 wakeups, peak pending 1; no engine timing/FPS claim\r\nChecking SustainedAttack.luau\r\nPASS 9094 pure sustained attack/onset checks; no remote, geometry or real-audio integration\r\nChecking SustainedAttackAdapter.luau\r\nPASS 104 sustained adapter checks with mocked geometry\r\nChecking SustainedBalance.luau\r\nMATCHUP,1,1,2,17.40\r\nMATCHUP,1,25,3,30.90\r\nMATCHUP,1,50,4,46.25\r\nMATCHUP,1,75,6,73.75\r\nMATCHUP,1,100,8,102.65\r\nMATCHUP,25,1,2,15.00\r\nMATCHUP,25,25,2,17.20\r\nMATCHUP,25,50,3,30.70\r\nMATCHUP,25,75,4,45.45\r\nMATCHUP,25,100,5,61.20\r\nMATCHUP,50,1,1,3.30\r\nMATCHUP,50,25,2,15.20\r\nMATCHUP,50,50,2,17.40\r\nMATCHUP,50,75,3,30.50\r\nMATCHUP,50,100,4,44.65\r\nMATCHUP,75,1,1,2.50\r\nMATCHUP,75,25,1,3.50\r\nMATCHUP,75,50,2,15.20\r\nMATCHUP,75,75,2,17.40\r\nMATCHUP,75,100,3,30.10\r\nMATCHUP,100,1,1,1.90\r\nMATCHUP,100,25,1,2.70\r\nMATCHUP,100,50,1,3.70\r\nMATCHUP,100,75,2,15.40\r\nMATCHUP,100,100,2,17.40\r\nTowerFacade: 2 attacks at unlock, 2 at cap (perfect aim/full calibrated power)\r\nBin: 1 attacks at unlock, 1 at cap (perfect aim/full calibrated power)\r\nSmallTree: 2 attacks at unlock, 1 at cap (perfect aim/full calibrated power)\r\nBike: 2 attacks at unlock, 1 at cap (perfect aim/full calibrated power)\r\nHouseFacade: 2 attacks at unlock, 1 at cap (perfect aim/full calibrated power)\r\nApartmentFacade: 2 attacks at unlock, 1 at cap (perfect aim/full calibrated power)\r\nBench: 1 attacks at unlock, 1 at cap (perfect aim/full calibrated power)\r\nLevel 1 vs 100 at onset-strength power: 12 attacks, 161.4s with quiet healing\r\nPASS 53 synthetic sustained balance checks; timings are not playtest results\r\nChecking SustainedBeams.luau\r\nPASS sustained beam reuse, capacity, stop, timeout and terminal teardown checks (mock visuals)\r\nChecking SustainedControls.luau\r\nPASS 39 synthetic sustained control checks\r\nChecking SustainedRewards.luau\r\nPASS 27 sustained NPC reward checks\r\nChecking VoiceCombat.luau\r\nPASS 1552 microphone/combat rule checks\r\nPASS 1630 total combat/microphone/destruction rule checks\r\nChecking profile_migration.py (mocked services)\r\nPASS 374 actual Config/Profiles level-100 migration checks (mock engine)\r\nChecking profile_race.py (mocked services)\r\nPASS 14 actual Profiles concurrency checks (mock store)\r\nChecking entitlements.py (mocked services)\r\nPASS 9 actual entitlement checks with mocked services\r\nChecking destruction_service.py (mocked services)\r\nPASS 89 actual Destruction service checks with mocked engine/scheduler\r\nChecking microphone_lifecycle.py (mocked services)\r\nPASS 109 actual microphone lifecycle checks with mocked audio/time; no device evidence\r\nChecking animation_lifecycle.py (mocked services)\r\nPASS 32 RunAnimation.client.luau mocked lifecycle checks\r\nPASS 14 Residents.client.luau mocked lifecycle checks\r\nChecking effect_cleanup.py (mocked services)\r\nPASS 9 actual effect pool cleanup checks with mocked tweens\r\nChecking landmark_lifecycle.py (mocked services)\r\nPASS 11 actual landmark lifecycle checks with mocked asset loading\r\nChecking ambience_startup.py (mocked services)\r\nPASS 10 actual ambience startup checks with mocked waits\r\nPASS 15 total mocked ambience startup/activity checks; no audio playback evidence\r\nChecking performance_counts.py (mocked services)\r\nSERVER_SAMPLE_READY \u00b7 RunServerSample:Invoke(30, scenario) \u00b7 disposable local server only\r\nSERVER_SAMPLE\tsynthetic test output\r\nSERVER_SAMPLE\tsynthetic test output\r\nSERVER_SAMPLE\tsynthetic test output\r\nSERVER_SAMPLE\tsynthetic test output\r\nSERVER_SAMPLE\tsynthetic test output\r\nSERVER_SAMPLE\tsynthetic test output\r\nPASS 14 fixture count/runner checks with mocked instances/time; no measured performance\r\nChecking hud_health.py (mocked services)\r\nPASS 9 actual HUD health checks with mocked replication/UI\r\nChecking menu_cleanup.py (mocked services)\r\nPASS 5 actual menu cleanup checks with mocked GUI/scheduling\r\nChecking client_connections.py (mocked services)\r\nPASS 6 actual client connection checks with mocked signals\r\nChecking resident_labels.py (mocked services)\r\nPASS 6 actual resident label checks with mocked objects\r\nChecking interaction_recovery.py (mocked services)\r\nPASS 6 shared interaction recovery checks with mocked geometry\r\nChecking city_map_marker.py (mocked services)\r\nPASS 9 actual map marker checks with mocked GUI\r\nChecking progress_label.py (mocked services)\r\nPASS 13 actual progress label checks with mocked state\r\nChecking settings_validation.py (mocked services)\r\nPASS 12 actual settings validation checks with mocked session\r\nChecking knockout_recovery.py (mocked services)\r\nPASS 16 actual knockout recovery checks with mocked character/session\r\nChecking combat_availability.py (mocked services)\r\nPASS 17 actual server combat availability checks with mocked character/dialogue\r\nChecking respawn_state.py (mocked services)\r\nPASS 12 actual server respawn/removal checks with mocked characters/events\r\nChecking target_readout.py (mocked services)\r\nPASS 23 actual target readout checks with mocked replicated state\r\nChecking target_cover.py (mocked services)\r\nPASS 60 client/server cover setup checks with mocked raycast; no geometry verification\r\nChecking sprint_state.py (mocked services)\r\nPASS 17 actual server sprint checks with synthetic velocity/time\r\nChecking dodge_cleanup.py (mocked services)\r\nPASS 10 actual roll cleanup checks with mocked lifecycle state\r\nChecking destruction_hint.py (mocked services)\r\nPASS 50 actual destruction hint checks with synthetic responses\r\nChecking npc_routes.py (mocked services)\r\nPASS 23 actual NPC route checks with synthetic paths/time; no native navigation evidence\r\nChecking sprint_input.py (mocked services)\r\nPASS 43 actual sprint input checks with mocked UI/character state\r\nChecking movement_eligibility.py (mocked services)\r\nPASS 16 actual movement eligibility checks with mocked state\r\nChecking npc_social.py (mocked services)\r\nPASS 14 actual resident conversation checks with mocked activity/time\r\nChecking npc_audience.py (mocked services)\r\nPASS 7 audience lifecycle checks with mocked residents/time\r\nChecking npc_greetings.py (mocked services)\r\nPASS 10 actual NPC greeting checks with mocked activity/visibility\r\nChecking npc_recovery.py (mocked services)\r\nPASS 9 actual NPC recovery checks with mocked callbacks\r\nChecking voice_toggle.py (mocked services)\r\nPASS 29 actual voice toggle checks with mocked availability\r\nChecking npc_work.py (mocked services)\r\nPASS 18 actual NPC work checks with mocked time/activity\r\nChecking conversation_lifecycle.py (mocked services)\r\nPASS 29 actual dialogue lifecycle checks with mocked UI/characters\r\nChecking conversation_ownership.py (mocked services)\r\nPASS 7 actual server conversation ownership checks with mocked sessions\r\nChecking capture_blocking.py (mocked services)\r\nPASS 18 actual capture gate checks with mocked avatar/UI\r\nChecking player_departure.py (mocked services)\r\nPASS 23 actual departure checks with mocked yielding save\r\nChecking shutdown_saves.py (mocked services)\r\nPASS 11 actual shutdown checks with mocked scheduler/saves\r\nChecking autosave_status.py (mocked services)\r\nPASS 11 actual autosave status checks with mocked saves\r\nChecking quest_prompt.py (mocked services)\r\nPASS 23 actual quest prompt checks with mocked instances\r\nChecking quest_accept.py (mocked services)\r\nPASS 8 actual quest acceptance checks with mocked session state\r\nChecking quest_claim.py (mocked services)\r\nPASS 8 actual quest claim checks with mocked callbacks\r\nChecking pvp_rewards.py (mocked services)\r\nPASS 16 actual combat payouts and PvP damage checks (mocked services)\r\nChecking ko_reward_cleanup.py (mocked services)\r\nPASS 4100 bounded repeat-opponent cleanup checks\r\nChecking attack_audio.py (mocked services)\r\nPASS 15 actual attack audio adapter checks with mocked instances\r\nChecking gameplay_audio.py (mocked services)\r\nPASS 26 actual gameplay audio adapter checks with mocked instances\r\nPASS 6 client hookup source-contract checks; not native event execution\r\nChecking combat_healing.py (mocked services)\r\nPASS 8 actual combat-healing checks with mocked targets\r\nChecking commerce.py (mocked services)\r\nPASS 13 actual commerce handler checks with mocked atomic store\r\nChecking shop_rewards.py (mocked services)\r\nPASS actual boosted reward helpers, expiry boundaries and color entitlement fallback\r\nChecking practice_lane.py (mocked services)\r\nPASS practice line is inside level-one onset and sustained reach with aiming margin\r\nChecking shutdown_race.py (mocked services)\r\nPASS 34 actual shutdown/reward/join/profile race checks (synthetic store and scheduler)\r\nChecking profile_recovery.py (mocked services)\r\nPASS 83 bounded recovery/ownership/replay checks; cloned simulated persistence only\r\nChecking recovery_notice.py (mocked services)\r\nPASS 16 actual recovery notice formatter checks\r\nPASS 4 recovery notice source wiring contracts; not remote/native execution\r\nChecking acquisition_lifetime.py (mocked services)\r\nPASS 7 acquisition lifetime checks: expired\r\nPASS 7 acquisition lifetime checks: near\r\nPASS 5 acquisition lifetime checks: response_expired\r\nPASS 5 acquisition lifetime checks: response_near\r\nPASS 8 acquisition lifetime checks: renewal_outage\r\nPASS 8 acquisition lifetime checks: renewal_lost\r\nPASS 4 acquisition lifetime checks: foreign_race\r\nPASS 4 acquisition lifetime checks: same_job_race\r\nPASS 4 acquisition lifetime checks: foreign_during_response\r\nPASS 7 acquisition lifetime checks: slow_exhaustion\r\nPASS 6 acquisition lifetime checks: boundary\r\nPASS 6 acquisition lifetime checks: checkpoint_metadata\r\nPASS 4 acquisition lifetime checks: renewal_lost_foreign\r\nChecking action_feedback.py (mocked services)\r\nPASS 14 actual action feedback checks; synthetic client UI/time and server helpers\r\nChecking voice_notice_lifecycle.py (mocked services)\r\nPASS 1217 voice notice lifecycle assertions; synthetic timing and callbacks\r\nCompiled 57 production scripts; no Studio execution.\r\nBuilding project 'ScreamSimulator'\r\nBuilt project to candidate.rbxlx\r\nBuilding project 'ScreamSimulator'\r\nBuilt project to AutomaticVoiceCandidate.rbxl\r\nPASS: candidate contains exactly 57 production sources; mismatch checks passed. No upload or native execution.\r\nBuilding project 'SustainedLocalPlay_DO_NOT_PUBLISH'\r\nBuilt project to SustainedLocalPlay.rbxl\r\nBuilding project 'SustainedNativeFixture_DO_NOT_PUBLISH'\r\nBuilt project to SustainedNativeFixture.rbxl\r\nBuilding project 'PerformanceReview_DO_NOT_PUBLISH'\r\nBuilt project to PerformanceReview.rbxl\r\nBuilding project 'VoiceTransportReview_DO_NOT_PUBLISH'\r\nBuilt project to VoiceTransportReview.rbxl\r\nBuilt local play, native and transport fixtures, and performance review; none was executed in Studio.\r\nAssembled server, client and animation harnesses from current source\r\nAssembled server, client and animation harnesses from current source\r\nUI-only preview: 390 844\r\nBuilding project 'ShopReviewVerified_DO_NOT_PUBLISH'\r\nBuilt project to ShopReviewVerified.rbxl\r\nBuilding project 'BeamReview_DO_NOT_PUBLISH'\r\nBuilt project to BeamReview.rbxl\r\nAssembled server, client and animation harnesses from current source\r\nAssembled server, client and animation harnesses from current source\r\nUI-only preview: 390 844\r\nBuilding project 'OnboardingReview_DO_NOT_PUBLISH'\r\nBuilt project to OnboardingReview.rbxl\r\nAssembled server, client and animation harnesses from current source\r\nUI-only preview: 390 844\r\nBuilding project 'NotificationReview_DO_NOT_PUBLISH'\r\nBuilt project to NotificationReview.rbxl\r\nBuilt/compiled review fixtures; native runtime and UI appearance remain untested.\r\nPASS: 25 pure/synthetic suites, 58 mocked-service suites, production compilation.\r\n"
+  },
+  "native": {
+    "log": "0.747.0.7471481_20261110T234407Z_Studio_C1E37_last.log",
+    "executed_artifact_sha256": "95c947d28ed48ee074679623508140ab368a888c34bada1d94e893a3d785fca3",
+    "markers": [
+      "MENU {\"top\":\"Notification\",\"above\":true,\"menuZ\":10,\"text\":\"Roblox could not open this purchase. Please try again.\",\"clipped\":false,\"toastZ\":30}",
+      "SEGMENT {\"views\":{\"390, 844\":true},\"clipped\":0,\"wall\":0.51597319999928,\"text\":\"LEVEL 10 milestone\",\"frames\":31,\"dwell\":0.5161391999972693}",
+      "SEGMENT {\"views\":{\"390, 844\":true},\"clipped\":0,\"wall\":4.233813500002725,\"text\":\"Saving is unavailable. Progress from here is temporary; rejoin before continuing progression.\",\"frames\":250,\"dwell\":4.233759500002634}",
+      "SEGMENT {\"views\":{\"390, 844\":true,\"844, 390\":true},\"clipped\":0,\"wall\":4.032349499997508,\"text\":\"LEVEL 10 milestone\",\"frames\":242,\"dwell\":4.03285010000036}",
+      "SEGMENT {\"views\":{\"844, 390\":true},\"clipped\":0,\"wall\":4.016795600000478,\"text\":\"Quest reward \u00b7 +100 XP \u00b7 +40 coins\",\"frames\":241,\"dwell\":4.016342899998563}",
+      "SEGMENT {\"views\":{\"1280, 720\":true,\"844, 390\":true},\"clipped\":0,\"wall\":4.017068199998903,\"text\":\"Quest complete! Claim your reward in Quests.\",\"frames\":241,\"dwell\":4.01680480000141}",
+      "SEGMENT {\"views\":{\"1280, 720\":true},\"clipped\":0,\"wall\":4.032742600000347,\"text\":\"Flowers watered \u00b7 thanks for helping the neighborhood!\",\"frames\":242,\"dwell\":4.034152599997469}",
+      "SEGMENT {\"views\":[],\"clipped\":0,\"wall\":2.650716800002556,\"text\":\"\",\"frames\":159,\"dwell\":2.6489088000016638}",
+      "REVIEW_PASS {\"seconds\":23.498954311944546,\"segments\":6,\"synthetic\":true}",
+      "PRIORITY_PASS {\"seconds\":4.432829099998344,\"frames\":241,\"synthetic\":true}",
+      "LIFECYCLE_PASS {\"removed\":0,\"pending\":0,\"kind\":\"mic-unavailable\",\"text\":\"\",\"synthetic\":true}",
+      "LIFECYCLE_PASS {\"removed\":0,\"pending\":0,\"kind\":\"suspend\",\"text\":\"\",\"synthetic\":true}",
+      "LIFECYCLE_PASS {\"removed\":1,\"pending\":0,\"kind\":\"character-removal\",\"text\":\"\",\"synthetic\":true}",
+      "INTERACTIONS_PASS synthetic mic/state, native labels and local CharacterRemoving; no real respawn/network"
+    ],
+    "review_script_errors": [],
+    "native_scope": "Actual client render/controller and locally induced CharacterRemoving event. Synthetic mic/state/focus/layout; no full death/respawn, real voice or network validation."
+  },
+  "overflow": {
+    "fixture": "local Queue=require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue')\nlocal q=Queue.new();q:Push('Active critical',true);q:Push('Waiting save warning',true)\nfor i=1,8 do q:Push('Distinct urgent '..i,true)end\nassert(q.active.text=='Active critical' and #q.pending==8)\nfor _,entry in ipairs(q.pending) do assert(entry.text~='Waiting save warning')end\nprint('REPRODUCED documented overflow: ninth distinct pending urgent evicts oldest pending save warning; active warning preserved, pending bounded at 8')\r\nq:Push('Normal incoming');assert(#q.pending==8);for _,entry in ipairs(q.pending) do assert(entry.urgent)end\r\n",
+    "output": "REPRODUCED documented overflow: ninth distinct pending urgent evicts oldest pending save warning; active warning preserved, pending bounded at 8\r\n",
+    "policy_changed": false,
+    "recommendation": "Keep persistent save status; separately assess semantic critical-category replacement/priorities. Do not promise delivery of all events under unbounded overload."
+  },
+  "review": {
+    "kind": "Separate implementing-agent self-review; no independent reviewer claimed",
+    "result": "No blocker found",
+    "scope": [
+      "optional constructor compatibility",
+      "state changes versus no-op availability",
+      "existing cancellation precedes invalidation",
+      "actual client callback wiring and native signal execution",
+      "active/pending voice removal and unrelated warning preservation",
+      "prior priority/FIFO behavior retained",
+      "native script error scan and final markers",
+      "candidate source correspondence and cleanup"
+    ]
+  },
+  "limits": [
+    "Synthetic mic/state/focus/layout; no real microphone or voice transport",
+    "Native CharacterRemoving induced by local Character assignment, not full server death/respawn",
+    "Physical phones, accessibility, human comprehension, multiplayer/network and persistence remain gates",
+    "Bounded pending urgent overflow remains unchanged",
+    "No publication, purchases, audio configuration or live DataStore access"
+  ],
+  "cleanup": {
+    "initial_inventory": "Only Codex 66568",
+    "opened_saved_stopped_closed": [
+      "NotificationLifecycle.rbxl"
+    ],
+    "final_inventory": "Only Codex 66568",
+    "browsers_opened": 0,
+    "killed_processes": 0,
+    "discarded_unsaved_work": false,
+    "artifact_note": "Native executed hash captured before local Studio save. NotificationReview.rbxl still matches executed bytes; NotificationLifecycle.rbxl preserved Studio save metadata."
+  },
+  "hashes": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": {
+      "sha256": "f55eabe5eb555379864d8f6b81fe28f4383ca7901aef61ab3695e2c29f12b49b",
+      "bytes": 68332
+    },
+    "src/StarterPlayer/StarterPlayerScripts/SustainedControls.luau": {
+      "sha256": "7b31bec11d8684b501ab218c466f04897a0c35a77b65c7b621d6d234ef3680e6",
+      "bytes": 2761
+    },
+    "src/StarterPlayer/StarterPlayerScripts/NotificationQueue.luau": {
+      "sha256": "3146098daa266c05029999e4216c8feb82c5d360913d8c9241b3f9cf5b368b11",
+      "bytes": 1979
+    },
+    "tests/voice_notice_lifecycle.py": {
+      "sha256": "534e8e518b940c328d8b059853f973b435d45f44e3e958e1614f47aa9fb170fa",
+      "bytes": 4979
+    },
+    "tests/build_notification_review.py": {
+      "sha256": "530dd9270cfd93090da6461ac8144ec09856ffac2886c902753002f4789a1216",
+      "bytes": 7941
+    },
+    "build/NotificationReview.rbxl": {
+      "sha256": "95c947d28ed48ee074679623508140ab368a888c34bada1d94e893a3d785fca3",
+      "bytes": 90086
+    },
+    "build/NotificationReview.client.luau": {
+      "sha256": "8677f48bff93b2cf4aa37fd08023a7344ef3ad9fc75f79846b97fc0f2e094fad",
+      "bytes": 152365
+    },
+    "build/NotificationLifecycle.rbxl": {
+      "sha256": "0d2f222a342ec0563cfafaaa534243678ff08d2e06e05182c139e340db312ba1",
+      "bytes": 112490
+    },
+    "build/AutomaticVoiceCandidate.rbxl": {
+      "sha256": "89c57b87c28a26b3b7c925b5f0e7ba8417b897085c773dc463fed3a66c61db56",
+      "bytes": 191301
+    },
+    "build/AutomaticVoiceCandidate.provenance.json": {
+      "sha256": "5712d0c69e0a5e67d7f85b35af5ca1e908302a9e977ce251021318675cbeef06",
+      "bytes": 7772
+    }
+  }
+}
