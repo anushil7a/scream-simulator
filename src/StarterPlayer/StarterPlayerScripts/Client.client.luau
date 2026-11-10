@@ -132,9 +132,11 @@ tracked.BackgroundColor3=dark;tracked.BackgroundTransparency=.12
 local trackerCorner=Instance.new("UICorner");trackerCorner.CornerRadius=UDim.new(0,8);trackerCorner.Parent=tracked
 local trackerPadding=Instance.new("UIPadding");trackerPadding.PaddingLeft=UDim.new(0,6);trackerPadding.PaddingRight=UDim.new(0,6);trackerPadding.PaddingTop=UDim.new(0,4);trackerPadding.PaddingBottom=UDim.new(0,4);trackerPadding.Parent=tracked
 local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center;toast.AnchorPoint=Vector2.new(.5,1);toast.Position=UDim2.fromScale(.5,.72)
+toast.Name="Notification";toast.ZIndex=30;toast.BackgroundColor3=dark;toast.BackgroundTransparency=.08;toast.Visible=false
 local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
-local toastUntil=0;local toastWidth=0
-local function notify(t) toast.Text=t;toastUntil=os.clock()+math.clamp(#t/22,4,12);toastWidth=0 end
+local notifications=require(script.Parent:WaitForChild("NotificationQueue")).new()
+local toastWidth=0
+local function notify(t,urgent,key) notifications:Push(t,urgent,key) end
 local nextCast=0;local sequence=0;local captureSource=nil
 local sustainedControl,sustainedRules
 local windowFocused=true
@@ -201,11 +203,11 @@ local function toggleVoice()
  if not sustainedControl then return end
  -- Pausing is always allowed; arming must be an available gameplay action.
  if not sustainedControl.armed and (not windowFocused or blocked()) then
-  notify("Screams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.");return
+  notify("Screams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.",true,"voice");return
  end
  sustainedControl:SetArmed(not sustainedControl.armed)
  notify(sustainedControl.armed and "Screams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
-  or "Screams OFF. Talk freely without attacking. Voice chat is unchanged.")
+  or "Screams OFF. Talk freely without attacking. Voice chat is unchanged.",false,"voice")
 end
 local function screamToggleLabel(armed,touch)
  return (armed and "SCREAMS: ON" or "SCREAMS: OFF").."\n"..(touch and "Tap" or "[E]")..(armed and " to turn off" or " to turn on")
@@ -214,7 +216,7 @@ local function releaseCapture(source)
  if captureSource~=source then return end
  captureSource=nil
  if blocked() then cancelCapture();return end
- local power,reason=mic:Release();if power<.08 then action:FireServer("CancelCast");notify(reason or "Use your voice while holding attack.");return end
+ local power,reason=mic:Release();if power<.08 then action:FireServer("CancelCast");notify(reason or "Use your voice while holding attack.",true,"capture");return end
  local ray,hit=aimRay()
  if not ray then action:FireServer("CancelCast");return end
  action:FireServer("Cast",{sequence=sequence,power=power,aim=hit and hit.Position or ray.Origin+ray.Direction*1000})
@@ -607,9 +609,11 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
  tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west beach\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
  trackedQuestText=tracked.Text
- if data.milestone and data.milestone~=lastMilestone then
+ local newMilestone=data.milestone and data.milestone~=lastMilestone
+ if newMilestone then
   lastMilestone=data.milestone;notify(data.milestone)
- elseif data.message then notify(data.message) end
+ end
+ if data.message and (not newMilestone or data.messageUrgent) then notify(data.message,data.messageUrgent) end
  if data.conversation then showConversation(data.conversation) end
  if modal.Visible then render() end
 end)
@@ -693,10 +697,15 @@ local lastViewport,lastTouch
 modal.Close.Modal=true;micPanel.Calibrate.Modal=true;conversationPanel.Close.Modal=true
 testContent.XP.Modal=true
 connectClient(Run.RenderStepped,function(dt)
+ local notice=notifications:Step(dt,windowFocused and not GuiService.MenuIsOpen)
+ if notice~=toast.Text then toast.Text=notice;toastWidth=0 end
+ toast.Visible=notice~=""
  ShopUI.Tick()
  refreshHealth()
  local viewport=gui.AbsoluteSize
  local touch=UIS.TouchEnabled
+ -- Keep the raised notification above the touch/keyboard action targets.
+ toast.Position=UDim2.fromOffset(viewport.X*.5,math.min(viewport.Y*.72,viewport.Y-(touch and 203 or 110)))
  local layoutChanged=viewport~=lastViewport or touch~=lastTouch
  if layoutChanged then lastViewport=viewport;lastTouch=touch;toastWidth=0 end
  local notificationWidth=math.min(640,viewport.X-32)
@@ -741,7 +750,7 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if captureSource and blocked() then cancelCapture() end
  if captureSource and mic.captureStarted and os.clock()-mic.captureStarted>Config.VoiceCombat.CaptureExpiry then
-  cancelCapture();notify("Capture expired. Hold attack again and use a fresh live scream.")
+  cancelCapture();notify("Capture expired. Hold attack again and use a fresh live scream.",true,"capture")
  end
  if sprinting then setSprint(true) end
  local gameplayVisible=mic.ready and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
@@ -839,7 +848,6 @@ connectClient(Run.RenderStepped,function(dt)
  castButton.BackgroundColor3=(sustainedControl and not sustainedControl.armed or protected>0) and muted or gold
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or (touch and "DODGE" or "DODGE [Q]")
  local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",p:GetAttribute("SprintCharge") or 10)..(touch and "" or " [SHIFT]")
- if os.clock()>toastUntil then toast.Text="" end
  aimInfo.Visible=gameplayVisible
  if sustainedBeams then
   local now=os.clock();sustainedBeams:Expire(now)

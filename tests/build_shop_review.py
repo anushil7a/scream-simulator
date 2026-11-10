@@ -6,7 +6,7 @@ out=root/'build'
 subprocess.run([sys.executable,str(root/'tests/build_ui_preview.py'),'390','844'],check=True)
 ui=(out/'StudioUIPreview.luau').read_text()
 ui=ui.replace('return report', '''for _,row in ipairs(report) do print("SHOP_LAYOUT_ROW "..game:GetService("HttpService"):JSONEncode(row)) end
-mic.ready=true;modal.Visible=true;selected="Shop";render();toastUntil=0
+mic.ready=true;modal.Visible=true;selected="Shop";render();notifications=modules.NotificationQueue.new()
 ''')
 (out/'ShopReview.client.luau').write_text(ui)
 for name,client in [('ShopReviewVerified',out/'ShopReview.client.luau'),('BeamReview',root/'tests/StudioBeamVisuals.client.luau')]:

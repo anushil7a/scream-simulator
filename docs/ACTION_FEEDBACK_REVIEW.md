@@ -1,5 +1,7 @@
 # Action feedback audit
 
+Historical suppression checkpoint. Its single-toast readability limitation is addressed in [the subsequent queue review](NOTIFICATION_QUEUE_REVIEW.md); the results below describe the earlier checkpoint only.
+
 Base: `ad7b5fd9eef911a1b9b1e881faeb3f31e21abfb6`. The reference about visual feedback is an audit prompt, not evidence of retention impact.
 
 ## Reproduced defect and correction

@@ -7,7 +7,7 @@ s=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
 a=s.index('local function autosave(p,s)');b=s.index('task.spawn(function() while true do task.wait(60)',a)
 setup='''
 local sessions={};local messages={};local mode='error';local saved
-local function state(_,message)table.insert(messages,message)end
+local function state(_,message,conversation,urgent)assert(urgent==true,"Save failure lost urgent metadata");table.insert(messages,message)end
 local Profiles={Save=function(_,data)
  saved=data
  if mode=='error' then error('synthetic exception') end

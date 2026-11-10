@@ -52,13 +52,13 @@ gui.Size=UDim2.fromOffset(390,844);fixtureTouch=true;mic.ready=true;data.micRead
 Run.RenderStepped:Wait();task.wait(.5);observe("first-ready")
 for _,view in ipairs({{390,844,true},{844,390,true},{1280,720,false}}) do
  gui.Size=UDim2.fromOffset(view[1],view[2]);fixtureTouch=view[3];windowFocused=true;sustainedControl:SetArmed(true);mic.power=0
- toastUntil=0;task.wait(.5);observe("on")
+ notifications=modules.NotificationQueue.new();task.wait(.5);observe("on")
  mic.power=.8;task.wait(.3);observe("synthetic-active")
  toggleVoice();task.wait(.15);observe("off")
  selected="Settings";modal.Visible=true;render();Run.RenderStepped:Wait();Run.RenderStepped:Wait();observe("settings");modal.Visible=false
 end
 gui.Size=UDim2.fromOffset(390,844);fixtureTouch=true;windowFocused=true;mic.power=0;sustainedControl:SetArmed(true)
-toastUntil=0;task.wait(.5);observe("manual-ready")
+notifications=modules.NotificationQueue.new();task.wait(.5);observe("manual-ready")
 castButton.Activated:Connect(function()task.defer(function()task.wait(.1);observe("manual-click")end)end)
 UIS.InputBegan:Connect(function(input,processed) if not processed and input.KeyCode==Enum.KeyCode.E then task.defer(function()task.wait(.1);observe("manual-key")end) end end)
 print("ONBOARDING_READY synthetic mic/remotes; no persistence")

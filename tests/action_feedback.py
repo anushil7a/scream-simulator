@@ -13,8 +13,8 @@ start = server.index(' elseif verb=="ClaimQuest" then') + len(' elseif verb=="Cl
 claim = server[start:server.index(' elseif verb=="SetSettings"', start)]
 setup = '''
 local now=100;local os={clock=function()return now end}
-local notices={};local receiver;local data;local p={};local earned=0;local stops=0
-local function notify(message)table.insert(notices,message)end
+local notices={};local urgentNotices={};local receiver;local data;local p={};local earned=0;local stops=0
+local function notify(message,urgent)table.insert(notices,message);table.insert(urgentNotices,urgent==true)end
 local function cueContext()end;local gameplayAudio={ObserveLevel=function()end}
 local remotes={State={OnClientEvent={}}}
 local function connectClient(_,fn)receiver=fn end
@@ -32,7 +32,7 @@ local s={data={coins=10,achievements={},quests={garden={progress=3,claimed=false
 local function packet(message,milestone)
  return {level=10,coins=s.data.coins,xp=0,xpNext=100,quests=s.data.quests,questTime=0,message=message,milestone=milestone}
 end
-local function state(_,message)receiver(packet(message,'LEVEL 10 milestone'))end
+local function state(_,message,conversation,urgent)local value=packet(message,'LEVEL 10 milestone');value.messageUrgent=urgent;receiver(value)end
 local Commerce={Multiplier=function()return 1 end}
 local function coins(_,amount)s.data.coins+=amount end
 local function xp(_,amount)earned+=amount end
@@ -45,6 +45,7 @@ check(#notices==1 and notices[1]=='LEVEL 10 milestone','New milestone was not sh
 now=100.1;microSpeaker(p,s,false)
 check(s.data.coins==10 and not s.data.amplifierOwned,'Rejected upgrade mutated ownership/coins')
 CHECK_REJECTION
+check(urgentNotices[#urgentNotices]==true,'Upgrade rejection lost urgency')
 now=100.2;claim(p,s,'garden')
 check(s.data.quests.garden.claimed and s.data.coins==50 and earned==100,'Valid claim missing reward')
 CHECK_REWARD
@@ -58,6 +59,9 @@ now=107;state(p,'Speak with the market vendor nearby before buying.')
 check(notices[#notices]=='Speak with the market vendor nearby before buying.','Ordinary later failure lost')
 receiver(packet(nil,'LEVEL 20 milestone'));check(notices[#notices]=='LEVEL 20 milestone','Later milestone lost')
 count=#notices;receiver(packet(nil,nil));check(#notices==count,'Silent state produced a notice')
+local critical=packet('Saving is unavailable.','LEVEL 30 milestone');critical.messageUrgent=true;receiver(critical)
+check(notices[count+1]=='LEVEL 30 milestone','Critical packet lost milestone')
+check(#notices==count+2 and notices[#notices]=='Saving is unavailable.' and urgentNotices[#urgentNotices],'Same-packet milestone hid critical warning')
 print('PASS '..checks..' actual action feedback checks; synthetic client UI/time and server helpers')
 '''
 reproduce = '--reproduce' in sys.argv
@@ -83,6 +87,7 @@ run(payload)
 if reproduce:
     print('REPRODUCED: authoritative upgrade rejection, reward confirmation and completion disappear inside the milestone window; debit/reward guards remain correct.')
 if '--negative-controls' in sys.argv:
-    run(payload.replace('elseif data.message then','elseif data.message and os.clock()>=106 then'), 'Milestone hid upgrade rejection')
+    run(payload.replace('if data.message and (not newMilestone or data.messageUrgent) then','if data.message and os.clock()>=106 then'), 'Milestone hid upgrade rejection')
     run(payload.replace('data.milestone~=lastMilestone','(data.milestone~=lastMilestone or not data.message)'), 'Repeated milestone snapshots replayed a notification')
     run(payload.replace('not v.claimed and v.progress>=q.goal','v.progress>=q.goal'), 'Repeated claim duplicated reward/notice')
+    run(payload.replace('(not newMilestone or data.messageUrgent)', '(not newMilestone)'), 'Same-packet milestone hid critical warning')

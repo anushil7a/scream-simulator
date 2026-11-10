@@ -60,20 +60,20 @@ function Commerce.Activate(player,kind)
   local data=Ledger.Activate(raw,kind,operation,started,os.time())
   return data -- UpdateAsync's second return is user IDs, not a status string.
  end)
- if player.Parent then changed(player,ok and "Boost activated · 30 minutes added · continues offline" or "Boost not activated. Check your inventory and try again.") end
+ if player.Parent then changed(player,ok and "Boost activated · 30 minutes added · continues offline" or "Boost not activated. Check your inventory and try again.",nil,not ok) end
 end
 function Commerce.Prompt(player,key)
  local item=Catalog.Get(key)
- if not item or Run:IsStudio() or not allowed(player) then changed(player,"Purchases are unavailable in this session.");return end
+ if not item or Run:IsStudio() or not allowed(player) then changed(player,"Purchases are unavailable in this session.",nil,true);return end
  local id=item.key=="Movement" and Config.MovementPassId or item.id
- if type(id)~="number" or id<=0 then changed(player,"This unlock is coming soon.");return end
+ if type(id)~="number" or id<=0 then changed(player,"This unlock is coming soon.",nil,true);return end
  if os.clock()<(promptAt[player] or 0) then return end
  promptAt[player]=os.clock()+3
- if item.kind=="product" and not cache[player] then changed(player,"Loading your purchases. Please try again.");task.spawn(Commerce.Load,player);return end
+ if item.kind=="product" and not cache[player] then changed(player,"Loading your purchases. Please try again.",nil,true);task.spawn(Commerce.Load,player);return end
  if item.kind=="product" then
   local count=0;for _ in pairs(cache[player].receipts) do count+=1 end
   if Catalog.Product(id)~=item or count>=Ledger.ReceiptLimit or cache[player].inventory[item.boost]>=1000000 then
-   changed(player,"This purchase is currently unavailable.");return
+   changed(player,"This purchase is currently unavailable.",nil,true);return
   end
  end
  if item.key=="Spectrum" and Entitlements.HasSpectrum(player) or item.key=="Movement" and Entitlements.HasMovement(player) then return end
@@ -81,7 +81,7 @@ function Commerce.Prompt(player,key)
   if item.kind=="pass" then Marketplace:PromptGamePassPurchase(player,id)
   else Marketplace:PromptProductPurchase(player,id) end
  end)
- if not ok then changed(player,"Roblox could not open this purchase. Please try again.") end
+ if not ok then changed(player,"Roblox could not open this purchase. Please try again.",nil,true) end
 end
 function Commerce.Start(canPurchase,onChanged)
  assert(not allowed,"Commerce already started")

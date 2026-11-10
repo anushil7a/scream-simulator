@@ -73,7 +73,7 @@ local function beamColor(p,s)
  if s.data.useCustomColor and s.data.customColor and Entitlements.HasSpectrum(p) then return Color3.fromHex(s.data.customColor) end
  return s.data.aura
 end
-local function state(p,message,conversation)
+local function state(p,message,conversation,messageUrgent)
  local s=sessions[p];if not s or not p.Parent then return end
  if p:GetAttribute("ScreamLevel")~=s.data.level then p:SetAttribute("ScreamLevel",s.data.level) end
  local _,r,h=parts(p)
@@ -89,7 +89,7 @@ local function state(p,message,conversation)
  availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message})
+ conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message,messageUrgent=messageUrgent==true})
 end
 Commerce.Start(function(p)
  local s=sessions[p]
@@ -503,7 +503,7 @@ local function microSpeaker(p,s,toggleOwned)
   if toggleOwned then s.data.amplifierEquipped=not s.data.amplifierEquipped
   else state(p,"You already own a micro-speaker. Equip it from Style.");return end
  else
-  if s.data.coins<Config.MicroSpeakerPrice then state(p,"Micro-speaker costs "..Config.MicroSpeakerPrice.." coins. You need "..(Config.MicroSpeakerPrice-s.data.coins).." more.");return end
+  if s.data.coins<Config.MicroSpeakerPrice then state(p,"Micro-speaker costs "..Config.MicroSpeakerPrice.." coins. You need "..(Config.MicroSpeakerPrice-s.data.coins).." more.",nil,true);return end
   s.data.coins-=Config.MicroSpeakerPrice;s.data.amplifierOwned=true;s.data.amplifierEquipped=true
  end
  state(p,s.data.amplifierEquipped and "Micro-speaker equipped · +12% normalized power, capped at 100%" or "Micro-speaker unequipped")
@@ -511,7 +511,7 @@ end
 local function vendorPurchase(p,s,arg)
  local bot=s.conversationBot;local _,root=parts(p)
  if type(arg)~="table" or arg.product~="MicroSpeaker" or not bot or arg.npc~=bot.id or bot.role~="Vendor" or not bot.alive or not bot.root.Parent or bot.talkingTo~=p or (bot.socialUntil or 0)<=os.clock() or not root or not InteractionRules.CanReachNpc(p.Character,bot.model,14) then
-  state(p,"Speak with the market vendor nearby before buying.");return
+  state(p,"Speak with the market vendor nearby before buying.",nil,true);return
  end
  -- No yielding between ownership check and debit: duplicate requests never charge twice.
  microSpeaker(p,s,false)
@@ -876,10 +876,10 @@ local function autosave(p,s)
  if sessions[p]~=s or not p.Parent then return end
  if ok then s.saveDelayed=false
  elseif reason=="ownership" or reason=="unavailable" then
-  s.canSave=false;s.saveDelayed=false;state(p,"Saving is unavailable. Progress from here is temporary; rejoin before continuing progression.")
+  s.canSave=false;s.saveDelayed=false;state(p,"Saving is unavailable. Progress from here is temporary; rejoin before continuing progression.",nil,true)
  else
   local first=not s.saveDelayed;s.saveDelayed=true
-  if first then state(p,"Save delayed. Your progress is still in this server; saving will retry automatically.") end
+  if first then state(p,"Save delayed. Your progress is still in this server; saving will retry automatically.",nil,true) end
  end
 end
 task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(autosave,p,s) end end end end)

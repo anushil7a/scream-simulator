@@ -8,7 +8,7 @@ local Catalog=require('../src/ReplicatedStorage/Shared/ShopCatalog')
 local Ledger=require('../src/ReplicatedStorage/Shared/BoostLedger')
 Catalog.Get('XP').id=101;Catalog.Get('Coins').id=102
 local raw;local failBefore=false;local ambiguous=false;local studio=false
-local player={UserId=7,Parent=true};local live=player;local eligible=true;local notices=0
+local player={UserId=7,Parent=true};local live=player;local eligible=true;local notices=0;local lastUrgent
 local market={};local prompts=0
 market.PromptProductPurchase=function()prompts+=1 end
 market.PromptGamePassPurchase=function()prompts+=1 end
@@ -34,7 +34,7 @@ local Commerce=(function()
 '''
 checks='''
 end)()
-Commerce.Start(function()return eligible end,function()notices+=1 end)
+Commerce.Start(function()return eligible end,function(_,message,conversation,urgent)notices+=1;lastUrgent=urgent end)
 local n=0;local function check(ok,msg)assert(ok,msg);n+=1 end
 local receipt={PlayerId=7,ProductId=101,PurchaseId='r1'}
 studio=true;check(market.ProcessReceipt(receipt)=='pending' and raw==nil,'Studio wrote money')
@@ -51,7 +51,7 @@ local before=raw.ends.xp
 Commerce.Activate(player,'bad');check(raw.ends.xp==before,'Unknown activation altered ledger')
 receipt.ProductId=999;check(market.ProcessReceipt(receipt)=='pending','Unknown receipt acknowledged')
 Catalog.Get('Coins').id=101;receipt.ProductId=101;check(market.ProcessReceipt(receipt)=='pending','Duplicate product IDs granted ambiguous item')
-Commerce.Prompt(player,'Spectrum');check(prompts==0,'Unconfigured pass prompted')
+Commerce.Prompt(player,'Spectrum');check(prompts==0,'Unconfigured pass prompted');check(lastUrgent==true,'Purchase failure lost urgency')
 print('PASS '..n..' actual commerce handler checks with mocked atomic store')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
