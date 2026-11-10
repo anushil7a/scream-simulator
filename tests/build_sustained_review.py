@@ -3,6 +3,7 @@
 This only assembles/compiles artifacts. It does not run Studio or verify audio.
 All outputs refuse to run Bootstrap outside unpublished local Studio places.
 """
+import argparse
 import json
 import hashlib
 from pathlib import Path
@@ -25,6 +26,10 @@ def absolute_paths(node):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--transport-mutation', choices=('drop-stop', 'corrupt-replay'),
+                        help='Build only an intentionally broken, guarded transport negative control')
+    args = parser.parse_args()
     rojo = shutil.which("rojo") or "/opt/homebrew/bin/rojo"
     compiler = shutil.which("luau-compile") or "/opt/homebrew/bin/luau-compile"
     project = json.loads((ROOT / "default.project.json").read_text())
@@ -55,6 +60,7 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
     })
     def source_fingerprint():
         digest = hashlib.sha256()
+        digest.update((args.transport_mutation or "none").encode() + b"\0")
         for path in fingerprint_paths:
             digest.update(path.relative_to(ROOT).as_posix().encode() + b"\0")
             digest.update(path.read_bytes() + b"\0")
@@ -64,7 +70,11 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
     output.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="scream-review-") as temp:
         temp = Path(temp)
-        for name, appendix in [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", (ROOT / "tests/StudioVoiceTransport.server.luau").read_text())]:
+        transport_fixture = (ROOT / "tests/StudioVoiceTransport.server.luau").read_text()
+        builds = [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", transport_fixture)]
+        if args.transport_mutation:
+            builds = [("VoiceTransportDropStop" if args.transport_mutation == "drop-stop" else "VoiceTransportCorruptReplay", transport_fixture)]
+        for name, appendix in builds:
             script = temp / "Bootstrap.server.luau"
             provenance = output / (name + ".provenance.json")
             provenance.unlink(missing_ok=True)
@@ -72,16 +82,31 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
             script.write_text(guard + stamp + bootstrap + "\n" + appendix)
             subprocess.run([compiler, str(script)], check=True, stdout=subprocess.DEVNULL)
             server["Bootstrap"] = {"$path": str(script)}
-            if name == "VoiceTransportReview":
+            if name.startswith("VoiceTransport"):
                 clients = project["tree"]["StarterPlayer"]["StarterPlayerScripts"]
                 del clients["$path"]
                 for client_path in (ROOT / "src/StarterPlayer/StarterPlayerScripts").glob("*.luau"):
                     client_name = client_path.name.removesuffix(".client.luau").removesuffix(".luau")
                     clients[client_name] = {"$path": str(client_path)}
                 client_script = temp / "Client.client.luau"
+                client_fixture = (ROOT / "tests/StudioVoiceTransport.client.luau").read_text()
+                if args.transport_mutation == "drop-stop":
+                    needle = "   nativeSend(verb,arg)"
+                    assert client_fixture.count(needle) == 1
+                    client_fixture = client_fixture.replace(needle,
+                        '   if not (verb=="SustainedStop" and arg==5) then nativeSend(verb,arg) end')
+                if args.transport_mutation == "corrupt-replay":
+                    adapter = (source / "SustainedAttackAdapter.luau").read_text()
+                    needle = '  if not sampleIndex(request.sample) or request.sample<=intent.sample then return false,"sample" end'
+                    assert adapter.count(needle) == 1
+                    adapter = adapter.replace(needle,
+                        '  if sampleIndex(request.sample) and request.sample<=intent.sample then active.power=request.power;intent.aim=request.aim;return false,"sample" end\n' + needle)
+                    mutant = temp / "SustainedAttackAdapter.luau"
+                    mutant.write_text(adapter)
+                    subprocess.run([compiler, str(mutant)], check=True, stdout=subprocess.DEVNULL)
+                    server["SustainedAttackAdapter"] = {"$path": str(mutant)}
                 client_script.write_text('assert(game:GetService("RunService"):IsStudio() and game.PlaceId == 0)\n' +
-                    (ROOT / "src/StarterPlayer/StarterPlayerScripts/Client.client.luau").read_text() + "\n" +
-                    (ROOT / "tests/StudioVoiceTransport.client.luau").read_text())
+                    (ROOT / "src/StarterPlayer/StarterPlayerScripts/Client.client.luau").read_text() + "\n" + client_fixture)
                 subprocess.run([compiler, str(client_script)], check=True, stdout=subprocess.DEVNULL)
                 clients["Client"] = {"$path": str(client_script)}
             project["name"] = name + "_DO_NOT_PUBLISH"
@@ -91,7 +116,7 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
             if source_fingerprint() != source_hash:
                 raise RuntimeError("Review sources changed during build; rebuild before testing")
             provenance.write_text(json.dumps({
-                "build": name, "sourceSha256": source_hash,
+                "build": name, "sourceSha256": source_hash, "mutation": args.transport_mutation,
                 "artifactSha256": hashlib.sha256((output / (name + ".rbxl")).read_bytes()).hexdigest(),
                 "scope": "Compiled disposable local fixture; not executed or published",
             }, indent=2) + "\n")

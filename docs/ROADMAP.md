@@ -49,6 +49,14 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - [Reproduction guide and scope](VOICE_TRANSPORT_REVIEW.md). This proves scoped local Studio event/replication integration, not real microphone calibration/voice transport, physical phone/input, internet conditions, multi-client contention, live saves or performance. Audio remains owner-configured later; no publication.
 - Next: eligible real-device first-minute playtest; then two-account proximity voice, interruption/recovery and representative network/device checks.
 
+## November 10 transport assertion correction
+
+- Review of `161590f` identified test masking risks, not confirmed production failures: an inactive beam after three seconds could be input timeout, and later valid pulses could conceal a replay mutation. The earlier transport run remains historical evidence; these two claims now use stricter assertions.
+- The disposable server fixture records immutable state and return values inside each actual Begin/Pulse/Stop call without yielding. Five replay/malformed requests must explicitly reject and preserve the captured state. Quiet-stop requires one matching client send, an accepted server stop with reason `stop`, and a timestamp before both expiry deadlines.
+- Final native baseline passes 40 assertions in 30.869 seconds. Explicit stop precedes input timeout by 0.250790 seconds and maximum duration by 3.483515 seconds. The dropped-stop negative control fails at the missing explicit-stop assertion (31.354 seconds); the corrupt-replay control fails at immediate power mutation (5.191 seconds), preserving evidence of power changing from 0.5 to 1 despite a rejection. Both are expected failures proving detection, not production defects.
+- Full `python tests/verify_local.py --build` passes 24 pure/synthetic suites, 52 mocked-service suites, 56 production compiles and all candidate/disposable builds; both mutation artifacts also compile. Complete reports survive Studio log truncation through bounded chunks. [Exact results, snapshots and build hashes](../tests/evidence/transport-assertions-2026-11-10.json); [reproduction and mutation commands](VOICE_TRANSPORT_REVIEW.md).
+- Separate implementing-agent source/diff review completed; no independent reviewer claimed for this correction. Production sources are unchanged. Microphone/aim/focus are synthetic; real microphone, phone/input, internet conditions, multiplayer contention, live saves and audio mix remain unverified. No publication or audio/product configuration. Next: independent review of this correction, then eligible real-device first-minute and two-account playtests.
+
 ## Ordered backlog
 
 ### P0 — combat progression redesign (implemented locally; human balance testing next)

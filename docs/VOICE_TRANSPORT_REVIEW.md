@@ -17,8 +17,28 @@ The fixture replaces microphone acquisition with explicitly synthetic readiness/
 - A new sequence cannot bypass server cooldown. Held synthetic voice does not restart at expiry. Fresh quiet/onset recovers after a consumed cooldown sequence.
 - Synthetic availability loss traverses the actual MicReady/Stop path and disarms. Restoring readiness does not auto-resume; manual resume still requires fresh quiet. Quiet-stop reaches the server and stops feedback.
 
+## Stop and replay evidence
+
+The fixture wraps the actual server adapter calls without yielding, forwarding arguments and returns unchanged. It copies state immediately before and after each call. Five replay/malformed requests must return the expected rejection and leave active sequence, power, aim, sample, pulse timestamp, start time, cooldown and consumed sequence unchanged. Later valid client pulses cannot overwrite these recorded copies.
+
+The final quiet transition must schedule exactly one matching stop and produce an accepted server Stop with end reason `stop`. Its server timestamp must precede both the input-timeout and maximum-duration deadlines. Waiting for an inactive attack alone is insufficient.
+
+Studio truncates long output lines. The complete server report is also printed as ordered `VOICE_TRANSPORT_EVIDENCE <index> <count> <chunk>` records, with at most 700 JSON characters per chunk. Concatenate chunks in index order before parsing; require all chunks. The report includes the five replay snapshots and the explicit-stop snapshot.
+
+Build and run these intentionally broken disposable variants separately, using the same Play procedure:
+
+```
+python tests/build_sustained_review.py --transport-mutation drop-stop
+python tests/build_sustained_review.py --transport-mutation corrupt-replay
+```
+
+- `VoiceTransportDropStop.rbxl` drops only the final sequence-5 scheduled stop. It must fail with `No explicit quiet SustainedStop reached the server`, even if the attack subsequently times out.
+- `VoiceTransportCorruptReplay.rbxl` changes power/aim on a rejected repeated sample. It must fail with `Replay mutated immediate server state: power`, even though later normal pulses can repair that state.
+
+Mutations affect generated temporary files only; production sources and the regular candidate are untouched. Each mode has a distinct source fingerprint and provenance sidecar. A mutation run passing, or failing earlier for a different reason, does not validate the negative control.
+
 ## Scope limits
 
 This is one local Studio client/server transport test. It is not real microphone acquisition/calibration, voice-chat proximity transport, physical keyboard/phone interaction, internet latency/loss, multiplayer contention, or live datastore validation. The test microphone stays unavailable after completion; restart the disposable session for another run. Snapshot calls add test-only traffic, so this is not a performance benchmark. No audio or product configuration is changed.
 
-Build identity and observed results are recorded in `tests/evidence/voice-transport-2026-11-10.json`. The production candidate includes neither the appended fixture code nor its probe remote.
+The original transport run is recorded in `tests/evidence/voice-transport-2026-11-10.json`; its quiet-stop/replay assertions had masking risks. The tightened assertions and negative-control results are recorded in `tests/evidence/transport-assertions-2026-11-10.json`. The production candidate includes neither the appended fixture code nor its probe remote.

@@ -13,7 +13,16 @@ task.spawn(function()
  end
  local function snapshot() return probe:InvokeServer("snapshot") end
  local function stage(name) table.insert(stages,{name=name,elapsed=os.clock()-started}) end
- local source
+ local source;local replayEvidence={};local quietStopEvidence
+ local function unchangedRejection(entry,reason)
+  if entry then table.insert(replayEvidence,entry) end
+  check(entry~=nil and not entry.accepted and entry.reason==reason and entry.ended==nil,"Replay was not explicitly rejected: "..reason)
+  check(entry.before.active and entry.before.sequence==2,"Replay did not exercise the active attack")
+  for _,key in ipairs({"active","sequence","power","aimX","aimY","aimZ","sample","lastPulse","started","nextStart","lastSequence"}) do
+   assert(entry.before[key]==entry.after[key],"Replay mutated immediate server state: "..key)
+  end
+  checks+=1
+ end
  local ok,err=xpcall(function()
   waitFor(function() return p.Character and p.Character:FindFirstChild("HumanoidRootPart") end,20,"Character unavailable")
   mic:Destroy();mic.status="SYNTHETIC TRANSPORT TEST - no real microphone";mic.power=0;mic.ready=false
@@ -55,16 +64,34 @@ task.spawn(function()
   for _,entry in ipairs(sent) do if entry.verb=="SustainedPulse" then table.insert(pulses,entry);check(entry.ack,"Client pulsed before replicated acknowledgement") end end
   check(#pulses>=3,"Too few scheduled pulses observed")
   for i=2,#pulses do check(pulses[i].sample==pulses[i-1].sample+1 and pulses[i].time-pulses[i-1].time>=.12,"Pulse cadence/sample ordering regressed") end
+  -- Immutable in-call server snapshots prevent later valid pulses masking a mutation.
+  local replayCursor=snapshot().auditCount
   -- Replays and malformed sample/aim fields traverse the real remote handler.
   action:FireServer("SustainedBegin",{sequence=2,power=1,aim=setup.aim})
   action:FireServer("SustainedPulse",{sequence=2,sample=1,power=1,aim=Vector3.new(0,0,0)})
   action:FireServer("SustainedPulse","bad request")
   action:FireServer("SustainedPulse",{sequence=2,sample=0/0,power=1,aim=setup.aim})
   action:FireServer("SustainedStop",1)
-  task.wait(.2)
-  local replay=snapshot()
-  check(replay.active and replay.sequence==2 and replay.power==.5 and replay.aim==setup.aim,"Replay or malformed sample changed active attack")
-  check(replay.practicePulse==active.practicePulse,"Repeated practice feedback within one attack")
+  local replayRecords
+  waitFor(function()
+   replayRecords=probe:InvokeServer("audit",replayCursor)
+   for _,entry in ipairs(replayRecords) do if entry.operation=="Stop" and entry.sequence==1 then return true end end
+   return false
+  end,2,"Replay batch did not reach the server adapter")
+  local beginReplay,pulseReplay,badRequest,badSample,staleStop
+  for _,entry in ipairs(replayRecords) do
+   if entry.operation=="Begin" and entry.sequence==2 then beginReplay=entry
+   elseif entry.operation=="Pulse" and entry.sample==1 then pulseReplay=entry
+   elseif entry.operation=="Pulse" and entry.requestKind=="string" then badRequest=entry
+   elseif entry.operation=="Pulse" and entry.sample=="nonfinite" then badSample=entry
+   elseif entry.operation=="Stop" and entry.sequence==1 then staleStop=entry end
+  end
+  unchangedRejection(beginReplay,"replay")
+  unchangedRejection(pulseReplay,"sample")
+  unchangedRejection(badRequest,"sequence")
+  unchangedRejection(badSample,"sample")
+  unchangedRejection(staleStop,"sequence")
+  check(snapshot().practicePulse==active.practicePulse,"Repeated practice feedback within one attack")
   -- Fresh but invalid aim must cancel, rather than extending the active beam.
   action:FireServer("SustainedPulse",{sequence=2,sample=1000,power=.5,aim=Vector3.new(0/0,0,0)})
   waitFor(function() return not snapshot().active end,2,"Invalid aim did not cancel active attack")
@@ -100,15 +127,26 @@ task.spawn(function()
   mic.power=0;task.wait(.4);mic.power=.5
   waitFor(function() return p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==5 end,4,"Manual resume/fresh quiet recovery failed")
   waitFor(function() return snapshot().practicePulse>interrupted.practicePulse end,2,"Final recovered attack missed practice target")
+  local stopCursor=snapshot().auditCount
   mic.power=0
-  waitFor(function() return not snapshot().active end,3,"Scheduled quiet stop did not reach server")
+  waitFor(function()
+   for _,entry in ipairs(probe:InvokeServer("audit",stopCursor)) do
+    if entry.operation=="Stop" and entry.sequence==5 then quietStopEvidence=entry;return true end
+   end
+   return false
+  end,1.5,"No explicit quiet SustainedStop reached the server")
+  local stop=quietStopEvidence
+  check(stop.accepted and stop.ended and stop.ended.reason=="stop" and stop.ended.sequence==5 and stop.before.active and stop.before.sequence==5 and not stop.after.active,"Quiet stop was not an explicit accepted stop")
+  check(stop.now<stop.before.lastPulse+sustainedRules.InputTimeout and stop.now<stop.before.started+sustainedRules.MaxDuration,"Quiet stop arrived after an expiry deadline")
+  local stopSends=0;for _,entry in ipairs(sent) do if entry.verb=="SustainedStop" and entry.sequence==5 then stopSends+=1 end end
+  check(stopSends==1,"Quiet transition did not send exactly one matching stop")
   check(not sustainedControl.attack and snapshot().cooldown>7,"Quiet-stop acknowledgement or cooldown missing")
   local finalPulse=snapshot().practicePulse;task.wait(.4)
   check(snapshot().practicePulse==finalPulse,"Practice hit continued after quiet stop")
   stage("complete")
  end,debug.traceback)
  mic.ready=false;mic.power=0;sustainedControl:SetArmed(false)
- local report={passed=ok,checks=checks,error=not ok and tostring(err) or nil,elapsed=os.clock()-started,stages=stages,sourceSha256=source,scheduledMessages=#sent}
+ local report={passed=ok,checks=checks,error=not ok and tostring(err) or nil,elapsed=os.clock()-started,stages=stages,sourceSha256=source,scheduledMessages=#sent,replayEvidence=replayEvidence,quietStopEvidence=quietStopEvidence}
  local saved,saveError=pcall(function() return probe:InvokeServer("finish",report) end)
  if not saved then warn("VOICE_TRANSPORT_REPORT_FAILED",saveError) end
  print("VOICE_TRANSPORT_CLIENT",game:GetService("HttpService"):JSONEncode(report))
