@@ -51,7 +51,7 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         ROOT / "default.project.json", Path(__file__).resolve(),
         *(ROOT / "tests" / name for name in ["StudioSustainedDamage.server.luau",
           "StudioSustainedDestruction.server.luau", "StudioSustainedPvp.server.luau", "StudioProgression.server.luau", "StudioFirstBeam.server.luau",
-          "StudioPerformance.server.luau", "support/HeartbeatSummary.luau"]),
+          "StudioPerformance.server.luau", "StudioVoiceTransport.server.luau", "StudioVoiceTransport.client.luau", "support/HeartbeatSummary.luau"]),
     })
     def source_fingerprint():
         digest = hashlib.sha256()
@@ -64,7 +64,7 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
     output.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="scream-review-") as temp:
         temp = Path(temp)
-        for name, appendix in [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance)]:
+        for name, appendix in [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", (ROOT / "tests/StudioVoiceTransport.server.luau").read_text())]:
             script = temp / "Bootstrap.server.luau"
             provenance = output / (name + ".provenance.json")
             provenance.unlink(missing_ok=True)
@@ -72,6 +72,18 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
             script.write_text(guard + stamp + bootstrap + "\n" + appendix)
             subprocess.run([compiler, str(script)], check=True, stdout=subprocess.DEVNULL)
             server["Bootstrap"] = {"$path": str(script)}
+            if name == "VoiceTransportReview":
+                clients = project["tree"]["StarterPlayer"]["StarterPlayerScripts"]
+                del clients["$path"]
+                for client_path in (ROOT / "src/StarterPlayer/StarterPlayerScripts").glob("*.luau"):
+                    client_name = client_path.name.removesuffix(".client.luau").removesuffix(".luau")
+                    clients[client_name] = {"$path": str(client_path)}
+                client_script = temp / "Client.client.luau"
+                client_script.write_text('assert(game:GetService("RunService"):IsStudio() and game.PlaceId == 0)\n' +
+                    (ROOT / "src/StarterPlayer/StarterPlayerScripts/Client.client.luau").read_text() + "\n" +
+                    (ROOT / "tests/StudioVoiceTransport.client.luau").read_text())
+                subprocess.run([compiler, str(client_script)], check=True, stdout=subprocess.DEVNULL)
+                clients["Client"] = {"$path": str(client_script)}
             project["name"] = name + "_DO_NOT_PUBLISH"
             project_path = temp / "review.project.json"
             project_path.write_text(json.dumps(project, indent=2))
@@ -83,7 +95,7 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
                 "artifactSha256": hashlib.sha256((output / (name + ".rbxl")).read_bytes()).hexdigest(),
                 "scope": "Compiled disposable local fixture; not executed or published",
             }, indent=2) + "\n")
-    print("Built local play, synthetic native fixture and performance review places; none was executed in Studio.")
+    print("Built local play, native and transport fixtures, and performance review; none was executed in Studio.")
 
 if __name__ == "__main__":
     main()

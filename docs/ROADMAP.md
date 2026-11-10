@@ -41,6 +41,14 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Test-only change; separate source/diff review completed. Fixture cleanup now respects its injected clock and restores displayed state. All voice power/readiness, gate intervals and cooldown advance are synthetic. Studio still showed waiting-for-microphone guidance. No production/audio/product changes or publication.
 - Next: eligible real-device calibration-to-first-hit and training test, then phone and second-player checks. Live voice, phone, multiplayer timing and real save/rejoin gates remain open.
 
+## November 10 actual client/server transport integration
+
+- Added a separate guarded `VoiceTransportReview` place that appends tests to the actual Client and Bootstrap. Normal RenderStepped scheduling, SustainedControls, Action RemoteEvents, OnServerEvent validation, server combat ticks, State events and replicated acknowledgements/cooldowns run together. Microphone readiness/power, aim, initial focus and avatar placement are synthetic; attacks are not driven through direct server adapter calls.
+- Final native run passes 25 observed assertions in 30.677 seconds, including real cooldown waits. The client scheduled 20 messages; server receipt counters and exact source/artifact hashes are in [evidence](../tests/evidence/voice-transport-2026-11-10.json). Covers eligible malformed begins, replay/ack timeout, pulse cadence, first practice hit, invalid aim cancellation, cooldown rejection/expiry, held-input suppression, availability interruption and deliberate fresh-quiet recovery. Assertion totals vary with observed pulse count.
+- Review strengthened malformed-input checks to require actual server eligibility after the MicReady/State round trip; final fixture was rebuilt/rerun. Full verification/build passes 24 pure/synthetic suites, 52 mocked-service suites and 56 production compiles. No production bug reproduced; production sources remain unchanged.
+- [Reproduction guide and scope](VOICE_TRANSPORT_REVIEW.md). This proves scoped local Studio event/replication integration, not real microphone calibration/voice transport, physical phone/input, internet conditions, multi-client contention, live saves or performance. Audio remains owner-configured later; no publication.
+- Next: eligible real-device first-minute playtest; then two-account proximity voice, interruption/recovery and representative network/device checks.
+
 ## Ordered backlog
 
 ### P0 — combat progression redesign (implemented locally; human balance testing next)

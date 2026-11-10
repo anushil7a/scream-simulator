@@ -1,0 +1,114 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "3a3368302027a6955415b7f6d9b1de25a6c71ab4",
+  "change": "Test-only native transport fixture plus reproduction guide and roadmap. No production bug reproduced or gameplay change made.",
+  "review": {
+    "method": "Separate post-implementation source/diff review by implementing agent; no independent agent or human review claimed for this commit.",
+    "finding": "Initial malformed begins ran before server eligibility. Moved them after actual MicReady/State round trip and added an eligible-context assertion so readiness cannot mask invalid payload validation. Rebuilt and reran the final fixture.",
+    "areas": [
+      "real Client RenderStepped and SustainedControls send path retained",
+      "real Action handler and normal server loop retained",
+      "replicated acknowledgement before pulses and sequential sample cadence",
+      "malformed/replayed input and cooldown sequence consumption",
+      "interruption, deliberate resume and fresh-quiet recovery",
+      "Studio PlaceId=0 guards, non-saving profile and fixture isolation/cleanup"
+    ]
+  },
+  "checks": {
+    "command": "python tests/verify_local.py --build",
+    "passed": true,
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 52,
+    "productionCompiles": 56,
+    "candidateAndDisposableBuilds": "passed, including new VoiceTransportReview and compiled appended client/server",
+    "gitDiffCheck": "passed",
+    "productionSources": "unchanged"
+  },
+  "native": {
+    "studioVersion": "0.747.0.7471481",
+    "identity": {
+      "build": "VoiceTransportReview",
+      "sourceSha256": "b2983455920ea3d0374eeb6b81c4dde23f4e74c5a7600eef8d7eb63d646d0501",
+      "artifactSha256": "707369b6db0feb8c6276bb09fe46f3771b14520f47996575f62450bb3c095982",
+      "scope": "Executed with one local Studio client and server; synthetic microphone readiness/power, aim and initial focus; real frame scheduling, RemoteEvents, replication and cooldown elapsed time"
+    },
+    "serverResult": {
+      "serverCounts": {
+        "SustainedBegin": 11,
+        "MicReady": 3,
+        "SustainedPulse": 14,
+        "SustainedStop": 6,
+        "nonstring": 1
+      },
+      "sourceSha256": "b2983455920ea3d0374eeb6b81c4dde23f4e74c5a7600eef8d7eb63d646d0501",
+      "stages": [
+        {
+          "name": "malformed",
+          "elapsed": 2.6291567999996914
+        },
+        {
+          "name": "scheduled attack",
+          "elapsed": 4.028726699998515
+        },
+        {
+          "name": "cooldown rejection",
+          "elapsed": 5.544527299998663
+        },
+        {
+          "name": "availability interruption",
+          "elapsed": 18.04467659999864
+        },
+        {
+          "name": "complete",
+          "elapsed": 30.677361399999427
+        }
+      ],
+      "checks": 25,
+      "elapsed": 30.677365099998497,
+      "savingDisabled": true,
+      "passed": true,
+      "scheduledMessages": 20
+    },
+    "clientResult": {
+      "scheduledMessages": 20,
+      "stages": [
+        {
+          "name": "malformed",
+          "elapsed": 2.6291567999996914
+        },
+        {
+          "name": "scheduled attack",
+          "elapsed": 4.028726699998515
+        },
+        {
+          "name": "cooldown rejection",
+          "elapsed": 5.544527299998663
+        },
+        {
+          "name": "availability interruption",
+          "elapsed": 18.04467659999864
+        },
+        {
+          "name": "complete",
+          "elapsed": 30.677361399999427
+        }
+      ],
+      "checks": 25,
+      "elapsed": 30.677365099998497,
+      "passed": true,
+      "sourceSha256": "b2983455920ea3d0374eeb6b81c4dde23f4e74c5a7600eef8d7eb63d646d0501"
+    },
+    "assertionCountNote": "Pulse acknowledgement/cadence assertions run per observed pulse, so total checks can vary with native scheduling. This final run executed 25.",
+    "scope": "One local Studio Play session. Probe RPC reads server state and prepares/restores the temporary avatar/profile; attacks exclusively traverse Action from the real client scheduler or explicit malformed/replay injections. No direct Begin/Pulse/Step calls from the probe.",
+    "timing": "30.677 seconds for this scenario, including two real ten-second cooldowns. This is test duration, not a performance or internet latency measurement."
+  },
+  "remainingGates": [
+    "Real microphone acquisition/calibration, human speech onset/quiet and device mute/disconnect recovery.",
+    "Roblox voice proximity transport between eligible accounts.",
+    "Physical phone/keyboard/aim/focus behavior; avatar is anchored and aim/focus are injected here.",
+    "Internet latency/loss, multi-client contention, representative multiplayer performance and live save/rejoin.",
+    "Owner audio configuration and subsequent playback/mixing tests; four IDs still empty."
+  ],
+  "publication": "No Roblox publication or audio/product configuration.",
+  "reproduce": "docs/VOICE_TRANSPORT_REVIEW.md"
+}
