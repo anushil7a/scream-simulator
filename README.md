@@ -44,7 +44,7 @@ These are source/integration milestones, not blanket verification of every devic
 
 ## Controls
 
-- Current local candidate: aim and use your calibrated mic to attack. **E** / **ARM VOICE–PAUSE VOICE** toggles voice attacks; it is not required for each scream. After interruption/cooldown, allow quiet before a fresh onset. City Preview version 19 still uses hold/use mic/release.
+- Current local candidate: aim and use your calibrated mic to attack. **E** / **SCREAMS ON/OFF** toggles attack activation; it is not required for each scream. **OFF** stops an active attack and lets you talk without attacking, leaving microphone/proximity voice unchanged. After respawn or microphone/focus loss, deliberately turn screams back on; cooldown and fresh-quiet requirements still apply. The choice lasts for this session. City Preview version 19 still uses hold/use mic/release.
 - **Q** / **DODGE**: roll with cooldown; dodge cancels the active voice attack.
 - Hold **Shift** / tap **SPRINT**: up to ten seconds of sprint, then five seconds of recovery.
 - **T** / **TALK**: nearby NPC dialogue. Use world interaction prompts (**F** on keyboard; on-screen prompts on touch).

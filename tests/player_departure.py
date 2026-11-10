@@ -9,13 +9,13 @@ a=source.index('local departuresInFlight=0')
 b=source.index('Players.PlayerRemoving:Connect(leaving)',a)
 setup='''
 local sessions={};local closes,cancels,legacy,saves=0,0,0,0
-local warnings=0;local warn=function()warnings+=1 end
+local warnings={};local warn=function(...)table.insert(warnings,table.pack(...))end
 local savedData,savedRelease
 local function closeConversation(p)closes+=1;if sessions[p] then sessions[p].conversationBot=nil end end
 local function cancelSustained()cancels+=1 end
 local VoiceCombat={Cancel=function()legacy+=1 end}
 local Profiles={Save=function(id,data,release)
- saves+=1;savedData=data;savedRelease=release;coroutine.yield('saving')
+ saves+=1;savedData=data;savedRelease=release;coroutine.yield('saving');return true
 end}
 '''
 checks='''
@@ -45,7 +45,26 @@ check(sessions[p]==nil and saves==before,'Temporary profile was saved or retaine
 Profiles.Save=function()error('fake save failure')end
 sessions[p]={canSave=true,data={},voice={}}
 leaving(p)
-check(sessions[p]==nil and departuresInFlight==0 and warnings==1,'Save exception leaked departing session/shutdown counter')
+check(sessions[p]==nil and departuresInFlight==0 and #warnings==1,'Save exception leaked departing session/shutdown counter')
+local exceptionWarning=warnings[1]
+for _,reason in ipairs({'retry','ownership','unavailable'}) do
+ warnings={};Profiles.Save=function()return false,reason end
+ sessions[p]={canSave=true,data={},voice={}}
+ leaving(p)
+ check(sessions[p]==nil and departuresInFlight==0,'Returned save failure leaked session/counter')
+ check(#warnings==1 and warnings[1][1]=='ScreamSimulator departure save failed' and warnings[1][2]==7 and warnings[1][3]==reason,'Returned save failure omitted final UserId/reason warning')
+end
+warnings={};Profiles.Save=function()coroutine.yield('delayed failure');return false,'retry' end
+sessions[p]={canSave=true,data={},voice={}}
+thread=coroutine.create(function()leaving(p)end);ok,result=coroutine.resume(thread)
+check(ok and result=='delayed failure' and departuresInFlight==1 and #warnings==0,'Delayed release was untracked or warned before completion')
+replacement={data={coins=100}};sessions[p]=replacement
+check(coroutine.resume(thread),'Delayed failure did not return')
+check(departuresInFlight==0 and sessions[p]==replacement and #warnings==1 and warnings[1][2]==7 and warnings[1][3]=='retry','Delayed failure lost warning or cleared replacement')
+warnings={};Profiles.Save=function()return true end
+sessions[p]={canSave=true,data={},voice={}};leaving(p)
+check(#warnings==0 and departuresInFlight==0,'Successful release falsely reported failure')
+check(exceptionWarning[2]==7 and tostring(exceptionWarning[3]):find('fake save failure',1,true),'Save exception warning lost UserId/reason')
 print('PASS '..checks..' actual departure checks with mocked yielding save')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:

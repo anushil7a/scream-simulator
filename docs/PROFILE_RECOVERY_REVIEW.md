@@ -1,6 +1,14 @@
 # Failed-release recovery review
 
-Inspected production head `39beb403e382277b3d3a6dbcd4d01c96ebb0744f`. No production recovery behavior was changed. Run `python tests/profile_recovery.py` with Luau on PATH to reproduce the characterization using actual Profiles/ProfileLease code and two simulated owners sharing an in-memory store. This diagnostic is separate from the default regression suite: it records current failure behavior, not desired future recovery policy.
+Initial review inspected production head `39beb403e382277b3d3a6dbcd4d01c96ebb0744f`; the follow-up starts from `601493001df4cd0788c4bf125394e4512929e2c7`. Recovery policy remains unchanged. Run `python tests/profile_recovery.py --negative-controls` with Luau on PATH to reproduce actual Profiles/ProfileLease behavior and the ordinary departure caller using two simulated owners sharing an in-memory store. This diagnostic is separate from the default regression suite: it records current failure behavior, not desired future recovery policy.
+
+## November 10 follow-up: departure reporting correction
+
+Reproduced a narrow caller defect before changing production code: ordinary PlayerRemoving detached the session and called Save, but checked only whether pcall threw. Returned `false, "retry"` was ignored, unlike late-load and shutdown release callers. The new regression failed with `Returned save failure omitted final UserId/reason warning`. Exceptions also lacked the departing UserId.
+
+The departure caller now checks both pcall completion and Save success, reporting UserId plus the returned reason or exception. It does not retry, clear the owned marker, reopen gameplay, alter shutdown waiting or assert whether the lease was released. The existing three-attempt policy remains intact. Delayed failures remain counted until return, report once, and leave replacement sessions untouched. Successful releases do not produce a failure warning; temporary profiles are not saved, and developer test sessions still save their baseline.
+
+The integrated diagnostic executes the actual ordinary departure helper with actual Profiles: three pre-commit failures leave 100 durable coins versus 150 in the final snapshot, retain the lease, and now produce one final UserId/retry warning after the three per-attempt warnings. Same-server rejoin remains blocked. A committed release plus response error instead produces an ownership warning even though 90 coins are durable and the lease is gone. This verifies reporting without falsely equating a failure return with lost data.
 
 ## Observed boundaries
 
@@ -14,7 +22,7 @@ Inspected production head `39beb403e382277b3d3a6dbcd4d01c96ebb0744f`. No product
 
 Clearing the local marker alone can reopen an older durable profile and abandon unsaved progress. Blindly retrying a retained snapshot after another owner has written would overwrite newer progress. The two negative controls confirm the current guards matter: removing the save ownership check overwrites the newer snapshot, and removing the acquisition check admits another owner before expiry.
 
-Recovery needs a stated policy for unsaved progress after ownership changes or the originating server disappears. This review does not choose to merge divergent coin/XP/quest snapshots, extend leases indefinitely, or erase ownership checks. The ordinary departure caller also still ignores a returned false/reason (it logs exceptions); the late-load and shutdown paths now report both. That diagnostic inconsistency is separate from recovery and does not establish that retrying is safe.
+Recovery needs a stated policy for unsaved progress after ownership changes or the originating server disappears. This review does not choose to merge divergent coin/XP/quest snapshots, extend leases indefinitely, or erase ownership checks. Ordinary departure, late-load and shutdown callers now report returned failures and exceptions consistently. The reporting correction does not recover unsaved progress or make a retry policy safe by itself.
 
 ## Recommendation and decision
 
@@ -26,6 +34,6 @@ Before implementation/release, specify retry duration, admission/progression beh
 
 ## Evidence limits
 
-Twenty-one characterization checks pass. Both ownership-guard omission controls fail at the intended assertions. The full existing check/build command passes 24 pure/synthetic suites, 53 mocked-service suites and 56 production compiles, plus all builds. Exact results are in `tests/evidence/profile-recovery-2026-11-10.json`.
+The follow-up passes 30 integrated recovery characterization checks and 23 ordinary departure regression checks (including yielding/delayed failures). Four isolated negative controls fail at their intended assertions: omitted save ownership, omitted acquisition ownership, ignored returned failure and omitted warning reason. The full check/build command passes 24 pure/synthetic suites, 53 mocked-service suites and 56 production compiles, plus all builds. Follow-up evidence is in `tests/evidence/departure-release-2026-11-10.json`; the earlier 21-check investigation remains in `tests/evidence/profile-recovery-2026-11-10.json`.
 
 These are serialized in-memory atomic callbacks, injected clock/waits and two module instances with different owner IDs. They do not establish real Roblox concurrent scheduling, throttling, outage behavior, eventual visibility, shutdown timing or successful live persistence. No native Studio execution, live DataStore writes, publication or audio/product configuration occurred.

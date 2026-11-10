@@ -1,0 +1,48 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "601493001df4cd0788c4bf125394e4512929e2c7",
+  "scope": "README correction and ordinary departure failure reporting; recovery policy unchanged",
+  "reproductionBeforeFix": {
+    "command": "python tests/player_departure.py",
+    "failure": "Returned save failure omitted final UserId/reason warning",
+    "cause": "pcall completion was checked but the returned Save false/reason was ignored",
+    "additionalFailure": "Save exception warning lost UserId/reason"
+  },
+  "correction": "Report returned false/reason and exceptions with UserId after the tracked save returns. Do not infer lease release or rollback, retry, clear ownership, restore gameplay or clear a replacement session.",
+  "checks": {
+    "departureCommand": "python tests/player_departure.py",
+    "departureChecks": 23,
+    "recoveryCommand": "python tests/profile_recovery.py --negative-controls",
+    "recoveryChecks": 30,
+    "negativeControls": [
+      {"mutation": "omit save ownership check", "expectedFailure": "Stale snapshot overwrote newer owner progress", "detected": true},
+      {"mutation": "omit acquisition ownership check", "expectedFailure": "Foreign owner acquired before expiry", "detected": true},
+      {"mutation": "ignore returned failure in actual departure", "expectedFailure": "Actual failed departure omitted final retry warning", "detected": true},
+      {"mutation": "omit warning reason", "expectedFailure": "Departure warning lost UserId/reason", "detected": true}
+    ],
+    "fullCommand": "python tests/verify_local.py --build",
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 53,
+    "productionCompiles": 56,
+    "candidateAndDisposableBuilds": "passed",
+    "diffCheck": "passed"
+  },
+  "observations": [
+    "Actual Profiles retries three times with simulated waits of 1, 2 and 3 seconds, then returns false/retry.",
+    "Actual ordinary departure now emits one final warning with UserId/retry after three failed attempts; 100 coins and owner A remain stored versus 150 unsaved.",
+    "Same-server Load remains blocked without store access at expiry and an additional hour later; diagnostic correction does not unlock unresolved release.",
+    "Owner B acquires at the 180-second expiry and loads 100; after it saves 200, A's stale write is rejected and preserves 200.",
+    "Explicit retry of a retained snapshot while ownership is still held can recover 80 coins; the current detached lifecycle does not retain/retry automatically.",
+    "Actual departure after a committed release plus response error reports ownership failure while 90 coins are durable and lease removed.",
+    "Mocked delayed false remains counted until completion, warns once afterward and preserves a replacement session; success emits no warning. Temporary and developer-baseline paths remain covered."
+  ],
+  "selfReview": "Separate post-implementation implementing-agent review of diff, pcall result handling, counters, replacement sessions, persistence guards and assertion/mutation specificity. No blocking defect found; no separate reviewer claimed.",
+  "blocker": "Terminal failed releases have no automatic recovery; local ownership can indefinitely deny same-server saving while a foreign acquisition at expiry loads an older durable checkpoint.",
+  "recommendation": "Bounded immutable-snapshot retry under atomic ownership checks, followed by latest durable checkpoint with explicit rollback notice if ownership moves. Define retry/admission duration and fallback UX before implementation. Never merge or overwrite a newer owner's snapshot blindly.",
+  "limits": [
+    "Serialized in-memory UpdateAsync simulation, injected time and mocked coroutines; not actual Roblox concurrency, throttling or outage timing.",
+    "No new native Studio, real microphone, phone, multiplayer, live-save or shutdown-deadline validation.",
+    "No live DataStore writes, Roblox publication or audio configuration.",
+    "Reporting fix does not recover lost progress, retain failed snapshots or release a stuck lease. Recovery policy remains open."
+  ]
+}

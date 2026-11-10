@@ -784,9 +784,9 @@ local function leaving(p)
  sessions[p]=nil
  if s.canSave then
   departuresInFlight+=1
-  local ok,err=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true)
+  local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true)
   departuresInFlight-=1
-  if not ok then warn("ScreamSimulator departure save failed",err) end
+  if not completed or not ok then warn("ScreamSimulator departure save failed",p.UserId,completed and reason or ok) end
  end
 end
 Players.PlayerRemoving:Connect(leaving)
