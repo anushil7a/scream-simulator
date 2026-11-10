@@ -208,12 +208,13 @@ local lease22=copy(records.Player_22._lease)
 local read22,write22=A.Load(22)
 check(not write22 and read22.coins==820 and records.Player_22._lease.token==lease22.token and records.Player_22._lease.expires==lease22.expires,'Terminal admission stole newer same-job acquisition')
 -- All acquisition responses lost: retain and acknowledge that exact attempt,
--- without starting another final-snapshot recovery or extending the lease.
+-- without restarting final-snapshot recovery. This lease still has >=120s,
+-- so acknowledging it unchanged is safe; short/expired leases must renew.
 d=load(A,23);failedRelease(A,23,d);beforeFailures=3;afterFailures=3
 local temp23,write23=A.Load(23);local lease23=copy(records.Player_23._lease)
 check(not write23 and temp23.coins==100,'Ambiguous acquisition exposed writable data')
 before=calls;local back23,back23OK,_,warning23=A.Load(23)
-check(back23OK and back23.coins==100 and warning23 and calls-before==1 and records.Player_23._lease.token==lease23.token and records.Player_23._lease.expires==lease23.expires,'Ambiguous acquisition identity was lost or lease extended')
+check(back23OK and back23.coins==100 and warning23 and calls-before==1 and records.Player_23._lease.token==lease23.token and records.Player_23._lease.expires==lease23.expires,'Sufficient-lifetime acknowledgement changed identity or expiry')
 back23.coins=830;check(A.Save(23,back23) and not A.Save(23,temp23) and not A.Save(23,d,true),'Ambiguous recovery bound a stale handle')
 -- Recovery times out, then acquisition fails. Retain admission, never re-run
 -- the expired recovery budget on a later load.
@@ -278,20 +279,21 @@ def run(payload,expected=None):
             result.check_returncode()
     finally:path.unlink()
 payload=setup.replace('__LEASE__',lease)+source+checks
-run(payload)
-if '--negative-controls' in sys.argv:
-    for old,new,expected in [
-        ('if not Lease.Owns(raw,owner,session.token) then return nil end','-- omitted token guard','Old recovery overwrote or stole newer owner save'),
-        ('saved.revision>=operation.revision','false','Old same-acquisition revision could overwrite newer save'),
-        (' or bindings[data]~=session','','Old handle overwrote newer acquisition'),
-        ('if deadline and os.clock()>=deadline then break end','-- omitted deadline','Recovery continued issuing requests past deadline'),
-        ('if type(saved)=="table" and saved.token==session.token and saved.revision==operation.revision then return raw end','-- omitted committed-operation recognition','Lost release response was not reconciled idempotently'),
-        ('lease.owner==owner and (token==nil or lease.token==token)','lease.owner==owner','Same-job distinct acquisition stole active lease'),
-        ('snapshot=Profiles.Sanitize(data)','snapshot=data','Retained snapshot recovery failed or used mutated caller data'),
-        ('local admission=admissions[userId]','local admission=nil','Terminal admission token forgotten after outage'),
-        ('Lease.Owns(raw,owner,admission.terminalToken)','Lease.Owns(raw,owner)','Terminal admission stole newer same-job acquisition'),
-        ('Lease.Owns(raw,owner,admission.terminalToken)','true','Old recovery overwrote or stole newer owner save'),
-        ('if Lease.Owns(raw,owner,token) then return raw end','if Lease.Owns(raw,owner,token) then return Lease.Stamp(raw,owner,os.time(),token) end','Ambiguous acquisition identity was lost or lease extended'),
-    ]:
-        assert payload.count(old)==1,(old,payload.count(old))
-        run(payload.replace(old,new),expected)
+if __name__=='__main__':
+    run(payload)
+    if '--negative-controls' in sys.argv:
+        for old,new,expected in [
+            ('if not Lease.Owns(raw,owner,session.token) then return nil end','-- omitted token guard','Old recovery overwrote or stole newer owner save'),
+            ('saved.revision>=operation.revision','false','Old same-acquisition revision could overwrite newer save'),
+            (' or bindings[data]~=session','','Old handle overwrote newer acquisition'),
+            ('if deadline and os.clock()>=deadline then break end','-- omitted deadline','Recovery continued issuing requests past deadline'),
+            ('if type(saved)=="table" and saved.token==session.token and saved.revision==operation.revision then return raw end','-- omitted committed-operation recognition','Lost release response was not reconciled idempotently'),
+            ('lease.owner==owner and (token==nil or lease.token==token)','lease.owner==owner','Same-job distinct acquisition stole active lease'),
+            ('snapshot=Profiles.Sanitize(data)','snapshot=data','Retained snapshot recovery failed or used mutated caller data'),
+            ('local admission=admissions[userId]','local admission=nil','Terminal admission token forgotten after outage'),
+            ('Lease.Owns(raw,owner,admission.terminalToken)','Lease.Owns(raw,owner)','Terminal admission stole newer same-job acquisition'),
+            ('Lease.Owns(raw,owner,admission.terminalToken)','true','Old recovery overwrote or stole newer owner save'),
+            ('if usableAcquisition(raw,token) then return raw end','-- always refresh even a sufficient lease','Sufficient-lifetime acknowledgement changed identity or expiry'),
+        ]:
+            assert payload.count(old)==1,(old,payload.count(old))
+            run(payload.replace(old,new),expected)

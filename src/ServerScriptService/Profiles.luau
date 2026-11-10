@@ -11,6 +11,8 @@ local bindings=setmetatable({},{__mode="k"})
 local acquisition=0
 local incarnation=HttpService:GenerateGUID(false)
 local RECOVERY_WINDOW=12
+-- Two normal 60-second autosave intervals of headroom at admission.
+local MIN_ADMISSION_LIFETIME=120
 local RECOVERY_NOTICE="Loaded the last confirmed save. Recent progress may be missing."
 local Profiles = {}
 local store
@@ -110,6 +112,14 @@ local function commit(userId,session,operation,deadline)
     return false,"retry"
 end
 
+-- A matching token alone is not enough to start writable gameplay. Slow
+-- responses can consume the lease after the atomic callback has completed.
+local function usableAcquisition(record,token)
+    if not Lease.Owns(record,owner,token) then return false end
+    local expires=record._lease.expires
+    return type(expires)=="number" and expires<math.huge and expires-os.time()>=MIN_ADMISSION_LIFETIME
+end
+
 function Profiles.Load(userId)
     if not store then return Profiles.Default(),false,"Saving is unavailable. This session uses temporary progress." end
     while locks[userId] do task.wait(.05) end
@@ -150,7 +160,12 @@ function Profiles.Load(userId)
                     -- Only its exact token may be replaced before expiry.
                     if not (admission.terminalToken and Lease.Owns(raw,owner,admission.terminalToken)) then return nil end
                 end
-                if Lease.Owns(raw,owner,token) then return raw end
+                if Lease.Owns(raw,owner,token) then
+                    if usableAcquisition(raw,token) then return raw end
+                    -- Refresh only this exact, unconfirmed acquisition. Preserve
+                    -- current stored data/markers, never an old local snapshot.
+                    return Lease.Stamp(raw,owner,os.time(),token)
+                end
                 local record=Profiles.Sanitize(raw)
                 record._save=type(raw)=="table" and raw._save or nil
                 -- Retain a warning across a lost acquisition response.
@@ -159,19 +174,27 @@ function Profiles.Load(userId)
             end)
         end)
         if success then
-            admissions[userId]=nil
-            locks[userId]=nil
             if Lease.Owns(result,owner,token) then
-                local data=Profiles.Sanitize(result)
-                local session={token=token,revision=0,confirmed=Profiles.Sanitize(result)}
-                owned[userId]=session;bindings[data]=session
-                local notice=result._recovered==true
-                return data,true,notice and RECOVERY_NOTICE or nil,notice
+                if usableAcquisition(result,token) then
+                    admissions[userId]=nil;locks[userId]=nil
+                    local data=Profiles.Sanitize(result)
+                    local session={token=token,revision=0,confirmed=Profiles.Sanitize(result)}
+                    owned[userId]=session;bindings[data]=session
+                    local notice=result._recovered==true
+                    return data,true,notice and RECOVERY_NOTICE or nil,notice
+                end
+                -- The response arrived too late. Recheck/renew atomically on
+                -- the next bounded attempt; no writable handle exists yet.
+                observed=Profiles.Sanitize(result)
+                warn("ScreamSimulator profile acquisition lifetime too short",userId,attempt)
+            else
+                admissions[userId]=nil;locks[userId]=nil
+                return observed or confirmed or Profiles.Default(),false,
+                    RECOVERY_NOTICE.." Another session owns this profile; progress here is temporary. Rejoin shortly.",true
             end
-            return observed or confirmed or Profiles.Default(),false,
-                RECOVERY_NOTICE.." Another session owns this profile; progress here is temporary. Rejoin shortly.",true
+        else
+            warn("ScreamSimulator profile load failed",userId,attempt)
         end
-        warn("ScreamSimulator profile load failed",userId,attempt)
         -- A callback may have read a durable checkpoint before the write or
         -- response failed. It is safe to display, never to grant ownership.
         confirmed=observed or confirmed
