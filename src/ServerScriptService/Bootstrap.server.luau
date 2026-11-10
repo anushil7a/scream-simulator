@@ -51,6 +51,8 @@ remotes.Parent=ReplicatedStorage
 local function remote(name) local r=Instance.new("RemoteEvent");r.Name=name;r.Parent=remotes;return r end
 local action=remote("Action");local stateRemote=remote("State");local effect=remote("Effect")
 local sessions={}
+local closing=false
+local joinsInFlight=0
 local rewardHistory={pairs={}} -- survives reconnects in this server
 local coverRewards=setmetatable({},{__mode="k"})
 local function parts(p)
@@ -722,11 +724,12 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  end
 end)
 local function joined(p)
+ if closing then return end
  task.spawn(Entitlements.Refresh,p)
  local data,save,loadMessage
  if localFixture then data,save,loadMessage=Profiles.Default(),false,"Local sustained prototype · saving disabled"
  else data,save,loadMessage=Profiles.Load(p.UserId) end
- if not p.Parent then if save then Profiles.Save(p.UserId,data,true) end;return end
+ if closing or not p.Parent then if save then Profiles.Save(p.UserId,data,true) end;return end
  local s={data=data,canSave=save,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
  botRewards={},credit={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  task.spawn(Commerce.Load,p)
@@ -754,7 +757,14 @@ local function joined(p)
  p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
  state(p,loadMessage or "Welcome · train for XP, unlock screams, and explore the coast")
 end
-Players.PlayerAdded:Connect(joined);for _,p in ipairs(Players:GetPlayers()) do task.spawn(joined,p) end
+local function joinTracked(p)
+ if closing then return end
+ joinsInFlight+=1
+ local ok,err=pcall(joined,p)
+ joinsInFlight-=1
+ if not ok then warn("ScreamSimulator profile join failed",err) end
+end
+Players.PlayerAdded:Connect(joinTracked);for _,p in ipairs(Players:GetPlayers()) do task.spawn(joinTracked,p) end
 local departuresInFlight=0
 local function leaving(p)
  closeConversation(p)
@@ -866,18 +876,28 @@ local function autosave(p,s)
 end
 task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(autosave,p,s) end end end end)
 local function shutdown()
+ closing=true
  local pending=0
  local deadline=os.clock()+25
+ local finalSaves={}
+ -- Freeze gameplay before any final save can yield or release its lease.
+ -- In-flight joins see closing and release their acquired profile instead.
  for p,s in pairs(sessions) do
+  closeConversation(p);cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
+  sessions[p]=nil
+  if s.canSave then table.insert(finalSaves,{player=p,session=s}) end
+ end
+ for _,entry in ipairs(finalSaves) do
+  local p,s=entry.player,entry.session
   if s.canSave then
    pending+=1
    task.spawn(function()
-    local ok,err=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true)
+    local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true)
     pending-=1
-    if not ok then warn("ScreamSimulator shutdown save failed",err) end
+    if not completed or not ok then warn("ScreamSimulator shutdown save failed",completed and reason or ok) end
    end)
   end
  end
- while (pending>0 or departuresInFlight>0) and os.clock()<deadline do task.wait(.1) end
+ while (pending>0 or departuresInFlight>0 or joinsInFlight>0) and os.clock()<deadline do task.wait(.1) end
 end
 game:BindToClose(shutdown)
