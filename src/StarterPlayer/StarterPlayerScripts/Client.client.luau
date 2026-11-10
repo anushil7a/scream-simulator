@@ -574,14 +574,14 @@ end
 local function saveStatus()
  if data.testSession then return "TEST SESSION · progress is temporary" end
  if data.recoveryWarning then
-  return (data.savingAvailable==false and "TEMPORARY · recovered save" or "Recovered save").."\nRecent progress may be missing"
+  return (data.savingAvailable==false and "TEMPORARY · recovered save" or data.savingDelayed and "Save delayed · retrying" or "Recovered save").."\nRecent progress may be missing"
  end
  return data.savingDelayed and "Save delayed · retrying automatically" or data.savingAvailable==false and "Temporary progress · saving unavailable" or ""
 end
 local function progressLabel(compact)
  if compact then
   if data.recoveryWarning and not data.testSession then
-   return (data.savingAvailable==false and "UNSAVED" or "RECOVERED").." · progress may be missing"
+   return (data.savingAvailable==false and "UNSAVED" or data.savingDelayed and "DELAYED" or "RECOVERED").." · progress may be missing"
   end
   if data.testSession or data.savingAvailable==false then return "TEMPORARY PROGRESS • not saved" end
   if data.savingDelayed then return "SAVE DELAYED • retrying" end

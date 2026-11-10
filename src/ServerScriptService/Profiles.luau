@@ -6,7 +6,7 @@ local Lease=require(ReplicatedStorage.Shared.ProfileLease)
 local RunService=game:GetService("RunService")
 local HttpService=game:GetService("HttpService")
 local owner=game.JobId~="" and game.JobId or HttpService:GenerateGUID(false)
-local locks,owned={},{}
+local locks,owned,admissions={},{},{}
 local bindings=setmetatable({},{__mode="k"})
 local acquisition=0
 local incarnation=HttpService:GenerateGUID(false)
@@ -118,8 +118,9 @@ function Profiles.Load(userId)
         return Profiles.Default(),false,"Your previous session is still saving. Rejoin shortly."
     end
     locks[userId]=true
-    local fallback=false
-    local confirmed=previous and previous.confirmed
+    local admission=admissions[userId]
+    local fallback=admission and admission.fallback or false
+    local confirmed=previous and previous.confirmed or admission and admission.confirmed
     if previous then
         -- Recovery only runs on rejoin, within the same lock as acquisition.
         -- A slow engine request cannot be cancelled; the deadline bounds new
@@ -129,8 +130,15 @@ function Profiles.Load(userId)
         confirmed=previous.confirmed
         owned[userId]=nil
     end
-    acquisition+=1
-    local token=owner..":"..incarnation..":"..acquisition
+    if not admission then
+        acquisition+=1
+        -- Keep admission identity across unavailable/ambiguous acquisitions, but
+        -- never retain the abandoned save operation or grant a writable handle.
+        admission={token=owner..":"..incarnation..":"..acquisition,
+            terminalToken=previous and previous.token,fallback=fallback,confirmed=confirmed}
+        admissions[userId]=admission
+    end
+    local token=admission.token
     local observed,hadLease
     for attempt=1,3 do
         local success,result=pcall(function()
@@ -140,7 +148,7 @@ function Profiles.Load(userId)
                 if not Lease.CanAcquire(raw,owner,os.time(),token) then
                     -- A terminal local release has finished its bounded retry.
                     -- Only its exact token may be replaced before expiry.
-                    if not (previous and Lease.Owns(raw,owner,previous.token)) then return nil end
+                    if not (admission.terminalToken and Lease.Owns(raw,owner,admission.terminalToken)) then return nil end
                 end
                 if Lease.Owns(raw,owner,token) then return raw end
                 local record=Profiles.Sanitize(raw)
@@ -151,6 +159,7 @@ function Profiles.Load(userId)
             end)
         end)
         if success then
+            admissions[userId]=nil
             locks[userId]=nil
             if Lease.Owns(result,owner,token) then
                 local data=Profiles.Sanitize(result)
@@ -166,6 +175,7 @@ function Profiles.Load(userId)
         -- A callback may have read a durable checkpoint before the write or
         -- response failed. It is safe to display, never to grant ownership.
         confirmed=observed or confirmed
+        admission.confirmed=confirmed
         task.wait(attempt)
     end
     locks[userId]=nil

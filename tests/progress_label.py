@@ -23,6 +23,10 @@ data.level=1
 check(progressLabel(true)=='30 / 103 XP','Normal XP did not recover')
 data.recoveryWarning=true
 check(progressLabel(true)=='RECOVERED · progress may be missing','Compact recovery warning missing')
+data.savingDelayed=true
+check(progressLabel(true)=='DELAYED · progress may be missing','Compact recovery warning masked autosave delay')
+data.savingDelayed=false
+check(progressLabel(true)=='RECOVERED · progress may be missing','Compact warning did not recover after saved retry')
 data.savingAvailable=false
 check(progressLabel(true)=='UNSAVED · progress may be missing','Temporary compact recovery warning missing')
 data.testSession=true

@@ -181,6 +181,87 @@ now=records.Player_19._lease.expires
 local b19,b19OK=B.Load(19);assert(b19OK);b19.coins=750;assert(B.Save(19,b19))
 step(co)
 check(not delayedWritable and delayedData.coins==750 and records.Player_19.coins==750 and records.Player_19._lease.owner=='B','Delayed recovery overwrote newly acquired save')
+-- Recovery plus acquisition fail before commit: a later rejoin must retain only
+-- exact-token admission authority, never retry the discarded final snapshot.
+d=load(A,20);failedRelease(A,20,d);local terminal20=copy(records.Player_20._lease)
+beforeFailures=6;local temp20,tempSave=A.Load(20)
+check(not tempSave and temp20.coins==100 and records.Player_20._lease.token==terminal20.token,'Outage setup changed terminal lease')
+temp20.coins=999 -- temporary gameplay must not become the reacquired checkpoint
+before=calls;local back20,backSave,_,backWarning=A.Load(20)
+check(backSave and back20.coins==100 and backWarning and calls-before==1 and now<terminal20.expires,'Terminal admission token forgotten after outage')
+check(not A.Save(20,d,true) and not A.Save(20,temp20),'Old or temporary handle acquired fallback write authority')
+-- A foreign owner wins after outage: neither its token, expiry nor save changes.
+d=load(A,21);failedRelease(A,21,d);firstCallback=#callbacks+4
+beforeFailures=6;A.Load(21);oldTransform=callbacks[firstCallback].transform
+now=records.Player_21._lease.expires
+local b21,b21OK=B.Load(21);assert(b21OK);b21.coins=810;assert(B.Save(21,b21))
+local lease21=copy(records.Player_21._lease);before=calls
+local read21,write21=A.Load(21)
+check(not write21 and read21.coins==810 and calls-before==1,'Retained admission stole foreign ownership')
+check(records.Player_21._lease.token==lease21.token and records.Player_21._lease.expires==lease21.expires and records.Player_21.coins==810,'Retained admission changed foreign lease or data')
+check(oldTransform(copy(records.Player_21))==nil,'Retired acquisition callback accepted foreign lease')
+-- Same JobId is insufficient: a distinct module/acquisition remains foreign.
+d=load(A,22);failedRelease(A,22,d);beforeFailures=6;A.Load(22)
+now=records.Player_22._lease.expires
+local c22,c22OK=C.Load(22);assert(c22OK);c22.coins=820;assert(C.Save(22,c22))
+local lease22=copy(records.Player_22._lease)
+local read22,write22=A.Load(22)
+check(not write22 and read22.coins==820 and records.Player_22._lease.token==lease22.token and records.Player_22._lease.expires==lease22.expires,'Terminal admission stole newer same-job acquisition')
+-- All acquisition responses lost: retain and acknowledge that exact attempt,
+-- without starting another final-snapshot recovery or extending the lease.
+d=load(A,23);failedRelease(A,23,d);beforeFailures=3;afterFailures=3
+local temp23,write23=A.Load(23);local lease23=copy(records.Player_23._lease)
+check(not write23 and temp23.coins==100,'Ambiguous acquisition exposed writable data')
+before=calls;local back23,back23OK,_,warning23=A.Load(23)
+check(back23OK and back23.coins==100 and warning23 and calls-before==1 and records.Player_23._lease.token==lease23.token and records.Player_23._lease.expires==lease23.expires,'Ambiguous acquisition identity was lost or lease extended')
+back23.coins=830;check(A.Save(23,back23) and not A.Save(23,temp23) and not A.Save(23,d,true),'Ambiguous recovery bound a stale handle')
+-- Recovery times out, then acquisition fails. Retain admission, never re-run
+-- the expired recovery budget on a later load.
+d=load(A,24);failedRelease(A,24,d);before=calls
+beforeHook=function()now+=13;beforeFailures=3;error('slow recovery failure')end
+local temp24,write24=A.Load(24)
+check(not write24 and temp24.coins==100 and calls-before==4,'Timeout/acquisition exhaustion exceeded bounds')
+before=calls;local back24,back24OK,_,warning24=A.Load(24)
+check(back24OK and back24.coins==100 and warning24 and calls-before==1,'Timed-out recovery restarted or lost admission')
+-- Repeated outages retain the checkpoint but never repeat final-save recovery.
+d=load(A,25);failedRelease(A,25,d);beforeFailures=6;A.Load(25)
+beforeFailures=3;before=calls;local temp25,write25=A.Load(25)
+check(not write25 and temp25.coins==100 and calls-before==3 and not A.Save(25,temp25),'Repeated outage revived snapshot or lost confirmed fallback')
+before=calls;local back25,back25OK=A.Load(25)
+check(back25OK and back25.coins==100 and calls-before==1,'Repeated outage prevented exact-token reacquisition')
+-- Fresh acquisition with no predecessor also reconciles lost responses safely.
+afterFailures=3;local temp26,write26=A.Load(26);local lease26=copy(records.Player_26._lease)
+check(not write26 and not A.Save(26,temp26),'Fresh ambiguous acquisition enabled saving')
+local back26,back26OK=A.Load(26)
+check(back26OK and back26.coins==0 and records.Player_26._lease.token==lease26.token and records.Player_26._lease.expires==lease26.expires,'Fresh ambiguous acquisition was not reconciled')
+-- Contention re-invokes a terminal takeover callback after a newer same-job save.
+d=load(A,27);failedRelease(A,27,d);beforeFailures=6;A.Load(27)
+local lease27
+retryHook=function()
+ now=records.Player_27._lease.expires
+ local c,cOK=C.Load(27);assert(cOK);c.coins=870;assert(C.Save(27,c));lease27=copy(records.Player_27._lease)
+end
+local read27,write27=A.Load(27)
+check(not write27 and read27.coins==870 and records.Player_27.coins==870 and records.Player_27._lease.token==lease27.token and records.Player_27._lease.expires==lease27.expires,'Reinvoked admission callback used stale terminal ownership')
+-- Acquisition committed, response lost, then another owner saved: do not reuse
+-- the retained identity to adopt or refresh the newer owner's session.
+d=load(A,28);failedRelease(A,28,d);beforeFailures=3;local lease28
+afterHook=function()
+ now=records.Player_28._lease.expires
+ local b,bOK=B.Load(28);assert(bOK);b.coins=880;assert(B.Save(28,b));lease28=copy(records.Player_28._lease)
+ afterFailures=1
+end
+local read28,write28=A.Load(28)
+check(not write28 and read28.coins==880 and records.Player_28.coins==880 and records.Player_28._lease.token==lease28.token and records.Player_28._lease.expires==lease28.expires,'Ambiguous acquisition retry changed foreign save or lease')
+-- A yielding cached admission and another rejoin still admit only one writer.
+d=load(A,29);failedRelease(A,29,d);beforeFailures=6;A.Load(29);pauseNext=true
+local back29,write29,duplicate29
+co=coroutine.create(function()back29,write29=A.Load(29)end)
+check(step(co)=='store','Cached admission fixture did not yield')
+yieldWait=true;duplicate=coroutine.create(function()duplicate29={A.Load(29)}end)
+check(step(duplicate)=='wait','Concurrent load bypassed cached admission lock')
+yieldWait=false;step(co);step(duplicate)
+check(write29 and back29.coins==100 and not duplicate29[2] and not A.Save(29,d,true),'Concurrent cached admission created duplicate or stale writer')
 print('PASS '..checks..' bounded recovery/ownership/replay checks; cloned simulated persistence only')
 '''
 def run(payload,expected=None):
@@ -207,6 +288,10 @@ if '--negative-controls' in sys.argv:
         ('if type(saved)=="table" and saved.token==session.token and saved.revision==operation.revision then return raw end','-- omitted committed-operation recognition','Lost release response was not reconciled idempotently'),
         ('lease.owner==owner and (token==nil or lease.token==token)','lease.owner==owner','Same-job distinct acquisition stole active lease'),
         ('snapshot=Profiles.Sanitize(data)','snapshot=data','Retained snapshot recovery failed or used mutated caller data'),
+        ('local admission=admissions[userId]','local admission=nil','Terminal admission token forgotten after outage'),
+        ('Lease.Owns(raw,owner,admission.terminalToken)','Lease.Owns(raw,owner)','Terminal admission stole newer same-job acquisition'),
+        ('Lease.Owns(raw,owner,admission.terminalToken)','true','Old recovery overwrote or stole newer owner save'),
+        ('if Lease.Owns(raw,owner,token) then return raw end','if Lease.Owns(raw,owner,token) then return Lease.Stamp(raw,owner,os.time(),token) end','Ambiguous acquisition identity was lost or lease extended'),
     ]:
         assert payload.count(old)==1,(old,payload.count(old))
         run(payload.replace(old,new),expected)
