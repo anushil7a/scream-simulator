@@ -571,8 +571,18 @@ local function refreshQuestObjects()
   end
  end
 end
+local function saveStatus()
+ if data.testSession then return "TEST SESSION · progress is temporary" end
+ if data.recoveryWarning then
+  return (data.savingAvailable==false and "TEMPORARY · recovered save" or "Recovered save").."\nRecent progress may be missing"
+ end
+ return data.savingDelayed and "Save delayed · retrying automatically" or data.savingAvailable==false and "Temporary progress · saving unavailable" or ""
+end
 local function progressLabel(compact)
  if compact then
+  if data.recoveryWarning and not data.testSession then
+   return (data.savingAvailable==false and "UNSAVED" or "RECOVERED").." · progress may be missing"
+  end
   if data.testSession or data.savingAvailable==false then return "TEMPORARY PROGRESS • not saved" end
   if data.savingDelayed then return "SAVE DELAYED • retrying" end
  end
@@ -697,7 +707,7 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if layoutChanged then conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-36)) end
  refreshConversation()
- saveNotice.Text=data.testSession and "TEST SESSION · progress is temporary" or data.savingDelayed and "Save delayed · retrying automatically" or data.savingAvailable==false and "Temporary progress · saving unavailable" or ""
+ saveNotice.Text=saveStatus()
  saveNotice.Visible=not modal.Visible and viewport.X>=820
  local progress=progressLabel(viewport.X<820)
  if xpText.Text~=progress then xpText.Text=progress end

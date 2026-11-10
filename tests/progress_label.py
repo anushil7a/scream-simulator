@@ -21,6 +21,12 @@ data.testSession=false
 check(progressLabel(true)=='MAX LEVEL','Recovered compact cap label missing')
 data.level=1
 check(progressLabel(true)=='30 / 103 XP','Normal XP did not recover')
+data.recoveryWarning=true
+check(progressLabel(true)=='RECOVERED · progress may be missing','Compact recovery warning missing')
+data.savingAvailable=false
+check(progressLabel(true)=='UNSAVED · progress may be missing','Temporary compact recovery warning missing')
+data.testSession=true
+check(progressLabel(true)=='TEMPORARY PROGRESS • not saved','Developer status lost priority')
 print('PASS '..checks..' actual progress label checks with mocked state')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:

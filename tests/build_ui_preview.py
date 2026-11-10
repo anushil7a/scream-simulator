@@ -55,6 +55,15 @@ for _,armed in ipairs({false,true}) do
  assert(castButton.Selectable and controls.Visible,"Toggle unavailable")
  table.insert(report,{viewport=tostring(gui.AbsoluteSize),tab=expected,clipped=clipped,size=tostring(castButton.AbsoluteSize),text=castButton.Text})
 end
+for _,writable in ipairs({false,true}) do
+ data.recoveryWarning=true;data.savingAvailable=writable
+ Run.RenderStepped:Wait();Run.RenderStepped:Wait()
+ local notice=view[1]<820 and xpText or saveNotice
+ local clipped={};if not notice.TextFits then table.insert(clipped,notice.Text) end
+ assert(string.find(notice.Text,"progress may be missing",1,true),"Persistent rollback warning missing")
+ table.insert(report,{viewport=tostring(gui.AbsoluteSize),tab=writable and "Recovered save" or "Temporary recovered save",clipped=clipped,text=notice.Text,size=tostring(notice.AbsoluteSize)})
+end
+data.recoveryWarning=nil;data.savingAvailable=true
 end
 gui.Size=UDim2.fromOffset(390,844);fixtureTouch=true;Run.RenderStepped:Wait()
 modal.Visible=false

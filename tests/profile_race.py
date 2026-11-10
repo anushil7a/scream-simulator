@@ -55,7 +55,8 @@ local failed=coroutine.create(function()saveOK=Profiles.Save(42,loaded[1],true)e
 repeat step(failed) until coroutine.status(failed)=="dead"
 check(not saveOK,"Injected failure unexpectedly saved")
 local retry={Profiles.Load(42)}
-check(not retry[2] and records.Player_42.coins==99,"Failed leave admitted second writer")
+check(retry[2] and retry[1].coins==99,"Bounded final-save recovery failed on rejoin")
+check(not Profiles.Save(42,loaded[1],true),"Old profile handle admitted after recovered rejoin")
 -- A different failed load must release its acquisition lock for a later attempt.
 failures=3
 local bad=coroutine.create(function()Profiles.Load(44)end)

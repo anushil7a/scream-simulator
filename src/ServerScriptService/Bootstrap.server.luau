@@ -89,7 +89,7 @@ local function state(p,message,conversation)
  availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,testSession=s.testBaseline~=nil,message=message})
+ conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message})
 end
 Commerce.Start(function(p)
  local s=sessions[p]
@@ -726,9 +726,9 @@ end)
 local function joined(p)
  if closing then return end
  task.spawn(Entitlements.Refresh,p)
- local data,save,loadMessage
+ local data,save,loadMessage,recoveryWarning
  if localFixture then data,save,loadMessage=Profiles.Default(),false,"Local sustained prototype · saving disabled"
- else data,save,loadMessage=Profiles.Load(p.UserId) end
+ else data,save,loadMessage,recoveryWarning=Profiles.Load(p.UserId) end
  if closing or not p.Parent then
   if save then
    local completed,ok,reason=pcall(Profiles.Save,p.UserId,data,true)
@@ -738,7 +738,7 @@ local function joined(p)
   end
   return
  end
- local s={data=data,canSave=save,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
+ local s={data=data,canSave=save,recoveryWarning=recoveryWarning,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
  botRewards={},credit={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  task.spawn(Commerce.Load,p)
  if sustainedEnabled then

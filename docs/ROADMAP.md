@@ -2,7 +2,15 @@
 
 Updated November 10, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch, retaining its four-second maximum attack and ten-second cooldown. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
-## November 10 failed-departure follow-up
+## November 10 approved bounded recovery
+
+- Implemented the owner's last-confirmed-save fallback choice. On same-server rejoin after a failed final release, retry the detached final snapshot at most three additional times, with a 12-second cutoff for starting further recovery calls, then read/acquire the latest stored checkpoint. Existing save retries and shutdown deadline are unchanged. Another active acquisition is never stolen; storage/ownership failures yield temporary unsavable data, never writable defaults.
+- Each acquisition has a unique token; saves have monotonic revisions and profile-table bindings. Exact committed-operation recognition handles lost responses without rewriting an old snapshot or restamping a newer lease. Replayed callbacks recheck the current token/revision and cannot overwrite a later protocol save. Developer baseline copies preserve their legitimate binding.
+- Fallback warns that recent progress may be missing, with persistent desktop and compact/mobile status. A review correction preserves observed confirmed data after ambiguous acquisition responses, and another adds the missing narrow-screen warning.
+- Validation: 53 recovery checks, seven targeted negative controls, 24 pure/synthetic suites, 55 mocked-service suites, 56 production compiles and all builds pass. UI-only native fixture passes 33 cases, including six warning states. Separate self-review completed; no separate reviewer claimed. [Exact evidence](../tests/evidence/bounded-recovery-2026-11-10.json) and [policy/invariants](PROFILE_RECOVERY_REVIEW.md).
+- Limits: recovery occurs on rejoin, retained snapshots are memory-only, and an already in-flight engine request can outlast the deadline. Unknown acquisition outcomes remain read-only until safe acquisition/expiry. Simulations do not prove real DataStore contention/outages/shutdown; physical devices and mixed-version release migration remain gates. No live DataStore writes, game publication or audio configuration. Next: independent code review and an owner-authorized isolated persistence test before any release.
+
+## November 10 failed-departure follow-up (historical; recovery policy superseded above)
 
 - Reconciled shared head `6014930` and corrected README controls to SCREAMS ON/OFF, including talk-without-attacking, respawn and session-local behavior.
 - Reproduced ordinary departure ignoring `Save` returning `false, reason` and exceptions omitting UserId. The narrow correction now logs returned failure or exception with UserId/reason, consistently with late-load/shutdown callers. No retry/rejoin policy, lease ownership, shutdown budget or saved-data behavior changed.
