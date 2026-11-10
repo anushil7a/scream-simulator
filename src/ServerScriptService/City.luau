@@ -507,7 +507,8 @@ local function arrivalPlaza(parent,x,z,walk,activities)
  local tx,tz=x-83,z-18
  part(practice,"LanePaving",V(12,.035,34),V(tx,.93,tz+15),Color3.fromRGB(130,157,146),Enum.Material.Cobblestone,false)
  for _,dx in ipairs({-6,6}) do part(practice,"LaneEdge",V(.16,.04,34),V(tx+dx,.95,tz+15),cream,nil,false) end
- part(practice,"StandLine",V(10,.04,.35),V(tx,.96,tz+25),cream,nil,false)
+ -- A level-one beam must reach the target even near the voice sustain threshold.
+ part(practice,"StandLine",V(10,.04,.35),V(tx,.96,tz+12),cream,nil,false)
  for _,dx in ipairs({-4,4}) do part(practice,"TargetPost",V(.5,7,.5),V(tx+dx,4.4,tz),iron,Enum.Material.Metal) end
  local target=part(practice,"PracticeTarget",V(9,6,.5),V(tx,5.1,tz),teal,Enum.Material.Wood)
  target:SetAttribute("MicPracticeTarget",true);target:SetAttribute("RestColor",teal)

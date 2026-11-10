@@ -1,6 +1,6 @@
 # Scream Simulator development roadmap
 
-Updated November 9, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch, retaining its four-second maximum attack and ten-second cooldown. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
+Updated November 10, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch, retaining its four-second maximum attack and ten-second cooldown. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
 ## Product direction
 
@@ -25,6 +25,14 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 - Review found Windows checkout line endings could invalidate the generator hash. Explicit LF/binary Git attributes and regenerated provenance fix reproducibility.
 - Full verification/build passed 24 pure/synthetic suites, 51 mocked-service suites and 56 production compiles. Focused audio checks passed 55 mixer assertions, 26 mocked adapter assertions and 6 source-hook checks. Evidence: [gameplay audio](../tests/evidence/gameplay-audio-2026-11-10.json).
 - All four asset IDs are empty, so new cues remain silent. Earlier browser URL verification blocked upload. Next: owner import using Studio Asset Manager or a verified Creator Dashboard, grant destination access and supply IDs; then test native playback, microphone mix and phone/speaker feedback. No Roblox publication.
+
+## November 10 first-minute practice reach
+
+- Reproduced a first-hit failure in the disposable Studio fixture: the marked stand was 25 studs from the target, while a level-one beam at automatic onset power reaches 18.3 studs. The server accepted the attack but did not confirm the practice hit. Moved only the stand line to 12 studs, retaining a margin at the lower sustain threshold; combat rules are unchanged.
+- Full verification/build passes 24 pure/synthetic suites, 52 mocked-service suites and 56 production compiles. This includes 109 mocked microphone lifecycle checks, eight first-beam guidance checks and two authored-distance checks. Calibration, outage/mute, deliberate resume and fresh-quiet recovery use simulated audio/time.
+- Fresh native before/after runs: baseline fails at practice contact; fixed fixture passes seven first-beam checks plus six damage, eleven destruction and eighteen progression checks (42 total). Practice contact, completion sanitization/guidance, duplicate-hit prevention and cancellation exercised the real server adapter and authored geometry with synthetic power. [Evidence and exact build hashes](../tests/evidence/first-minute-2026-11-10.json).
+- Separate diff/source review found no additional production issue in scope. Studio showed waiting-for-mic guidance; real voice, phone input/layout, proximity audio, multiplayer latency and actual save/reload remain unverified. Owner will configure audio later; no audio/product configuration or publication.
+- Next: real-device calibration-to-first-hit playtest from the closer line, then training; repeat with a physical phone and second eligible player.
 
 ## Ordered backlog
 

@@ -1,0 +1,80 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "38cdf4047a3d6a2a9acbb74ba6bfc776b7da16b8",
+  "issue": "The stand line was 25 studs from the practice target, beyond level-one onset reach (18.3 studs at power 0.35). The real server adapter accepted the synthetic onset but did not confirm a practice hit.",
+  "change": "Move only the authored stand line to 12 studs. Preserve combat range, power thresholds, damage, durations, progression, audio and products.",
+  "review": {
+    "method": "Separate post-implementation diff/source review and before/after native execution by the implementing agent; no separate agent or human review claimed.",
+    "areas": [
+      "production change scope and lower sustain-power margin",
+      "real server raycast and authoritative practice completion",
+      "fixture PlaceId=0/non-saving guard and restored session/character state",
+      "fixture inclusion in source fingerprint and exclusion from production candidate",
+      "remote head and exact staged tree preservation"
+    ],
+    "findings": "No additional production issue found within this scope."
+  },
+  "tests": {
+    "command": "python tests/verify_local.py --build",
+    "passed": true,
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 52,
+    "productionCompiles": 56,
+    "microphoneLifecycleChecks": 109,
+    "firstBeamGuidanceChecks": 8,
+    "practiceDistanceChecks": 2,
+    "calibrationScope": "Mocked RMS/time: quiet/voice sampling, mute, invalid signal, interruption, explicit resume and fresh quiet/onset recovery. No device evidence.",
+    "builds": "Production candidate, local play, native fixture, performance review, UI/server/client/animation harnesses, shop and beam review built/compiled."
+  },
+  "native": {
+    "studioVersion": "0.747.0.7471481",
+    "builds": {
+      "before": {
+        "build": "SustainedNativeFixture",
+        "sourceSha256": "cec9a8340395f778acfe0535130f6213a0b33f2e80d7c0af6cead9639e0e3947",
+        "artifactSha256": "8495b164b6741b8a5ab1d2f4de79a33fa45cca0eb116a249858ba682b0577454",
+        "scope": "Executed in an unsaved PlaceId=0 Studio session with synthetic power; no real microphone input"
+      },
+      "after": {
+        "build": "SustainedNativeFixture",
+        "sourceSha256": "9ae65901ad324a81fef688f028bf80061ecc6cf529cb47298041974301009a88",
+        "artifactSha256": "6d9fc968d4fe91c2473f507aa8c0d8c2ba65846b212426336e03845dff637294",
+        "scope": "Executed in an unsaved PlaceId=0 Studio session with synthetic power; no real microphone input"
+      }
+    },
+    "baselineFirstBeam": {
+      "sourceSha256": "cec9a8340395f778acfe0535130f6213a0b33f2e80d7c0af6cead9639e0e3947",
+      "error": "ServerScriptService.Bootstrap:1142: Stand line is outside onset beam reach; first practice hit not confirmed\nServerScriptService.Bootstrap:1142\nServerScriptService.Bootstrap:1143\n",
+      "passed": false,
+      "checks": 1
+    },
+    "after": {
+      "damage": {
+        "passed": true,
+        "checks": 6
+      },
+      "destruction": {
+        "passed": true,
+        "checks": 11
+      },
+      "progression": {
+        "passed": true,
+        "checks": 18
+      },
+      "firstBeam": {
+        "sourceSha256": "9ae65901ad324a81fef688f028bf80061ecc6cf529cb47298041974301009a88",
+        "passed": true,
+        "checks": 7
+      }
+    },
+    "totalPassedChecks": 42,
+    "scope": "One local avatar; native authored target geometry and server adapter, synthetic readiness/power/time. FirstBeam completion sanitization is not a real datastore round trip.",
+    "visibleState": "Client setup panel correctly reported waiting for Roblox mic input. No real microphone signal was available in this disposable session."
+  },
+  "limitations": [
+    "Real eligible-account microphone calibration, automatic onset, quiet-stop, mute/disconnect/rejoin and proximity transport remain unverified.",
+    "Physical-phone touch/layout and speaker feedback, representative multiplayer latency/performance, and real save/reload remain open.",
+    "Four new audio IDs remain empty; owner will configure later. No audio/product changes or Roblox publication."
+  ],
+  "nextStep": "Owner/device playtest from calibration to the first practice hit at the new stand line, then training, with real voice; repeat on a physical phone and with a second eligible player."
+}

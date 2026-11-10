@@ -45,12 +45,12 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
 '''
     bootstrap = (source / "Bootstrap.server.luau").read_text()
     fixture = "\n".join((ROOT / "tests" / name).read_text() for name in
-                         ["StudioSustainedDamage.server.luau", "StudioSustainedDestruction.server.luau", "StudioSustainedPvp.server.luau", "StudioProgression.server.luau"])
+                         ["StudioSustainedDamage.server.luau", "StudioSustainedDestruction.server.luau", "StudioSustainedPvp.server.luau", "StudioProgression.server.luau", "StudioFirstBeam.server.luau"])
     performance = "local summarizeHeartbeat=(function()\n" + (ROOT / "tests/support/HeartbeatSummary.luau").read_text() + "\nend)()\n" + (ROOT / "tests/StudioPerformance.server.luau").read_text()
     fingerprint_paths = sorted(set((ROOT / "src").rglob("*.luau")) | {
         ROOT / "default.project.json", Path(__file__).resolve(),
         *(ROOT / "tests" / name for name in ["StudioSustainedDamage.server.luau",
-          "StudioSustainedDestruction.server.luau", "StudioSustainedPvp.server.luau", "StudioProgression.server.luau",
+          "StudioSustainedDestruction.server.luau", "StudioSustainedPvp.server.luau", "StudioProgression.server.luau", "StudioFirstBeam.server.luau",
           "StudioPerformance.server.luau", "support/HeartbeatSummary.luau"]),
     })
     def source_fingerprint():
