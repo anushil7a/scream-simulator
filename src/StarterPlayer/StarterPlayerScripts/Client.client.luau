@@ -204,7 +204,7 @@ local function toggleVoice()
   notify("Screams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.");return
  end
  sustainedControl:SetArmed(not sustainedControl.armed)
- notify(sustainedControl.armed and "Screams ON. Go quiet, then speak to attack. Voice chat is unchanged."
+ notify(sustainedControl.armed and "Screams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
   or "Screams OFF. Talk freely without attacking. Voice chat is unchanged.")
 end
 local function screamToggleLabel(armed,touch)
@@ -236,7 +236,7 @@ end)
 local micPanel=frame(gui,"MicSetup",UDim2.fromOffset(430,260),UDim2.fromScale(.5,.5));micPanel.AnchorPoint=Vector2.new(.5,.5);micPanel.ZIndex=20
 local micTitle=label(micPanel,"YOUR VOICE. YOUR POWER.",UDim2.new(1,-36,0,35),UDim2.fromOffset(18,16),21,gold)
 local micStatus=label(micPanel,"",UDim2.new(1,-36,0,90),UDim2.fromOffset(18,58),15)
-label(micPanel,"A microphone and Roblox voice access are required. Nearby players hear your live voice. No recordings are saved by this game.",UDim2.new(1,-36,0,50),UDim2.fromOffset(18,146),12,muted)
+label(micPanel,sustainedControl and "SCREAMS ON: normal speech can fire attacks. Turn OFF to talk; nearby voice stays on. This game saves no recordings." or "A microphone and Roblox voice access are required. Nearby players hear your live voice. No recordings are saved by this game.",UDim2.new(1,-36,0,50),UDim2.fromOffset(18,146),12,muted)
 button(micPanel,"Calibrate","CALIBRATE MIC",UDim2.fromOffset(188,36),UDim2.fromOffset(18,208),function() mic:Calibrate() end,gold).TextColor3=dark
 button(micPanel,"Retry","CHECK ACCESS",UDim2.fromOffset(188,36),UDim2.fromOffset(224,208),function() mic:Check() end)
 for _,v in ipairs(micPanel:GetDescendants()) do if v:IsA("GuiObject") then v.ZIndex=21 end end
@@ -471,7 +471,7 @@ render=function()
   local touch=UIS.TouchEnabled
   local attackHelp
   if sustainedControl then
-   attackHelp=string.format("Calibrate once, aim, then speak to attack. Up to %.0fs active, followed by %.0fs cooldown.\n%s toggles SCREAMS ON/OFF. OFF lets you talk without attacking; voice chat is unchanged. Go quiet before starting another scream.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap SCREAMS" or "E / SCREAMS")
+   attackHelp=string.format("SCREAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each scream.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap SCREAMS" or "E / SCREAMS")
   else attackHelp=touch and "Hold SCREAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / SCREAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
   info(string.format("%s: first or third person\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint, then %.0fs rest",touch and "View button" or "V / view button",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery),touch and 110 or 90)
@@ -772,7 +772,7 @@ connectClient(Run.RenderStepped,function(dt)
    or os.clock()<(sustainedControl.unconfirmedUntil or 0) and "Not confirmed • quiet, then retry"
    or sustainedControl.gate.needsQuiet and "Armed • quiet before speaking"
    or sustainedControl.gate.onset>0 and "Voice detected • keep speaking"
-   or string.format("Armed • speak past %d%% marker",math.floor(sustainedControl.gate.OnPower*100))
+   or "ON · normal speech can attack"
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
    or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
  end

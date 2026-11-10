@@ -2,6 +2,13 @@
 
 Updated November 10, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch, retaining its four-second maximum attack and ten-second cooldown. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 10 first-session scream guidance
+
+- Reconciled clean remote `54e3df2`. Disposable native Studio reproduced missing normal-speech guidance before first auto-arm and in the idle ON HUD. ON already starts attacks from qualifying power, so the focused correction explicitly says normal speech can attack and OFF lets players talk with nearby voice unchanged. Setup, idle status, ON notice, Settings and README agree. Four production strings changed; no input, cooldown, auto-arm, respawn, voice routing or save behavior changed.
+- Baseline: 15 complete native rows. Corrected: 20 complete rows across 390x844, 844x390 and 1280x720, including actual OS mouse OFF and E ON/OFF. Visible labels fit; the 144x44 toggle was reachable in gameplay, and injected attacks stopped explicitly on OFF. Readiness/power, remotes, focus and touch selection are synthetic; no real calibration, speech, network combat or physical touch claim.
+- Passed all 24 pure/synthetic + 56 mocked suites, 56 production compiles and builds. Focused toggle checks: 29 assertions and two negative controls. Separate implementing-agent self-review found no blocker; no external review claimed. [Exact evidence](../tests/evidence/onboarding-toggle-2026-11-10.json) and [reproduction/limits](ONBOARDING_TOGGLE_REVIEW.md).
+- Next release gates: human comprehension, real microphone/proximity conversation and physical phone/assistive navigation; retain multiplayer and isolated persistence gates. No publication, audio configuration or live DataStore access. All disposable sessions stopped.
+
 ## November 10 acquisition lifetime blocker correction
 
 - Reconciled clean remote `e5beed`; **that checkpoint is rejected for unsafe expired/near-expiry admission and must not be released**. Actual-source simulation reproduced A writable with -1/1 seconds remaining, B subsequently writable, then A's 150-coin save rejected with ownership while 100 remained durable. Response-crosses-expiry and short-lifetime response regressions also failed before editing production.

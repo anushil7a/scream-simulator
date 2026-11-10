@@ -16,6 +16,7 @@ local notices={};local function notify(message)table.insert(notices,message)end
 checks='''
 local checks=0;local function check(v,msg)assert(v,msg);checks+=1 end
 toggleVoice();check(sustainedControl.armed and calls==1,'Available gameplay could not arm')
+check(notices[1]:find('Normal speech',1,true) and notices[1]:find('OFF',1,true) and notices[1]:find('voice chat is unchanged',1,true),'ON notice omits speech risk or talk control')
 unavailable=true;toggleVoice();check(not sustainedControl.armed and calls==2,'Unavailable gameplay prevented pause')
 toggleVoice();check(not sustainedControl.armed and calls==2,'Menu/protection/mic block allowed hidden arming')
 unavailable=false;windowFocused=false;toggleVoice();check(not sustainedControl.armed and calls==2,'Unfocused toggle armed voice')
