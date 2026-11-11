@@ -72,7 +72,7 @@ function Commerce.Prompt(player,key)
  if item.kind=="product" and not cache[player] then changed(player,"Loading your purchases. Please try again.",nil,true);task.spawn(Commerce.Load,player);return end
  if item.kind=="product" then
   local count=0;for _ in pairs(cache[player].receipts) do count+=1 end
-  if Catalog.Product(id)~=item or count>=Ledger.ReceiptLimit or cache[player].inventory[item.boost]>=1000000 then
+  if Catalog.Product(id)~=item or count>=Ledger.ReceiptLimit or math.max(os.time(),cache[player].ends[item.boost])>Ledger.MaxExpiry-Ledger.Duration then
    changed(player,"This purchase is currently unavailable.",nil,true);return
   end
  end
@@ -91,11 +91,11 @@ function Commerce.Start(canPurchase,onChanged)
   local player=Players:GetPlayerByUserId(receipt.PlayerId)
   if not item or not player or Run:IsStudio() or not allowed(player) then return Enum.ProductPurchaseDecision.NotProcessedYet end
   local ok=transact(player,function(raw)
-   local data=Ledger.Grant(raw,tostring(receipt.PurchaseId),item.boost)
+   local data=Ledger.GrantActive(raw,receipt.PurchaseId,item.boost,os.time())
    return data
   end)
   if not ok then return Enum.ProductPurchaseDecision.NotProcessedYet end
-  if player.Parent then changed(player,"Boost added to inventory · activate it in the shop") end
+  if player.Parent then changed(player,"Boost purchase processed. Check the shop for your current boost status.") end
   return Enum.ProductPurchaseDecision.PurchaseGranted
  end
  Players.PlayerRemoving:Connect(function(player) cache[player]=nil;promptAt[player]=nil;loadAt[player]=nil;activateAt[player]=nil end)

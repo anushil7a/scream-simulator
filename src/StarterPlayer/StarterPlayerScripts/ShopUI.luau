@@ -25,7 +25,7 @@ end
 function Shop.Tick()
  for _,timer in ipairs(timers) do
   local remaining=math.max(0,math.ceil(timer.ends-timer.serverNow-(os.clock()-timer.received)))
-  local text=remaining>0 and string.format("ACTIVE · %02d:%02d remaining",math.floor(remaining/60),remaining%60) or "Ready when you are"
+  local text=not timer.ready and "Boost status unavailable" or remaining>0 and string.format("ACTIVE · %02d:%02d remaining",math.floor(remaining/60),remaining%60) or "Not active"
   if timer.label.Text~=text then timer.label.Text=text end
  end
 end
@@ -80,22 +80,24 @@ function Shop.Render(data,ui,action)
   local badgeText=ui.label(badge,"2×",UDim2.fromScale(1,1),UDim2.new(),27,tint);badgeText.TextXAlignment=Enum.TextXAlignment.Center;badgeText.Font=Enum.Font.GothamBlack
   ui.label(c,"0"..(index+1).." / "..item.tag,UDim2.new(1,-100,0,20),UDim2.fromOffset(84,13),12,tint)
   ui.label(c,item.name,UDim2.new(1,-100,0,32),UDim2.fromOffset(84,34),narrow and 18 or 22)
-  ui.label(c,item.description.." Activate when ready; the timer continues offline.",UDim2.new(1,-32,0,narrow and 56 or 40),UDim2.fromOffset(16,80),14,soft)
+  ui.label(c,item.description.." Starts on confirmed delivery; the timer continues offline.",UDim2.new(1,-32,0,narrow and 56 or 40),UDim2.fromOffset(16,80),14,soft)
   local shop=data.shop or {};local inventory=shop.inventory or {};local ends=shop.ends or {}
-  local status=ui.label(c,"Ready when you are",UDim2.new(1,-32,0,24),UDim2.fromOffset(16,narrow and 143 or 124),13,tint)
-  table.insert(timers,{label=status,ends=ends[item.boost] or 0,serverNow=shop.serverNow or os.time(),received=os.clock()})
+  local status=ui.label(c,shop.ready==true and "Not active" or "Boost status unavailable",UDim2.new(1,-32,0,24),UDim2.fromOffset(16,narrow and 143 or 124),13,tint)
+  table.insert(timers,{label=status,ready=shop.ready==true,ends=ends[item.boost] or 0,serverNow=shop.serverNow or os.time(),received=os.clock()})
   local y=narrow and 184 or 158
-  purchaseButton(item,c,false,data,ui,action,UDim2.new(.5,-22,0,44),UDim2.fromOffset(16,y))
   local count=inventory[item.boost] or 0
-  local b=ui.button(c,"Activate"..key,"USE BOOST ("..count..")",UDim2.new(.5,-22,0,44),UDim2.new(.5,6,0,y),function()
-   if count>0 and shop.ready then action:FireServer("ActivateBoost",item.boost) end
-  end,ink);b.TextSize=13;b.TextColor3=count>0 and tint or soft;b.AutoButtonColor=count>0 and shop.ready==true
+  purchaseButton(item,c,false,data,ui,action,UDim2.new(count>0 and .5 or 1,count>0 and -22 or -32,0,44),UDim2.fromOffset(16,y))
+  if count>0 then
+   local b=ui.button(c,"Activate"..key,"USE SAVED ("..count..")",UDim2.new(.5,-22,0,44),UDim2.new(.5,6,0,y),function()
+    if shop.ready then action:FireServer("ActivateBoost",item.boost) end
+   end,ink);b.TextSize=13;b.TextColor3=tint;b.AutoButtonColor=shop.ready==true
+  end
  end
  local movement=ui.card(narrow and 202 or 170);stroke(movement,accent)
  ui.label(movement,"04 / FREERUNNER",UDim2.new(1,-32,0,28),UDim2.fromOffset(16,12),20,accent)
  ui.label(movement,"Chain jumps and rolls through the safe city. Standard movement rules apply inside the PvP arena.",UDim2.new(1,-32,0,narrow and 70 or 48),UDim2.fromOffset(16,48),14,soft)
  purchaseButton(Catalog.Get("Movement"),movement,data.movementPass,data,ui,action,UDim2.new(1,-32,0,44),UDim2.fromOffset(16,narrow and 142 or 110))
- ui.info("Boosts stack time, up to 2× per reward type. Unused boosts stay in your inventory. Open STYLE to equip your signature color.")
+ ui.info("New boosts activate automatically on confirmed delivery and stack time, not multiplier. Timers continue offline. Previously saved boosts remain usable.")
  Shop.Tick()
 end
 function Shop.ColorMixer(data,ui,action)

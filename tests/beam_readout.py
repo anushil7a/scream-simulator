@@ -43,12 +43,13 @@ for _,level in ipairs({1,10,50,100}) do
    check(string.find(text,'Sound styles change audio, not damage or range.',1,true)~=nil,'Sound/level distinction missing')
    local stats=Combat.Stats(level,1,false)
    check(string.find(text,string.format('%.1f DPS · %.2f studs',stats.maxDps,stats.maxRange),1,true)~=nil,'Summary does not match authoritative caps')
-   check(string.find(text,'5s cooldown after stopping',1,true)~=nil,'UI cooldown differs from approved five seconds')
+   check(not string.find(text,'cooldown',1,true) and not string.find(text,'max attack',1,true),'Attack description still includes timing')
   end
  end
 end
 draw({level=100,sound='one'},false,nil)
 check(string.find(table.concat(messages,'\\n'),'28 damage',1,true)~=nil,'Legacy damage mislabeled DPS')
+check(not string.find(table.concat(messages,'\\n'),'cooldown',1,true),'Legacy attack description still includes timing')
 -- Actual adapter/protocol: resolved range, amplified power and integer damage.
 for _,level in ipairs({1,10,50,100}) do
  for _,power in ipairs({.08,.5,1}) do
@@ -102,7 +103,8 @@ if __name__=='__main__':
  code=setup+render+checks+endfn+tail
  run(code)
  if args.negative_controls:
-  run(code.replace('local checks=0','Attack.Cooldown=10\nlocal checks=0',1),'UI cooldown differs from approved five seconds')
+  run(code.replace('FULL-POWER LIMITS: %.1f DPS','5s cooldown FULL-POWER LIMITS: %.1f DPS'),'Attack description still includes timing')
+  run(code.replace('local checks=0','Attack.Cooldown=10\nlocal checks=0',1),'Full attack does not end in five-second cooldown')
   run(code.replace('local checks=0','local originalBegin=Attack.Begin;Attack.Begin=function(s,now,...)s.nextStart=0;return originalBegin(s,now,...)end\nlocal checks=0',1),'Early restart accepted')
   run(code.replace('maximum.maxRange','maximum.maxRange+1'),'Summary does not match authoritative caps')
   run(code.replace('voiceCooldown/sustainedRules.Cooldown','voiceCooldown/10'),'UI cooldown bar denominator incorrect')

@@ -2,6 +2,13 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 automatic boost delivery and description correction
+
+- Reproduced actual receipt handler leaving purchases inactive. New receipts atomically record identity and extend absolute XP/coin expiry once; duplicate/lost-response replay never restarts time. Legacy saved boosts and historical receipt identity remain intact. Offline time still counts; unconfirmed failures are not acknowledged or granted locally. Product IDs remain zero.
+- Removed attack max-duration/cooldown wording only from the descriptive collection. Kept accurate current-level stats, live cooldown feedback and existing combat timings/map unchanged.
+- Full 25 pure/synthetic + 62 mocked suites, 57 production compiles and all builds passed. Focused checks: 45 receipt, 41 ledger, 24 shop UI and 1,180 beam assertions, plus 14 negative controls. Independent review caught an unknown-status label; corrected and rerun with no remaining blocker. No native or live purchase/store execution. [Behavior, evidence and gates](BOOST_PURCHASE_REVIEW.md).
+- Local base `736a82f` and prior `f0dc1e7` preserved and now verified remotely at `736a82f`. No duplicate push needed. Commit this reviewed checkpoint, reconcile remote again, then perform an authorized non-force push and verify delivery. No credential changes. No publication; no disposable apps were opened.
+
 ## November 11 beam cooldown/readout checkpoint
 
 - Preserved reviewed sprint commit `f0dc1e7`; remote remains `93bca5b` after fetch. GitHub connector reads draft PR#1, but local Git push authentication fails. Exact f0dc1e7 Git object is absent remotely; connector tools cannot import the original commit identity. No remote delivery claimed; authenticate local Git before pushing both checkpoints without force.

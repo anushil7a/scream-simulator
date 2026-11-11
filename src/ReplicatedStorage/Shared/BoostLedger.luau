@@ -1,5 +1,5 @@
 -- Pure purchase transactions; receipt IDs are never evicted. Fail closed at cap.
-local Ledger={Duration=1800,ReceiptLimit=8000}
+local Ledger={Duration=1800,ReceiptLimit=8000,MaxExpiry=100000000000}
 local function integer(n,maximum)
  return type(n)=="number" and n==n and math.clamp(math.floor(n),0,maximum) or 0
 end
@@ -26,6 +26,19 @@ function Ledger.Grant(raw,receipt,kind)
  if count>=Ledger.ReceiptLimit or d.inventory[kind]>=1000000 then return nil,"capacity" end
  d.receipts[receipt]=true;d.inventory[kind]+=1
  return d,"granted"
+end
+-- New purchases activate in the same atomic write that records their receipt.
+-- Legacy inventory/receipts remain untouched; replay never restarts an expired boost.
+function Ledger.GrantActive(raw,receipt,kind,now)
+ local d=Ledger.Normalize(raw)
+ if type(receipt)~="string" or #receipt==0 or #receipt>128 or d.inventory[kind]==nil then return nil,"invalid" end
+ if d.receipts[receipt] then return d,"duplicate" end
+ if type(now)~="number" or now~=now or now<0 or now>Ledger.MaxExpiry-Ledger.Duration then return nil,"invalid" end
+ local count=0;for _ in pairs(d.receipts) do count+=1 end
+ local ends=math.max(math.floor(now),d.ends[kind])+Ledger.Duration
+ if count>=Ledger.ReceiptLimit or ends>Ledger.MaxExpiry then return nil,"capacity" end
+ d.receipts[receipt]=true;d.ends[kind]=ends
+ return d,"activated"
 end
 function Ledger.Activate(raw,kind,operation,started,now)
  local d=Ledger.Normalize(raw)

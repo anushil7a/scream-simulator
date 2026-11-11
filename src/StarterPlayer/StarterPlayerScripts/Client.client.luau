@@ -389,10 +389,10 @@ render=function()
   end
   info(progress..string.format("\nNow: %d HP · %.1f max DPS\nTrain at the %s beach pad. Challenges are in Quests.",stats.health,stats.maxDps,data.training or "Rookie"))
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
-  local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs\n%.0fs max attack · %.0fs cooldown after stopping",data.level,maximum.maxDps,maximum.maxRange,sustainedRules.MaxDuration,sustainedRules.Cooldown)
-   or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs\n%.0fs cooldown",data.level,maximum.damage,maximum.maxRange,maximum.cooldown)
+  local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs",data.level,maximum.maxDps,maximum.maxRange)
+   or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs",data.level,maximum.damage,maximum.maxRange)
   info(combatSummary,narrow and 112 or 82)
-  info("Sound styles change audio, not damage or range. These limits use your current level for the next attack. Lower voice power and cover shorten reach. DPS requires full power and continuous contact; cooldown deals no damage.",narrow and 150 or 96)
+  info("Sound styles change audio, not damage or range. These limits use your current level for the next attack. Lower voice power and cover shorten reach. DPS requires full power and continuous contact.",narrow and 150 or 96)
   for _,s in ipairs(Config.Sounds) do
    local c=card(narrow and 194 or 118);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
    label(c,s.description,UDim2.new(1,narrow and -28 or -158,0,narrow and 40 or 25),UDim2.fromOffset(14,narrow and 54 or 36),13)

@@ -4,7 +4,7 @@
 
 **Attack audio:** [owner-selected tier effects](assets/audio/README.md) now map levels 10 through 100 to the ten supplied Roblox IDs, with original pitch, quiet mixing and local-mic ducking. All ten loaded in a silent local Studio check; gameplay listening and City Preview access remain unverified. Level 1 stays voice-only. Attack duration stays four seconds.
 
-**Current direction (November 9):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 10 seconds cooldown), preserving normal profiles. Calibrate once, stay quiet briefly, then aim and speak; E/VOICE pauses/resumes. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue development while Codex allowance remains.
+**Current direction (November 9):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 5 seconds cooldown), preserving normal profiles. Calibrate once, stay quiet briefly, then aim and speak; E/VOICE pauses/resumes. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue development while Codex allowance remains.
 
 [GitHub repository](https://github.com/anushil7a/scream-simulator) · [City Preview](https://www.roblox.com/games/90337242377543/Scream-Simulator-City-Preview) · [Separate original experience](https://www.roblox.com/games/122465114514497/Scream-Simulator)
 
@@ -52,6 +52,10 @@ These are source/integration milestones, not blanket verification of every devic
 - **Camera**: third person only, with a six-stud minimum wheel/pinch zoom. Desktop aims at the mouse; touch aims at the centered reticle. There is no V/view toggle.
 
 A microphone and Roblox voice eligibility are required for gameplay. Studio setup without usable voice may remain on the microphone panel. Synthetic fixtures in `tests/` can exercise selected mechanics, but are not a substitute for live voice validation and must never be appended to production source.
+
+## Boost delivery (unpublished local candidate)
+
+Configured boost purchases activate on confirmed server receipt delivery, extending the current expiry by 30 minutes once per receipt. They stack time at 2x; time continues offline. Old saved boosts remain separately usable. Product IDs are not configured, and real receipt delivery is unverified. See [behavior, simulated evidence and limitations](docs/BOOST_PURCHASE_REVIEW.md).
 
 ## Friend testing and release limits
 

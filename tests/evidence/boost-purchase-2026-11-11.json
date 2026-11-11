@@ -1,0 +1,43 @@
+{
+  "checked_at_utc": "2026-11-11T15:50:48.410380+00:00",
+  "base_commit": "736a82f08b5f14afe02bf73c493d40fe62054888",
+  "last_verified_remote": "736a82f08b5f14afe02bf73c493d40fe62054888",
+  "native_executed": false,
+  "live_purchase_or_datastore_access": false,
+  "published": false,
+  "source_sha256": {
+    "src/ReplicatedStorage/Shared/BoostLedger.luau": "701a5e1d3600723b73768c20d8c75d66f3a62b55d235bbf43d93a37dc6da08c0",
+    "src/ServerScriptService/Commerce.luau": "15ec58937f93924c3ebc0ac03d502a3b58bbdee297a19a6b0e6accc8e22ea4d4",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "0c1207cd1cc2c0ffd997dd96e6bdf90480d23c4a26790cea564391b02cdb81cd",
+    "src/StarterPlayer/StarterPlayerScripts/ShopUI.luau": "82d6d7c712894f66a7a39efcb4df2a7526d608e634087c67b8e75b1a6ab84824"
+  },
+  "baseline_failure": "Receipt did not activate immediately",
+  "checks": {
+    "pure_suites": 25,
+    "mocked_suites": 62,
+    "production_compiles": 57,
+    "builds": "all passed",
+    "commerce_assertions": 45,
+    "ledger_assertions": 41,
+    "boost_ui_assertions": 24,
+    "beam_assertions": 1180,
+    "negative_controls": 14
+  },
+  "remaining_gates": [
+    "native shop layout/readability",
+    "actual authorized Roblox receipt redelivery/payment behavior",
+    "real microphones/devices/network",
+    "authenticated non-force GitHub delivery"
+  ],
+  "independent_review": {
+    "status": "clear after unknown-status display correction",
+    "independently_rerun": [
+      "commerce:45 assertions/5 controls",
+      "boost ledger:41 assertions",
+      "boost UI:24 assertions/4 controls",
+      "beam:1180 assertions/5 controls",
+      "git diff --check"
+    ],
+    "limits": "synthetic Lua/UI/store, not native/live validation"
+  }
+}
