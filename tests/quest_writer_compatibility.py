@@ -111,17 +111,22 @@ local function independentCopy(value)
  local result={};for key,item in pairs(value) do result[key]=independentCopy(item) end;return result
 end
 local function verify(data,seed,stage)
- for id,wanted in pairs(seed.quests) do
-  local v=data.quests[id]
-  assert(v and v.progress==wanted.progress and v.claimed==wanted.claimed,'Writer altered quest '..id..' at '..stage)
+ for id in pairs(seed.availableQuests) do
+  local wanted=seed.quests[id];local v=data.quests[id]
+  if wanted then
+   assert(v and v.progress==wanted.progress and v.claimed==wanted.claimed,'Writer altered quest '..id..' at '..stage)
+  else assert(v==nil,'Writer invented quest progress '..id..' at '..stage) end
   assert(data.availableQuests[id]==true,'Writer lost discovery '..id..' at '..stage)
  end
  assert(data.coins==seed.coins and data.level==seed.level and data.xp==seed.xp,'Writer changed unrelated economy')
 end
-for _,claimed in ipairs({false,true}) do
+for _,kind in ipairs({'partial','completed-unclaimed','claimed','discovered-only'}) do
  local seed=P.Default();seed.coins=177;seed.level=20;seed.xp=7
  for _,q in ipairs(Config.Quests) do
-  seed.quests[q.id]={progress=claimed and q.goal or math.max(0,q.goal-1),claimed=claimed};seed.availableQuests[q.id]=true
+  if kind~='discovered-only' then
+   seed.quests[q.id]={progress=kind=='partial' and math.max(0,q.goal-1) or q.goal,claimed=kind=='claimed'}
+  end
+  seed.availableQuests[q.id]=true
  end
  local expected=independentCopy(seed)
  durable=seed;now+=10;clock+=10
@@ -132,7 +137,7 @@ for _,claimed in ipairs({false,true}) do
  local current=loadProfiles();local reloaded,writable=current.Load(7);assert(writable,'Candidate rejoin failed')
  verify(reloaded,expected,'candidate reload');assert(current.Save(7,reloaded,true),'Candidate release failed');verify(durable,expected,'candidate release')
 end
-print('PASS all current quest partial/claim/discovery states through writer acquisition/release and candidate reload; mocked noncatalog configuration')
+print('PASS all current quest partial/completed-unclaimed/claimed/discovered-only states through writer acquisition/release and candidate reload; mocked noncatalog configuration')
 """
     path=None
     try:
@@ -161,12 +166,24 @@ def main():
     current_profiles=(ROOT/'src/ServerScriptService/Profiles.luau').read_text()
     current_lease=(ROOT/'src/ReplicatedStorage/Shared/ProfileLease.luau').read_text()
     ok,output=probe_writer(current_config,current_profiles,current_lease);assert ok,output
-    print('PASS current writer lifecycle probe (all current IDs, partial and claimed)')
+    print('PASS current writer lifecycle probe (all current IDs, four explicit states)')
     old_config=(PIN/'QuestCatalog.luau').read_text()+'local questGivers={}'
     ok,output=probe_writer(old_config,(PIN/'Profiles.luau').read_text(),(PIN/'ProfileLease.luau').read_text())
     assert not ok and 'Writer altered quest' in output and 'at writer load' in output,output
     print('PASS historical writer lifecycle probe rejects claim/progress loss')
     if args.negative_controls:
+        availability='for _,q in ipairs(Config.Quests) do if raw.availableQuests[q.id]==true then data.availableQuests[q.id]=true end end'
+        assert current_profiles.count(availability)==1
+        changed=current_profiles.replace(availability,'-- intentionally omit discovered-only preservation')
+        ok,output=probe_writer(current_config,changed,current_lease)
+        assert not ok and 'Writer lost discovery' in output,output
+        print('PASS negative control: discovered_only_loss')
+        progress='progress=wholeNumber(old.progress,0,0,q.goal)'
+        assert current_profiles.count(progress)==1
+        changed=current_profiles.replace(progress,'progress=(old.claimed~=true and old.progress==q.goal) and 0 or wholeNumber(old.progress,0,0,q.goal)')
+        ok,output=probe_writer(current_config,changed,current_lease)
+        assert not ok and 'Writer altered quest' in output,output
+        print('PASS negative control: completed_unclaimed_loss')
         destructive=current_profiles.replace('function Profiles.Sanitize(raw)', 'function Profiles.Sanitize(raw) if type(raw)=="table" and type(raw.quests)=="table" then for _,v in pairs(raw.quests) do if type(v)=="table" then v.progress=0;v.claimed=false end end end')
         assert destructive!=current_profiles
         ok,output=probe_writer(current_config,destructive,current_lease)

@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 quest writer oracle state coverage
+
+- Astra found two false-positive gaps, not current production loss: availability-only discovery was reconstructed from seeded quest records, and completed-unclaimed progress was never seeded. The probe now checks four explicit states per current ID, including absent quest entries for discovery-only, with independent expected data. Exact discovery-loop removal and completed-unclaimed zeroing mutants are rejected.
+- Independent47 replay assertions, current/historical lifecycle probes and11 controls pass;36 preflight checks/four controls and both synthetic CLI cases rerun. Runtime source/builders unchanged; full25/92/60 integration remains the2daa39e checkpoint, not a new full/native run. [Review and limits](QUEST_WRITER_ROLLOUT_REVIEW.md). Gate remains BLOCKED pending actual compatible serving/rollback/cutover evidence.
+- No apps, map edits, live services or publication. Next: independent checkpoint review and concrete non-map work without claiming finite mocked probes establish fleet/persistence readiness.
+
 ## November 11 entitlement response ordering
 
 - Actual coroutine reproduction found an older pass-ownership result overwriting a newer result in either direction. Fresh per-Player request identities now fence each API return; departure clears caches/identity and weak-key departed markers reject queued work before Parent clears. Legitimate later revocation, last-good-on-error, disabled IDs and Studio movement remain. Product/pass IDs stay zero, so this is a latent correction, not a reported live purchase failure.
