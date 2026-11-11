@@ -27,6 +27,10 @@ Never publish a disposable fixture. Older root-level or `CityPreviewLatest` bina
 
 Keep the PR draft until these gates have matching evidence and the owner approves a concrete release candidate. There is no newly established production defect requiring speculative gameplay changes merely because these external gates remain open.
 
+## Quest writer cutover gate
+
+The additive quest candidate also has an explicit **BLOCKED, unverified writer-fleet** gate in its provenance. Older servers can erase new claim flags on acquisition while retaining rewards, allowing a later repeat reward. Before release, complete the [writer/rollback inventory and offline preflight](QUEST_WRITER_ROLLOUT_REVIEW.md), then independently review the actual operational cutover evidence. Publishing or scheduling a restart is not proof that old writers are gone, and DataStore history is not a transaction-by-transaction reward undo. A passing declared-writer simulation cannot close fleet/native/approval gates. No runtime compatibility fix or live cutover was performed.
+
 ## Before requesting the next release
 
 1. Record the exact commit and candidate provenance. Preserve collaborators' work and inspect the current cloud source/configuration before planning an overwrite.

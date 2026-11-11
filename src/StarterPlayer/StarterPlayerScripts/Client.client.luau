@@ -579,8 +579,10 @@ showConversation=function(info)
  end
  if data.activeQuest then words("Starting another task resets unfinished progress on your current task.",muted) end
  for _,q in ipairs(info.quests or {}) do
-  words(q.description,muted)
-  local b=choice(q.claimed and (q.name.." · completed") or ((q.complete and "Claim: " or "Accept: ")..q.name),function()
+  local spec=Config.GetQuest(q.id);local progress=data.quests[q.id]
+  local restarting=not q.claimed and not q.complete and spec and progress and progress.progress>0 and progress.progress<spec.goal and data.activeQuest~=q.id
+  words(q.description..(restarting and "\n\nRestarting resets this unfinished progress." or ""),muted)
+  local b=choice(q.claimed and (q.name.." · completed") or ((q.complete and "Claim: " or restarting and "Restart: " or "Accept: ")..q.name),function()
    if not q.claimed then action:FireServer(q.complete and "ClaimQuest" or "AcceptQuest",q.id);closeConversation() end
   end)
   b.Active=not q.claimed;b.AutoButtonColor=not q.claimed

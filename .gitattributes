@@ -13,3 +13,6 @@ assets/drafts/original-city-2026-11-11/**/*.rbxl -text
 assets/drafts/original-city-2026-11-11/**/*.zip -text
 # Generated draft models are compared with deterministic builder output.
 prototypes/compact-city/*.rbxmx text eol=lf
+
+# Preserve exact pinned legacy quest writer bytes across Windows checkouts.
+tests/fixtures/quest-writer-7a0b044/*.luau text eol=lf

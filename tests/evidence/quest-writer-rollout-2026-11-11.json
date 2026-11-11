@@ -1,0 +1,83 @@
+{
+  "recordedAtUtc": "2026-11-11T21:10:43.519740+00:00",
+  "baseCommit": "af8c27723d173b1274b217853526c4d2fc3ca2cd",
+  "scope": "NPC restart disclosure and explicit offline quest writer rollout guard; no runtime persistence fix",
+  "hashSemantics": "Exact final working-tree bytes, including local newline encoding. Pinned legacy fixture bytes are LF-enforced and checked against exact historical commit.",
+  "checks": {
+    "npcDialogue": {
+      "assertions": 97,
+      "negativeControls": 4,
+      "baseline": "af8c277 expected failure",
+      "limitations": "Mock GUI/catalog goals; no native text fit"
+    },
+    "writerCompatibility": {
+      "replayAssertions": 47,
+      "negativeControls": 9,
+      "probes": "All current IDs partial/claimed/discovery through full writer acquisition/release and candidate reload; current passes, historical rejects",
+      "oracleCorrection": "Independent review caught shared seed aliasing; final independent expected snapshot plus exact in-place corruption negative control rerun"
+    },
+    "preflight": {
+      "assertions": 36,
+      "negativeControls": 4,
+      "CLI": "Missing inventory exit2; synthetic compatible inventory exit0 but release BLOCKED; synthetic historical rollback exit2"
+    },
+    "integration": {
+      "pureSyntheticSuites": 25,
+      "mockedSuites": 91,
+      "productionCompiles": 60,
+      "builds": "all",
+      "sequence": "Full suite/build before final test-only expected-state hardening; final compatibility controls/preflight/CLI independently rerun afterwards; production/builder unchanged"
+    }
+  },
+  "commands": [
+    "python tests/quest_dialogue_restart.py --baseline",
+    "python tests/quest_dialogue_restart.py --negative-controls",
+    "python tests/quest_writer_compatibility.py --negative-controls",
+    "python tests/quest_writer_preflight.py --negative-controls",
+    "python tests/verify_local.py --build",
+    "python tools/quest_writer_preflight.py (expected exit2)",
+    "python tools/quest_writer_preflight.py --inventory build/quest-gate-SYNTHETIC-inventory.json (two synthetic cases; transient inventory removed)"
+  ],
+  "limits": [
+    "No actual fleet/writer inventory or cutover evidence; candidate release gate BLOCKED",
+    "No runtime compatibility fix; old writer can still erase additive flags",
+    "XP reproduction is callback total, not persisted XP; fake stores and mocked noncatalog config",
+    "No new native/microphone/network/device/live-store validation",
+    "No map changes, apps opened, publication, audio/product configuration or merge"
+  ],
+  "sources": {
+    ".gitattributes": "3b258c4ee176fc94eb34fe5711ba0a21b92bcdc4aeedc1d77650205eb6c76edd",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "407c438c93a3f94c555f920c26cfd247f80ae1f63811edbdfa6f42cf9e3e3e34",
+    "src/ReplicatedStorage/Shared/Config.luau": "47bb409b104c8f3f89647dc9808fb3c434a1f42bdc5bd81637e8b55b968dca7b",
+    "src/ReplicatedStorage/Shared/ProfileLease.luau": "19fdfeeafedb584b2eec830a825758c6d515cda573b20a9e0dd928e493893d9f",
+    "src/ServerScriptService/Profiles.luau": "d1101ab834275507aed9a50536c5db98ae0df3323261421370fbf7d06bdaad43",
+    "tests/build_candidate.py": "c625fd16189fa60183058eee9a7b1b5d005deee9e02afe1218479bd3b7683f59",
+    "tests/verify_local.py": "8fff715b53e2a8ab08d6c6743ef2bb74871780f069fb6cb5fb7b114ba84ad2a5",
+    "tests/quest_dialogue_restart.py": "1b8104f4dce5d87531a664f38418ebf0cce69e5514c0774aa22b64b871b04bc0",
+    "tests/quest_writer_compatibility.py": "4226ad31f6c53fe60d22f6355584a8262ec8ea757a3681c8e670b4960808c915",
+    "tests/quest_writer_preflight.py": "14aadcae608f8eb1cc70fbfccb61fcc69ab83ad0c2ce856dc0f521afdfb41fbd",
+    "tools/quest_writer_preflight.py": "34a3d065938ed48ff2861833baa1f14b3ed70b10f1a85a2f1179855416f15184",
+    "docs/QUEST_WRITER_ROLLOUT_REVIEW.md": "effa76ab9fe7d2b1d0b43eb489cb4837e699f35f7dcc9b98e39ee5954b0ffdb6",
+    "docs/ROADMAP.md": "afea7f3ba965d922750ea0da4c77e9269a1e42aa9015e1712b9d1eb7a1943041",
+    "docs/RELEASE_HANDOFF.md": "72ddbb99874ab4b69d7a087d04ebe76dbd6c172d0c851cfe730cb9d506c1150b",
+    "docs/COMBAT_QUESTS_REVIEW.md": "424c5dd9ecfccd43ebe0c7486f7e8737447c0cc19fb3733c507e110d12130157",
+    "docs/INTENT_RECOVERY_REVIEW.md": "dc083b9dcedda76069ab98b9dc59a1c06925012a0215659ffda0da81acec111a",
+    "tests/fixtures/quest-writer-7a0b044/ProfileLease.luau": "c257a4b4a3cbe5c4c0712bde457993405d2ed6c31ec2a22714b2fe3254ebc258",
+    "tests/fixtures/quest-writer-7a0b044/Profiles.luau": "9449db9520e4a468d7bd2d75741a08e0ec1c77b8777974b39e843aac5730f1ac",
+    "tests/fixtures/quest-writer-7a0b044/provenance.json": "df0be0183f101fe58174bfa46fb82e17b1a7e631a4655ae6f1836bac0b9187c5",
+    "tests/fixtures/quest-writer-7a0b044/QuestCatalog.luau": "ad280386d986ebcd08bb24ad1171fc0c400a52c3075d73893c2f057636a5a281",
+    "tests/fixtures/quest-writer-7a0b044/README.md": "8bd46fb09e91fdd72d04e631a78e2fcb9216af96e6873c1075e77d1e4f2e604a"
+  },
+  "artifacts": {
+    "build/AutomaticVoiceCandidate.rbxl": "472032c423771415b983378ba84bc0a3bf25e4300dac1c8de5ecd358a2758d66",
+    "build/AutomaticVoiceCandidate.provenance.json": "5da5627a597dc5dd26db7a7f7858ddd5e59be7443ba64358c88c0dcad71fe722",
+    "build/quest-dialogue-baseline.log": "d2f66b74c547cd96a28923124f639fe162b036d78586949d17fa0b38d4d82848",
+    "build/quest-dialogue-controls.log": "64be57e2eba9606dd5f993bdfdc66bfffbbf569af306555119836c109dfc2027",
+    "build/quest-writer-controls.log": "9d41ab2c928996bd1b16a65e3a2b74f9d14228e0a9ab4391baa1c8ae7eb35d31",
+    "build/quest-preflight-controls.log": "a859f696512605c80964aa23ded91c4a5fd8f84e58ff7fabe5c36810ebfb0242",
+    "build/quest-writer-final.log": "bbd2657b36738859e02260b3afcf26d833dd519fec9afd5e5db7efbb9a035162",
+    "build/quest-gate-blocked.log": "ffafc390306cae153009f88d0aa3ff47085c92310651d6c24f18593ec9ee41f8",
+    "build/quest-gate-compatible-SYNTHETIC.log": "59f1dfecfc33e1bd88f7f0cd19b156d23aff2d6b76db8ce93b2376b0e7158856",
+    "build/quest-gate-incompatible-SYNTHETIC.log": "9d395f07d1294dd338ea97d1244da829c20331f4d98a60996b0727efc662d666"
+  }
+}

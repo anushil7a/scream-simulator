@@ -26,3 +26,5 @@ Existing regressions pass: 374 migration checks, 19 PvP payout checks, 8 accept,
 Map development remains paused for owner approval. No new apps/tabs, publication, live stores, purchases or audio configuration.
 
 Follow-up: the exact chained-hit regression and clarified Team Effort wording are covered by173 assertions in [test-session isolation review](TEST_SESSION_REWARDS_REVIEW.md). Original171-assertion checkpoint evidence above remains historical.
+
+Follow-up: [mixed-writer reproduction and explicit rollout guard](QUEST_WRITER_ROLLOUT_REVIEW.md) confirms flags are lost during old-writer acquisition, not merely autosave. Candidate provenance remains BLOCKED until operational writer/rollback evidence is reviewed; local preflight is not runtime compatibility or publication authority.
