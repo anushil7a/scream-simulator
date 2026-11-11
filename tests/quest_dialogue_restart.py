@@ -13,6 +13,7 @@ local texts,buttons,sent={},{},{};local closed=0
 local function label(_,text)local l={Text=text};table.insert(texts,l);return l end
 local function button(_,name,text,size,pos,callback)local b={Text=text,callback=callback};table.insert(buttons,b);return b end
 local function cancelCapture()end;local function closeConversation()closed+=1 end
+local function closeMenu()modal.Visible=false end -- Lifecycle exercised separately by shop_modal_lifecycle.py
 local action={FireServer=function(_,verb,id)table.insert(sent,{verb,id})end}
 local goals={garden=3,practice_beams=3,beach=6,delivery=1};local Config={GetQuest=function(id)return goals[id] and {goal=goals[id]}end}
 local data={quests={}}

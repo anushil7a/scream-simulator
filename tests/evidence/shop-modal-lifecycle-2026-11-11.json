@@ -1,0 +1,76 @@
+{
+  "recordedAtUtc": "2026-11-11T22:01:52.023540+00:00",
+  "baseCommit": "0619103d1b33b18aed7cc9973340d734c4e70cef",
+  "hashSemantics": "Evidence hashes exact working-tree bytes; candidate sources separately verified using manifest read_text().encode() normalized semantics",
+  "checks": {
+    "modalAssertions": 86,
+    "modalControls": 10,
+    "modalBaseline": "Actual0619103 Client X callback retains views",
+    "priceAssertions": 88,
+    "priceControls": 9,
+    "priceSourceContracts": 1,
+    "priceBaseline": "0619103 disabled ID roundtrip reuses obsolete pending lookup",
+    "menuAssertions": 5,
+    "noticeAssertions": 402,
+    "noticeControls": 4,
+    "noticeContracts": 3,
+    "questAssertions": 97,
+    "questControls": 4,
+    "full": {
+      "pureSyntheticSuites": 25,
+      "mockedSuites": 95,
+      "compiles": 60,
+      "allBuilds": true,
+      "native": false
+    },
+    "independentReview": "Both changed production paths and focused tests cross-reviewed and rerun; one-line quest dependency mock independently reviewed and97/4 rerun",
+    "initialAggregate": "Failed in quest_dialogue_restart.py because extracted renderer lacked closeMenu dependency; labeled mock added without weakening assertions, final aggregate passes",
+    "candidate": "All60 normalized source hashes, project/referenced-file and binary hashes match final state; writer-fleet gate still BLOCKED"
+  },
+  "commands": [
+    "python tests/shop_modal_lifecycle.py --baseline",
+    "python tests/shop_modal_lifecycle.py --negative-controls",
+    "python tests/shop_price_requests.py --disabled-baseline",
+    "python tests/shop_price_requests.py --negative-controls",
+    "python tests/menu_cleanup.py",
+    "python tests/microphone_notice.py --negative-controls",
+    "python tests/quest_dialogue_restart.py --negative-controls",
+    "python tests/verify_local.py --build"
+  ],
+  "limits": [
+    "Actual callback bodies, B dispatcher, render-key/deferred-scroll slices and full ShopUI use mocked GUI/API/time; not full-client native reachability",
+    "No physical input, real API, purchase, engine event ordering, memory/GC or backend cancellation proof",
+    "IDs remain zero; four hung calls retain all lookup capacity until real return/client end",
+    "No apps opened, map edits, live stores, publication, product/audio configuration or changes to normal unsavable play",
+    "Old Clear-only tests did not establish actual modal closure; earlier documentation claim corrected"
+  ],
+  "sources": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "8ba462b77313af4583064e9860cbcdd26a5343c55137ce6cff44bde2e054021e",
+    "src/StarterPlayer/StarterPlayerScripts/ShopUI.luau": "1ad313536644a1deabbdee0aa11fd85473311899b3aaefe4e63c92916a0abb6f",
+    "tests/shop_modal_lifecycle.py": "f1d0b4cbcde4fbba4e359b12a23c63b7836dee69fd89c53b2b89647ff9820dce",
+    "tests/shop_price_requests.py": "07036292927ea586ad72e96e03a8d12280f7ae81bb663b12a913de3d4f9f8df9",
+    "tests/menu_cleanup.py": "ecf15435c34cea4b8465a7591050bc7eb58a6ef619fb2b6c402d3a509e33a1ae",
+    "tests/microphone_notice.py": "538499dac78b02ce7b61b36ff11d0f56a24fd182d5beb4c6776cc07ce11a8ace",
+    "tests/quest_dialogue_restart.py": "c68b2d19861c75918599fd34d82ef6a6a86671c6ac408d775061494b5dab2b3c",
+    "tests/verify_local.py": "2dc69f9e8c6004daa050f63f191e2eae1f0aab70f745e4e749f1c84182fa59b6",
+    "docs/SHOP_MODAL_LIFECYCLE_REVIEW.md": "bbb026fa12d596405f737b7dcadc77add41fcd61407b4e6eb3061bea8e04f05b",
+    "docs/SHOP_PRICE_REQUESTS_REVIEW.md": "16f9288c998f0c8534b4d1b25adbdd1f67e5c7550999676c704a2fdfdc9de5cb",
+    "docs/ROADMAP.md": "448e1861a2d973993a97436f6d24f3e8f2f2dc0c2634584daa87b39733d26844",
+    "docs/PLAYTEST_BACKLOG.md": "4faa664cf2b3cafea12b90c907251652fa6049cb12ea79fd86aaf48e732ca114"
+  },
+  "artifacts": {
+    "build/shop-modal-controls.log": "1a758d35007b958b9ab0657168dd7da83ceaadf737567b07d73566171e897668",
+    "build/shop-modal-baseline.log": "8e3a24c4b81513b7907be6e104d1eb94dafe0e7cf340719493e74d811f35cb77",
+    "build/shop-modal-menu-regression.log": "2bbd258c715ec31acc648cd8f7b35b32727d386d221cabc09ae77ffe76440429",
+    "build/shop-modal-notice-regression.log": "4d9e1dc2deaea6fe38a166466a9e196bf2259e30c7fe2766e34bf7d3b135b58f",
+    "build/shop-modal-quest-regression.log": "64be57e2eba9606dd5f993bdfdc66bfffbbf569af306555119836c109dfc2027",
+    "build/shop-price-identity-controls.log": "b8e37e21430e60177362b11d70bcc53a504fbfd7fb56ac16a1e76c355a3dd0f5",
+    "build/shop-price-identity-baseline.log": "2483a6312af3c75aacb60455d315e4d747e5a55b3662fcc49a5b75e7a0131c17",
+    "build/shop-modal-full-checks.log": "52b63fb6270ad8205a58a9eef22a73a9f7214eb9b90cdee993641c43b6b756a5",
+    "build/shop-modal-full-checks-final.log": "f06ed0d80ca09c313c0c5f107327a86038e51b0939cf7bce2213fa182f0d3778",
+    "build/AutomaticVoiceCandidate.rbxl": "5c5ef9f6060a939f80393ba532f592f1878ed1e2f73519fb21d2d409375a196c",
+    "build/AutomaticVoiceCandidate.provenance.json": "44dae69847a0fb79ba97e06f3958b0f97404fa3658515d712ec08e631e6ee1e0",
+    "build/OnboardingReview.rbxl": "1f5ba01144ce3f6c15136db1058819ac689940f130749bef003e5da7300acd55",
+    "build/ShopReviewVerified.rbxl": "9022801633d91ae1321ee38149e78992f6b5b2159214aaff61dd3b16022b2638"
+  }
+}

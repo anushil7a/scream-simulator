@@ -1,8 +1,8 @@
 """Actual ShopUI price path with suspended API mocks; no live prices or native UI."""
 from pathlib import Path
 import argparse,subprocess,tempfile
-R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
-path='src/StarterPlayer/StarterPlayerScripts/ShopUI.luau';s=subprocess.check_output(['git','show','15df683:'+path],cwd=R,text=True,encoding='utf-8') if a.baseline else (R/path).read_text();s=s[:s.index('function Shop.ColorMixer(')]
+R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--disabled-baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
+path='src/StarterPlayer/StarterPlayerScripts/ShopUI.luau';s=subprocess.check_output(['git','show','15df683:'+path],cwd=R,text=True,encoding='utf-8') if a.baseline else (R/path).read_text();s=subprocess.check_output(['git','show','0619103:'+path],cwd=R,text=True,encoding='utf-8') if a.disabled_baseline else s;s=s[:s.index('function Shop.ColorMixer(')]
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
@@ -27,7 +27,7 @@ endsetup=r'''
  return {shop=Shop,button=purchaseButton,stats=function()return {flight=priceInFlight,views=priceViews,records=prices}end}
 end
 local m=module();f.shop=m.shop;f.stats=m.stats;f.items=Catalog.Items;f.config=Config
-function f.draw(i,clear,allowed)if clear~=false then m.shop.Clear()end;m.button(Catalog.Items[i or 2],{},false,{savingAvailable=allowed~=false},ui,action,{},{});return f.buttons[#f.buttons]end
+function f.draw(i,clear,allowed,owned)if clear~=false then m.shop.Clear()end;m.button(Catalog.Items[i or 2],{},owned==true,{savingAvailable=allowed~=false},ui,action,{},{});return f.buttons[#f.buttons]end
 function f.render(narrow)ui.narrow=narrow;f.buttons={};m.shop.Render({savingAvailable=true,shop={ready=true,inventory={},ends={},serverNow=100}},ui,action)end
 function f.finish(i,result)local ok,err=coroutine.resume(f.jobs[i].co,result);assert(ok,err);m.shop.Tick()end
 return f
@@ -67,6 +67,27 @@ f.shop.Clear();check(#f.stats().views==0,'Hung teardown retains views')
 f=fixture();f.draw();local first=f.jobs[1].args[1];f.items[2].id=202;f.draw();f.items[2].id=102;f.draw()
 f.finish(3,{IsForSale=true,PriceInRobux=30});f.finish(1,{IsForSale=true,PriceInRobux=90});f.finish(2,{IsForSale=true,PriceInRobux=80})
 check(first.info==nil and f.buttons[#f.buttons].Text=='R$ 30','Obsolete ID record accepted result')
+-- Disabled/malformed transitions invalidate even when the same ID returns.
+for _,invalid in ipairs({0,-1,0/0,math.huge,1.5,'102',false})do
+ f=fixture();f.draw();local first=f.jobs[1].args[1]
+ f.items[2].id=invalid;b=f.draw();check(b.Text=='COMING SOON' and #f.jobs==1 and f.stats().flight==1,'Invalid config spawned or abandoned request')
+ f.items[2].id=102;b=f.draw();check(#f.jobs==2,'Disabled ID roundtrip reused obsolete request')
+ f.finish(1,{IsForSale=true,PriceInRobux=90});check(first.info==nil and b.Text=='CHECKING PRICE.','Disabled ID result accepted')
+ f.finish(2,{IsForSale=true,PriceInRobux=30});check(b.Text=='R$ 30' and f.stats().flight==0,'Reenabled fresh request failed')
+end
+f=fixture();f.draw();f.finish(1,{IsForSale=true,PriceInRobux=90});f.items[2].id=0;f.draw();f.items[2].id=102;b=f.draw()
+check(#f.jobs==2 and b.Text=='CHECKING PRICE.','Disabled ID retained cached price')
+for _,changed in ipairs({0,202})do
+ f=fixture();f.draw();f.items[2].id=changed;b=f.draw(2,true,true,true);check(b.Text=='OWNED' and #f.jobs==1,'Owned transition queried')
+ f.items[2].id=102;b=f.draw();check(#f.jobs==2,'Owned changed configuration retained obsolete request')
+ f.finish(1,{IsForSale=true,PriceInRobux=90});check(b.Text=='CHECKING PRICE.','Owned transition admitted stale response')
+end
+-- Invalidating all four records must not release their still-running calls.
+f=fixture();for i=1,4 do f.draw(i,i==1)end
+for i=1,4 do if i==4 then f.config.MovementPassId=0 else f.items[i].id=0 end;f.draw(i)end
+for i=1,4 do if i==4 then f.config.MovementPassId=104 else f.items[i].id=100+i end;f.draw(i,i==1)end
+check(#f.jobs==4 and f.stats().flight==4,'Disabled records freed occupied slots')
+f.finish(1,{IsForSale=true,PriceInRobux=90});check(#f.jobs==5 and f.stats().flight==4,'Invalidated response did not release exactly one slot')
 -- Fail closed on malformed price responses, retaining no prior available price.
 for _,info in ipairs({{},true,{IsForSale=true},{IsForSale=true,PriceInRobux=-1},{IsForSale=true,PriceInRobux=0/0},{IsForSale=true,PriceInRobux=math.huge},{IsForSale=true,PriceInRobux=1.5},{IsForSale='true',PriceInRobux=1},{IsForSale=false}})do
  f=fixture();b=f.draw();f.finish(1,info);check(b.Text=='UNAVAILABLE','Malformed/not-for-sale price enabled');b.callback();check(f.sent==0,'Unconfirmed price prompted')
@@ -83,11 +104,12 @@ def run(source,error=None,baseline=False):
  out=r.stdout+r.stderr
  if error:assert r.returncode and error in out,out;print('PASS negative control:',error)
  else:print(out,end='');assert r.returncode==0
-if a.baseline:run(s,baseline=True)
+if a.disabled_baseline:run(s,'Disabled ID roundtrip reused obsolete request')
+elif a.baseline:run(s,baseline=True)
 else:
  run(s)
  if a.negative_controls:
-  mutations=[('if record.info and os.clock()<record.expires then view.apply(record.info,false);return end','-- omitted synchronous cache apply','Synchronous success displayed unavailable'),('not record.pending and now>=','now>=','Rerenders duplicated pending request'),('priceInFlight<PRICE_LIMIT','true','Hung slot abandoned/replaced'),('record.retryAt=now+PRICE_RETRY','record.retryAt=now','Error not unavailable'),('now<record.deadline and validPrice(info)','validPrice(info)','Timed-out response cached'),('table.clear(priceViews)','do end','Full Render did not bound four product views/calls'),('if prices[record.itemKey]~=record then return end','if false then return end','Obsolete ID record accepted result')]
+  mutations=[(' or prices[item.key] and prices[item.key].key~=item.kind..":"..id','','Owned changed configuration retained obsolete request'),('if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end' ,'-- omitted disabled invalidation','Disabled ID roundtrip reused obsolete request'),('if record.info and os.clock()<record.expires then view.apply(record.info,false);return end','-- omitted synchronous cache apply','Synchronous success displayed unavailable'),('not record.pending and now>=','now>=','Rerenders duplicated pending request'),('priceInFlight<PRICE_LIMIT','true','Hung slot abandoned/replaced'),('record.retryAt=now+PRICE_RETRY','record.retryAt=now','Error not unavailable'),('now<record.deadline and validPrice(info)','validPrice(info)','Timed-out response cached'),('table.clear(priceViews)','do end','Full Render did not bound four product views/calls'),('if prices[record.itemKey]~=record then return end','if false then return end','Obsolete ID record accepted result')]
   for old,new,error in mutations:
    assert s.count(old)==1,old;run(s.replace(old,new),error)
 

@@ -88,14 +88,22 @@ local brandStripe=frame(modal,"SignalStripe",UDim2.new(1,-44,0,2),UDim2.fromOffs
 local menuScale=Instance.new("UIScale");menuScale.Parent=modal
 local title=label(modal,"BEAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
 local subtitle=label(modal,"Train for XP. Unlock a new beam style every ten levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
-button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function() modal.Visible=false end)
+local renderedMenuKey,renderedTab
+local renderRevision=0
+local function closeMenu()
+ modal.Visible=false
+ ShopUI.Clear()
+ -- Retain the previous tab/scroll position, but rebuild its subscriptions on reopen.
+ renderedMenuKey=nil;renderRevision+=1
+end
+button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function() closeMenu() end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
 local selected="Shop";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local conversationPanel,showConversation,closeConversation
 local function toggleTab(name)
  local opening=not modal.Visible or selected~=name
- selected=name;modal.Visible=opening
+ selected=name;if not opening then closeMenu();return end;modal.Visible=true
  if opening then
   if name=="Shop" then action:FireServer("ShopRefresh") end
   if closeConversation then closeConversation() end
@@ -104,7 +112,7 @@ local function toggleTab(name)
  end
 end
 local function toggle()
- if modal.Visible then modal.Visible=false else toggleTab(selected) end
+ if modal.Visible then closeMenu() else toggleTab(selected) end
 end
 local shop=button(top,"ShopToggle","SHOP  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),function() toggleTab("Shop") end,gold);shop.TextColor3=dark
 local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests") end)
@@ -356,7 +364,7 @@ testContent.CanvasSize=UDim2.fromOffset(0,math.ceil(#testCommands/2)*47)
 for i,item in ipairs(testCommands) do
  button(testContent,item[1],item[2],UDim2.fromOffset(98,44),UDim2.fromOffset(((i-1)%2)*108,math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
 end
-local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then modal.Visible=false end end);testButton.Visible=false
+local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then closeMenu() end end);testButton.Visible=false
 -- Regular players use the former test-tools corner for a north-up map.
 -- Keep a separate view: modal renders replace mapDot but never this HUD map.
 local miniMapButton=button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end)
@@ -371,9 +379,7 @@ local function card(height)
  return c
 end
 local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
-local renderedMenuKey,renderedTab
-local renderRevision=0
-script.Destroying:Connect(function() renderRevision+=1;gui:Destroy() end)
+script.Destroying:Connect(function() closeMenu();gui:Destroy() end)
 local function menuKey()
  local fields
  if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped}
@@ -508,7 +514,7 @@ render=function()
   local micCard=card(58)
   button(micCard,"Recalibrate","RECALIBRATE MICROPHONE",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
    if sustainedControl then sustainedControl:SetArmed(false) end
-   cancelCapture();setSprint(false);mic:Calibrate();modal.Visible=false
+   cancelCapture();setSprint(false);mic:Calibrate();closeMenu()
   end)
   info("Changed microphone or room noise? Recalibrate with a comfortable strong voice. "..(sustainedControl and "Beams stay OFF afterward; use BEAMS to turn attacks back on. Voice chat is unchanged." or "After calibration, hold BEAM and use a fresh live voice input."),80)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
@@ -556,7 +562,7 @@ local function refreshConversation()
 end
 button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
 showConversation=function(info)
- cancelCapture();modal.Visible=false;if devPanel then devPanel.Visible=false end
+ cancelCapture();closeMenu();if devPanel then devPanel.Visible=false end
  conversationNPC=info.npc;conversationUntil=os.clock()+20;conversationName.Text=info.name
  for _,child in ipairs(conversationList:GetChildren()) do if child:IsA("GuiObject") then child:Destroy() end end
  local order=0

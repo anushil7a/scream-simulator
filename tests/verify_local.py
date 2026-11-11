@@ -38,7 +38,7 @@ def main():
     mocked += ('attack_audio.py', 'gameplay_audio.py', 'combat_healing.py', 'commerce.py', 'shop_rewards.py', 'practice_lane.py', 'shutdown_race.py', 'profile_recovery.py', 'recovery_notice.py', 'acquisition_lifetime.py', 'action_feedback.py')
     mocked += ('voice_notice_lifecycle.py',)
     mocked += ('save_notification_priority.py', 'third_person.py', 'beam_readout.py', 'boost_purchase_ui.py', 'developer_tools.py', 'developer_tools_ui.py', 'challenge_retirement.py', 'quest_catalog_ui.py', 'dodge_effect.py', 'style_controls.py', 'minimap.py', 'training_roam.py', 'beam_audio_levels.py', 'beam_audio_cadence.py', 'compact_city_draft.py', 'compact_city_map.py', 'compact_world.py', 'compact_integration.py', 'compact_review_fixture.py', 'compact_guidance.py', 'microphone_notice.py', 'voice_stop_rate_limit.py', 'combat_quests.py', 'test_session_rewards.py', 'voice_eligibility.py', 'voice_eligibility_recovery.py', 'session_connections.py', 'combat_credit_identity.py', 'gameplay_cue_settings.py', 'sprint_recovery.py', 'quest_dialogue_restart.py', 'quest_writer_compatibility.py', 'quest_writer_preflight.py', 'entitlement_refresh.py')
-    mocked += ('microphone_active.py', 'shop_price_requests.py')
+    mocked += ('microphone_active.py', 'shop_price_requests.py', 'shop_modal_lifecycle.py')
     for name in mocked:
         print(f'Checking {name} (mocked services)', flush=True)
         run([sys.executable, str(ROOT / 'tests' / name)])

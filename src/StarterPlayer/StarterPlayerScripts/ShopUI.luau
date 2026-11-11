@@ -71,6 +71,8 @@ local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
   if available then action:FireServer("ShopPurchase",item.key) end
  end,owned and Color3.fromRGB(32,75,73) or ink)
  b.TextSize=13;stroke(b,accent)
+ -- Disabled configuration is an identity change, even if the same ID returns later.
+ if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end
  if owned or not configured then b.AutoButtonColor=false;return end
  local revision=generation
  local function apply(info,pending)

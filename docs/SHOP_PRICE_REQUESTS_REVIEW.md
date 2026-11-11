@@ -28,3 +28,9 @@ The immediate synchronous-result check is helper-level deterministic robustness:
 ## Integration checkpoint
 
 Independently reviewed and rerun focused checks above; full `python tests/verify_local.py --build` passes 25 pure/synthetic suites, 94 mocked-service suites, 60 production compiles and all disposable builds. The aggregate log includes the final 51 shop assertions; seven explicit controls were also separately rerun. This is offline execution, not native Roblox. [Exact commands and working-tree/artifact hashes](../tests/evidence/client-availability-2026-11-11.json). No apps or live services were used.
+
+## Astra integration and identity follow-up
+
+The original 0619103 tests explicitly invoked `Shop.Clear`; they did not prove actual client modal close routes called it. Astra found X, B/toggle and same-tab close only hid the modal, retaining views and retry activity. Simply clearing would also leave unchanged-key reopen short-circuited. The coordinated client correction and actual callback/render-cache tests are documented in [modal lifecycle review](SHOP_MODAL_LIFECYCLE_REVIEW.md). Prior claims that actual closes cleared views were too broad.
+
+Astra also found a disabled-ID identity gap: 102 -> 0 -> 102 could reuse an old pending result because the disabled card returned before invalidation. The correction invalidates an observed disabled/malformed configuration or changed configured key before the owned/disabled early return. Neither invalidation nor timeout releases an actual pending-call slot. Cached and pending results, invalid values, owned-card transitions and four occupied slots are covered. Final price suite passes 88 assertions, nine explicit negative controls and one source contract; `--disabled-baseline` reproduces the 0619103 gap. Product IDs remain zero; this is latent configuration robustness, not an observed live price failure.
