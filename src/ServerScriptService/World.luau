@@ -8,7 +8,7 @@ local Collection=game:GetService("CollectionService")
 local World = {}
 World.ZoneMin = Config.ZoneMin
 World.ZoneMax = Config.ZoneMax
-World.SafeSpawn = CFrame.new(-600, 4, 210)
+World.SafeSpawn = Config.CompactCity and CFrame.new(Config.CityLayout.Spawn) or CFrame.new(-600, 4, 210)
 World.Cars = {}
 local PhysicsService=game:GetService("PhysicsService")
 local City=require(script.Parent.City)
@@ -501,7 +501,7 @@ local function makeBot(parent, index, x, z, role, job, training)
     model:SetAttribute("DisplayName", displayName)
     model:SetAttribute("Role", role)
     local avatarRng = Random.new(8044 + index * 479)
-    local home=Vector3.new(x,training and 4.2 or job and job.stations[1].position.Y or 3.9,z)
+    local home=Vector3.new(x,training and (Config.CompactCity and 3.2 or 4.2) or job and job.stations[1].position.Y or (Config.CompactCity and 3 or 3.9),z)
     local cf = CFrame.new(home)
     local skin = skinColors[avatarRng:NextInteger(1, #skinColors)]
     local shirt = shirtColors[avatarRng:NextInteger(1, #shirtColors)]
@@ -641,7 +641,7 @@ local function makeBot(parent, index, x, z, role, job, training)
     speech.BackgroundColor3 = Color3.fromRGB(244, 237, 211)
     speech.TextColor3 = C.dark
     local bot = {id = "Bot" .. index, name = displayName, role = role, model = model, root = root, humanoid = humanoid,
-        training=training,credit={},maxHealth=maximum,health = maximum, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"} or nil, job=job, jobTool=jobTool, water=water, carryParts=carryParts, cleaningParts=cleaningParts, repairParts=repairParts, jobStep=0,
+        training=training,credit={},maxHealth=maximum,health = maximum, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or (not Config.CompactCity and (index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"})) or nil, job=job, jobTool=jobTool, water=water, carryParts=carryParts, cleaningParts=cleaningParts, repairParts=repairParts, jobStep=0,
         start = home, lastGrounded=home, roamRadius = role == "Commuter" and 200 or 125,
         joints = {ls, rs, lh, rh}, lastGreeting = -1000}
     for _, limb in ipairs(bot.joints) do limb:SetAttribute("RestPose", limb.C0) end
@@ -844,22 +844,30 @@ function World.Build()
     local roles={"Local","Tourist","Vendor","Commuter","Busker","Fighter"}
     -- Cluster residents at destinations; leave roads and building interiors clear.
     local seeds={{-625,205},{-575,205},{-600,185},{-610,265},{-360,180},{-360,260},{-120,-32},{-145,15},{-92,15},{85,-71},{155,-71},{85,7},{155,7},{-240,403},{0,403},{200,403},{420,403},{-540,403}}
-    for i=1,20 do local point=layout.walk[((i-1)*29+5)%#layout.walk+1];table.insert(seeds,{point.X,point.Z}) end
-    for i,spot in ipairs(seeds) do makeBot(parent,i,spot[1],spot[2],roles[(i-1)%#roles+1]) end
+    if layout.seeds then seeds=layout.seeds else
+        for i=1,20 do local point=layout.walk[((i-1)*29+5)%#layout.walk+1];table.insert(seeds,{point.X,point.Z}) end
+    end
+    for i,spot in ipairs(seeds) do makeBot(parent,i,spot[1],spot[2],spot.role or roles[(i-1)%#roles+1]) end
     for i,job in ipairs(layout.jobs or {}) do local point=job.stations[1].position;makeBot(parent,#seeds+i,point.X,point.Z,job.role,job) end
     -- Dedicated sparring pads sit outside PvP and do not recruit city workers.
-    for _,tier in ipairs(TrainingRules.Tiers) do
-        local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,1.1,tier.z),C.green,Enum.Material.SmoothPlastic)
+    for index,originalTier in ipairs(TrainingRules.Tiers) do
+        local tier=originalTier
+        if Config.CompactCity then
+            tier=table.clone(originalTier);local home=Config.CityLayout.TrainingHomes[index];tier.x=home.x;tier.z=home.z
+        end
+        local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,Config.CompactCity and .1 or 1.1,tier.z),C.green,Enum.Material.SmoothPlastic)
         local sign=part(parent,"TrainingSign_"..tier.id,Vector3.new(1,1,1),Vector3.new(tier.x,7,tier.z+30),C.gold,nil,false);sign.Transparency=1
         local words=billboard(sign,tier.name.." · recommended Lv "..tier.level.."\n"..tier.health.." HP · "..tier.xp.." base XP\nHit to spar · move out of red strikes",Vector3.zero,280)
         words.Parent.Size=UDim2.fromOffset(280,76);words.Parent.MaxDistance=100
         makeBot(parent,#World.Bots+1,tier.x,tier.z,"Fighter",nil,tier)
     end
+    if layout.traffic~=false then
     for i,spec in ipairs({{-368,1,23},{-352,-1,21},{112,1,20},{128,-1,24},{352,1,18},{368,-1,22}}) do
         local m=vehicle(parent,i%2==0 and "Sedan" or "Taxi",i%2==0 and Color3.fromRGB(65+i*15,104,115) or Color3.fromRGB(226,177,64));m.Name="TrafficCar"..i
         local car={model=m,hull=m.CollisionHull,lane=spec[1],direction=spec[2],speed=spec[3],cruiseSpeed=spec[3],distance=(i-1)*210};m:PivotTo(carAt(car,car.distance));table.insert(World.Cars,car)
     end
     for i,pos in ipairs({{-490,-110},{490,105},{-490,130},{690,120}}) do taxi(parent,pos[1],pos[2],"Sedan",Color3.fromRGB(91+i*22,93,99)) end
+    end -- compact replacement is pedestrian-only
     if RunService:IsRunning() then
         task.spawn(function()
             local grounding=0

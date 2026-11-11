@@ -1,5 +1,7 @@
 -- Original Barcelona-inspired city geometry; reviewed fountain mesh has a built-in fallback.
 local City={}
+local Config=require(game:GetService("ReplicatedStorage").Shared.Config)
+local CompactCity=require(script.Parent.CompactCity)
 local V=Vector3.new
 local Collection=game:GetService("CollectionService")
 local palette={Color3.fromRGB(219,192,151),Color3.fromRGB(227,206,171),Color3.fromRGB(195,151,117),Color3.fromRGB(234,214,180),Color3.fromRGB(191,169,135),Color3.fromRGB(220,174,143)}
@@ -858,6 +860,7 @@ local function workplaces(parent)
  }
 end
 function City.Build(parent)
+ if Config.CompactCity then return CompactCity.Build(parent) end
  rng=Random.new(230926)
  local walk,activities={},{}
  local ground=part(parent,"CityLand",V(1440,3,1200),V(0,-1.6,0),Color3.fromRGB(126,139,108),Enum.Material.Ground)

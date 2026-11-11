@@ -2,6 +2,8 @@
 local Players=game:GetService("Players")
 local Run=game:GetService("RunService")
 local Rules=require(script.Parent.CombatRules)
+local Config=require(game:GetService("ReplicatedStorage").Shared.Config)
+local compact=Config.CompactCity and Config.CityLayout.Soccer
 local Soccer={}
 local runs={}
 local V=Vector3.new
@@ -10,6 +12,12 @@ local lost={V(590,2.2,460),V(552,2.2,563),V(683,2.2,482)}
 local gates={V(638,2.2,530),V(653,2.2,555),V(633,2.2,578),V(676,2.2,559)}
 local obstacles={V(625,2.2,540),V(645,2.2,541),V(643,2.2,568),V(655,2.2,571)}
 local goals={V(664,2.2,550),V(606,2.2,518),V(690,2.2,517),V(617,2.2,576),V(686,2.2,575)}
+local center=V(647,4,547);local minimum=V(592,0,502);local maximum=V(704,0,587)
+if compact then
+ origin=compact.origin;lost=compact.lost;gates=compact.gates;obstacles=compact.obstacles;goals=compact.goals
+ center=compact.center;minimum=compact.min;maximum=compact.max
+end
+local lostClue=Config.CompactCity and "the north court approach, west beach and east promenade" or "the north beach loungers, east of the pier, and the path north of this court"
 local function sphere(parent,name,size,color)
  local p=Instance.new("Part");p.Name=name;p.Shape=Enum.PartType.Ball;p.Size=V(size,size,size);p.Color=color;p.Material=Enum.Material.SmoothPlastic;p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.Parent=parent;return p
 end
@@ -47,11 +55,11 @@ function Soccer.Collect(player,index)
   setPhase(run,"Dribble",90)
   for _,position in ipairs(obstacles) do
    for tier=1,3 do
-    local cone=sphere(run.cones,"TrainingCone",2-tier*.4,Color3.fromRGB(238,141,63));cone.Shape=Enum.PartType.Cylinder;cone.Size=V(.7,2-tier*.4,2-tier*.4);cone.CFrame=CFrame.new(position.X,1.35+tier*.6,position.Z)*CFrame.Angles(0,0,math.pi/2)
+    local cone=sphere(run.cones,"TrainingCone",2-tier*.4,Color3.fromRGB(238,141,63));cone.Shape=Enum.PartType.Cylinder;cone.Size=V(.7,2-tier*.4,2-tier*.4);cone.CFrame=CFrame.new(position.X,(compact and .35 or 1.35)+tier*.6,position.Z)*CFrame.Angles(0,0,math.pi/2)
    end
   end
   run.notify("Nick: Found them! Return to the court. Four dribble gates in 90 seconds—steer around the orange cones. Soft mic shots help!")
- else run.notify("Training ball "..run.found.."/3. Clues: north beach loungers, the pier's east side, and the path north of the court.") end
+ else run.notify("Training ball "..run.found.."/3. Clues: "..lostClue..".") end
  return true
 end
 function Soccer.Start(player,notify,complete,failed)
@@ -68,7 +76,7 @@ function Soccer.Start(player,notify,complete,failed)
   local prompt=Instance.new("ProximityPrompt");prompt.ActionText="Recover ball";prompt.ObjectText="Nick's lost training ball";prompt.KeyboardKeyCode=Enum.KeyCode.F;prompt.HoldDuration=.5;prompt.MaxActivationDistance=8;prompt.Parent=part
   prompt.Triggered:Connect(function(actor) if actor==player and runs[player]==run then Soccer.Collect(player,i) end end)
  end
- notify("Nick: I lost THREE balls. You have 120 seconds! Check the north beach loungers, east of the pier, and the path north of this court. Hold F nearby.")
+ notify("Nick: I lost THREE balls. You have 120 seconds! Check "..lostClue..". Hold F nearby.")
 end
 function Soccer.Hit(player,beamOrigin,direction,length,width,power)
  local run=runs[player];if not run or run.phase=="Find" then return end
@@ -87,7 +95,7 @@ Run.Heartbeat:Connect(function(dt)
  for player,run in pairs(runs) do
   local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
   local h=player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-  if not root or not h or h.Health<=0 or now>run.deadline or (root.Position-V(647,4,547)).Magnitude>150 then
+  if not root or not h or h.Health<=0 or now>run.deadline or (root.Position-center).Magnitude>150 then
    local failed=run.failed;Soccer.Cancel(player)
    if failed then failed() else run.notify("Nick: Let's retry at the court!") end
    continue
@@ -103,7 +111,7 @@ Run.Heartbeat:Connect(function(dt)
     break
    end end
   end
-  if nextPosition.X<592 or nextPosition.X>704 or nextPosition.Z<502 or nextPosition.Z>587 then
+  if nextPosition.X<minimum.X or nextPosition.X>maximum.X or nextPosition.Z<minimum.Z or nextPosition.Z>maximum.Z then
    run.position=origin;run.velocity=Vector3.zero;run.notify("Out of bounds! Ball reset; your completed gates remain, but the timer keeps running.")
   elseif not blocked then
    run.position=nextPosition;run.velocity*=math.exp(-1.05*dt)

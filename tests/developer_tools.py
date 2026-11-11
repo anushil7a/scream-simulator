@@ -1,6 +1,7 @@
 """Actual developer authorization, command and sanitizer with mocked engine services.
 No native execution, network, or real persistence. --baseline reproduces pre-fix failures.
 """
+from config_fixture import inline_compact_layout
 from pathlib import Path
 import argparse, re, subprocess, tempfile
 root=Path(__file__).resolve().parents[1]
@@ -10,6 +11,7 @@ def read(name):
   return subprocess.check_output(['git','show','4e37a44:'+name],cwd=root,text=True,encoding='utf-8')
  return (root/name).read_text(encoding='utf-8')
 config=read('src/ReplicatedStorage/Shared/Config.luau')
+config=inline_compact_layout(config,root)
 profiles=read('src/ServerScriptService/Profiles.luau')
 access=read('src/ServerScriptService/DeveloperAccess.luau')
 server=read('src/ServerScriptService/Bootstrap.server.luau')

@@ -1,5 +1,7 @@
 # Compact City Draft 01
 
+Historical isolated-geometry checkpoint `6f81b9f`. The later current gameplay integration is documented in [COMPACT_CITY_INTEGRATION_REVIEW.md](COMPACT_CITY_INTEGRATION_REVIEW.md); statements below about unchanged production describe this earlier checkpoint, not the integrated candidate.
+
 ## What exists now
 
 A separate, locally buildable geometry draft, not a replacement wired into gameplay. The current `default.project.json`, all 57 production scripts, quest/save data and original map remain unchanged. The draft is 720 by 600 studs versus the current 1440 by 1200, a 75% reduction in footprint. Its central arena is 320 by 320 studs.
@@ -23,7 +25,7 @@ This is a recoverable copy of the **repository-generated city**, not a backup of
 
 ## Build and inspect safely
 
-Run `python tools/build_compact_city_draft.py`, then `python tests/compact_city_draft.py --negative-controls --scope-check --built-check`. The builder verifies original preservation, validates geometry, generates the task-owned model/notice, compiles the guard, builds XML/binary places and audits actual built geometry/scripts. It records source/artifact hashes. It does not launch Studio or publish.
+Run `python tools/build_compact_city_draft.py`, then `python tests/compact_city_draft.py --negative-controls --built-check`. The optional `--scope-check` was a one-time assertion at `6f81b9f` that production still matched the archived original; it is expected to fail after authorized integration. The builder verifies original preservation, validates geometry, generates the task-owned model/notice, compiles the guard, builds XML/binary places and audits actual built geometry/scripts. It records source/artifact hashes. It does not launch Studio or publish.
 
 Open `build/CompactCityDraft.rbxl` only as a local unpublished Studio file. The map exists in Edit mode; Play only supplies a normal avatar for geometry inspection. It has no beam attacks, trainer AI, quest interactions, saves, purchases, live voice setup or minimap. Do not publish. `tools/render_compact_city_plan.ps1` optionally draws an offline top-down plan using built-in Windows drawing APIs; that image is not a Roblox screenshot.
 
@@ -38,6 +40,6 @@ Open `build/CompactCityDraft.rbxl` only as a local unpublished Studio file. The 
 
 Preserve these saved quest IDs without resetting progress: `nick`, `garden`, `beach`, `delivery`, `crowd`, `sprint`, `dodge`, `arena`. Preserve delivery IDs `StageDelivery`, `LookoutDelivery`, `PierDelivery`. Anchor labels are **placeholders**, not quest implementations.
 
-Before replacing the current gameplay map, migrate City/World generation, spawn, NPC homes/navigation/jobs/seats and all spatial activity queries together. Re-map Config arena/map/delivery bounds, CityMap projection/landmarks, sports/race/coastal recovery checks and Bootstrap distance gates. Keep trainers outside PvP, verify reset/respawn and pad-edge attacks, and test destruction/repair without blocking critical routes. Shorter routes change timed-task difficulty; do not silently claim existing quest balance transfers unchanged. The reserved small court may need redesign for Nick's current multi-stage game.
+Before replacing the current gameplay map, migrate City/World generation, spawn, NPC homes/navigation/jobs/seats and all spatial activity queries together. Re-map Config arena/map/delivery bounds, CityMap projection/landmarks, sports/race/coastal recovery checks and Bootstrap distance gates. Keep trainers outside PvP, verify reset/respawn and pad-edge attacks, and keep all environment cover static: the owner excludes object destruction, so destruction/repair must not be integrated. Shorter routes change timed-task difficulty; do not silently claim existing quest balance transfers unchanged. The reserved small court may need redesign for Nick's current multi-stage game.
 
 Native walkability, camera/label readability, real physics and initial gameplay integration are still unrun. No connected document-control session was available; Studio was not launched to avoid creating more inaccessible app-picker dialogs. No apps opened, live stores, audio configuration or publication. Three earlier minimized dialogs remain unchanged.

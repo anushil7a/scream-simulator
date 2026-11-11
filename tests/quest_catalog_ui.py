@@ -1,4 +1,5 @@
 """Actual quest renderer/catalog with synthetic UI; not a native layout assertion."""
+from config_fixture import inline_compact_layout
 from pathlib import Path
 import argparse,re,subprocess,tempfile
 root=Path(__file__).resolve().parents[1]
@@ -8,6 +9,7 @@ def read(name):
  return (root/name).read_text(encoding='utf-8')
 client=read('src/StarterPlayer/StarterPlayerScripts/Client.client.luau')
 config=read('src/ReplicatedStorage/Shared/Config.luau')
+config=inline_compact_layout(config,root)
 config=re.sub(r'require\(script\.Parent:WaitForChild\("(\w+)"\)\)',lambda m:'require("../src/ReplicatedStorage/Shared/'+m[1]+'")',config)
 a=client.index(' elseif selected=="Quests" then\n  title.Text=')
 a=client.index('\n',a)+1
@@ -82,7 +84,7 @@ for _,isNarrow in ipairs({false,true})do
  check(not text:find('Destroy 5',1,true) and not text:find('Help defeat 2',1,true),'Retired challenge displayed')
  local _,count=text:gsub('XP on completion','')
  check(count==1 and text:find('2/3',1,true),'Active training challenge missing or duplicated')
- check(text:find('Breaking objects is not a quest.',1,true)~=nil,'Quest help still implies destruction task')
+ check(text:find(Config.CompactCity and 'Environment cover is static.' or 'Breaking objects is not a quest.',1,true)~=nil,'Quest help still implies destruction task')
  check(text:find('no more than 20 levels above',1,true)~=nil,'Training help invents lower-level exclusion')
  check(not buttons.nick,'Hidden city quest exposed before discovery')
  local garden=table.concat(buttons.garden.card.labels,' | ')

@@ -31,14 +31,16 @@ end
 World.Build()
 BeachVolley.Start(workspace.ScreamSimulatorWorld)
 local Destruction=require(script.Parent.Destruction)
-Destruction.Start(workspace.ScreamSimulatorWorld)
+if Config.ObjectDestruction==true then Destruction.Start(workspace.ScreamSimulatorWorld) end
 World.FindMaintenance=function(bot)
+ if Config.ObjectDestruction~=true then return nil end
  if os.clock()<(bot.nextMaintenance or 0) then return nil end
  local station=Destruction.MaintenanceTarget(bot.root.Position,80)
  if station then bot.nextMaintenance=os.clock()+30 end
  return station
 end
 World.FinishMaintenance=function(bot,station)
+ if Config.ObjectDestruction~=true then return false end
  if bot.alive and bot.working and (bot.reactionUntil or 0)<=os.clock() and (bot.socialUntil or 0)<=os.clock() then
   return Destruction.FinishMaintenance(station,bot.root.Position)
  end
@@ -248,7 +250,7 @@ local function resolveSustained(ctx,direction,stats,now)
    end
   end
  end
- if obstruction then
+ if Config.ObjectDestruction==true and obstruction then
   local model=obstruction.Instance
   while model and not Destruction.objects[model] do model=model.Parent end
   local id=model and model:GetAttribute("ObjectId")
@@ -306,7 +308,7 @@ local function stepSustained(p,s,now)
    intent.practiceHit=true
    local firstBeam=not s.data.achievements.FirstBeam
    s.data.achievements.FirstBeam=true
-   state(p,firstBeam and "First beam landed! Train at the Rookie beach pad for XP and coins. Open Quests for your challenges." or string.format("Practice hit · %d%% power · %.0f studs",math.floor(beam.power*100+.5),beam.length))
+   state(p,firstBeam and "First beam landed! Train at the Rookie pad for XP and coins. Open Quests for your challenges." or string.format("Practice hit · %d%% power · %.0f studs",math.floor(beam.power*100+.5),beam.length))
    local pulse=(practice:GetAttribute("PracticePulse") or 0)+1;practice:SetAttribute("PracticePulse",pulse);practice.Color=Color3.fromRGB(255,205,111)
    task.delay(.3,function() if practice.Parent and practice:GetAttribute("PracticePulse")==pulse then practice.Color=practice:GetAttribute("RestColor") end end)
   end
@@ -393,7 +395,7 @@ local function cast(p,request)
   task.delay(.3,function() if target.Parent and target:GetAttribute("PracticePulse")==pulse then target.Color=target:GetAttribute("RestColor") end end)
  end
  if obstruction then
-  local result=Destruction.Damage(obstruction.Instance,s.data.level,sound.damage)
+  local result=Config.ObjectDestruction==true and Destruction.Damage(obstruction.Instance,s.data.level,sound.damage) or nil
   if result then
    if result.reason=="level" then castMessage="Requires level "..result.required
    elseif not result.reason then
@@ -556,7 +558,7 @@ local function dev(p,command)
  -- Freeze legitimate progress before any test mutation. Keep renewing/releasing its lease.
  if not s.testBaseline then s.testBaseline=Profiles.Sanitize(s.data);s.data=Profiles.Sanitize(s.data) end
  local c,_,h=parts(p)
- local positions={Hub=World.SafeSpawn,Arena=CFrame.new(0,6,0),Beach=CFrame.new(0,4,403)}
+ local positions={Hub=World.SafeSpawn,Arena=Config.CompactCity and CFrame.new(Config.CityLayout.Teleports.Arena) or CFrame.new(0,6,0),Beach=Config.CompactCity and CFrame.new(Config.CityLayout.Teleports.Beach) or CFrame.new(0,4,403)}
  if command=="Coins" then s.data.coins+=1000
  elseif command=="XP" then xp(p,500)
  elseif command=="AddLevels" then
@@ -699,7 +701,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   if q and not s.data.availableQuests[q.id] then state(p,"Meet "..(q.giver or "the quest giver").." to unlock this task.");return end
   if q and q.id=="nick" then
    local _,root=parts(p)
-   if not root or (root.Position-Vector3.new(647,4,547)).Magnitude>90 then state(p,"Return to Nick's coastal court to start.");return end
+   if not root or (root.Position-(Config.CompactCity and Config.CityLayout.Soccer.center or Vector3.new(647,4,547))).Magnitude>90 then state(p,"Return to Nick's coastal court to start.");return end
   end
   if q then local v=s.data.quests[q.id];if not v then v={progress=0,claimed=false};s.data.quests[q.id]=v end
    if not v.claimed and v.progress>=q.goal then state(p,"Task complete · claim your reward.");return end
@@ -856,7 +858,12 @@ task.spawn(function()
     if not s.micReady then h.Jump=false end
     local healed,nextHeal=Healing.Step(h.Health,h.MaxHealth,s.nextHeal,now)
     if healed~=h.Health then h.Health=healed end;s.nextHeal=nextHeal
-    if r.Position.Z>600 and (r.Position.Z>780 or math.abs(r.Position.X)>700) then
+    if Config.CompactCity and (r.Position.X<Config.MapMin.X-10 or r.Position.X>Config.MapMax.X+10 or r.Position.Z<Config.MapMin.Z-10 or r.Position.Z>Config.MapMax.Z+10 or r.Position.Y< -15) then
+     resetMovement(p,s,h,r);running=false
+     p.Character:PivotTo(World.SafeSpawn);protect(p,s)
+     r.AssemblyLinearVelocity=Vector3.zero;r.AssemblyAngularVelocity=Vector3.zero
+     state(p,"Returned to the safe courtyard")
+    elseif not Config.CompactCity and r.Position.Z>600 and (r.Position.Z>780 or math.abs(r.Position.X)>700) then
      resetMovement(p,s,h,r);running=false
      p.Character:PivotTo(CFrame.new(math.clamp(r.Position.X,-670,670),5,594));protect(p,s)
      state(p,"Lifeguard rescue · stay inside the gold buoys.")

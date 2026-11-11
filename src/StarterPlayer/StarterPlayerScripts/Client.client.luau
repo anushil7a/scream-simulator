@@ -39,7 +39,6 @@ connectClient(p.CharacterAdded,applyThirdPerson)
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
 local FirstBeamGuide=require(RS.Shared:WaitForChild("FirstBeamGuide"))
 local InteractionRules=require(RS.Shared:WaitForChild("InteractionRules"))
-local DestructionRules=require(RS.Shared:WaitForChild("DestructionRules"))
 local mic=require(script.Parent:WaitForChild("Microphone")).new()
 local attackAudio=require(script.Parent:WaitForChild("AttackAudio")).new()
 local attackAudioSettings=require(RS.Shared.AttackAudioConfig)
@@ -384,18 +383,13 @@ render=function()
   for _,style in ipairs(Config.Sounds) do
    if style.level>data.level and (not nextStyle or style.level<nextStyle.level) then nextStyle=style end
   end
-  local nextDestruction
-  for _,spec in pairs(DestructionRules.Types) do
-   if spec.level>data.level and (not nextDestruction or spec.level<nextDestruction.level) then nextDestruction=spec end
-  end
   local progress=nextStyle and string.format("Next style: %s · level %d",nextStyle.name,nextStyle.level) or "All beam styles unlocked"
-  progress..=nextDestruction and string.format("\nNext destruction tier: %s · level %d",nextDestruction.name,nextDestruction.level) or "\nAll destruction tiers unlocked"
   local stats=Config.VoiceCombat.Stats(data.level,1,false)
   if nextStyle then
    local nextStats=Config.VoiceCombat.Stats(nextStyle.level,1,false)
    progress..=string.format("\nAt level %d: %d HP · %.1f max DPS",nextStyle.level,nextStats.health,nextStats.maxDps)
   end
-  info(progress..string.format("\nNow: %d HP · %.1f max DPS\nTrain at the %s beach pad. Challenges are in Quests.",stats.health,stats.maxDps,data.training or "Rookie"))
+  info(progress..string.format("\nNow: %d HP · %.1f max DPS\nTrain at the %s pad. Challenges are in Quests.",stats.health,stats.maxDps,data.training or "Rookie"))
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
   local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs",data.level,maximum.maxDps,maximum.maxRange)
    or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs",data.level,maximum.damage,maximum.maxRange)
@@ -411,11 +405,11 @@ render=function()
   end
  elseif selected=="Quests" then
   title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
-  info("BEACH TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads on the west beach. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
+  info("COURTYARD TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads in the west courtyard. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
   for _,spec in ipairs(Config.Progression.Challenges) do
    info(spec.name.." · "..((data.combatChallenges or {})[spec.id] or 0).."/"..spec.goal.."\n+"..Config.Progression.ChallengeXP(data.level).." XP on completion · renews automatically",68)
   end
-  info("Training: contribute at least 10% damage. You must be no more than 20 levels above the fighter's reward band (Rookie 1-24, Brawler 25-59, Elite 60-100). Each qualifying KO or assist counts once. Breaking objects is not a quest. PvP XP is shared by damage; weak and repeated opponents pay less.")
+  info("Training: contribute at least 10% damage. You must be no more than 20 levels above the fighter's reward band (Rookie 1-24, Brawler 25-59, Elite 60-100). Each qualifying KO or assist counts once. Environment cover is static. PvP XP is shared by damage; weak and repeated opponents pay less.")
   if data.activeQuest then
    local current=Config.GetQuest(data.activeQuest);local c=card(96)
    local progress=current and data.quests[current.id]
@@ -471,9 +465,9 @@ render=function()
   local holder=frame(c,"MapHolder",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13));holder.BackgroundTransparency=1
   mapDot=CityMap.create(holder)
   CityMap.update(mapDot,p.Character and p.Character:FindFirstChild("HumanoidRootPart"))
-  info("Gold arrow: you and your facing direction. Red: PvP. Green and sand: safe. Pale coast path: promenade. North is up.",64)
-  info(CityMap.legend,94)
-  info("Coffee: collect at the west café, then check your objective for the assigned stop. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
+  info(CityMap.mapHelp,64)
+  info(CityMap.legend,CityMap.legendHeight)
+  info(CityMap.activityHelp,86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
   local touch=UIS.TouchEnabled
@@ -614,7 +608,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
  testButton.Visible=data.devAccess==true
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
- tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west beach\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
+ tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west courtyard\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
  trackedQuestText=tracked.Text
  if data.savingAvailable==true and not data.savingDelayed then notifications:Remove("save") end
  local newMilestone=data.milestone and data.milestone~=lastMilestone

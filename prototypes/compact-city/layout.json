@@ -2999,10 +2999,12 @@
       "training NPCs and combat",
       "quest interactions/objectives",
       "sports/race logic",
-      "destruction and repair",
       "traffic/pedestrian routes",
       "minimap remapping",
       "microphone/UI/save integration"
+    ],
+    "excludedByOwner": [
+      "object destruction and repair"
     ]
   }
 }

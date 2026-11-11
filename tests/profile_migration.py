@@ -3,12 +3,14 @@
 No Roblox data is read/written. Covers the temporary level-cap reduction and
 preservation of pre-cap progress through repeated sanitize/save snapshots.
 """
+from config_fixture import inline_compact_layout
 from pathlib import Path
 import subprocess
 import tempfile
 
 root = Path(__file__).resolve().parents[1]
 config = (root / "src/ReplicatedStorage/Shared/Config.luau").read_text()
+config=inline_compact_layout(config,root)
 profiles = (root / "src/ServerScriptService/Profiles.luau").read_text()
 preamble = r'''
 local Healing=require("../src/ReplicatedStorage/Shared/Healing")

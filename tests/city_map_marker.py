@@ -7,6 +7,7 @@ s=(root/'src/StarterPlayer/StarterPlayerScripts/CityMap.luau').read_text()
 a=s.index('local function position(');b=s.index('local arenaStart',a)
 c=s.index('function CityMap.update(');d=s.index('CityMap.legend=',c)
 setup='''
+local Config={}
 local CityMap={}
 local UDim2={fromScale=function(x,y)return {X={Scale=x},Y={Scale=y}}end}
 local view={map={Parent=true},dot={},arrow={}}

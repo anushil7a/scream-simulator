@@ -1,4 +1,5 @@
 """Actual hue mixer and server color branches with synthetic inputs; no native UI/purchase claim."""
+from config_fixture import inline_compact_layout
 from pathlib import Path
 import argparse,subprocess,tempfile
 root=Path(__file__).resolve().parents[1]
@@ -165,7 +166,7 @@ print('PASS '..count..' actual Profiles legacy style checks with fake atomic per
 """
 if not args.baseline:
  profile_source=read('src/ServerScriptService/Profiles.luau')
- profile_code=profile_preamble+read('src/ReplicatedStorage/Shared/Progression.luau')+profile_after_progression+read('src/ReplicatedStorage/Shared/Config.luau')+profile_after_config+profile_source+profile_checks
+ profile_code=profile_preamble+read('src/ReplicatedStorage/Shared/Progression.luau')+profile_after_progression+inline_compact_layout(read('src/ReplicatedStorage/Shared/Config.luau'),root)+profile_after_config+profile_source+profile_checks
  run(profile_code)
  if args.negative_controls:
   run(profile_code.replace('data.aura=raw.aura','data.aura="Gold"'),'Legacy aura discarded')

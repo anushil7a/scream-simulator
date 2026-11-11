@@ -72,5 +72,5 @@ def main():
     if before!=after:raise RuntimeError('Draft changed during build; rerun')
     audit.audit_built(layout,(out/'CompactCityDraft.rbxlx').read_bytes())
     (out/'CompactCityDraft.provenance.json').write_text(json.dumps({'status':'built/compiled only; native geometry/input untested; never publish','preservedCommit':layout['preservedCommit'],'preservedZipSha256':preserved_hash,'sourceHashes':before,'artifacts':{n:sha((out/n).read_bytes()) for n in ('CompactCityDraft.rbxl','CompactCityDraft.rbxlx')}},indent=2)+'\n',encoding='utf-8')
-    print('PASS compact draft built; current default project/gameplay unchanged. Native execution NOT performed.')
+    print('PASS geometry-only compact preview built; builder did not alter production files. Native execution NOT performed.')
 if __name__=='__main__':main()

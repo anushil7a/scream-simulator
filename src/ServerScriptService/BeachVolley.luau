@@ -2,9 +2,21 @@
 -- validation; this module never creates attacks, rewards, or client-owned physics.
 local Run=game:GetService("RunService")
 local Rules=require(script.Parent.CombatRules)
+local Config=require(game:GetService("ReplicatedStorage").Shared.Config)
+local compact=Config.CompactCity and Config.CityLayout.Volley
 local Volley={}
 local V=Vector3.new
-local serve=V(-50,4,489)
+local serve=compact and compact.serve or V(-50,4,489)
+local boardPosition=compact and compact.board or V(-75,5,484)
+local minimum=compact and compact.min or V(-70,0,479)
+local maximum=compact and compact.max or V(-30,0,531)
+local playerMinimum=compact and compact.playerMin or V(-77,0,472)
+local playerMaximum=compact and compact.playerMax or V(-23,0,538)
+local netZ=compact and compact.netZ or 505
+local netMinX=compact and compact.netMinX or -70
+local netMaxX=compact and compact.netMaxX or -30
+local minimumCrossingHeight=compact and compact.minimumCrossingHeight or 10.2
+local floorBallY=compact and compact.floorBallY or 2.1
 local gameState
 local function label(state,text)
  state.label.Text=text
@@ -28,7 +40,7 @@ function Volley.Start(parent)
  end
  local model=Instance.new("Model");model.Name="BeachVolley";model.Parent=parent
  local ball=Instance.new("Part");ball.Name="VolleyBall";ball.Shape=Enum.PartType.Ball;ball.Size=V(2.2,2.2,2.2);ball.Color=Color3.fromRGB(250,205,84);ball.Material=Enum.Material.SmoothPlastic;ball.Anchored=true;ball.CanCollide=false;ball.CanTouch=false;ball.CanQuery=false;ball.Parent=model
- local board=Instance.new("Part");board.Name="CourtReadout";board.Size=V(.1,.1,.1);board.Position=V(-75,5,484);board.Anchored=true;board.Transparency=1;board.CanCollide=false;board.CanTouch=false;board.CanQuery=false;board.Parent=model
+ local board=Instance.new("Part");board.Name="CourtReadout";board.Size=V(.1,.1,.1);board.Position=boardPosition;board.Anchored=true;board.Transparency=1;board.CanCollide=false;board.CanTouch=false;board.CanQuery=false;board.Parent=model
  local gui=Instance.new("BillboardGui");gui.Size=UDim2.fromOffset(230,66);gui.MaxDistance=48;gui.AlwaysOnTop=false;gui.Parent=board
  local text=Instance.new("TextLabel");text.Size=UDim2.fromScale(1,1);text.BackgroundColor3=Color3.fromRGB(25,48,51);text.BackgroundTransparency=.12;text.TextColor3=Color3.fromRGB(255,239,205);text.TextSize=13;text.Font=Enum.Font.GothamMedium;text.TextWrapped=true;text.Parent=gui
  local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=text
@@ -41,13 +53,13 @@ function Volley.Start(parent)
   local old=state.position
   local position=old+state.velocity*dt+V(0,-6*dt*dt,0)
   state.velocity+=V(0,-12*dt,0)
-  local crossed=(old.Z<505 and position.Z>=505) or (old.Z>505 and position.Z<=505)
+  local crossed=(old.Z<netZ and position.Z>=netZ) or (old.Z>netZ and position.Z<=netZ)
   if crossed then
-   local alpha=(505-old.Z)/(position.Z-old.Z)
+   local alpha=(netZ-old.Z)/(position.Z-old.Z)
    local crossingX=old.X+(position.X-old.X)*alpha
-   if crossingX< -70 or crossingX> -30 then
+   if crossingX<netMinX or crossingX>netMaxX then
     fault(state,"Out of bounds")
-   elseif old.Y+(position.Y-old.Y)*alpha<10.2 then
+   elseif old.Y+(position.Y-old.Y)*alpha<minimumCrossingHeight then
     fault(state,"Net hit")
    elseif not state.crossed then
     state.crossed=true;state.rally+=1;state.best=math.max(state.best,state.rally)
@@ -55,8 +67,8 @@ function Volley.Start(parent)
    end
   end
   if state.phase=="Playing" then
-   if position.X< -70 or position.X> -30 or position.Z<479 or position.Z>531 then fault(state,"Out of bounds")
-   elseif position.Y<=2.1 then position=V(position.X,2.1,position.Z);fault(state,"Ball landed") end
+   if position.X<minimum.X or position.X>maximum.X or position.Z<minimum.Z or position.Z>maximum.Z then fault(state,"Out of bounds")
+   elseif position.Y<=floorBallY then position=V(position.X,floorBallY,position.Z);fault(state,"Ball landed") end
   end
   state.position=position
   ball.CFrame=CFrame.new(position)*CFrame.Angles(os.clock()*2,0,os.clock())
@@ -69,8 +81,8 @@ function Volley.Hit(player,origin,direction,length,width,power)
  local character=player.Character
  local root=character and character:FindFirstChild("HumanoidRootPart")
  local humanoid=character and character:FindFirstChildOfClass("Humanoid")
- if not root or not humanoid or humanoid.Health<=0 or root.Position.X< -77 or root.Position.X> -23
-  or root.Position.Z<472 or root.Position.Z>538 or (root.Position-state.position).Magnitude>35 then return false end
+ if not root or not humanoid or humanoid.Health<=0 or root.Position.X<playerMinimum.X or root.Position.X>playerMaximum.X
+  or root.Position.Z<playerMinimum.Z or root.Position.Z>playerMaximum.Z or (root.Position-state.position).Magnitude>35 then return false end
  if not Rules.InBeam(origin,direction,state.position,length,width,1.1) then return false end
  local flat=V(direction.X,0,direction.Z)
  if flat.Magnitude<.05 then return false end

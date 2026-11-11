@@ -1,6 +1,7 @@
 """Actual progression/profile retirement through an isolated in-memory atomic store.
 No network, native Studio, or live DataStores. --baseline reproduces pre-retirement behavior.
 """
+from config_fixture import inline_compact_layout
 from pathlib import Path
 import argparse, subprocess, tempfile
 root=Path(__file__).resolve().parents[1]
@@ -10,6 +11,7 @@ def read(name):
  return (root/name).read_text(encoding='utf-8')
 progression=read('src/ReplicatedStorage/Shared/Progression.luau')
 config=read('src/ReplicatedStorage/Shared/Config.luau')
+config=inline_compact_layout(config,root)
 profiles=read('src/ServerScriptService/Profiles.luau')
 preamble=r"""
 local Healing=require('../src/ReplicatedStorage/Shared/Healing')

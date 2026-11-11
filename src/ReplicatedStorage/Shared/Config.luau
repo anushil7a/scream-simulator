@@ -2,13 +2,17 @@ local Healing=require(script.Parent:WaitForChild("Healing"))
 local VoiceCombat=require(script.Parent:WaitForChild("VoiceCombat"))
 local Progression=require(script.Parent:WaitForChild("Progression"))
 local Config = {}
+local CompactLayout=require(script.Parent:WaitForChild("CompactLayout"))
+Config.CompactCity=true
+Config.ObjectDestruction=false -- owner excludes object destruction from the compact replacement
+Config.CityLayout=CompactLayout
 Config.AutomaticVoice = true -- next local release; server owns the selected mode
 Config.Progression=Progression
 Config.VoiceCombat=VoiceCombat
 Config.MaxLevel = VoiceCombat.MaxLevel
 Config.MaxHealth = 100
-Config.MapMin=Vector3.new(-720,-20,-600)
-Config.MapMax=Vector3.new(720,200,600)
+Config.MapMin=Config.CompactCity and CompactLayout.BoundsMin or Vector3.new(-720,-20,-600)
+Config.MapMax=Config.CompactCity and CompactLayout.BoundsMax or Vector3.new(720,200,600)
 function Config.HealthForLevel(level) return VoiceCombat.Stats(level,1,false).health end
 Config.HealQuietSeconds = Healing.QuietSeconds
 Config.HealAmount = Healing.Fraction*100 -- percent of maximum health
@@ -30,9 +34,11 @@ Config.DeliveryStops={
  {id="LookoutDelivery",name="lifeguard lookout",position=Vector3.new(-240,2,427)},
  {id="PierDelivery",name="end of the timber pier",position=Vector3.new(525,3,580)},
 }
+if Config.CompactCity then Config.DeliveryStops=CompactLayout.DeliveryStops end
 function Config.GetDeliveryStop(id) for _,stop in ipairs(Config.DeliveryStops) do if stop.id==id then return stop end end end
 Config.ZoneMin = Vector3.new(-480,-20,-360)
 Config.ZoneMax = Vector3.new(480,200,360)
+if Config.CompactCity then Config.ZoneMin=CompactLayout.ZoneMin;Config.ZoneMax=CompactLayout.ZoneMax end
 Config.Sounds = {
  {id="TinyAah",name="Tiny Aah",level=1,effect="Pulse",description="A clean pulse around your aimed voice beam.",assetId=""},
  {id="IyoPop",name="Echo Pop",level=10,effect="Echo",description="Three echo rings wrap your aimed voice beam.",assetId=""},
