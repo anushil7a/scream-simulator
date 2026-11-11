@@ -17,7 +17,7 @@ def build(baseline=False,mutation=None):
  practice=bootstrap[bootstrap.index('  local practice=beam.obstruction'):bootstrap.index('  for _,viewer in ipairs(Players:GetPlayers())',bootstrap.index('  local practice=beam.obstruction'))]
  guarded=bootstrap[bootstrap.index('local function stepSustained('):bootstrap.index('  for _,viewer in ipairs(Players:GetPlayers())',bootstrap.index('local function stepSustained('))]+' end\nend\n'
  legacy=bootstrap[bootstrap.index(' local castMessage',bootstrap.index('local function cast(')):bootstrap.index(' if obstruction then',bootstrap.index(' local castMessage',bootstrap.index('local function cast(')))]
- return "local realGuide=require('../src/ReplicatedStorage/Shared/QuestGuide')\nlocal realCredit=require('../src/ReplicatedStorage/Shared/CombatCredit')\nlocal realTraining=require('../src/ReplicatedStorage/Shared/TrainingRules')\n"+PRE+progression+AFTER_PROGRESSION+config+AFTER_CONFIG+profiles+'\nend\nlocal P=loadProfiles()\n'+SETUP+hooks+guarded+'\nlocal function accept(p,s,arg)\n'+accept+'\nend\nlocal function claim(p,s,arg)\n'+claim+'\nend\nlocal function practiceHit(p,intent,beam) local s=sessions[p]\n'+practice+'\nend\nlocal function legacyPractice(p,obstruction) local s=sessions[p];local sound={power=.8,damage=10};local length=12\n'+legacy+'\nend\n'+CHECKS
+ return "local realQuestLifecycle=require('../src/ReplicatedStorage/Shared/QuestLifecycle')\nlocal realGuide=require('../src/ReplicatedStorage/Shared/QuestGuide')\nlocal realCredit=require('../src/ReplicatedStorage/Shared/CombatCredit')\nlocal realTraining=require('../src/ReplicatedStorage/Shared/TrainingRules')\n"+PRE+progression+AFTER_PROGRESSION+config+AFTER_CONFIG+profiles+'\nend\nlocal P=loadProfiles()\n'+SETUP+hooks+guarded+'\nlocal function accept(p,s,arg)\n'+accept+'\nend\nlocal function claim(p,s,arg)\n'+claim+'\nend\nlocal function practiceHit(p,intent,beam) local s=sessions[p]\n'+practice+'\nend\nlocal function legacyPractice(p,obstruction) local s=sessions[p];local sound={power=.8,damage=10};local length=12\n'+legacy+'\nend\n'+CHECKS
 PRE="\nlocal Healing=require('../src/ReplicatedStorage/Shared/Healing')\nlocal Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat')\nlocal Lease=require('../src/ReplicatedStorage/Shared/ProfileLease')\nlocal Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}\nlocal Color3={fromRGB=function(r,g,b)return {r,g,b}end}\nlocal Progression=(function()\n"
 AFTER_PROGRESSION="\nend)()\n-- MUTATION_INSERT\nlocal script={Parent={WaitForChild=function(_,name)return name end}}\nlocal config\nlocal require=function(name)\n if name=='Healing' then return Healing elseif name=='VoiceCombat' then return Combat elseif name=='Progression' then return Progression\n elseif name=='Config' then return config elseif name=='Lease' then return Lease end\n error('Unexpected dependency '..tostring(name))\nend\nlocal function loadConfig()\n"
 AFTER_CONFIG="\nend\nconfig=loadConfig()\nlocal now,clock,guid=1000,100,0\nlocal os={time=function()return now end,clock=function()return clock end}\nlocal task={wait=function(t)now+=t;clock+=t end}\nlocal durable;local writes=0\nlocal store={UpdateAsync=function(_,key,transform)\n assert(key=='Player_7','Unexpected test key');writes+=1\n local result=transform(durable)\n if result~=nil then durable=result end\n return result\nend}\nlocal services={DataStoreService={GetDataStore=function(_,name)assert(name=='ScreamSimulator_v1','Wrong fake store');return store end},\n ReplicatedStorage={Shared={Config='Config',ProfileLease='Lease'}},RunService={IsStudio=function()return false end},\n HttpService={GenerateGUID=function()guid+=1;return 'retirement-'..guid end}}\nlocal game={JobId='retirement-fixture',GetService=function(_,name)return services[name]end}\nlocal warn=function()end\nlocal function loadProfiles()\n"
@@ -31,7 +31,8 @@ local notices=0;local reenter;local earned=0
 local function state()notices+=1 end
 local function coins(p,amount)sessions[p].data.coins+=amount end
 local function xp(p,amount)earned+=amount;if reenter then local f=reenter;reenter=nil;f()end end
-local function stopQuest(p)sessions[p].activeQuest=nil end
+local QuestLifecycle=realQuestLifecycle
+local function stopQuest(p)QuestLifecycle.Clear(sessions[p],Config.GetQuest) end
 local function parts()return nil,nil end
 local task={delay=function()end}
 local fixtureBeam,fixtureEnded
@@ -174,6 +175,35 @@ for _,id in ipairs({'practice_beams','arena_assist'})do
  check(s.data.coins==oldCoins and earned==oldXP,'Reloaded claimed quest replayed reward')
 end
 check(P.Save(7,claimedLoaded,true),'Claimed-state final release failed')
+-- Actual Profiles fake-store reload -> mock inactive session -> actual acceptance/claim/Clear.
+-- This does not execute the joined handler or prove native persistence.
+local restartSeed=P.Default();restartSeed.level=20
+for _,id in ipairs({'practice_beams','garden','delivery'})do
+ local q=Config.GetQuest(id);restartSeed.quests[id]={progress=q.goal-1,claimed=false};restartSeed.availableQuests[id]=true
+end
+durable=restartSeed;now+=10;clock+=10
+local beforeRestart,canWrite=P.Load(7);check(canWrite,'Restart fixture load failed')
+check(P.Save(7,beforeRestart,true),'Restart fixture save failed');now+=10;clock+=10
+local restartData,restartWritable=P.Load(7);check(restartWritable,'Restart fixture rejoin failed')
+s={data=restartData,collected={}};sessions[p]=s
+for _,id in ipairs({'practice_beams','garden','delivery'})do
+ local q=Config.GetQuest(id)
+ check(s.data.quests[id].progress==q.goal-1,'Reload lost unfinished counter before restart')
+ accept(p,s,id);check(s.activeQuest==id and s.data.quests[id].progress==0,'Inactive acceptance did not restart attempt')
+ if q.goal>1 then
+  s.data.quests[id].progress=1;accept(p,s,id)
+  check(s.data.quests[id].progress==1,'Duplicate active acceptance reset progress')
+ end
+end
+s.data.quests.practice_beams.progress=3;s.activeQuest='garden';s.data.quests.garden.progress=1
+accept(p,s,'practice_beams')
+check(s.activeQuest=='garden' and s.data.quests.practice_beams.progress==3,'Completed acceptance discarded reward or active task')
+local beforeCoins=s.data.coins;local beforeEarned=earned
+claim(p,s,'practice_beams');claim(p,s,'practice_beams')
+check(s.data.coins==beforeCoins+25 and earned==beforeEarned+60,'Restart sequence completion reward not exactly once')
+check(s.activeQuest=='garden' and s.data.quests.garden.progress==1,'Claiming prior reward discarded current attempt')
+accept(p,s,'practice_beams');check(s.activeQuest=='garden','Claimed acceptance replaced current task')
+check(P.Save(7,restartData,true),'Restart fixture final release failed')
 -- Old catalogs necessarily discard unknown new IDs: rollback needs coordination.
 local catalog=Config.Quests;local old={};for _,q in ipairs(catalog)do if legacy[q.id]then table.insert(old,q)end end
 Config.Quests=old;local rollback=P.Sanitize(seed);Config.Quests=catalog

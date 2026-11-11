@@ -267,14 +267,17 @@ local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,
 local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge)
 local sprinting=false
+local nextSprintSend=0
 local function setSprint(requested)
  local character=p.Character;local humanoid=character and character:FindFirstChildOfClass("Humanoid")
  if requested and (not windowFocused or not mic.ready or GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil
   or modal.Visible or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible)
   or not humanoid or humanoid.Health<=0 or humanoid.PlatformStand or humanoid.Sit or humanoid.SeatPart
   or workspace:GetServerTimeNow()<(p:GetAttribute("KnockdownEnds") or 0)) then requested=false end
- if sprinting==requested then return end
- sprinting=requested;action:FireServer("Sprint",requested)
+ -- Reconcile a held request after a transient quota rejection; never retry OFF.
+ local now=os.clock()
+ if sprinting==requested and (not requested or now<nextSprintSend) then return end
+ sprinting=requested;nextSprintSend=now+.5;action:FireServer("Sprint",requested)
 end
 local function targetCovered(root,targetRoot,targetModel)
  local character=p.Character;local head=character and character:FindFirstChild("Head")
@@ -450,7 +453,9 @@ render=function()
     if q.hidden and not available then continue end
     if not headingShown then info(group.title,50);headingShown=true end
     local v=data.quests[q.id] or {progress=0}
+    local restarting=available and not v.claimed and v.progress>0 and v.progress<q.goal and data.activeQuest~=q.id
     local description=q.description
+    if restarting then description..="\n\nRestarting resets this unfinished progress." end
     if not available then description..="\n\nTo unlock: meet "..(q.giver or "a resident").." and use Talk." end
     local textWidth=math.min(720,gui.AbsoluteSize.X-24)-48-(narrow and 28 or 158)
     local nameHeight=math.max(26,TextService:GetTextSize(q.name,17,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+4)
@@ -461,7 +466,7 @@ render=function()
     label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
     label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
     label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
-    button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "TRACKING" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
+    button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "TRACKING" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
      if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
     end)
    end

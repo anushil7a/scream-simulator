@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 quest restart disclosure and held-sprint recovery
+
+- Reproduced saved partial quest counters showing ACCEPT before the existing server path resets them. Inactive unlocked partial tasks now say RESTART and explicitly warn of reset; no reset/reward/save semantics changed.479 renderer assertions/nine controls and189 fake-persistence/lifecycle assertions/six controls/one contract pass independently.
+- Reproduced quota-rejected sprint start leaving local true/server false after expiry. Retry current held eligible intent at most every0.5 seconds; immediate transitions, silent duplicate OFF, local interruption clearing, server quota and stamina remain.53 actual-helper/dispatcher assertions/five controls pass independently; saturation frequency and real-network behavior are unproven.
+- Full25 pure/synthetic +88 mocked suites,60 compiles/all builds pass. [Scope, exact evidence and limits](INTENT_RECOVERY_REVIEW.md). No app launch or native run; prior44f1f60 native UI evidence does not validate these new changes. Map paused; no publication. Next: independent checkpoint review, then remaining evidence-backed non-map work and physical/device/network release gates.
+
 ## November 11 native onboarding and sound settings
 
 - Reproduced pending cue assets hiding the selected OFF state; changed only the label helper. Initial native audit caught a too-long pending qualifier at320px; shortened it and strengthened native fit assertions. Cue configuration, gains, voice/combat and saves are unchanged.

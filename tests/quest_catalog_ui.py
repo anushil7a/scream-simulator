@@ -133,6 +133,26 @@ for _,isNarrow in ipairs({false,true})do
   if q.id=='nick' then check(#calls==old,'Claimed city quest can replay reward')
   else check(#calls==old+1 and calls[#calls][1]=='ClaimQuest' and calls[#calls][2]==q.id,'Completed quest claim changed')end
  end
+ -- Rejoined partial counters are visible but no active attempt is restored.
+ local restartValue={level=20,quests={},availableQuests={}}
+ for _,id in ipairs({'practice_beams','garden'})do
+  local q=Config.GetQuest(id);restartValue.availableQuests[id]=true;restartValue.quests[id]={progress=q.goal-1,claimed=false}
+ end
+ restartValue.availableQuests.delivery=true;restartValue.quests.delivery={progress=0,claimed=false}
+ renderChecked(restartValue,isNarrow)
+ for _,id in ipairs({'practice_beams','garden'})do
+  local b=buttons[id];check(b.text=='RESTART','Inactive partial quest misleading ACCEPT label')
+  check(table.concat(b.card.labels,' | '):lower():find('reset',1,true),'Restart does not disclose progress reset')
+  local old=#calls;b.call();check(#calls==old+1 and calls[#calls][1]=='AcceptQuest' and calls[#calls][2]==id,'Restart changed server command')
+ end
+ check(buttons.delivery.text=='ACCEPT','Zero progress falsely called restart')
+ restartValue.availableQuests.garden=nil;renderChecked(restartValue,isNarrow)
+ check(buttons.garden.text=='MEET NPC','Partial counter bypassed discovery');buttons.garden.call();check(#calls==0,'Locked partial sends action')
+ restartValue.availableQuests.garden=true;restartValue.activeQuest='garden';renderChecked(restartValue,isNarrow)
+ check(buttons.garden.text=='TRACKING','Active partial falsely called restart')
+ restartValue.quests.garden.progress=3;renderChecked(restartValue,isNarrow);check(buttons.garden.text=='CLAIM','Completed partial falsely called restart')
+ restartValue.quests.garden.claimed=true;renderChecked(restartValue,isNarrow);check(buttons.garden.text=='CLAIMED','Claimed partial falsely called restart')
+ renderChecked(value,isNarrow)
  local old=#calls;buttons.ActiveQuestAction.call()
  check(#calls==old+1 and calls[#calls][1]=='ClaimQuest' and calls[#calls][2]=='garden','Active completed quest no longer claimable')
  check(value.combatChallenges.cover==4 and value.combatChallenges.elite==1,'Renderer mutated dormant counters')
@@ -182,3 +202,9 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    claimed=code.replace('if available and not v.claimed and','if available and')
    assert claimed!=code
    run(claimed,'Claimed city quest can replay reward')
+   restart_label=code.replace('or restarting and "RESTART" or "ACCEPT"','or "ACCEPT"')
+   assert restart_label!=code
+   run(restart_label,'Inactive partial quest misleading ACCEPT label')
+   restart_warning=code.replace('Restarting resets this unfinished progress.','Restarting this task.')
+   assert restart_warning!=code
+   run(restart_warning,'Restart does not disclose progress reset')
