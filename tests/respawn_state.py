@@ -10,7 +10,7 @@ start=source.index(' local function spawn(c)')
 end=source.index(' p.CharacterAdded:Connect(spawn)',start)
 setup='''
 local now=20;local os={clock=function()return now end}
-local Config={HealQuietSeconds=10,HealthForLevel=function()return 135 end}
+local Config={SprintDuration=10,HealQuietSeconds=10,HealthForLevel=function()return 135 end}
 local closes,protects,states,cancels=0,0,0,0
 local closeConversation=function()closes+=1 end
 local protect=function()protects+=1 end
@@ -30,12 +30,13 @@ end
 checks='''
 local checks=0
 local function check(v,msg)assert(v,msg);checks+=1 end
-local c=character();p.Character=c;s.knockedUntil=25;s.premiumRoll=true;s.sprintRequested=true
+local c=character();p.Character=c;s.knockedUntil=25;s.premiumRoll=true;s.sprintRequested=true;s.sprintRunning=true;s.sprintRegenAt=50;s.sprintLockedUntil=60;s.lastStep=2
 spawn(c)
 check(s.character==c and c.h.Health==135 and c.h.MaxHealth==135,'Spawn did not initialize health')
 check(s.knockedUntil==0 and s.dodgingUntil==0 and not s.premiumRoll and not s.sprintRequested,'Spawn carried old motion state')
 check(p.attributes.KnockdownEnds==0 and p.attributes.DodgeEnds==0 and p.attributes.DodgeStarted==0 and p.attributes.Sprinting==false,'Spawn retained animation attributes')
 check(s.nextDodge==24 and s.sprintCharge==10 and s.nextHeal==30,'Spawn changed dodge deadline or missed heal/sprint setup')
+check(s.sprintRunning==false and s.sprintRegenAt==0 and s.sprintLockedUntil==0 and s.lastStep==20,'Spawn inherited stamina billing state')
 check(protects==1 and states==1 and closes==1,'Spawn side effects missing')
 c.h.Health=42;spawn(c)
 check(c.h.Health==42 and protects==1,'Duplicate registration healed/reprotected same character')

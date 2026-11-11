@@ -18,6 +18,7 @@ Config.WalkSpeed = 16
 Config.SprintSpeed = 25
 Config.SprintDuration = 10
 Config.SprintRecovery = 5
+Config.SprintRegenDelay = 1 -- continuous time without granted sprint before partial refill
 Config.SpawnProtection = 5
 Config.MovementPassId = 0 -- Configure only after the owner creates the pass.
 Config.MicroSpeakerPrice = 1500

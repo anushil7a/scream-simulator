@@ -12,8 +12,12 @@ local windowFocused=true;local mic={ready=true};local GuiService={MenuIsOpen=fal
 local typing=false;local UIS={GetFocusedTextBox=function()return typing and {} or nil end}
 local modal={Visible=false};local devPanel={Visible=false};local conversationPanel={Visible=false}
 local workspace={GetServerTimeNow=function()return 10 end}
+local began,ended;local Enum={KeyCode={LeftShift='shift',V='v'}};UIS.InputBegan={};UIS.InputEnded={}
+local function connectClient(signal,fn)if signal==UIS.InputBegan then began=fn else ended=fn end end
+local function releaseCapture()end;local captureSource=nil
 local messages={};local action={FireServer=function(_,verb,arg)assert(verb=='Sprint');table.insert(messages,arg)end}
 '''
+dispatch=s[s.index('connectClient(UIS.InputBegan,'):s.index('connectClient(p.CharacterRemoving,',s.index('connectClient(UIS.InputBegan,'))]
 checks='''
 local count=0;local function check(v,msg)assert(v,msg);count+=1 end
 setSprint(true);check(sprinting and #messages==1 and messages[1],'Start was not transmitted')
@@ -38,10 +42,18 @@ for i,block in ipairs(cases) do
 end
 setSprint(true);setSprint(not sprinting)
 check(not sprinting,'Button toggle disagreed with keyboard start')
+local shift={KeyCode=Enum.KeyCode.LeftShift}
+began(shift,false);local sent=#messages;began(shift,false)
+check(sprinting and #messages==sent,'Held key repeated requests')
+ended(shift);check(not sprinting and messages[#messages]==false,'Actual key release retained sprint')
+for i=1,20 do began(shift,false);ended(shift) end
+check(not sprinting and #messages==sent+41,'Tap dispatch lost starts/stops')
+began(shift,true);check(not sprinting,'Processed key started sprint')
+began({KeyCode=Enum.KeyCode.V},false);check(not sprinting,'Removed view key changed sprint')
 print('PASS '..count..' actual sprint input checks with mocked UI/character state')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.sprint_input_',dir=root/'tests',delete=False) as f:
-    path=Path(f.name);f.write(setup+s[start:end]+checks)
+    path=Path(f.name);f.write(setup+s[start:end]+dispatch+checks)
 try:
     subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally:

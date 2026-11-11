@@ -26,10 +26,16 @@ end)
 local originalTouchControls=GuiService.TouchControlsEnabled
 script.Destroying:Connect(function() GuiService.TouchControlsEnabled=originalTouchControls end)
 local p=Players.LocalPlayer
-local firstPerson=false
 local originalCameraMode=p.CameraMode
 local originalMinZoom,originalMaxZoom=p.CameraMinZoomDistance,p.CameraMaxZoomDistance
-local cameraGeneration=0;local thirdPersonDistance=12
+-- Keep wheel/pinch zoom outside first person on desktop and touch.
+local function applyThirdPerson()
+ p.CameraMaxZoomDistance=math.max(originalMaxZoom,6)
+ p.CameraMinZoomDistance=math.max(originalMinZoom,6)
+ p.CameraMode=Enum.CameraMode.Classic
+end
+applyThirdPerson()
+connectClient(p.CharacterAdded,applyThirdPerson)
 local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
 local FirstBeamGuide=require(RS.Shared:WaitForChild("FirstBeamGuide"))
 local InteractionRules=require(RS.Shared:WaitForChild("InteractionRules"))
@@ -144,27 +150,8 @@ local function cancelCapture()
  if sustainedControl then sustainedControl:Cancel();return end
  captureSource=nil;mic:Cancel();action:FireServer("CancelCast")
 end
-local function toggleCamera()
- cancelCapture();cameraGeneration+=1;local generation=cameraGeneration
- firstPerson=not firstPerson
- if firstPerson then
-  local camera=workspace.CurrentCamera
-  local distance=camera and (camera.CFrame.Position-camera.Focus.Position).Magnitude or 12
-  if distance>1 then thirdPersonDistance=distance end
-  p.CameraMode=Enum.CameraMode.LockFirstPerson
- else
-  p.CameraMode=Enum.CameraMode.Classic
-  -- Leave the close zoom immediately, then return normal wheel/pinch limits.
-  p.CameraMinZoomDistance=math.clamp(thirdPersonDistance,originalMinZoom,originalMaxZoom)
-  task.spawn(function()
-   Run.RenderStepped:Wait()
-   if cameraGeneration==generation then p.CameraMinZoomDistance=originalMinZoom end
-  end)
- end
- if modal.Visible and selected=="Settings" then render() end
-end
 script.Destroying:Connect(function()
- cameraGeneration+=1;p.CameraMode=originalCameraMode
+ p.CameraMode=originalCameraMode
  p.CameraMinZoomDistance=originalMinZoom;p.CameraMaxZoomDistance=originalMaxZoom
 end)
 local function blocked()
@@ -181,7 +168,7 @@ end
 local function aimRay()
  local camera=workspace.CurrentCamera
  if not camera or camera.ViewportSize.X<2 or camera.ViewportSize.Y<2 then return nil end
- local location=(firstPerson or UIS.TouchEnabled) and camera.ViewportSize/2 or UIS:GetMouseLocation()
+ local location=UIS.TouchEnabled and camera.ViewportSize/2 or UIS:GetMouseLocation()
  local ray=camera:ViewportPointToRay(location.X,location.Y)
  local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
  return ray,workspace:Raycast(ray.Origin,ray.Direction*1000,params)
@@ -297,7 +284,6 @@ local function residentTargetInfo(model,humanoid,far,currentFar,covered)
   math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),not far and not currentFar and not covered
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end)
-local viewButton=button(controls,"CameraToggle","1ST [V]",UDim2.fromOffset(88,32),UDim2.fromOffset(0,52),toggleCamera)
 local talkTarget
 local nextResidentUi=0
 local function refreshResidentLabels(root,camera,residents)
@@ -363,7 +349,7 @@ local function menuKey()
  elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,challenges=data.combatChallenges,level=data.level}
  elseif selected=="Style" then fields={aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped}
  elseif selected=="Shop" then fields={spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
- elseif selected=="Settings" then fields={settings=data.settings,firstPerson=firstPerson}
+ elseif selected=="Settings" then fields={settings=data.settings}
  else fields={} end
  return selected..":"..gui.AbsoluteSize.X..":"..game:GetService("HttpService"):JSONEncode(fields)
 end
@@ -476,7 +462,7 @@ render=function()
    attackHelp=string.format("SCREAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each scream.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap SCREAMS" or "E / SCREAMS")
   else attackHelp=touch and "Hold SCREAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / SCREAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
-  info(string.format("%s: first or third person\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint, then %.0fs rest",touch and "View button" or "V / view button",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery),touch and 110 or 90)
+  info(string.format("Third-person camera\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
   info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
   local micCard=card(58)
   button(micCard,"Recalibrate","RECALIBRATE MICROPHONE",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
@@ -484,7 +470,6 @@ render=function()
    cancelCapture();setSprint(false);mic:Calibrate();modal.Visible=false
   end)
   info("Changed microphone or room noise? Recalibrate with a comfortable strong voice. "..(sustainedControl and "Screams stay OFF afterward; use SCREAMS to turn attacks back on. Voice chat is unchanged." or "After calibration, hold SCREAM and use a fresh live voice input."),80)
-  local cameraCard=card(58);button(cameraCard,"CameraMode", "VIEW: "..(firstPerson and "FIRST PERSON" or "THIRD PERSON"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),toggleCamera)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   local audioCard=card(58);local audioButton
   audioButton=button(audioCard,"AttackAudio","ATTACK SFX: "..(attackAudio.enabled and "LOW" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
@@ -622,7 +607,6 @@ connectClient(UIS.InputBegan,function(input,processed)
  if processed or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() then return end
  local k=input.KeyCode
  if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
- elseif k==Enum.KeyCode.V then toggleCamera()
  elseif k==Enum.KeyCode.M then toggleTab("Map")
  elseif k==Enum.KeyCode.LeftShift then setSprint(true)
  elseif k==Enum.KeyCode.T then requestTalk() end
@@ -694,7 +678,7 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
 end)
 local elapsed=0
 local lastViewport,lastTouch
--- A visible modal button frees the cursor for Roblox's first-person camera.
+-- Visible modal buttons keep the pointer available while interacting with panels.
 modal.Close.Modal=true;micPanel.Calibrate.Modal=true;conversationPanel.Close.Modal=true
 testContent.XP.Modal=true
 connectClient(Run.RenderStepped,function(dt)
@@ -762,8 +746,7 @@ connectClient(Run.RenderStepped,function(dt)
  local confirmed=hitFeedback:Read(os.clock())
  hitText.Visible=gameplayVisible and confirmed~=nil
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
- meter.Visible=gameplayVisible;reticle.Visible=(firstPerson or UIS.TouchEnabled) and gameplayVisible
- viewButton.Text=(firstPerson and "3RD" or "1ST")..(touch and "" or " [V]")
+ meter.Visible=gameplayVisible;reticle.Visible=UIS.TouchEnabled and gameplayVisible
  local power=captureSource and mic:CapturePower() or mic.power;meterFill.Size=UDim2.fromScale(power,1)
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
@@ -818,7 +801,6 @@ connectClient(Run.RenderStepped,function(dt)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
  tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and 160 or 64)
  sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
- viewButton.Size=UDim2.fromOffset(88,touch and 44 or 32)
  end
  hud.Visible=gameplayVisible;controls.Visible=gameplayVisible
  -- Keep the fight readable without hiding a running quest deadline.

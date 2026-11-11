@@ -21,6 +21,10 @@
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
         "$path": "src/StarterPlayer/StarterPlayerScripts"
+      },
+      "$properties": {
+        "CameraMode": "Classic",
+        "CameraMinZoomDistance": 6
       }
     },
     "TextChatService": {

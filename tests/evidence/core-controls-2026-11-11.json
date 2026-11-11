@@ -1,0 +1,409 @@
+{
+  "date": "2026-11-11",
+  "base": "93bca5be876fbf421640c39f81c016089035f344",
+  "branch": "feature/microphone-city-redesign",
+  "scope": "Sprint/core-controls first batch; no publication or live persistence",
+  "simulation": {
+    "alternating120secondsBefore": {
+      "sprintSeconds": 60,
+      "remainingCharge": 10,
+      "lockedUntil": 0
+    },
+    "alternating120secondsAfter": {
+      "sprintSeconds": 50,
+      "remainingCharge": 0
+    },
+    "serverAssertions": 184,
+    "serverNegativeControls": 4,
+    "clientInputAssertions": 48,
+    "respawnChecks": 13,
+    "cameraAssertions": 4,
+    "cameraNegativeControls": 2,
+    "fullPureSyntheticSuites": 25,
+    "fullMockedServiceSuites": 60,
+    "productionLuauSourcesCompiled": 57,
+    "builds": "passed"
+  },
+  "native": {
+    "studioVersion": "0.747.0.7471481",
+    "fixture": "OnboardingReview.rbxl",
+    "placeId": 0,
+    "persistedToCloud": false,
+    "inputs": "synthetic mic/remotes/layout and injected V/zoom; no real microphone or physical device",
+    "cameraBefore": {
+      "mode": "Classic",
+      "minZoom": 6,
+      "maxZoom": 400,
+      "distance": 12.5
+    },
+    "cameraAfterVAnd15ZoomIn": {
+      "mode": "Classic",
+      "minZoom": 6,
+      "distance": 6.000000476837158
+    },
+    "onboardingRows": [
+      {
+        "row": 1,
+        "stage": "setup",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "YOUR VOICE. YOUR POWER.",
+          "UI preview: synthetic calibration readiness",
+          "SCREAMS ON: normal speech can fire attacks. Turn OFF to talk; nearby voice stays on. This game saves no recordings.",
+          "CALIBRATE MIC",
+          "CHECK ACCESS",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 2,
+        "stage": "setup",
+        "viewport": "844, 390",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "YOUR VOICE. YOUR POWER.",
+          "UI preview: synthetic calibration readiness",
+          "SCREAMS ON: normal speech can fire attacks. Turn OFF to talk; nearby voice stays on. This game saves no recordings.",
+          "CALIBRATE MIC",
+          "CHECK ACCESS",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 3,
+        "stage": "setup",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "text": [
+          "SHOP [B]",
+          "QUESTS",
+          "YOUR VOICE. YOUR POWER.",
+          "UI preview: synthetic calibration readiness",
+          "SCREAMS ON: normal speech can fire attacks. Turn OFF to talk; nearby voice stays on. This game saves no recordings.",
+          "CALIBRATE MIC",
+          "CHECK ACCESS",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 4,
+        "stage": "first-ready",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "FIRST BEAM \u00b7 2/3\nAim at MIC PRACTICE beside spawn.\nGo quiet, then speak to fire.",
+          "SCREAMS: ON\nTap to turn off",
+          "DODGE",
+          "SPRINT 10.0s",
+          "LIVE MIC 0% \u2022 up to 12 studs\nON \u00b7 normal speech can attack",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 5,
+        "stage": "on",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "FIRST BEAM \u00b7 2/3\nAim at MIC PRACTICE beside spawn.\nGo quiet, then speak to fire.",
+          "SCREAMS: ON\nTap to turn off",
+          "DODGE",
+          "SPRINT 10.0s",
+          "LIVE MIC 0% \u2022 up to 12 studs\nON \u00b7 normal speech can attack",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 6,
+        "stage": "synthetic-active",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "FIRST BEAM \u00b7 3/3\nKeep aiming at the practice target.\nGo quiet to stop.",
+          "SCREAMS: ON\nTap to turn off",
+          "DODGE",
+          "SPRINT 10.0s",
+          "LIVE MIC 80% \u2022 up to 26 studs\nAttacking \u2022 0.0s left",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 7,
+        "stage": "off",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "FIRST BEAM \u00b7 1/3\nTap SCREAMS to turn attacks on.\nFind MIC PRACTICE beside spawn.",
+          "Screams OFF. Talk freely without attacking. Voice chat is unchanged.",
+          "SCREAMS: OFF\nTap to turn on",
+          "DODGE",
+          "SPRINT 10.0s",
+          "SCREAMS OFF \u00b7 TALK FREELY\nVoice chat is unchanged",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 8,
+        "stage": "settings",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "SETTINGS & CONTROLS",
+          "Keep the action comfortable and easy to read.",
+          "X",
+          "SCREAMS ON: normal speech can fire attacks. Aim, then speak; 4s max, 10s cooldown.\nTap SCREAMS toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each scream.",
+          "Third-person camera\nDODGE: roll \u00b7 4s arena cooldown\nSPRINT: 10s moving sprint; 5s rest when empty. Refill starts after 1s without sprint.",
+          "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu.",
+          "RECALIBRATE MICROPHONE",
+          "Changed microphone or room noise? Recalibrate with a comfortable strong voice. Screams stay OFF afterward; use SCREAMS to turn attacks back on. Voice chat is unchanged.",
+          "CITY AUDIO: 55%",
+          "ATTACK SFX: LOW",
+          "GAMEPLAY SFX: PENDING UPLOAD",
+          "City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",
+          "REDUCED EFFECTS: OFF",
+          "SHOP",
+          "SCREAMS",
+          "QUESTS",
+          "STYLE",
+          "MAP",
+          "SETTINGS",
+          "Screams OFF. Talk freely without attacking. Voice chat is unchanged.",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 9,
+        "stage": "on",
+        "viewport": "844, 390",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "SAFE CITY \u2022 PvP OFF",
+          "FIRST BEAM \u00b7 2/3\nAim at MIC PRACTICE beside spawn.\nGo quiet, then speak to fire.",
+          "SCREAMS: ON\nTap to turn off",
+          "DODGE",
+          "SPRINT 10.0s",
+          "LIVE MIC 0% \u2022 up to 12 studs\nON \u00b7 normal speech can attack",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 10,
+        "stage": "synthetic-active",
+        "viewport": "844, 390",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "SAFE CITY \u2022 PvP OFF",
+          "FIRST BEAM \u00b7 3/3\nKeep aiming at the practice target.\nGo quiet to stop.",
+          "SCREAMS: ON\nTap to turn off",
+          "DODGE",
+          "SPRINT 10.0s",
+          "LIVE MIC 80% \u2022 up to 26 studs\nAttacking \u2022 0.0s left",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 11,
+        "stage": "off",
+        "viewport": "844, 390",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "SAFE CITY \u2022 PvP OFF",
+          "FIRST BEAM \u00b7 1/3\nTap SCREAMS to turn attacks on.\nFind MIC PRACTICE beside spawn.",
+          "Screams OFF. Talk freely without attacking. Voice chat is unchanged.",
+          "SCREAMS: OFF\nTap to turn on",
+          "DODGE",
+          "SPRINT 10.0s",
+          "SCREAMS OFF \u00b7 TALK FREELY\nVoice chat is unchanged",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 12,
+        "stage": "settings",
+        "viewport": "844, 390",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "SETTINGS & CONTROLS",
+          "X",
+          "SCREAMS ON: normal speech can fire attacks. Aim, then speak; 4s max, 10s cooldown.\nTap SCREAMS toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each scream.",
+          "Third-person camera\nDODGE: roll \u00b7 4s arena cooldown\nSPRINT: 10s moving sprint; 5s rest when empty. Refill starts after 1s without sprint.",
+          "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu.",
+          "RECALIBRATE MICROPHONE",
+          "Changed microphone or room noise? Recalibrate with a comfortable strong voice. Screams stay OFF afterward; use SCREAMS to turn attacks back on. Voice chat is unchanged.",
+          "CITY AUDIO: 55%",
+          "ATTACK SFX: LOW",
+          "GAMEPLAY SFX: PENDING UPLOAD",
+          "City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",
+          "REDUCED EFFECTS: OFF",
+          "SHOP",
+          "SCREAMS",
+          "QUESTS",
+          "STYLE",
+          "MAP",
+          "SETTINGS",
+          "Screams OFF. Talk freely without attacking. Voice chat is unchanged.",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 13,
+        "stage": "on",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "text": [
+          "SHOP [B]",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "SAFE CITY \u2022 PvP OFF",
+          "FIRST BEAM \u00b7 2/3\nAim at MIC PRACTICE beside spawn.\nGo quiet, then speak to fire.",
+          "SCREAMS: ON\n[E] to turn off",
+          "DODGE [Q]",
+          "SPRINT 10.0s [SHIFT]",
+          "LIVE MIC 0% \u2022 up to 12 studs\nON \u00b7 normal speech can attack",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 14,
+        "stage": "synthetic-active",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "text": [
+          "SHOP [B]",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "SAFE CITY \u2022 PvP OFF",
+          "FIRST BEAM \u00b7 3/3\nKeep aiming at the practice target.\nGo quiet to stop.",
+          "SCREAMS: ON\n[E] to turn off",
+          "DODGE [Q]",
+          "SPRINT 10.0s [SHIFT]",
+          "LIVE MIC 80% \u2022 up to 26 studs\nAttacking \u2022 0.0s left",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 15,
+        "stage": "off",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "text": [
+          "SHOP [B]",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "SAFE CITY \u2022 PvP OFF",
+          "FIRST BEAM \u00b7 1/3\nPress E to turn screams on.\nFind MIC PRACTICE beside spawn.",
+          "Screams OFF. Talk freely without attacking. Voice chat is unchanged.",
+          "SCREAMS: OFF\n[E] to turn on",
+          "DODGE [Q]",
+          "SPRINT 10.0s [SHIFT]",
+          "SCREAMS OFF \u00b7 TALK FREELY\nVoice chat is unchanged",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 16,
+        "stage": "settings",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "text": [
+          "SHOP [B]",
+          "QUESTS",
+          "SETTINGS & CONTROLS",
+          "Keep the action comfortable and easy to read.",
+          "X",
+          "SCREAMS ON: normal speech can fire attacks. Aim, then speak; 4s max, 10s cooldown.\nE / SCREAMS toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each scream.",
+          "Third-person camera\nQ / DODGE: roll \u00b7 4s arena cooldown\nShift / SPRINT: 10s moving sprint; 5s rest when empty. Refill starts after 1s without sprint.",
+          "T: talk \u00b7 F: quest interactions \u00b7 M: map \u00b7 B: toggle menu",
+          "RECALIBRATE MICROPHONE",
+          "Changed microphone or room noise? Recalibrate with a comfortable strong voice. Screams stay OFF afterward; use SCREAMS to turn attacks back on. Voice chat is unchanged.",
+          "CITY AUDIO: 55%",
+          "ATTACK SFX: LOW",
+          "GAMEPLAY SFX: PENDING UPLOAD",
+          "City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",
+          "REDUCED EFFECTS: OFF",
+          "SHOP",
+          "SCREAMS",
+          "QUESTS",
+          "STYLE",
+          "MAP",
+          "SETTINGS",
+          "Screams OFF. Talk freely without attacking. Voice chat is unchanged.",
+          "TEST TOOLS"
+        ]
+      },
+      {
+        "row": 17,
+        "stage": "manual-ready",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": [
+          "SHOP",
+          "QUESTS",
+          "LEVEL 1    \u2022    1500 coins",
+          "100/100",
+          "0 / 103 XP",
+          "FIRST BEAM \u00b7 2/3\nAim at MIC PRACTICE beside spawn.\nGo quiet, then speak to fire.",
+          "SCREAMS: ON\nTap to turn off",
+          "DODGE",
+          "SPRINT 10.0s",
+          "LIVE MIC 0% \u2022 up to 12 studs\nON \u00b7 normal speech can attack",
+          "TEST TOOLS"
+        ]
+      }
+    ],
+    "scopeLimit": "Final client source; fixture predates final server-only flood-stop fix. No native server sprint/transport/respawn execution. StudioThirdPerson compiled only."
+  },
+  "review": "Independent reviewer found flood-stop issue, verified correction, no further blocker; parent final self-review",
+  "remoteDelivery": "Blocked: GitHub plugin installed=false and no usable local Git credential; dry-run failed authentication",
+  "cleanup": "Disposable Studio stopped, locally saved and closed; pre-existing Codex preserved. Minimized task-created Pick an app remains; CUA cannot bind it."
+}

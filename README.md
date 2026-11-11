@@ -49,7 +49,7 @@ These are source/integration milestones, not blanket verification of every devic
 - Hold **Shift** / tap **SPRINT**: up to ten seconds of sprint, then five seconds of recovery.
 - **T** / **TALK**: nearby NPC dialogue. Use world interaction prompts (**F** on keyboard; on-screen prompts on touch).
 - **B** / **SCREAMS**: toggle collection. **M**: map. Quests, Style and Settings are menu tabs.
-- **V** / **1ST–3RD view button** / **Settings → View**: switch first/third person for this session. First person aims through a centered crosshair; switching views cancels a pending capture. Menus free the cursor.
+- **Camera**: third person only, with a six-stud minimum wheel/pinch zoom. Desktop aims at the mouse; touch aims at the centered reticle. There is no V/view toggle.
 
 A microphone and Roblox voice eligibility are required for gameplay. Studio setup without usable voice may remain on the microphone panel. Synthetic fixtures in `tests/` can exercise selected mechanics, but are not a substitute for live voice validation and must never be appended to production source.
 

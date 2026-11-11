@@ -646,6 +646,8 @@ for _,obj in ipairs(workspace.ScreamSimulatorWorld:GetDescendants()) do
 end
 action.OnServerEvent:Connect(function(p,verb,arg)
  local s=sessions[p];if not s or type(verb)~="string" then return end
+ -- Idempotent stops must survive a saturated request window; they never grant speed.
+ if verb=="Sprint" and arg==false then s.sprintRequested=false;return end
  local now=os.clock()
  s.requestWindow=s.requestWindow or now;s.requestCount=s.requestCount or 0
  if now-s.requestWindow>=1 then s.requestWindow=now;s.requestCount=0 end
@@ -739,7 +741,7 @@ local function joined(p)
   return
  end
  local s={data=data,canSave=save,recoveryWarning=recoveryWarning,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
- botRewards={},credit={},collected={},sprintRequested=false,sprintCharge=10,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
+ botRewards={},credit={},collected={},sprintRequested=false,sprintRunning=false,sprintRegenAt=0,sprintCharge=Config.SprintDuration,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  task.spawn(Commerce.Load,p)
  if sustainedEnabled then
   s.sustained=sustained.New()
@@ -751,10 +753,10 @@ local function joined(p)
   s.character=c;closeConversation(p)
   s.jumpPower=h.JumpPower;s.jumpHeight=h.JumpHeight
   h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=s.micReady and 16 or 0
-  s.sprintCharge=10;s.sprintRequested=false;s.sprintLockedUntil=0;s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false
+  s.sprintCharge=Config.SprintDuration;s.sprintRequested=false;s.sprintRunning=false;s.sprintRegenAt=0;s.lastStep=os.clock();s.sprintLockedUntil=0;s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false
   s.nextHeal=os.clock()+Config.HealQuietSeconds
   p:SetAttribute("DodgeEnds",0);p:SetAttribute("DodgeStarted",0);p:SetAttribute("KnockdownEnds",0)
-  p:SetAttribute("Sprinting",false);p:SetAttribute("SprintCooldown",0);p:SetAttribute("SprintCharge",10)
+  p:SetAttribute("Sprinting",false);p:SetAttribute("SprintCooldown",0);p:SetAttribute("SprintCharge",Config.SprintDuration)
   protect(p,s);state(p)
  end
  p.CharacterRemoving:Connect(function(c)
@@ -821,17 +823,24 @@ local function stepTraining(now)
  end
 end
 local function stepSprint(s,root,humanoid,now,dt)
- if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then s.sprintLockedUntil=0;s.sprintCharge=Config.SprintDuration end
+ -- Charge the interval for which the server granted sprint speed. A release
+ -- received just before this tick must not turn that interval into regeneration.
+ if s.sprintRunning then
+  s.sprintCharge=math.max(0,s.sprintCharge-dt)
+  s.sprintRegenAt=now+Config.SprintRegenDelay
+  if s.sprintCharge<=1e-6 then s.sprintCharge=0;s.sprintLockedUntil=now+Config.SprintRecovery end
+ end
+ if s.sprintLockedUntil>0 and now>=s.sprintLockedUntil then
+  s.sprintLockedUntil=0;s.sprintCharge=Config.SprintDuration
+ elseif not s.sprintRunning and now>=s.sprintLockedUntil then
+  local recoveryDt=math.clamp(now-(s.sprintRegenAt or 0),0,dt)
+  s.sprintCharge=math.min(Config.SprintDuration,s.sprintCharge+recoveryDt*2)
+ end
  local velocity=root and root.AssemblyLinearVelocity
  local moving=velocity and velocity.X*velocity.X+velocity.Z*velocity.Z>2.25
  local running=root~=nil and not root.Anchored and humanoid~=nil and not humanoid.Sit and not humanoid.SeatPart and not humanoid.PlatformStand and s.micReady and s.sprintRequested and moving==true
   and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and s.sprintCharge>0 and now>=s.sprintLockedUntil
- if running then
-  s.sprintCharge=math.max(0,s.sprintCharge-dt)
-  if s.sprintCharge==0 then running=false;s.sprintLockedUntil=now+Config.SprintRecovery end
- elseif now>=s.sprintLockedUntil then
-  s.sprintCharge=math.min(Config.SprintDuration,s.sprintCharge+dt*2)
- end
+ s.sprintRunning=running==true
  return running
 end
 task.spawn(function()
@@ -839,7 +848,7 @@ task.spawn(function()
  while true do task.wait(0.1);tick+=1;local now=os.clock()
   stepTraining(now)
   for p,s in pairs(sessions) do
-   local dt=math.clamp(now-s.lastStep,0,.25);s.lastStep=now;local _,r,h=parts(p)
+   local dt=math.max(0,now-s.lastStep);s.lastStep=now;local _,r,h=parts(p)
    -- Crossing into PvP immediately restores the full dodge cooldown.
    if r and Config.InArena(r.Position) and s.lastDodge then
     if s.premiumRoll then s.premiumRoll=false;s.dodgingUntil=0;p:SetAttribute("DodgeEnds",0) end

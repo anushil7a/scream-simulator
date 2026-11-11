@@ -12,7 +12,7 @@ Review builds now include matching `build/<name>.provenance.json` files with sou
 
 These are **pending checks**, not completed results. Save your open Studio work first. Open the disposable local file, start Play and let the city generate. Stop at a reproducible failure in a step; other independent checks may still proceed. A failed mic setup is not a reason to enable live APIs or change production settings.
 
-1. **Mic and aiming:** with eligible voice input available, calibrate, stay quiet briefly, aim and speak. Expect automatic onset without holding E, a beam aimed at the mouse (screen center in first person/touch), and silence stopping it. Confirm the live-power meter changes independently of the voice-button timing bar. A meter reaching 100% alone is not a pass.
+1. **Mic and aiming:** with eligible voice input available, calibrate, stay quiet briefly, aim and speak. Expect automatic onset without holding E, a beam aimed at the mouse (screen center on touch), and silence stopping it. Confirm the live-power meter changes independently of the voice-button timing bar. A meter reaching 100% alone is not a pass.
 2. **Attack boundaries:** sustain one attack up to four seconds, then verify ten seconds of cooldown after it ends. Continuous speech through cooldown must not restart it; quiet followed by fresh voice must. Use E or SCREAMS: ON to turn screams OFF, speak and verify no attack while ordinary voice remains audible. Resume explicitly with SCREAMS: OFF.
 3. **Interruptions:** during an attack, try dodge, NPC dialogue, text chat and the Roblox menu separately. Damage must stop while blocked. Dodge alone must not scream. Mute, respawn and focus loss must require deliberate voice resume. If real input is unavailable, leave this untested rather than substituting synthetic input and calling it a voice pass.
 4. **Combat and destruction:** use the disposable two-client fixture for safe-zone/arena, five-second spawn protection and blocked attacks during protection. Compare level-locked versus unlocked props, then stand in a damaged prop’s repair volume and verify repair waits until clear. Synthetic fixtures can establish only their named engine checks; real voice/PvP behavior still needs eligible players.
@@ -39,7 +39,7 @@ Use two voice-eligible accounts/devices when available. Calibrate with a comfort
 3. Tap E or SCREAMS: ON to turn screams OFF; speaking cannot attack and ordinary proximity voice must remain audible. Tap SCREAMS: OFF to resume, then quiet/voice must work. Muting, death or losing focus must stop attacks and require deliberate resume after they have been armed.
 4. While talking, roll, open menus, talk to an NPC, focus text chat, or enter spawn protection. No attack damage should continue while blocked. Rolling itself must never trigger a scream.
    Also open Roblox’s Escape menu during an attack: damage and sprint must stop. Closing it must leave voice paused until E or SCREAMS: OFF, followed by fresh quiet and voice. Check on desktop and phone.
-5. Test first-person mouse aim and phone center-screen aim, cover, PvP boundaries, increasing range with level, and louder calibrated voice within the maximum range.
+5. Test third-person mouse aim and phone center-screen aim, cover, PvP boundaries, increasing range with level, and louder calibrated voice within the maximum range.
 6. Verify the other player hears live proximity voice near/far. The attacker need not hear their own microphone loopback.
 7. Practice target should show feedback. Soccer and volleyball receive at most one successful impulse per scream. Crowd credits three different bots once per attack; dodge quest credit is bounded per attacker scream.
 8. On a separately approved test-universe upload, earn normal progress, leave and rejoin. Confirm level/coins/unlocked styles persist. Never use test-tool mutations as proof of legitimate saves.
@@ -136,7 +136,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 
 - Calibration recovery: mute midway through quiet sampling and midway through voice sampling; unmute and verify calibration must restart. Disconnect/reconnect the microphone during voice sampling and complete a fresh calibration. Retry access after a transient failure. The controller passes mocked lifecycle regressions; actual audio-device/permission behavior remains pending.
 
-- NPC aim readout: aim at residents beyond nameplate distance in first person, third person and touch mode. Verify name/health, current-power versus maximum-range messages, walls obscuring target selection, and clearing on loss of aim. Mocked formatting/range-state tests pass; actual raycast selection and layout remain pending.
+- NPC aim readout: aim at residents beyond nameplate distance in third person and touch mode. Verify name/health, current-power versus maximum-range messages, walls obscuring target selection, and clearing on loss of aim. Mocked formatting/range-state tests pass; actual raycast selection and layout remain pending.
 
 - Resident active flag: KO an NPC while another player aims at or talks to it. Verify dialogue/readout/talk prompt clear when ResidentActive becomes false and return after recovery. Humanoid is intentionally retained; confirm repeated KO/recovery preserves walking and animations. Mocked UI checks pass; native replication ordering remains unverified.
 
@@ -238,7 +238,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Evidence: 20 pure feedback checks including six discard/late-sequence cases, plus full local verification/build. No actual delayed Roblox remote or CharacterRemoving ordering test.
 
 ### Aimed-target cover preview
-- Pending native: aim over a low wall in third person at a player/NPC whose root is blocked from the character scream origin. Expect BEHIND COVER; step clear and verify the normal range/status returns. Repeat first person and around streamed obstacles.
+- Pending native: aim over a low wall in third person at a player/NPC whose root is blocked from the character scream origin. Expect BEHIND COVER; step clear and verify the normal range/status returns. Repeat around streamed obstacles.
 - Evidence: 23 mocked presentation checks (five added status/priority cases) and full verification/build. Actual cover ray geometry, streaming differences and performance have not been tested. Server hit validation remains authoritative.
 
 - Cover preview contract follow-up: 60 mocked assertions now compare actual client/server ray origin, endpoint and filters across six head states with blocked/clear responses. This does not replace the pending native geometry/streaming test or establish full beam hit equivalence.
