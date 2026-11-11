@@ -29,14 +29,14 @@ for level=1,100 do
  check(damage==math.floor(dps*4+1e-7),"Four-second damage budget")
  check(lateDamage==math.floor(dps*2+1e-7),"Late target inherited old damage")
  check(rewards==1,"Repeated first-hit reward")
- check(ended and ended.reason=="duration" and near(ended.endedAt,4) and near(s.nextStart,14),"Duration/cooldown deadline")
+ check(ended and ended.reason=="duration" and near(ended.endedAt,4) and near(s.nextStart,9),"Duration/cooldown deadline")
  check(s.active==nil,"Attack remains active after cap")
- check(not Attack.Begin(s,13.999,2,dps,1,true),"Cooldown shortened")
- check(Attack.Begin(s,14,3,dps,1,true),"Exact cooldown boundary")
- check(not Attack.Pulse(s,14.1,1,1,true),"Old attack pulse reached new attack")
- check(Attack.Stop(s,14.2,1)==nil and s.active~=nil,"Old stop canceled new attack")
- local stopped=Attack.Stop(s,14.2,3)
- check(stopped and near(stopped.nextStart,24.2),"Short attack cooldown starts at end")
+ check(not Attack.Begin(s,8.999,2,dps,1,true),"Cooldown shortened")
+ check(Attack.Begin(s,9,3,dps,1,true),"Exact cooldown boundary")
+ check(not Attack.Pulse(s,9.1,1,1,true),"Old attack pulse reached new attack")
+ check(Attack.Stop(s,9.2,1)==nil and s.active~=nil,"Old stop canceled new attack")
+ local stopped=Attack.Stop(s,9.2,3)
+ check(stopped and near(stopped.nextStart,14.2),"Short attack cooldown starts at end")
 end
 do
  local s=begin();local a=s.active
@@ -44,7 +44,7 @@ do
  check(not Attack.Pulse(s,.01,1,1,true) and a.lastPulse==0,"Too-fast pulse refreshed timeout")
  local hits,ended=Attack.Step(s,2,true,{"one"})
  check(#hits==0 and ended.reason=="timeout" and near(ended.endedAt,.5),"Missing-input damage backfill")
- check(near(s.nextStart,10.5),"Timeout delayed cooldown origin")
+ check(near(s.nextStart,5.5),"Timeout delayed cooldown origin")
 end
 for _,reason in ipairs({"stop","cancel","quiet","invalid","blocked"}) do
  local s=begin();local result
@@ -55,7 +55,7 @@ for _,reason in ipairs({"stop","cancel","quiet","invalid","blocked"}) do
  elseif reason=="quiet" then local _,_,r=Attack.Pulse(s,.3,1,0,true);result=r
  elseif reason=="invalid" then local _,_,r=Attack.Pulse(s,.3,1,math.huge,true);result=r
  else local _,r=Attack.Step(s,.3,false,{"one"});result=r end
- check(result and s.active==nil and near(s.nextStart,10.3),"Interruption cooldown")
+ check(result and s.active==nil and near(s.nextStart,5.3),"Interruption cooldown")
  check(#Attack.Step(s,.4,true,{"one"})==0,"Damage after interruption")
  check(not Attack.Begin(s,.5,2,10,1,true),"Interrupt bypassed cooldown")
 end
@@ -64,7 +64,7 @@ do
  for i=1,38 do Attack.Pulse(s,i/10,1,1,true);Attack.Step(s,i/10,true,{"one"}) end
  local hits,ended=Attack.Step(s,5,true,{"one"})
  check(#hits==0 and ended.reason=="duration" and near(ended.endedAt,4),"Late observation lost earlier duration deadline")
- check(near(s.nextStart,14),"Late observation extended cooldown")
+ check(near(s.nextStart,9),"Late observation extended cooldown")
 end
 do
  local s=begin();local damage=0

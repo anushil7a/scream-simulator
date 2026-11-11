@@ -40,8 +40,8 @@ check(#api.Step(s,.2,moved,resolve)==0 and calls==1,"Duplicate tick re-ran geome
 check(not api.Stop(s,.25,2) and s.intent~=nil,"Stale stop canceled fresh attack")
 local noHits,stop=api.Step(s,.3,{origin=0,character={},level=100},resolve)
 check(#noHits==0 and stop.reason=="state" and s.intent==nil,"Respawn retained attack")
-check(not api.Begin(s,10.29,request(4,0,50,.5),context),"Respawn bypassed cooldown")
-check(api.Begin(s,10.3,request(5,0,50,.5),context),"Restart after cooldown failed")
+check(not api.Begin(s,5.299,request(4,0,50,.5),context),"Respawn bypassed cooldown")
+check(api.Begin(s,5.3,request(5,0,50,.5),context),"Restart after cooldown failed")
 local _,timeout=api.Step(s,11,context,resolve)
 check(timeout.reason=="timeout" and calls==1 and s.intent==nil,"Stale input resolved geometry")
 check(api.Begin(s,21,request(6,0,50,.5),context),"Start after timeout failed")
@@ -98,9 +98,9 @@ for tick=1,20 do
  if ended then finalEnd=ended end
 end
 check(total==math.floor(Combat.Stats(100,1,false).maxDps*Attack.MaxDuration+1e-7),"Full attack exceeded or missed its expected synthetic budget")
-check(finalEnd and finalEnd.reason=="duration" and finalEnd.nextStart==14 and cycle.intent==nil,"Duration end/cooldown metadata incorrect")
+check(finalEnd and finalEnd.reason=="duration" and finalEnd.nextStart==9 and cycle.intent==nil,"Duration end/cooldown metadata incorrect")
 local before=resolutions
 check(#api.Step(cycle,4.2,high,fullResolve)==0 and resolutions==before,"Completed attack kept resolving geometry")
-check(not api.Begin(cycle,13.999,request(2,0,50,1),high),"Restart before cooldown accepted")
-check(api.Begin(cycle,14,request(3,0,50,1),high),"Exact cooldown boundary rejected")
+check(not api.Begin(cycle,8.999,request(2,0,50,1),high),"Restart before cooldown accepted")
+check(api.Begin(cycle,9,request(3,0,50,1),high),"Exact cooldown boundary rejected")
 print("PASS "..checks.." sustained adapter checks with mocked geometry")

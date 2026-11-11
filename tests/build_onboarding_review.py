@@ -62,6 +62,20 @@ notifications=modules.NotificationQueue.new();task.wait(.5);observe("manual-read
 castButton.Activated:Connect(function()task.defer(function()task.wait(.1);observe("manual-click")end)end)
 UIS.InputBegan:Connect(function(input,processed) if not processed and input.KeyCode==Enum.KeyCode.E then task.defer(function()task.wait(.1);observe("manual-key")end) end end)
 print("ONBOARDING_READY synthetic mic/remotes; no persistence")
+-- Reuse the actual collection renderer for full-power stat/cooldown readability.
+data.level=100;selected="Screams";modal.Visible=true
+for _,view in ipairs({{390,844,true},{844,390,true},{1280,720,false}}) do
+ gui.Size=UDim2.fromOffset(view[1],view[2]);fixtureTouch=view[3]
+ Run.RenderStepped:Wait();render();Run.RenderStepped:Wait();Run.RenderStepped:Wait()
+ local found,clipped=0,{}
+ for _,obj in ipairs(content:GetDescendants()) do
+  if obj:IsA("TextLabel") and (obj.Text:find("FULL-POWER LIMITS",1,true) or obj.Text:find("Sound styles change audio",1,true)) then
+   found+=1;if not obj.TextFits then table.insert(clipped,obj.Text) end
+  end
+ end
+ print("BEAM_READOUT_RESULT",Http:JSONEncode({viewport=tostring(gui.AbsoluteSize),found=found,clipped=clipped,cooldown=sustainedRules.Cooldown}))
+ assert(found==2 and #clipped==0,"Beam summary is missing or clipped")
+end
 '''
 (out/'OnboardingReview.client.luau').write_text(s)
 subprocess.run(['luau-compile',str(out/'OnboardingReview.client.luau')],stdout=subprocess.DEVNULL,check=True)

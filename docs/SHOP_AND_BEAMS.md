@@ -29,7 +29,7 @@ Receipt IDs are never pruned. At 8,000 receipts per user, new prompts/grants fai
 
 The sustained attack now uses an animated rig instead of a single thin line. White cores sit inside translucent colored cylinders. Traveling rings increase with level; level 40 adds a spiral, level 80 a second strand, and level 90 increases the spiral winding and ring count. The endpoint corona gains rays at levels 20 and 70. Width and core size grow between these milestones. Level comes from the server's latched attack, independent of the selected sound.
 
-Combat damage, target geometry, 4-second duration, 10-second cooldown and the owner's quiet beam SFX are unchanged. Rings/coronas are cosmetic and stay within beam width. There is no added camera shake, flashing light or extra audio. Reduced effects retain the core and endpoint only; distant attacks drop decoration beyond 110 studs and stop rendering beyond 180.
+Combat damage, target geometry, 4-second duration and the owner's quiet beam SFX are unchanged. The November 11 core-game batch changes the automatic beam cooldown to five seconds after attack end. Rings/coronas are cosmetic and stay within beam width. There is no added camera shake, flashing light or extra audio. Reduced effects retain the core and endpoint only; distant attacks drop decoration beyond 110 studs and stop rendering beyond 180.
 
 The existing manager caps attackers at 24 and expires stale pulses after 0.5 seconds. Rigs reuse parts across pulses and attacks. Allocation is capped at 512 Parts; decoration reserves five core slots per attacker. Animation updates at most 30 Hz before the slower HUD query throttle. These are bounded allocations, not a measured FPS improvement or a multiplayer performance claim.
 

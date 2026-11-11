@@ -389,12 +389,14 @@ render=function()
   end
   info(progress..string.format("\nNow: %d HP · %.1f max DPS\nTrain at the %s beach pad. Challenges are in Quests.",stats.health,stats.maxDps,data.training or "Rookie"))
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
+  local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs\n%.0fs max attack · %.0fs cooldown after stopping",data.level,maximum.maxDps,maximum.maxRange,sustainedRules.MaxDuration,sustainedRules.Cooldown)
+   or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs\n%.0fs cooldown",data.level,maximum.damage,maximum.maxRange,maximum.cooldown)
+  info(combatSummary,narrow and 112 or 82)
+  info("Sound styles change audio, not damage or range. These limits use your current level for the next attack. Lower voice power and cover shorten reach. DPS requires full power and continuous contact; cooldown deals no damage.",narrow and 150 or 96)
   for _,s in ipairs(Config.Sounds) do
    local c=card(narrow and 194 or 118);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
    label(c,s.description,UDim2.new(1,narrow and -28 or -158,0,narrow and 40 or 25),UDim2.fromOffset(14,narrow and 54 or 36),13)
-   local combatSummary=sustainedRules and string.format("UP TO %.1f DPS · %.1f STUDS\n%.0fs MAX ATTACK · %.0fs COOLDOWN",maximum.maxDps,maximum.maxRange,sustainedRules.MaxDuration,sustainedRules.Cooldown)
-    or string.format("UP TO %d DAMAGE · %.1f STUDS\n%.0fs COOLDOWN",maximum.damage,maximum.maxRange,maximum.cooldown)
-   label(c,combatSummary,UDim2.new(1,-28,0,40),UDim2.fromOffset(14,narrow and 95 or 69),12,muted)
+   label(c,"SOUND STYLE · uses your level's beam power",UDim2.new(1,-28,0,40),UDim2.fromOffset(14,narrow and 95 or 69),12,muted)
    local unlocked=data.level>=s.level
    local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,narrow and 145 or 21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
    if not unlocked then b.TextColor3=muted end

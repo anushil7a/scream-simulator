@@ -95,16 +95,16 @@ task.spawn(function()
   -- Fresh but invalid aim must cancel, rather than extending the active beam.
   action:FireServer("SustainedPulse",{sequence=2,sample=1000,power=.5,aim=Vector3.new(0/0,0,0)})
   waitFor(function() return not snapshot().active end,2,"Invalid aim did not cancel active attack")
-  local ended=snapshot();check(ended.cooldown>8 and ended.cooldown<=10,"Cancellation failed to establish cooldown")
+  local ended=snapshot();check(ended.cooldown>3 and ended.cooldown<=5,"Cancellation failed to establish cooldown")
   waitFor(function() return not sustainedControl.attack end,2,"Client retained server-cancelled attack")
   stage("cooldown rejection")
   -- This consumes sequence 3. The real client later collides with it and retries.
   action:FireServer("SustainedBegin",{sequence=3,power=.5,aim=setup.aim})
   task.wait(.2)
   local cooling=snapshot()
-  check(not cooling.active and cooling.lastSequence==3 and cooling.cooldown>7,"New sequence bypassed cooldown")
+  check(not cooling.active and cooling.lastSequence==3 and cooling.cooldown>2,"New sequence bypassed cooldown")
   local beginCount=0;for _,v in ipairs(sent) do if v.verb=="SustainedBegin" then beginCount+=1 end end
-  waitFor(function() return (p:GetAttribute("SustainedReadyAt") or 0)<=workspace:GetServerTimeNow() end,12,"Real cooldown did not expire")
+  waitFor(function() return (p:GetAttribute("SustainedReadyAt") or 0)<=workspace:GetServerTimeNow() end,7,"Real cooldown did not expire")
   task.wait(.4)
   local afterCount=0;for _,v in ipairs(sent) do if v.verb=="SustainedBegin" then afterCount+=1 end end
   check(afterCount==beginCount,"Held voice restarted at cooldown expiry")

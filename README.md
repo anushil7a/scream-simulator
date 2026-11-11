@@ -32,7 +32,7 @@ The [release handoff](docs/RELEASE_HANDOFF.md) records the latest local build, l
 
 ## Implemented in this branch
 
-- Automatic live-mic attacks: calibrate, allow a brief quiet interval, then aim and speak. Sustained beams follow aim for up to four seconds, followed by ten seconds cooldown from attack end. E/VOICE arms or pauses; real microphone/proximity-voice validation remains outstanding.
+- Automatic live-mic attacks: calibrate, allow a brief quiet interval, then aim and speak. Sustained beams follow aim for up to four seconds, followed by five seconds cooldown from attack end. E/VOICE arms or pauses; real microphone/proximity-voice validation remains outstanding.
 - Levels 1–100, bounded power/level scaling, visual style unlocks every ten levels, compact menus, mouse aim and touch controls. City Preview version 19 already has the 100-level cap but retains hold/release combat.
 - Central PvP district, safe city surroundings, spawn protection, separate dodge, sprint stamina, level-scaled health and quiet-time healing.
 - Barcelona-inspired city with courtyards, enterable shops, market, beach, usable seating, pier, lookout, swimming area and lifeguard boundary recovery. Art and performance are still being refined.

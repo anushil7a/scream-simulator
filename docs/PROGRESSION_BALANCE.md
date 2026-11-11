@@ -28,18 +28,20 @@ Three independent challenges renew automatically: contribute meaningfully to thr
 
 XP to the next level is `floor(65 + 6L + 0.6L² + 0.009L³)`. Existing earned levels and banked XP are retained and normalized against the new thresholds; an old balance above a lowered threshold can advance a level. There is no level reset. The existing level-300 archive, style migration, session lease and temporary-test save protections remain. New costs can change the fraction of the current level's bar represented by the same banked XP.
 
-The approved HP/DPS curves, four-second maximum attack and ten-second end-based cooldown remain unchanged. Healing still waits twelve seconds after dealing or receiving damage.
+The approved HP/DPS curves and four-second maximum attack remain unchanged. The November 11 candidate uses the requested five-second end-based cooldown. Healing still waits twelve seconds after dealing or receiving damage.
 
 ## Pacing model, not measured playtime
 
-`tests/ProgressionPacing.luau` uses the actual rules and simulates solo training at the recommended tier, integer attack counts, four-second attacks plus ten-second cooldowns, travel/retarget delay, and fighter/Elite challenges. It carries overflow XP. It excludes cover/city quest/PvP bonuses, player defeats, contention, microphone failures and menus; it therefore cannot predict an individual player's session.
+`tests/ProgressionPacing.luau` uses the actual rules and simulates solo training at the recommended tier, integer attack counts, four-second attacks plus five-second cooldowns, travel/retarget delay, and fighter/Elite challenges. It carries overflow XP. It excludes cover/city quest/PvP bonuses, player defeats, contention, microphone failures and menus; it therefore cannot predict an individual player's session.
 
 | Cumulative milestone | Learning | Steady | Efficient |
 | --- | ---: | ---: | ---: |
-| Level 10 | 17.6 min | 10.8 min | 9.6 min |
-| Level 25 | 97.2 min | 62.4 min | 51.3 min |
-| Level 50 | 5.9 h | 3.9 h | 3.0 h |
-| Level 100 | 23.7 h | 15.9 h | 11.5 h |
+| Level 10 | 12.9 min | 7.8 min | 6.6 min |
+| Level 25 | 71.8 min | 45.1 min | 35.4 min |
+| Level 50 | 254.6 min | 164.2 min | 121.9 min |
+| Level 100 | 1013.4 min | 666.0 min | 470.8 min |
+
+Rerun November 11 with the five-second cooldown; the change speeds this model without altering XP rewards.
 
 Assumptions: learning 55% aim uptime / 65% power / 15s retarget delay; steady 75% / 80% / 8s; efficient 90% / 100% / 4s. These are tuning scenarios, not player telemetry or targets guaranteed by tests.
 

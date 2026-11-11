@@ -1,7 +1,7 @@
 -- Pure server-side protocol used by the automatic voice adapter.
 -- now is the server clock, maxDps is server-derived, targets are server-resolved
 -- IDs after geometry/PvP checks. None may come directly from client payloads.
-local Attack={MaxDuration=4,Cooldown=10,TickInterval=.2,InputTimeout=.5,
+local Attack={MaxDuration=4,Cooldown=5,TickInterval=.2,InputTimeout=.5,
  MinPulseInterval=.1,MinimumPower=.08,MaxDps=68,MaxTargets=128,MaxStep=.25}
 local EPS=1e-7
 local function finite(n) return type(n)=="number" and n==n and math.abs(n)<math.huge end
