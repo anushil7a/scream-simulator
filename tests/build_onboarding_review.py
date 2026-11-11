@@ -30,10 +30,32 @@ local function observe(stage)
   end
  end
  local all=table.concat(seen," | "):lower()
+ local avoidsProfanity=all:find("avoid profanity",1,true)~=nil
+ local moderation=all:find("roblox records and moderates voice",1,true)~=nil or all:find("roblox records voice for moderation",1,true)~=nil
+ if stage=="setup" then
+  assert(avoidsProfanity and moderation,"Setup voice safety disclosure missing")
+  local found=0
+  for _,obj in ipairs(micPanel:GetDescendants()) do
+   if obj:IsA("TextLabel") and obj.Text:find("Avoid profanity",1,true) then
+    found+=1
+    -- Allocated label fit only, not scroll viewport visibility or human accessibility.
+    assert(obj.TextFits,"Native setup voice safety text does not fit its allocated label")
+   end
+  end
+  assert(found==1,"Setup voice safety label duplicated or missing")
+ end
+ if stage=="settings" then
+  assert(avoidsProfanity and moderation and all:find("rating and settings",1,true) and all:find("volume, not words",1,true) and all:find("stopping attacks does not mute voice",1,true),"Settings voice safety distinctions missing")
+  local found=0
+  for _,obj in ipairs(content:GetDescendants()) do
+   if obj:IsA("TextLabel") and obj.Text:find("VOICE SAFETY",1,true) then found+=1;assert(obj.TextFits,"Native voice safety text does not fit its allocated card") end
+  end
+  assert(found==1,"Settings voice safety card duplicated or missing")
+ end
  local pos,size=castButton.AbsolutePosition,castButton.AbsoluteSize
  local hits=p.PlayerGui:GetGuiObjectsAtPosition(pos.X+size.X/2,pos.Y+size.Y/2)
  local top=hits[1];local reachable=top==castButton or top and top:IsDescendantOf(castButton)
- local report={stage=stage,viewport=tostring(gui.AbsoluteSize),armed=sustainedControl.armed,normalSpeechWarning=all:find("normal speech",1,true)~=nil,voiceUnchanged=all:find("voice chat",1,true)~=nil or all:find("live voice",1,true)~=nil,button=castButton.Text,buttonSize=tostring(size),buttonPosition=tostring(pos),controlsVisible=controls.Visible,reachable=reachable==true,clipped=clipped,text=seen,verbs=table.clone(fixtureVerbs),micReady=mic.ready}
+ local report={stage=stage,avoidsProfanity=avoidsProfanity,robloxVoiceModeration=moderation,viewport=tostring(gui.AbsoluteSize),armed=sustainedControl.armed,normalSpeechWarning=all:find("normal speech",1,true)~=nil,voiceUnchanged=all:find("voice chat",1,true)~=nil or all:find("live voice",1,true)~=nil or all:find("does not mute voice",1,true)~=nil,button=castButton.Text,buttonSize=tostring(size),buttonPosition=tostring(pos),controlsVisible=controls.Visible,reachable=reachable==true,clipped=clipped,text=seen,verbs=table.clone(fixtureVerbs),micReady=mic.ready}
  rowSerial+=1
  local encoded=Http:JSONEncode(report);local chunks={};local start=1
  while start<=#encoded do
@@ -44,13 +66,13 @@ local function observe(stage)
 end
 local fixtureCharacter=p.Character or p.CharacterAdded:Wait();fixtureCharacter:WaitForChild("Humanoid")
 windowFocused=true;data.activeQuest=nil;data.achievements={};modal.Visible=false
-for _,view in ipairs({{390,844,true},{844,390,true},{1280,720,false}}) do
+for _,view in ipairs({{320,568,true},{390,844,true},{844,390,true},{1280,720,false}}) do
  gui.Size=UDim2.fromOffset(view[1],view[2]);fixtureTouch=view[3];mic.ready=false
  Run.RenderStepped:Wait();Run.RenderStepped:Wait();observe("setup")
 end
 gui.Size=UDim2.fromOffset(390,844);fixtureTouch=true;mic.ready=true;data.micReady=true;mic.power=0
 Run.RenderStepped:Wait();task.wait(.5);observe("first-ready")
-for _,view in ipairs({{390,844,true},{844,390,true},{1280,720,false}}) do
+for _,view in ipairs({{320,568,true},{390,844,true},{844,390,true},{1280,720,false}}) do
  gui.Size=UDim2.fromOffset(view[1],view[2]);fixtureTouch=view[3];windowFocused=true;sustainedControl:SetArmed(true);mic.power=0
  notifications=modules.NotificationQueue.new();task.wait(.5);observe("on")
  mic.power=.8;task.wait(.3);observe("synthetic-active")

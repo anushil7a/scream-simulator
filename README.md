@@ -12,6 +12,8 @@
 
 **Active development, not a completed release.** Current work is on `feature/microphone-city-redesign`. The last recorded City Preview release is version 19; subsequent automatic-voice changes are unpublished. Original-experience version numbers are separate. [Historical release notes](docs/RELEASE_32_NOTES.md) describe that older build.
 
+**Voice safety notice:** setup and Settings explain that Roblox records/moderates voice, advise avoiding profanity, and distinguish the beam volume meter from speech recognition. Stopping attacks does not mute voice; Roblox microphone/report controls remain separate. Current game rating/settings and native notice readability remain unverified. [Policy sources and scope](docs/MICROPHONE_POLICY_REVIEW.md).
+
 ## Integrated smaller-map candidate
 
 The current unpublished candidate now uses the **720 x 600 compact city**, 75% less footprint than the original. Spawn, practice, training pads, arena boundaries, quest interactions, sports and both map views use matching coordinates. Environment cover is static: object destruction is excluded. The original repository-generated city remains preserved as an exact source archive plus guarded local place files.
@@ -28,7 +30,7 @@ rojo build default.project.json -o build/MicrophoneCity.rbxl
 rojo build default.project.json -o build/MicrophoneCity.rbxlx
 ```
 
-Open `build/MicrophoneCity.rbxl` in Roblox Studio and press Play. The city is generated on startup; an empty Edit viewport is expected. Build from `src/` rather than assuming older root-level place files contain this redesign. Rojo 7.7 was used. Generated `build/` outputs are ignored by Git.
+The normal-profile `build/MicrophoneCity.rbxl` is not a save sandbox. For local Play, use the guarded `build/SustainedLocalPlay.rbxl` described below. The city is generated on startup; an empty Edit viewport is expected. Build from `src/` rather than assuming older root-level place files contain this redesign. Rojo 7.7 was used. Generated `build/` outputs are ignored by Git.
 
 For isolated local gameplay review, run `python3 tests/verify_local.py --build` and open `build/SustainedLocalPlay.rbxl`. It uses temporary profiles and must never be published. `build/SustainedNativeFixture.rbxl` adds synthetic checks; `build/PerformanceReview.rbxl` adds the manual performance collector. The same command builds `build/AutomaticVoiceCandidate.rbxl` with normal profile handling and a provenance sidecar; it is not a disposable save sandbox and is not approved for upload. See the [manual test plan](docs/AUTOMATIC_VOICE_PLAYTEST.md).
 

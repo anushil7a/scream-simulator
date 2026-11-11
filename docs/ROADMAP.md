@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 microphone policy warning
+
+- Implemented requested setup/Settings notice after checking official current Roblox rules. Advise avoiding profanity without blanket ban claims; distinguish Roblox recording/moderation from the beam volume meter, possible rule-violation restrictions, and attack OFF from microphone mute. Removed the prior game-wide recording guarantee. Rating/settings remain unverified; no moderation/settings change.
+- Only two setup strings and one auto-measured, scrollable Settings info card changed in production. Independent source/test review clears the copy;402 actual-slice assertions,3 source contracts and4 controls pass, with mocked text metrics. Existing voice29/two controls, microphone111 and audio2629/nine controls pass. Full25 pure/synthetic +79 mocked suites,59 production compiles and all builds pass.
+- Updated native onboarding fixture is built only, not executed; allocated text fit is distinct from visible viewport/human accessibility. Existing minimized-picker access limitation remains; no apps opened. [Policy/source review](MICROPHONE_POLICY_REVIEW.md), [evidence](../tests/evidence/microphone-notice-2026-11-11.json). No publication/live stores. Map work is paused pending the owner's approval; continue only coordinated non-map work.
+
 ## November 11 compact navigation guidance correction
 
 - Independent review found retained original-district giver labels and a nonexistent compact pier in race-start text. Corrected compact-only giver names/locations and race direction, preserving all quest IDs, objectives/rewards/progress and race timing. Baseline failure reproduced;69 focused assertions/four controls,361 renderer assertions/six controls and374 migration assertions pass.

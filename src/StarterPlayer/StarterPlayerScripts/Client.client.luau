@@ -224,7 +224,7 @@ end)
 local micPanel=frame(gui,"MicSetup",UDim2.fromOffset(430,260),UDim2.fromScale(.5,.5));micPanel.AnchorPoint=Vector2.new(.5,.5);micPanel.ZIndex=20
 local micTitle=label(micPanel,"YOUR VOICE. YOUR POWER.",UDim2.new(1,-36,0,35),UDim2.fromOffset(18,16),21,gold)
 local micStatus=label(micPanel,"",UDim2.new(1,-36,0,90),UDim2.fromOffset(18,58),15)
-label(micPanel,sustainedControl and "BEAMS ON: normal speech can fire attacks. Turn OFF to talk; nearby voice stays on. This game saves no recordings." or "A microphone and Roblox voice access are required. Nearby players hear your live voice. No recordings are saved by this game.",UDim2.new(1,-36,0,50),UDim2.fromOffset(18,146),12,muted)
+label(micPanel,sustainedControl and "BEAMS ON: normal speech can attack. OFF does not mute voice. Avoid profanity. Roblox records and moderates voice." or "Roblox voice access required. Nearby players may hear you. Avoid profanity. Roblox records and moderates voice.",UDim2.new(1,-36,0,50),UDim2.fromOffset(18,146),12,muted)
 button(micPanel,"Calibrate","CALIBRATE MIC",UDim2.fromOffset(188,36),UDim2.fromOffset(18,208),function() mic:Calibrate() end,gold).TextColor3=dark
 button(micPanel,"Retry","CHECK ACCESS",UDim2.fromOffset(188,36),UDim2.fromOffset(224,208),function() mic:Check() end)
 for _,v in ipairs(micPanel:GetDescendants()) do if v:IsA("GuiObject") then v.ZIndex=21 end end
@@ -476,6 +476,7 @@ render=function()
    attackHelp=string.format("BEAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each beam.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap BEAMS" or "E / BEAMS")
   else attackHelp=touch and "Hold BEAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / BEAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
+  info("VOICE SAFETY\nAvoid profanity. Roblox's profanity rules depend on the game's rating and settings; harassment, threats and hate speech are not allowed. Rule violations may restrict voice or your account.\nRoblox records voice for moderation. The beam mechanic reads volume, not words. Stopping attacks does not mute voice. Use Roblox's mic control to mute, or Report Abuse for violations.",100)
   info(string.format("Third-person camera\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
   info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
   local micCard=card(58)
