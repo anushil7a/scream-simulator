@@ -72,6 +72,15 @@ end
 local function cancelSustained(p,s,now)
  if s.sustained then sustainedEnd(p,sustained.Cancel(s.sustained,now),now) end
 end
+-- Do not rely on automatic Player destruction to release session closures.
+-- Disconnect before any departure/shutdown save yields; running callbacks still
+-- use their existing session/character guards and may finish independently.
+local function disconnectSessionSignals(s)
+ local added,removing=s.characterAddedConnection,s.characterRemovingConnection
+ s.characterAddedConnection=nil;s.characterRemovingConnection=nil
+ if added then added:Disconnect() end
+ if removing then removing:Disconnect() end
+end
 local function beamColor(p,s)
  if s.data.useCustomColor and s.data.customColor and Entitlements.HasSpectrum(p) then return Color3.fromHex(s.data.customColor) end
  return s.data.aura
@@ -845,12 +854,12 @@ local function joined(p)
   p:SetAttribute("Sprinting",false);p:SetAttribute("SprintCooldown",0);p:SetAttribute("SprintCharge",Config.SprintDuration)
   protect(p,s);state(p)
  end
- p.CharacterRemoving:Connect(function(c)
+ s.characterRemovingConnection=p.CharacterRemoving:Connect(function(c)
   if sessions[p]~=s or s.character~=c then return end
   closeConversation(p);cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
   p:SetAttribute("CaptureStarted",0);s.sprintRequested=false;s.character=nil
  end)
- p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
+ s.characterAddedConnection=p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
  stepVoiceEligibility(p,s,os.clock());dispatchVoiceEligibility(os.clock())
  state(p,loadMessage or "Welcome · train for XP, unlock beam styles, and explore the coast")
 end
@@ -867,6 +876,7 @@ local function leaving(p)
  closeConversation(p)
  local s=sessions[p]
  if not s then return end
+ disconnectSessionSignals(s)
  cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
  -- Release gameplay ownership before Save yields. Delayed gameplay callbacks
  -- must not mutate a departing profile or clear a replacement session later.
@@ -994,6 +1004,7 @@ local function shutdown()
  -- Freeze gameplay before any final save can yield or release its lease.
  -- In-flight joins see closing and release their acquired profile instead.
  for p,s in pairs(sessions) do
+  disconnectSessionSignals(s)
   closeConversation(p);cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
   sessions[p]=nil
   if s.canSave then table.insert(finalSaves,{player=p,session=s}) end

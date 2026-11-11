@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 explicit session signal cleanup
+
+- Astra identified a conditional indirect reference: hung API worker retains Player whose character handlers close over a departed session. Actual lifecycle/mock signals reproduced both callbacks remaining after leave/shutdown. Store/disconnect both handles before detach or save yield, including temporary sessions; retain normal respawn and stale running-callback guards. This closes those registered edges, not proof of full collectability.
+- Independent22 assertions/four controls pass; existing respawn/departure/shutdown/profile checks remain. Final25 pure/synthetic +85 mocked suites,60 compiles and all builds pass. [Review, exact evidence and limits](SESSION_CONNECTIONS_REVIEW.md). Running save/spawn callbacks, combat-credit attribution and engine references may still retain data; no native memory/GC claim.
+- Separate readiness audit corrected obsolete public test-tools instructions and historical/current evidence labels, clarified excluded traffic/destruction and current source pointers without editing maps, and documented additive combat tasks. Map remains paused. No apps, live stores or publication. Next: Astra review and concrete non-map release work; retain existing native/account/device gates.
+
 ## November 11 voice recovery, global bounds and legacy cancellation
 
 - Astra follow-up reproduced terminal refresh-error exhaustion and a saturated legacy CancelCast leaving a releasable capture. Replace terminal failure with paced automatic30/60/120-second capped recovery bursts plus spread; periodically recheck denied status without granting access. Preserve fixed cache expiry, timely true requirement and deliberate rearming.

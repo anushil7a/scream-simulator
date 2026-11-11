@@ -4,7 +4,7 @@
 
 **Attack audio:** [owner-selected tier effects](assets/audio/README.md) now map levels 10 through 100 to the ten supplied Roblox IDs, with original pitch, selectable NORMAL/LOW/OFF mixing and local-mic ducking. NORMAL raises the non-speaking mix budget; LOW preserves the old quiet mix, and detected local voice retains the old ceiling. All ten loaded in a silent local Studio check; gameplay listening and City Preview access remain unverified. Level 1 stays voice-only. Attack duration stays four seconds.
 
-**Current direction (November 9):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 5 seconds cooldown), preserving normal profiles. Calibrate once, stay quiet briefly, then aim and speak; E/BEAMS turns attacks off/on without muting voice chat. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue authorized work until the owner asks to stop or a real blocker needs help.
+**Current direction (November 11):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 5 seconds cooldown), preserving normal profiles. Calibrate once, stay quiet briefly, then aim and speak; E/BEAMS turns attacks off/on without muting voice chat. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue authorized work until the owner asks to stop or a real blocker needs help.
 
 [GitHub repository](https://github.com/anushil7a/scream-simulator) · [City Preview](https://www.roblox.com/games/90337242377543/Scream-Simulator-City-Preview) · [Separate original experience](https://www.roblox.com/games/122465114514497/Scream-Simulator)
 
@@ -14,11 +14,15 @@
 
 **Voice safety notice:** setup and Settings explain that Roblox records/moderates voice, advise avoiding profanity, and distinguish the beam volume meter from speech recognition. Stopping attacks does not mute voice; Roblox microphone/report controls remain separate. Current game rating/settings and native notice readability remain unverified. [Policy sources and scope](docs/MICROPHONE_POLICY_REVIEW.md).
 
+**Server voice checks:** beam eligibility is checked independently with bounded automatic recovery and globally paced calls. Account voice access is not authentic microphone-power proof. Calibrated movement and ordinary proximity voice remain separate; native API/device validation is still pending. [Current scope and limits](docs/VOICE_ELIGIBILITY_RECOVERY_REVIEW.md).
+
 ## Integrated smaller-map candidate
 
 The current unpublished candidate now uses the **720 x 600 compact city**, 75% less footprint than the original. Spawn, practice, training pads, arena boundaries, quest interactions, sports and both map views use matching coordinates. Environment cover is static: object destruction is excluded. The original repository-generated city remains preserved as an exact source archive plus guarded local place files.
 
 Use `python tests/verify_local.py --build` and the guarded `build/SustainedLocalPlay.rbxl` for local review, not the normal-profile candidate. Native geometry/gameplay validation is still pending; do not publish. [Integration evidence and remaining gates](docs/COMPACT_CITY_INTEGRATION_REVIEW.md). The separate `compact-city-draft.project.json` remains a historical geometry-only design preview, not the integrated game.
+
+**Combat tasks:** Controlled Beams and Team Effort are two additional menu-accessible quest IDs. The eight earlier quest IDs, saved progress and claims remain; mixed-version rollout/rollback safety is still a release gate. [Quest review](docs/COMBAT_QUESTS_REVIEW.md).
 
 ## Build the current source
 
@@ -77,7 +81,7 @@ Outstanding release gates include real microphones and eligible accounts, physic
 
 - Real paid game passes and published Roblox badges: product/badge IDs and ownership/award verification are not configured. Cosmetic options, entitlement hooks, Studio movement testing and in-game Nick achievements exist.
 - Two-account live voice listening, permission/reconnect behavior and comfortable-volume calibration across actual microphones.
-- Physical phone/touch and multiplayer combat, roll/attack cancellation, traffic impacts, quests and destruction/repair playtests.
+- Physical phone/touch and multiplayer combat, roll/attack cancellation, quests and static-cover interactions. Traffic and object destruction/repair are excluded from the compact candidate.
 - Live test-universe save/rejoin, migration and concurrent-session verification.
 - Final city art/game-feel acceptance and measured desktop/phone performance at the intended player count, including a representative 30-minute multiplayer soak.
 - Final production rollout/rollback and old-server drain. City Preview is a test publication; the original experience remains separate.

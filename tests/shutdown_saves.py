@@ -55,7 +55,7 @@ check(now-start>=25 and now-start<25.2 and #queue==1,'Pending shutdown save wait
 print('PASS '..checks..' actual shutdown checks with mocked scheduler/saves')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
-    path=Path(f.name);f.write(setup+s[a:b]+checks)
+    path=Path(f.name);f.write(setup+s[s.index('local function disconnectSessionSignals('):s.index('local function beamColor(')]+s[a:b]+checks)
 try:
     subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally:

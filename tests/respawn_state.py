@@ -7,7 +7,7 @@ import tempfile
 root=Path(__file__).resolve().parents[1]
 source=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
 start=source.index(' local function spawn(c)')
-end=source.index(' p.CharacterAdded:Connect(spawn)',start)
+end=source.index(' s.characterAddedConnection=p.CharacterAdded:Connect(spawn)',start)
 setup='''
 local now=20;local os={clock=function()return now end}
 local Config={SprintDuration=10,HealQuietSeconds=10,HealthForLevel=function()return 135 end}
@@ -18,7 +18,7 @@ local state=function()states+=1 end
 local cancelSustained=function()cancels+=1 end
 local VoiceCombat={Cancel=function(v)v.capture=nil end}
 local removed
-local p={Parent=true,attributes={},CharacterRemoving={Connect=function(_,fn)removed=fn end}}
+local p={Parent=true,attributes={},CharacterRemoving={Connect=function(_,fn)removed=fn;return {Disconnect=function()end} end}}
 function p:SetAttribute(k,v)self.attributes[k]=v end
 local s={data={level=100},micReady=true,nextDodge=24,voice={capture=true}}
 local sessions={[p]=s}

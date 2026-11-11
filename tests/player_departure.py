@@ -68,7 +68,7 @@ check(exceptionWarning[2]==7 and tostring(exceptionWarning[3]):find('fake save f
 print('PASS '..checks..' actual departure checks with mocked yielding save')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
-    path=Path(f.name);f.write(setup+source[a:b]+checks)
+    path=Path(f.name);f.write(setup+source[source.index('local function disconnectSessionSignals('):source.index('local function beamColor(')]+source[a:b]+checks)
 try:
     subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally:

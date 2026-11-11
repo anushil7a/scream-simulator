@@ -1,0 +1,55 @@
+{
+  "base_commit": "7ae5149168f0671cfa63c35b3b0b05572d14c3fe",
+  "recorded_at_utc": "2026-11-11T20:11:51.184005+00:00",
+  "scope": "explicit Player character signal ownership and departure/shutdown disconnection",
+  "source_hash_semantics": "exact tested working-tree bytes; checkout line endings may differ",
+  "source_sha256": {
+    "src/ServerScriptService/Bootstrap.server.luau": "66fb4e35b270230318cebf4ce99ee4bdd7923363d34f4ab93ee245eccbfb190a",
+    "tests/session_connections.py": "07542700f1340eb105569e50713a7fa9c497b4c570ff29d0defdc4337924dcf7",
+    "tests/respawn_state.py": "97a4c3d320991f5451907e5be998b12a6fd85d8c2a350ff2696ccbbb2ca518dc",
+    "tests/player_departure.py": "18493ebe748c0603d03eac392d224594ee11c8ef34ea58af60f16d0189cae176",
+    "tests/shutdown_race.py": "32ad689ecb19b9941a601c8dfcd34603c9bd7e3b92b1a61ab3c7ef4410803a6d",
+    "tests/shutdown_saves.py": "afe9eb0b19b7adeea10c6b195a90b2279c72ace1687707e2ddd4ad3ecca85820",
+    "tests/verify_local.py": "cbbeae1ffe225520cbc07fcbffe33b0a582fefc18166606f09e40cc9fca9b0bc"
+  },
+  "artifact_sha256": {
+    "build/AutomaticVoiceCandidate.rbxl": "fce68f12c3d1c2fb460aa4cca12bf19b7887239c577429ff432bc0660785fffc",
+    "build/AutomaticVoiceCandidate.provenance.json": "1e5019825519b36c97ffb77e8340c464eb82cb2e0a05532d59a0b81d23eb6ed1",
+    "build/SustainedLocalPlay.rbxl": "d9784a936c218da5eebd2c159dd28e98f35d37fe9f6b31c8e95577d92111b038",
+    "build/session-connections-final.log": "a03a5b014b0d054ec329843d114a697e09dd942a0d4c553adf88040e41e8c627",
+    "build/session-connections-baseline.log": "54cd71cb35412bcbc6259ad9e7ab2a416ea14a43d2ea91f0415ec8d9a2b7d892"
+  },
+  "focused": {
+    "assertions": 22,
+    "negative_controls": 4,
+    "independently_rerun": true
+  },
+  "existing_checks": {
+    "respawn": 13,
+    "departure": 23,
+    "shutdown": 11,
+    "shutdown_race": 34,
+    "profile_recovery": 83
+  },
+  "aggregate": {
+    "pure_synthetic_suites": 25,
+    "mocked_suites": 85,
+    "production_compiles": 60,
+    "all_builds_pass": true
+  },
+  "commands": [
+    "python tests/session_connections.py --baseline",
+    "python tests/session_connections.py",
+    "python tests/verify_local.py --build"
+  ],
+  "baseline": "retained mock Player keeps two session-closing callbacks after actual departure/shutdown",
+  "limitations": [
+    "mocked signals and lifecycle/reference edges,not native Roblox leak demonstration",
+    "Disconnect does not cancel already-running callbacks",
+    "existing Humanoid wait and in-flight saves retain data until completion",
+    "combat credit rewardSession references remain until normal prune/reset/KO",
+    "no full collectability,forcedGC,native memory or network proof",
+    "no map source edit,apps,publication,live stores or settings changes"
+  ],
+  "readiness_docs": "corrected tester authorization,legacy/current scope and historical evidence labels; no release actions"
+}

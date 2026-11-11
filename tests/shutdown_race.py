@@ -142,7 +142,7 @@ check(#logged==1 and logged[1][2]==8 and tostring(logged[1][3]):find('injected l
 check(joinsInFlight==0 and sessions[p]==nil and records.Player_8._lease~=nil,'Exception claimed release or leaked gameplay/tracking')
 print('PASS '..checks..' actual shutdown/reward/join/profile race checks (synthetic store and scheduler)')
 '''
-code=setup+profiles+between+section('local function coins(','local function syncHealth(')+section('local function xp(','local function questProgress(')+section('action.OnServerEvent:Connect(function(p,verb,arg)','local function joined(p)')+section('local function joined(p)','Players.PlayerAdded:Connect(joinTracked)')+section('local function shutdown()','game:BindToClose(shutdown)')+checks
+code=setup+profiles+between+section('local function disconnectSessionSignals(','local function beamColor(')+section('local function coins(','local function syncHealth(')+section('local function xp(','local function questProgress(')+section('action.OnServerEvent:Connect(function(p,verb,arg)','local function joined(p)')+section('local function joined(p)','Players.PlayerAdded:Connect(joinTracked)')+section('local function shutdown()','game:BindToClose(shutdown)')+checks
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.shutdown_race_',dir=root/'tests',delete=False) as f:
     path=Path(f.name);f.write(code)
 try:subprocess.run(['luau',str(path)],cwd=root,check=True)

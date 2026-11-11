@@ -4,11 +4,11 @@ Approved scope: [development brief](PROFESSIONAL_REDESIGN_PROMPT.md). Started Oc
 
 ## Current review entry point
 
-[QA_REPORT.md](QA_REPORT.md) consolidates the current evidence, open gates and developer handoff. It includes fresh 25-file compilation and 5,543 rule/scenario checks against `7b8f065`; live/device gates remain unverified.
+Use [ROADMAP.md](ROADMAP.md) and the verified current-candidate summary in [draft PR #1](https://github.com/anushil7a/scream-simulator/pull/1) for the latest checkpoint, exact tests and release gates. [QA_REPORT.md](QA_REPORT.md) and the dated entries below preserve earlier evidence; the 25-file/5,543-check result against `7b8f065` is historical, not validation of current source. Native/device gates remain unverified.
 
 [Draft pull request #1](https://github.com/anushil7a/scream-simulator/pull/1) provides a developer handoff against `main`. It is open and draft; no merge or live publication occurred. Follow README to reproduce the source build and ASSET_INVENTORY.md for dependencies. The chronological evidence log below includes superseded failures and intermediate states; read each dated correction before treating an earlier checkpoint as current behavior.
 
-Fresh handoff verification at `f47c24d`: all24 source files compile, both Rojo place formats build, 4,003 combat/mic/destruction assertions, 1,506 progression assertions, 12 lease checks and5 quest lifecycle scenarios pass. This is source/rule evidence only. Real microphones, physical input/avatars, final city art/activity, actual-device/multiplayer performance, live save migration/backup and final release validation remain outstanding.
+Historical handoff verification at `f47c24d`: all24 source files compile, both Rojo place formats build, 4,003 combat/mic/destruction assertions, 1,506 progression assertions, 12 lease checks and5 quest lifecycle scenarios pass. This is source/rule evidence only. Real microphones, physical input/avatars, final city art/activity, actual-device/multiplayer performance, live save migration/backup and final release validation remain outstanding.
 
 ## Work sequence
 
