@@ -16,4 +16,4 @@ Latest owner directions supersede earlier conflicting plans. Keep reviewable bat
 | 10. Quests/training enemies | Pending. Audit actual duplicate objectives, remove destruction quests safely, make quests relevant and add roaming trainers with authoritative combat/reward checks. |
 | 11. Boosts on purchase | Implemented locally: atomic receipt-deduplicated activation on durable delivery, absolute offline expiry and preserved legacy tokens. Actual-handler/pure/UI simulations, negative controls and full builds pass. Product IDs stay zero; real delivery/native readability remain unverified. See BOOST_PURCHASE_REVIEW.md. |
 
-Delivery update: remote now verified at `736a82f`, including both earlier reviewed commits. The new boost/description checkpoint is tested and independently reviewed locally; verify its authorized non-force push separately. Do not confuse a local checkpoint with remote delivery.
+Delivery update: main boost/description checkpoint `c1d700a` pushed non-force and verified remotely, including `736a82f` and `f0dc1e7`. A tested copy-only follow-up removes unwanted offline-timer wording; verify that follow-up commit separately.

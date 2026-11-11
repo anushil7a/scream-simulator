@@ -60,7 +60,7 @@ function Commerce.Activate(player,kind)
   local data=Ledger.Activate(raw,kind,operation,started,os.time())
   return data -- UpdateAsync's second return is user IDs, not a status string.
  end)
- if player.Parent then changed(player,ok and "Boost activated · 30 minutes added · continues offline" or "Boost not activated. Check your inventory and try again.",nil,not ok) end
+ if player.Parent then changed(player,ok and "Boost activated · 30 minutes added" or "Boost not activated. Check your inventory and try again.",nil,not ok) end
 end
 function Commerce.Prompt(player,key)
  local item=Catalog.Get(key)

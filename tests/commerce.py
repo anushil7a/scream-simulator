@@ -97,6 +97,7 @@ check(f.deliver('legacy')=='granted' and f.raw.inventory.xp==2 and f.raw.ends.xp
 check(f.deliver('new')=='granted' and f.raw.inventory.xp==2 and f.raw.ends.xp==1900,'New purchase consumed legacy inventory')
 f.commerce.Activate(f.player,'xp')
 check(f.raw.inventory.xp==1 and f.raw.ends.xp==3700,'Legacy manual activation missing')
+check(not string.find(f.lastMessage,'offline',1,true),'Activation notice still mentions offline timer')
 f.commerce.Activate(f.player,'xp');check(f.raw.inventory.xp==1 and f.raw.ends.xp==3700,'Activation throttle failed')
 f.commerce.Activate(f.player,'invalid');check(f.raw.ends.xp==3700,'Invalid manual type changed timer')
 check(f.deliver('legacy2')=='granted' and f.raw.inventory.xp==1 and f.raw.ends.xp==3700,'Old receipt restored consumed inventory')

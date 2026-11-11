@@ -6,8 +6,8 @@ Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign
 
 - Reproduced actual receipt handler leaving purchases inactive. New receipts atomically record identity and extend absolute XP/coin expiry once; duplicate/lost-response replay never restarts time. Legacy saved boosts and historical receipt identity remain intact. Offline time still counts; unconfirmed failures are not acknowledged or granted locally. Product IDs remain zero.
 - Removed attack max-duration/cooldown wording only from the descriptive collection. Kept accurate current-level stats, live cooldown feedback and existing combat timings/map unchanged.
-- Full 25 pure/synthetic + 62 mocked suites, 57 production compiles and all builds passed. Focused checks: 45 receipt, 41 ledger, 24 shop UI and 1,180 beam assertions, plus 14 negative controls. Independent review caught an unknown-status label; corrected and rerun with no remaining blocker. No native or live purchase/store execution. [Behavior, evidence and gates](BOOST_PURCHASE_REVIEW.md).
-- Local base `736a82f` and prior `f0dc1e7` preserved and now verified remotely at `736a82f`. No duplicate push needed. Commit this reviewed checkpoint, reconcile remote again, then perform an authorized non-force push and verify delivery. No credential changes. No publication; no disposable apps were opened.
+- Full 25 pure/synthetic + 62 mocked suites, 57 production compiles and all builds passed. Focused checks: 46 receipt, 41 ledger, 26 shop UI and 1,180 beam assertions, plus 15 negative controls. Independent review caught an unknown-status label; corrected and rerun with no remaining blocker. No native or live purchase/store execution. [Behavior, evidence and gates](BOOST_PURCHASE_REVIEW.md).
+- Main checkpoint `c1d700a` pushed non-force and verified remotely, preserving `736a82f` and `f0dc1e7`. Narrow follow-up removes unwanted offline-timer wording from boost cards/footer and saved-boost confirmation without changing expiry behavior. Review, commit and verify its non-force delivery. No credential changes. No publication; no disposable apps were opened.
 
 ## November 11 beam cooldown/readout checkpoint
 
