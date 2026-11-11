@@ -261,6 +261,7 @@ local function stopWalking(bot)
     bot.model:SetAttribute("Applauding",false)
     releaseSeat(bot)
     bot.pathVersion=(bot.pathVersion or 0)+1
+    if bot.training then bot.trainingDestination=nil;bot.trainingNextMove=nil;bot.trainingStepAt=nil;bot.trainingMoveUntil=nil end
     bot.humanoid:MoveTo(bot.root.Position)
     bot.working=false
     bot.model:SetAttribute("Working",false)
@@ -647,7 +648,8 @@ local function makeBot(parent, index, x, z, role, job, training)
     table.insert(World.Bots, bot)
     model:SetAttribute("AnimationSeed",index);Collection:AddTag(model,"CityResident")
     if training then
-        root.Anchored=true;humanoid.WalkSpeed=0
+        humanoid.WalkSpeed=TrainingRules.RoamSpeed
+        bot.trainingRoamStep=index
         model:SetAttribute("TrainingTier",training.id)
         nameLabel.Parent.MaxDistance=65
         return bot
@@ -788,6 +790,47 @@ function World.StepTraffic(car,dt)
     car.model:SetAttribute("Speed",car.speed)
     car.model:SetAttribute("Yielding",target<cruise)
 end
+-- Three server-owned trainers stroll only inside their original sparring pads.
+-- No city path coroutine or player pursuit: targets stay well inside the 32-stud
+-- combat boundary, and a stuck MoveTo expires rather than teleporting through cover.
+function World.StepTrainingRoam(bot,now)
+    if not bot.training or not bot.alive or not bot.model.Parent or not bot.root.Parent or not bot.humanoid.Parent then return end
+    local position=bot.root.Position
+    local delta=position-bot.start
+    if Vector3.new(delta.X,0,delta.Z).Magnitude>TrainingRules.RoamLeash then
+        stopWalking(bot)
+        bot.model:PivotTo(CFrame.new(bot.start));bot.lastGrounded=bot.start;bot.airSince=nil
+        bot.root.AssemblyLinearVelocity=Vector3.zero;bot.root.AssemblyAngularVelocity=Vector3.zero
+        bot.humanoid:MoveTo(bot.start);bot.trainingNextMove=now+1.25
+        return
+    end
+    -- Stop on the first frame of a windup, conversation or immobilization, not
+    -- only on the slower waypoint cadence. The strike's aim remains fixed.
+    if bot.strike or (bot.socialUntil or 0)>now or (bot.reactionUntil or 0)>now
+        or bot.root.Anchored or bot.humanoid.SeatPart or bot.humanoid.Sit or bot.humanoid.PlatformStand then
+        if bot.trainingDestination then bot.humanoid:MoveTo(position) end
+        bot.trainingDestination=nil;bot.trainingNextMove=now+.5
+        return
+    end
+    if now<(bot.trainingStepAt or 0) then return end
+    bot.trainingStepAt=now+.25
+    if bot.trainingDestination then
+        local remaining=bot.trainingDestination-position
+        if Vector3.new(remaining.X,0,remaining.Z).Magnitude<=2 or now>=(bot.trainingMoveUntil or 0) then
+            bot.humanoid:MoveTo(position);bot.trainingDestination=nil;bot.trainingNextMove=now+1.25
+        end
+        return
+    end
+    if now<(bot.trainingNextMove or 0) then return end
+    bot.trainingRoamStep=(bot.trainingRoamStep or 0)+1
+    local angle=bot.trainingRoamStep*2.399963229728653
+    local radius=TrainingRules.RoamRadius*(.65+.175*(bot.trainingRoamStep%3))
+    local destination=bot.start+Vector3.new(math.cos(angle)*radius,0,math.sin(angle)*radius)
+    bot.trainingDestination=destination;bot.trainingMoveUntil=now+5
+    bot.humanoid.WalkSpeed=TrainingRules.RoamSpeed
+    bot.humanoid:MoveTo(destination)
+end
+
 function World.Build()
     local old=workspace:FindFirstChild("ScreamSimulatorWorld");if old then old:Destroy() end
     table.clear(World.Bots);table.clear(World.Cars);table.clear(seatReservations)
@@ -839,6 +882,7 @@ function World.Build()
                     for _,item in ipairs(bot.cleaningParts or {}) do item.Transparency=repairing and 1 or 0 end
                     for _,item in ipairs(bot.repairParts or {}) do item.Transparency=repairing and 0 or 1 end
                     if not bot.alive or not bot.root.Parent then continue end
+                    World.StepTrainingRoam(bot,now)
                     local gesture=(bot.gestureUntil or 0)>now
                     if bot.model:GetAttribute("Gesturing")~=gesture then bot.model:SetAttribute("Gesturing",gesture) end
                     if bot.model:GetAttribute("Working")~=(bot.working==true) then bot.model:SetAttribute("Working",bot.working==true) end
@@ -876,7 +920,12 @@ function World.UpdateBot(bot)
     if bot.alive then
         bot.humanoid.Health=bot.health
         if bot.health==(bot.maxHealth or Config.BotMaxHealth) then
-            bot.root.Anchored=bot.training~=nil;bot.model:PivotTo(CFrame.new(bot.start));bot.root.AssemblyLinearVelocity=Vector3.zero;if not bot.root.Anchored then bot.root:SetNetworkOwner(nil) end
+            bot.root.Anchored=false;bot.model:PivotTo(CFrame.new(bot.start));bot.root.AssemblyLinearVelocity=Vector3.zero
+            if bot.training then
+                bot.lastGrounded=bot.start;bot.airSince=nil;bot.root.AssemblyAngularVelocity=Vector3.zero
+                bot.humanoid.WalkSpeed=TrainingRules.RoamSpeed
+            end
+            bot.root:SetNetworkOwner(nil)
         end
     else
         bot.humanoid:MoveTo(bot.root.Position);bot.root.Anchored=true;bot.model:PivotTo(CFrame.new(bot.start-Vector3.new(0,100,0)));bot.speech.Visible=false

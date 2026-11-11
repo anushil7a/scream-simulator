@@ -4,6 +4,7 @@ This only assembles/compiles artifacts. It does not run Studio or verify audio.
 All outputs refuse to run Bootstrap outside unpublished local Studio places.
 """
 import argparse
+import copy
 import json
 import hashlib
 from pathlib import Path
@@ -56,7 +57,7 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         ROOT / "default.project.json", Path(__file__).resolve(),
         *(ROOT / "tests" / name for name in ["StudioSustainedDamage.server.luau",
           "StudioSustainedDestruction.server.luau", "StudioSustainedPvp.server.luau", "StudioProgression.server.luau", "StudioFirstBeam.server.luau",
-          "StudioPerformance.server.luau", "StudioVoiceTransport.server.luau", "StudioVoiceTransport.client.luau", "support/HeartbeatSummary.luau"]),
+          "StudioTrainingRoam.server.luau", "StudioPerformance.server.luau", "StudioVoiceTransport.server.luau", "StudioVoiceTransport.client.luau", "support/HeartbeatSummary.luau"]),
     })
     def source_fingerprint():
         digest = hashlib.sha256()
@@ -71,10 +72,13 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
     with tempfile.TemporaryDirectory(prefix="scream-review-") as temp:
         temp = Path(temp)
         transport_fixture = (ROOT / "tests/StudioVoiceTransport.server.luau").read_text()
-        builds = [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", transport_fixture)]
+        builds = [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", transport_fixture), ("TrainingRoamReview", (ROOT / "tests/StudioTrainingRoam.server.luau").read_text())]
         if args.transport_mutation:
             builds = [("VoiceTransportDropStop" if args.transport_mutation == "drop-stop" else "VoiceTransportCorruptReplay", transport_fixture)]
+        template = copy.deepcopy(project)
         for name, appendix in builds:
+            project = copy.deepcopy(template)
+            server = project["tree"]["ServerScriptService"]
             script = temp / "Bootstrap.server.luau"
             provenance = output / (name + ".provenance.json")
             provenance.unlink(missing_ok=True)
@@ -109,6 +113,17 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
                     (ROOT / "src/StarterPlayer/StarterPlayerScripts/Client.client.luau").read_text() + "\n" + client_fixture)
                 subprocess.run([compiler, str(client_script)], check=True, stdout=subprocess.DEVNULL)
                 clients["Client"] = {"$path": str(client_script)}
+            if name == "TrainingRoamReview":
+                # Server/physics-only test: exclude the live microphone controller,
+                # which legitimately clears synthetic readiness during onboarding.
+                clients = project["tree"]["StarterPlayer"]["StarterPlayerScripts"]
+                clients.pop("$path", None)
+                for client_path in (ROOT / "src/StarterPlayer/StarterPlayerScripts").glob("*.luau"):
+                    if client_path.name == "Client.client.luau":
+                        continue
+                    client_name = client_path.name.removesuffix(".client.luau").removesuffix(".luau")
+                    clients[client_name] = {"$path": str(client_path)}
+                clients.pop("Client", None)
             project["name"] = name + "_DO_NOT_PUBLISH"
             project_path = temp / "review.project.json"
             project_path.write_text(json.dumps(project, indent=2))

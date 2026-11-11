@@ -36,7 +36,7 @@ The [release handoff](docs/RELEASE_HANDOFF.md) records the latest local build, l
 - Levels 1–100, bounded power/level scaling, visual style unlocks every ten levels, compact menus, mouse aim and touch controls. City Preview version 19 already has the 100-level cap but retains hold/release combat.
 - Central PvP district, safe city surroundings, spawn protection, separate dodge, sprint stamina, level-scaled health and quiet-time healing.
 - Barcelona-inspired city with courtyards, enterable shops, market, beach, usable seating, pier, lookout, swimming area and lifeguard boundary recovery. Art and performance are still being refined.
-- 46 residents with grounded navigation, conversations, work activities, reading/resting and reactions. Nick has practice routines and a multi-stage optional soccer quest.
+- 46 residents with grounded navigation, conversations, work activities, reading/resting and reactions. Nick has practice routines and a multi-stage optional soccer quest. Three training enemies now stroll within their own pads, pause for telegraphed strikes and resume after recovery; original home-based combat eligibility remains. [Roaming behavior and checks](docs/TRAINING_ROAM_REVIEW.md).
 - Selected NPC quest givers, vendor equipment purchases, tiered destruction/repair, earnable micro-speaker and unconfigured premium entitlement hooks.
 - Versioned profiles, session leases and temporary test progress separated from legitimate saved progress.
 

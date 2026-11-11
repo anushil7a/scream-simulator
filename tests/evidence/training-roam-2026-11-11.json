@@ -1,0 +1,119 @@
+{
+  "date": "2026-11-11",
+  "base": "44ee83054741610cda2d6a7b48109fc0a0204d22",
+  "scope": "Three bounded server-owned roaming trainers; fixed home combat gates unchanged",
+  "sources": {
+    "src/ServerScriptService/World.luau": "7024f2091ecd8643c7f5e76e8c544aaa07f1983dd8dea43c26c35657f0a06ee1",
+    "src/ReplicatedStorage/Shared/TrainingRules.luau": "bda84380107e7df39eaf0ea91f60d2f81fde0908a8489d664ac18d1292b8388e",
+    "src/ServerScriptService/Bootstrap.server.luau": "f87d799e8e7119066ab7dedaa9969bdc177676cc9ff5090d7f1721828384d827"
+  },
+  "synthetic": {
+    "assertions": 1292,
+    "negativeControls": 11,
+    "baselineFailures": 3,
+    "movement": "fake humanoids/clock; actual source extraction"
+  },
+  "full": {
+    "pureSuites": 25,
+    "mockedSuites": 70,
+    "productionCompiles": 57,
+    "builds": "all candidate/disposable fixtures pass"
+  },
+  "native": {
+    "provenance": {
+      "build": "TrainingRoamReview",
+      "sourceSha256": "5f7e53f5e4957b9bbb5a109cdfcdba44e8b6b697ed76c889efc54e33ded36cbd",
+      "mutation": null,
+      "artifactSha256": "94cd5bfcd5d58a1bf6e24f272b785a1c143a0aa6cb57d9fbef720318b188ffa0",
+      "scope": "Compiled disposable local fixture; not executed or published"
+    },
+    "runs": [
+      {
+        "utc": "2026-11-11T17:17:08.286Z",
+        "result": {
+          "error": "ServerScriptService.Bootstrap:924: Trainer kept walking during windup\nServerScriptService.Bootstrap:924\nServerScriptService.Bootstrap:927\n",
+          "samples": {
+            "Bot48": {
+              "start": null,
+              "maxDistance": 17.216100692749023,
+              "samples": 552,
+              "maxTravel": 17.216100692749023
+            },
+            "Bot49": {
+              "start": null,
+              "maxDistance": 16.96237564086914,
+              "samples": 552,
+              "maxTravel": 16.96237564086914
+            },
+            "Bot47": {
+              "start": null,
+              "maxDistance": 14.053760528564453,
+              "samples": 552,
+              "maxTravel": 14.053760528564453
+            }
+          },
+          "passed": false,
+          "checks": 15
+        }
+      },
+      {
+        "utc": "2026-11-11T17:20:45.492Z",
+        "result": {
+          "samples": {
+            "Bot48": {
+              "start": [
+                -320,
+                4.199999809265137,
+                545
+              ],
+              "maxDistance": 16.252704620361328,
+              "samples": 564,
+              "maxTravel": 16.252704620361328
+            },
+            "Bot49": {
+              "start": [
+                -200,
+                4.199999809265137,
+                545
+              ],
+              "maxDistance": 16.72909164428711,
+              "samples": 564,
+              "maxTravel": 16.72909164428711
+            },
+            "Bot47": {
+              "start": [
+                -440,
+                4.199999809265137,
+                545
+              ],
+              "maxDistance": 14.08110237121582,
+              "samples": 564,
+              "maxTravel": 14.08110237121582
+            }
+          },
+          "passed": true,
+          "checks": 29
+        }
+      }
+    ],
+    "firstRunValidity": "Excluded: shared builder leaked transport-instrumented Client; windup test failed. Corrected deep-copy isolation, omitted live main Client and tightened horizontal/active-walk assertions before passing rerun.",
+    "scope": "Real local Studio city/avatars/physics and server helpers; synthetic readiness/position/combat context, no main client or voice/network input",
+    "limitations": [
+      "12-second idle sample, not soak or arbitrary collision containment",
+      "Social interval stationary but not isolated causal native test; synthetic branch test covers it",
+      "No native mutation control run",
+      "No actual microphone, physical phone, remote-input/network, multiplayer collision or live-save evidence"
+    ],
+    "assetWarnings": "Existing type-mismatch asset 203785492 and avatar mesh permission warnings appeared. Trainers are procedural; no production source failure inferred from these warnings."
+  },
+  "cleanup": {
+    "studioStoppedAndClosed": true,
+    "newAppPickerDialogs": 1,
+    "totalInaccessibleMinimizedAppPickerDialogs": 3,
+    "reason": "Available supported getApp returns window is minimized; required activate_window/get_window methods are not exposed. No blind close/process kill attempted.",
+    "preexistingWorkPreserved": true
+  },
+  "publication": false,
+  "liveDataStoreWrites": false,
+  "mapGeometryChanged": false
+}
