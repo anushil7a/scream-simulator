@@ -1,0 +1,67 @@
+{
+  "base_commit": "a503c5ed49747900f740d98362a5bea6a3771467",
+  "recorded_at_utc": "2026-11-11T20:22:25.474102+00:00",
+  "scope": "replace combat-credit full session references with fresh opaque session identity",
+  "source_hash_semantics": "exact tested working-tree bytes; checkout line endings may differ",
+  "source_sha256": {
+    "src/ServerScriptService/Bootstrap.server.luau": "ad2447053bba5b14aa888e7e9f0e2bf6e07022e41c36e8065a8cdc15830a54c2",
+    "tests/combat_credit_identity.py": "95e95875f3281b58e928d6eb7bc37120a29464de0f9010936fe6afdab75a668e",
+    "tests/test_session_rewards.py": "2704e3c629a777944cd7ebbacebfa9c0e303a3c85a65878603b9a8214d29e800",
+    "tests/combat_quests.py": "722a39df4e25fe11b91d07e3be05f008c5d37061a3fbe8661acf42b79199ff75",
+    "tests/pvp_rewards.py": "efa75b545bb7a2e8a2004052716d197c171edeeb3867e82ef722b054b3b079ee",
+    "tests/verify_local.py": "5555a3e685376e1435c6fcff3c1452dfb6f4e12362bca17eccb32b5b09de2bde"
+  },
+  "artifact_sha256": {
+    "build/AutomaticVoiceCandidate.rbxl": "dbb23f560e2ab7048fa7645504f153b180f2d0ece0b7632261884e93f4c89770",
+    "build/AutomaticVoiceCandidate.provenance.json": "3ceba453221ae96f4f1365ab667053b4e423a75b824e9e8aab65143cb6281167",
+    "build/SustainedLocalPlay.rbxl": "1f80c8eeed04e91308c965d27929ff15deae50995ac73e7d15fdc7ca6b05d15c",
+    "build/combat-credit-identity-final.log": "8412eb5e3534fec8e0a6623b61a93bb23743c7bf2ae2f2c3437c0d02c88c816c",
+    "build/combat-credit-identity-baseline.log": "9ecd0fd75ea031006daa40d48e1395483c352584e6880ad6581c91cdf6c91bc6",
+    "build/combat-credit-identity-controls.log": "5e0eb1854220992e2e60be51f7ce1c332da908c1c9c60786fec9598dce89b8ec",
+    "build/combat-credit-isolation-controls.log": "473e88f12401562e174eea466cb74f84c2aed5a74b1f54aaaddb2ba1bcab6914",
+    "build/combat-credit-quests-controls.log": "71302ad54bdfabefa8f2edda14209a5cb385ae8bd0d7bf862e56e86cf0690ce3",
+    "build/combat-credit-pvp.log": "372ae1657c3fbcc7e63979e99042f3bd4248a41a077b04b3c18aefde1c84474e"
+  },
+  "focused": {
+    "identity_assertions": 96,
+    "identity_controls": 6,
+    "isolation_assertions": 56,
+    "isolation_controls": 11,
+    "quest_assertions": 173,
+    "quest_controls": 6,
+    "quest_contracts": 1,
+    "pvp_checks": 19,
+    "independently_rerun": true
+  },
+  "aggregate": {
+    "pure_synthetic_suites": 25,
+    "mocked_suites": 86,
+    "production_compiles": 60,
+    "all_builds_pass": true,
+    "identity_mutations_run_by_default": false
+  },
+  "commands": [
+    "python tests/combat_credit_identity.py --baseline",
+    "python tests/combat_credit_identity.py --negative-controls",
+    "python tests/test_session_rewards.py --negative-controls",
+    "python tests/combat_quests.py --negative-controls",
+    "python tests/pvp_rewards.py",
+    "python tests/verify_local.py --build"
+  ],
+  "baseline": "actual helpers retain departed session/profile in idle expired credit ledger at100000s; nextpositiveAdd orSplit clears it",
+  "unchanged": [
+    "pureCombatCredit",
+    "reward formulas anddenominator",
+    "same-session/mode quarantine",
+    "repeat-opponent policy",
+    "savedprofile schema",
+    "map source"
+  ],
+  "limitations": [
+    "reference-graph and synthetic payout evidence,not native GC/memory measurement",
+    "no full collectability guarantee",
+    "stale tiny identitytokens remain until ordinary ledger cleanup",
+    "running callbacks/saves/engine references may retain other objects",
+    "no publication,live stores,settings orapps"
+  ]
+}

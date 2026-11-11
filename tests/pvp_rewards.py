@@ -17,7 +17,7 @@ local players={[1]=one,[2]=two,[3]=victim}
 local Players={GetPlayerByUserId=function(_,id)return players[id]end}
 local localFixture=false
 local sessions={}
-for _,p in pairs(players) do sessions[p]={data={level=20,xp=0,coins=0,combatChallenges={}},credit={}} end
+for _,p in pairs(players) do sessions[p]={rewardIdentity={},data={level=20,xp=0,coins=0,combatChallenges={}},credit={}} end
 local notices={};local updates={};local quests={};local ejections=0
 local function state(p,message)notices[p]=message;updates[p]=(updates[p] or 0)+1 end
 local Commerce={Multiplier=function()return 1 end}

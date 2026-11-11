@@ -42,7 +42,7 @@ local function resolveSustained()end
 local Soccer={Hit=function()return false end};local BeachVolley=Soccer
 local p={UserId=1};players[1]=p
 local function session(player,id)
- local s={data=P.Default(),activeQuest=id,voice={},collected={}}
+ local s={rewardIdentity={},data=P.Default(),activeQuest=id,voice={},collected={}}
  s.data.level=20;if id then s.data.quests[id]={progress=0,claimed=false}end
  sessions[player]=s;return s
 end

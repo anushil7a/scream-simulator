@@ -204,16 +204,17 @@ local function canDamageBots(s)
  -- Only the guarded local fixture makes every participant's profile temporary.
  return s~=nil and (s.testBaseline==nil or localFixture==true)
 end
+-- Ledger ownership uses an opaque session token, never a profile/session table.
 local function recordCredit(ledger,p,damage,maximum,now)
- local s=sessions[p];if not s or damage<=0 then return end
+ local s=sessions[p];if not s or type(s.rewardIdentity)~="table" or damage<=0 then return end
  local previous=ledger[p.UserId]
  Credit.Add(ledger,p.UserId,damage,now,maximum)
  local entry=ledger[p.UserId]
  if entry and entry~=previous then
-  entry.rewardSession=s;entry.rewardTest=s.testBaseline~=nil
- elseif entry and (entry.rewardSession~=s or entry.rewardTest~=(s.testBaseline~=nil)) then
+  entry.rewardIdentity=s.rewardIdentity;entry.rewardTest=s.testBaseline~=nil
+ elseif entry and (entry.rewardIdentity~=s.rewardIdentity or entry.rewardTest~=(s.testBaseline~=nil)) then
   -- Keep damage in the denominator, but never inherit another session/mode's credit.
-  entry.rewardSession=false
+  entry.rewardIdentity=false
  end
 end
 local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim,tier)
@@ -224,7 +225,7 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
  for id,share in pairs(shares) do
   local recipient=Players:GetPlayerByUserId(id);local rs=recipient and sessions[recipient]
   local entry=attribution[id]
-  if not rs or not entry or entry.rewardSession~=rs or entry.rewardTest~=(rs.testBaseline~=nil) or not sameCombatMode(rs,fs) then continue end
+  if not rs or type(rs.rewardIdentity)~="table" or not entry or entry.rewardIdentity~=rs.rewardIdentity or entry.rewardTest~=(rs.testBaseline~=nil) or not sameCombatMode(rs,fs) then continue end
   local factor=Config.Progression.RewardFactor(rs.data.level,tier and TrainingRules.RewardLevel(tier,rs.data.level) or targetLevel)
   local repeatFactor=victim and Credit.RepeatFactor(rewardHistory,id,victim.UserId,now) or 1
   local reward=math.floor(pool*share*factor*repeatFactor)
@@ -835,7 +836,7 @@ local function joined(p)
   end
   return
  end
- local s={data=data,canSave=save,recoveryWarning=recoveryWarning,voice=VoiceCombat.New(),voiceEligibility=VoiceEligibility.New(localFixture,os.clock(),p.UserId),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
+ local s={data=data,canSave=save,recoveryWarning=recoveryWarning,rewardIdentity={},voice=VoiceCombat.New(),voiceEligibility=VoiceEligibility.New(localFixture,os.clock(),p.UserId),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
  botRewards={},credit={},collected={},sprintRequested=false,sprintRunning=false,sprintRegenAt=0,sprintCharge=Config.SprintDuration,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  task.spawn(Commerce.Load,p)
  if sustainedEnabled then

@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 opaque combat-credit identity
+
+- Actual recordCredit/Credit code confirmed that an idle ledger can retain a departed full session/profile at simulated100,000 seconds;25 seconds limits eligibility, not automatic cleanup. Replace that provenance pointer with a dedicated fresh empty per-session token. Missing/malformed identity fails closed; quarantine, mode checks, denominators, repeat history, rewards and saved data remain unchanged.
+- Independent explicit commands pass96 identity assertions/six controls,56 isolation assertions/11 controls,173 quest assertions/six controls/one contract and19 PvP checks. Full25 pure/synthetic +86 mocked suites,60 compiles and all builds pass. Default aggregate assertions and explicit mutation commands are distinguished in [review/evidence](COMBAT_CREDIT_IDENTITY_REVIEW.md).
+- This removes the identified ledger-to-profile reference, not native GC/full-collection proof; other callbacks and runtime references remain possible. No maps, apps, settings, publication or live stores. Next: Astra review and meaningful non-map release-readiness work, retaining native/device and owner map-approval gates.
+
 ## November 11 session evidence correction
 
 - Astra caught a documentation mismatch: four prior controls included combined removal of both signal Disconnect calls, not independent per-signal mutations; the saved command list omitted `--negative-controls`. Split that mutation into separate Added/Removing controls. Explicit `python tests/session_connections.py --negative-controls` now passes22 assertions and five controls.

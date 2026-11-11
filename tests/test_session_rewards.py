@@ -25,11 +25,11 @@ def build(baseline=False,mutation=None):
 PRE="local Credit=require('../src/ReplicatedStorage/Shared/CombatCredit')\nlocal TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')\n\nlocal Healing=require('../src/ReplicatedStorage/Shared/Healing')\nlocal Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat')\nlocal Progression=require('../src/ReplicatedStorage/Shared/Progression')\nlocal Lease=require('../src/ReplicatedStorage/Shared/ProfileLease')\nlocal Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}\nlocal Color3={fromRGB=function(r,g,b)return {r,g,b}end}\nlocal CFrame={new=function(...)return {...}end}\nlocal Enum={CreatorType={User='User',Group='Group'}}\nlocal script={Parent={WaitForChild=function(_,name)return name end}}\nlocal config\nlocal require=function(name)\n if name=='Healing' then return Healing elseif name=='VoiceCombat' then return Combat elseif name=='Progression' then return Progression\n elseif name=='Config' then return config elseif name=='Lease' then return Lease end\n error('Unexpected dependency '..tostring(name))\nend\nlocal function loadConfig()\n"
 BETWEEN="\nend\nconfig=loadConfig();local Config=config\nlocal studio=false\nlocal localFixture=false\nlocal durable={};local writes=0;local guid=0\nlocal store={UpdateAsync=function(_,key,transform)writes+=1;local d=transform(durable[key]);if d~=nil then durable[key]=d end;return d end}\nlocal RunService={IsStudio=function()return studio end}\nlocal services={DataStoreService={GetDataStore=function()return store end},\n ReplicatedStorage={Shared={Config='Config',ProfileLease='Lease'}},RunService=RunService,HttpService={GenerateGUID=function()guid+=1;return 'fixture-'..guid end}}\nlocal game={JobId='dev-fixture',GetService=function(_,name)return services[name]end,CreatorType=Enum.CreatorType.User,CreatorId=11499795799}\nlocal warn=function()end\nlocal function loadProfiles()\n"
 HELPERS='\nend\nlocal Profiles=loadProfiles()\nlocal Access=(function()\n'
-SETUP="\nend)()\nlocal owner={UserId=11499795799,Parent=true,SetAttribute=function()end};local ordinary={UserId=1234,Parent=true,SetAttribute=function()end};local third={UserId=5678,Parent=true,SetAttribute=function()end}\nlocal sessions={};local busy=false;local notices=0;local healthSync=0;local entitlementWrites=0;local movement=false\nlocal Commerce={Busy=function()return busy end,Multiplier=function()return 1 end}\nlocal function state()notices+=1 end\nlocal function parts()return nil,nil,{Health=100,MaxHealth=100}end\nlocal World={SafeSpawn={},Bots={}}\nlocal canceled=0;local function cancelSustained(p,s,now)canceled+=1;s.sustained=nil end\nlocal function syncHealth()healthSync+=1 end\nlocal function protect()error('Unexpected teleport')end\nlocal function stopQuest()error('Unexpected quest reset')end\nlocal function restoreBot()error('Unexpected bot reset')end\nlocal VoiceCombat=Combat\nlocal players={[owner.UserId]=owner,[ordinary.UserId]=ordinary,[third.UserId]=third}\nlocal Players={GetPlayerByUserId=function(_,id)return players[id]end}\nlocal rewardHistory={pairs={}}\nlocal function coins(p,n)sessions[p].data.coins+=n end\nlocal Entitlements={SetStudioMovement=function(_,enabled)movement=enabled;entitlementWrites+=1 end,HasStudioMovement=function()return movement end}\nlocal function fresh(p,level,xpValue)\n sessions[p]={data=Profiles.Sanitize({schemaVersion=4,level=level,xp=xpValue or 17,sound='TinyAah',aura='Gold',coins=123,\n amplifierOwned=true,amplifierEquipped=true,customColor='FA4FFF',useCustomColor=true,settings={volume=.4,reducedShake=true},\n achievements={FirstBeam=true},availableQuests={garden=true},quests={garden={progress=1,claimed=false}}})}\n return sessions[p]\nend\nlocal n=0;local function check(ok,msg)assert(ok,msg);n+=1 end\n"
+SETUP="\nend)()\nlocal owner={UserId=11499795799,Parent=true,SetAttribute=function()end};local ordinary={UserId=1234,Parent=true,SetAttribute=function()end};local third={UserId=5678,Parent=true,SetAttribute=function()end}\nlocal sessions={};local busy=false;local notices=0;local healthSync=0;local entitlementWrites=0;local movement=false\nlocal Commerce={Busy=function()return busy end,Multiplier=function()return 1 end}\nlocal function state()notices+=1 end\nlocal function parts()return nil,nil,{Health=100,MaxHealth=100}end\nlocal World={SafeSpawn={},Bots={}}\nlocal canceled=0;local function cancelSustained(p,s,now)canceled+=1;s.sustained=nil end\nlocal function syncHealth()healthSync+=1 end\nlocal function protect()error('Unexpected teleport')end\nlocal function stopQuest()error('Unexpected quest reset')end\nlocal function restoreBot()error('Unexpected bot reset')end\nlocal VoiceCombat=Combat\nlocal players={[owner.UserId]=owner,[ordinary.UserId]=ordinary,[third.UserId]=third}\nlocal Players={GetPlayerByUserId=function(_,id)return players[id]end}\nlocal rewardHistory={pairs={}}\nlocal function coins(p,n)sessions[p].data.coins+=n end\nlocal Entitlements={SetStudioMovement=function(_,enabled)movement=enabled;entitlementWrites+=1 end,HasStudioMovement=function()return movement end}\nlocal function fresh(p,level,xpValue)\n sessions[p]={rewardIdentity={},data=Profiles.Sanitize({schemaVersion=4,level=level,xp=xpValue or 17,sound='TinyAah',aura='Gold',coins=123,\n amplifierOwned=true,amplifierEquipped=true,customColor='FA4FFF',useCustomColor=true,settings={volume=.4,reducedShake=true},\n achievements={FirstBeam=true},availableQuests={garden=true},quests={garden={progress=1,claimed=false}}})}\n return sessions[p]\nend\nlocal n=0;local function check(ok,msg)assert(ok,msg);n+=1 end\n"
 CHECKS=r"""
 local function acquire(p)
  local data,writable=Profiles.Load(p.UserId);check(writable,'Fake profile acquisition failed')
- sessions[p]={data=data,canSave=true,credit={},protectedUntil=0,dodgingUntil=0};return sessions[p]
+ sessions[p]={rewardIdentity={},data=data,canSave=true,credit={},protectedUntil=0,dodgingUntil=0};return sessions[p]
 end
 local victim=acquire(owner);local attacker=acquire(ordinary)
 check(victim.data.level==1 and attacker.data.level==1,'Fresh level precondition')
@@ -64,7 +64,7 @@ end
 FIXED=r"""
 local function acquire(p)
  local data,writable=Profiles.Load(p.UserId);check(writable,'Fake profile acquisition failed')
- sessions[p]={data=data,canSave=true,credit={},voice={},protectedUntil=0,dodgingUntil=0};return sessions[p]
+ sessions[p]={rewardIdentity={},data=data,canSave=true,credit={},voice={},protectedUntil=0,dodgingUntil=0};return sessions[p]
 end
 local victim=acquire(owner);local attacker=acquire(ordinary);local helper=acquire(third)
 victim.voice.capture={};victim.sustained={};victim.credit[ordinary.UserId]={damage=20,at=1}
@@ -112,7 +112,7 @@ studio=true;check(not canDamageBots(victim),'Ordinary Studio bypassed NPC isolat
 local old=helper.data.level;dev(third,'MaxLevel');check(helper.data.level==old and helper.testBaseline==nil,'Ordinary player granted test tools')
 local resets=0
 -- ResetBots must reject before entering test mode in a live-like environment.
-local previous=sessions[owner];sessions[owner]={data=Profiles.Default(),voice={},credit={}}
+local previous=sessions[owner];sessions[owner]={rewardIdentity={},data=Profiles.Default(),voice={},credit={}}
 dev(owner,'ResetBots');check(sessions[owner].testBaseline==nil,'Rejected ResetBots froze real save')
 studio=true;dev(owner,'ResetBots');check(sessions[owner].testBaseline==nil,'Ordinary Studio ResetBots froze save');studio=false;sessions[owner]=previous
 local tier=TrainingRules.Tiers[1]
@@ -128,30 +128,30 @@ check(next(ledger)==nil,'Mixed ledger not consumed')
 check(victim.data.xp==0,'Test NPC contribution paid outside fixture')
 -- Immutable acquisition identity: departure/rejoin never adopts earlier credit.
 ledger={};recordCredit(ledger,third,90,100,300);local oldSession=helper
-helper={data=Profiles.Default(),voice={},credit={}};sessions[third]=helper
+helper={rewardIdentity={},data=Profiles.Default(),voice={},credit={}};sessions[third]=helper
 recordCredit(ledger,third,1,100,301)
-check(ledger[third.UserId].rewardSession==false,'Session replacement rehabilitated old credit')
+check(ledger[third.UserId].rewardIdentity==false,'Session replacement rehabilitated old credit')
 recordCredit(ledger,third,1,100,325)
-check(ledger[third.UserId].rewardSession==false,'Continuous hits cleared quarantine')
+check(ledger[third.UserId].rewardIdentity==false,'Continuous hits cleared quarantine')
 recordCredit(ledger,ordinary,10,100,325);before=attacker.data.xp
 reward(ledger,ordinary,325,nil)
 check(helper.data.xp==0 and attacker.data.xp-before==math.floor(100*10/102),'Quarantined share paid or redistributed')
 -- Mode transition of existing outgoing contribution also poisons its whole entry.
 ledger={};recordCredit(ledger,third,70,100,400);helper.testBaseline=Profiles.Default();recordCredit(ledger,third,1,100,401)
-check(ledger[third.UserId].rewardSession==false,'Mode transition adopted prior contribution')
+check(ledger[third.UserId].rewardIdentity==false,'Mode transition adopted prior contribution')
 helper.testBaseline=nil;recordCredit(ledger,third,1,100,402)
-check(ledger[third.UserId].rewardSession==false,'Returning mode rehabilitated quarantined credit')
+check(ledger[third.UserId].rewardIdentity==false,'Returning mode rehabilitated quarantined credit')
 recordCredit(ledger,third,10,100,427.001)
-check(ledger[third.UserId].rewardSession==helper and ledger[third.UserId].damage==10,'Genuinely expired entry did not reset provenance')
+check(ledger[third.UserId].rewardIdentity==helper.rewardIdentity and ledger[third.UserId].damage==10,'Genuinely expired entry did not reset provenance')
 -- Payout-time validation without a new hit rejects old session and mode too.
 for _,mode in ipairs({'departed','rejoined','test','untagged'})do
  attacker.data.level=1;attacker.data.xp=0;attacker.data.combatChallenges={}
  ledger={};sessions[third]=helper;helper.testBaseline=nil;recordCredit(ledger,third,90,100,500)
  recordCredit(ledger,ordinary,10,100,500)
  if mode=='departed' then sessions[third]=nil
- elseif mode=='rejoined' then sessions[third]={data=Profiles.Default(),voice={}}
+ elseif mode=='rejoined' then sessions[third]={rewardIdentity={},data=Profiles.Default(),voice={}}
  elseif mode=='test' then helper.testBaseline=Profiles.Default()
- else ledger[third.UserId].rewardSession=nil end
+ else ledger[third.UserId].rewardIdentity=nil end
  before=attacker.data.xp;reward(ledger,ordinary,500,nil)
  check(attacker.data.xp-before==10,'Rejected '..mode..' credit inflated normal share')
  check(next(ledger)==nil,'Rejected provenance retained ledger')
@@ -173,7 +173,7 @@ reward(ledger,ordinary,700,third)
 check(rewardHistory.pairs[tostring(owner.UserId)..':'..tostring(third.UserId)]==nil,'Rejected test assist spent repeat history')
 check(rewardHistory.pairs[tostring(ordinary.UserId)..':'..tostring(third.UserId)]~=nil,'Legitimate finisher repeat history missing')
 -- Actual first dev transition also invalidates outgoing pre-entry credit at payout.
-local testOwner=sessions[owner];local transition={data=Profiles.Default(),voice={},credit={}};sessions[owner]=transition
+local testOwner=sessions[owner];local transition={rewardIdentity={},data=Profiles.Default(),voice={},credit={}};sessions[owner]=transition
 ledger={};recordCredit(ledger,owner,90,100,800);dev(owner,'MaxLevel')
 recordCredit(ledger,ordinary,10,100,800);before=attacker.data.coins
 reward(ledger,ordinary,800,third)
@@ -195,8 +195,8 @@ if __name__=='__main__':
  if result.returncode:sys.exit(result.returncode)
  if '--negative-controls' in sys.argv:
   controls=[('victim mode gate','(victim and not sameCombatMode(fs,sessions[victim]))','false','Test victim paid'),
-   ('immutable entry quarantine','entry.rewardSession=false','entry.rewardSession=s;entry.rewardTest=s.testBaseline~=nil','Session replacement rehabilitated'),
-   ('payout provenance','entry.rewardSession~=rs','false','Quarantined share paid'),
+   ('immutable entry quarantine','entry.rewardIdentity=false','entry.rewardIdentity=s.rewardIdentity;entry.rewardTest=s.testBaseline~=nil','Session replacement rehabilitated'),
+   ('payout provenance','entry.rewardIdentity~=rs.rewardIdentity','false','Quarantined share paid'),
    ('NPC damage gate','(s.testBaseline==nil or localFixture==true)','true','Shared NPC mode gate'),
    ('baseline freeze','s.testBaseline=Profiles.Sanitize(s.data)','s.testBaseline={level=100}','Test baseline not frozen')]
   controls.extend([
