@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 beam audio frame cadence
+
+- Reconciled clean/fetched `327e1dd`. Actual-source baseline reproduced six mixer updates and only 0.2 seconds of dt over one second at 30 Hz. Move only beam audio Step above the slow HUD gate, retaining frame delta, current mic state and bounded existing mixer behavior.
+- Focused 344 assertions and three negative controls pass; independent review cleared the correction. Full 25 pure/synthetic + 72 mocked suites, 57 production compiles and all candidate/disposable builds pass. [Review](AUDIO_CADENCE_REVIEW.md). No measured audio, real-mic safety or feedback claim.
+- No apps opened, map edit, live stores or publication. Next: archive and verify the exact current repository-generated city as a named recoverable draft before smaller-map work; never mistake stale root place files for current backups.
+
 ## November 11 selectable beam sound levels
 
 - Reconciled clean/fetched `47f3d46`. Reproduced the original LOW/OFF-only control and hard-coded quiet budget. Add session-only BEAM SFX NORMAL/LOW/OFF: NORMAL shares0.40 across active/fading sounds, LOW retains0.24; voice-active updates cap NORMAL to the old budget before existing ducking. No voice transport, combat, assets, saves or map changes.

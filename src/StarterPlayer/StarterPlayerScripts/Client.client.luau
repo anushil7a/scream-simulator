@@ -869,8 +869,9 @@ connectClient(Run.RenderStepped,function(dt)
   end
  end
  cueContext();gameplayAudio:Step(os.clock(),dt)
- elapsed+=dt;if elapsed<.15 then return end;elapsed=0
+ -- Audio consumes frame dt; keep ducking/calibration/fades outside the slow HUD gate.
  attackAudio:Step(os.clock(),dt,mic.ready and mic.power>.12,mic.phase~=nil)
+ elapsed+=dt;if elapsed<.15 then return end;elapsed=0
  aimInfo.Text=""
  if aimInfo.Visible then
   local _,hit=aimRay();local object=hit and hit.Instance

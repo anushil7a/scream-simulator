@@ -1,0 +1,32 @@
+{
+  "base": "327e1dd16e1c2d625750faa29f864daa48a596be",
+  "status": "unpublished draft correction; no native audio execution",
+  "sourceSha256": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "d2dc70eee9f74951a4a11509220fb116de260437ac392e3d32f754adbdd9d314",
+    "tests/beam_audio_cadence.py": "884797bea58d243806486b69f117085d087c23a173aa187c393bd7dee02bc330",
+    "tests/verify_local.py": "84a17fd714359899b1016d204fc0a5f040033bbf5b21d620c3b0657618d499fa"
+  },
+  "focusedAssertions": 344,
+  "negativeControls": 3,
+  "fullSuites": {
+    "pureSynthetic": 25,
+    "mocked": 72,
+    "productionCompiles": 57,
+    "builds": "all candidate/disposable builders passed"
+  },
+  "baseline": {
+    "fps": 30,
+    "frames": 30,
+    "mixerCalls": 6,
+    "passedDeltaSeconds": 0.2,
+    "wallSeconds": 1
+  },
+  "review": "independent reviewer reran focused suite and controls, no blocker",
+  "limitations": [
+    "actual cadence slice plus mixer, not complete client/native sound engine",
+    "render stalls and microphone detection latency remain",
+    "no feedback/safe-volume/listening claim"
+  ],
+  "cleanup": "no apps opened; prior three inaccessible app-picker dialogs unchanged",
+  "map": "unchanged"
+}
