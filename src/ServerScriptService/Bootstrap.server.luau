@@ -641,9 +641,20 @@ for _,obj in ipairs(workspace.ScreamSimulatorWorld:GetDescendants()) do
 end
 action.OnServerEvent:Connect(function(p,verb,arg)
  local s=sessions[p];if not s or type(verb)~="string" then return end
- -- Idempotent stops must survive a saturated request window; they never grant speed.
+ -- Validated idempotent stops must survive saturation; they grant no new action.
  if verb=="Sprint" and arg==false then s.sprintRequested=false;return end
  local now=os.clock()
+ if verb=="SustainedStop" and s.sustained then
+  local active=s.sustained.protocol.active
+  -- Stop can expire state before validating; only the current sequence bypasses quota.
+  if active and arg==active.sequence then sustainedEnd(p,sustained.Stop(s.sustained,now,arg),now);return end
+ elseif verb=="MicReady" and arg==false then
+  -- Clean leftover attacks too, but do not amplify repeated idle false packets.
+  if s.micReady~=false or (s.sustained and s.sustained.protocol.active) or s.voice.capture then
+   s.micReady=false;cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
+  end
+  return
+ end
  s.requestWindow=s.requestWindow or now;s.requestCount=s.requestCount or 0
  if now-s.requestWindow>=1 then s.requestWindow=now;s.requestCount=0 end
  s.requestCount+=1;if s.requestCount>30 then return end

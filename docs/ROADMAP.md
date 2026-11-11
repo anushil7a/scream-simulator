@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 saturated-window voice stop correction
+
+- Parallel controls audit and actual-dispatcher simulation reproduced dropped OFF/focus/mic-loss stops after30 requests: two later protocol resolutions totaling5 simulated damage before timeout. Prioritize only current-active-sequence stop and explicit MicReady(false); retain existing end/cooldown helpers and normal quota for starts/readiness true/malformed stops. Idle duplicates produce no repeated effects; inconsistent false+active capture cleans up.
+- Independent review reran89 assertions/four controls, baseline and corrected cases. Fixed cases emit zero later protocol damage, one end broadcast. Existing sprint184/four controls and toggle29/two controls pass. Full25 pure/synthetic +80 mocked suites,59 compiles and all builds pass. [Scope and limits](VOICE_STOP_RATE_LIMIT_REVIEW.md).
+- No native RemoteEvent/network/real-mic claim, publication/live stores or apps opened. Map remains paused. Next: integrate only coordinated, independently reviewed non-map findings; preserve native/device release gates.
+
 ## November 11 microphone policy warning
 
 - Implemented requested setup/Settings notice after checking official current Roblox rules. Advise avoiding profanity without blanket ban claims; distinguish Roblox recording/moderation from the beam volume meter, possible rule-violation restrictions, and attack OFF from microphone mute. Removed the prior game-wide recording guarantee. Rating/settings remain unverified; no moderation/settings change.
