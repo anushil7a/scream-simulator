@@ -2,6 +2,18 @@
 
 Base: clean local/fetched `bd6b80b7ec0197814ba614352ef3e2630d977cb8`. Remote was checked before edits and again before push. This follows the [notification queue review](NOTIFICATION_QUEUE_REVIEW.md).
 
+## November 10 native follow-up from 0555ec9
+
+No production behavior changed. A new disposable UI fixture closes the native display-validation gap for the save priority correction. `python tests/build_save_notice_review.py` builds `build/SaveNoticeReview.rbxl`; open locally in Studio and Play. `--negative-control` builds `SaveNoticeControl.rbxl`, which must fail with `Native save warning displaced`. Neither fixture contains server scripts or accesses stores; never publish either.
+
+Native Studio 0.747.0.7471481 passed all three rows (390x844, 844x390, 1280x720). Each injects 40 mixed shortage/reward messages after an active urgent voice notice and delayed save warning. Delayed text remained visible and fitting for 222-223 sampled frames / 3.701-3.716 seconds; replacement unavailable text for 234-235 frames / 3.900-3.916 seconds. Peak pending was eight in every phase. Silent snapshots did not reset dwell; delayed-to-unavailable replacement left no duplicate save entry. Healthy-state clearing was checked while the warning still had positive remaining time, preventing natural expiry from masking a missing clear hook. A separate phase verified interrupted reward resumption. All three rows and the final PASS marker appeared; no CreatorError occurred. Studio/plugin warnings and a failed localhost Rojo connection were observed, so this is not a claim of a warning-free environment.
+
+The native negative control downgraded only embedded save priority to ordinary urgent and failed at the intended visible-text assertion; no PASS marker appeared. Full local checks passed: 25 pure/synthetic suites, 59 mocked suites, 57 production compiles, exact-source candidate and all fixture builds. The focused simulated integration passed 210 assertions and all seven negative controls. Separate implementing-agent self-review found no blocker; this is not independent review.
+
+This exercises the actual client receiver, queue, RenderStepped and rendered TextLabel, with synthetic packets, mic readiness/power and viewport/touch flags. It does not exercise native server classification/RemoteEvent transport, real saves, voice, physical touch, human reading or network delivery. Sampling proves the stated intervals, not an uninterrupted full minimum dwell: replacement/healthy clearing deliberately occurs early. A screenshot also showed the delayed warning readable in the landscape container. The strongest remaining gate is the real-input/proximity-voice device playtest in [RELEASE_HANDOFF.md](RELEASE_HANDOFF.md), followed by separately authorized isolated persistence and representative multiplayer/device checks. No new production failure was established and no speculative feature added.
+
+[Native rows, control failure, build output and artifact hashes](../tests/evidence/save-notification-native-2026-11-10.json). Both task-created Studio windows were stopped, saved locally and closed; final inventory contains only pre-existing Codex. No tabs opened or unsaved work discarded. Historical pre-native results below remain scoped to their original checkpoint.
+
 ## Call-site audit and reproduction
 
 | Existing call sites | Severity and treatment |

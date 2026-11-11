@@ -1,6 +1,6 @@
 # Scream Simulator release handoff
 
-Updated November 9, 2026. Development branch: `feature/microphone-city-redesign`. Use [ROADMAP.md](ROADMAP.md) for current work and [AUTOMATIC_VOICE_PLAYTEST.md](AUTOMATIC_VOICE_PLAYTEST.md) for pending device/native checks.
+Updated November 10, 2026. Development branch: `feature/microphone-city-redesign`. Use [ROADMAP.md](ROADMAP.md) for current work and [AUTOMATIC_VOICE_PLAYTEST.md](AUTOMATIC_VOICE_PLAYTEST.md) for pending device/native checks.
 
 ## Last recorded publication
 
@@ -17,7 +17,15 @@ Run `python3 tests/verify_local.py --build` from the repository root with Luau t
 - `SustainedNativeFixture.rbxl`: disposable local place with synthetic combat checks; these do not establish real microphone behavior.
 - `PerformanceReview.rbxl`: disposable local place with the manual server heartbeat collector. It does not automatically measure performance.
 
-Never publish a disposable fixture. Older root-level or `CityPreviewLatest` binaries may be stale; rebuild from checked-out source. The city generates during Play, so an empty Edit viewport is expected. Native Studio control remains blocked in the latest recorded workflow; do not treat successful compilation as Studio execution.
+Never publish a disposable fixture. Older root-level or `CityPreviewLatest` binaries may be stale; rebuild from checked-out source. The city generates during Play, so an empty Edit viewport is expected. Native Studio control is available: specific synthetic transport and UI runs are recorded in the roadmap. Those named checks do not establish real microphone, phone, live save or multiplayer readiness; compilation alone is not native execution.
+
+## Highest remaining release gates
+
+1. **Real microphone and ordinary conversation:** no accepted evidence yet for the complete real-input path in this candidate. The owner/testers need two voice-eligible accounts/devices, ideally desktop plus a physical phone, in an explicitly approved isolated environment containing the exact candidate. Start with calibration and comfortable speech, ON onset/quiet-stop, four-second cap/ten-second cooldown, then OFF during attack while the other device confirms ordinary proximity conversation remains audible and no damage/restart occurs. Test mute, focus, death/respawn and deliberate resume. Record build/commit, devices and observed results without recordings or credentials. Synthetic power, local UI signals and Studio layout emulation cannot close this gate. Any required upload or environment change needs separate owner authorization; none is performed by this handoff.
+2. **Real persistence and ownership transitions:** protocol tests use isolated simulated storage, not real DataStore contention, response loss or shutdown. A separately authorized test environment with isolated test keys and legitimate progress must verify save/rejoin/migration, simultaneous ownership attempts and unavailable/recovered warnings against durable data. Never use production keys or enable live APIs just to turn a failed test green.
+3. **Representative gameplay/devices:** physical touch/accessibility, real-player comprehension, audio listening balance, representative multiplayer/performance soak and visual acceptance remain pending. Follow the existing scenario list; do not convert a synthetic/native fixture pass into an all-game release claim.
+
+Keep the PR draft until these gates have matching evidence and the owner approves a concrete release candidate. There is no newly established production defect requiring speculative gameplay changes merely because these external gates remain open.
 
 ## Before requesting the next release
 
