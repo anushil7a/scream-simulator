@@ -89,10 +89,10 @@ for _,automatic in ipairs({false,true})do
   end
  end
 end
--- The preserved tab callback still selects Settings through the original render path.
+-- With the menu visible, the preserved tab callback selects Settings. Hidden callbacks are tested in shop_modal_lifecycle.py.
 buttons={}
 __TABS__
-selected='Map';buttons.Settings.call();flush();check(selected=='Settings','Settings tab cannot open notice')
+modal.Visible=true;selected='Map';buttons.Settings.call();flush();check(selected=='Settings','Settings tab cannot open notice')
 check(destructions>0,'Rerender did not dispose old cards')
 print('PASS '..checks..' actual microphone notice/settings/render assertions; mocked text metrics only')
 '''

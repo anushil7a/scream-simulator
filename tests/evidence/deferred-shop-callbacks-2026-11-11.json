@@ -1,0 +1,65 @@
+{
+  "recordedAtUtc": "2026-11-11T22:18:27.713425+00:00",
+  "baseCommit": "74c77638d3c859324d2a2213440b0899688551c1",
+  "hashSemantics": "Exact working-tree bytes here; candidate normalized-source/project/reference/binary hashes separately verified",
+  "checks": {
+    "priceAssertions": 96,
+    "priceControls": 11,
+    "priceContract": 1,
+    "modalAssertions": 120,
+    "modalControls": 12,
+    "noticeAssertions": 402,
+    "noticeControls": 4,
+    "noticeContracts": 3,
+    "baseline": "74c7763 actual retained callback invocations reproduce stale purchase send and hidden-tab view recreation",
+    "aggregate": {
+      "pureSynthetic": 25,
+      "mockedSuites": 96,
+      "productionCompiles": 60,
+      "allBuilds": true,
+      "native": false
+    },
+    "initialAggregate": "Settings notice fixture tried visible-tab selection after recalibration closed modal; explicit visible setup added, assertions unchanged",
+    "independentReview": "Separate workers cross-reviewed/reran both final suites and baselines; main independently reran; minimal Settings fixture adaptation independently reviewed",
+    "candidate": "All60 normalized sources, project/references and binary hash match final state"
+  },
+  "commands": [
+    "python tests/shop_price_requests.py --negative-controls",
+    "python tests/shop_price_requests.py --callback-baseline",
+    "python tests/shop_modal_lifecycle.py --negative-controls",
+    "python tests/shop_modal_lifecycle.py --deferred-baseline",
+    "python tests/microphone_notice.py --negative-controls",
+    "python tests/verify_local.py --build"
+  ],
+  "limits": [
+    "Actual callbacks manually invoked with GUI/API/time mocks; native event scheduling/reachability/frequency not proven",
+    "Hidden/destroyed tab guard does not identify an old event delivered after a subsequent reopen",
+    "No real purchase, API, memory/GC, physical input or native layout verification",
+    "Server purchase authority, product IDs0, request bounds and hung-slot tradeoffs unchanged",
+    "No apps, map edits, live stores, publication or audio/product configuration; unattributed file preserved; writer-fleet release gate unchanged"
+  ],
+  "sources": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "5aa1d86544cdc9b1900a116960ac0ba425a6f0bf70b1789f2aba93a2fdd89a37",
+    "src/StarterPlayer/StarterPlayerScripts/ShopUI.luau": "82d258198dc831dc00f526865cd6ec6423b7ae2a476e453bfdb9382551447ccd",
+    "tests/shop_price_requests.py": "39e7a8be500849f9f1ad88594053583c501a81d2b1f0d08835010d33934a8e8b",
+    "tests/shop_modal_lifecycle.py": "9344bfa6ddbbb00297de7664b9f75bdb2f2e94d0873554ae4000db5139f9dd7d",
+    "tests/microphone_notice.py": "68f0c775620e5eb445891dfdcb2d64962cb41b0838164e0cc28ecf2b1939ce6f",
+    "docs/SHOP_PRICE_REQUESTS_REVIEW.md": "f1c9d8de5182eab2b84827f24aac7e215aa6dff46b22ec221dca0077f5a34514",
+    "docs/SHOP_MODAL_LIFECYCLE_REVIEW.md": "e5407cabd9eafe340296f82bbb116c6a25fd948ff1ad3d7662626e2808261762",
+    "docs/ROADMAP.md": "c82b2b9447e8aab326651a2036fc4fc219d1b65667637b6ef34f23a62f3e708e",
+    "docs/PLAYTEST_BACKLOG.md": "a2b66ada7fedfc9b51562e2948027a8e1a53d0c1d526aeeff9aa478c7e947fdd"
+  },
+  "artifacts": {
+    "build/deferred-price-controls.log": "36bd7e832a19ba638e8140bb4df984ce851a8a6998bc1d0083a8f909bdc43ea8",
+    "build/deferred-price-baseline.log": "008f0787867af7e44460edab06512a908aab18ebbfa290fc23b0c742f8a79e88",
+    "build/deferred-tabs-controls.log": "0548c149d572fdb0d2a83a5013de8204be8500fa83710ac8b74fa73e370cc9cd",
+    "build/deferred-tabs-baseline.log": "1f8df307168f3854ab481abfb1d6a8e78f031d771b5ce50b2ed9897fddefbac9",
+    "build/deferred-notice-regression.log": "4d9e1dc2deaea6fe38a166466a9e196bf2259e30c7fe2766e34bf7d3b135b58f",
+    "build/deferred-callbacks-full.log": "a68d7dcfaa9332fca042664974cad027d34948413ec50d313a50337d5a52822e",
+    "build/deferred-callbacks-full-final.log": "4ef1797c91600aa44dc09c3a4a107353cbfb4059b5e90225bcfe4175447087f9",
+    "build/AutomaticVoiceCandidate.rbxl": "695374595ba274a312bfec1b2bbf68605a3e4770d9792391aa8d8a2089c24e6b",
+    "build/AutomaticVoiceCandidate.provenance.json": "7aaa840d1c00ddaae9df8153e67d5d5a5f6e9e0b797999d69e2cf6b4d6b707f9",
+    "build/ShopReviewVerified.rbxl": "092b343c8276ee55add18767c887aec23fabe6be34bc6f2652407a1be8ab4988",
+    "build/OnboardingReview.rbxl": "f56c72f25c28b5a14eeb6400507a43d147a87bcf8d42fb95be082ac86308078e"
+  }
+}

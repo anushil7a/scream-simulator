@@ -25,3 +25,11 @@ No application, real price API, purchase, native UI/event ordering, physical inp
 ## Integration and independent review
 
 Independent reviewers reran the final 86/ten controls and baseline, plus the separate price 88/nine controls/one contract. The initial aggregate exposed a test-fixture dependency: quest_dialogue_restart.py extracts the NPC renderer and needed a labeled closeMenu mock. Its 97 assertions/four controls are unchanged and pass; the real helper is exercised by this lifecycle suite. Final `python tests/verify_local.py --build` passes 25 pure/synthetic +95 mocked suites, 60 compiles and all builds. No native run occurred. [Exact evidence, including the failed-then-corrected aggregate](../tests/evidence/shop-modal-lifecycle-2026-11-11.json).
+
+## Deferred tab callback follow-up
+
+Astra reproduced the retained actual tab callback being invoked after X close: it selected Shop and recreated four price views while the modal remained hidden. A narrow guard now rejects tab callbacks while the modal is hidden or the existing clientDestroyed flag is set. The test now extracts/registers the actual tab loop rather than relying on a substitute selection helper. All six tabs, late success/error, hidden retries, normal visible switching, unchanged reopen and destruction are exercised. Final modal suite passes 120 assertions and 12 controls; `--deferred-baseline` reproduces 74c7763's hidden recreation.
+
+This is deferred-callback hardening based on direct mocked invocation. Native Roblox scheduling/reachability or frequency is not proven. An old tab event delivered after a subsequent reopen is not rejected solely for being old; this guard covers hidden/destroyed state and does not claim a per-open event epoch.
+
+Deferred-callback integration: independently reviewed focused checks and final25 pure/synthetic +96 mocked suites,60 compiles/all builds pass. The first aggregate exposed the Settings fixture trying to select a tab after closing the modal; its explicit visible precondition was restored without changing assertions. [Exact failed/final evidence and hashes](../tests/evidence/deferred-shop-callbacks-2026-11-11.json). No native session or live service was used.

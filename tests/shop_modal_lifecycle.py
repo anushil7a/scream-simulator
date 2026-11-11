@@ -1,9 +1,10 @@
 """Actual modal callbacks/render-cache gate and ShopUI with mock GUI/API; no native claims."""
 from pathlib import Path
 import argparse,ast,re,subprocess,tempfile
-R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
+R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--deferred-baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
 path='src/StarterPlayer/StarterPlayerScripts/Client.client.luau'
 client=subprocess.check_output(['git','show','0619103:'+path],cwd=R,text=True,encoding='utf-8') if a.baseline else (R/path).read_text()
+if a.deferred_baseline:client=subprocess.check_output(['git','show','74c77638d3c859324d2a2213440b0899688551c1:'+path],cwd=R,text=True,encoding='utf-8')
 shop=(R/'src/StarterPlayer/StarterPlayerScripts/ShopUI.luau').read_text();shop=shop[:shop.rindex('return Shop')]
 def literal(name):
  tree=ast.parse((R/'tests/shop_price_requests.py').read_text(encoding='utf-8-sig'))
@@ -11,7 +12,7 @@ def literal(name):
 setup=literal('setup')
 setup=setup.replace('local services={',"local function signal()return {Connect=function(_,fn)local c={callback=fn,connected=true};function c:Disconnect()self.connected=false end;return c end}end\n local services={")
 setup=setup.replace('UserInputService={}', 'UserInputService={InputChanged=signal(),InputEnded=signal()}')
-setup=setup.replace('local Config={MovementPassId=104}',"local baseColor={ToHSV=function()return .5 end,ToHex=function()return 'FFFF00'end};local Config={MovementPassId=104,Auras={Gold=baseColor}}")
+setup=setup.replace('local Config={MovementPassId=104}',"local baseColor={ToHSV=function()return .5 end,ToHex=function()return 'FFFF00'end};local Config={MovementPassId=104,MaxLevel=100,Auras={Gold=baseColor}}")
 setup=setup.replace('fromHSV=function()return {}end','fromHSV=function()return baseColor end').replace('fromRGB=function()return {}end','fromRGB=function()return baseColor end')
 setup=setup.replace('local UDim2=', 'local Vector2={new=function(x,y)return {X=x,Y=y}end,zero={X=0,Y=0}};local UDim2=')
 setup=setup.replace('ui.frame=function()return {}end','ui.frame=function()return {InputBegan=signal()}end')
@@ -34,11 +35,11 @@ def assemble(c):
  tailSetup=literal('endsetup').split('return f\nend')[0]
  tailSetup=tailSetup.replace('records=prices','records=prices,connections=connections')
  context=r'''
-local ShopUI=m.shop;local selected='Shop';local render;local closeMenu
+local ShopUI=m.shop;local selected='Shop';local render;local closeMenu;local clientDestroyed=false;local clientConnections={};local button=ui.button
 local modal={Visible=false};local gui={AbsoluteSize={X=720},Destroy=function()f.destroyed=true end}
 local content={CanvasPosition={X=0,Y=40},AbsoluteCanvasSize={Y=600},AbsoluteWindowSize={Y=200},GetChildren=function()return {}end}
 local tabs={};local panel={};local title={};local subtitle={};local mapDot;local narrow=false
-local devPanel={Visible=false};local data={savingAvailable=true,settings={},quests={},aura='Gold',shop={ready=true,inventory={},ends={},serverNow=100}}
+local devPanel={Visible=false};local data={level=1,xp=0,xpNext=100,savingAvailable=true,settings={},quests={},aura='Gold',shop={ready=true,inventory={},ends={},serverNow=100}}
 local destroyed={};local script={Destroying={Connect=function(_,fn)table.insert(destroyed,fn)end}}
 local Run={Heartbeat={Wait=function()coroutine.yield()end}}
 local oldGet=game.GetService;function game:GetService(name)if name=='HttpService'then return {JSONEncode=function()return 'stable'end}end;return oldGet(self,name)end
@@ -56,7 +57,8 @@ f.keyB=function()keyCallback({KeyCode='B'},false)end
 f.blockedKeys=function()keyCallback({KeyCode='B'},true);GuiService.MenuIsOpen=true;keyCallback({KeyCode='B'},false);GuiService.MenuIsOpen=false;textFocus={};keyCallback({KeyCode='B'},false);textFocus=nil end
 f.toggle=toggle;f.tab=toggleTab;f.content=content;f.modal=modal
 f.destroy=function()for _,fn in ipairs(destroyed)do fn()end end
-f.select=function(name)selected=name;render()end
+f.activateTab=function(name)tabs[name].callback()end
+f.selected=function()return selected end
 f.tick=function()ShopUI.Tick()end
 f.flushScroll=function()for _,job in ipairs(f.jobs)do if #job.args==0 and coroutine.status(job.co)=='suspended'then assert(coroutine.resume(job.co))end end end
 f.priceJobs=function()local out={};for _,job in ipairs(f.jobs)do if #job.args>0 then table.insert(out,job)end end;return out end
@@ -64,7 +66,7 @@ f.reply=function(index,result)local job=f.priceJobs()[index];assert(coroutine.re
 return f
 end
 '''.replace('XCLOSE',x).replace('DEVCLOSE',dev).replace('RECALCLOSE',recal).replace('CONVOCLOSE',convo)
- return setup+shop+tailSetup+context+re.search(r'script.Destroying:Connect\(function\(\) ShopUI.Clear\(\) end\)',c).group(0)+'\n'+state+'\nmodal.Visible=true;(function() '+x+' end)();check(not modal.Visible,"Early X close failed")\n'+key+toggle+'\n'+head+renderbody+tail+'\n'+input_setup+c[c.index('connectClient(UIS.InputBegan,function(input,processed)'):c.index('connectClient(UIS.InputEnded,function(input)')]+'\n'+finish
+ return setup+shop+tailSetup+context+re.search(r'script.Destroying:Connect\(function\(\) ShopUI.Clear\(\) end\)',c).group(0)+'\n'+c[c.index('script.Destroying:Connect(function()'):c.index('local originalTouchControls=')]+'\n'+state+'\nmodal.Visible=true;(function() '+x+' end)();check(not modal.Visible,"Early X close failed")\n'+key+toggle+'\n'+head+renderbody+tail+'\n'+input_setup+c[c.index('connectClient(UIS.InputBegan,function(input,processed)'):c.index('connectClient(UIS.InputEnded,function(input)')]+'\n'+c[c.index('for i,name in ipairs({"Shop"'):].splitlines()[0]+'\n'+finish
 checks=r'''
 for _,route in ipairs({'closeX','toggle','keyB','sameTab','closeDev','closeRecalibrate','closeConversation','destroy'})do
  local f=fixture();f.tab('Shop');check(#f.stats().views==4,'Opening did not render Shop')
@@ -85,11 +87,29 @@ end
 local f=fixture();f.tab('Shop');f.closeX();f.now=1;for i=1,4 do f.reply(i,{IsForSale=true,PriceInRobux=20})end
 check(#f.stats().views==0,'Late completion reinstated closed views')
 f.tab('Shop');check(#f.priceJobs()==4 and #f.stats().views==4,'Fresh cache reopen lost price views')
-f.select('Style');local old={};for _,c in ipairs(f.stats().connections)do table.insert(old,c)end
+f.activateTab('Style');local old={};for _,c in ipairs(f.stats().connections)do table.insert(old,c)end
 check(#old==3,'Actual Style subscriptions missing')
 f.closeX();for _,c in ipairs(old)do check(not c.connected,'Close retained Style connection')end
 f.tab('Style');check(#f.stats().connections==3,'Unchanged Style reopen did not reconnect')
 f.destroy();check(#f.stats().connections==0 and #f.stats().views==0,'Destroy retained subscriptions')
+for _,result in ipairs({'error','success'})do
+ local f=fixture();f.tab('Shop');f.closeX()
+ for _,name in ipairs({'Shop','Screams','Quests','Style','Map','Settings'})do
+  f.activateTab(name)
+  check(#f.stats().views==0 and #f.stats().connections==0 and f.selected()=='Shop','Hidden tab callback rebuilt subscriptions or changed selection: '..name)
+ end
+ f.now=1;for i=1,4 do f.reply(i,result=='error' and 'error' or {IsForSale=true,PriceInRobux=20})end
+ f.now=30
+ for _,name in ipairs({'Shop','Screams','Quests','Style','Map','Settings'})do f.activateTab(name);f.tick()end
+ check(#f.priceJobs()==4 and #f.stats().views==0,'Deferred hidden tabs retried completed prices')
+ f.tab('Shop');check(#f.stats().views==4,'Deferred callback broke unchanged reopen')
+ for _,name in ipairs({'Screams','Quests','Style','Map','Settings','Shop'})do
+  f.activateTab(name);check(f.selected()==name and f.modal.Visible,'Visible tab switch failed: '..name)
+ end
+ check(#f.stats().views==4,'Visible Shop switch missing views')
+ f.closeX();f.destroy();f.modal.Visible=true;f.activateTab('Style')
+ check(#f.stats().connections==0 and f.selected()=='Shop','Destroyed tab callback rebuilt subscriptions')
+end
 print('PASS',n,'actual modal callback/cache + Shop price/style lifecycle assertions; mocked UI/API')
 '''
 def run(c,error=None):
@@ -99,11 +119,12 @@ def run(c,error=None):
  out=r.stdout+r.stderr
  if error:assert r.returncode and error in out,out;print('PASS expected failure:',error)
  else:print(out,end='');assert r.returncode==0
-if a.baseline:run(client,'Close wiring retained views: closeX')
+if a.deferred_baseline:run(client,'Hidden tab callback rebuilt subscriptions or changed selection: Shop')
+elif a.baseline:run(client,'Close wiring retained views: closeX')
 else:
  assert client.index('local function closeMenu()')<client.index('button(modal,"Close","X"'), 'Close registered before helper initialization'
  run(client)
  if a.negative_controls:
-  mutants=[('elseif k==Enum.KeyCode.B then toggle()','elseif k==Enum.KeyCode.B then do end','Close wiring retained views: keyB'),('function() closeMenu() end)','function() modal.Visible=false end)','Close wiring retained views: closeX'),('if modal.Visible then closeMenu() else','if modal.Visible then modal.Visible=false else','Close wiring retained views: toggle'),('if not opening then closeMenu();return end','if not opening then modal.Visible=false;return end','Close wiring retained views: sameTab'),('if devPanel.Visible then closeMenu() end','if devPanel.Visible then modal.Visible=false end','Close wiring retained views: closeDev'),('mic:Calibrate();closeMenu()','mic:Calibrate();modal.Visible=false','Close wiring retained views: closeRecalibrate'),('cancelCapture();closeMenu();if devPanel','cancelCapture();modal.Visible=false;if devPanel','Close wiring retained views: closeConversation'),('renderedMenuKey=nil;renderRevision+=1','renderRevision+=1','Unchanged key reopen lost subscriptions'),('renderedMenuKey=nil;renderRevision+=1','renderedMenuKey=nil','Pending scroll survived close'),('function() closeMenu();gui:Destroy() end','function() gui:Destroy() end','Pending scroll survived close: destroy')]
+  mutants=[('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'selected=name;render()', 'Hidden tab callback rebuilt subscriptions or changed selection: Shop'),('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'if not modal.Visible then return end;selected=name;render()', 'Destroyed tab callback rebuilt subscriptions'),('elseif k==Enum.KeyCode.B then toggle()','elseif k==Enum.KeyCode.B then do end','Close wiring retained views: keyB'),('function() closeMenu() end)','function() modal.Visible=false end)','Close wiring retained views: closeX'),('if modal.Visible then closeMenu() else','if modal.Visible then modal.Visible=false else','Close wiring retained views: toggle'),('if not opening then closeMenu();return end','if not opening then modal.Visible=false;return end','Close wiring retained views: sameTab'),('if devPanel.Visible then closeMenu() end','if devPanel.Visible then modal.Visible=false end','Close wiring retained views: closeDev'),('mic:Calibrate();closeMenu()','mic:Calibrate();modal.Visible=false','Close wiring retained views: closeRecalibrate'),('cancelCapture();closeMenu();if devPanel','cancelCapture();modal.Visible=false;if devPanel','Close wiring retained views: closeConversation'),('renderedMenuKey=nil;renderRevision+=1','renderRevision+=1','Unchanged key reopen lost subscriptions'),('renderedMenuKey=nil;renderRevision+=1','renderedMenuKey=nil','Pending scroll survived close'),('function() closeMenu();gui:Destroy() end','function() gui:Destroy() end','Pending scroll survived close: destroy')]
   for old,new,error in mutants:
    assert client.count(old)==1,old;run(client.replace(old,new),error)

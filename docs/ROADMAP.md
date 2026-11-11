@@ -5,6 +5,14 @@ Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+
+## November 11 deferred shop and tab callbacks
+
+- Astra directly invoked retained callbacks and reproduced a stale priced button sending after Clear, plus a hidden tab callback recreating price views/retries. Purchase callbacks now require their original generation, attached button and available price. Tab callbacks reject hidden/destroyed state. Current visible switching, normal purchase requests and reopening remain. This is narrow deferred-callback hardening, not a demonstrated native UI incident.
+- Independent price96 assertions/11 controls/one contract and actual registered tab/modal120 assertions/12 controls pass, with both74c7763 baseline failures. The Settings-notice fixture now explicitly makes the menu visible before its existing visible-tab assertion;402 assertions/four controls/three contracts remain unchanged. Initial failed aggregate and corrected final result are retained in [evidence](../tests/evidence/deferred-shop-callbacks-2026-11-11.json).
+- Full25 pure/synthetic +96 mocked suites,60 compiles and all builds pass. [Price review](SHOP_PRICE_REQUESTS_REVIEW.md) and [modal review](SHOP_MODAL_LIFECYCLE_REVIEW.md) state limitations: native queued-event reachability/frequency unproven, no guarantee that a tab event from an old opening is rejected after reopening, no real purchase/API/native layout claim.
+- No apps, map edits, live stores, publication or product/audio configuration. The unattributed empty fixture remains untouched; normal unsavable play and writer-fleet release gate are unchanged. Next: independent checkpoint review and concrete non-map validation, staying quiet unless owner input/help is required.
+
 ## November 11 bounded client voice-access checks
 
 - Actual Microphone plus CHECK ACCESS callback mocks reproduced 121 pending API invocations and timeout closures from construction plus120 clicks. The client now permits one actual call per controller, coalesces pending clicks and applies a two-second cooldown after completion. Its existing heartbeat provides an honest pending/rejoin notice after ten seconds, with no delayed timeout jobs. This notice is not result expiry: an eventual same-live-instance true/false/error still completes normally. Server eligibility is unchanged.

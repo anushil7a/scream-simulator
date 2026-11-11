@@ -1,8 +1,8 @@
 """Actual ShopUI price path with suspended API mocks; no live prices or native UI."""
 from pathlib import Path
 import argparse,subprocess,tempfile
-R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--disabled-baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
-path='src/StarterPlayer/StarterPlayerScripts/ShopUI.luau';s=subprocess.check_output(['git','show','15df683:'+path],cwd=R,text=True,encoding='utf-8') if a.baseline else (R/path).read_text();s=subprocess.check_output(['git','show','0619103:'+path],cwd=R,text=True,encoding='utf-8') if a.disabled_baseline else s;s=s[:s.index('function Shop.ColorMixer(')]
+R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--callback-baseline',action='store_true');p.add_argument('--disabled-baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
+path='src/StarterPlayer/StarterPlayerScripts/ShopUI.luau';s=subprocess.check_output(['git','show','15df683:'+path],cwd=R,text=True,encoding='utf-8') if a.baseline else (R/path).read_text();s=subprocess.check_output(['git','show','0619103:'+path],cwd=R,text=True,encoding='utf-8') if a.disabled_baseline else s;s=subprocess.check_output(['git','show','74c7763:'+path],cwd=R,text=True,encoding='utf-8') if a.callback_baseline else s;s=s[:s.index('function Shop.ColorMixer(')]
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
@@ -88,6 +88,15 @@ for i=1,4 do if i==4 then f.config.MovementPassId=0 else f.items[i].id=0 end;f.d
 for i=1,4 do if i==4 then f.config.MovementPassId=104 else f.items[i].id=100+i end;f.draw(i,i==1)end
 check(#f.jobs==4 and f.stats().flight==4,'Disabled records freed occupied slots')
 f.finish(1,{IsForSale=true,PriceInRobux=90});check(#f.jobs==5 and f.stats().flight==4,'Invalidated response did not release exactly one slot')
+-- Directly invoked queued/retained callbacks, not a native event-delivery claim.
+for _,mode in ipairs({'clear','rerender','detach'})do
+ f=fixture();local priced=f.draw();f.finish(1,{IsForSale=true,PriceInRobux=25});priced.callback();check(f.sent==1,'Current priced callback did not send')
+ local current
+ if mode=='clear'then f.shop.Clear()elseif mode=='rerender'then current=f.draw()else priced.Parent=nil end
+ for i=1,20 do priced.callback()end
+ check(f.sent==1,'Obsolete priced callback sent after '..mode)
+ if mode~='detach'then current=current or f.draw();current.callback();check(f.sent==2,'Current reopened callback failed')end
+end
 -- Fail closed on malformed price responses, retaining no prior available price.
 for _,info in ipairs({{},true,{IsForSale=true},{IsForSale=true,PriceInRobux=-1},{IsForSale=true,PriceInRobux=0/0},{IsForSale=true,PriceInRobux=math.huge},{IsForSale=true,PriceInRobux=1.5},{IsForSale='true',PriceInRobux=1},{IsForSale=false}})do
  f=fixture();b=f.draw();f.finish(1,info);check(b.Text=='UNAVAILABLE','Malformed/not-for-sale price enabled');b.callback();check(f.sent==0,'Unconfirmed price prompted')
@@ -104,12 +113,13 @@ def run(source,error=None,baseline=False):
  out=r.stdout+r.stderr
  if error:assert r.returncode and error in out,out;print('PASS negative control:',error)
  else:print(out,end='');assert r.returncode==0
-if a.disabled_baseline:run(s,'Disabled ID roundtrip reused obsolete request')
+if a.callback_baseline:run(s,'Obsolete priced callback sent after clear')
+elif a.disabled_baseline:run(s,'Disabled ID roundtrip reused obsolete request')
 elif a.baseline:run(s,baseline=True)
 else:
  run(s)
  if a.negative_controls:
-  mutations=[(' or prices[item.key] and prices[item.key].key~=item.kind..":"..id','','Owned changed configuration retained obsolete request'),('if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end' ,'-- omitted disabled invalidation','Disabled ID roundtrip reused obsolete request'),('if record.info and os.clock()<record.expires then view.apply(record.info,false);return end','-- omitted synchronous cache apply','Synchronous success displayed unavailable'),('not record.pending and now>=','now>=','Rerenders duplicated pending request'),('priceInFlight<PRICE_LIMIT','true','Hung slot abandoned/replaced'),('record.retryAt=now+PRICE_RETRY','record.retryAt=now','Error not unavailable'),('now<record.deadline and validPrice(info)','validPrice(info)','Timed-out response cached'),('table.clear(priceViews)','do end','Full Render did not bound four product views/calls'),('if prices[record.itemKey]~=record then return end','if false then return end','Obsolete ID record accepted result')]
+  mutations=[('revision==generation and b and b.Parent and available','b and b.Parent and available','Obsolete priced callback sent after clear'),('revision==generation and b and b.Parent and available','revision==generation and available','Obsolete priced callback sent after detach'),(' or prices[item.key] and prices[item.key].key~=item.kind..":"..id','','Owned changed configuration retained obsolete request'),('if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end' ,'-- omitted disabled invalidation','Disabled ID roundtrip reused obsolete request'),('if record.info and os.clock()<record.expires then view.apply(record.info,false);return end','-- omitted synchronous cache apply','Synchronous success displayed unavailable'),('not record.pending and now>=','now>=','Rerenders duplicated pending request'),('priceInFlight<PRICE_LIMIT','true','Hung slot abandoned/replaced'),('record.retryAt=now+PRICE_RETRY','record.retryAt=now','Error not unavailable'),('now<record.deadline and validPrice(info)','validPrice(info)','Timed-out response cached'),('table.clear(priceViews)','do end','Full Render did not bound four product views/calls'),('if prices[record.itemKey]~=record then return end','if false then return end','Obsolete ID record accepted result')]
   for old,new,error in mutations:
    assert s.count(old)==1,old;run(s.replace(old,new),error)
 

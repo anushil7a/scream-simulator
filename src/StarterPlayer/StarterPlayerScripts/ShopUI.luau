@@ -66,15 +66,15 @@ local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
  local id=item.key=="Movement" and Config.MovementPassId or item.id
  local configured=type(id)=="number" and id==id and id>0 and id<math.huge and id%1==0
  local text=owned and "OWNED" or not configured and "COMING SOON" or "CHECKING PRICE…"
- local available=false
- local b=ui.button(parent,"Buy"..item.key,text,size,pos,function()
-  if available then action:FireServer("ShopPurchase",item.key) end
+ local available=false;local revision=generation
+ local b
+ b=ui.button(parent,"Buy"..item.key,text,size,pos,function()
+  if revision==generation and b and b.Parent and available then action:FireServer("ShopPurchase",item.key) end
  end,owned and Color3.fromRGB(32,75,73) or ink)
  b.TextSize=13;stroke(b,accent)
  -- Disabled configuration is an identity change, even if the same ID returns later.
  if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end
  if owned or not configured then b.AutoButtonColor=false;return end
- local revision=generation
  local function apply(info,pending)
   if revision~=generation or not b.Parent then return end
   available=info~=nil and info.IsForSale==true and data.savingAvailable==true
