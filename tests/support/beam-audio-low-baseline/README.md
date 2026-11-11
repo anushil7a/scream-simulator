@@ -6,3 +6,5 @@ Exact Git blob bytes copied from repository commit `47f3d46`, before the NORMAL/
 - `BeamAudioMix.luau`: `f6a05600323921af36578107915ec4dd08b6178a99e664533bf3e306b2a1153d`
 
 Source paths: `src/ReplicatedStorage/Shared/AttackAudioConfig.luau` and `src/StarterPlayer/StarterPlayerScripts/BeamAudioMix.luau`.
+
+`.gitattributes` pins these Luau fixtures to LF so Windows autocrlf checkouts retain the exact blob hashes.

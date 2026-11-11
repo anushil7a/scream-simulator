@@ -37,7 +37,8 @@
     "productionCompiles": 57,
     "allBuildsPassed": true,
     "independentReview": "cleared; focused assertions/controls independently rerun",
-    "nativeExecuted": false
+    "nativeExecuted": false,
+    "windowsAutocrlfCheckout": "Both vendored Luau blobs preserve exact SHA256/no CRLF under git checkout-index with core.autocrlf=true and explicit eol=lf attributes; temporary output cleaned."
   },
   "limitations": [
     "Synthetic handles/settings/callbacks, no asset loading or listening in this batch",

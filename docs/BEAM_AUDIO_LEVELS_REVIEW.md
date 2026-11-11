@@ -26,3 +26,5 @@ No Studio, browser or other app was opened for this batch. The three already-ina
 - Independent review reran the focused checks and negative controls and found no production blocker. The Settings tests execute actual callback code against fake controls; they do not measure rendered text fit or physical input.
 
 [Machine-readable evidence](../tests/evidence/beam-audio-levels-2026-11-11.json) records production identities, scopes and limitations.
+
+Packaging follow-up: Git warned that Windows autocrlf could alter raw-byte baseline hashes. Explicit `eol=lf` attributes now protect both historical Luau fixtures. A fresh `checkout-index` with `core.autocrlf=true` retained both exact hashes and no CRLF; temporary output was cleaned. Production and test logic are unchanged.
