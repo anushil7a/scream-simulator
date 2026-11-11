@@ -70,6 +70,11 @@ Config.Quests={
  {id="arena",name="Underdog",description="Knock out a player whose level is at least yours in the central arena.",goal=1,xp=180,coins=80,event="Underdog"},
 }
 local questGivers={beach="Mar Soler · Rambla Gardens",delivery="Pau Vidal · Mercat del Mar",crowd="Busker · west gardens",sprint="Commuter · Plaça del Sol",dodge="Fighter · Rambla Gardens",arena="Fighter · Rambla Gardens"}
+if Config.CompactCity then
+ questGivers.crowd="Eric Sol · west courtyard"
+ questGivers.sprint="Boardwalk runner · west promenade"
+ questGivers.dodge="Arena coach · west arena gate";questGivers.arena=questGivers.dodge
+end
 for _,quest in ipairs(Config.Quests) do quest.giver=quest.giver or questGivers[quest.id] end
 function Config.SoundForLevel(level)
  local chosen=Config.Sounds[1]

@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 compact navigation guidance correction
+
+- Independent review found retained original-district giver labels and a nonexistent compact pier in race-start text. Corrected compact-only giver names/locations and race direction, preserving all quest IDs, objectives/rewards/progress and race timing. Baseline failure reproduced;69 focused assertions/four controls,361 renderer assertions/six controls and374 migration assertions pass.
+- Full25 pure/synthetic +78 mocked suites,59 compiles and all builds pass. [Copy review](COMPACT_GUIDANCE_REVIEW.md). Native navigation/readability remains unrun; no geometry, save, combat, publication or apps changed. Original archive unchanged.
+- Separately completed current official Roblox policy research and proposed rating-neutral voice notice; actual City Preview rating/settings remain unverified. [Policy findings](MICROPHONE_POLICY_REVIEW.md). No production notice edit while compact review runs. Next: coordinate notice UI copy and sizing tests; retain native compact release gates.
+
 ## November 11 compact city gameplay integration
 
 - The unpublished source candidate now selects the 720 x 600 compact layout and matching arena, spawn, full map/minimap, trainer pads, quest markers, deliveries, sports bounds and resident navigation. Preserve all eight quest IDs, saved progress and trainer tier/reward rules. No old traffic or destruction/repair service is enabled. The exact original 59-file archive remains unchanged.

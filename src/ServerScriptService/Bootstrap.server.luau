@@ -630,7 +630,7 @@ local function interactQuest(p,obj)
    else state(p,"Pick up a fresh order from the café first.") end
   elseif kind=="RaceStart" and s.activeQuest=="sprint" then
    if s.raceStart then state(p,"Your race is already running. Follow the boardwalk to the finish.");return end
-   s.raceStart=os.clock();s.questDeadline=s.raceStart+25;state(p,"Go! Follow the boardwalk to the pier finish · 25s")
+   s.raceStart=os.clock();s.questDeadline=s.raceStart+25;state(p,"Go! Follow the promenade east to the finish · 25s")
   elseif kind=="RaceFinish" and s.activeQuest=="sprint" then
    if s.raceStart and os.clock()-s.raceStart>=3 and s.questDeadline and os.clock()<=s.questDeadline then s.questDeadline=nil;s.raceStart=nil;questProgress(p,"Race")
    else state(p,"Start at the lifeguard tower and beat 25 seconds.") end
