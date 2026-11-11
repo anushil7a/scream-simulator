@@ -7,6 +7,12 @@ Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 11 current-head native UI check
+
+- Current 6b859a3 disposable actual Client UI passed 161 native Studio assertions, 31 scripted rows plus one manual observation, and three beam readouts; all reported allocated-text clipping lists were empty. Separate review reconstructed all 206 chunks and verified hashes. Desktop pointer BEAMS OFF and Shop X-close/B-reopen/B-close worked. No new source defect was established; no speculative production changes.
+- Synthetic microphone/focus/remotes/server eligibility only, not real voice, physical-phone reachability, persistence, commerce delivery or native queued-event proof. Two asset-type mismatch warnings remain of unknown origin; no audio success claim. Prior full 25/98/60 remains the 6b859a3 checkpoint, not a repeated suite. [Review](NATIVE_CURRENT_UI_REVIEW.md), [evidence](../tests/evidence/native-current-ui-2026-11-11.json).
+- Studio stopped/closed without saving; preexisting apps preserved. One launch-created minimized app-picker remains beyond supported restore controls. No bypass/repeated launches, map edits, live services or publication. Owner requested pause after this task. Finish evidence review and the draft checkpoint, then stop; resume only on new direction. Real-device/service gates remain, with no scheduled continuation.
+
 ## November 11 commerce departure lifetimes
 
 - Actual-module coroutine mocks reproduced departed cache/changed resurrection before Parent clears, plus a departed receipt waiting indefinitely behind a hung same-user lock. Weak per-Player departure identity now fences cache, notifications and fresh admission; not-yet-started waiters exit without releasing the owner's lock. Already-started writes retain existing retries, durable receipt acknowledgement and deduplication. Busy remains truthful until actual completion.
