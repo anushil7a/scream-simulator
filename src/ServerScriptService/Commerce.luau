@@ -10,6 +10,9 @@ local Entitlements=require(script.Parent.Entitlements)
 local Commerce={}
 local cache,locks,promptAt={},{},{}
 local loadAt,activateAt={},{}
+-- PlayerRemoving can precede Parent clearing; never admit that same object again.
+local departed=setmetatable({},{__mode="k"})
+local function live(player) return player.Parent~=nil and not departed[player] end
 local allowed,changed,store
 local function database()
  if Run:IsStudio() then return end
@@ -20,11 +23,15 @@ local function database()
  return store
 end
 local function transact(player,transform)
+ if not live(player) then return false end
  local db=database();if not db then return false end
  local id=player.UserId
- while locks[id] do task.wait(.05) end
+ while locks[id] do
+  if not live(player) or not allowed(player) then return false end
+  task.wait(.05)
+ end
  -- A leave, unavailable profile or test command may have happened while waiting.
- if not player.Parent or not allowed(player) then return false end
+ if not live(player) or not allowed(player) then return false end
  locks[id]=true
  local success,result
  for attempt=1,3 do
@@ -33,26 +40,26 @@ local function transact(player,transform)
   task.wait(attempt)
  end
  if success and result then
-  if player.Parent then cache[player]=Ledger.Normalize(result) end
+  if live(player) then cache[player]=Ledger.Normalize(result) end
  elseif not success then cache[player]=nil end -- never grant from an ambiguous write
  locks[id]=nil
  return success and result~=nil
 end
 function Commerce.Load(player)
- if not database() or not allowed(player) then return end
+ if not live(player) or not database() or not allowed(player) then return end
  if os.clock()<(loadAt[player] or 0) or locks[player.UserId] then return end
  loadAt[player]=os.clock()+15
  local ok=transact(player,Ledger.Normalize)
- if ok and player.Parent then changed(player) end
+ if ok and live(player) then changed(player) end
 end
 function Commerce.Status(player)
- local d=cache[player]
+ local d=live(player) and cache[player] or nil
  return {ready=d~=nil and allowed(player),inventory=d and d.inventory or {xp=0,coins=0},ends=d and d.ends or {xp=0,coins=0},serverNow=os.time()}
 end
-function Commerce.Multiplier(player,kind) return Ledger.Multiplier(cache[player],kind,os.time()) end
+function Commerce.Multiplier(player,kind) return Ledger.Multiplier(live(player) and cache[player] or nil,kind,os.time()) end
 function Commerce.Busy(player) return locks[player.UserId]==true end
 function Commerce.Activate(player,kind)
- if (kind~="xp" and kind~="coins") or not allowed(player) or not cache[player] then return end
+ if not live(player) or (kind~="xp" and kind~="coins") or not allowed(player) or not cache[player] then return end
  if os.clock()<(activateAt[player] or 0) or locks[player.UserId] then return end
  activateAt[player]=os.clock()+2
  local operation=Http:GenerateGUID(false);local started=os.time()
@@ -60,9 +67,10 @@ function Commerce.Activate(player,kind)
   local data=Ledger.Activate(raw,kind,operation,started,os.time())
   return data -- UpdateAsync's second return is user IDs, not a status string.
  end)
- if player.Parent then changed(player,ok and "Boost activated · 30 minutes added" or "Boost not activated. Check your inventory and try again.",nil,not ok) end
+ if live(player) then changed(player,ok and "Boost activated · 30 minutes added" or "Boost not activated. Check your inventory and try again.",nil,not ok) end
 end
 function Commerce.Prompt(player,key)
+ if not live(player) then return end
  local item=Catalog.Get(key)
  if not item or Run:IsStudio() or not allowed(player) then changed(player,"Purchases are unavailable in this session.",nil,true);return end
  local id=item.key=="Movement" and Config.MovementPassId or item.id
@@ -81,7 +89,7 @@ function Commerce.Prompt(player,key)
   if item.kind=="pass" then Marketplace:PromptGamePassPurchase(player,id)
   else Marketplace:PromptProductPurchase(player,id) end
  end)
- if not ok then changed(player,"Roblox could not open this purchase. Please try again.",nil,true) end
+ if not ok and live(player) then changed(player,"Roblox could not open this purchase. Please try again.",nil,true) end
 end
 function Commerce.Start(canPurchase,onChanged)
  assert(not allowed,"Commerce already started")
@@ -89,15 +97,15 @@ function Commerce.Start(canPurchase,onChanged)
  Marketplace.ProcessReceipt=function(receipt)
   local item=Catalog.Product(receipt.ProductId)
   local player=Players:GetPlayerByUserId(receipt.PlayerId)
-  if not item or not player or Run:IsStudio() or not allowed(player) then return Enum.ProductPurchaseDecision.NotProcessedYet end
+  if not item or not player or not live(player) or Run:IsStudio() or not allowed(player) then return Enum.ProductPurchaseDecision.NotProcessedYet end
   local ok=transact(player,function(raw)
    local data=Ledger.GrantActive(raw,receipt.PurchaseId,item.boost,os.time())
    return data
   end)
   if not ok then return Enum.ProductPurchaseDecision.NotProcessedYet end
-  if player.Parent then changed(player,"Boost purchase processed. Check the shop for your current boost status.") end
+  if live(player) then changed(player,"Boost purchase processed. Check the shop for your current boost status.") end
   return Enum.ProductPurchaseDecision.PurchaseGranted
  end
- Players.PlayerRemoving:Connect(function(player) cache[player]=nil;promptAt[player]=nil;loadAt[player]=nil;activateAt[player]=nil end)
+ Players.PlayerRemoving:Connect(function(player) departed[player]=true;cache[player]=nil;promptAt[player]=nil;loadAt[player]=nil;activateAt[player]=nil end)
 end
 return Commerce

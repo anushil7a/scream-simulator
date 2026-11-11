@@ -7,6 +7,12 @@ Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 11 commerce departure lifetimes
+
+- Actual-module coroutine mocks reproduced departed cache/changed resurrection before Parent clears, plus a departed receipt waiting indefinitely behind a hung same-user lock. Weak per-Player departure identity now fences cache, notifications and fresh admission; not-yet-started waiters exit without releasing the owner's lock. Already-started writes retain existing retries, durable receipt acknowledgement and deduplication. Busy remains truthful until actual completion.
+- Independent60 lifecycle assertions/twelve controls and both03efe28 reproductions pass; retained commerce46/five controls pass. Private cache observation prevents public hiding from masking retention; distinct same-ID reconnect, failed activation inventory, ambiguous responses and current serialized writes are covered. Full25 pure/synthetic +98 mocked suites,60 compiles and all builds pass. [Review](COMMERCE_LIFECYCLE_REVIEW.md), [exact evidence](../tests/evidence/commerce-lifecycle-2026-11-11.json).
+- No economic-corruption incident, native lifetime/GC or API cancellation is claimed. A hung owning API call can still retain its arguments and lock; only an invalid waiting caller exits at its next poll. No live stores/purchases, apps, map changes, product configuration or publication. Unattributed file preserved; normal unsavable play and writer-fleet release gate unchanged. Next: independent checkpoint review and evidence-backed non-map readiness work, with quiet owner updates unless input/help is needed.
+
 ## November 11 rendered panel action lifetimes
 
 - Actual retained callbacks can conditionally reset a newer quest attempt, spend 1,500 earned coins on an amplifier or replace a grandfathered color after the panel closes. Per-render menu and independent conversation revisions now reject stale callbacks after close/replacement/reopen, hidden state or client destruction. Current actions, server authority, quest progress/reward rules and equipment semantics are unchanged.
