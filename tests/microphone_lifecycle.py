@@ -171,33 +171,30 @@ check(#instances==beforePendingCalibration and late.input==nil and late.phase==n
 late:Destroy()
 for _,fn in ipairs(pending) do fn() end
 check(not late.eligible,'Late eligibility check revived destroyed controller')
--- Simulate yielded access checks finishing out of order.
+-- Pending retries are now coalesced; settled attempts remain generation-fenced.
 pending={};local racing=Mic.new();racing:Check()
-check(#pending==2,'Retry did not create two pending checks')
+check(#pending==1,'Retry duplicated pending check')
 voice.IsVoiceEnabledForUserIdAsync=function()return true end
-pending[2]()
-check(racing.eligible and not racing.checkPending,'Latest successful access result missing')
-voice.IsVoiceEnabledForUserIdAsync=function()return false end
 pending[1]()
-check(racing.eligible,'Stale failed access check overwrote newest success')
-pending={};racing:Check()
+check(racing.eligible and not racing.checkPending,'Successful access result missing')
+local oldGeneration=racing.generation;racing:Check()
+check(racing.eligible and racing.generation==oldGeneration,'Cooldown discarded completed success')
+pending={};now+=2;racing:Check()
 voice.IsVoiceEnabledForUserIdAsync=function()error('offline') end
 pending[1]()
 check(not racing.eligible and not racing.ready and not racing.checkPending,'Access error retained readiness')
 racing:Destroy()
 pending={};timeouts={}
-local timed=Mic.new();local oldTimeout=timeouts[1]
-timed:Check();oldTimeout()
-check(timed.checkPending and timed.status=='Checking Roblox voice access…','Stale timeout changed newer retry status')
-timeouts[2]()
-check(timed.checkPending and not timed.ready and string.find(timed.status,'timed out',1,true),'Current timeout lacked retry guidance or allowed attacks')
+local timed=Mic.new();timed:Check();timed:Step(.05)
+check(timed.checkPending and timed.status=='Checking Roblox voice access…','Pending retry changed check status')
+now+=10.01;timed:Step(.05)
+check(timed.checkPending and not timed.ready and string.find(timed.status,'still pending',1,true),'Current timeout lacked pending guidance or allowed attacks')
 voice.IsVoiceEnabledForUserIdAsync=function()return true end
-pending[2]()
-check(timed.eligible and not timed.checkPending,'Successful result after timeout failed to recover access')
-local status=timed.status;timeouts[2]();oldTimeout()
-check(timed.status==status and timed.eligible,'Late timeout overwrote completed success')
-timed:Check();local afterDestroy=timeouts[#timeouts];timed:Destroy();status=timed.status;afterDestroy()
-check(timed.status==status and not timed.eligible and not timed.ready,'Timeout changed destroyed controller')
+pending[1]()
+check(timed.eligible and not timed.checkPending,'Successful result after notice timeout failed to recover access')
+check(#timeouts==0,'Checks allocated timeout callbacks')
+now+=2;timed:Check();timed:Destroy();local status=timed.status;timed:Step(.05);pending[#pending]()
+check(timed.status==status and not timed.eligible and not timed.ready,'Late result changed destroyed controller')
 print('PASS '..checks..' actual microphone lifecycle checks with mocked audio/time; no device evidence')
 '''
 with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.mic_', dir=root / 'tests', delete=False) as file:

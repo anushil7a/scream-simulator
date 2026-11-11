@@ -4,6 +4,13 @@ Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+
+## November 11 bounded client voice-access checks
+
+- Actual Microphone plus CHECK ACCESS callback mocks reproduced 121 pending API invocations and timeout closures from construction plus120 clicks. The client now permits one actual call per controller, coalesces pending clicks and applies a two-second cooldown after completion. Its existing heartbeat provides an honest pending/rejoin notice after ten seconds, with no delayed timeout jobs. This notice is not result expiry: an eventual same-live-instance true/false/error still completes normally. Server eligibility is unchanged.
+- Focused49 assertions/seven controls/one source contract and historical reproduction pass;111 lifecycle and33 inactive-input/seven controls remain. Full25 pure/synthetic +96 mocked suites,60 compiles and all builds pass. [Review and tradeoffs](MICROPHONE_CHECK_REQUESTS_REVIEW.md), [exact evidence](../tests/evidence/microphone-check-requests-2026-11-11.json). No native/API/hardware/voice-authentication claim. A permanently hung call blocks retries in that controller until it returns or the session is restarted; timeout does not cancel work.
+- A separate combat bookkeeping audit found existing bounds/pruning and no warranted production change. Keep owner-selected normal unsavable play; do not invent isolation or a writer-fleet solution. No Client/Shop/map edits in this checkpoint, applications, live stores, publication or product/audio configuration. The unattributed empty fixture remains untouched. Next: independently review this checkpoint and address Astra's separately reproduced deferred shop/tab callback cases, with quiet user updates unless input/help is needed.
+
 ## November 11 actual modal close and price identity follow-up
 
 - Astra found 0619103's Clear-only tests missed actual X/B/same-tab closes: hidden price views kept retrying. A common helper now clears subscriptions, invalidates the render key and cancels deferred scroll work on every runtime hide path and destruction. Reopen rebuilds subscriptions with same-tab scroll retained. The helper is initialized before X registration. Independent 86 actual callback/cache/Shop assertions and ten controls pass, including the real B callback and input guards. [Review](SHOP_MODAL_LIFECYCLE_REVIEW.md).

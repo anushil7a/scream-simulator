@@ -10,16 +10,21 @@ function Microphone.new()
  return self
 end
 function Microphone:Check()
- if self.destroyed then return end
+ if self.destroyed or self.checkPending then return end
+ if os.clock()<(self.nextCheckAt or 0) then
+  if not self.eligible then self.status='Please wait two seconds after a check finishes before checking again.' end
+  return
+ end
  self.generation+=1;local generation=self.generation
- self.status='Checking Roblox voice access…';self.eligible=false;self.ready=false;self.checkPending=true;self:CancelCalibration();self:Cancel()
- task.delay(10,function() if self.generation==generation and self.checkPending then self.status='Voice access check timed out. Check Roblox voice settings, then retry.' end end)
+ self.status='Checking Roblox voice access…';self.eligible=false;self.ready=false;self.checkPending=true;self.checkStarted=os.clock();self:CancelCalibration();self:Cancel()
+ -- One actual call owns the slot until return, including after the notice timeout.
  task.spawn(function()
+  if self.destroyed or self.generation~=generation then return end
   local ok,enabled=pcall(function() return Voice:IsVoiceEnabledForUserIdAsync(Players.LocalPlayer.UserId) end)
-  if self.generation~=generation then return end
-  self.checkPending=false
+  if self.destroyed or self.generation~=generation then return end
+  self.checkPending=false;self.nextCheckAt=os.clock()+2
   self.eligible=ok and enabled==true
-  self.status=self.eligible and 'Unmute your Roblox microphone, then calibrate.' or 'Roblox voice access is required. Enable eligible voice access in your account and allow microphone permission.'
+  self.status=self.eligible and 'Unmute your Roblox microphone, then calibrate.' or not ok and 'Voice access check failed. Wait two seconds, then check again.' or 'Roblox voice access is required. Enable eligible voice access in your account and allow microphone permission.'
  end)
 end
 function Microphone:CancelCalibration()
@@ -91,6 +96,9 @@ function Microphone:HandleInactive()
 end
 function Microphone:Step(dt)
  if self.destroyed then return end
+ if self.checkPending and os.clock()-self.checkStarted>=10 then
+  self.status='Voice access check is still pending. Wait for it to finish; if it stays stuck, leave and rejoin.'
+ end
  if not self.eligible then self.power=0;return end
  local input=self:FindInput()
  if not input then self.status='Waiting for Roblox mic input. The experience needs Voice Chat and the Audio API enabled.';self.power=0;return end
