@@ -279,7 +279,7 @@ local function destructionHint(intent,result)
  if not result then return nil end
  if result.reason=="level" and not intent.destructionHintShown then
   intent.destructionHintShown=true
-  return "This object needs scream level "..tostring(result.required).." to damage"
+  return "This object needs beam level "..tostring(result.required).." to damage"
  end
  if not result.reason and result.destroyed and not intent.destructionBreakShown then
   intent.destructionBreakShown=true
@@ -442,7 +442,7 @@ local function cast(p,request)
  if totalHits>0 then s.nextHeal=now+Config.HealQuietSeconds end
  if knockoutMessage then castMessage=knockoutMessage
  elseif totalHits>0 then castMessage=string.format("Hit %d %s · %d damage each",totalHits,totalHits==1 and "target" or "targets",sound.damage)
- elseif not castMessage then castMessage=evades>0 and "Scream dodged" or obstruction and "Scream stopped by cover" or "Scream missed" end
+ elseif not castMessage then castMessage=evades>0 and "Beam dodged" or obstruction and "Beam stopped by cover" or "Beam missed" end
  state(p,castMessage)
 end
 local function finishDodge(p,s,c,r,h,started,now)
@@ -693,7 +693,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="SetCustomColor" then
   local hex=ShopCatalog.Hex(arg)
   if hex and Entitlements.HasSpectrum(p) then s.data.customColor=hex;s.data.useCustomColor=true;state(p,"Signature color equipped") end
- elseif verb=="SetAura" and type(arg)=="string" and Config.Auras[arg] then s.data.aura=arg;s.data.useCustomColor=false;state(p)
+ elseif verb=="SetAura" and arg=="Gold" then s.data.aura=arg;s.data.useCustomColor=false;state(p)
  elseif verb=="AcceptQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg)
   if q and not s.data.availableQuests[q.id] then state(p,"Meet "..(q.giver or "the quest giver").." to unlock this task.");return end
@@ -758,7 +758,7 @@ local function joined(p)
   p:SetAttribute("CaptureStarted",0);s.sprintRequested=false;s.character=nil
  end)
  p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
- state(p,loadMessage or "Welcome · train for XP, unlock screams, and explore the coast")
+ state(p,loadMessage or "Welcome · train for XP, unlock beam styles, and explore the coast")
 end
 local function joinTracked(p)
  if closing then return end

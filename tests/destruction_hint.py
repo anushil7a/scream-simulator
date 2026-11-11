@@ -14,9 +14,9 @@ check(destructionHint(intent,nil)==nil,'Missing result produced hint')
 check(destructionHint(intent,{health=20})==nil,'Successful damage produced lock hint')
 check(destructionHint(intent,{reason='destroyed'})==nil,'Destroyed object produced level hint')
 check(not intent.destructionHintShown,'Non-level outcome consumed hint')
-check(destructionHint(intent,{reason='level',required=26})=='This object needs scream level 26 to damage','Unlock level not explained')
+check(destructionHint(intent,{reason='level',required=26})=='This object needs beam level 26 to damage','Unlock level not explained')
 for i=1,20 do check(destructionHint(intent,{reason='level',required=51})==nil,'Continuous damage spammed hint') end
-check(destructionHint({}, {reason='level',required=51})=='This object needs scream level 51 to damage','Next attack did not reset hint')
+check(destructionHint({}, {reason='level',required=51})=='This object needs beam level 51 to damage','Next attack did not reset hint')
 local model={GetAttribute=function()return 'Bench' end}
 local broken={model=model,kind='Bench',destroyed=true,health=0}
 check(destructionHint(intent,broken)=='Bench destroyed · repairs automatically','Prior level hint suppressed successful break notice')

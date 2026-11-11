@@ -4,7 +4,7 @@ import argparse, subprocess, tempfile
 root = Path(__file__).resolve().parents[1]
 client = (root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 server = (root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
-start = client.index('  local nextStyle', client.index('title.Text="SCREAM COLLECTION"'))
+start = client.index('  local nextStyle', client.index('title.Text="BEAM COLLECTION"'))
 render = client[start:client.index(' elseif selected=="Quests"',start)]
 assert 'for _,s in ipairs(Config.Sounds)' in render
 endfn = server[server.index('local function sustainedEnd('):server.index('local function cancelSustained(')]

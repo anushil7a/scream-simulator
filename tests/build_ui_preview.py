@@ -49,7 +49,7 @@ modal.Visible=false
 for _,armed in ipairs({false,true}) do
  sustainedControl:SetArmed(armed);Run.RenderStepped:Wait();Run.RenderStepped:Wait()
  local clipped={};if not castButton.TextFits then table.insert(clipped,castButton.Text) end
- local expected=armed and "SCREAMS: ON" or "SCREAMS: OFF"
+ local expected=armed and "BEAMS: ON" or "BEAMS: OFF"
  assert(string.find(castButton.Text,expected,1,true),"Toggle status missing")
  assert(castButton.AbsoluteSize.X>=44 and castButton.AbsoluteSize.Y>=44,"Toggle touch target too small")
  assert(castButton.Selectable and controls.Visible,"Toggle unavailable")

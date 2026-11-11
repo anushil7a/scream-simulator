@@ -60,7 +60,7 @@ Config.Quests={
  {id="delivery",name="Coffee on the Coast",description="Collect a café order, then deliver it to your assigned waterfront stop within 90 seconds. Check your objective for the recipient.",goal=1,xp=120,coins=60,event="Delivery"},
  {id="crowd",name="Three's a Crowd",description="Line up 3 training residents and hit them with one beam.",goal=1,xp=100,coins=40,event="Crowd"},
  {id="sprint",name="Boardwalk Dash",description="Start beside the lifeguard tower and follow the promenade east to the finish in 25 seconds.",goal=1,xp=120,coins=50,event="Race"},
- {id="dodge",name="Can't Touch This",description="Dodge 3 enemy screams in the central arena.",goal=3,xp=160,coins=70,event="Evade"},
+ {id="dodge",name="Can't Touch This",description="Dodge 3 enemy beams in the central arena.",goal=3,xp=160,coins=70,event="Evade"},
  {id="arena",name="Underdog",description="Knock out a player whose level is at least yours in the central arena.",goal=1,xp=180,coins=80,event="Underdog"},
 }
 local questGivers={beach="Mar Soler · Rambla Gardens",delivery="Pau Vidal · Mercat del Mar",crowd="Busker · west gardens",sprint="Commuter · Plaça del Sol",dodge="Fighter · Rambla Gardens",arena="Fighter · Rambla Gardens"}

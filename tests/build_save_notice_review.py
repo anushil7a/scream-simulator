@@ -36,7 +36,7 @@ local rows={}
 for _,view in ipairs({{390,844,true},{844,390,true},{1280,720,false}}) do
  gui.Size=UDim2.fromOffset(view[1],view[2]);fixtureTouch=view[3];settle()
  notifications=modules.NotificationQueue.new()
- notify("Screams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.",true,"voice");settle()
+ notify("Beams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.",true,"voice");settle()
  packet(delayed,true,"save",true,true)
  for i=1,20 do
   packet("Micro-speaker costs 250 coins. You need "..(250-i).." more.",true,nil,true,true)

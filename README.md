@@ -44,11 +44,11 @@ These are source/integration milestones, not blanket verification of every devic
 
 ## Controls
 
-- Current local candidate: aim and use your calibrated mic to attack. **Normal speech can trigger attacks while screams are ON.** **E** / **SCREAMS ON/OFF** toggles attack activation; it is not required for each scream. **OFF** stops an active attack and lets you talk without attacking, leaving microphone/proximity voice unchanged. After respawn or microphone/focus loss, deliberately turn screams back on; cooldown and fresh-quiet requirements still apply. The choice lasts for this session. City Preview version 19 still uses hold/use mic/release.
+- Current local candidate: aim and use your calibrated mic to attack. **Normal speech can trigger attacks while beams are ON.** **E** / **BEAMS ON/OFF** toggles attack activation; it is not required for each beam. **OFF** stops an active attack and lets you talk without attacking, leaving microphone/proximity voice unchanged. After respawn or microphone/focus loss, deliberately turn beams back on; cooldown and fresh-quiet requirements still apply. The choice lasts for this session. City Preview version 19 still uses hold/use mic/release.
 - **Q** / **DODGE**: roll with cooldown; dodge cancels the active voice attack.
 - Hold **Shift** / tap **SPRINT**: up to ten seconds of sprint, then five seconds of recovery.
 - **T** / **TALK**: nearby NPC dialogue. Use world interaction prompts (**F** on keyboard; on-screen prompts on touch).
-- **B** / **SCREAMS**: toggle collection. **M**: map. Quests, Style and Settings are menu tabs.
+- **B** / **SHOP**: toggle the menu; **BEAMS** opens the collection tab. **M**: map. Quests, Style and Settings are menu tabs.
 - **Camera**: third person only, with a six-stud minimum wheel/pinch zoom. Desktop aims at the mouse; touch aims at the centered reticle. There is no V/view toggle.
 
 A microphone and Roblox voice eligibility are required for gameplay. Studio setup without usable voice may remain on the microphone panel. Synthetic fixtures in `tests/` can exercise selected mechanics, but are not a substitute for live voice validation and must never be appended to production source.
@@ -91,3 +91,5 @@ In local Studio Play, open **TEST TOOLS**, scroll to **Test movement**, and togg
 ### Standalone microphone feasibility lab
 
 Build the five-script isolated place with `rojo build mic-prototype.project.json -o build/MicrophoneFeasibility.rbxl`. It shares the production microphone/rule modules but contains no city, saves, rewards or purchases. See [the lab test procedure](prototypes/microphone/README.md). A privately published, two-account real-mic pass remains required; local compile/build results do not prove voice transport.
+
+Beams/style update: [hue-only controls, preserved saved colors and native/synthetic evidence](docs/BEAMS_STYLE_REVIEW.md).

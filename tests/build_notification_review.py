@@ -69,9 +69,9 @@ assert(controlOverlapFrames==0,"Notification covered gameplay controls")
 print("TOAST_REVIEW_PASS "..Http:JSONEncode({segments=#segments,seconds=elapsedReview,synthetic=true}))
 -- Last checkpoint's keyed replacement priority, using actual native rendering.
 notifications=modules.NotificationQueue.new()
-local off="Screams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on."
+local off="Beams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on."
 local saving="Saving is unavailable. Progress from here is temporary; rejoin before continuing progression."
-local on="Screams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
+local on="Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
 notify(off,true,"voice");task.wait(.1);notify(saving,true);notify(on,false,"voice")
 Run.RenderStepped:Wait();Run.RenderStepped:Wait()
 local priorityStart=os.clock();local priorityFrames=0

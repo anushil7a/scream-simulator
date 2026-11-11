@@ -141,19 +141,19 @@ local names = {
     "Kai", "Maya", "Theo", "Ada", "Rafi", "Indie", "Marin", "Leo", "Nia", "Finn",
     "Uma", "Ezra", "Luca", "Iris", "Mira", "Dani", "June", "Sol", "Tess", "Jae", "Bea",
 }
-local lines = {"That was loud!", "Can you hear me?", "This city is wild!", "Nice scream!", "Watch out for the War Zone!", "I need some quiet.", "Whoa, my ears!", "You leveled up yet?"}
+local lines = {"That was loud!", "Can you hear me?", "This city is wild!", "Nice beam!", "Watch out for the War Zone!", "I need some quiet.", "Whoa, my ears!", "You leveled up yet?"}
 local roleLines = {
     CafeWorker = {"Two coffees for the terrace!", "The cups are hot. My jokes are lukewarm.", "Take a seat; the sea is the best view."},
     Sanitation = {"This promenade deserves a little care.", "If you find litter, Mar can use a hand.", "Keeping the city ready for tomorrow."},
     BeachWorker = {"Sunshade, water, and a little sea breeze.", "The loungers are ready. Please leave the sand clean.", "Someone keeps kicking footballs down the beach."},
     Soccer = {"I aimed for the goal. The goal moved. Probably.", "My best trick is missing from here.", "I celebrated before looking. It did not go in."},
-    Gardener = {"These flowers need water, not another scream!", "I planted the blue ones for the sea.", "The garden is everyone’s front yard."},
+    Gardener = {"These flowers need water, not another beam!", "I planted the blue ones for the sea.", "The garden is everyone’s front yard."},
     Artist = {"Hold still! You might end up in this painting.", "The sea changes color every hour.", "My last seagull looked like a potato."},
     Busker = {"One more song before the train!", "The market's got rhythm today.", "Toss me a request!"},
     Commuter = {"The next train is always late.", "I know a shortcut through the square.", "Coffee first, then the commute."},
     Tourist = {"That plaza is incredible!", "Where's the best snack cart?", "I keep finding new corners."},
     Local = {"I grew up on this block.", "The pier is my quiet spot.", "Meet me by the market later."},
-    Fighter = {"The War Zone is getting loud.", "Time your dodge when you see a scream coming.", "I heard a knockout from the plaza."},
+    Fighter = {"The War Zone is getting loud.", "Time your dodge when you see a beam coming.", "I heard a knockout from the plaza."},
     Vendor = {"Fresh snacks on the corner!", "Busy day at the market.", "Try the stall across the street."},
 }
 local skinColors = {
@@ -484,7 +484,7 @@ function World.ReactToScream(bot, origin)
     if away.Magnitude > 0.5 then
         bot.humanoid:MoveTo(bot.root.Position + away.Unit * 8)
     end
-    World.Speak(bot, ({"Whoa, my ears!", "That echoed down the block!", "Careful with that scream!"})[rng:NextInteger(1, 3)])
+    World.Speak(bot, ({"Whoa, my ears!", "That echoed down the block!", "Careful with that beam!"})[rng:NextInteger(1, 3)])
 end
 
 local function makeBot(parent, index, x, z, role, job, training)

@@ -24,8 +24,8 @@ windowFocused=true;toggleVoice();check(sustainedControl.armed and calls==3,'Fres
 windowFocused=false;toggleVoice();check(not sustainedControl.armed and calls==4,'Unfocused pause was rejected')
 sustainedControl=nil;toggleVoice();check(calls==4,'Legacy mode attempted automatic toggle')
 for _,touch in ipairs({false,true}) do
- check(string.find(screamToggleLabel(true,touch),'SCREAMS: ON',1,true)~=nil,'Missing explicit ON status')
- check(string.find(screamToggleLabel(false,touch),'SCREAMS: OFF',1,true)~=nil,'Missing explicit OFF status')
+ check(string.find(screamToggleLabel(true,touch),'BEAMS: ON',1,true)~=nil,'Missing explicit ON status')
+ check(string.find(screamToggleLabel(false,touch),'BEAMS: OFF',1,true)~=nil,'Missing explicit OFF status')
  check(string.find(screamToggleLabel(false,touch),touch and 'Tap to turn on' or '[E] to turn on',1,true)~=nil,'Missing toggle action hint')
 end
 check(string.find(notices[#notices],'Voice chat is unchanged',1,true)~=nil,'Pause notice implies voice mute')

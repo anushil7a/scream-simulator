@@ -87,8 +87,8 @@ modal.BackgroundColor3=Color3.new(1,1,1)
 local menuGlow=Instance.new("UIGradient");menuGlow.Color=ColorSequence.new(Color3.fromRGB(36,50,76),dark);menuGlow.Rotation=80;menuGlow.Parent=modal
 local brandStripe=frame(modal,"SignalStripe",UDim2.new(1,-44,0,2),UDim2.fromOffset(22,8),gold)
 local menuScale=Instance.new("UIScale");menuScale.Parent=modal
-local title=label(modal,"SCREAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
-local subtitle=label(modal,"Train for XP. Unlock a new scream every ten levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
+local title=label(modal,"BEAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
+local subtitle=label(modal,"Train for XP. Unlock a new beam style every ten levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
 button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function() modal.Visible=false end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
@@ -190,14 +190,14 @@ local function toggleVoice()
  if not sustainedControl then return end
  -- Pausing is always allowed; arming must be an available gameplay action.
  if not sustainedControl.armed and (not windowFocused or blocked()) then
-  notify("Screams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.",true,"voice");return
+  notify("Beams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.",true,"voice");return
  end
  sustainedControl:SetArmed(not sustainedControl.armed)
- notify(sustainedControl.armed and "Screams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
-  or "Screams OFF. Talk freely without attacking. Voice chat is unchanged.",false,"voice")
+ notify(sustainedControl.armed and "Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
+  or "Beams OFF. Talk freely without attacking. Voice chat is unchanged.",false,"voice")
 end
 local function screamToggleLabel(armed,touch)
- return (armed and "SCREAMS: ON" or "SCREAMS: OFF").."\n"..(touch and "Tap" or "[E]")..(armed and " to turn off" or " to turn on")
+ return (armed and "BEAMS: ON" or "BEAMS: OFF").."\n"..(touch and "Tap" or "[E]")..(armed and " to turn off" or " to turn on")
 end
 local function releaseCapture(source)
  if captureSource~=source then return end
@@ -214,7 +214,7 @@ local function dodge()
  if not blocked() then action:FireServer("Dodge") end
 end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
-local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),toggleVoice,gold);castButton.TextColor3=dark
+local castButton=button(controls,"Cast","BEAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),toggleVoice,gold);castButton.TextColor3=dark
 castButton.TextWrapped=true;castButton.Selectable=true
 local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-12,0,3),UDim2.new(0,6,1,-6),panel)
 local voiceTimeFill=frame(voiceTimeTrack,"RemainingOrRecovery",UDim2.fromScale(0,1),UDim2.new(),muted)
@@ -225,7 +225,7 @@ end)
 local micPanel=frame(gui,"MicSetup",UDim2.fromOffset(430,260),UDim2.fromScale(.5,.5));micPanel.AnchorPoint=Vector2.new(.5,.5);micPanel.ZIndex=20
 local micTitle=label(micPanel,"YOUR VOICE. YOUR POWER.",UDim2.new(1,-36,0,35),UDim2.fromOffset(18,16),21,gold)
 local micStatus=label(micPanel,"",UDim2.new(1,-36,0,90),UDim2.fromOffset(18,58),15)
-label(micPanel,sustainedControl and "SCREAMS ON: normal speech can fire attacks. Turn OFF to talk; nearby voice stays on. This game saves no recordings." or "A microphone and Roblox voice access are required. Nearby players hear your live voice. No recordings are saved by this game.",UDim2.new(1,-36,0,50),UDim2.fromOffset(18,146),12,muted)
+label(micPanel,sustainedControl and "BEAMS ON: normal speech can fire attacks. Turn OFF to talk; nearby voice stays on. This game saves no recordings." or "A microphone and Roblox voice access are required. Nearby players hear your live voice. No recordings are saved by this game.",UDim2.new(1,-36,0,50),UDim2.fromOffset(18,146),12,muted)
 button(micPanel,"Calibrate","CALIBRATE MIC",UDim2.fromOffset(188,36),UDim2.fromOffset(18,208),function() mic:Calibrate() end,gold).TextColor3=dark
 button(micPanel,"Retry","CHECK ACCESS",UDim2.fromOffset(188,36),UDim2.fromOffset(224,208),function() mic:Check() end)
 for _,v in ipairs(micPanel:GetDescendants()) do if v:IsA("GuiObject") then v.ZIndex=21 end end
@@ -371,7 +371,7 @@ render=function()
   title.Text="THE AMPLIFIER";subtitle.Text="SIGNATURE COLORS / POWER YOUR PROGRESS"
   ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow},action)
  elseif selected=="Screams" then
-  title.Text="SCREAM COLLECTION"
+  title.Text="BEAM COLLECTION"
   local nextStyle
   for _,style in ipairs(Config.Sounds) do
    if style.level>data.level and (not nextStyle or style.level<nextStyle.level) then nextStyle=style end
@@ -380,7 +380,7 @@ render=function()
   for _,spec in pairs(DestructionRules.Types) do
    if spec.level>data.level and (not nextDestruction or spec.level<nextDestruction.level) then nextDestruction=spec end
   end
-  local progress=nextStyle and string.format("Next style: %s · level %d",nextStyle.name,nextStyle.level) or "All scream styles unlocked"
+  local progress=nextStyle and string.format("Next style: %s · level %d",nextStyle.name,nextStyle.level) or "All beam styles unlocked"
   progress..=nextDestruction and string.format("\nNext destruction tier: %s · level %d",nextDestruction.name,nextDestruction.level) or "\nAll destruction tiers unlocked"
   local stats=Config.VoiceCombat.Stats(data.level,1,false)
   if nextStyle then
@@ -444,16 +444,18 @@ render=function()
    end
   end
  elseif selected=="Style" then
-  title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your scream effects."
+  title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your beam effects."
   ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
   local equipment=card(narrow and 142 or 90)
   label(equipment,"MICRO-SPEAKER",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
   label(equipment,"+12% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
   button(equipment,"MicroSpeaker",data.amplifierEquipped and "UNEQUIP" or data.amplifierOwned and "EQUIP" or tostring(Config.MicroSpeakerPrice).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,narrow and 90 or 24),function() action:FireServer("MicroSpeaker") end)
   info("Movement pass: repeated jumps (24-stud height limit) and consecutive rolls only in safe areas. Arena cooldowns always apply."..(Config.MovementPassId==0 and " Purchase setup is not available yet." or ""),70)
-  for name,color in pairs(Config.Auras) do
-   local c=card(56);label(c,name,UDim2.new(1,-158,0,36),UDim2.fromOffset(15,10),17,color)
-   button(c,name,data.aura==name and not data.useCustomColor and "EQUIPPED" or "USE COLOR",UDim2.fromOffset(126,36),UDim2.new(1,-140,0,10),function() action:FireServer("SetAura",name) end)
+  local base=card(76)
+  label(base,"YELLOW BASE",UDim2.new(1,-158,0,48),UDim2.fromOffset(15,10),17,Config.Auras.Gold)
+  button(base,"BaseColor",data.aura=="Gold" and not data.useCustomColor and "EQUIPPED" or "USE YELLOW",UDim2.fromOffset(126,44),UDim2.new(1,-140,0,16),function() action:FireServer("SetAura","Gold") end)
+  if data.aura~="Gold" and not data.useCustomColor then
+   info("Your saved "..data.aura.." color is still equipped. Choosing yellow replaces this legacy selection; the old free palette is no longer selectable.")
   end
  elseif selected=="Map" then
   title.Text="CITY & COAST";subtitle.Text=string.format("Arena District: %d%% PvP. Rest of the map: %d%% safe.",CityMap.arenaPercent,100-CityMap.arenaPercent)
@@ -469,8 +471,8 @@ render=function()
   local touch=UIS.TouchEnabled
   local attackHelp
   if sustainedControl then
-   attackHelp=string.format("SCREAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each scream.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap SCREAMS" or "E / SCREAMS")
-  else attackHelp=touch and "Hold SCREAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / SCREAM, speak into your mic, then release to fire toward your aim." end
+   attackHelp=string.format("BEAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each beam.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap BEAMS" or "E / BEAMS")
+  else attackHelp=touch and "Hold BEAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / BEAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
   info(string.format("Third-person camera\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
   info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
@@ -479,7 +481,7 @@ render=function()
    if sustainedControl then sustainedControl:SetArmed(false) end
    cancelCapture();setSprint(false);mic:Calibrate();modal.Visible=false
   end)
-  info("Changed microphone or room noise? Recalibrate with a comfortable strong voice. "..(sustainedControl and "Screams stay OFF afterward; use SCREAMS to turn attacks back on. Voice chat is unchanged." or "After calibration, hold SCREAM and use a fresh live voice input."),80)
+  info("Changed microphone or room noise? Recalibrate with a comfortable strong voice. "..(sustainedControl and "Beams stay OFF afterward; use BEAMS to turn attacks back on. Voice chat is unchanged." or "After calibration, hold BEAM and use a fresh live voice input."),80)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   local audioCard=card(58);local audioButton
   audioButton=button(audioCard,"AttackAudio","ATTACK SFX: "..(attackAudio.enabled and "LOW" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
@@ -500,7 +502,7 @@ render=function()
   content.CanvasPosition=Vector2.new(0,math.clamp(scroll.Y,0,math.max(0,content.AbsoluteCanvasSize.Y-content.AbsoluteWindowSize.Y)))
  end)
 end
-for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() selected=name;render() end) end
+for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name=="Screams" and "BEAMS" or name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() selected=name;render() end) end
 local conversationNPC,conversationUntil
 conversationPanel=frame(gui,"Conversation",UDim2.fromOffset(460,300),UDim2.fromScale(.5,.5));conversationPanel.AnchorPoint=Vector2.new(.5,.5);conversationPanel.Visible=false;conversationPanel.ZIndex=10
 local conversationName=label(conversationPanel,"",UDim2.new(1,-80,0,36),UDim2.fromOffset(18,12),19,gold)
@@ -745,7 +747,7 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if captureSource and blocked() then cancelCapture() end
  if captureSource and mic.captureStarted and os.clock()-mic.captureStarted>Config.VoiceCombat.CaptureExpiry then
-  cancelCapture();notify("Capture expired. Hold attack again and use a fresh live scream.",true,"capture")
+  cancelCapture();notify("Capture expired. Hold attack again and use a fresh live voice input.",true,"capture")
  end
  if sprinting then setSprint(true) end
  local gameplayVisible=mic.ready and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
@@ -762,14 +764,14 @@ connectClient(Run.RenderStepped,function(dt)
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
  if sustainedControl then
-  captureHint=not alive and "Respawning • screams OFF"
+  captureHint=not alive and "Respawning • beams OFF"
    or not windowFocused and "Window inactive • attack paused"
    or protectionRemaining>0 and string.format("Spawn protection • %.1fs",protectionRemaining)
    or (knocked or humanoid.PlatformStand) and "Recovering • attack unavailable"
    or rolling and "Rolling • attack cancelled"
    or UIS:GetFocusedTextBox()~=nil and "Typing • attack paused"
    or data.micReady~=true and "Connecting microphone…"
-   or not sustainedControl.armed and (touch and "Screams OFF • tap to turn on" or "Screams OFF • E to turn on")
+   or not sustainedControl.armed and (touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
    or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
    or os.clock()<(sustainedControl.unconfirmedUntil or 0) and "Not confirmed • quiet, then retry"
@@ -779,9 +781,9 @@ connectClient(Run.RenderStepped,function(dt)
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
    or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
  end
- meterText.Text=string.format("%s %d%% • up to %.0f studs\n%s",captureSource and "SCREAM POWER" or "LIVE MIC",math.floor(power*100),range,captureHint)
+ meterText.Text=string.format("%s %d%% • up to %.0f studs\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),range,captureHint)
  if sustainedControl and not sustainedControl.armed then
-  meterText.Text="SCREAMS OFF · TALK FREELY\nVoice chat is unchanged"
+  meterText.Text="BEAMS OFF · TALK FREELY\nVoice chat is unchanged"
  end
  if layoutChanged then
  local short=viewport.Y<550
@@ -818,7 +820,7 @@ connectClient(Run.RenderStepped,function(dt)
  local showQuest=not data.inWarZone or combatQuest or (data.questTime or 0)>0
  tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=viewport.X>740 and gameplayVisible
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
- castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD SCREAM [E]"
+ castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
  if sustainedControl then
   -- Keep the toggle state visible even during protection/cooldown; those gates
   -- still control attacks, but never disguise an OFF choice as a mic mute.

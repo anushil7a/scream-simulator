@@ -12,7 +12,7 @@ function Guide.Text(data, armed, cooldown, active, touch)
         return "FIRST BEAM · 2/3\nLet your voice rest during cooldown.\nAim at MIC PRACTICE beside spawn."
     end
     if not armed then
-        local control = touch and "Tap SCREAMS to turn attacks on" or "Press E to turn screams on"
+        local control = touch and "Tap BEAMS to turn attacks on" or "Press E to turn beams on"
         return "FIRST BEAM · 1/3\n" .. control .. ".\nFind MIC PRACTICE beside spawn."
     end
     return "FIRST BEAM · 2/3\nAim at MIC PRACTICE beside spawn.\nGo quiet, then speak to fire."

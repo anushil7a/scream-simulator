@@ -42,9 +42,9 @@ q=Queue.new();q:Push('x');q:Push('x');check(#q.pending==0,'Active duplicate queu
 q:Push('y');q:Push('y');check(#q.pending==1,'Pending duplicate queued')
 q:Push(nil);q:Push('');check(#q.pending==1,'Invalid notice queued')
 -- Replacing an active keyed notice must not jump past waiting failures.
-local off='Screams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.'
+local off='Beams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.'
 local saving='Saving is unavailable. Progress from here is temporary; rejoin before continuing progression.'
-local on='Screams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged.'
+local on='Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged.'
 q=Queue.new();q:Push(off,true,'voice');frame();q:Push(saving,true);q:Push(on,false,'voice')
 check(frame()==saving,'Keyed normal replacement bypassed waiting critical warning')
 check(#q.pending==1 and q.pending[1].text==on,'Voice replacement lost or obsolete OFF survived')
@@ -54,7 +54,7 @@ check(frame()==on,'Voice replacement did not follow critical warning')
 -- Further toggles coalesce pending voice state without interrupting the warning.
 q=Queue.new();q:Push(off,true,'voice');frame();q:Push(saving,true);q:Push('Second error',true)
 q:Push(on,false,'voice');frame();local remaining=q.active.remaining
-q:Push('Screams OFF',false,'voice');q:Push(on,false,'voice')
+q:Push('Beams OFF',false,'voice');q:Push(on,false,'voice')
 check(q.active.text==saving and q.active.remaining==remaining,'Voice toggles changed active critical dwell')
 check(#q.pending==2 and q.pending[1].text=='Second error' and q.pending[2].text==on,'Voice coalescing reordered critical FIFO')
 -- Urgent replacement also respects an already waiting urgent notice.

@@ -15,7 +15,7 @@ end
 local function reset(state)
  state.position=serve;state.velocity=V(0,0,0);state.phase="Ready";state.rally=0;state.crossed=false
  state.ball.Position=serve
- label(state,"MIC VOLLEY · BEST "..state.best.."\nAim a scream at the ball to serve\nTrade returns across the net")
+ label(state,"MIC VOLLEY · BEST "..state.best.."\nAim a beam at the ball to serve\nTrade returns across the net")
 end
 local function fault(state,reason)
  state.phase="Resetting";state.resetAt=os.clock()+3;state.velocity=V(0,0,0)
@@ -51,7 +51,7 @@ function Volley.Start(parent)
     fault(state,"Net hit")
    elseif not state.crossed then
     state.crossed=true;state.rally+=1;state.best=math.max(state.best,state.rally)
-    label(state,"MIC VOLLEY · RALLY "..state.rally.."\nReturn the ball with an aimed scream\nSofter shots are easier to control")
+    label(state,"MIC VOLLEY · RALLY "..state.rally.."\nReturn the ball with an aimed beam\nSofter shots are easier to control")
    end
   end
   if state.phase=="Playing" then

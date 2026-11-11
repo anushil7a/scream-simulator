@@ -1,7 +1,7 @@
 -- Set IDs only after the owner creates and approves the matching Roblox products.
 local Catalog={Duration=30*60}
 Catalog.Items={
- {key="Spectrum",name="SPECTRUM",tag="PERMANENT PASS",description="Every beam color. Your signature.",kind="pass",id=0},
+ {key="Spectrum",name="SPECTRUM",tag="PERMANENT PASS",description="Choose your beam hue. Your signature.",kind="pass",id=0},
  {key="XP",name="DOUBLE XP",tag="30-MINUTE BOOST",description="Earn twice the XP from combat and quests.",kind="product",id=0,boost="xp"},
  {key="Coins",name="DOUBLE COINS",tag="30-MINUTE BOOST",description="Earn twice the coins from gameplay rewards.",kind="product",id=0,boost="coins"},
  {key="Movement",name="FREERUNNER",tag="PERMANENT PASS",description="Extra jumps and consecutive rolls in safe areas.",kind="pass",id=0},

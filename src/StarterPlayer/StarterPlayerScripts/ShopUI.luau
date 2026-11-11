@@ -62,7 +62,7 @@ function Shop.Render(data,ui,action)
  stroke(hero,accent)
  ui.label(hero,"01 / MAKE IT YOURS",UDim2.new(1,-32,0,20),UDim2.fromOffset(16,12),12,accent)
  local heading=ui.label(hero,"SPECTRUM",UDim2.new(1,-32,0,38),UDim2.fromOffset(16,35),30);heading.Font=Enum.Font.GothamBlack
- ui.label(hero,"One pass. Every beam color. Forever.",UDim2.new(1,-32,0,38),UDim2.fromOffset(16,78),15)
+ ui.label(hero,"One pass. Choose your beam hue.",UDim2.new(1,-32,0,38),UDim2.fromOffset(16,78),15)
  local beam=ui.frame(hero,"SpectrumBeam",UDim2.new(1,-48,0,12),UDim2.fromOffset(24,137),Color3.new(1,1,1))
  local keys={};for i=0,6 do table.insert(keys,ColorSequenceKeypoint.new(i/6,Color3.fromHSV(i/6,.8,1))) end
  gradient(beam,keys)
@@ -71,7 +71,7 @@ function Shop.Render(data,ui,action)
   local ring=ui.frame(hero,"EnergyRing",UDim2.fromOffset(14,42),UDim2.new(i/5,-7,0,122),accent)
   ring.BackgroundTransparency=1;stroke(ring,Color3.fromHSV(i/5,.5,1),2)
  end
- ui.label(hero,"Includes the full color mixer. Your free colors stay free.",UDim2.new(1,-32,0,narrow and 42 or 30),UDim2.fromOffset(16,167),13,soft)
+ ui.label(hero,"Unlock the hue picker. Yellow is the base color; saved colors are kept.",UDim2.new(1,-32,0,narrow and 42 or 30),UDim2.fromOffset(16,167),13,soft)
  purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,UDim2.new(1,-32,0,44),UDim2.fromOffset(16,narrow and 238 or 206))
  for index,key in ipairs({"XP","Coins"}) do
   local item=Catalog.Get(key);local tint=key=="XP" and violet or gold
@@ -101,49 +101,40 @@ function Shop.Render(data,ui,action)
  Shop.Tick()
 end
 function Shop.ColorMixer(data,ui,action)
- local c=ui.card(370);c.Name="ColorMixer";stroke(c,violet)
+ local revision=generation
+ local c=ui.card(292);c.Name="ColorMixer";stroke(c,violet)
  ui.label(c,"SIGNATURE COLOR",UDim2.new(1,-32,0,28),UDim2.fromOffset(16,12),20,violet)
- ui.label(c,data.spectrumPass and "Mix any color, then equip it." or "Preview any color · unlock with Spectrum in the shop.",UDim2.new(1,-32,0,42),UDim2.fromOffset(16,44),14,soft)
- local color=data.customColor and Color3.fromHex(data.customColor) or accent
- local h,s,v=color:ToHSV();local values={h,s,v}
- local preview=ui.frame(c,"Preview",UDim2.new(1,-32,0,18),UDim2.fromOffset(16,96),color)
- ui.frame(preview,"Core",UDim2.new(1,-12,0,3),UDim2.fromOffset(6,7),Color3.new(1,1,1))
- local code=Instance.new("TextBox");code.Name="HexColor";code.Size=UDim2.new(.5,-22,0,44);code.Position=UDim2.fromOffset(16,310);code.BackgroundColor3=ink;code.TextColor3=accent;code.Font=Enum.Font.GothamBold;code.TextSize=16;code.ClearTextOnFocus=false;code.Parent=c
- local knobs,tracks={},{ }
+ ui.label(c,data.spectrumPass and "Choose a hue, then equip it. Saved shades stay unchanged until you move the hue control." or "Preview a hue. Spectrum is required to equip it; yellow is the base color.",UDim2.new(1,-32,0,60),UDim2.fromOffset(16,44),14,soft)
+ -- Preserve a saved custom shade exactly until an explicit hue edit.
+ local color=data.customColor and Color3.fromHex(data.customColor) or Config.Auras[data.aura] or Config.Auras.Gold
+ local hue=color:ToHSV()
+ ui.label(c,"HUE",UDim2.new(1,-32,0,20),UDim2.fromOffset(16,110),12,soft)
+ local bar=ui.frame(c,"HUE",UDim2.new(1,-32,0,44),UDim2.fromOffset(16,134),Color3.new(1,1,1));bar.Active=true
+ local colors={};for j=0,6 do table.insert(colors,ColorSequenceKeypoint.new(j/6,Color3.fromHSV(j/6,1,1))) end
+ gradient(bar,colors)
+ local knob=ui.frame(bar,"Thumb",UDim2.fromOffset(10,44),UDim2.new(),Color3.new(1,1,1));stroke(knob,ink)
+ local code=ui.label(c,"",UDim2.new(1,-32,0,24),UDim2.fromOffset(16,186),13,soft);code.Name="SelectedColor"
  local function update()
-  color=Color3.fromHSV(values[1],values[2],values[3]);preview.BackgroundColor3=color;code.Text="#"..color:ToHex():upper()
-  for i,knob in ipairs(knobs) do knob.Position=UDim2.new(values[i],-10*values[i],.5,-10) end
-  if tracks[2] then tracks[2].Color=ColorSequence.new(Color3.new(1,1,1),Color3.fromHSV(values[1],1,1)) end
-  if tracks[3] then tracks[3].Color=ColorSequence.new(Color3.new(0,0,0),Color3.fromHSV(values[1],values[2],1)) end
+  code.Text="Selected color #"..color:ToHex():upper()
+  knob.Position=UDim2.new(hue,-10*hue,.5,-22)
  end
- local drag,dragInput
- for i,name in ipairs({"HUE","SATURATION","BRIGHTNESS"}) do
-  ui.label(c,name,UDim2.new(1,-32,0,20),UDim2.fromOffset(16,126+(i-1)*58),12,soft)
-  local bar=ui.frame(c,name,UDim2.new(1,-32,0,24),UDim2.fromOffset(16,148+(i-1)*58),Color3.new(1,1,1));bar.Active=true
-  local colors={ColorSequenceKeypoint.new(0,Color3.new(0,0,0)),ColorSequenceKeypoint.new(1,accent)}
-  if i==1 then colors={};for j=0,6 do table.insert(colors,ColorSequenceKeypoint.new(j/6,Color3.fromHSV(j/6,1,1))) end end
-  tracks[i]=gradient(bar,colors)
-  local knob=ui.frame(bar,"Thumb",UDim2.fromOffset(10,20),UDim2.new(),Color3.new(1,1,1));stroke(knob,ink);knobs[i]=knob
-  bar.InputBegan:Connect(function(input)
-   if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
-    drag={index=i,bar=bar};dragInput=input
-    values[i]=math.clamp((input.Position.X-bar.AbsolutePosition.X)/math.max(1,bar.AbsoluteSize.X),0,1);update()
-   end
-  end)
+ local dragInput
+ local function setHue(input)
+  hue=math.clamp((input.Position.X-bar.AbsolutePosition.X)/math.max(1,bar.AbsoluteSize.X),0,1)
+  color=Color3.fromHSV(hue,1,1);update()
  end
- table.insert(connections,UIS.InputChanged:Connect(function(input)
-  if drag and (input==dragInput or input.UserInputType==Enum.UserInputType.MouseMovement and dragInput.UserInputType==Enum.UserInputType.MouseButton1) then
-   values[drag.index]=math.clamp((input.Position.X-drag.bar.AbsolutePosition.X)/math.max(1,drag.bar.AbsoluteSize.X),0,1);update()
+ table.insert(connections,bar.InputBegan:Connect(function(input)
+  if revision~=generation or dragInput then return end
+  if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+   dragInput=input;setHue(input)
   end
  end))
- table.insert(connections,UIS.InputEnded:Connect(function(input) if input==dragInput then drag=nil;dragInput=nil end end))
- code.FocusLost:Connect(function()
-  local hex=Catalog.Hex(code.Text)
-  if hex then local a,b,d=Color3.fromHex(hex):ToHSV();values={a,b,d} end
-  update()
- end)
- local equip=ui.button(c,"EquipCustom",data.spectrumPass and "EQUIP COLOR" or "PASS REQUIRED",UDim2.new(.5,-22,0,44),UDim2.new(.5,6,0,310),function()
-  if data.spectrumPass then action:FireServer("SetCustomColor",color:ToHex()) end
+ table.insert(connections,UIS.InputChanged:Connect(function(input)
+  if revision==generation and dragInput and (input==dragInput or input.UserInputType==Enum.UserInputType.MouseMovement and dragInput.UserInputType==Enum.UserInputType.MouseButton1) then setHue(input) end
+ end))
+ table.insert(connections,UIS.InputEnded:Connect(function(input) if input==dragInput then dragInput=nil end end))
+ local equip=ui.button(c,"EquipCustom",data.spectrumPass and "EQUIP COLOR" or "PASS REQUIRED",UDim2.new(1,-32,0,44),UDim2.fromOffset(16,232),function()
+  if revision==generation and data.spectrumPass then action:FireServer("SetCustomColor",color:ToHex()) end
  end,ink);equip.TextSize=13;stroke(equip,violet)
  update()
 end

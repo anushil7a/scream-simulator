@@ -1,7 +1,7 @@
 local Guide = require("../src/ReplicatedStorage/Shared/FirstBeamGuide")
 local beginner = {level=1, achievements={}}
 assert(string.find(Guide.Text(beginner,false,0,false,false), "Press E", 1, true))
-assert(string.find(Guide.Text(beginner,false,0,false,true), "Tap SCREAMS", 1, true))
+assert(string.find(Guide.Text(beginner,false,0,false,true), "Tap BEAMS", 1, true))
 assert(string.find(Guide.Text(beginner,true,0,false,false), "Go quiet, then speak", 1, true))
 assert(string.find(Guide.Text(beginner,true,5,false,false), "cooldown", 1, true))
 assert(string.find(Guide.Text(beginner,true,0,true,false), "Go quiet to stop", 1, true))

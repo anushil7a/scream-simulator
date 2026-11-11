@@ -2,6 +2,13 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 Beams terminology and hue-only style
+
+- Reconciled clean/fetched `d4cf668`. Replaced visible attack/collection/help and relevant world dialogue with Beams, retaining internal compatibility IDs. Replaced the three-slider mixer with hue-only controls; removed preview strip, editable hex and free preset choices. New/default base stays warm yellow; server rejects non-Gold preset requests.
+- Preserve saved legacy auras, exact custom shades and entitlement gates. Opening Style does not normalize colors; explicit hue edits use full saturation/brightness. Yellow reset is explicit and explains that retired free presets cannot be reselected. No save schema, combat timing, map geometry or product IDs changed.
+- Focused 336 assertions and 11 negative controls pass; baseline reproduces extra sliders. Independent review clears the change and reran focused checks. Native disposable Studio reported 687 checks/15 synthetic layout cases with zero per-label TextFits failures, not proof of physical input, occlusion or real services. [Review and limits](BEAMS_STYLE_REVIEW.md), [evidence](../tests/evidence/beams-style-2026-11-11.json).
+- Studio stopped/closed, no publication or live stores. A new minimized app-picker dialog remains alongside the earlier inaccessible one; supported controls cannot restore/close them. No approval pending. Full 25 pure/synthetic + 68 mocked suites, 57 production compiles and all builds pass; final fixture hashes match the executed native build. Next: verified draft push, then remaining minimap/audio/backlog work; preserve the map and release gates.
+
 ## November 11 cosmetic dodge box removal
 
 - Started from clean, fetched `078dbb1` (quest discovery checkpoint pushed and verified). Recovered reference showed a yellow world-space rectangular effect at roll onset. Actual client handler reproduction created one2x3x2 Neon part and a0.35-second expansion/fade tween, separate from the0.6-second roll.

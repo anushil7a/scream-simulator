@@ -41,7 +41,7 @@ local function hasSave()
 end
 local saving='Saving is unavailable. Progress from here is temporary; rejoin before continuing progression.'
 local delayed='Save delayed. Your progress is still in this server; saving will retry automatically.'
-notify('Screams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.',true,'voice');frame()
+notify('Beams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.',true,'voice');frame()
 autosave(p,s)
 local seen={}
 -- Coins change synthetically between actual insufficient-funds helper calls.
@@ -57,7 +57,7 @@ notifications=Queue.new();s.canSave=true;s.saveDelayed=false;saveMode='transient
 check(latest.messageKey=='save' and latest.messageUrgent,'Autosave State lost save category')
 for i=1,100 do
  s.data.coins=i%200;microSpeaker(p,s,false);state(p,'Reward '..i)
- notify('Screams OFF',false,'voice');notify('Setup denied',true,'voice')
+ notify('Beams OFF',false,'voice');notify('Setup denied',true,'voice')
  check(#notifications.pending<=Queue.Limit,'Mixed traffic exceeded queue bound')
  check(notifications:Step(0,true)==delayed,'Mixed traffic displaced save warning')
 end
