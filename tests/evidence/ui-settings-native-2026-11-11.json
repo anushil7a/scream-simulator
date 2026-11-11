@@ -1,0 +1,275 @@
+{
+  "base_commit": "5ce93ad4f575c6eaed1b906ebbb4ac8c8e1b47e5",
+  "recorded_at_utc": "2026-11-11T20:43:41.443438+00:00",
+  "scope": "one gameplay cue label helper plus native UI fixture validity and regression coverage",
+  "source_hash_semantics": "exact tested working-tree bytes; checkout line endings may differ",
+  "source_sha256": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "aca849aa6a0ad286e0849ab0aed2891fb4fde5053ea4c4ecaaa42fb25b0e2b8e",
+    "tests/gameplay_cue_settings.py": "b896db46247581ee86cbf80604720bb5f7c4d1b8919edac7b128810c9bd993e0",
+    "tests/build_ui_preview.py": "2ae7ada752606e797b9808c2c0e6806b46b16ac9cfb79c1c779d0129cddea1ec",
+    "tests/build_onboarding_review.py": "5af91540b6167dd5c60aa882d22267e5e90e964dbb73c268bc0564e03ffe35ce",
+    "tests/verify_local.py": "295f3cde816881a7a4fad136a3de2f952c12e870e1b7336f43e27bb5c2ba14df"
+  },
+  "artifact_sha256": {
+    "build/AutomaticVoiceCandidate.rbxl": "93cc41ffbe32a1fd84b2caf94770846371ae6fb5460293575d03d91e8258447b",
+    "build/AutomaticVoiceCandidate.provenance.json": "99bddd71efaccc3ec283bf4690ad08f19cfbd52056b114f8b5d5991f5d5b5c9e",
+    "build/OnboardingReview.rbxl": "b4e4c11cf045cb2c62bc21e60e909541a5b39269da8d15e365344b771f536af7",
+    "build/OnboardingReview.client.luau": "7197b8bb7df15cb6cb84fbf30b75f041cd7c65527aa5a225054f39b542732913",
+    "build/ui-settings-final.log": "9516f7af68ecd4dc1a75789a9353709d974de8d826e9465dd3c17eaa7bad473c",
+    "build/ui-settings-baseline.log": "36cc36d3474fb770e324565f0c3dece7fa194368fd1f479ed8afd49fd1abd847",
+    "build/ui-settings-controls.log": "43dc7a91ed63cd5b67c5c6a2a70ae6d7de4b46454f5e544a4a8298deebfa17e4",
+    "build/ui-settings-native-final.log": "c484f42fe2de07ea72c469fed859b83884ede9101693688542f12646c80a46c1",
+    "build/ui-settings-native-final.json": "c369361c9b057d3db0a246cef408020c4236feb4060c79d099e567e657817e13"
+  },
+  "focused": {
+    "assertions": 42,
+    "negative_controls": 3,
+    "independently_rerun": true,
+    "historical_helper_reproduced": true
+  },
+  "aggregate": {
+    "pure_synthetic_suites": 25,
+    "mocked_suites": 87,
+    "production_compiles": 60,
+    "all_builds_pass": true,
+    "new_mutations_run_by_default": false
+  },
+  "native": {
+    "result": {
+      "checks": 161,
+      "scope": "Actual client UI with synthetic callbacks, mic power, focus and server state; no real transport/audio/eligibility service",
+      "passed": true,
+      "synthetic": true
+    },
+    "details": [
+      {
+        "stage": "setup",
+        "viewport": "320, 568",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "setup",
+        "viewport": "390, 844",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "setup",
+        "viewport": "844, 390",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "setup",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "eligibility-checking",
+        "viewport": "390, 844",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "first-ready",
+        "viewport": "390, 844",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "on",
+        "viewport": "320, 568",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "320, 568",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "off",
+        "viewport": "320, 568",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "settings",
+        "viewport": "320, 568",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "320, 568",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "on",
+        "viewport": "390, 844",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "390, 844",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "off",
+        "viewport": "390, 844",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "settings",
+        "viewport": "390, 844",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "390, 844",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "on",
+        "viewport": "844, 390",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "844, 390",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "off",
+        "viewport": "844, 390",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "settings",
+        "viewport": "844, 390",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "844, 390",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "on",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "off",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "settings",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "eligibility-denied",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "manual-resume-denied",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "eligibility-unavailable",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "manual-resume-unavailable",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "manual-ready",
+        "viewport": "390, 844",
+        "clipped": [],
+        "reachable": false
+      }
+    ],
+    "beam_readouts": [
+      {
+        "viewport": "390, 844",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      },
+      {
+        "viewport": "844, 390",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      },
+      {
+        "viewport": "1280, 720",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      }
+    ],
+    "manual_input": "Mouse opened Shop/Settings, scrolled, cycled NORMAL -> LOW -> OFF -> NORMAL, cues OFF -> LOW (PENDING) -> OFF, reopened and observed NORMAL/OFF retained. CUA screenshots verified. Not physical phone/touch or actual audio playback.",
+    "initial_run_excluded_from_readability_claim": "Long LOW (PENDING UPLOAD) label clipped at320x568 despite functional105 pass; shorter qualifier and stricter fit assertions then passed161."
+  },
+  "commands": [
+    "python tests/gameplay_cue_settings.py --baseline",
+    "python tests/gameplay_cue_settings.py --negative-controls",
+    "python tests/build_onboarding_review.py",
+    "python tests/verify_local.py --build"
+  ],
+  "cleanup": {
+    "studio_stopped_and_closed": true,
+    "one_launch_created_minimized_picker_remains": true,
+    "picker_limitation": "Supported getApp could not restore/capture minimized window after refresh/retry; no process kill or guessed activation.",
+    "preexisting_apps_preserved": true
+  },
+  "limitations": [
+    "synthetic frame allocation, not physical phone viewport/reachability",
+    "synthetic mic/focus/state/callbacks, no authentic audio",
+    "no real Roblox eligibility service, network, live persistence or commerce delivery",
+    "no measured audio balance/feedback safety",
+    "owner audio configuration remains pending",
+    "map paused and unchanged; no publication"
+  ]
+}

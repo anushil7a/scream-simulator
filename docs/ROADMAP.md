@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 native onboarding and sound settings
+
+- Reproduced pending cue assets hiding the selected OFF state; changed only the label helper. Initial native audit caught a too-long pending qualifier at320px; shortened it and strengthened native fit assertions. Cue configuration, gains, voice/combat and saves are unchanged.
+- Independent42 actual-helper assertions/three explicit controls pass. Repaired stale synthetic eligibility in UI fixtures; final native161 checks and31 detailed stages have no allocated-text clipping. Actual desktop mouse/scroll cycles and reopen retain selected modes. Full25 pure/synthetic +87 mocked suites,60 compiles/all builds pass. [Exact scope and evidence](GAMEPLAY_CUE_SETTINGS_REVIEW.md).
+- These are native UI metrics with synthetic power/state/callbacks, not real mic, phone, eligibility-service, audio listening or live saves. Studio stopped/closed; one launch-created minimized app picker remains inaccessible through supported control. Map remains paused; no publication. Next: independent checkpoint review and remaining non-map playtest gaps, retaining owner/device/live-environment gates rather than speculative changes.
+
 ## November 11 opaque combat-credit identity
 
 - Actual recordCredit/Credit code confirmed that an idle ledger can retain a departed full session/profile at simulated100,000 seconds;25 seconds limits eligibility, not automatic cleanup. Replace that provenance pointer with a dedicated fresh empty per-session token. Missing/malformed identity fails closed; quarantine, mode checks, denominators, repeat history, rewards and saved data remain unchanged.

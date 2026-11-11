@@ -1,6 +1,6 @@
 # Scream Simulator release handoff
 
-Updated November 10, 2026. Development branch: `feature/microphone-city-redesign`. Use [ROADMAP.md](ROADMAP.md) for current work and [AUTOMATIC_VOICE_PLAYTEST.md](AUTOMATIC_VOICE_PLAYTEST.md) for pending device/native checks.
+Updated November 11, 2026. Development branch: `feature/microphone-city-redesign`. Use [ROADMAP.md](ROADMAP.md) for current work and [AUTOMATIC_VOICE_PLAYTEST.md](AUTOMATIC_VOICE_PLAYTEST.md) for pending device/native checks.
 
 ## Last recorded publication
 
@@ -21,7 +21,7 @@ Never publish a disposable fixture. Older root-level or `CityPreviewLatest` bina
 
 ## Highest remaining release gates
 
-1. **Real microphone and ordinary conversation:** no accepted evidence yet for the complete real-input path in this candidate. The owner/testers need two voice-eligible accounts/devices, ideally desktop plus a physical phone, in an explicitly approved isolated environment containing the exact candidate. Start with calibration and comfortable speech, ON onset/quiet-stop, four-second cap/ten-second cooldown, then OFF during attack while the other device confirms ordinary proximity conversation remains audible and no damage/restart occurs. Test mute, focus, death/respawn and deliberate resume. Record build/commit, devices and observed results without recordings or credentials. Synthetic power, local UI signals and Studio layout emulation cannot close this gate. Any required upload or environment change needs separate owner authorization; none is performed by this handoff.
+1. **Real microphone and ordinary conversation:** no accepted evidence yet for the complete real-input path in this candidate. The owner/testers need two voice-eligible accounts/devices, ideally desktop plus a physical phone, in an explicitly approved isolated environment containing the exact candidate. Start with calibration and comfortable speech, ON onset/quiet-stop, four-second cap/five-second cooldown, then OFF during attack while the other device confirms ordinary proximity conversation remains audible and no damage/restart occurs. Test mute, focus, death/respawn and deliberate resume. Record build/commit, devices and observed results without recordings or credentials. Synthetic power, local UI signals and Studio layout emulation cannot close this gate. Any required upload or environment change needs separate owner authorization; none is performed by this handoff.
 2. **Real persistence and ownership transitions:** protocol tests use isolated simulated storage, not real DataStore contention, response loss or shutdown. A separately authorized test environment with isolated test keys and legitimate progress must verify save/rejoin/migration, simultaneous ownership attempts and unavailable/recovered warnings against durable data. Never use production keys or enable live APIs just to turn a failed test green.
 3. **Representative gameplay/devices:** physical touch/accessibility, real-player comprehension, audio listening balance, representative multiplayer/performance soak and visual acceptance remain pending. Follow the existing scenario list; do not convert a synthetic/native fixture pass into an all-game release claim.
 
@@ -35,6 +35,6 @@ Keep the PR draft until these gates have matching evidence and the owner approve
 4. Present the concrete candidate, outstanding risks and target to the owner for new upload/publication approval. Do not change live access/settings as part of that action without authorization.
 5. After an approved publication, reopen the cloud place, record the new version, compare source/configuration against that candidate and check a fresh-server startup. Mark that authorization complete; do not reuse it for later releases.
 
-City art acceptance, representative desktop/phone performance and a 30-minute multiplayer soak remain pending. Cosmetics, pass/badge configuration and monetization come after core gameplay. Public test tools remain enabled at the owner's request, with test mutations separated from legitimate saves.
+City art acceptance, representative desktop/phone performance and a 30-minute multiplayer soak remain pending. Cosmetics, pass/badge configuration and monetization come after core gameplay. The current candidate restricts test tools to the owner or Studio, freezes the legitimate save baseline after test entry, and isolates test combat rewards. Global trainer reset requires the strict disposable local fixture. This describes current source, not the historical published build's settings.
 
 Historical publication evidence remains in [QA_REPORT.md](QA_REPORT.md) and [RELEASE_32_NOTES.md](RELEASE_32_NOTES.md); older recovery instructions and authorizations are superseded by this handoff.

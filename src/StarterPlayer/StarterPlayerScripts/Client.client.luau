@@ -514,7 +514,7 @@ render=function()
   end)
   info("NORMAL boosts effects; LOW keeps the old mix; OFF mutes them. Starter beam has no SFX. Session only; mic and voice chat unchanged.",narrow and 100 or 68)
   local cueCard=card(58);local cueButton
-  local function cueLabel()return not gameplayAudioSettings.Ready() and "GAMEPLAY SFX: PENDING UPLOAD" or "GAMEPLAY SFX: "..(gameplayAudio.enabled and "LOW" or "OFF") end
+  local function cueLabel()return "GAMEPLAY SFX: "..(not gameplayAudio.enabled and "OFF" or gameplayAudioSettings.Ready() and "LOW" or "LOW (PENDING)") end
   cueButton=button(cueCard,"GameplayAudio",cueLabel(),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
    gameplayAudio:SetEnabled(not gameplayAudio.enabled);cueButton.Text=cueLabel()
   end)
