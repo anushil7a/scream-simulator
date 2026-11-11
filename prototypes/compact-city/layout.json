@@ -1,0 +1,3008 @@
+{
+  "schema": 1,
+  "name": "Compact City Draft 01",
+  "status": "Geometry-only local draft; no combat, quests, saves or publication",
+  "preservedCommit": "72c886cb6f8a60ab26dff962e28da77e4b2d4609",
+  "bounds": {
+    "min": [
+      -360,
+      -300
+    ],
+    "max": [
+      360,
+      300
+    ]
+  },
+  "arena": {
+    "min": [
+      -120,
+      -180
+    ],
+    "max": [
+      200,
+      140
+    ]
+  },
+  "anchors": [
+    {
+      "id": "Spawn",
+      "kind": "spawn",
+      "position": [
+        -270,
+        3,
+        130
+      ],
+      "label": "START / SAFE COURTYARD"
+    },
+    {
+      "id": "Practice",
+      "kind": "practice",
+      "position": [
+        -270,
+        3,
+        65
+      ],
+      "label": "PRACTICE: AIM WEST / GEOMETRY ONLY",
+      "aim": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "Trainer1",
+      "kind": "trainer",
+      "position": [
+        -245,
+        3,
+        -15
+      ],
+      "label": "ROOKIE / RESERVED PAD",
+      "eligibilityRadius": 32,
+      "roamRadius": 22
+    },
+    {
+      "id": "Trainer2",
+      "kind": "trainer",
+      "position": [
+        -245,
+        3,
+        -100
+      ],
+      "label": "BRAWLER / RESERVED PAD",
+      "eligibilityRadius": 32,
+      "roamRadius": 22
+    },
+    {
+      "id": "Trainer3",
+      "kind": "trainer",
+      "position": [
+        -245,
+        3,
+        -185
+      ],
+      "label": "ELITE / RESERVED PAD",
+      "eligibilityRadius": 32,
+      "roamRadius": 22
+    },
+    {
+      "id": "ArenaEntry",
+      "kind": "arena",
+      "position": [
+        -137,
+        3,
+        50
+      ],
+      "label": "BEAM ARENA / FUTURE PVP BOUNDARY",
+      "questIds": [
+        "dodge",
+        "arena"
+      ]
+    },
+    {
+      "id": "ArenaCenter",
+      "kind": "arena",
+      "position": [
+        40,
+        3,
+        -20
+      ],
+      "label": "ARENA / COMBAT NOT WIRED"
+    },
+    {
+      "id": "Garden",
+      "kind": "quest",
+      "position": [
+        -295,
+        3,
+        -235
+      ],
+      "label": "MAR SOLER / GARDEN & BEACH",
+      "questIds": [
+        "garden",
+        "beach"
+      ]
+    },
+    {
+      "id": "Market",
+      "kind": "quest",
+      "position": [
+        30,
+        3,
+        -225
+      ],
+      "label": "PAU VIDAL / MARKET",
+      "questIds": [
+        "delivery"
+      ]
+    },
+    {
+      "id": "CrowdGiver",
+      "kind": "quest",
+      "position": [
+        -180,
+        3,
+        -100
+      ],
+      "label": "BUSKER / TRAINING CHALLENGE",
+      "questIds": [
+        "crowd"
+      ]
+    },
+    {
+      "id": "RaceStart",
+      "kind": "quest",
+      "position": [
+        -220,
+        3,
+        200
+      ],
+      "label": "BOARDWALK DASH / ROUTE ONLY",
+      "questIds": [
+        "sprint"
+      ]
+    },
+    {
+      "id": "NickCourt",
+      "kind": "quest",
+      "position": [
+        285,
+        3,
+        245
+      ],
+      "label": "NICK / COURT RESERVED",
+      "questIds": [
+        "nick"
+      ]
+    },
+    {
+      "id": "Basilica",
+      "kind": "landmark",
+      "position": [
+        260,
+        3,
+        -215
+      ],
+      "label": "BASILICA / NORTH LANDMARK"
+    },
+    {
+      "id": "OldTown",
+      "kind": "landmark",
+      "position": [
+        225,
+        3,
+        -70
+      ],
+      "label": "OLD TOWN / EAST WALK"
+    },
+    {
+      "id": "StageDelivery",
+      "kind": "delivery",
+      "position": [
+        -70,
+        3,
+        200
+      ],
+      "label": "MUSIC STAGE / DELIVERY ANCHOR"
+    },
+    {
+      "id": "LookoutDelivery",
+      "kind": "delivery",
+      "position": [
+        150,
+        3,
+        200
+      ],
+      "label": "LIFEGUARD LOOKOUT / DELIVERY ANCHOR"
+    },
+    {
+      "id": "PierDelivery",
+      "kind": "delivery",
+      "position": [
+        285,
+        3,
+        200
+      ],
+      "label": "PIER STOP / DELIVERY ANCHOR"
+    }
+  ],
+  "routes": [
+    {
+      "id": "FirstMinute",
+      "points": [
+        [
+          -270,
+          130
+        ],
+        [
+          -270,
+          65
+        ],
+        [
+          -245,
+          -15
+        ]
+      ],
+      "clearance": 4
+    },
+    {
+      "id": "TrainingSpine",
+      "points": [
+        [
+          -180,
+          165
+        ],
+        [
+          -180,
+          -225
+        ]
+      ],
+      "clearance": 4
+    },
+    {
+      "id": "TrainerAccess1",
+      "points": [
+        [
+          -180,
+          -15
+        ],
+        [
+          -245,
+          -15
+        ]
+      ],
+      "clearance": 4
+    },
+    {
+      "id": "TrainerAccess2",
+      "points": [
+        [
+          -180,
+          -100
+        ],
+        [
+          -245,
+          -100
+        ]
+      ],
+      "clearance": 4
+    },
+    {
+      "id": "TrainerAccess3",
+      "points": [
+        [
+          -180,
+          -185
+        ],
+        [
+          -245,
+          -185
+        ]
+      ],
+      "clearance": 4
+    },
+    {
+      "id": "ArenaEntryRoute",
+      "points": [
+        [
+          -180,
+          50
+        ],
+        [
+          40,
+          50
+        ],
+        [
+          225,
+          50
+        ]
+      ],
+      "clearance": 4
+    },
+    {
+      "id": "ArenaCross",
+      "points": [
+        [
+          50,
+          -225
+        ],
+        [
+          50,
+          200
+        ]
+      ],
+      "clearance": 4
+    },
+    {
+      "id": "NorthLoop",
+      "points": [
+        [
+          -180,
+          -225
+        ],
+        [
+          225,
+          -225
+        ],
+        [
+          225,
+          200
+        ],
+        [
+          -270,
+          200
+        ],
+        [
+          -270,
+          130
+        ]
+      ],
+      "clearance": 4
+    },
+    {
+      "id": "GardenAccess",
+      "points": [
+        [
+          -180,
+          -225
+        ],
+        [
+          -180,
+          -235
+        ],
+        [
+          -295,
+          -235
+        ]
+      ],
+      "clearance": 4
+    },
+    {
+      "id": "CoastStops",
+      "points": [
+        [
+          -220,
+          200
+        ],
+        [
+          285,
+          200
+        ],
+        [
+          285,
+          245
+        ]
+      ],
+      "clearance": 4
+    }
+  ],
+  "parts": [
+    {
+      "id": "Ground",
+      "position": [
+        0,
+        -1,
+        0
+      ],
+      "size": [
+        720,
+        2,
+        600
+      ],
+      "color": [
+        212,
+        195,
+        158
+      ],
+      "kind": "ground",
+      "collidable": true
+    },
+    {
+      "id": "HubPaving",
+      "position": [
+        -260,
+        0.04,
+        50
+      ],
+      "size": [
+        180,
+        0.08,
+        390
+      ],
+      "color": [
+        229,
+        216,
+        186
+      ],
+      "kind": "paving",
+      "collidable": false
+    },
+    {
+      "id": "ArenaFloor",
+      "position": [
+        40,
+        0.04,
+        -20
+      ],
+      "size": [
+        320,
+        0.08,
+        320
+      ],
+      "color": [
+        154,
+        155,
+        139
+      ],
+      "kind": "arena",
+      "collidable": false
+    },
+    {
+      "id": "Promenade",
+      "position": [
+        0,
+        0.045,
+        200
+      ],
+      "size": [
+        690,
+        0.09,
+        40
+      ],
+      "color": [
+        229,
+        216,
+        186
+      ],
+      "kind": "paving",
+      "collidable": false
+    },
+    {
+      "id": "Beach",
+      "position": [
+        0,
+        0.04,
+        260
+      ],
+      "size": [
+        700,
+        0.08,
+        78
+      ],
+      "color": [
+        225,
+        203,
+        150
+      ],
+      "kind": "paving",
+      "collidable": false
+    },
+    {
+      "id": "NorthWalk",
+      "position": [
+        20,
+        0.045,
+        -225
+      ],
+      "size": [
+        650,
+        0.09,
+        20
+      ],
+      "color": [
+        229,
+        216,
+        186
+      ],
+      "kind": "paving",
+      "collidable": false
+    },
+    {
+      "id": "WestWalk",
+      "position": [
+        -180,
+        0.045,
+        -35
+      ],
+      "size": [
+        20,
+        0.09,
+        400
+      ],
+      "color": [
+        229,
+        216,
+        186
+      ],
+      "kind": "paving",
+      "collidable": false
+    },
+    {
+      "id": "EastWalk",
+      "position": [
+        225,
+        0.045,
+        -10
+      ],
+      "size": [
+        20,
+        0.09,
+        390
+      ],
+      "color": [
+        229,
+        216,
+        186
+      ],
+      "kind": "paving",
+      "collidable": false
+    },
+    {
+      "id": "ArenaBoundaryNorth",
+      "position": [
+        40,
+        0.08,
+        -180
+      ],
+      "size": [
+        320,
+        0.08,
+        2
+      ],
+      "color": [
+        170,
+        95,
+        83
+      ],
+      "kind": "boundary",
+      "collidable": false
+    },
+    {
+      "id": "ArenaBoundarySouth",
+      "position": [
+        40,
+        0.08,
+        140
+      ],
+      "size": [
+        320,
+        0.08,
+        2
+      ],
+      "color": [
+        170,
+        95,
+        83
+      ],
+      "kind": "boundary",
+      "collidable": false
+    },
+    {
+      "id": "ArenaBoundaryEast",
+      "position": [
+        200,
+        0.08,
+        -20
+      ],
+      "size": [
+        2,
+        0.08,
+        320
+      ],
+      "color": [
+        170,
+        95,
+        83
+      ],
+      "kind": "boundary",
+      "collidable": false
+    },
+    {
+      "id": "ArenaBoundaryWestNorth",
+      "position": [
+        -120,
+        0.08,
+        -80
+      ],
+      "size": [
+        2,
+        0.08,
+        200
+      ],
+      "color": [
+        170,
+        95,
+        83
+      ],
+      "kind": "boundary",
+      "collidable": false
+    },
+    {
+      "id": "ArenaBoundaryWestSouth",
+      "position": [
+        -120,
+        0.08,
+        110
+      ],
+      "size": [
+        2,
+        0.08,
+        60
+      ],
+      "color": [
+        170,
+        95,
+        83
+      ],
+      "kind": "boundary",
+      "collidable": false
+    },
+    {
+      "id": "ArenaGate30",
+      "position": [
+        -120,
+        6,
+        30
+      ],
+      "size": [
+        4,
+        12,
+        4
+      ],
+      "color": [
+        170,
+        95,
+        83
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "ArenaGate70",
+      "position": [
+        -120,
+        6,
+        70
+      ],
+      "size": [
+        4,
+        12,
+        4
+      ],
+      "color": [
+        170,
+        95,
+        83
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "ArenaGateBeam",
+      "position": [
+        -120,
+        13,
+        50
+      ],
+      "size": [
+        4,
+        2,
+        44
+      ],
+      "color": [
+        170,
+        95,
+        83
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "PracticeBackstop",
+      "position": [
+        -282,
+        8,
+        65
+      ],
+      "size": [
+        2,
+        16,
+        36
+      ],
+      "color": [
+        38,
+        59,
+        65
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "PracticeTarget",
+      "position": [
+        -280.8,
+        6,
+        65
+      ],
+      "size": [
+        0.2,
+        7,
+        7
+      ],
+      "color": [
+        255,
+        203,
+        99
+      ],
+      "kind": "marker",
+      "collidable": false
+    },
+    {
+      "id": "TrainingPad1",
+      "position": [
+        -245,
+        0.065,
+        -15
+      ],
+      "size": [
+        64,
+        0.05,
+        64
+      ],
+      "color": [
+        170,
+        195,
+        149
+      ],
+      "kind": "pad",
+      "collidable": false
+    },
+    {
+      "id": "TrainingPad2",
+      "position": [
+        -245,
+        0.065,
+        -100
+      ],
+      "size": [
+        64,
+        0.05,
+        64
+      ],
+      "color": [
+        174,
+        188,
+        190
+      ],
+      "kind": "pad",
+      "collidable": false
+    },
+    {
+      "id": "TrainingPad3",
+      "position": [
+        -245,
+        0.065,
+        -185
+      ],
+      "size": [
+        64,
+        0.05,
+        64
+      ],
+      "color": [
+        194,
+        175,
+        190
+      ],
+      "kind": "pad",
+      "collidable": false
+    },
+    {
+      "id": "MarketHouse0",
+      "position": [
+        -90,
+        11,
+        -267
+      ],
+      "size": [
+        44,
+        22,
+        32
+      ],
+      "color": [
+        224,
+        183,
+        139
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "MarketRoof0",
+      "position": [
+        -90,
+        22.5,
+        -267
+      ],
+      "size": [
+        48,
+        1,
+        36
+      ],
+      "color": [
+        157,
+        90,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "MarketAwning0",
+      "position": [
+        -90,
+        8,
+        -247
+      ],
+      "size": [
+        36,
+        1,
+        8
+      ],
+      "color": [
+        38,
+        59,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "MarketWindow0_0",
+      "position": [
+        -102,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketWindow0_1",
+      "position": [
+        -90,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketWindow0_2",
+      "position": [
+        -78,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketHouse1",
+      "position": [
+        -30,
+        11,
+        -267
+      ],
+      "size": [
+        44,
+        22,
+        32
+      ],
+      "color": [
+        177,
+        199,
+        188
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "MarketRoof1",
+      "position": [
+        -30,
+        22.5,
+        -267
+      ],
+      "size": [
+        48,
+        1,
+        36
+      ],
+      "color": [
+        157,
+        90,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "MarketAwning1",
+      "position": [
+        -30,
+        8,
+        -247
+      ],
+      "size": [
+        36,
+        1,
+        8
+      ],
+      "color": [
+        38,
+        59,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "MarketWindow1_0",
+      "position": [
+        -42,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketWindow1_1",
+      "position": [
+        -30,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketWindow1_2",
+      "position": [
+        -18,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketHouse2",
+      "position": [
+        30,
+        11,
+        -267
+      ],
+      "size": [
+        44,
+        22,
+        32
+      ],
+      "color": [
+        227,
+        201,
+        157
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "MarketRoof2",
+      "position": [
+        30,
+        22.5,
+        -267
+      ],
+      "size": [
+        48,
+        1,
+        36
+      ],
+      "color": [
+        157,
+        90,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "MarketAwning2",
+      "position": [
+        30,
+        8,
+        -247
+      ],
+      "size": [
+        36,
+        1,
+        8
+      ],
+      "color": [
+        38,
+        59,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "MarketWindow2_0",
+      "position": [
+        18,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketWindow2_1",
+      "position": [
+        30,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketWindow2_2",
+      "position": [
+        42,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketHouse3",
+      "position": [
+        90,
+        11,
+        -267
+      ],
+      "size": [
+        44,
+        22,
+        32
+      ],
+      "color": [
+        201,
+        177,
+        168
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "MarketRoof3",
+      "position": [
+        90,
+        22.5,
+        -267
+      ],
+      "size": [
+        48,
+        1,
+        36
+      ],
+      "color": [
+        157,
+        90,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "MarketAwning3",
+      "position": [
+        90,
+        8,
+        -247
+      ],
+      "size": [
+        36,
+        1,
+        8
+      ],
+      "color": [
+        38,
+        59,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "MarketWindow3_0",
+      "position": [
+        78,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketWindow3_1",
+      "position": [
+        90,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketWindow3_2",
+      "position": [
+        102,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketHouse4",
+      "position": [
+        150,
+        11,
+        -267
+      ],
+      "size": [
+        44,
+        22,
+        32
+      ],
+      "color": [
+        224,
+        183,
+        139
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "MarketRoof4",
+      "position": [
+        150,
+        22.5,
+        -267
+      ],
+      "size": [
+        48,
+        1,
+        36
+      ],
+      "color": [
+        157,
+        90,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "MarketAwning4",
+      "position": [
+        150,
+        8,
+        -247
+      ],
+      "size": [
+        36,
+        1,
+        8
+      ],
+      "color": [
+        38,
+        59,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "MarketWindow4_0",
+      "position": [
+        138,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketWindow4_1",
+      "position": [
+        150,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "MarketWindow4_2",
+      "position": [
+        162,
+        14,
+        -250.8
+      ],
+      "size": [
+        6,
+        6,
+        0.3
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownHouse0",
+      "position": [
+        285,
+        13,
+        -135
+      ],
+      "size": [
+        54,
+        26,
+        44
+      ],
+      "color": [
+        177,
+        199,
+        188
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "OldTownRoof0",
+      "position": [
+        285,
+        26.6,
+        -135
+      ],
+      "size": [
+        58,
+        1.2,
+        48
+      ],
+      "color": [
+        157,
+        90,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "OldTownWindow0_0",
+      "position": [
+        257.8,
+        16,
+        -147
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownWindow0_1",
+      "position": [
+        257.8,
+        16,
+        -135
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownWindow0_2",
+      "position": [
+        257.8,
+        16,
+        -123
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownHouse1",
+      "position": [
+        285,
+        13,
+        -65
+      ],
+      "size": [
+        54,
+        26,
+        44
+      ],
+      "color": [
+        227,
+        201,
+        157
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "OldTownRoof1",
+      "position": [
+        285,
+        26.6,
+        -65
+      ],
+      "size": [
+        58,
+        1.2,
+        48
+      ],
+      "color": [
+        157,
+        90,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "OldTownWindow1_0",
+      "position": [
+        257.8,
+        16,
+        -77
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownWindow1_1",
+      "position": [
+        257.8,
+        16,
+        -65
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownWindow1_2",
+      "position": [
+        257.8,
+        16,
+        -53
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownHouse2",
+      "position": [
+        285,
+        13,
+        5
+      ],
+      "size": [
+        54,
+        26,
+        44
+      ],
+      "color": [
+        201,
+        177,
+        168
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "OldTownRoof2",
+      "position": [
+        285,
+        26.6,
+        5
+      ],
+      "size": [
+        58,
+        1.2,
+        48
+      ],
+      "color": [
+        157,
+        90,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "OldTownWindow2_0",
+      "position": [
+        257.8,
+        16,
+        -7
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownWindow2_1",
+      "position": [
+        257.8,
+        16,
+        5
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownWindow2_2",
+      "position": [
+        257.8,
+        16,
+        17
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownHouse3",
+      "position": [
+        285,
+        13,
+        75
+      ],
+      "size": [
+        54,
+        26,
+        44
+      ],
+      "color": [
+        224,
+        183,
+        139
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "OldTownRoof3",
+      "position": [
+        285,
+        26.6,
+        75
+      ],
+      "size": [
+        58,
+        1.2,
+        48
+      ],
+      "color": [
+        157,
+        90,
+        65
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "OldTownWindow3_0",
+      "position": [
+        257.8,
+        16,
+        63
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownWindow3_1",
+      "position": [
+        257.8,
+        16,
+        75
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "OldTownWindow3_2",
+      "position": [
+        257.8,
+        16,
+        87
+      ],
+      "size": [
+        0.3,
+        7,
+        7
+      ],
+      "color": [
+        60,
+        101,
+        108
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "BasilicaBody",
+      "position": [
+        275,
+        18,
+        -262
+      ],
+      "size": [
+        48,
+        36,
+        48
+      ],
+      "color": [
+        221,
+        199,
+        159
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "BasilicaTower256",
+      "position": [
+        256,
+        30,
+        -262
+      ],
+      "size": [
+        10,
+        60,
+        12
+      ],
+      "color": [
+        205,
+        180,
+        143
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "BasilicaTower294",
+      "position": [
+        294,
+        30,
+        -262
+      ],
+      "size": [
+        10,
+        60,
+        12
+      ],
+      "color": [
+        205,
+        180,
+        143
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "BasilicaDoor",
+      "position": [
+        275,
+        6,
+        -237.8
+      ],
+      "size": [
+        10,
+        12,
+        0.2
+      ],
+      "color": [
+        38,
+        59,
+        65
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "GardenBed0",
+      "position": [
+        -325,
+        1.5,
+        -270
+      ],
+      "size": [
+        20,
+        3,
+        22
+      ],
+      "color": [
+        149,
+        105,
+        77
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "GardenFlowers0",
+      "position": [
+        -325,
+        3.2,
+        -270
+      ],
+      "size": [
+        18,
+        0.4,
+        20
+      ],
+      "color": [
+        221,
+        131,
+        142
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "GardenBed1",
+      "position": [
+        -295,
+        1.5,
+        -270
+      ],
+      "size": [
+        20,
+        3,
+        22
+      ],
+      "color": [
+        149,
+        105,
+        77
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "GardenFlowers1",
+      "position": [
+        -295,
+        3.2,
+        -270
+      ],
+      "size": [
+        18,
+        0.4,
+        20
+      ],
+      "color": [
+        255,
+        203,
+        99
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "GardenBed2",
+      "position": [
+        -265,
+        1.5,
+        -270
+      ],
+      "size": [
+        20,
+        3,
+        22
+      ],
+      "color": [
+        149,
+        105,
+        77
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "GardenFlowers2",
+      "position": [
+        -265,
+        3.2,
+        -270
+      ],
+      "size": [
+        18,
+        0.4,
+        20
+      ],
+      "color": [
+        165,
+        161,
+        213
+      ],
+      "kind": "detail",
+      "collidable": false
+    },
+    {
+      "id": "CoverCore0",
+      "position": [
+        -70,
+        3,
+        -110
+      ],
+      "size": [
+        12,
+        6,
+        12
+      ],
+      "color": [
+        163,
+        128,
+        88
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverWing0",
+      "position": [
+        -60,
+        2,
+        -106
+      ],
+      "size": [
+        8,
+        4,
+        5
+      ],
+      "color": [
+        189,
+        161,
+        118
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverCore1",
+      "position": [
+        30,
+        3,
+        -110
+      ],
+      "size": [
+        12,
+        6,
+        12
+      ],
+      "color": [
+        163,
+        128,
+        88
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverWing1",
+      "position": [
+        40,
+        2,
+        -106
+      ],
+      "size": [
+        8,
+        4,
+        5
+      ],
+      "color": [
+        189,
+        161,
+        118
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverCore2",
+      "position": [
+        130,
+        3,
+        -110
+      ],
+      "size": [
+        12,
+        6,
+        12
+      ],
+      "color": [
+        163,
+        128,
+        88
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverWing2",
+      "position": [
+        140,
+        2,
+        -106
+      ],
+      "size": [
+        8,
+        4,
+        5
+      ],
+      "color": [
+        189,
+        161,
+        118
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverCore3",
+      "position": [
+        -70,
+        3,
+        -20
+      ],
+      "size": [
+        12,
+        6,
+        12
+      ],
+      "color": [
+        163,
+        128,
+        88
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverWing3",
+      "position": [
+        -60,
+        2,
+        -16
+      ],
+      "size": [
+        8,
+        4,
+        5
+      ],
+      "color": [
+        189,
+        161,
+        118
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverCore4",
+      "position": [
+        130,
+        3,
+        -20
+      ],
+      "size": [
+        12,
+        6,
+        12
+      ],
+      "color": [
+        163,
+        128,
+        88
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverWing4",
+      "position": [
+        140,
+        2,
+        -16
+      ],
+      "size": [
+        8,
+        4,
+        5
+      ],
+      "color": [
+        189,
+        161,
+        118
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverCore5",
+      "position": [
+        -70,
+        3,
+        100
+      ],
+      "size": [
+        12,
+        6,
+        12
+      ],
+      "color": [
+        163,
+        128,
+        88
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverWing5",
+      "position": [
+        -60,
+        2,
+        104
+      ],
+      "size": [
+        8,
+        4,
+        5
+      ],
+      "color": [
+        189,
+        161,
+        118
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverCore6",
+      "position": [
+        30,
+        3,
+        100
+      ],
+      "size": [
+        12,
+        6,
+        12
+      ],
+      "color": [
+        163,
+        128,
+        88
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverWing6",
+      "position": [
+        40,
+        2,
+        104
+      ],
+      "size": [
+        8,
+        4,
+        5
+      ],
+      "color": [
+        189,
+        161,
+        118
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverCore7",
+      "position": [
+        130,
+        3,
+        100
+      ],
+      "size": [
+        12,
+        6,
+        12
+      ],
+      "color": [
+        163,
+        128,
+        88
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "CoverWing7",
+      "position": [
+        140,
+        2,
+        104
+      ],
+      "size": [
+        8,
+        4,
+        5
+      ],
+      "color": [
+        189,
+        161,
+        118
+      ],
+      "kind": "cover",
+      "collidable": true
+    },
+    {
+      "id": "Planter0",
+      "position": [
+        -310,
+        1.5,
+        165
+      ],
+      "size": [
+        10,
+        3,
+        10
+      ],
+      "color": [
+        159,
+        115,
+        87
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeTrunk0",
+      "position": [
+        -310,
+        8,
+        165
+      ],
+      "size": [
+        2,
+        13,
+        2
+      ],
+      "color": [
+        116,
+        88,
+        62
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeCrown0",
+      "position": [
+        -310,
+        16,
+        165
+      ],
+      "size": [
+        12,
+        8,
+        12
+      ],
+      "color": [
+        102,
+        135,
+        94
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "Planter1",
+      "position": [
+        -215,
+        1.5,
+        165
+      ],
+      "size": [
+        10,
+        3,
+        10
+      ],
+      "color": [
+        159,
+        115,
+        87
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeTrunk1",
+      "position": [
+        -215,
+        8,
+        165
+      ],
+      "size": [
+        2,
+        13,
+        2
+      ],
+      "color": [
+        116,
+        88,
+        62
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeCrown1",
+      "position": [
+        -215,
+        16,
+        165
+      ],
+      "size": [
+        12,
+        8,
+        12
+      ],
+      "color": [
+        102,
+        135,
+        94
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "Planter2",
+      "position": [
+        -335,
+        1.5,
+        -120
+      ],
+      "size": [
+        10,
+        3,
+        10
+      ],
+      "color": [
+        159,
+        115,
+        87
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeTrunk2",
+      "position": [
+        -335,
+        8,
+        -120
+      ],
+      "size": [
+        2,
+        13,
+        2
+      ],
+      "color": [
+        116,
+        88,
+        62
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeCrown2",
+      "position": [
+        -335,
+        16,
+        -120
+      ],
+      "size": [
+        12,
+        8,
+        12
+      ],
+      "color": [
+        102,
+        135,
+        94
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "Planter3",
+      "position": [
+        330,
+        1.5,
+        -175
+      ],
+      "size": [
+        10,
+        3,
+        10
+      ],
+      "color": [
+        159,
+        115,
+        87
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeTrunk3",
+      "position": [
+        330,
+        8,
+        -175
+      ],
+      "size": [
+        2,
+        13,
+        2
+      ],
+      "color": [
+        116,
+        88,
+        62
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeCrown3",
+      "position": [
+        330,
+        16,
+        -175
+      ],
+      "size": [
+        12,
+        8,
+        12
+      ],
+      "color": [
+        102,
+        135,
+        94
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "Planter4",
+      "position": [
+        330,
+        1.5,
+        30
+      ],
+      "size": [
+        10,
+        3,
+        10
+      ],
+      "color": [
+        159,
+        115,
+        87
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeTrunk4",
+      "position": [
+        330,
+        8,
+        30
+      ],
+      "size": [
+        2,
+        13,
+        2
+      ],
+      "color": [
+        116,
+        88,
+        62
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeCrown4",
+      "position": [
+        330,
+        16,
+        30
+      ],
+      "size": [
+        12,
+        8,
+        12
+      ],
+      "color": [
+        102,
+        135,
+        94
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "Planter5",
+      "position": [
+        330,
+        1.5,
+        155
+      ],
+      "size": [
+        10,
+        3,
+        10
+      ],
+      "color": [
+        159,
+        115,
+        87
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeTrunk5",
+      "position": [
+        330,
+        8,
+        155
+      ],
+      "size": [
+        2,
+        13,
+        2
+      ],
+      "color": [
+        116,
+        88,
+        62
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeCrown5",
+      "position": [
+        330,
+        16,
+        155
+      ],
+      "size": [
+        12,
+        8,
+        12
+      ],
+      "color": [
+        102,
+        135,
+        94
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "Planter6",
+      "position": [
+        -130,
+        1.5,
+        240
+      ],
+      "size": [
+        10,
+        3,
+        10
+      ],
+      "color": [
+        159,
+        115,
+        87
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeTrunk6",
+      "position": [
+        -130,
+        8,
+        240
+      ],
+      "size": [
+        2,
+        13,
+        2
+      ],
+      "color": [
+        116,
+        88,
+        62
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeCrown6",
+      "position": [
+        -130,
+        16,
+        240
+      ],
+      "size": [
+        12,
+        8,
+        12
+      ],
+      "color": [
+        102,
+        135,
+        94
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "Planter7",
+      "position": [
+        80,
+        1.5,
+        240
+      ],
+      "size": [
+        10,
+        3,
+        10
+      ],
+      "color": [
+        159,
+        115,
+        87
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeTrunk7",
+      "position": [
+        80,
+        8,
+        240
+      ],
+      "size": [
+        2,
+        13,
+        2
+      ],
+      "color": [
+        116,
+        88,
+        62
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "TreeCrown7",
+      "position": [
+        80,
+        16,
+        240
+      ],
+      "size": [
+        12,
+        8,
+        12
+      ],
+      "color": [
+        102,
+        135,
+        94
+      ],
+      "kind": "overhead",
+      "collidable": true
+    },
+    {
+      "id": "Stage",
+      "position": [
+        -70,
+        1,
+        245
+      ],
+      "size": [
+        32,
+        2,
+        22
+      ],
+      "color": [
+        135,
+        101,
+        75
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "Lookout",
+      "position": [
+        150,
+        4,
+        250
+      ],
+      "size": [
+        12,
+        8,
+        12
+      ],
+      "color": [
+        206,
+        190,
+        150
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "Court",
+      "position": [
+        285,
+        0.07,
+        250
+      ],
+      "size": [
+        90,
+        0.1,
+        70
+      ],
+      "color": [
+        156,
+        183,
+        174
+      ],
+      "kind": "paving",
+      "collidable": false
+    },
+    {
+      "id": "CourtBackstop",
+      "position": [
+        335,
+        6,
+        250
+      ],
+      "size": [
+        2,
+        12,
+        72
+      ],
+      "color": [
+        38,
+        59,
+        65
+      ],
+      "kind": "architecture",
+      "collidable": true
+    },
+    {
+      "id": "DraftEdgeWest",
+      "position": [
+        -359,
+        5,
+        0
+      ],
+      "size": [
+        2,
+        10,
+        600
+      ],
+      "color": [
+        183,
+        177,
+        153
+      ],
+      "kind": "boundary",
+      "collidable": true
+    },
+    {
+      "id": "DraftEdgeEast",
+      "position": [
+        359,
+        5,
+        0
+      ],
+      "size": [
+        2,
+        10,
+        600
+      ],
+      "color": [
+        183,
+        177,
+        153
+      ],
+      "kind": "boundary",
+      "collidable": true
+    },
+    {
+      "id": "DraftEdgeNorth",
+      "position": [
+        0,
+        5,
+        -299
+      ],
+      "size": [
+        720,
+        10,
+        2
+      ],
+      "color": [
+        183,
+        177,
+        153
+      ],
+      "kind": "boundary",
+      "collidable": true
+    },
+    {
+      "id": "DraftEdgeSouth",
+      "position": [
+        0,
+        5,
+        299
+      ],
+      "size": [
+        720,
+        10,
+        2
+      ],
+      "color": [
+        183,
+        177,
+        153
+      ],
+      "kind": "boundary",
+      "collidable": true
+    }
+  ],
+  "integration": {
+    "questIds": [
+      "nick",
+      "garden",
+      "beach",
+      "delivery",
+      "crowd",
+      "sprint",
+      "dodge",
+      "arena"
+    ],
+    "deliveryIds": [
+      "StageDelivery",
+      "LookoutDelivery",
+      "PierDelivery"
+    ],
+    "notImplemented": [
+      "server arena gates",
+      "training NPCs and combat",
+      "quest interactions/objectives",
+      "sports/race logic",
+      "destruction and repair",
+      "traffic/pedestrian routes",
+      "minimap remapping",
+      "microphone/UI/save integration"
+    ]
+  }
+}

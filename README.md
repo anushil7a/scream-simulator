@@ -12,6 +12,10 @@
 
 **Active development, not a completed release.** Current work is on `feature/microphone-city-redesign`. The last recorded City Preview release is version 19; subsequent automatic-voice changes are unpublished. Original-experience version numbers are separate. [Historical release notes](docs/RELEASE_32_NOTES.md) describe that older build.
 
+## Separate smaller-map draft
+
+The original repository-generated city is preserved as an exact source archive plus guarded local place files. A separate **720 x 600 geometry draft** is available, 75% less footprint; the current gameplay map has not been replaced. Run `python tools/build_compact_city_draft.py` for the local-only preview. It has no combat, quest or save integration and must not be published. [Preservation, build steps and limits](docs/COMPACT_CITY_DRAFT_REVIEW.md).
+
 ## Build the current source
 
 ```sh

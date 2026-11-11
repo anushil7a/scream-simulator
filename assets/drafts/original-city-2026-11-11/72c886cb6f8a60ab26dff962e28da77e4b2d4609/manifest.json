@@ -1,0 +1,261 @@
+{
+  "schema": 1,
+  "commit": "72c886cb6f8a60ab26dff962e28da77e4b2d4609",
+  "scope": [
+    "src/**/*.luau",
+    "assets/review/MosaicFountain.rbxmx",
+    "default.project.json"
+  ],
+  "description": "Repository-generated city source only; NOT live or unsaved Studio backup",
+  "zipSha256": "a67c1e1af4f1cf4387a1bd0cb61a8ce84986290f10913e164fc8719c8877b19a",
+  "files": {
+    "assets/review/MosaicFountain.rbxmx": {
+      "bytes": 4315,
+      "sha256": "03d093017e484f1eb9c42061c6b8078e8f432d518cd9f03b23771b1e6dbf3eb3"
+    },
+    "default.project.json": {
+      "bytes": 1675,
+      "sha256": "6705b6eae1b92a1133d4041dac52e4363c2d1d081afde9f6b62f81022bc15853"
+    },
+    "src/ReplicatedStorage/Shared/AttackAudioConfig.luau": {
+      "bytes": 899,
+      "sha256": "1772face2043afc8aba8feb5c8380321a63f0146d9ed368daaf338f5d8c8ebfc"
+    },
+    "src/ReplicatedStorage/Shared/BeamStyle.luau": {
+      "bytes": 843,
+      "sha256": "7d04942802ed56fb09d18002e7a11dc02275783021fc06285433d61599ad58d2"
+    },
+    "src/ReplicatedStorage/Shared/BoostLedger.luau": {
+      "bytes": 2914,
+      "sha256": "07347b54930e73bbc2004e3356365015f7182b5ffeb9ae7447a3e6dca0b41fbd"
+    },
+    "src/ReplicatedStorage/Shared/CombatCredit.luau": {
+      "bytes": 2010,
+      "sha256": "77e0749e619c6bfbf4b6dbbeedd5e4a8d16f2aab612448a015bcaa8370ca72a1"
+    },
+    "src/ReplicatedStorage/Shared/Config.luau": {
+      "bytes": 6429,
+      "sha256": "5a41298e095a484baeb42694ca6660575576652a5a756f3f410afde4d7e32625"
+    },
+    "src/ReplicatedStorage/Shared/DestructionRules.luau": {
+      "bytes": 1012,
+      "sha256": "154c2d7e4ebf30d879d16c9e718f9665ea467e1ba5c1a37a643c937c155828b5"
+    },
+    "src/ReplicatedStorage/Shared/FirstBeamGuide.luau": {
+      "bytes": 858,
+      "sha256": "ec14aa712fcb73d78c03bc9a40de0f1ef9e94f868576ef46f9a6552013120c8f"
+    },
+    "src/ReplicatedStorage/Shared/GameplayAudioConfig.luau": {
+      "bytes": 975,
+      "sha256": "134cc21fe3964b71ab5c3df9cfebb0b08299bdbec5535e6f5a5962c6aa94430a"
+    },
+    "src/ReplicatedStorage/Shared/Healing.luau": {
+      "bytes": 429,
+      "sha256": "d6d9e6fb0f7b41d41ef01c8dd0d1b185bf9e8b16bde3eb045c18fb7905cbb3b8"
+    },
+    "src/ReplicatedStorage/Shared/InteractionRules.luau": {
+      "bytes": 1204,
+      "sha256": "2a96ff1d444125e43dca7012196010be53301d9c1bb2a07787e8c76509a3a151"
+    },
+    "src/ReplicatedStorage/Shared/MicPower.luau": {
+      "bytes": 2348,
+      "sha256": "7eda3a7a218829b9e8639d7bfc024f36224fe015e77addff76cc5aceff4e71d9"
+    },
+    "src/ReplicatedStorage/Shared/ProfileLease.luau": {
+      "bytes": 755,
+      "sha256": "c257a4b4a3cbe5c4c0712bde457993405d2ed6c31ec2a22714b2fe3254ebc258"
+    },
+    "src/ReplicatedStorage/Shared/Progression.luau": {
+      "bytes": 1923,
+      "sha256": "9de0f113ab81e683943941093397873791b6c630be9f00880db6355f52c23da7"
+    },
+    "src/ReplicatedStorage/Shared/QuestGuide.luau": {
+      "bytes": 955,
+      "sha256": "1834ede9c5bfcf0da1684020c714f12dd1b60e0c8336560c31408c7c292ef0ff"
+    },
+    "src/ReplicatedStorage/Shared/QuestLifecycle.luau": {
+      "bytes": 562,
+      "sha256": "90e843799b46afec9a022b0fabd66460023571d35382f697cdf76348675859c4"
+    },
+    "src/ReplicatedStorage/Shared/ShopCatalog.luau": {
+      "bytes": 1230,
+      "sha256": "a2b7e75f5f2cfb62d0c2c5cb26e3f8ec1c9ab10feeeb9a60f400a99b6ae76244"
+    },
+    "src/ReplicatedStorage/Shared/SustainedAttack.luau": {
+      "bytes": 5193,
+      "sha256": "298252260771b8980e129cb71d8521da16a9b145a83697cc00ad82a04742b778"
+    },
+    "src/ReplicatedStorage/Shared/SustainedRewards.luau": {
+      "bytes": 856,
+      "sha256": "8a176a149542f59c423eaad01d788d50b5a4a786f15041c9c0065b6f77185db6"
+    },
+    "src/ReplicatedStorage/Shared/TrainingRules.luau": {
+      "bytes": 908,
+      "sha256": "eaa5fff9ca8c39a349fa8fc5299d20e7da958f5758e24ae5c9ca501263264446"
+    },
+    "src/ReplicatedStorage/Shared/VoiceActivation.luau": {
+      "bytes": 1500,
+      "sha256": "c2448344b91e2b5c141edc41520a308b8f8205eb71af9da4a521f3d5f81b9764"
+    },
+    "src/ReplicatedStorage/Shared/VoiceCombat.luau": {
+      "bytes": 3190,
+      "sha256": "8fafe37198adbfaef160f6ae00bfe9180a73b5e6788d36b00374762aaa523eb4"
+    },
+    "src/ServerScriptService/BeachVolley.luau": {
+      "bytes": 4760,
+      "sha256": "19fea3fa97b2c7b1b43e9c22bd71195542e1dd3368cde51138c61c5cacb7efcb"
+    },
+    "src/ServerScriptService/Bootstrap.server.luau": {
+      "bytes": 56426,
+      "sha256": "a7c2078cc15d54049f42adbe8c8ab7b3a5beb84a476d46a728658df81663a9a2"
+    },
+    "src/ServerScriptService/City.luau": {
+      "bytes": 63574,
+      "sha256": "d8c92631d0f84d36882001d8027021dea9ba1e0728ca8c1efc1ae9558a65031c"
+    },
+    "src/ServerScriptService/CombatRules.luau": {
+      "bytes": 1452,
+      "sha256": "d278027a51283269ace97d043bf8aba4a4cb20a236c90df1cac85ac2fed61cfe"
+    },
+    "src/ServerScriptService/Commerce.luau": {
+      "bytes": 5333,
+      "sha256": "7b5c9d5bd22b970e69f8b1cd6fe6e5e7c86ebd6308e86a62133255796b7d3eea"
+    },
+    "src/ServerScriptService/Destruction.luau": {
+      "bytes": 8370,
+      "sha256": "89097ca8866be9d6a9b5f5e2e1d8b8883c54bbe2af865da8d70ae77e68a49321"
+    },
+    "src/ServerScriptService/DeveloperAccess.luau": {
+      "bytes": 555,
+      "sha256": "59743a84902f2e02c1c91d974626be848b3be13502d087e448439880db0b3771"
+    },
+    "src/ServerScriptService/Entitlements.luau": {
+      "bytes": 1962,
+      "sha256": "e286a1effe8cbf5ea8af20a21cf06adf87b016cb15d025886ec6f83d9dc12a1c"
+    },
+    "src/ServerScriptService/Equipment.luau": {
+      "bytes": 1942,
+      "sha256": "1792b2f8021c18ccaf62febf684e2ecf159b86d43182752c1341a7796d6427ca"
+    },
+    "src/ServerScriptService/Fountain.luau": {
+      "bytes": 4092,
+      "sha256": "07398244d6a7f028f442e40fb8d0e99672ac5ff0cd710ea07de9374416e4cf54"
+    },
+    "src/ServerScriptService/Profiles.luau": {
+      "bytes": 12274,
+      "sha256": "9449db9520e4a468d7bd2d75741a08e0ec1c77b8777974b39e843aac5730f1ac"
+    },
+    "src/ServerScriptService/RepairTimer.luau": {
+      "bytes": 814,
+      "sha256": "26ed3fd0f7ad59614a11b289d0c1dd4f268e13323634402b6f5c9c3fd2ec0b47"
+    },
+    "src/ServerScriptService/SoccerChallenge.luau": {
+      "bytes": 8247,
+      "sha256": "b02ab7f65d9ccd2e2cc4e1b05746a742e4096693034690b3497fee3202621417"
+    },
+    "src/ServerScriptService/StreetArt.luau": {
+      "bytes": 2487,
+      "sha256": "20294497dc3c9c1b5a80aa1b43c5d0c3bb32026c69894e8cb26e545fdeedcfce"
+    },
+    "src/ServerScriptService/SustainedAim.luau": {
+      "bytes": 518,
+      "sha256": "b4287a01c9d310211b55266a93b1013b437c7acb3c4cc711bcae4feb9db48664"
+    },
+    "src/ServerScriptService/SustainedAttackAdapter.luau": {
+      "bytes": 3324,
+      "sha256": "6ff952270bd381bcc96aad4d222b156ac75e9e3f1d0d8d98e99985809f356c51"
+    },
+    "src/ServerScriptService/World.luau": {
+      "bytes": 57266,
+      "sha256": "cd2d5df573020f64a0c247c2fddd16e7c051b90116f9937b505f3c0715db64e9"
+    },
+    "src/StarterPlayer/StarterCharacterScripts/Health.server.luau": {
+      "bytes": 165,
+      "sha256": "45502b2484c27276486500faf9ec16ffcca4be739a96fe40d76e03bc0295a3d6"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/Ambience.client.luau": {
+      "bytes": 3514,
+      "sha256": "6f26817a6d05fcc7e73c9c211ba910ddee0bc403bc210c618fd9231d47816bbc"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/AttackAudio.luau": {
+      "bytes": 1643,
+      "sha256": "a7558cab309a6d69c6704f172d90081ed2f57914a75e61f24de79aa7c89b698d"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/BeamAudioMix.luau": {
+      "bytes": 3003,
+      "sha256": "e4e34f5b8535d486ad92617837f6bbe106648d7e85978859be3807aabbada30b"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau": {
+      "bytes": 4876,
+      "sha256": "89ff773cebcb2d3a5876a6d70e3bc561d3a7573c12119232a5cce950a08eccda"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/CityMap.luau": {
+      "bytes": 5223,
+      "sha256": "dbf55ebd1e301944086e8dd554bd6c29db6856798e35902b623a856767b31aca"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": {
+      "bytes": 68758,
+      "sha256": "619feae62ad43a3b13fc2541d722b151d70d3d1aada6cce267d2a6059b3e944c"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/CueAudioMix.luau": {
+      "bytes": 2882,
+      "sha256": "5dab1d0f101e10e3340bfe5ca78698ddc73c89f994f668dc06933eb479b61570"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/GameplayAudio.luau": {
+      "bytes": 2623,
+      "sha256": "a0f71ecd669b82e3b4c9d9b25e2fe560bea78ac6ac69d50eaccaa88d59a83649"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/HitFeedback.luau": {
+      "bytes": 1076,
+      "sha256": "75f3c907cf0639b5b77ba67c436937890a35e69ee76e012755342c5a5e134a9d"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/LandmarkVisuals.client.luau": {
+      "bytes": 2714,
+      "sha256": "c9a0d1d33454f2433d8d1f6c2856c52fc870eb981a723a4d6ee4be0e6114adff"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/Microphone.luau": {
+      "bytes": 6707,
+      "sha256": "3e1a6eb10a64301631be7deb19821337ca0ebc5fb776bf49d6722663850d3c24"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/NotificationQueue.luau": {
+      "bytes": 2101,
+      "sha256": "7050c1d15437eb47541d659ed0e9af34945a212f97f439dc548e322a18542de3"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/Residents.client.luau": {
+      "bytes": 9299,
+      "sha256": "4dea061191a41debe39052460f11dc4795dc89e090f501ad0b25695254e420e2"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/RunAnimation.client.luau": {
+      "bytes": 8022,
+      "sha256": "967c7229d7f4759b1e932abb09774e42eb9fa7c1ab47c4a5060d038799571c4c"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/ScreamEffects.luau": {
+      "bytes": 4423,
+      "sha256": "32026671ba5e09d81af88b7a6b879799dddfe7a1b7b79badf7182c1f95d0d624"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/ShopUI.luau": {
+      "bytes": 9083,
+      "sha256": "f3ac2b96f90dd809b0f08044e18b6a71bebb734a4c9148f26bccb8df992cafd4"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/SustainedBeams.luau": {
+      "bytes": 1147,
+      "sha256": "96ac23756cbd7a6f5eaab19b140c3ec69939f07a012b6cd5d335bc363d914505"
+    },
+    "src/StarterPlayer/StarterPlayerScripts/SustainedControls.luau": {
+      "bytes": 2694,
+      "sha256": "d41d35845ccdbb30b00fab4e51926a0b6ecee37117bfbac346abaed8b720cf66"
+    }
+  },
+  "status": "complete; unpublished; native execution not performed",
+  "verification": {
+    "productionScriptCount": 57,
+    "normalSourceAudit": "passed; audit build not retained",
+    "guardedSourceAudit": "passed",
+    "guardPrefixSha256": "68d65b4052155710832e30edf29b5f11d98da694013bceb61e1033512d6229ea",
+    "nativeExecution": false,
+    "artifacts": {
+      "OriginalCity-LOCAL-ONLY.rbxlx": "17e461e8d6c70a5a7d9ec285d344a5a28f7a75c0ea837d699855de89a18a184c",
+      "OriginalCity-LOCAL-ONLY.rbxl": "f55e4329ec58309170b9eb3b57b929d5c3ed04e32f32d48e6429047f189f8917"
+    }
+  }
+}

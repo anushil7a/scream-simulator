@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 preserved original and compact map draft
+
+- Preserved exact pre-redesign commit `72c886c`: 59 runtime source/project/asset files, byte hashes, guarded original place files, extraction/build/source audits and 57 compiles. Independent review verified archived blobs and guards. Not a live/unsaved Studio backup; stale root place files were not used.
+- Separate 720x600 static geometry draft has 75% less footprint, a shorter spawn/practice/trainer route, bounded reserved pads, central arena and retained quest/delivery identities as placeholders. All production/default map code stays unchanged. Reviewer caught an out-of-range practice target; moved it within the starter range before final checks.
+- Final 2,747 static + 993 built-artifact assertions, nine controls and 59 unchanged-source checks pass; independent review cleared the draft. Full 25 pure/synthetic + 73 mocked suites, 57 production compiles and all builds pass. [Review and integration plan](COMPACT_CITY_DRAFT_REVIEW.md). No apps opened or live publication. Next: native geometry checks and coordinated gameplay/map-coordinate integration, preserving quest progress and existing map draft.
+
 ## November 11 beam audio frame cadence
 
 - Reconciled clean/fetched `327e1dd`. Actual-source baseline reproduced six mixer updates and only 0.2 seconds of dt over one second at 30 Hz. Move only beam audio Step above the slow HUD gate, retaining frame delta, current mic state and bounded existing mixer behavior.

@@ -6,3 +6,10 @@ tools/make_gameplay_audio.py text eol=lf
 
 # Preserve exact hash-checked historical mixer fixtures on Windows.
 tests/support/beam-audio-low-baseline/*.luau text eol=lf
+
+# Exact preserved artifacts must retain manifest byte hashes on every checkout.
+assets/drafts/original-city-2026-11-11/**/*.rbxlx -text -diff
+assets/drafts/original-city-2026-11-11/**/*.rbxl -text
+assets/drafts/original-city-2026-11-11/**/*.zip -text
+# Generated draft models are compared with deterministic builder output.
+prototypes/compact-city/*.rbxmx text eol=lf
