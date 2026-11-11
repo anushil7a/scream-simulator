@@ -18,20 +18,23 @@ Official references checked November11,2026:
 
 No Chat&Voice Groups API, new terms, account identifiers sent to an unrelated service, voice recording, moderation, audio product or experience configuration is introduced. Only the documented Roblox service checks the present player's UserId.
 
-## Design
+## Current design (recovery follow-up supersedes dbb459c terminal errors)
 
 - A server-only pure state machine owns eligibility. Client readiness stays separate, preserving calibrated movement, dodge/jump and other nonattack flows. Ordinary proximity voice is untouched.
 - Initial checks are pending/failclosed. Only exact boolean true from a timely successful API call permits beams. Both automatic begin/pulse/tick and legacy begin/release use the same canCapture gate.
 - Each accepted positive is cached for120 seconds from its timely response, with refresh due after60 seconds. A timely authoritative false revokes immediately. Errors never extend the old expiry; known positives remain usable only until that fixed deadline. Cached eligibility is not continuous platform verification and can become stale before expiry.
-- Each refresh allows at most three serial attempts, with2/5-second backoff. An eight-second deadline stops accepting that request's result, not the underlying yielding API call. If the call hangs, there is no overlapping retry. A late return is discarded before a remaining bounded retry can be scheduled. A permanently hung call remains one pending worker for that session until the platform call returns; departure prevents its result from affecting gameplay.
-- False and exhausted failures require rejoining to restart verification. Existing local CHECK ACCESS and calibration do not restart this server budget. This deliberate availability tradeoff fails closed rather than trusting the client or allowing request spam to amplify API calls.
-- Requests are polled by the existing server tick, not attack remotes. Both sides of the async call check the exact session object, player presence and shutdown flag. Old session callbacks cannot authorize a replacement session. Missing state fails closed.
-- Expiry/revocation cancels active sustained and legacy capture. Explicit stop/microphone-false handling stays ahead of action throttling and never waits for eligibility. Existing cooldown semantics remain.
+- Checks use bursts of at most three serial attempts with2/5-second backoff. Exhausted error bursts recover after30,60,then120 seconds (capped), plus deterministic0–10-second per-user spread. Success resets backoff. An eight-second deadline stops accepting that result, not the underlying yielding API call. Late results cannot authorize; no overlapping call is launched for that pending session.
+- Timely false immediately revokes and remains blocked, but rechecks after120 seconds plus spread. Error exhaustion is no longer terminal until rejoin. Only server scheduling retries; local CHECK ACCESS, calibration and attack remotes cannot amplify calls. Recovery never automatically rearms beams.
+- A server-wide scheduler allows at most eight outstanding calls, with starts separated by at least0.25 seconds. Oldest-due current sessions are selected first, with UserId tie-breaking; new arrivals use arrival time and retries move to future due times. There is no accumulating queue. Capacity is reserved before Poll consumes an attempt/deadline.
+- Jobs retain only Player and small opaque identity/request tokens, not a profile/session across the API yield. Pre-call and post-return checks compare the current session identity, player presence and shutdown state. Stale jobs cannot authorize replacements. A slot remains held until actual return even after timeout/departure. If all eight calls hang forever, no new checks can proceed; this intentionally bounds resources and fails closed rather than inventing cancellation or unlimited replacement workers.
+- Expiry/revocation cancels active sustained and legacy capture. Valid current-sequence SustainedStop, explicit MicReady(false), and nil CancelCast in legacy mode bypass quota; malformed/mismatched stops and starts remain limited. Legacy cancellation clears a nonempty capture only once. Earlier dbb459c wording broadly calling stops unconditional was inaccurate for CancelCast. Cooldowns and ordinary readiness remain unchanged.
 - The only bypass is the existing strict local fixture: Studio AND PlaceId0 AND server LocalSustainedPrototype flag, where every profile is temporary. Ordinary Studio, owner privilege and testBaseline alone do not bypass eligibility.
 - Client beam gating is separate from the movement gate. Every received ineligible State update immediately disarms/cancels, even if recovery arrives before the next rendered frame. Recovery requires deliberate arming. The normal initial successful calibration retains its existing automatic onboarding behavior; an initial unavailable/denied state suppresses that automatic arming.
-- Compact persistent two-line meter guidance distinguishes checking, denied and unavailable/rejoin. Attempting to arm explains that ordinary voice is unchanged. This is source/layout intent, not native readability or accessibility proof.
+- Compact persistent two-line meter guidance distinguishes checking, denied and delayed automatic retry. Attempting to arm explains that ordinary voice is unchanged. This is source/layout intent, not native readability or accessibility proof.
 
-## Review and verification
+## Original dbb459c verification (historical)
+
+Current recovery/scheduler changes have separate [review and evidence](VOICE_ELIGIBILITY_RECOVERY_REVIEW.md).
 
 Independent review caught and corrected shared dodge gating and frame-only disarm before commit. It also found a false-positive callback contract and missing actual cache-expiry cancellation coverage; both tests were tightened and mutation-checked.
 

@@ -16,8 +16,8 @@ def integration(baseline=False,mutation=None):
  code=code.replace('local function sustainedContext(p,s,t)if s.micReady then return context end end',
   'local function parts(p)return context.character,{Position=0},{Health=100,PlatformStand=false}end\n'+capture+'local function sustainedContext(p,s,t)if canCapture(p,s,t)then return context end end')
  if baseline:return code+BASELINE
- asyncHelper=b[b.index('local function stepVoiceEligibility('):b.index('Commerce.Start(')]
- return "local VoiceEligibility=require('../src/ServerScriptService/VoiceEligibility')\n"+code+ASYNC+asyncHelper+FIXED
+ asyncHelper=b[b.index('local voiceRequestBudget='):b.index('Commerce.Start(')]
+ return "local VoiceEligibility=require('../src/ServerScriptService/VoiceEligibility')\n"+code+ASYNC+asyncHelper+'\nlocal observeOnly=stepVoiceEligibility\nstepVoiceEligibility=function(p,s,t)observeOnly(p,s,t);dispatchVoiceEligibility(t)end\n'+FIXED
 BASELINE=r"""
 local p={UserId=7,SetAttribute=function()end}
 local s={data={sound='TinyAah'},voice=Combat.New(),micReady=false,protectedUntil=0,dodgingUntil=0,nextAction=100,sustained=sustained.New()};sessions[p]=s
@@ -35,7 +35,7 @@ print('BASELINE legacy spoof accepted; no account/microphone authentication')
 """
 ASYNC=r"""
 local closing=false;local queued={};local serviceCalls=0;local serviceAnswer=true;local serviceHook;local stateCalls=0
-local task={spawn=function(f)table.insert(queued,f)end}
+local task={spawn=function(f,...)local args=table.pack(...);table.insert(queued,function()f(table.unpack(args,1,args.n))end)end}
 local function state()stateCalls+=1 end
 local VoiceChatService={IsVoiceEnabledForUserIdAsync=function(_,id)
  serviceCalls+=1;if serviceHook then serviceHook()end
@@ -49,7 +49,7 @@ end
 FIXED=r"""
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fresh(fixture)
- now=0;queued={};serviceCalls=0;serviceHook=nil;serviceAnswer=true;closing=false
+ now=0;sessions={};voiceRequestBudget.inFlight=0;voiceRequestBudget.nextStart=0;queued={};serviceCalls=0;serviceHook=nil;serviceAnswer=true;closing=false
  local p={UserId=7,Parent=true,SetAttribute=function()end}
  local s={data={sound='TinyAah'},voice=Combat.New(),micReady=false,protectedUntil=0,dodgingUntil=0,nextAction=100,sustained=sustained.New(),voiceEligibility=VoiceEligibility.New(fixture)};sessions[p]=s
  return p,s
@@ -72,11 +72,11 @@ check(#queued==1 and serviceCalls==0,'Pending async request duplicated')
 -- Queued work starts after its deadline: late success cannot authorize.
 flush();check(not VoiceEligibility.Allowed(s.voiceEligibility,now),'Delayed async completion admitted account')
 -- Session replaced before queued work starts: never call API or mutate replacement.
-p,s=fresh(false);stepVoiceEligibility(p,s,0);local replacement={voiceEligibility=VoiceEligibility.New(false)};sessions[p]=replacement;flush()
+p,s=fresh(false);stepVoiceEligibility(p,s,0);local replacement={voiceEligibility=VoiceEligibility.New(false),voice={}};sessions[p]=replacement;flush()
 check(serviceCalls==0 and not VoiceEligibility.Allowed(replacement.voiceEligibility,0),'Stale queued session reached API')
 -- Session replaced during yielding API: completion must not affect either admission.
-p,s=fresh(false);stepVoiceEligibility(p,s,0);replacement={voiceEligibility=VoiceEligibility.New(false)}
-serviceHook=function()sessions[p]=replacement end;now=.1;flush()
+p,s=fresh(false);stepVoiceEligibility(p,s,0);replacement={voiceEligibility=VoiceEligibility.New(false),voice={}}
+VoiceEligibility.Poll(replacement.voiceEligibility,0);serviceHook=function()sessions[p]=replacement end;now=.1;flush()
 check(serviceCalls==1 and not VoiceEligibility.Allowed(s.voiceEligibility,.1) and not VoiceEligibility.Allowed(replacement.voiceEligibility,.1),'Stale API response authorized session')
 -- Departures and server close also invalidate queued work.
 for _,mode in ipairs({'departed','closing'})do
@@ -137,17 +137,17 @@ for _,answer in ipairs({false,'true',1,{},0})do
  check(not E.Allowed(v,1),'Nonboolean true service result accepted')
 end
 s=E.New(false);t=begin(s,0);E.Complete(s,t,1,true,false)
-check(not E.Allowed(s,1) and E.Poll(s,10000)==nil,'Explicit denied account retried without rejoin')
+check(not E.Allowed(s,1) and E.Poll(s,120.999)==nil and E.Poll(s,121)~=nil,'Denied account bounded recheck failed')
 s=E.New(false);t=begin(s,0);E.Complete(s,t,1,false,'error')
 check(E.Poll(s,2.999)==nil,'First error backoff missing');t=begin(s,3);E.Complete(s,t,4,false,'error')
 check(E.Poll(s,8.999)==nil,'Second error backoff missing');t=begin(s,9);E.Complete(s,t,10,false,'error')
-check(E.Poll(s,10000)==nil and not E.Allowed(s,10000),'Exhausted errors retried or admitted')
+check(E.Poll(s,39.999)==nil and E.Poll(s,40)~=nil and not E.Allowed(s,40),'Error recovery backoff failed')
 s=E.New(false);t=begin(s,0);E.Complete(s,t,1,true,true)
 check(E.Allowed(s,1) and E.Poll(s,60.999)==nil,'Positive refresh too early');t=begin(s,61)
 E.Complete(s,t,62,false,'error');check(E.Allowed(s,62),'Refresh error prematurely discarded valid cache')
 t=begin(s,64);E.Complete(s,t,65,false,'error');t=begin(s,70);E.Complete(s,t,71,false,'error')
 check(E.Allowed(s,120.999) and not E.Allowed(s,121),'Refresh errors extended positive cache')
-check(E.Poll(s,10000)==nil,'Exhausted refresh errors restarted without rejoin')
+check(E.Poll(s,121)~=nil,'Error recovery failed to resume after cache expiry')
 s=E.New(false);t=begin(s,0);E.Complete(s,t,1,true,true);t=begin(s,61);E.Complete(s,t,62,true,false)
 check(not E.Allowed(s,62),'Fresh denial failed to revoke positive cache')
 s=E.New(false);t=begin(s,0);E.Complete(s,t,1,true,true);t=begin(s,61);E.Complete(s,t,62,true,true)
@@ -218,12 +218,12 @@ if __name__=='__main__':
 
  if '--negative-controls' in sys.argv:
   module=read('src/ServerScriptService/VoiceEligibility.luau')
-  controls=[('overlap prevention',' or s.pending or ',' or ','Hung API call overlapped'),
+  controls=[('overlap prevention',' or s.pending then',' then','Hung API call overlapped'),
    ('deadline acceptance','now<request.deadline','now<=request.deadline','Eight-second request deadline'),
    ('expiry strictness','(s.expires or 0)>now','(s.expires or 0)>=now','Truthy nonboolean fixture bypassed eligibility'),
    ('exact result validation','type(result)=="boolean"','true','Nonboolean true service result accepted'),
-   ('retry exhaustion','s.exhausted=true','s.nextCheck=now+5','Exhausted errors retried'),
-   ('positive cache extension','s.nextCheck=now+delays[s.attempts]','s.expires=now+120;s.nextCheck=now+delays[s.attempts]','Late positive admitted')]
+   ('recovery pacing','Eligibility.RecoveryBase*2^(s.bursts-1)','0','Error recovery backoff failed'),
+   ('positive cache extension','s.failed=true','s.expires=now+120;s.failed=true','Late positive admitted')]
   for name,old,new,expected in controls:
    assert old in module,name
    mutant=module.replace(old,new,1)
@@ -231,8 +231,7 @@ if __name__=='__main__':
    assert failed.returncode and expected in out,out
    print('PASS negative control:',name)
   for name,old,new,expected in [
-   ('capture eligibility','and VoiceEligibility.Allowed(s.voiceEligibility,now)','', 'Client ready/power bypassed'),
-   ('session fences','if closing or sessions[p]~=s or not p.Parent then return end','if false then return end','Stale queued session reached API')]:
+   ('capture eligibility','and VoiceEligibility.Allowed(s.voiceEligibility,now)','', 'Client ready/power bypassed')]:
    def mutate(b):
     assert old in b,name
     return b.replace(old,new)
@@ -241,7 +240,7 @@ if __name__=='__main__':
    print('PASS negative control:',name)
   b=read('src/ServerScriptService/Bootstrap.server.luau')
   assert 'local localFixture=RunService:IsStudio() and game.PlaceId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true' in b
-  assert 'VoiceEligibility.New(localFixture)' in b
+  assert 'VoiceEligibility.New(localFixture,os.clock(),p.UserId)' in b
   assert 's.micReady=arg==true' in b
   print('PASS 3 source contracts: strict fixture creation and independent client readiness')
 
@@ -276,10 +275,9 @@ if __name__=='__main__':
   assert failed.returncode and 'Cache expiry did not cancel both captures' in out,out
   print('PASS negative control: cache-expiry helper cancellation removed')
   def remove_after_yield_fence(b):
-   start=b.index('local function stepVoiceEligibility(');end=b.index('Commerce.Start(',start)
-   helper=b[start:end];guard='if closing or sessions[p]~=s or not p.Parent then return end'
-   before,after=helper.rsplit(guard,1)
-   return b[:start]+before+'if false then return end'+after+b[end:]
+   old='if closing or not p.Parent or not s or s.voiceEligibility.identity~=identity then return end'
+   assert old in b
+   return b.replace(old,'if false then return end',1)
   failed=run(integration(mutation=remove_after_yield_fence));out=failed.stdout+failed.stderr
   assert failed.returncode and 'Stale API response authorized session' in out,out
   print('PASS negative control: independent post-yield session fence removed')

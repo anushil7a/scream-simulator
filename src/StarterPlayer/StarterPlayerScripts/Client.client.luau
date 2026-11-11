@@ -192,10 +192,10 @@ end
 local function voiceEligibilityHint(compact)
  if data.voiceEligible==true then return nil end
  if data.voiceStatus=="denied" then
-  return compact and "VOICE ACCESS REQUIRED\nEnable voice, then rejoin" or "Beams OFF: Roblox voice access required. Enable voice, then rejoin. Voice chat is unchanged."
+  return compact and "VOICE ACCESS REQUIRED\nCheck Roblox voice settings" or "Beams OFF: Roblox voice access is not enabled. Check Roblox voice settings; server checks repeat. Voice chat is unchanged."
  end
  if data.voiceStatus=="unavailable" then
-  return compact and "VOICE CHECK UNAVAILABLE\nRejoin to retry" or "Beams OFF: Voice access could not be verified. Rejoin to retry. Voice chat is unchanged."
+  return compact and "VOICE CHECK DELAYED\nWaiting to retry" or "Beams OFF: Voice verification is delayed. The server retries when a check can run. Voice chat is unchanged."
  end
  return compact and "CHECKING ROBLOX VOICE\nBeams are OFF" or "Beams OFF: Checking Roblox voice access. Voice chat is unchanged."
 end

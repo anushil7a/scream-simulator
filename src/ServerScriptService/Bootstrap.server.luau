@@ -95,26 +95,52 @@ local function state(p,message,conversation,messageUrgent,messageKey)
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio()),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
 end
--- No API yields inside combat/action processing. Remote packets cannot request
--- checks. Both sides of the yield are fenced to this exact player session.
+-- No remote can enqueue voice checks. Retry state belongs only to live sessions;
+-- at most eight actual API calls exist, with one new start per quarter-second.
+local voiceRequestBudget={inFlight=0,nextStart=0}
 local function stepVoiceEligibility(p,s,now)
  if closing or sessions[p]~=s or not p.Parent then return end
- local token=VoiceEligibility.Poll(s.voiceEligibility,now)
+ VoiceEligibility.MarkWaiting(s.voiceEligibility,now)
  local status=VoiceEligibility.Status(s.voiceEligibility,now)
  if not VoiceEligibility.Allowed(s.voiceEligibility,now) then
   if s.sustained and s.sustained.protocol.active then cancelSustained(p,s,now) end
   if s.voice.capture then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
  end
  if status~=s.voiceEligibilityStatus then s.voiceEligibilityStatus=status;state(p) end
- if token then
-  task.spawn(function()
-   if closing or sessions[p]~=s or not p.Parent then return end
-   local ok,result=pcall(function() return VoiceChatService:IsVoiceEnabledForUserIdAsync(p.UserId) end)
-   if closing or sessions[p]~=s or not p.Parent then return end
-   VoiceEligibility.Complete(s.voiceEligibility,token,os.clock(),ok,result)
-   stepVoiceEligibility(p,s,os.clock())
-  end)
+end
+local function voiceRequestCurrent(p,identity,token,now)
+ local s=sessions[p];local eligibility=s and s.voiceEligibility
+ return not closing and p.Parent~=nil and eligibility~=nil and eligibility.identity==identity
+  and eligibility.pending~=nil and eligibility.pending.token==token and now<eligibility.pending.deadline
+end
+local function runVoiceRequest(p,identity,token)
+ -- No session/profile local or closure is retained across the engine yield.
+ local ok,result=false,nil
+ if voiceRequestCurrent(p,identity,token,os.clock()) then
+  ok,result=pcall(VoiceChatService.IsVoiceEnabledForUserIdAsync,VoiceChatService,p.UserId)
  end
+ -- Deadline/departure never releases an in-flight call prematurely.
+ voiceRequestBudget.inFlight-=1
+ local s=sessions[p]
+ if closing or not p.Parent or not s or s.voiceEligibility.identity~=identity then return end
+ VoiceEligibility.Complete(s.voiceEligibility,token,os.clock(),ok,result)
+ stepVoiceEligibility(p,s,os.clock())
+end
+local function dispatchVoiceEligibility(now)
+ if closing or voiceRequestBudget.inFlight>=VoiceEligibility.MaxConcurrent or now<voiceRequestBudget.nextStart then return end
+ -- Oldest due first; new joins use their arrival time, not zero. No persistent
+ -- roster/queue retains departed sessions, and retrying users cannot jump ahead.
+ local chosen,dueAt
+ for p,s in pairs(sessions) do
+  local due=VoiceEligibility.DueAt(s.voiceEligibility)
+  if p.Parent and due and due<=now and (not dueAt or due<dueAt or (due==dueAt and p.UserId<chosen.UserId)) then chosen=p;dueAt=due end
+ end
+ if not chosen then return end
+ local eligibility=sessions[chosen].voiceEligibility
+ voiceRequestBudget.inFlight+=1;voiceRequestBudget.nextStart=now+VoiceEligibility.StartInterval
+ local token=VoiceEligibility.Poll(eligibility,now)
+ if not token then voiceRequestBudget.inFlight-=1;return end
+ task.spawn(runVoiceRequest,chosen,eligibility.identity,token)
 end
 Commerce.Start(function(p)
  local s=sessions[p]
@@ -699,6 +725,9 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   local active=s.sustained.protocol.active
   -- Stop can expire state before validating; only the current sequence bypasses quota.
   if active and arg==active.sequence then sustainedEnd(p,sustained.Stop(s.sustained,now,arg),now);return end
+ elseif verb=="CancelCast" and not s.sustained and arg==nil then
+  if s.voice.capture then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
+  return
  elseif verb=="MicReady" and arg==false then
   -- Clean leftover attacks too, but do not amplify repeated idle false packets.
   if s.micReady~=false or (s.sustained and s.sustained.protocol.active) or s.voice.capture then
@@ -797,7 +826,7 @@ local function joined(p)
   end
   return
  end
- local s={data=data,canSave=save,recoveryWarning=recoveryWarning,voice=VoiceCombat.New(),voiceEligibility=VoiceEligibility.New(localFixture),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
+ local s={data=data,canSave=save,recoveryWarning=recoveryWarning,voice=VoiceCombat.New(),voiceEligibility=VoiceEligibility.New(localFixture,os.clock(),p.UserId),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
  botRewards={},credit={},collected={},sprintRequested=false,sprintRunning=false,sprintRegenAt=0,sprintCharge=Config.SprintDuration,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  task.spawn(Commerce.Load,p)
  if sustainedEnabled then
@@ -822,7 +851,7 @@ local function joined(p)
   p:SetAttribute("CaptureStarted",0);s.sprintRequested=false;s.character=nil
  end)
  p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
- stepVoiceEligibility(p,s,os.clock())
+ stepVoiceEligibility(p,s,os.clock());dispatchVoiceEligibility(os.clock())
  state(p,loadMessage or "Welcome · train for XP, unlock beam styles, and explore the coast")
 end
 local function joinTracked(p)
@@ -904,6 +933,7 @@ end
 task.spawn(function()
  local tick=0
  while true do task.wait(0.1);tick+=1;local now=os.clock()
+  dispatchVoiceEligibility(now)
   stepTraining(now)
   for p,s in pairs(sessions) do
    stepVoiceEligibility(p,s,now)

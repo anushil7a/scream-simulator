@@ -1,0 +1,75 @@
+{
+  "base_commit": "dbb459c501b78d0f4971251614d76f7351393231",
+  "recorded_at_utc": "2026-11-11T20:01:13.344318+00:00",
+  "scope": "bounded scheduled eligibility recovery,global resource limits,legacy cancellation",
+  "source_hash_semantics": "exact tested working-tree bytes; checkout line endings may differ",
+  "source_sha256": {
+    "src/ServerScriptService/VoiceEligibility.luau": "a8fa8d00b1f262d259936035cb15a8c220a0a61e886e41fbc7f7f041dc807728",
+    "src/ServerScriptService/Bootstrap.server.luau": "95b5e6cce5c9268e924ab9b774f2bd97ac006ae6cea184af5caa55be70cd1113",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "e2e373095b94840b12f02ed38e0823fa5658b35e749568fb516d9bfc3984e9d5",
+    "tests/voice_eligibility.py": "4090d8fa8a08935b4299343fe88b1cbd802c8c913acd65161f246e9b78924077",
+    "tests/voice_eligibility_recovery.py": "052139756970adceaf53af2aaf3b77c0947de2cf391d117be139b1fd4806886b",
+    "tests/verify_local.py": "4867cf930d39e18e83a537a4fc51adccdf266111c8cac203a2d47b6e49909f02"
+  },
+  "artifact_sha256": {
+    "build/AutomaticVoiceCandidate.rbxl": "15ff7d5d8d44832c7f132c5cda633328c1156566dc8397d15f9f0b188c3a0af3",
+    "build/AutomaticVoiceCandidate.provenance.json": "c66205fb847bb36898e62880d7531515e2298ed95f0a49753007f0f27e3f8177",
+    "build/SustainedLocalPlay.rbxl": "a2332e4be835c95e7d92da1856d704b47fe7fef5e75fc5264d7a020c967564be",
+    "build/voice-eligibility-recovery-final.log": "93d51221b556b63aad01481bcae4266f0c9ecb04a8cc812c2231be20060cd3d6",
+    "build/voice-eligibility-recovery-baseline.log": "84749d060369e025324a3f448f761a6d43fa178b5fc0945cab62433aebe2bff5"
+  },
+  "focused": {
+    "recovery_assertions": 934,
+    "recovery_controls": 12,
+    "recovery_contracts": 3,
+    "retained_eligibility_assertions": 117,
+    "retained_controls": 12,
+    "retained_contracts": 4,
+    "independently_rerun": true
+  },
+  "aggregate": {
+    "pure_synthetic_suites": 25,
+    "mocked_suites": 84,
+    "production_compiles": 60,
+    "all_builds_pass": true
+  },
+  "commands": [
+    "python tests/voice_eligibility_recovery.py --baseline",
+    "python tests/voice_eligibility_recovery.py",
+    "python tests/voice_eligibility.py",
+    "python tests/verify_local.py --build"
+  ],
+  "baselines": [
+    "3 refresh errors permanently exhaust checking even after API recovery",
+    "legacy CancelCast dropped after30requests; actual Release accepted at.3s"
+  ],
+  "resource_policy": {
+    "max_actual_calls": 8,
+    "minimum_start_spacing_seconds": 0.25,
+    "retry_burst_attempts": 3,
+    "short_backoff_seconds": [
+      2,
+      5
+    ],
+    "recovery_backoff_seconds": [
+      30,
+      60,
+      120
+    ],
+    "per_user_spread_seconds": [
+      0,
+      10
+    ],
+    "denied_recheck_seconds": 120,
+    "queue": "none; oldest-due current session selection",
+    "slots_released": "only after actual return,not timeout/departure"
+  },
+  "limitations": [
+    "yielding synthetic API and dispatcher/clock,not native Roblox networking",
+    "source-reviewed retention,not GC/native memory proof",
+    "eight permanently hung calls prevent further checking in that server",
+    "recovery has no guaranteed maximum latency",
+    "client amplitude remains unauthenticated",
+    "no map work,publication,live stores,settings orapps"
+  ]
+}
