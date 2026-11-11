@@ -680,7 +680,7 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  end
  local chosenColor=kind=="Dodge" and id or aura
  local color=typeof(chosenColor)=="Color3" and chosenColor or Config.Auras[chosenColor] or gold
- if kind=="Dodge" then playGameplayCue("Dodge",pos);local f=fxPart(pos,color,Vector3.new(2,3,2));Tween:Create(f,TweenInfo.new(.35),{Transparency=1,Size=Vector3.new(5,1,5)}):Play();return end
+ if kind=="Dodge" then playGameplayCue("Dodge",pos);return end
  local s=Config.GetSound(id);if not s then return end
  -- Actual voice stays on Roblox proximity audio. Owner-selected SFX are separate.
  direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range

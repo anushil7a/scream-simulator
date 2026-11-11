@@ -2,6 +2,13 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 cosmetic dodge box removal
+
+- Started from clean, fetched `078dbb1` (quest discovery checkpoint pushed and verified). Recovered reference showed a yellow world-space rectangular effect at roll onset. Actual client handler reproduction created one2x3x2 Neon part and a0.35-second expansion/fade tween, separate from the0.6-second roll.
+- Sole production edit removes that cosmetic Part/tween from the Dodge branch for every aura color. Keep the existing cue request,180-stud/root gates and early return. All other production files match the base: server collision Blockcasts, motion/protection/cooldown, roll animation, Config and audio behavior are untouched. Break chips and ordinary/sustained beam effects remain.
+- Full25 pure/synthetic +67 mocked suites,57 production compiles and all builds pass. New actual callback tests:127 behavioral assertions,4 negative controls and25 explicitly requested one-time source-equality checks. Independent review cleared the one-line change and reran focused checks. [Review](DODGE_EFFECT_REVIEW.md), [evidence](../tests/evidence/dodge-effect-2026-11-11.json).
+- No native visual/audio playback rerun, live DataStore, publication or map edit. Dodge cue AssetId remains empty; preserving its call does not make it audible. No new apps opened. Existing minimized OpenWith dialog still cannot be restored/closed through available controls; Studio remains closed. Next: verified draft-branch delivery, then remaining minimap/Beams-style/audio/backlog batches without publishing.
+
 ## November 11 distinct quest discovery cards
 
 - Started from clean, fetched `32cced3`. Reproduced both undiscovered Mar Soler cards replacing their actual objectives with the same meet/talk instruction. Cards now show the original objective first (water three garden beds versus collect six beach bottles), followed by the correct giver/unlock instruction. Discovery is still required; hidden Nick content stays hidden until found.
