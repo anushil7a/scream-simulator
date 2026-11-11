@@ -48,6 +48,7 @@ function Microphone:Calibrate()
  local input=self:FindInput()
  if not self.eligible or not input then self.status='Enable Roblox voice and reconnect your microphone first.';return end
  if input.Muted then self:HandleMute();self.status='Unmute using the Roblox microphone control, then calibrate.';return end
+ if input.Active==false then self:HandleInactive();return end
  -- A new attempt supersedes the previous calibration, including failed retries.
  self:Cancel();self.model=Power.new();self.power=0;self.ready=false;self.phase='quiet';self.phaseStarted=os.clock();self.quiet={};self.spoken={}
  self.status='Calibration 1/2: stay quiet for two seconds.'
@@ -57,6 +58,9 @@ function Microphone:Cancel()
 end
 function Microphone:Begin()
  if self.destroyed then return false end
+ local input=self:FindInput();if not input then return false end
+ if input.Muted then self:HandleMute();return false end
+ if input.Active==false then self:HandleInactive();return false end
  if not self.ready then return false end
  self.model:BeginCapture();self.captureStarted=os.clock();return true
 end
@@ -64,6 +68,10 @@ function Microphone:CapturePower()
  return self.captureStarted and self.ready and self.model:CapturePower() or 0
 end
 function Microphone:Release()
+ local input=not self.destroyed and self:FindInput()
+ if not input then self:Cancel();return 0,'Microphone capture canceled. Try again.' end
+ if input.Muted then self:HandleMute();return 0,'Microphone muted. Unmute in Roblox to continue.' end
+ if input.Active==false then self:HandleInactive();return 0,self.status end
  local started=self.captureStarted;self.captureStarted=nil
  if not started or not self.ready then self.model:BeginCapture();return 0,'Microphone capture canceled. Try again.' end
  local elapsed=os.clock()-started
@@ -76,6 +84,11 @@ function Microphone:HandleMute()
  self.wasMuted=true;self.ready=false;self:CancelCalibration();self:Cancel();self.model:Reset();self.power=0
  self.status='Microphone muted. Unmute in Roblox to continue.'
 end
+-- Active is publicly readable; only Roblox controls it. Do not use restricted IsReady.
+function Microphone:HandleInactive()
+ self.wasInactive=true;self.ready=false;self:CancelCalibration();self:Cancel();self.model:Reset();self.power=0
+ self.status='Microphone input inactive. Check Roblox microphone controls and your input.'
+end
 function Microphone:Step(dt)
  if self.destroyed then return end
  if not self.eligible then self.power=0;return end
@@ -83,6 +96,11 @@ function Microphone:Step(dt)
  if not input then self.status='Waiting for Roblox mic input. The experience needs Voice Chat and the Audio API enabled.';self.power=0;return end
  if input.Muted then
   self:HandleMute();return
+ end
+ if input.Active==false then self:HandleInactive();return end
+ if self.wasInactive then
+  self.wasInactive=false
+  if not self.model.calibrated and not self.phase then self.status='Microphone input active. Calibrate before attacking.' end
  end
  if self.wasMuted then
   self.wasMuted=false

@@ -43,7 +43,7 @@ ui.frame=function(parent,name,size,pos,color)local n=node('Frame');n.Name=name;n
 ui.label=function(parent,text,size,pos)local n=node('TextLabel');n.Text=text;n.Size=size;n.Position=pos;n.Parent=parent;table.insert(labels,n);return n end
 ui.button=function(parent,name,text,size,pos,fn)local n=node('TextButton');n.call=fn;n.Text=text;buttons[name]=n;return n end
 local action={FireServer=function(_,verb,arg)table.insert(actions,{verb,arg})end}
-local Shop={};local connections,timers={},{};local generation=0
+local Shop={};local connections,timers={},{};local priceViews={};local generation=0
 local accent=Color3.fromRGB(79,225,255);local violet,ink,soft=accent,accent,accent
 local Config={Auras={Gold=Color3.fromHex('FFD16F'),Blue=Color3.fromHex('0000FF')}}
 local Catalog=require('../src/ReplicatedStorage/Shared/ShopCatalog')

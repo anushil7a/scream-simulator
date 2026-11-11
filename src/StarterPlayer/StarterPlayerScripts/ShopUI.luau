@@ -4,7 +4,39 @@ local Catalog=require(game:GetService("ReplicatedStorage").Shared.ShopCatalog)
 local Config=require(game:GetService("ReplicatedStorage").Shared.Config)
 local Shop={}
 local connections,timers={},{}
-local prices={}
+local prices,priceViews={},{}
+local priceInFlight=0
+local PRICE_LIMIT=4
+local PRICE_TIMEOUT=8
+local PRICE_RETRY=10
+local PRICE_TTL=60
+local function validPrice(info)
+ return type(info)=="table" and type(info.IsForSale)=="boolean"
+  and (not info.IsForSale or type(info.PriceInRobux)=="number" and info.PriceInRobux==info.PriceInRobux
+   and info.PriceInRobux>=0 and info.PriceInRobux<math.huge and info.PriceInRobux%1==0)
+end
+-- This yielding worker deliberately captures no GUI, callback or player snapshot.
+local function fetchPrice(record,id,kind)
+ local ok,info=pcall(Marketplace.GetProductInfoAsync,Marketplace,id,kind)
+ priceInFlight-=1;record.pending=false
+ local now=os.clock()
+ if prices[record.itemKey]~=record then return end
+ if ok and now<record.deadline and validPrice(info) then
+  record.info={IsForSale=info.IsForSale,PriceInRobux=info.IsForSale and info.PriceInRobux or nil};record.expires=now+PRICE_TTL
+ else record.info=nil;record.retryAt=now+PRICE_RETRY end
+end
+local function updatePrice(view)
+ local record=view.record;local now=os.clock()
+ if prices[record.itemKey]~=record then view.apply(nil,false);return end
+ if record.info and now<record.expires then view.apply(record.info,false);return end
+ record.info=nil
+ if not record.pending and now>=(record.retryAt or 0) and priceInFlight<PRICE_LIMIT then
+  record.pending=true;record.deadline=now+PRICE_TIMEOUT;priceInFlight+=1
+  task.spawn(fetchPrice,record,view.id,view.kind)
+ end
+ if record.info and os.clock()<record.expires then view.apply(record.info,false);return end
+ view.apply(nil,record.pending and now<record.deadline)
+end
 local generation=0
 local accent=Color3.fromRGB(79,225,255)
 local violet=Color3.fromRGB(173,139,255)
@@ -14,7 +46,7 @@ local soft=Color3.fromRGB(160,178,208)
 function Shop.Clear()
  generation+=1
  for _,connection in ipairs(connections) do connection:Disconnect() end
- table.clear(connections);table.clear(timers)
+ table.clear(connections);table.clear(timers);table.clear(priceViews)
 end
 local function stroke(parent,color,thickness)
  local edge=Instance.new("UIStroke");edge.Color=color;edge.Transparency=.65;edge.Thickness=thickness or 1;edge.Parent=parent
@@ -23,6 +55,7 @@ local function gradient(parent,colors,rotation)
  local g=Instance.new("UIGradient");g.Color=ColorSequence.new(colors);g.Rotation=rotation or 0;g.Parent=parent;return g
 end
 function Shop.Tick()
+ for _,view in ipairs(priceViews) do updatePrice(view) end
  for _,timer in ipairs(timers) do
   local remaining=math.max(0,math.ceil(timer.ends-timer.serverNow-(os.clock()-timer.received)))
   local text=not timer.ready and "Boost status unavailable" or remaining>0 and string.format("ACTIVE · %02d:%02d remaining",math.floor(remaining/60),remaining%60) or "Not active"
@@ -31,27 +64,27 @@ function Shop.Tick()
 end
 local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
  local id=item.key=="Movement" and Config.MovementPassId or item.id
- local text=owned and "OWNED" or id<=0 and "COMING SOON" or "CHECKING PRICE…"
+ local configured=type(id)=="number" and id==id and id>0 and id<math.huge and id%1==0
+ local text=owned and "OWNED" or not configured and "COMING SOON" or "CHECKING PRICE…"
  local available=false
  local b=ui.button(parent,"Buy"..item.key,text,size,pos,function()
   if available then action:FireServer("ShopPurchase",item.key) end
  end,owned and Color3.fromRGB(32,75,73) or ink)
  b.TextSize=13;stroke(b,accent)
- if owned or id<=0 then b.AutoButtonColor=false;return end
+ if owned or not configured then b.AutoButtonColor=false;return end
  local revision=generation
- local function apply(info)
+ local function apply(info,pending)
   if revision~=generation or not b.Parent then return end
-  available=info and info.IsForSale==true and type(info.PriceInRobux)=="number" and data.savingAvailable==true
-  b.Text=available and ("R$ "..tostring(info.PriceInRobux)) or data.savingAvailable~=true and "TEST / UNAVAILABLE" or "UNAVAILABLE"
+  available=info~=nil and info.IsForSale==true and data.savingAvailable==true
+  b.Text=available and ("R$ "..tostring(info.PriceInRobux)) or data.savingAvailable~=true and "TEST / UNAVAILABLE" or pending and "CHECKING PRICE." or "UNAVAILABLE"
   b.AutoButtonColor=available
  end
- local key=item.kind..":"..id;local cached=prices[key]
- if cached and os.clock()-cached.at<60 then apply(cached.info);return end
- task.spawn(function()
-  local ok,info=pcall(Marketplace.GetProductInfoAsync,Marketplace,id,item.kind=="pass" and Enum.InfoType.GamePass or Enum.InfoType.Product)
-  if ok then prices[key]={info=info,at=os.clock()} end
-  apply(ok and info or nil)
- end)
+ -- Only the fixed catalog creates records; changing an ID invalidates old results.
+ if Catalog.Get(item.key)~=item or type(id)~="number" or id~=id or id<=0 or id>=math.huge or id%1~=0 then apply(nil,false);return end
+ local key=item.kind..":"..id;local record=prices[item.key]
+ if not record or record.key~=key then record={itemKey=item.key,key=key};prices[item.key]=record end
+ local view={record=record,id=id,kind=item.kind=="pass" and Enum.InfoType.GamePass or Enum.InfoType.Product,apply=apply}
+ table.insert(priceViews,view);updatePrice(view)
 end
 function Shop.Render(data,ui,action)
  Shop.Clear()

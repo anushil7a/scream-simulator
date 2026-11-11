@@ -17,7 +17,7 @@ local pending={};local timeouts={};local deferCheck=false
 local task={delay=function(_,fn)table.insert(timeouts,fn)end,spawn=function(fn) if deferCheck then table.insert(pending,fn) else fn() end end}
 local disconnected=false
 local run={Heartbeat={Connect=function(_,fn)return {Disconnect=function()disconnected=true end}end}}
-local player={UserId=1,input={Parent=true,Muted=false}}
+local player={UserId=1,input={Parent=true,Muted=false,Active=true}}
 function player:FindFirstChildWhichIsA()return self.input end
 local players={LocalPlayer=player}
 local voice={IsVoiceEnabledForUserIdAsync=function()return true end}
@@ -78,7 +78,7 @@ check(not m.ready,'Valid signal bypassed interrupted calibration')
 check(m.status=='Microphone signal restored. Calibrate before attacking.','Signal recovery omitted fresh calibration guidance')
 m:Calibrate();samples('quiet',.001);samples('voice',.08)
 local old=m.analyzer
-player.input.Parent=nil;player.input={Parent=true,Muted=false};m:Step(.05)
+player.input.Parent=nil;player.input={Parent=true,Muted=false,Active=true};m:Step(.05)
 check(old.destroyed and m.analyzer~=old and not m.ready and not m.model.calibrated,'Input replacement retained analyzer/calibration')
 m:Calibrate();samples('quiet',.001);samples('voice',.08)
 check(m:Begin(),'Legacy capture did not start after replacement calibration')
@@ -100,7 +100,7 @@ local disconnectedAnalyzer=m.analyzer
 player.input.Parent=nil;player.input=nil;m:Step(.05)
 check(m.phase==nil and #m.quiet==0 and #m.spoken==0 and not m.ready,'Disconnected input retained calibration samples')
 check(disconnectedAnalyzer.destroyed and m.analyzer==nil,'Disconnect retained old analyzer')
-player.input={Parent=true,Muted=false};m:Step(.05)
+player.input={Parent=true,Muted=false,Active=true};m:Step(.05)
 check(not m.model.calibrated and not m.ready,'Reconnected input inherited calibration')
 m:Calibrate();samples('quiet',.001);samples('voice',.08)
 check(m.ready,'Fresh calibration after interrupted input failed')
