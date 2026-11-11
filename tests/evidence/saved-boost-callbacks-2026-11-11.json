@@ -1,0 +1,59 @@
+{
+  "recordedAtUtc": "2026-11-11T22:49:51.551233+00:00",
+  "baseCommit": "1d885581f9616e76c99f476a034c8e3e27f475d3",
+  "hashSemantics": "Exact working-tree bytes here; candidate manifest normalized-source/project/reference/binary hashes separately verified",
+  "checks": {
+    "boostCardAssertions": 26,
+    "fullRenderLifecycleAssertions": 48,
+    "controls": 7,
+    "baseline": "Both XP and Coins actual retained callbacks at1d88558 send after Clear",
+    "priceAssertions": 96,
+    "priceControls": 11,
+    "priceContract": 1,
+    "commerceAssertions": 46,
+    "commerceControls": 5,
+    "independentRetained": "Reviewer also reran modal120/12 and Style336/11",
+    "aggregate": {
+      "pureSynthetic": 25,
+      "mockedSuites": 96,
+      "productionCompiles": 60,
+      "allBuilds": true,
+      "native": false
+    },
+    "independentReview": "Separate worker reviewed exact closure scope/lifecycle and reran focused/baseline/retained checks; no blocker",
+    "candidate": "All60 normalized-source, project/reference and binary hashes match final state"
+  },
+  "commands": [
+    "python tests/boost_purchase_ui.py --negative-controls",
+    "python tests/boost_purchase_ui.py --baseline",
+    "python tests/shop_price_requests.py --negative-controls",
+    "python tests/commerce.py --negative-controls",
+    "python tests/verify_local.py --build"
+  ],
+  "limits": [
+    "Callbacks directly invoked with GUI/API/time mocks; native queued-event reachability/frequency not proven",
+    "No real purchase, token consumption, native input/layout or live store tested",
+    "Server activation/receipt/inventory rules unchanged; product IDs remain zero",
+    "No apps, map edits, live stores, publication or product/audio configuration; unattributed temporary file preserved",
+    "Writer-fleet release gate remains unresolved; ordinary unsavable play unchanged"
+  ],
+  "sources": {
+    "src/StarterPlayer/StarterPlayerScripts/ShopUI.luau": "dac405a47942ab616910a32583b12ed6c894cbabb4a648ca00ffecd7e8dff432",
+    "src/ServerScriptService/Commerce.luau": "f4208448c5247d24b5ae373e18e2d141d9ad7fa5cb18aa78f2a1f19a34ed412c",
+    "src/ReplicatedStorage/Shared/BoostLedger.luau": "701a5e1d3600723b73768c20d8c75d66f3a62b55d235bbf43d93a37dc6da08c0",
+    "tests/boost_purchase_ui.py": "b6f56d74b5c0bf385596af65b63f64e3c033c19f38bc738e2491ca7cd555d70d",
+    "docs/BOOST_PURCHASE_REVIEW.md": "731263b20c5394ef02510b896d079847d05b963851bbd0da387d25063c2bd086",
+    "docs/ROADMAP.md": "1fbb4561f60d553a24e5ad3baf526ebb47c129c4358cb83d4fa8140ea5acbba2",
+    "docs/PLAYTEST_BACKLOG.md": "110a5343eb758d39defe42790ca085bfb5eff439be2197a293d20fbd3f9f0593"
+  },
+  "artifacts": {
+    "build/saved-callback-controls.log": "425549320f032a4cf2cf4b1de51b9542f98c20ed9e63116244e66f94d4d0bb09",
+    "build/saved-callback-baseline.log": "825bd9d67715f88f5ac3d16cbbea7febe1130711c70fdc001887aa73d537fa2e",
+    "build/saved-callback-price-regression.log": "36bd7e832a19ba638e8140bb4df984ce851a8a6998bc1d0083a8f909bdc43ea8",
+    "build/saved-callback-commerce.log": "329f693b5e027a88da608e89f373a26dda9d914977c580a0277a15249064dcaa",
+    "build/saved-callback-full.log": "f3b5b2224c61453071a3fe7347f715fe1396f97d865a38f26204be4895b05226",
+    "build/AutomaticVoiceCandidate.rbxl": "2f0ee46082485af5bda05d04d94ddeb812b34b8178dbcaf49bb997fe3adae7ad",
+    "build/AutomaticVoiceCandidate.provenance.json": "e218aca763a01bf3f54f7bc7fc439338a32949b14d2a7357ddf6833c15d6e251",
+    "build/ShopReviewVerified.rbxl": "966edc0e6d71862102aaf7dac6a143f1f60f7c86b5dc26bb0602b5eb5fc2e620"
+  }
+}

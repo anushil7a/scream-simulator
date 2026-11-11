@@ -27,3 +27,13 @@ The collection's attack description no longer includes max attack duration or co
 The main boost/description checkpoint `c1d700a8ff7ba0b4180f5329f3c65277113c06d0` was pushed non-force and its exact remote head verified, including prior `736a82f` and `f0dc1e7`. A narrow follow-up removes the unwanted offline-timer wording from cards/footer and saved-boost confirmation, with unchanged expiry semantics. Its 26 UI assertions/five controls and 46 receipt assertions/five controls pass; all full local checks/builds are rerun. Verify the follow-up commit delivery separately. Earlier authentication failures did not overwrite or discard work. No credentials changed. No Roblox publication, live stores or purchases. No app windows/tabs/test sessions were opened for this batch; pre-existing activity was left alone.
 
 [Machine-readable evidence](../tests/evidence/boost-purchase-2026-11-11.json).
+
+## Saved-token deferred callback hardening
+
+Astra reproduced actual retained USE SAVED callbacks sending ActivateBoost after Shop.Clear, for both XP and Coins. The callbacks now capture generation before construction and require a current generation, attached button and existing ready state. The button local is explicitly declared before assignment so the closure captures it correctly. Existing valid callbacks, token choices, unavailable readiness and reopening retain their behavior. This does not change server activation, transaction dedupe, inventory or receipt handling.
+
+`python tests/boost_purchase_ui.py --baseline` reproduces both failures at1d88558. `--negative-controls` passes26 retained card/timer assertions plus48 actual full Shop.Render/Clear lifecycle assertions and seven controls. It covers both boost kinds at narrow/wide dimensions, repeated obsolete invocation after Clear/rerender/detachment, valid current/reopened controls and unavailable readiness. The full renderer tests supplement the older card-slice checks; they do not claim native UI layout or event delivery.
+
+Independent review reran those checks plus retained price96/11/one contract, modal120/12 and Style336/11. Actual Commerce with fake persistence passes46 assertions/five controls; no live keys or purchases were used. Final `python tests/verify_local.py --build` passes25 pure/synthetic +96 mocked suites,60 compiles and all builds. [Commands and hashes](../tests/evidence/saved-boost-callbacks-2026-11-11.json).
+
+This guards a potential consumable side effect, not a demonstrated native player incident. No actual saved token was consumed during tests. No apps, server behavior, map, publication or product/audio configuration changes.

@@ -123,8 +123,9 @@ function Shop.Render(data,ui,action)
   local count=inventory[item.boost] or 0
   purchaseButton(item,c,false,data,ui,action,UDim2.new(count>0 and .5 or 1,count>0 and -22 or -32,0,44),UDim2.fromOffset(16,y))
   if count>0 then
-   local b=ui.button(c,"Activate"..key,"USE SAVED ("..count..")",UDim2.new(.5,-22,0,44),UDim2.new(.5,6,0,y),function()
-    if shop.ready then action:FireServer("ActivateBoost",item.boost) end
+   local revision=generation;local b
+   b=ui.button(c,"Activate"..key,"USE SAVED ("..count..")",UDim2.new(.5,-22,0,44),UDim2.new(.5,6,0,y),function()
+    if revision==generation and b and b.Parent and shop.ready then action:FireServer("ActivateBoost",item.boost) end
    end,ink);b.TextSize=13;b.TextColor3=tint;b.AutoButtonColor=shop.ready==true
   end
  end

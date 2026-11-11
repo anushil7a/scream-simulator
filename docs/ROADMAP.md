@@ -6,6 +6,13 @@ Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+
+## November 11 saved-boost callback lifetime
+
+- Astra reproduced retained USE SAVED XP/Coins callbacks sending ActivateBoost after Shop.Clear. Saved-token callbacks now capture generation before construction and require current generation plus attached button and existing ready state. Clear, rerender and detachment invalidate old callbacks; current/reopened controls still work. Server activation, token inventory, receipts, timing and product IDs are unchanged.
+- Independent26 retained card/timer +48 full Shop.Render/Clear assertions and seven controls pass, with separate1d88558 XP/Coins baseline failures. Price96/11/one contract, modal120/12 and Style336/11 retained regressions pass; server commerce46/five controls passes using simulated atomic stores. Full25 pure/synthetic +96 mocked suites,60 compiles and all builds pass. [Review](BOOST_PURCHASE_REVIEW.md), [exact evidence](../tests/evidence/saved-boost-callbacks-2026-11-11.json).
+- Direct callback-invocation mocks do not prove native queued-event reachability or actual token consumption. No apps, live purchases/stores, publication, map edits or product/audio configuration. Unattributed temporary file preserved; normal unsavable play and blocked writer-fleet gate unchanged. Next: independent checkpoint review, then only evidence-backed non-map work; no routine user updates.
+
 ## November 11 deferred shop and tab callbacks
 
 - Astra directly invoked retained callbacks and reproduced a stale priced button sending after Clear, plus a hidden tab callback recreating price views/retries. Purchase callbacks now require their original generation, attached button and available price. Tab callbacks reject hidden/destroyed state. Current visible switching, normal purchase requests and reopening remain. This is narrow deferred-callback hardening, not a demonstrated native UI incident.

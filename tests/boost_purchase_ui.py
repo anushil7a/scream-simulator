@@ -1,6 +1,6 @@
 """Actual boost-card/timer code with synthetic UI and clock; no native layout claim."""
 from pathlib import Path
-import argparse, subprocess, tempfile
+import argparse, ast, subprocess, tempfile
 root=Path(__file__).resolve().parents[1]
 source=(root/'src/StarterPlayer/StarterPlayerScripts/ShopUI.luau').read_text(encoding='utf-8')
 start=source.index(' for index,key in ipairs({"XP","Coins"}) do')
@@ -11,14 +11,14 @@ setup='''
 local Catalog=require('../src/ReplicatedStorage/Shared/ShopCatalog')
 local checks=0;local function check(ok,msg)assert(ok,msg);checks+=1 end
 local clock=0;local os={clock=function()return clock end,time=function()return 100 end}
-local timers={};local priceViews={};local Shop={}
+local timers={};local priceViews={};local Shop={};local generation=0
 local UDim2={new=function(sx,ox,sy,oy)return {sx=sx,ox=ox,sy=sy,oy=oy}end,fromOffset=function(x,y)return {x=x,y=y}end,fromScale=function(x,y)return {sx=x,sy=y}end}
 local Enum={TextXAlignment={Center=1},Font={GothamBlack=1}}
 local violet,gold,ink,soft={},{},{},{}
 local labels,buttons,buys,actions={},{},{},{}
 local ui={card=function()return {}end,frame=function()return {}end}
 ui.label=function(_,text)local label={Text=text};table.insert(labels,label);return label end
-ui.button=function(_,name,text,size,pos,callback)local b={Text=text,Size=size,call=callback};buttons[name]=b;return b end
+ui.button=function(_,name,text,size,pos,callback)local b={Text=text,Size=size,call=callback,Parent=true};buttons[name]=b;return b end
 ui.info=function(text)table.insert(labels,{Text=text})end
 local action={FireServer=function(_,verb,kind)table.insert(actions,{verb,kind})end}
 local function stroke()end
@@ -62,13 +62,51 @@ def run(code,expected=None):
   else:
    print(out,end='');assert r.returncode==0,out
  finally:path.unlink()
+
+def full_code(module):
+ tree=ast.parse((root/'tests/shop_price_requests.py').read_text())
+ literals={n.targets[0].id:ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and isinstance(n.value,ast.Constant) and isinstance(n.value.value,str)}
+ head=literals['setup'].replace('button=function(_,_,text,_,_,callback)','button=function(_,name,text,_,_,callback)').replace('local b={Text=text,Parent=true,callback=callback}','local b={Name=name,Text=text,Parent=true,callback=callback}')
+ head=head.replace('local action={FireServer=function()f.sent+=1 end}', 'f.actions={};local action={FireServer=function(_,verb,kind)f.sent+=1;table.insert(f.actions,{verb,kind})end}')
+ tail=literals['endsetup'].replace('return f\nend',r'''
+function f.saved(ready,narrow)
+ ui.narrow=narrow;f.buttons={};m.shop.Render({savingAvailable=true,shop={ready=ready,inventory={xp=3,coins=1},ends={},serverNow=100}},ui,action)
+ local result={};for _,b in ipairs(f.buttons)do result[b.Name]=b end;return result
+end
+return f
+end
+''')
+ body=r'''
+for _,narrow in ipairs({false,true})do
+ for _,kind in ipairs({'XP','Coins'})do
+  for _,mode in ipairs({'clear','rerender','detach'})do
+   local f=fixture();local buttons=f.saved(true,narrow);local old=buttons['Activate'..kind]
+   old.callback();check(f.sent==1 and f.actions[1][1]=='ActivateBoost' and f.actions[1][2]==string.lower(kind),'Current saved boost callback failed')
+   if mode=='clear'then f.shop.Clear()elseif mode=='rerender'then f.saved(true,narrow)else old.Parent=nil end
+   for i=1,20 do old.callback()end
+   check(f.sent==1,'Stale saved callback sent after '..mode..': '..kind)
+   buttons=f.saved(true,narrow);buttons['Activate'..kind].callback();check(f.sent==2,'Reopened saved boost callback blocked')
+   buttons=f.saved(false,narrow);buttons['Activate'..kind].callback();check(f.sent==2,'Unavailable current saved boost callback sent')
+  end
+ end
+end
+print('PASS',n,'full Shop.Render/Clear saved callback assertions; mocked UI/API')
+'''
+ return head+module[:module.index('function Shop.ColorMixer(')]+tail+body
+
 if __name__=='__main__':
- parser=argparse.ArgumentParser();parser.add_argument('--negative-controls',action='store_true');args=parser.parse_args()
+ parser=argparse.ArgumentParser();parser.add_argument('--negative-controls',action='store_true');parser.add_argument('--baseline',action='store_true');args=parser.parse_args()
  code=setup+render+'\n'+footer+'\n'+checks[:checks.index('for _,narrow')]+tick+checks[checks.index('for _,narrow'):]
+ if args.baseline:
+  old=subprocess.check_output(['git','show','1d88558:src/StarterPlayer/StarterPlayerScripts/ShopUI.luau'],cwd=root,text=True,encoding='utf-8');run(full_code(old),'Stale saved callback sent after clear: XP');run(full_code(old).replace("{'XP','Coins'}","{'Coins','XP'}"),'Stale saved callback sent after clear: Coins');raise SystemExit
  run(code)
+ run(full_code(source))
  if args.negative_controls:
   run(code.replace('Starts automatically on confirmed delivery.','Starts automatically on confirmed delivery. Timer continues offline.'),'Shop mentions offline timer against owner wording')
   run(code.replace('ready=shop.ready==true','ready=true'),'Unknown boost status falsely reported inactive')
   run(code.replace('if count>0 then','if true then'),'New purchase still requires manual activation control')
-  run(code.replace('if shop.ready then','if true then'),'Unavailable ledger submitted legacy activation')
+  run(code.replace('and shop.ready then','and true then'),'Unavailable ledger submitted legacy activation')
   run(code.replace('or "Not active"','or "ACTIVE"'),'Active/inactive timer incorrect')
+
+  for old,new,error in [('revision==generation and b and b.Parent and shop.ready','b and b.Parent and shop.ready','Stale saved callback sent after clear: XP'),('revision==generation and b and b.Parent and shop.ready','revision==generation and shop.ready','Stale saved callback sent after detach: XP')]:
+   assert source.count(old)==1;run(full_code(source.replace(old,new)),error)
