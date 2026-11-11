@@ -137,7 +137,8 @@ if __name__=='__main__':
  if '--negative-controls' in sys.argv:
   for name,mutation,expected in [
    ('leave cleanup',lambda b:b.replace(' disconnectSessionSignals(s)\n cancelSustained',' -- removed cleanup\n cancelSustained',1),'Leave save yielded with retained'),
-   ('disconnect call',lambda b:b.replace('added:Disconnect()','do end').replace('removing:Disconnect()','do end'),'Leave save yielded with retained'),
+   ('CharacterAdded disconnect',lambda b:b.replace('added:Disconnect()','do end',1),'Leave save yielded with retained'),
+   ('CharacterRemoving disconnect',lambda b:b.replace('removing:Disconnect()','do end',1),'Leave save yielded with retained'),
    ('post-yield spawn fence',lambda b:b.replace(' or sessions[p]~=s or p.Character~=c or s.character==c',' or s.character==c',1),'Stale callback changed replacement'),
    ('shutdown cleanup',lambda b:b[:b.index('local function shutdown()')]+b[b.index('local function shutdown()'):].replace('disconnectSessionSignals(s)','',1),'Shutdown began a save before all signal cleanup')]:
    original=read();mutant=mutation(original);assert mutant!=original,name

@@ -2,6 +2,11 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 session evidence correction
+
+- Astra caught a documentation mismatch: four prior controls included combined removal of both signal Disconnect calls, not independent per-signal mutations; the saved command list omitted `--negative-controls`. Split that mutation into separate Added/Removing controls. Explicit `python tests/session_connections.py --negative-controls` now passes22 assertions and five controls.
+- No production change. The25/85-suite,60-compile/build result remains the historical7f4eb1d checkpoint, not a new aggregate run or a claim that default aggregation executes mutations. [Corrected evidence and commands](SESSION_CONNECTIONS_REVIEW.md). Map remains paused; no apps, stores or publication. Continue concrete non-map investigation without treating reference tests as native GC proof.
+
 ## November 11 explicit session signal cleanup
 
 - Astra identified a conditional indirect reference: hung API worker retains Player whose character handlers close over a departed session. Actual lifecycle/mock signals reproduced both callbacks remaining after leave/shutdown. Store/disconnect both handles before detach or save yield, including temporary sessions; retain normal respawn and stale running-callback guards. This closes those registered edges, not proof of full collectability.
