@@ -402,12 +402,12 @@ render=function()
    if not unlocked then b.TextColor3=muted end
   end
  elseif selected=="Quests" then
-  title.Text="QUESTS & COMBAT";subtitle.Text="Combat challenges renew automatically. City quests: one active task."
+  title.Text="QUESTS & COMBAT";subtitle.Text="One training challenge renews automatically. City quests: one active task."
   info("BEACH TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads on the west beach. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
   for _,spec in ipairs(Config.Progression.Challenges) do
    info(spec.name.." · "..((data.combatChallenges or {})[spec.id] or 0).."/"..spec.goal.."\n+"..Config.Progression.ChallengeXP(data.level).." XP on completion · renews automatically",68)
   end
-  info("Fighter challenges need at least 10% damage credit against a fighter within 20 levels of its reward band (Rookie 1–24, Brawler 25–59, Elite 60–100). Elite assists count. Cover progress requires an eligible object to break. PvP XP is shared by damage; weak and repeated opponents pay less.")
+  info("Training: contribute at least 10% damage. You must be no more than 20 levels above the fighter's reward band (Rookie 1-24, Brawler 25-59, Elite 60-100). Each qualifying KO or assist counts once. Breaking objects is not a quest. PvP XP is shared by damage; weak and repeated opponents pay less.")
   if data.activeQuest then
    local current=Config.GetQuest(data.activeQuest);local c=card(96)
    local progress=current and data.quests[current.id]

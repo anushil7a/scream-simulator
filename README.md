@@ -57,6 +57,8 @@ A microphone and Roblox voice eligibility are required for gameplay. Studio setu
 
 Configured boost purchases activate on confirmed server receipt delivery, extending the current expiry by 30 minutes once per receipt. They stack time at 2x; time continues offline. Old saved boosts remain separately usable. Product IDs are not configured, and real receipt delivery is unverified. See [behavior, simulated evidence and limitations](docs/BOOST_PURCHASE_REVIEW.md).
 
+**Combat objectives:** one repeating challenge for three eligible training KOs/assists. The destruction and overlapping Elite challenges are retired; their partial saved counters are preserved but inactive. Eight existing city quests and previously earned rewards are unchanged. See [quest cleanup and pacing impact](docs/QUEST_CLEANUP_REVIEW.md).
+
 ## Friend testing and release limits
 
 The unpublished candidate restricts TEST TOOLS to local Studio players or the verified owner in that owner's user-owned experience. Ordinary live players are rejected on the server even if they submit the command directly. This supersedes the candidate's earlier public friend-test flag; the published preview is unchanged. **+10 levels** adds ten test levels up to100, keeps XP below the cap and clears XP at100. It does not equip another style or grant paid entitlements. The first test mutation freezes legitimate progress; test changes use a temporary copy and are not saved. See [test-tool review](docs/DEVELOPER_TOOLS_REVIEW.md). Owner/product configuration is still needed for real pass and badge IDs.

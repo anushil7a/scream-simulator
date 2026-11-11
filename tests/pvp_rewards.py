@@ -11,7 +11,7 @@ local Credit=require('../src/ReplicatedStorage/Shared/CombatCredit')
 local Progression=require('../src/ReplicatedStorage/Shared/Progression')
 local TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
 local Config={Progression=Progression,HealQuietSeconds=12,PlayerKOXP=function()return 100 end}
-local rewardHistory={pairs={}};local coverRewards={}
+local rewardHistory={pairs={}}
 local one={UserId=1};local two={UserId=2};local victim={UserId=3,DisplayName='Opponent'}
 local players={[1]=one,[2]=two,[3]=victim}
 local Players={GetPlayerByUserId=function(_,id)return players[id]end}
@@ -55,18 +55,28 @@ local ledger={};local tier=TrainingRules.Tiers[3]
 sessions[one].data.level=100;local before=sessions[one].data.xp
 Credit.Add(ledger,1,378,900,420);Credit.Add(ledger,2,42,900,420)
 awardCombatKO(ledger,two,60,420,420,900,nil,tier)
-check(sessions[one].data.xp==before+378 and sessions[one].data.combatChallenges.elite==1,'Elite reward band or assist challenge broken')
+check(sessions[one].data.xp==before+378 and sessions[one].data.combatChallenges.fighters==1 and sessions[one].data.combatChallenges.elite==nil,'Elite assist advanced duplicate retired challenge')
 sessions[one].data.level=60;sessions[one].data.combatChallenges={fighters=2,elite=1}
 ledger={};Credit.Add(ledger,1,420,901,420);local sent=updates[one];before=sessions[one].data.xp
 awardCombatKO(ledger,one,60,420,420,901,nil,tier)
-check(sessions[one].data.xp==before+720,'KO plus two challenges lost XP')
-check(updates[one]==sent+1 and notices[one]=='KO · +720 XP · challenge completed & renewed','Challenge feedback overwritten or emitted redundant state updates')
-local model={};coverChallenge(one,{destroyed=true,model=model},1000);coverChallenge(one,{destroyed=true,model=model},1001)
-check(sessions[one].data.combatChallenges.cover==1,'Duplicate cover credit')
-coverChallenge(one,{destroyed=true,model=model,reason='level'},1120)
-check(sessions[one].data.combatChallenges.cover==1,'Locked cover credit')
-coverChallenge(one,{destroyed=true,model=model},1120)
-check(sessions[one].data.combatChallenges.cover==2,'Repaired cover never eligible')
+check(sessions[one].data.xp==before+570,'KO must award exactly one training challenge')
+check(updates[one]==sent+1 and notices[one]=='KO · +570 XP · challenge completed & renewed','Challenge feedback overwritten or emitted redundant state updates')
+check(sessions[one].data.combatChallenges.fighters==0 and sessions[one].data.combatChallenges.elite==1,'Retired elite counter changed or active challenge did not reset')
+-- No lower-level exclusion: difficult fighters still count for meaningful credit.
+sessions[one].data.level=1;sessions[one].data.combatChallenges.fighters=0
+ledger={};Credit.Add(ledger,1,420,910,420);before=sessions[one].data.xp
+awardCombatKO(ledger,one,60,420,420,910,nil,tier)
+check(sessions[one].data.xp==before+525 and sessions[one].data.combatChallenges.fighters==1,'Underleveled eligible fighter credit denied')
+local rookie=TrainingRules.Tiers[1]
+for _,level in ipairs({44,45})do
+ sessions[one].data.level=level;sessions[one].data.combatChallenges.fighters=0
+ ledger={};Credit.Add(ledger,1,80,920+level,80)
+ awardCombatKO(ledger,one,1,80,48,920+level,nil,rookie)
+ check(sessions[one].data.combatChallenges.fighters==(level==44 and 1 or 0),'Upper reward-band challenge boundary incorrect')
+end
+local d=sessions[one].data;d.combatChallenges.cover=4;before=d.xp
+check(combatChallenge(one,'cover')==0 and d.xp==before and d.combatChallenges.cover==4,'Retired destruction challenge still progresses or pays')
+check(combatChallenge(one,'elite')==0 and d.xp==before and d.combatChallenges.elite==1,'Retired elite challenge still progresses or pays')
 print('PASS '..checks..' actual combat payouts and PvP damage checks (mocked services)')
 """
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False,encoding='utf-8') as f:

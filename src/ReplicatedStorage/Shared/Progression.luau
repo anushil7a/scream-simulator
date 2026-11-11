@@ -20,9 +20,13 @@ function Progression.RewardFactor(attackerLevel,targetLevel)
  return .05
 end
 Progression.Challenges={
- {id="fighters",name="Defeat 3 training fighters",goal=3},
- {id="cover",name="Destroy 5 eligible cover objects",goal=5},
- {id="elite",name="Help defeat 2 elite fighters",goal=2},
+ {id="fighters",name="Help defeat 3 eligible training fighters",goal=3},
+}
+-- Preserve old partial counters without displaying, progressing or paying them.
+-- Retired IDs must not be reused for a different objective.
+Progression.RetiredChallenges={
+ {id="cover",goal=5},
+ {id="elite",goal=2},
 }
 function Progression.ChallengeXP(level)
  return math.min(200,30+2*Progression.Level(level))

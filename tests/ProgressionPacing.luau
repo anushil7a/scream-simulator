@@ -14,7 +14,6 @@ for _,cohort in ipairs({{name='learning',accuracy=.55,power=.65,travel=15},{name
   local reward=math.floor(tier.xp*factor)
   if factor>=.5 then
    reward+=P.Advance(objectives,'fighters',level)
-   if tier.id=='elite' then reward+=P.Advance(objectives,'elite',level) end
   end
   level,xp=P.Normalize(level,xp+reward);kills+=1
   if level>=milestones[nextMark] then

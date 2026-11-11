@@ -54,7 +54,6 @@ local sessions={}
 local closing=false
 local joinsInFlight=0
 local rewardHistory={pairs={}} -- survives reconnects in this server
-local coverRewards=setmetatable({},{__mode="k"})
 local function parts(p)
  local c=p.Character;local r=c and c:FindFirstChild("HumanoidRootPart");local h=c and c:FindFirstChildOfClass("Humanoid")
  if r and h and h.Health>0 then return c,r,h end
@@ -155,19 +154,10 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
    local bonus=0
    if tier and factor>=.5 and meaningful[id] then
     bonus+=combatChallenge(recipient,"fighters",true)
-    if tier.id=="elite" then bonus+=combatChallenge(recipient,"elite",true) end
    end
    state(recipient,(recipient==finisher and "KO" or "Assist").." · +"..((reward+bonus)*Commerce.Multiplier(recipient,"xp")).." XP"..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
   elseif recipient==finisher then state(recipient,"KO · repeat-opponent reward limited") end
  end
-end
-local function coverChallenge(p,result,now)
- if not result or result.reason or not result.destroyed then return end
- local model=result.model
- -- One credit per object repair cycle across all players; no repeat damage XP.
- if now<(coverRewards[model] or 0) then return end
- coverRewards[model]=now+120
- combatChallenge(p,"cover")
 end
 local function stopQuest(p)
  local s=sessions[p];if not s then return end
@@ -345,7 +335,7 @@ local function stepSustained(p,s,now)
    local hint=destructionHint(intent,result);if hint then state(p,hint) end
    if result and not result.reason then dealt+=math.max(0,previous-result.health) end
    if result and result.destroyed then
-    effect:FireAllClients("Break",result.position,beamColor(p,s));questProgress(p,"Demolition");coverChallenge(p,result,now)
+    effect:FireAllClients("Break",result.position,beamColor(p,s))
    end
   else
    local bot=target.bot
@@ -410,7 +400,7 @@ local function cast(p,request)
     s.nextHeal=now+Config.HealQuietSeconds
     local name=result.model:GetAttribute("ObjectName") or result.kind
     castMessage=result.destroyed and name.." destroyed" or string.format("%s hit · %d durability left",name,result.health)
-    if result.destroyed then effect:FireAllClients("Break",result.position,beamColor(p,s));questProgress(p,"Demolition");coverChallenge(p,result,now) end
+    if result.destroyed then effect:FireAllClients("Break",result.position,beamColor(p,s)) end
    end
   end
  end

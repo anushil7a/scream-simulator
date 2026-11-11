@@ -52,8 +52,12 @@ function Profiles.Sanitize(raw)
     data.coins=wholeNumber(raw.coins,0,0,1000000000)
     data.level,data.xp=Config.Progression.Normalize(raw.level,raw.xp)
     if type(raw.combatChallenges)=="table" then
-        for _,spec in ipairs(Config.Progression.Challenges) do
-            data.combatChallenges[spec.id]=wholeNumber(raw.combatChallenges[spec.id],0,0,spec.goal-1)
+        -- Keep retired counters dormant under their original IDs. No conversion
+        -- into another objective or reward; repeated save/load preserves history.
+        for _,specs in ipairs({Config.Progression.Challenges,Config.Progression.RetiredChallenges or {}}) do
+            for _,spec in ipairs(specs) do
+                data.combatChallenges[spec.id]=wholeNumber(raw.combatChallenges[spec.id],0,0,spec.goal-1)
+            end
         end
     end
     local sound=Config.GetSound(raw.sound)
