@@ -8,7 +8,8 @@ local Settings = {
   [90] = "80523108386394", [100] = "79853512837585",
  },
  GroupVolume = .65,
- TotalVolume = .24, -- shared across ALL active/fading attack sounds, not per attacker
+ TotalVolume = .40, -- NORMAL budget shared across all active/fading sounds
+ LowVolume = .24, -- original quiet mix; also the ceiling while local voice is detected
  LocalMultiplier = .7,
  VoiceDuck = .4,
  Limit = 4,

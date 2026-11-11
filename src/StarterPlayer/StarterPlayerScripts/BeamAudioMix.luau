@@ -2,7 +2,7 @@
 local Mix={};Mix.__index=Mix
 function Mix.new(settings,create,update,destroy)
  return setmetatable({settings=settings,create=create,update=update,destroy=destroy,
-  entries={},count=0,enabled=true,duck=1},Mix)
+  entries={},count=0,enabled=true,level="NORMAL",duck=1},Mix)
 end
 function Mix:Remove(id)
  local entry=self.entries[id];if not entry then return end
@@ -11,9 +11,14 @@ end
 function Mix:Clear()
  for id in pairs(self.entries) do self:Remove(id) end
 end
-function Mix:SetEnabled(enabled)
- self.enabled=enabled==true
+function Mix:SetLevel(level)
+ if self.destroyed or (level~="NORMAL" and level~="LOW" and level~="OFF") then return false end
+ self.level=level;self.enabled=level~="OFF"
  if not self.enabled then self:Clear() end
+ return true
+end
+function Mix:SetEnabled(enabled)
+ return self:SetLevel(enabled==true and "NORMAL" or "OFF")
 end
 function Mix:Pulse(id,now,position,isLocal,tier)
  if self.destroyed or not self.enabled then return false end
@@ -41,7 +46,10 @@ function Mix:Step(now,dt,voiceActive,calibrating)
   end
   if entry.stopped and now-entry.stopped>=self.settings.FadeOut then self:Remove(id) end
  end
- local gain=calibrating and 0 or self.settings.TotalVolume/math.max(1,self.count)*self.duck
+ local budget=self.level=="LOW" and self.settings.LowVolume or self.settings.TotalVolume
+ -- Louder listening must not raise the old voice-active feedback ceiling.
+ if voiceActive then budget=math.min(budget,self.settings.LowVolume) end
+ local gain=calibrating and 0 or budget/math.max(1,self.count)*self.duck
  for _,entry in pairs(self.entries) do
   local age=math.max(0,now-entry.started)
   local envelope=math.clamp(age/self.settings.FadeIn,0,1)

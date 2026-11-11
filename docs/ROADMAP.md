@@ -2,12 +2,18 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 selectable beam sound levels
+
+- Reconciled clean/fetched `47f3d46`. Reproduced the original LOW/OFF-only control and hard-coded quiet budget. Add session-only BEAM SFX NORMAL/LOW/OFF: NORMAL shares0.40 across active/fading sounds, LOW retains0.24; voice-active updates cap NORMAL to the old budget before existing ducking. No voice transport, combat, assets, saves or map changes.
+- Full 25 pure/synthetic +71 mocked suites, 57 production compiles and all builds pass. Focused 2,629 assertions (including2,148 exact old-LOW sequence comparisons), nine controls and historical baseline failure pass. Independent review found no production blocker. [Review](BEAM_AUDIO_LEVELS_REVIEW.md), [evidence](../tests/evidence/beam-audio-levels-2026-11-11.json).
+- OFF clears emitters immediately; other mode gain/voice/calibration changes retain existing scheduled mixer cadence and detection lag. Starter style has no assigned SFX. Higher budget is not measured audibility, safe SPL, feedback prevention or real-device validation. No apps opened; three prior inaccessible minimized dialogs unchanged. No publication/live stores/audio configuration. Next: verified draft delivery, then current-policy microphone wording or an exact-backed-up smaller-map draft; retain listening/device/release gates.
+
 ## November 11 bounded roaming trainers
 
 - Reconciled clean/fetched `44ee830`; baseline reproduces anchored, zero-speed training enemies and reanchoring on restore. Three existing trainers now use server-owned seven-stud movement, eighteen-stud waypoint radius and twenty-two-stud displacement recovery. Preserve original thirty-two-stud home eligibility in both attack paths/counterstrikes, all rewards/protection/reset/save logic and map geometry.
 - Full 25 pure/synthetic +70 mocked suites,57 production compiles and all builds pass. Focused1,292 actual-source assertions,11 negative controls and three baseline failures pass; independent review found no production blocker. [Behavior/review](TRAINING_ROAM_REVIEW.md), [exact evidence](../tests/evidence/training-roam-2026-11-11.json).
 - Corrected isolated Studio run passes29 native physics/helper checks: three trainers move horizontally within sampled bounds, active-walk windup stop, displacement without healing/credit loss, reset/KO/respawn/resumed movement and original-pad edge eligibility. Initial contaminated fixture run is excluded; build isolation and movement assertions were fixed. No real mic/network, player-collision soak or live-save claim.
-- Studio stopped/closed. One additional minimized app-picker remains inaccessible, three total; no blind close/process kill. No publication, live stores, audio configuration or map edit. Next: reviewed draft delivery, then remaining audio/policy and protected-map backlog; retain human/device/network release gates.
+- Studio stopped/closed. One additional minimized app-picker remains inaccessible, three total; no blind close/process kill. No publication, live stores, audio configuration or map edit. Checkpoint `47f3d46` was pushed non-force, remotely verified and independently cleared. Next: remaining audio/policy and protected-map backlog; retain human/device/network release gates.
 
 ## November 11 regular-player minimap
 

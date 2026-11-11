@@ -492,9 +492,11 @@ render=function()
   info("Changed microphone or room noise? Recalibrate with a comfortable strong voice. "..(sustainedControl and "Beams stay OFF afterward; use BEAMS to turn attacks back on. Voice chat is unchanged." or "After calibration, hold BEAM and use a fresh live voice input."),80)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
   local audioCard=card(58);local audioButton
-  audioButton=button(audioCard,"AttackAudio","ATTACK SFX: "..(attackAudio.enabled and "LOW" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
-   attackAudio:SetEnabled(not attackAudio.enabled);audioButton.Text="ATTACK SFX: "..(attackAudio.enabled and "LOW" or "OFF")
+  local function audioLabel()return "BEAM SFX: "..attackAudio.level end
+  audioButton=button(audioCard,"AttackAudio",audioLabel(),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
+   attackAudio:SetLevel(attackAudio.level=="NORMAL" and "LOW" or attackAudio.level=="LOW" and "OFF" or "NORMAL");audioButton.Text=audioLabel()
   end)
+  info("NORMAL boosts effects; LOW keeps the old mix; OFF mutes them. Starter beam has no SFX. Session only; mic and voice chat unchanged.",narrow and 100 or 68)
   local cueCard=card(58);local cueButton
   local function cueLabel()return not gameplayAudioSettings.Ready() and "GAMEPLAY SFX: PENDING UPLOAD" or "GAMEPLAY SFX: "..(gameplayAudio.enabled and "LOW" or "OFF") end
   cueButton=button(cueCard,"GameplayAudio",cueLabel(),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
