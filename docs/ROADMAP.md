@@ -2,6 +2,11 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 entitlement authority test hardening
+
+- Astra cleared production but identified missing confirmed-owned departure and purchase-event authority paths. Final actual-module tests now verify removal clears confirmed paid caches before Parent clears and that either pass's purchase-finished event grants nothing while pending or after false/error ownership responses. Exact missing-cleanup/direct-grant mutants fail; last-good error behavior remains.
+- Independent55 assertions/nine controls, expected historical failure and nine legacy checks pass. Test/docs only; no new runtime/builder/native change or repeat full-suite claim. Last full25/92/60 build remains2daa39e. [Review and evidence](ENTITLEMENT_REFRESH_REVIEW.md). No apps, map edits, live services or publication; products remain disabled and mixed-writer release gate remains unresolved. Next: independent checkpoint review and useful non-map work within actual release evidence limits.
+
 ## November 11 quest writer oracle state coverage
 
 - Astra found two false-positive gaps, not current production loss: availability-only discovery was reconstructed from seeded quest records, and completed-unclaimed progress was never seeded. The probe now checks four explicit states per current ID, including absent quest entries for discovery-only, with independent expected data. Exact discovery-loop removal and completed-unclaimed zeroing mutants are rejected.

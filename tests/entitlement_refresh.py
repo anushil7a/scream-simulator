@@ -69,6 +69,27 @@ for _,pass in ipairs({11,22})do
  f.purchase(p,pass,false);f.purchase(p,999,true)
  check(#f.calls==calls and f.E.HasSpectrum(p) and f.E.HasMovement(p),'Ignored event changed confirmed ownership')
 end
+-- Clear previously confirmed paid caches even before Parent becomes nil.
+do
+ local f=fixture(11,22);local p={UserId=7,Parent={}}
+ local co=f.start(p);f.resume(co,true);f.resume(co,true)
+ check(f.E.HasMovement(p) and f.E.HasSpectrum(p),'Confirmed departure precondition missing')
+ f.remove(p)
+ check(p.Parent~=nil and not f.E.HasMovement(p),'Departure retained confirmed movement')
+ check(not f.E.HasSpectrum(p),'Departure retained confirmed spectrum')
+end
+-- Successful prompt is only a refresh hint: no access pending, false or error.
+for _,pass in ipairs({11,22})do
+ for _,response in ipairs({false,'error'})do
+  local f=fixture(11,22);local p={UserId=7,Parent={}}
+  f.purchase(p,pass,true)
+  check(f.spawned~=nil and not f.E.HasSpectrum(p) and not f.E.HasMovement(p),'Purchase event granted before ownership response')
+  f.resume(f.spawned,response)
+  check(not f.E.HasSpectrum(p) and not f.E.HasMovement(p),'Unconfirmed first response granted ownership')
+  f.resume(f.spawned,response)
+  check(not f.E.HasSpectrum(p) and not f.E.HasMovement(p),'False/error ownership granted fresh player')
+ end
+end
 local f=fixture(11,22);local p={UserId=7,Parent={}}
 local co=f.start(p);f.resume(co,true);f.resume(co,true)
 co=f.start(p);f.resume(co,'error');f.resume(co,'error')
@@ -107,3 +128,6 @@ else:
   old='departed[player]=true;';assert s.count(old)==1;run(s.replace(old,''),'Queued departure refresh began work')
 
   old='and purchased then';assert s.count(old)==1;run(s.replace(old,'then'),'Cancelled/unrelated event queried ownership')
+  old='owned[player]=nil;';assert s.count(old)==1;run(s.replace(old,''),'Departure retained confirmed movement')
+  old='and purchased then task.spawn(Entitlements.Refresh,player)';assert s.count(old)==1
+  run(s.replace(old,'and purchased then owned[player]=true;spectrum[player]=true;task.spawn(Entitlements.Refresh,player)'),'Purchase event granted before ownership response')
