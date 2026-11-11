@@ -27,15 +27,17 @@ def main():
         subprocess.run(command, cwd=ROOT, env=env, check=True,
                        stdout=subprocess.DEVNULL if quiet else None)
 
+    # Python fixtures use NamedTemporaryFile's tmp prefix in tests/ for relative
+    # requires. Concurrent focused reviews must not enter the standalone suite.
     suites = sorted(path for path in (ROOT / 'tests').glob('*.luau')
-                    if not path.name.startswith(('Studio', '.')))
+                    if not path.name.startswith(('Studio', '.', 'tmp')))
     for path in suites:
         print(f'Checking {path.name}', flush=True)
         run(['luau', str(path)])
     mocked = ('profile_migration.py', 'profile_race.py', 'entitlements.py', 'destruction_service.py', 'microphone_lifecycle.py', 'animation_lifecycle.py', 'effect_cleanup.py', 'landmark_lifecycle.py', 'ambience_startup.py', 'performance_counts.py', 'hud_health.py', 'menu_cleanup.py', 'client_connections.py', 'resident_labels.py', 'interaction_recovery.py', 'city_map_marker.py', 'progress_label.py', 'settings_validation.py', 'knockout_recovery.py', 'combat_availability.py', 'respawn_state.py', 'target_readout.py', 'target_cover.py', 'sprint_state.py', 'dodge_cleanup.py', 'destruction_hint.py', 'npc_routes.py', 'sprint_input.py', 'movement_eligibility.py', 'npc_social.py', 'npc_audience.py', 'npc_greetings.py', 'npc_recovery.py', 'voice_toggle.py', 'npc_work.py', 'conversation_lifecycle.py', 'conversation_ownership.py', 'capture_blocking.py', 'player_departure.py', 'shutdown_saves.py', 'autosave_status.py', 'quest_prompt.py', 'quest_accept.py', 'quest_claim.py', 'pvp_rewards.py', 'ko_reward_cleanup.py')
     mocked += ('attack_audio.py', 'gameplay_audio.py', 'combat_healing.py', 'commerce.py', 'shop_rewards.py', 'practice_lane.py', 'shutdown_race.py', 'profile_recovery.py', 'recovery_notice.py', 'acquisition_lifetime.py', 'action_feedback.py')
     mocked += ('voice_notice_lifecycle.py',)
-    mocked += ('save_notification_priority.py', 'third_person.py', 'beam_readout.py', 'boost_purchase_ui.py', 'developer_tools.py', 'developer_tools_ui.py', 'challenge_retirement.py', 'quest_catalog_ui.py', 'dodge_effect.py', 'style_controls.py', 'minimap.py', 'training_roam.py', 'beam_audio_levels.py', 'beam_audio_cadence.py', 'compact_city_draft.py', 'compact_city_map.py', 'compact_world.py', 'compact_integration.py', 'compact_review_fixture.py', 'compact_guidance.py', 'microphone_notice.py', 'voice_stop_rate_limit.py', 'combat_quests.py', 'test_session_rewards.py')
+    mocked += ('save_notification_priority.py', 'third_person.py', 'beam_readout.py', 'boost_purchase_ui.py', 'developer_tools.py', 'developer_tools_ui.py', 'challenge_retirement.py', 'quest_catalog_ui.py', 'dodge_effect.py', 'style_controls.py', 'minimap.py', 'training_roam.py', 'beam_audio_levels.py', 'beam_audio_cadence.py', 'compact_city_draft.py', 'compact_city_map.py', 'compact_world.py', 'compact_integration.py', 'compact_review_fixture.py', 'compact_guidance.py', 'microphone_notice.py', 'voice_stop_rate_limit.py', 'combat_quests.py', 'test_session_rewards.py', 'voice_eligibility.py')
     for name in mocked:
         print(f'Checking {name} (mocked services)', flush=True)
         run([sys.executable, str(ROOT / 'tests' / name)])

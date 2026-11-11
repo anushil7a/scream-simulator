@@ -28,3 +28,7 @@ Team Effort no longer implies all qualifying damage must fall inside a rolling25
 - One full checkpoint passed **25 pure/synthetic suites,82 mocked suites,59 production compiles and all candidate/disposable builds**. [Exact evidence](../tests/evidence/test-session-rewards-2026-11-11.json).
 
 No native Studio execution, physical input, microphone, RemoteEvent/network, real persistence, sports isolation or multiplayer soak claim. The targeted gates are executed as extracted predicates, not a full engine raycast/damage pipeline. Engine context, geometry and text metrics are mocked. No apps/tabs opened, publication, live DataStores or product/audio configuration. Map development remains paused and original archive unchanged.
+
+## Follow-up review caveat
+
+Astra found no blocking isolation defect, but test-to-test KOs still update the server's shared repeat-opponent history. Two authorized test participants who rejoin normally in the same ordinary Studio server can therefore inherit a repeat-reward penalty. Outside Studio only the single verified owner is currently authorized, so two distinct live test players are not reachable under current access rules. This does not leak temporary level rewards into saves. Before expanding tester access, add an explicit mode-separated repeat-history regression and decide whether test history should be isolated. Not fixed or natively validated in the voice-eligibility batch.

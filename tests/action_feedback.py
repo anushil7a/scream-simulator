@@ -15,6 +15,8 @@ setup = '''
 local now=100;local os={clock=function()return now end}
 local notices={};local urgentNotices={};local receiver;local data;local p={};local earned=0;local stops=0
 local function notify(message,urgent)table.insert(notices,message);table.insert(urgentNotices,urgent==true)end
+-- Account eligibility lifecycle is exercised by voice_eligibility.py; this fixture isolates notifications.
+local function observeVoiceEligibility()end
 local function cueContext()end;local gameplayAudio={ObserveLevel=function()end}
 local remotes={State={OnClientEvent={}}}
 local function connectClient(_,fn)receiver=fn end

@@ -15,6 +15,7 @@ local VoiceActivation=require('../src/ReplicatedStorage/Shared/VoiceActivation')
 local notifications=Queue.new();local sustainedControl;local windowFocused=true
 local action={FireServer=function()end};local unavailable=false
 local function blocked()return unavailable end
+local beamBlocked=blocked;local voiceEligibilityHint=function()return nil end
 local function notify(text,urgent,key)notifications:Push(text,urgent,key)end
 local p={CharacterRemoving={}};local removalCallback
 local function connectClient(_,fn)removalCallback=fn end

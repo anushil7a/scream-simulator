@@ -6,6 +6,8 @@ local InteractionRules=require(game:GetService("ReplicatedStorage").Shared.Inter
 local Players=game:GetService("Players")
 local ReplicatedStorage=game:GetService("ReplicatedStorage")
 local RunService=game:GetService("RunService")
+local VoiceChatService=game:GetService("VoiceChatService")
+local VoiceEligibility=require(script.Parent.VoiceEligibility)
 local Config=require(ReplicatedStorage.Shared.Config)
 local World=require(script.Parent.World)
 local Profiles=require(script.Parent.Profiles)
@@ -89,8 +91,30 @@ local function state(p,message,conversation,messageUrgent,messageKey)
  amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
  availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
+ voiceEligible=VoiceEligibility.Allowed(s.voiceEligibility,os.clock()),voiceStatus=VoiceEligibility.Status(s.voiceEligibility,os.clock()),
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio()),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
+end
+-- No API yields inside combat/action processing. Remote packets cannot request
+-- checks. Both sides of the yield are fenced to this exact player session.
+local function stepVoiceEligibility(p,s,now)
+ if closing or sessions[p]~=s or not p.Parent then return end
+ local token=VoiceEligibility.Poll(s.voiceEligibility,now)
+ local status=VoiceEligibility.Status(s.voiceEligibility,now)
+ if not VoiceEligibility.Allowed(s.voiceEligibility,now) then
+  if s.sustained and s.sustained.protocol.active then cancelSustained(p,s,now) end
+  if s.voice.capture then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
+ end
+ if status~=s.voiceEligibilityStatus then s.voiceEligibilityStatus=status;state(p) end
+ if token then
+  task.spawn(function()
+   if closing or sessions[p]~=s or not p.Parent then return end
+   local ok,result=pcall(function() return VoiceChatService:IsVoiceEnabledForUserIdAsync(p.UserId) end)
+   if closing or sessions[p]~=s or not p.Parent then return end
+   VoiceEligibility.Complete(s.voiceEligibility,token,os.clock(),ok,result)
+   stepVoiceEligibility(p,s,os.clock())
+  end)
+ end
 end
 Commerce.Start(function(p)
  local s=sessions[p]
@@ -231,7 +255,7 @@ local function canCapture(p,s,now)
  local bot=s.conversationBot
  if r and bot and bot.alive and bot.root.Parent and bot.talkingTo==p and (bot.socialUntil or 0)>now
   and (bot.root.Position-r.Position).Magnitude<=14 then return false end
- return r~=nil and h~=nil and not h.PlatformStand and s.micReady and now>=s.protectedUntil and now>=s.dodgingUntil and now>=(s.knockedUntil or 0)
+ return r~=nil and h~=nil and not h.PlatformStand and s.micReady and VoiceEligibility.Allowed(s.voiceEligibility,now) and now>=s.protectedUntil and now>=s.dodgingUntil and now>=(s.knockedUntil or 0)
 end
 local function attackOrigin(c,r)
  local head=c:FindFirstChild("Head")
@@ -773,7 +797,7 @@ local function joined(p)
   end
   return
  end
- local s={data=data,canSave=save,recoveryWarning=recoveryWarning,voice=VoiceCombat.New(),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
+ local s={data=data,canSave=save,recoveryWarning=recoveryWarning,voice=VoiceCombat.New(),voiceEligibility=VoiceEligibility.New(localFixture),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
  botRewards={},credit={},collected={},sprintRequested=false,sprintRunning=false,sprintRegenAt=0,sprintCharge=Config.SprintDuration,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  task.spawn(Commerce.Load,p)
  if sustainedEnabled then
@@ -798,6 +822,7 @@ local function joined(p)
   p:SetAttribute("CaptureStarted",0);s.sprintRequested=false;s.character=nil
  end)
  p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
+ stepVoiceEligibility(p,s,os.clock())
  state(p,loadMessage or "Welcome · train for XP, unlock beam styles, and explore the coast")
 end
 local function joinTracked(p)
@@ -881,6 +906,7 @@ task.spawn(function()
  while true do task.wait(0.1);tick+=1;local now=os.clock()
   stepTraining(now)
   for p,s in pairs(sessions) do
+   stepVoiceEligibility(p,s,now)
    local dt=math.max(0,now-s.lastStep);s.lastStep=now;local _,r,h=parts(p)
    -- Crossing into PvP immediately restores the full dodge cooldown.
    if r and Config.InArena(r.Position) and s.lastDodge then

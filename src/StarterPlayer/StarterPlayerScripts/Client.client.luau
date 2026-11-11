@@ -144,6 +144,7 @@ local toastWidth=0
 local function notify(t,urgent,key) notifications:Push(t,urgent,key) end
 local nextCast=0;local sequence=0;local captureSource=nil
 local sustainedControl,sustainedRules
+local voiceAccessInterrupted=false
 local windowFocused=true
 local function cancelCapture()
  if sustainedControl then sustainedControl:Cancel();return end
@@ -160,8 +161,11 @@ local function blocked()
  local now=workspace:GetServerTimeNow()
  return GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil or (conversationPanel and conversationPanel.Visible) or modal.Visible or (devPanel and devPanel.Visible) or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
 end
+local function beamBlocked()
+ return data.voiceEligible~=true or blocked()
+end
 local function beginCapture(source)
- if sustainedControl or captureSource or blocked() or os.clock()<nextCast then return end
+ if sustainedControl or captureSource or beamBlocked() or os.clock()<nextCast then return end
  if mic:Begin() then sequence+=1;captureSource=source;action:FireServer("BeginCast",sequence) end
 end
 local function aimRay()
@@ -185,11 +189,28 @@ if remotes:GetAttribute("AutomaticVoice")==true then
   end,function() notifications:Remove("voice") end)
  script.Destroying:Connect(function() sustainedControl:Destroy() end)
 end
+local function voiceEligibilityHint(compact)
+ if data.voiceEligible==true then return nil end
+ if data.voiceStatus=="denied" then
+  return compact and "VOICE ACCESS REQUIRED\nEnable voice, then rejoin" or "Beams OFF: Roblox voice access required. Enable voice, then rejoin. Voice chat is unchanged."
+ end
+ if data.voiceStatus=="unavailable" then
+  return compact and "VOICE CHECK UNAVAILABLE\nRejoin to retry" or "Beams OFF: Voice access could not be verified. Rejoin to retry. Voice chat is unchanged."
+ end
+ return compact and "CHECKING ROBLOX VOICE\nBeams are OFF" or "Beams OFF: Checking Roblox voice access. Voice chat is unchanged."
+end
+-- Process every server transition, not only the last state visible next frame.
+local function observeVoiceEligibility(nextData)
+ if nextData.voiceEligible==true then return end
+ if nextData.voiceStatus=="denied" or nextData.voiceStatus=="unavailable" then voiceAccessInterrupted=true end
+ if sustainedControl then sustainedControl:SetArmed(false)
+ elseif captureSource then cancelCapture() end
+end
 local function toggleVoice()
  if not sustainedControl then return end
  -- Pausing is always allowed; arming must be an available gameplay action.
- if not sustainedControl.armed and (not windowFocused or blocked()) then
-  notify("Beams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.",true,"voice");return
+ if not sustainedControl.armed and (not windowFocused or beamBlocked()) then
+  notify(voiceEligibilityHint() or "Beams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.",true,"voice");return
  end
  sustainedControl:SetArmed(not sustainedControl.armed)
  notify(sustainedControl.armed and "Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
@@ -201,7 +222,7 @@ end
 local function releaseCapture(source)
  if captureSource~=source then return end
  captureSource=nil
- if blocked() then cancelCapture();return end
+ if beamBlocked() then cancelCapture();return end
  local power,reason=mic:Release();if power<.08 then action:FireServer("CancelCast");notify(reason or "Use your voice while holding attack.",true,"capture");return end
  local ray,hit=aimRay()
  if not ray then action:FireServer("CancelCast");return end
@@ -595,6 +616,7 @@ end
 local trackedQuestText=""
 local lastMilestone=nil
 connectClient(remotes.State.OnClientEvent,function(nextData)
+ observeVoiceEligibility(nextData)
  cueContext();gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())
  data=nextData
  local unclaimed=0
@@ -744,13 +766,14 @@ connectClient(Run.RenderStepped,function(dt)
  local humanoid=character and character:FindFirstChildOfClass("Humanoid")
  local alive=humanoid~=nil and humanoid.Health>0
  if sustainedControl then
-  sustainedControl:ObserveAvailability(alive and mic.ready,windowFocused and not GuiService.MenuIsOpen)
+  if data.voiceStatus=="denied" or data.voiceStatus=="unavailable" then voiceAccessInterrupted=true end
+  sustainedControl:ObserveAvailability(alive and mic.ready and data.voiceEligible==true,windowFocused and not GuiService.MenuIsOpen and not voiceAccessInterrupted)
   voiceCooldown=math.max(0,(p:GetAttribute("SustainedReadyAt") or 0)-workspace:GetServerTimeNow())
   voiceActive=p:GetAttribute("SustainedActive")==true
-  sustainedControl:Step(dt,os.clock(),mic.power,alive and windowFocused and not blocked(),
+  sustainedControl:Step(dt,os.clock(),mic.power,alive and windowFocused and not beamBlocked(),
    voiceCooldown<=0 and data.micReady==true,voiceActive,p:GetAttribute("SustainedSequence"))
  end
- if captureSource and blocked() then cancelCapture() end
+ if captureSource and beamBlocked() then cancelCapture() end
  if captureSource and mic.captureStarted and os.clock()-mic.captureStarted>Config.VoiceCombat.CaptureExpiry then
   cancelCapture();notify("Capture expired. Hold attack again and use a fresh live voice input.",true,"capture")
  end
@@ -758,7 +781,8 @@ connectClient(Run.RenderStepped,function(dt)
  local gameplayVisible=mic.ready and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
- local guide=sustainedControl and FirstBeamGuide.Text(data,sustainedControl.armed,voiceCooldown or 0,voiceActive,touch)
+ local eligibilityHint=voiceEligibilityHint(true)
+ local guide=sustainedControl and not eligibilityHint and FirstBeamGuide.Text(data,sustainedControl.armed,voiceCooldown or 0,voiceActive,touch)
  tracked.Text=guide or trackedQuestText
  local confirmed=hitFeedback:Read(os.clock())
  hitText.Visible=gameplayVisible and confirmed~=nil
@@ -787,7 +811,9 @@ connectClient(Run.RenderStepped,function(dt)
    or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
  end
  meterText.Text=string.format("%s %d%% • up to %.0f studs\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),range,captureHint)
- if sustainedControl and not sustainedControl.armed then
+ if eligibilityHint then
+  meterText.Text=eligibilityHint
+ elseif sustainedControl and not sustainedControl.armed then
   meterText.Text="BEAMS OFF · TALK FREELY\nVoice chat is unchanged"
  end
  if layoutChanged then

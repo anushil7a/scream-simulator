@@ -9,6 +9,7 @@ respawn_line=next(line for line in s.splitlines() if line.startswith('connectCli
 setup='''
 local unavailable=false;local windowFocused=true
 local blocked=function()return unavailable end
+local beamBlocked=blocked;local voiceEligibilityHint=function()return nil end
 local calls=0;local sustainedControl={armed=false}
 function sustainedControl:SetArmed(v)self.armed=v;calls+=1 end
 local notices={};local function notify(message)table.insert(notices,message)end

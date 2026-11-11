@@ -7,6 +7,8 @@ source=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
 start=source.index('local function canCapture(')
 end=source.index('local function attackOrigin(',start)
 setup='''
+local VoiceEligibility=require('../src/ServerScriptService/VoiceEligibility')
+local eligibility=VoiceEligibility.New(false);local token=VoiceEligibility.Poll(eligibility,0);VoiceEligibility.Complete(eligibility,token,1,true,true)
 local mt={__sub=function(a,b)return {Magnitude=math.abs(a.x-b.x)}end}
 local function position(x)return setmetatable({x=x},mt)end
 local root={Position=position(0)}
@@ -16,7 +18,7 @@ local parts=function()return {},root,humanoid end
 checks='''
 local checks=0
 local function check(v,msg)assert(v,msg);checks+=1 end
-local p={};local s={micReady=true,protectedUntil=0,dodgingUntil=0,knockedUntil=0}
+local p={};local s={voiceEligibility=eligibility,micReady=true,protectedUntil=0,dodgingUntil=0,knockedUntil=0}
 check(canCapture(p,s,10),'Valid ordinary attack blocked')
 s.micReady=false;check(not canCapture(p,s,10),'Unavailable mic accepted');s.micReady=true
 for _,key in ipairs({'protectedUntil','dodgingUntil','knockedUntil'})do

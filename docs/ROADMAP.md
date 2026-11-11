@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 server voice eligibility
+
+- Reproduced actual-dispatcher client readiness spoof in both attack modes, including3 synthetic damage. Add session-fenced asynchronous Roblox voice-enabled checks, serial bounded retry, fixed positive expiry and shared combat gating; keep client calibration/movement and ordinary voice independent. Strict local fixture bypass only. Expiry/denial cancels both protocols, stops remain unconditional, every client loss event disarms even between frames.
+- Independent review cleared117 assertions/13 negative controls/four source contracts after correcting movement coupling and frame-only disarm, then strengthening callback/expiry tests. Final25 pure/synthetic +83 mocked suites,60 compiles and all builds pass. [Design, evidence and limits](VOICE_ELIGIBILITY_REVIEW.md).
+- Account eligibility is not authentic microphone/amplitude proof. Native Roblox API, network, real-device UI/voice and release gates remain; cached status is bounded but not continuous verification. Denial/exhausted errors require rejoin; timeout does not cancel a hung API call. No apps, live stores/publication or map edits. Next: Astra review and concrete non-map work; retain owner map approval and native/account validation gates.
+
 ## November 11 test-session combat economy isolation
 
 - Independently identified/reproduced test-level100 victim paying a normal level1 player862 XP/25coins that saved, while owner's legitimate baseline stayed level1. Added same-mode PvP eligibility, guarded-fixture-only test NPC damage/global reset, first-entry attack cancellation, and immutable session/mode credit attribution with denominator-preserving rejection. Normal combat and frozen baseline save selection remain.

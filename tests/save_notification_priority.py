@@ -15,6 +15,7 @@ state=server[server.index('local function state('):server.index('Commerce.Start(
 autosave=server[server.index('local function autosave('):server.index('task.spawn(function() while true do task.wait(60)')]
 speaker=server[server.index('local function microSpeaker('):server.index('local function vendorPurchase(')]
 extra='''
+local VoiceEligibility=require('../src/ServerScriptService/VoiceEligibility')
 local Queue=require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue')
 local sessions={[p]=s};p.Parent=true;p.UserId=7
 function p:GetAttribute()return 10 end;function p:SetAttribute()end
