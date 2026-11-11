@@ -402,7 +402,7 @@ render=function()
    if not unlocked then b.TextColor3=muted end
   end
  elseif selected=="Quests" then
-  title.Text="QUESTS & COMBAT";subtitle.Text="One training challenge renews automatically. City quests: one active task."
+  title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
   info("BEACH TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads on the west beach. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
   for _,spec in ipairs(Config.Progression.Challenges) do
    info(spec.name.." · "..((data.combatChallenges or {})[spec.id] or 0).."/"..spec.goal.."\n+"..Config.Progression.ChallengeXP(data.level).." XP on completion · renews automatically",68)
@@ -417,23 +417,31 @@ render=function()
     if rewardReady then action:FireServer("ClaimQuest",current.id) else action:FireServer("AbandonQuest") end
    end)
   end
-  for _,q in ipairs(Config.Quests) do
-   local available=data.availableQuests and data.availableQuests[q.id]
-   if q.hidden and not available then continue end
-   local v=data.quests[q.id] or {progress=0}
-   local description=available and q.description or "Meet "..(q.giver or "a resident").." and use Talk to speak with them."
-   local textWidth=math.min(720,gui.AbsoluteSize.X-24)-48-(narrow and 28 or 158)
-   local nameHeight=math.max(26,TextService:GetTextSize(q.name,17,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+4)
-   local descriptionHeight=math.max(49,TextService:GetTextSize(description,13,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+8)
-   local descriptionY=12+nameHeight;local rewardY=descriptionY+descriptionHeight+5
-   local actionY=narrow and rewardY+34 or 32
-   local c=card(narrow and actionY+48 or math.max(150,rewardY+35))
-   label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
-   label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
-   label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
-   button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "TRACKING" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
-    if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
-   end)
+  local combatEvents={Crowd=true,Evade=true,Underdog=true}
+  local questGroups={{title="BEAM COMBAT TASKS",combat=true},{title="OPTIONAL CITY ACTIVITIES",combat=false}}
+  for _,group in ipairs(questGroups) do
+   local headingShown=false
+   for _,q in ipairs(Config.Quests) do
+    if (combatEvents[q.event]==true)~=group.combat then continue end
+    local available=data.availableQuests and data.availableQuests[q.id]
+    if q.hidden and not available then continue end
+    if not headingShown then info(group.title,50);headingShown=true end
+    local v=data.quests[q.id] or {progress=0}
+    local description=q.description
+    if not available then description..="\n\nTo unlock: meet "..(q.giver or "a resident").." and use Talk." end
+    local textWidth=math.min(720,gui.AbsoluteSize.X-24)-48-(narrow and 28 or 158)
+    local nameHeight=math.max(26,TextService:GetTextSize(q.name,17,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+4)
+    local descriptionHeight=math.max(49,TextService:GetTextSize(description,13,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+8)
+    local descriptionY=12+nameHeight;local rewardY=descriptionY+descriptionHeight+5
+    local actionY=narrow and rewardY+34 or 32
+    local c=card(narrow and actionY+48 or math.max(150,rewardY+35))
+    label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
+    label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
+    label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
+    button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "TRACKING" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
+     if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
+    end)
+   end
   end
  elseif selected=="Style" then
   title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your scream effects."

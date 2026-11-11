@@ -1,0 +1,52 @@
+{
+  "checked_at_utc": "2026-11-11T16:31:52.910022+00:00",
+  "base_commit": "32cced3bf9f098711988ed42672a72c72338ee7e",
+  "source_sha256": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "af30fa02d44293c8925837ce00c1beec983af587ccb25ea76c8cf42f15a0f23a",
+    "tests/quest_catalog_ui.py": "81fc6a88521cfd7fe579b2c70ab68ada292968195bc32f0b1e1105dd02b46fa9",
+    "tests/build_quest_cards_review.py": "03d3cd570ba6d040dd5e040d372752a31167a03e875860aa3d8be97d12452af3"
+  },
+  "checks": {
+    "pure_suites": 25,
+    "mocked_suites": 66,
+    "production_compiles": 57,
+    "builds": "all passed",
+    "renderer_assertions": 361,
+    "negative_controls": 6,
+    "existing_accept_assertions": 8,
+    "existing_claim_assertions": 8,
+    "existing_migration_assertions": 374,
+    "existing_retirement_assertions": 135
+  },
+  "independent_review": {
+    "status": "clear; independently passed361 assertions and all6 controls",
+    "limits": "native content layout observed; final subtitle not rerun"
+  },
+  "native": {
+    "status": "passed content/layout in prior fixture; final subtitle/title checks not rerun",
+    "executed": true,
+    "checks": 117,
+    "cases": 6,
+    "clipped_content_per_case": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "scope": "actual client UI, synthetic mic/remotes at390x844/844x390/1280x720, undiscovered and known",
+    "source_limit": "run preceded final shortened subtitle and added title/subtitle assertions; no execution-time artifact hashes captured",
+    "final_compiled_fixture_sha256": "56c833cc7fd8cb00eb8f5a2876ed774323425f386d799dcd3e29161123cfb89f",
+    "studio_closed": true,
+    "task_created_openwith_dialog_cleanup": "blocked: minimized Pick an app dialog remains; supported getApp rejects minimized window and no restore/activate API is exposed; no blind close or process kill",
+    "warnings": [
+      "Asset203785492 type mismatch observed; no matching ID in current src, not investigated further in this UI batch"
+    ],
+    "approval_pending": false
+  },
+  "live_datastore": false,
+  "published": false,
+  "map_changed": false,
+  "quest_schema_or_rewards_changed": false
+}

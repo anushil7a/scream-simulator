@@ -51,6 +51,7 @@ def main():
         run([sys.executable, 'tests/build_onboarding_review.py'])
         run([sys.executable, 'tests/build_notification_review.py'])
         run([sys.executable, 'tests/build_save_notice_review.py'])
+        run([sys.executable, 'tests/build_quest_cards_review.py'])
         for path in sorted((ROOT / 'build').glob('Studio*Harness.luau')) + [ROOT / 'build/StudioUIPreview.luau']:
             run(['luau-compile', str(path)], quiet=True)
         print('Built/compiled review fixtures; native runtime and UI appearance remain untested.', flush=True)

@@ -57,7 +57,7 @@ A microphone and Roblox voice eligibility are required for gameplay. Studio setu
 
 Configured boost purchases activate on confirmed server receipt delivery, extending the current expiry by 30 minutes once per receipt. They stack time at 2x; time continues offline. Old saved boosts remain separately usable. Product IDs are not configured, and real receipt delivery is unverified. See [behavior, simulated evidence and limitations](docs/BOOST_PURCHASE_REVIEW.md).
 
-**Combat objectives:** one repeating challenge for three eligible training KOs/assists. The destruction and overlapping Elite challenges are retired; their partial saved counters are preserved but inactive. Eight existing city quests and previously earned rewards are unchanged. See [quest cleanup and pacing impact](docs/QUEST_CLEANUP_REVIEW.md).
+**Combat objectives:** one repeating challenge for three eligible training KOs/assists. The destruction and overlapping Elite challenges are retired; their partial saved counters are preserved but inactive. Eight existing city quests and previously earned rewards are unchanged. Quest cards show their distinct objectives before discovery, then explain whom to meet; beam-combat tasks appear before optional city activities. See [quest cleanup and pacing impact](docs/QUEST_CLEANUP_REVIEW.md) and [discovery presentation](docs/QUEST_DISCOVERY_REVIEW.md).
 
 ## Friend testing and release limits
 
