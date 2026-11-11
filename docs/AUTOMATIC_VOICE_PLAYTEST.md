@@ -166,7 +166,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 
 - Map arena bounds: compare the red map outline and 40% label with the current world arena edges. In a disposable bounds-change fixture, verify outline/fill/percentage follow Config.ZoneMin/ZoneMax. Source/build checks pass; native map layout and boundary alignment remain pending.
 
-- PvP rewards: with two local clients, KO/reenter against the same opponent inside and after the reward cooldown. Verify ejection/protection works each time while XP/coins/Underdog progress award only when eligible; compare a different opponent and victim levels. Actual hit-branch mocks pass, but native multiplayer and real geometry remain pending.
+- PvP rewards: with two local clients, KO/reenter against the same opponent inside and after the reward cooldown. Verify ejection/protection works each time while XP/coins/Underdog progress award only when eligible; compare a different opponent and victim levels. Actual hit-branch mocks pass. The current [two-client native fixture](PVP_READINESS_REVIEW.md) passes 14 checks for engine hit geometry, protection/dodge eligibility, safe area, KO ejection/reward and immediate repeat suppression, with an observed failing limiter-disabled control. Aim/power/timestamps/credit are injected and calls bypass RemoteEvents. After-cooldown/different-victim/mixed-level cases, ground cover, real input and network timing remain pending.
 
 - KO confirmation: knock out an arena opponent with automatic voice and verify the named confirmation. Repeat inside reward cooldown and confirm the notice explains withheld repeat rewards; nonlethal hits should not show KO messages. Twelve mocked branch checks pass; native toast/multiplayer behavior remains pending.
 

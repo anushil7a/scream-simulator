@@ -1,0 +1,72 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "44e310427a45667f2babaa21677e31c39b5f3d30",
+  "productionChanged": false,
+  "issue": "Repeat-KO native assertion could pass with disabled limiter due to absent second-life credit and zero rounded reward.",
+  "reproduction": {
+    "runtime": "Luau CLI actual payout helpers, CombatCredit and progression formula",
+    "oldSetup": {
+      "mutationCalls": 1,
+      "xp": 0,
+      "coins": 0
+    },
+    "creditedSecondLife": {
+      "xp": 96,
+      "coins": 20
+    },
+    "classification": "test false-positive, not a production exploit"
+  },
+  "native": {
+    "studioVersion": "0.747.0.7471481",
+    "placeId": 0,
+    "localClients": 2,
+    "sourceSha256": "db68cfcd39dd112c54fe19952861515b01b9224cd823fdedb64a139266e7fafb",
+    "generatedArtifactSha256": "5f8bff0788d819d561cc934884da26ed8b05c60094e8517af6587f7a4dc018b9",
+    "logBasename": "0.747.0.7471481_20261111T002739Z_Studio_32432_last.log",
+    "markers": [
+      "2026-11-11T00:28:45.120Z,66.120766,060c,6,Info [FLog::CreatorOutput] PVP_FINAL_BUILD db68cfcd39dd112c54fe19952861515b01b9224cd823fdedb64a139266e7fafb",
+      "2026-11-11T00:28:45.122Z,66.122749,060c,6,Info [FLog::CreatorOutput] NATIVE_PVP_RESULT true 14 two local players; synthetic voice baseline repeatCalls 0",
+      "2026-11-11T00:28:45.123Z,66.123741,060c,6,Info [FLog::CreatorOutput] PVP_FINAL_BASELINE true 14 nil",
+      "2026-11-11T00:28:45.124Z,66.124733,060c,6,Info [FLog::CreatorOutput] NATIVE_PVP_RESULT false 13 ServerScriptService.Bootstrap:1049: Repeat KO reward farm",
+      " repeat-limit-disabled repeatCalls 2",
+      "2026-11-11T00:28:45.124Z,66.124733,060c,6,Info [FLog::CreatorOutput] PVP_FINAL_NEGATIVE false 13 ServerScriptService.Bootstrap:1049: Repeat KO reward farm",
+      "2026-11-11T00:28:45.126Z,66.126717,060c,6,Info [FLog::CreatorOutput] NATIVE_PVP_RESULT true 14 two local players; synthetic voice baseline repeatCalls 0",
+      "2026-11-11T00:28:45.126Z,66.126717,060c,6,Info [FLog::CreatorOutput] PVP_FINAL_RESTORED true 14 nil"
+    ],
+    "baselinePassed": 14,
+    "negativeCompletedBeforeFailure": 13,
+    "negativeExpectedFailure": "Repeat KO reward farm",
+    "negativeMutationCalls": 2,
+    "restoredPassed": 14,
+    "preliminaryAttempts": "Zero-client launch stopped; baseline original fixture passed 13. Command Bar module mutations passed old and credit-only versions but actual mutation invocation was unproven, so these are inconclusive and excluded as native negative controls."
+  },
+  "fullChecks": {
+    "command": "python tests/verify_local.py --build",
+    "exitCode": 0,
+    "pureSyntheticSuites": 25,
+    "mockedServiceSuites": 59,
+    "productionCompiles": 57,
+    "candidateExactSources": 57,
+    "allFixtureBuilds": "pass",
+    "output": "build/pvp-readiness-final-verification.txt",
+    "diffCheck": "pass"
+  },
+  "selfReview": "Implementing-agent separate diff review: test-only changes, guards, landed KO, level/XP/coin invariants, actual mutation call count and protected-body restoration. No blocker; not independent review.",
+  "limitations": [
+    "Synthetic power, aim, positions, eligibility timestamps and pre-KO damage credit",
+    "Direct adapter calls bypass client pulse scheduling and RemoteEvent transport",
+    "Airborne isolation geometry, not authored ground cover",
+    "No real microphone, proximity voice, physical phone/input, internet latency, mixed-level balance, representative soak or live persistence validation"
+  ],
+  "minimumNextInput": "Two people, two voice-eligible accounts/devices, microphones/headphones, desktop plus physical phone preferred; explicitly authorized isolated exact-candidate environment. Separate authorization and isolated keys/environment for persistence.",
+  "cleanup": {
+    "serversAndClients": "stopped",
+    "disposableEditors": "saved locally and closed",
+    "finalWindows": [
+      "pre-existing Codex"
+    ],
+    "browserTabsOpened": 0,
+    "unsavedWorkDiscarded": false
+  },
+  "prohibitedActionsPerformed": []
+}
