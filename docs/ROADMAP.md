@@ -2,6 +2,13 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 regular-player minimap
+
+- Reconciled clean/fetched `b5ba1aa`. Reuse the current north-up CityMap in the regular-player test-tools corner; no server/shared production, world geometry or save edits. Preserve full-map pins/legend and authorized developer tools. Separate HUD view, ten-Hz marker updates, immediate root/lifecycle clearing and MAP menu callback.
+- Responsive map/44px launcher yields to the existing HUD, quest tracker, Talk/combat controls and notifications. Review caught intermediate-width tracker overlap; corrected it and expanded the source-geometry sweep. Extremely short viewports hide this optional launcher rather than overlap controls. Native minimap readability/physical input remains unverified; Studio was not reopened.
+- Corrected the remaining legacy Microphone.Release "live scream" notice to "live beam", with an expired-capture regression. Reconciled stale shop docs with verified hue-only and automatic boost behavior. [Review and limitations](MINIMAP_REVIEW.md), [final evidence](../tests/evidence/minimap-2026-11-11.json).
+- Final 100,333 cumulative synthetic checks and eleven negative controls pass; independent review cleared the change. Full 25 pure/synthetic + 69 mocked suites, 57 compiles and all builds pass. Safe draft push and a factual PR summary refresh are next. No apps opened, no live stores, publication or audio configuration. The earlier two inaccessible minimized app-picker dialogs remain unchanged. Continue remaining audio, policy, roaming-trainer/map backlog in bounded batches after review.
+
 ## November 11 Beams terminology and hue-only style
 
 - Reconciled clean/fetched `d4cf668`. Replaced visible attack/collection/help and relevant world dialogue with Beams, retaining internal compatibility IDs. Replaced the three-slider mixer with hue-only controls; removed preview strip, editable hex and free preset choices. New/default base stays warm yellow; server rejects non-Gold preset requests.

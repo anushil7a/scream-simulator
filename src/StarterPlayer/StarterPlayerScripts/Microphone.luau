@@ -68,7 +68,7 @@ function Microphone:Release()
  if not started or not self.ready then self.model:BeginCapture();return 0,'Microphone capture canceled. Try again.' end
  local elapsed=os.clock()-started
  if elapsed<.25 then self.model:BeginCapture();return 0,'Hold attack while speaking for at least 0.25 seconds.' end
- if elapsed>8 then self.model:BeginCapture();return 0,'Capture expired. Start a new live scream.' end
+ if elapsed>8 then self.model:BeginCapture();return 0,'Capture expired. Start a new live beam.' end
  local power=self.model:Release()
  return power,power<.08 and 'Hold attack FIRST, speak immediately, then release within 1.25 seconds.' or nil
 end

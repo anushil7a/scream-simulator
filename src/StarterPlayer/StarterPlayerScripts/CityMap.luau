@@ -27,7 +27,7 @@ local landmarks={
  {name='7 · Timber pier',x=525,z=537},
  {name='8 · Training fighters',x=-320,z=545},
 }
-function CityMap.create(parent)
+function CityMap.create(parent,compact)
  local map=box(parent,'CityMap',.5,.5,1,1,Color3.fromRGB(50,93,82));map.AnchorPoint=Vector2.new(.5,.5)
  local ratio=Instance.new('UIAspectRatioConstraint');ratio.AspectRatio=1.2;ratio.AspectType=Enum.AspectType.FitWithinMaxSize;ratio.Parent=map
  box(map,'Arena',arenaX,arenaZ,arenaWidth,arenaHeight,Color3.fromRGB(136,65,70))
@@ -41,7 +41,7 @@ function CityMap.create(parent)
  local boundary=box(map,'ArenaBoundary',arenaX,arenaZ,arenaWidth,arenaHeight,cream);boundary.BackgroundTransparency=1
  local stroke=Instance.new('UIStroke');stroke.Color=Color3.fromRGB(247,139,120);stroke.Thickness=2;stroke.Parent=boundary
  local north=box(map,'North',.04,.025,.25,.075,cream);north.BackgroundTransparency=1;text(north,'N ↑',13)
- for i,v in ipairs(landmarks) do
+ for i,v in ipairs(compact and {} or landmarks) do
   local pin=box(map,'Landmark'..i,0,0,0,0,Color3.fromRGB(22,39,46));pin.Size=UDim2.fromOffset(23,23);pin.AnchorPoint=Vector2.new(.5,.5);pin.Position=position(v.x,v.z)
   local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=pin;text(pin,tostring(i),13)
  end
@@ -58,6 +58,26 @@ function CityMap.update(view,root)
  view.dot.Position=position(root.Position.X,root.Position.Z)
  local look=root.CFrame.LookVector
  view.arrow.Rotation=math.deg(math.atan2(look.X,-look.Z))
+end
+-- Reserve the compact HUD's left column and combat/talk controls below.
+function CityMap.MiniLayout(viewport,touch)
+ local available=viewport.X>=280 and viewport.Y>=(touch and 315 or 168)
+ local width=math.min(160,viewport.X-278)
+ -- The quest tracker is wider than the HUD. Stay above it or to its right.
+ width=math.min(width,math.max(119,viewport.X-328))
+ if touch then width=math.min(width,(viewport.Y-269)*1.2+16) end
+ local expanded=width>=96 and viewport.Y>=360
+ if not expanded then return {width=math.min(90,math.max(44,viewport.X-220)),height=44,expanded=false,available=available} end
+ return {width=width,height=52+(width-16)/1.2,expanded=true,available=available}
+end
+function CityMap.MiniUpdate(view,root,now,visible)
+ if not view or not view.map.Parent then return end
+ if not visible or not root or not root.Parent then
+  view.dot.Visible=false;view.nextUpdate=nil;view.lastRoot=nil;return
+ end
+ if view.lastRoot==root and view.nextUpdate and now<view.nextUpdate then return end
+ view.lastRoot=root;view.nextUpdate=now+.1
+ CityMap.update(view,root)
 end
 CityMap.legend='1  Plaça del Sol / spawn     2  Rambla gardens\n3  Basilica     4  Market     5  Old town\n6  Beach & promenade     7  Timber pier\n8  Training fighters (west beach)'
 return CityMap

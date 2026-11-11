@@ -49,6 +49,9 @@ local function samples(phase,rms)
 end
 m:Calibrate();samples('quiet',.001);samples('voice',.08)
 check(m.ready and m.model.calibrated,'Valid live sample calibration failed')
+check(m:Begin(),'Expired-capture fixture failed to start');now+=8.01
+local expiredPower,expiredNotice=m:Release()
+check(expiredPower==0 and expiredNotice=='Capture expired. Start a new live beam.','Expired legacy capture has stale attack wording')
 check(m:Begin(),'Mute calibration fixture did not begin capture')
 player.input.Muted=true;m:Calibrate()
 check(not m.ready and m.power==0 and m.captureStarted==nil,'Calibrate on muted input retained readiness until next heartbeat')

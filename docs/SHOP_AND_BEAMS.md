@@ -4,8 +4,8 @@ Implemented locally on the shared development branch. Nothing in this change pub
 
 ## Owner-approved behavior
 
-- One permanent Spectrum pass unlocks the entire HSV/hex beam-color mixer. Five existing free colors remain available. Ownership is checked on the server before equipping or broadcasting a custom color; a saved selection alone grants no entitlement.
-- Double XP and Double Coins are separate repeatable developer products. Each receipt grants one inventory token. Activating a token starts 30 minutes of real time, including time offline. Activating another adds 30 minutes; the multiplier stays 2x. XP and coin timers are independent.
+- One permanent Spectrum pass unlocks the hue-only beam-color picker. Yellow is the new/default base; retired free preset choices are no longer selectable. Existing saved legacy auras and exact custom shades are preserved. Explicit hue edits use full saturation/brightness; simply opening Style does not normalize saved colors. Ownership is checked on the server before equipping or broadcasting a custom color; a saved selection alone grants no entitlement.
+- Double XP and Double Coins are separate repeatable developer products. Each new confirmed receipt atomically activates 30 minutes from the later of current time or existing expiry, including time offline. Duplicate receipts do not add more time. Previously saved inventory tokens remain manually usable; the multiplier stays 2x. XP and coin timers are independent.
 - Freerunner exposes the existing movement pass: extra jumps and consecutive rolls in safe areas; standard arena movement remains.
 - The Amplifier shop, six-tab menu, and HUD use a navy/cyan energy theme. Purchases without configured IDs say Coming soon. Configured prices come from the client's Roblox product metadata; no fixed Robux price is presented as live.
 
@@ -19,9 +19,9 @@ Before enabling sales, use an approved test experience to verify pass ownership,
 
 ## Purchase persistence
 
-`Commerce` is the only ProcessReceipt owner. It returns PurchaseGranted only after an atomic UpdateAsync both grants an inventory token and records its receipt ID. Failed or unknown receipts remain NotProcessedYet. Prompt close events never grant products. All transforms are retry-safe, including a write that succeeds while its response is lost.
+`Commerce` is the only ProcessReceipt owner. It returns PurchaseGranted only after an atomic UpdateAsync both extends the absolute boost expiry and records its receipt ID (without minting a new inventory token). Failed or unknown receipts remain NotProcessedYet. Prompt close events never grant products. All transforms are retry-safe, including a write that succeeds while its response is lost.
 
-Paid inventory, expiry timestamps and receipt IDs use `ScreamSimulator_Purchases_v1`, separate from gameplay saves. Normal profile autosaves and the test-session baseline cannot overwrite purchases. Activations atomically consume a token and extend expiry; temporary operation IDs prevent retries from consuming it twice. Per-user locks, prompt/activation/refresh limits and server eligibility checks bound requests. Gameplay progress retains its existing session lease.
+Paid inventory, expiry timestamps and receipt IDs use `ScreamSimulator_Purchases_v1`, separate from gameplay saves. Normal profile autosaves and the test-session baseline cannot overwrite purchases. Legacy saved-token activations atomically consume a token and extend expiry; temporary operation IDs prevent retries from consuming it twice. Per-user locks, prompt/activation/refresh limits and server eligibility checks bound requests. Gameplay progress retains its existing session lease.
 
 Receipt IDs are never pruned. At 8,000 receipts per user, new prompts/grants fail closed pending a reviewed ledger migration; duplicates still acknowledge safely. There is no background job or schedule. A datastore error invalidates the local purchase cache; reopening the shop retries loading (15-second throttle). Already stored purchases remain in the ledger.
 
@@ -40,3 +40,5 @@ Run `python tests/verify_local.py --build` with Luau and Rojo on PATH. Open `bui
 Useful later cosmetic ideas: KO finishers, spawn trails, player titles and saved color presets. They are not sold or implemented in this change. Avoid paid direct damage/health purchases while validating the existing level advantage.
 
 Roblox references: [developer product receipt handling](https://create.roblox.com/docs/production/monetization/developer-products), [purchase data persistence](https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing), [regional pricing](https://create.roblox.com/docs/production/monetization/regional-pricing).
+
+Current behavior and limits: [boost delivery](BOOST_PURCHASE_REVIEW.md), [hue-only controls](BEAMS_STYLE_REVIEW.md). Historical HSV/manual-token claims are superseded.

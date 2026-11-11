@@ -93,3 +93,5 @@ In local Studio Play, open **TEST TOOLS**, scroll to **Test movement**, and togg
 Build the five-script isolated place with `rojo build mic-prototype.project.json -o build/MicrophoneFeasibility.rbxl`. It shares the production microphone/rule modules but contains no city, saves, rewards or purchases. See [the lab test procedure](prototypes/microphone/README.md). A privately published, two-account real-mic pass remains required; local compile/build results do not prove voice transport.
 
 Beams/style update: [hue-only controls, preserved saved colors and native/synthetic evidence](docs/BEAMS_STYLE_REVIEW.md).
+
+Regular-player [minimap behavior and validation limits](docs/MINIMAP_REVIEW.md): compact north-up navigation in the upper-right corner; MAP opens the full map. Authorized testers retain their test-tools button.

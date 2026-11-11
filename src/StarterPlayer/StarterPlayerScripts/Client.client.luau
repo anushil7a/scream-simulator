@@ -334,6 +334,14 @@ for i,item in ipairs(testCommands) do
  button(testContent,item[1],item[2],UDim2.fromOffset(98,44),UDim2.fromOffset(((i-1)%2)*108,math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
 end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then modal.Visible=false end end);testButton.Visible=false
+-- Regular players use the former test-tools corner for a north-up map.
+-- Keep a separate view: modal renders replace mapDot but never this HUD map.
+local miniMapButton=button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end)
+miniMapButton.TextSize=12;miniMapButton.TextYAlignment=Enum.TextYAlignment.Top;miniMapButton.Visible=false
+local miniMapPadding=Instance.new("UIPadding");miniMapPadding.PaddingTop=UDim.new(0,10);miniMapPadding.Parent=miniMapButton
+local miniMapHolder=frame(miniMapButton,"MiniMapHolder",UDim2.new(1,-16,1,-42),UDim2.fromOffset(8,34));miniMapHolder.BackgroundTransparency=1
+local miniMapView=CityMap.create(miniMapHolder,true)
+local miniMapAvailable=false
 local function card(height)
  local c=frame(content,"Card",UDim2.new(1,-8,0,height),UDim2.new(),panel)
  local edge=Instance.new("UIStroke");edge.Color=Color3.fromRGB(64,91,125);edge.Transparency=.65;edge.Parent=c
@@ -806,6 +814,9 @@ connectClient(Run.RenderStepped,function(dt)
  shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "SHOP" or "SHOP [B]"
  questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
  testButton.Size=UDim2.fromOffset(tight and 90 or 112,touch and 44 or 32);testButton.Position=UDim2.new(1,tight and -104 or -126,0,14)
+ local miniLayout=CityMap.MiniLayout(viewport,touch)
+ miniMapButton.Size=UDim2.fromOffset(miniLayout.width,miniLayout.height);miniMapButton.Position=UDim2.new(1,-miniLayout.width-14,0,14)
+ miniMapHolder.Visible=miniLayout.expanded;miniMapAvailable=miniLayout.available
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,64) or UDim2.new(0,14,1,-108)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
  talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
@@ -908,6 +919,9 @@ connectClient(Run.RenderStepped,function(dt)
   talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
  end
  if mapDot then CityMap.update(mapDot,root) end
+ local miniVisible=miniMapAvailable and gameplayVisible and windowFocused and not toast.Visible and data.devAccess~=true
+ miniMapButton.Visible=miniVisible
+ CityMap.MiniUpdate(miniMapView,root,os.clock(),miniVisible and miniMapHolder.Visible)
  talkButton.Text=touch and "TALK" or "TALK [T]"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
 end)

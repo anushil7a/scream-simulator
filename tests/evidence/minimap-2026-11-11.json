@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-11",
+  "base": "b5ba1aad1106f30d62b393ed56acc98e9186b600",
+  "source_sha256": {
+    "src/StarterPlayer/StarterPlayerScripts/CityMap.luau": "24c4392fb31992c515d6896e176745e7c0a64963b91038be4e526ba4cc896a39",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "4883c3287c2042f7af4e5fe55f8d2d0c80840f5a434cec6aed4ea63ebf436e8b",
+    "src/StarterPlayer/StarterPlayerScripts/Microphone.luau": "d51185cc0be7a77e8e3218169f15e746d51a33c93f8e923577e17e1ca7041037",
+    "tests/minimap.py": "3c685dfa6c87bc81c7ef4d80b9fef5da1487b251fa9fdd8473a1f0049e6abdf6",
+    "tests/build_minimap_review.py": "4e9b7cc58b95113ef2bd7442b801b7d08e2c383fa9a5a8f1b5d42fa48f07bc66",
+    "tests/microphone_lifecycle.py": "9636d17118d1d3686bdc7dcc617f08a0b5aa89c38c6b7ab04bd7236fdd8a265b"
+  },
+  "focused": {
+    "minimap_cumulative_assertions": 100333,
+    "included_module_assertions": 146,
+    "negative_controls": 11,
+    "microphone_lifecycle_assertions": 111,
+    "existing_marker_assertions": 9,
+    "baseline": "missing minimap API reproduced",
+    "scope": "Synthetic geometry sweep, actual source snippets/module and fake GUI/input only. Counts are not device trials."
+  },
+  "aggregate": {
+    "status": "passed",
+    "pure_synthetic_suites": 25,
+    "mocked_suites": 69,
+    "production_compiles": 57,
+    "candidate_and_disposable_builds": "passed",
+    "log_sha256": "4629a7cc375c55e0cc0dadae6715a719604ae6897c6a584165c863478c13b4e6"
+  },
+  "independent_review": {
+    "passed": true,
+    "focused_checks_rerun": true,
+    "found_and_fixed": "430px quest tracker overlap; final Talk/short-viewport constraints reviewed"
+  },
+  "native": {
+    "executed": false,
+    "fixture_built_compiled": true,
+    "rbxl_sha256": "5a67e89a3c7ba3d73f71bb902c6458d381fa26bfd60571525cd93a02652d8480",
+    "client_sha256": "e96c4fe0aa8563492da17aee2b4b3137ba9248515f31db874f5ec57c856c8392",
+    "limits": "No native minimap appearance, actual click/touch, physical device or live service verification."
+  },
+  "scope_checks": {
+    "server_and_shared_sources_match_base": true,
+    "map_geometry_unchanged": true
+  },
+  "cleanup": {
+    "apps_opened": 0,
+    "previous_inaccessible_minimized_app_picker_dialogs": 2,
+    "approval_pending": false
+  },
+  "publication": false
+}
