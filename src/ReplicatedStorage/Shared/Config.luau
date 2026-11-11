@@ -64,11 +64,14 @@ Config.Quests={
  {id="garden",name="A Little More Color",description="Help Mar Soler water the three raised flowerbeds in Rambla Gardens. Use the interaction prompt beside each bed.",giver="Mar Soler · Rambla Gardens",goal=3,xp=130,coins=80,event="Garden"},
  {id="beach",name="Leave Only Footprints",description="Collect 6 washed-up bottles on the beach. Use the interaction prompt beside each bottle.",goal=6,xp=100,coins=50,event="Litter"},
  {id="delivery",name="Coffee on the Coast",description="Collect a café order, then deliver it to your assigned waterfront stop within 90 seconds. Check your objective for the recipient.",goal=1,xp=120,coins=60,event="Delivery"},
- {id="crowd",name="Three's a Crowd",description="Line up 3 training residents and hit them with one beam.",goal=1,xp=100,coins=40,event="Crowd"},
+ {id="crowd",name="Three's a Crowd",description="Hit 3 different NPCs (residents or training fighters) during one beam. They do not need to be hit at the same instant.",goal=1,xp=100,coins=40,event="Crowd"},
  {id="sprint",name="Boardwalk Dash",description="Start beside the lifeguard tower and follow the promenade east to the finish in 25 seconds.",goal=1,xp=120,coins=50,event="Race"},
  {id="dodge",name="Can't Touch This",description="Dodge 3 enemy beams in the central arena.",goal=3,xp=160,coins=70,event="Evade"},
  {id="arena",name="Underdog",description="Knock out a player whose level is at least yours in the central arena.",goal=1,xp=180,coins=80,event="Underdog"},
 }
+-- Additive identities: never repurpose old quest IDs or their saved claims.
+table.insert(Config.Quests,{id="practice_beams",name="Controlled Beams",description="Hit the mic practice target with 3 separate beams. Each beam counts once; accept this task before practicing.",goal=3,xp=60,coins=25,event="PracticeBeam",menuAvailable=true})
+table.insert(Config.Quests,{id="arena_assist",name="Team Effort",description="Help knock out an equal/higher-level player in the arena without landing the final hit. Contribute at least 10% of their maximum health in recent damage and earn KO credit; repeated opponents may not count.",goal=1,xp=120,coins=50,event="ArenaAssist",menuAvailable=true})
 local questGivers={beach="Mar Soler · Rambla Gardens",delivery="Pau Vidal · Mercat del Mar",crowd="Busker · west gardens",sprint="Commuter · Plaça del Sol",dodge="Fighter · Rambla Gardens",arena="Fighter · Rambla Gardens"}
 if Config.CompactCity then
  questGivers.crowd="Eric Sol · west courtyard"

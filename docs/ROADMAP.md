@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 additive combat quests
+
+- Added two new-ID, one-time combat tasks without changing eight existing quest identities/rewards/claims: Controlled Beams (three separate practice-target beams) and Team Effort (meaningful rewarded equal/higher-level PvP assist, not the finisher). New tasks are menu-available; old NPC discovery gates remain. Clarified Crowd as distinct NPCs over one beam rather than simultaneous lineup. Map remains paused and unchanged.
+- Focused171 assertions/one source contract/six controls and431 renderer assertions/seven controls pass. Existing migration/reward/accept/claim/stop regressions pass. Aggregate25 pure/synthetic +81 mocked suites,59 compiles and all builds passed; final test-only claim-reload/expired-credit additions were separately rerun. [Scope and limitations](COMBAT_QUESTS_REVIEW.md).
+- No native/real-mic/network/live-store execution, publication or apps opened. Older-server catalogs drop unknown additive IDs, including claims; coordinated deployment/rollback compatibility is an explicit release gate, not claimed solved. Continue coordinated non-map backlog and independent review; preserve owner map approval gate.
+
 ## November 11 saturated-window voice stop correction
 
 - Parallel controls audit and actual-dispatcher simulation reproduced dropped OFF/focus/mic-loss stops after30 requests: two later protocol resolutions totaling5 simulated damage before timeout. Prioritize only current-active-sequence stop and explicit MicReady(false); retain existing end/cooldown helpers and normal quota for starts/readiness true/malformed stops. Idle duplicates produce no repeated effects; inconsistent false+active capture cleans up.

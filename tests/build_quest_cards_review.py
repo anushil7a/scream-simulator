@@ -41,7 +41,15 @@ local ok,err=xpcall(function()
    end
    table.sort(order,function(a,b)return a.y<b.y end)
    check(order[1].id=="crowd" and order[2].id=="dodge" and order[3].id=="arena","Combat tasks not first")
-   check(#order==(known and 8 or 7),"Wrong visible quest count")
+   check(order[4].id=="practice_beams" and order[5].id=="arena_assist","New combat tasks not grouped")
+   check(#order==(known and 10 or 9),"Wrong visible quest count")
+   for _,id in ipairs({"practice_beams","arena_assist"})do
+    local button=byId[id];check(button~=nil,"Menu-available combat task missing")
+    check(button.Text==(known and "CLAIM" or "ACCEPT"),"New quest discovery/action mismatch")
+    for _,obj in ipairs(button.Parent:GetChildren())do
+     if obj:IsA("TextLabel")then check(not obj.Text:find("To unlock:",1,true),"Menu quest wrongly requires NPC")end
+    end
+   end
    table.insert(results,{width=view[1],height=view[2],known=known,cards=#order,clipped=#clipped})
   end
  end

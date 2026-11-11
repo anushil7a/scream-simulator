@@ -153,6 +153,7 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
    local underdog=targetLevel>=rs.data.level
    xp(recipient,reward);coins(recipient,math.floor((victim and 20 or 5)*share*factor*repeatFactor))
    if victim and recipient==finisher and underdog then questProgress(recipient,"Underdog") end
+   if victim and recipient~=finisher and underdog and meaningful[id] then questProgress(recipient,"ArenaAssist") end
    local bonus=0
    if tier and factor>=.5 and meaningful[id] then
     bonus+=combatChallenge(recipient,"fighters",true)
@@ -306,6 +307,7 @@ local function stepSustained(p,s,now)
   local practice=beam.obstruction and beam.obstruction.Instance
   if not intent.practiceHit and practice and practice:GetAttribute("MicPracticeTarget")==true then
    intent.practiceHit=true
+   questProgress(p,"PracticeBeam")
    local firstBeam=not s.data.achievements.FirstBeam
    s.data.achievements.FirstBeam=true
    state(p,firstBeam and "First beam landed! Train at the Rookie pad for XP and coins. Open Quests for your challenges." or string.format("Practice hit · %d%% power · %.0f studs",math.floor(beam.power*100+.5),beam.length))
@@ -389,6 +391,7 @@ local function cast(p,request)
  BeachVolley.Hit(p,origin,direction,length,sound.width,sound.power)
  local castMessage
  if obstruction and obstruction.Instance:GetAttribute("MicPracticeTarget")==true then
+  questProgress(p,"PracticeBeam")
   s.data.achievements.FirstBeam=true
   castMessage=string.format("Practice hit · %d%% power · %.0f studs · %d damage",math.floor(sound.power*100+.5),length,sound.damage)
   local target=obstruction.Instance;local pulse=(target:GetAttribute("PracticePulse") or 0)+1;target:SetAttribute("PracticePulse",pulse);target.Color=Color3.fromRGB(255,205,111)
@@ -709,7 +712,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="SetAura" and arg=="Gold" then s.data.aura=arg;s.data.useCustomColor=false;state(p)
  elseif verb=="AcceptQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg)
-  if q and not s.data.availableQuests[q.id] then state(p,"Meet "..(q.giver or "the quest giver").." to unlock this task.");return end
+  if q and q.menuAvailable~=true and not s.data.availableQuests[q.id] then state(p,"Meet "..(q.giver or "the quest giver").." to unlock this task.");return end
   if q and q.id=="nick" then
    local _,root=parts(p)
    if not root or (root.Position-(Config.CompactCity and Config.CityLayout.Soccer.center or Vector3.new(647,4,547))).Magnitude>90 then state(p,"Return to Nick's coastal court to start.");return end

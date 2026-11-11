@@ -419,13 +419,13 @@ render=function()
     if rewardReady then action:FireServer("ClaimQuest",current.id) else action:FireServer("AbandonQuest") end
    end)
   end
-  local combatEvents={Crowd=true,Evade=true,Underdog=true}
+  local combatEvents={Crowd=true,Evade=true,Underdog=true,PracticeBeam=true,ArenaAssist=true}
   local questGroups={{title="BEAM COMBAT TASKS",combat=true},{title="OPTIONAL CITY ACTIVITIES",combat=false}}
   for _,group in ipairs(questGroups) do
    local headingShown=false
    for _,q in ipairs(Config.Quests) do
     if (combatEvents[q.event]==true)~=group.combat then continue end
-    local available=data.availableQuests and data.availableQuests[q.id]
+    local available=q.menuAvailable==true or (data.availableQuests and data.availableQuests[q.id])
     if q.hidden and not available then continue end
     if not headingShown then info(group.title,50);headingShown=true end
     local v=data.quests[q.id] or {progress=0}
@@ -824,7 +824,7 @@ connectClient(Run.RenderStepped,function(dt)
  end
  hud.Visible=gameplayVisible;controls.Visible=gameplayVisible
  -- Keep the fight readable without hiding a running quest deadline.
- local combatQuest=data.activeQuest=="arena" or data.activeQuest=="dodge" or data.activeQuest=="crowd"
+ local combatQuest=data.activeQuest=="arena" or data.activeQuest=="dodge" or data.activeQuest=="crowd" or data.activeQuest=="practice_beams" or data.activeQuest=="arena_assist"
  local showQuest=not data.inWarZone or combatQuest or (data.questTime or 0)>0
  tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=viewport.X>740 and gameplayVisible
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)

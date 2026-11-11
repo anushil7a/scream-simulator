@@ -37,7 +37,7 @@ end
 local old=makeConfig(false)
 local expectedLegacy={crowd='Busker · west gardens',sprint='Commuter · Plaça del Sol',dodge='Fighter · Rambla Gardens',arena='Fighter · Rambla Gardens'}
 for id,text in pairs(expectedLegacy)do check(old.GetQuest(id).giver==text,'Legacy giver fallback changed:'..id)end
-check(#Config.Quests==8 and #old.Quests==8,'Quest count changed')
+check(#Config.Quests==10 and #old.Quests==10,'Quest count changed')
 for _,q in ipairs(Config.Quests)do local prior=old.GetQuest(q.id);for _,field in ipairs({'id','goal','event','xp','coins','description'})do check(q[field]==prior[field],'Quest identity/reward/objective changed')end end
 local now=100;local os={clock=function()return now end};local s={};local p={};local messages={}
 local function state(_,message)table.insert(messages,message)end

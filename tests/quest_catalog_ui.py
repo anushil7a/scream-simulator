@@ -49,13 +49,13 @@ local function equal(a,b)
  for k in pairs(b)do if a[k]==nil then return false end end
  return true
 end
-local expected={nick={1,1800,1200},garden={3,130,80},beach={6,100,50},delivery={1,120,60},crowd={1,100,40},sprint={1,120,50},dodge={3,160,70},arena={1,180,80}}
-check(#Config.Quests==8,'City quest definitions unexpectedly changed')
+local expected={nick={1,1800,1200},garden={3,130,80},beach={6,100,50},delivery={1,120,60},crowd={1,100,40},sprint={1,120,50},dodge={3,160,70},arena={1,180,80},practice_beams={3,60,25},arena_assist={1,120,50}}
+check(#Config.Quests==10,'City quest definitions unexpectedly changed')
 for _,q in ipairs(Config.Quests)do
  local e=expected[q.id];check(e and q.goal==e[1] and q.xp==e[2] and q.coins==e[3],'Quest identity/goal/rewards changed')
 end
 local catalog=copy(Config.Quests)
-local combat={crowd=true,dodge=true,arena=true}
+local combat={crowd=true,dodge=true,arena=true,practice_beams=true,arena_assist=true}
 local function grouped(count)
  local group;local headings={};local seen={};local sequence={}
  for _,entry in ipairs(order)do
@@ -92,34 +92,40 @@ for _,isNarrow in ipairs({false,true})do
  check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(Config.GetQuest('beach').description,1,true),'Distinct undiscovered objectives missing')
  check(buttons.garden.card.labels[2]~=buttons.beach.card.labels[2],'Distinct tasks look like duplicate generic quests')
  check(Config.GetQuest('garden').giver==Config.GetQuest('beach').giver and garden:find(Config.GetQuest('garden').giver,1,true) and beach:find(Config.GetQuest('beach').giver,1,true),'Shared correct giver missing')
- grouped(7)
- for _,q in ipairs(Config.Quests)do if not q.hidden then
+ grouped(9)
+ for _,q in ipairs(Config.Quests)do if not q.hidden and q.menuAvailable~=true then
   local b=buttons[q.id];local cardText=table.concat(b.card.labels,' | ')
   check(cardText:find(q.description,1,true) and cardText:find('To unlock:',1,true) and cardText:find(q.giver,1,true),'Locked card lacks objective or discovery instructions')
   check(b.text=='MEET NPC','Undiscovered button bypasses meet requirement');b.call()
   check(#calls==0,'Undiscovered quest action bypassed guard')
  end end
+ for _,id in ipairs({'practice_beams','arena_assist'})do
+  local b=buttons[id];check(b and b.text=='ACCEPT','Direct-available combat quest locked')
+  check(not table.concat(b.card.labels,' | '):find('To unlock:',1,true),'Direct quest shows nonexistent giver lock')
+  local before=#calls;b.call();check(#calls==before+1 and calls[#calls][1]=='AcceptQuest' and calls[#calls][2]==id,'Direct quest acceptance missing')
+ end
+ calls={}
  -- Even a stale completed progress packet must not bypass discovery.
  for _,q in ipairs(Config.Quests)do value.quests[q.id]={progress=q.goal}end
  renderChecked(value,isNarrow);check(not buttons.nick,'Hidden quest exposed by progress alone')
- for _,q in ipairs(Config.Quests)do if not q.hidden then buttons[q.id].call();check(#calls==0,'Locked completed quest bypassed discovery')end end
+ for _,q in ipairs(Config.Quests)do if not q.hidden and q.menuAvailable~=true then buttons[q.id].call();check(#calls==0,'Locked completed quest bypassed discovery')end end
  -- Discovery reveals every original quest, preserving acceptance and hiding unlock instructions.
  for _,q in ipairs(Config.Quests)do value.availableQuests[q.id]=true;value.quests[q.id]={progress=0}end
- renderChecked(value,isNarrow);grouped(8)
+ renderChecked(value,isNarrow);grouped(10)
  for _,q in ipairs(Config.Quests)do
   local b=buttons[q.id];check(b and b.text=='ACCEPT','Discovered quest cannot be accepted')
   check(b.card.labels[2]==q.description,'Discovered objective still has lock text or changed description')
   local old=#calls;b.call();check(#calls==old+1 and calls[#calls][1]=='AcceptQuest' and calls[#calls][2]==q.id,'Accept command changed')
  end
  value.activeQuest='garden';value.quests.garden.progress=1
- renderChecked(value,isNarrow);grouped(8)
+ renderChecked(value,isNarrow);grouped(10)
  check(buttons.ActiveQuestAction and buttons.ActiveQuestAction.text=='ABANDON','Current active quest card missing')
  check(cards[1]==buttons.ActiveQuestAction.card,'Current active quest card no longer first')
  check(buttons.garden.text=='TRACKING','Active quest tracking state lost')
  buttons.garden.call();check(#calls==0,'Tracking quest can be reaccepted')
  buttons.ActiveQuestAction.call();check(#calls==1 and calls[1][1]=='AbandonQuest','Active quest abandon changed')
  for _,q in ipairs(Config.Quests)do value.quests[q.id]={progress=q.goal,claimed=q.id=='nick'}end
- renderChecked(value,isNarrow);grouped(8)
+ renderChecked(value,isNarrow);grouped(10)
  for _,q in ipairs(Config.Quests)do
   local b=buttons[q.id];check(b~=nil,'Existing city quest removed')
   check(b.text==(q.id=='nick' and 'CLAIMED' or 'CLAIM'),'Existing completion state lost')
@@ -170,6 +176,9 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    bypassed=code.replace('if available and not v.claimed and','if not v.claimed and')
    assert bypassed!=code
    run(bypassed,'Undiscovered quest action bypassed guard')
+   menu=code.replace('q.menuAvailable==true or (data.availableQuests and data.availableQuests[q.id])','(data.availableQuests and data.availableQuests[q.id])')
+   assert menu!=code
+   run(menu,'Direct-available combat quest locked')
    claimed=code.replace('if available and not v.claimed and','if available and')
    assert claimed!=code
    run(claimed,'Claimed city quest can replay reward')

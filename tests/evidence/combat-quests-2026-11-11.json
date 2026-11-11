@@ -1,0 +1,81 @@
+{
+  "base": "7a0b044276a368c506a08ee2ce2c13b41067cb5c",
+  "status": "unpublished additive combat quests",
+  "sourceHashDefinition": "exact verified working-tree bytes; checkout EOL conversion can differ",
+  "sourceSha256": {
+    "src/ReplicatedStorage/Shared/Config.luau": "c01f1269e2366feb67fa20f2d2cd427d311a21b8cdb8df2fe3713b13564030ec",
+    "src/ReplicatedStorage/Shared/QuestGuide.luau": "cb9b5d5dfa803c3e9d1eeda4dce6d56a8615d2756fcaf4d5307a5789e3de4489",
+    "src/ServerScriptService/Bootstrap.server.luau": "04822625b1bd3c0b37d8d1f58dc6e1266e225cf2827ed760f17d1aeac211bada",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "266180a563a27c076db750e4566db720cb3ec64bbeb7517b9302d4ae1e46d4b4",
+    "src/ServerScriptService/Profiles.luau": "d1101ab834275507aed9a50536c5db98ae0df3323261421370fbf7d06bdaad43",
+    "src/ReplicatedStorage/Shared/CombatCredit.luau": "77e0749e619c6bfbf4b6dbbeedd5e4a8d16f2aab612448a015bcaa8370ca72a1",
+    "tests/combat_quests.py": "eba966e3aafcbb640bb8a238748528705c67903d106275f497fcf55406b26158",
+    "tests/quest_catalog_ui.py": "2d725f9b917f054a3752eafd698193b153776e4ec31c928e03c223e1473f4a9c",
+    "tests/build_quest_cards_review.py": "0156bd6c75fc2fed69f44995c3c34ef7344ad5a20e9137d7f7a6b362a40c9f24",
+    "tests/pvp_rewards.py": "4f9f8a789c8246193b36dc602df642f11661ac6e14b1f946957a7998867be593",
+    "tests/compact_guidance.py": "0940bcb4060f77653f8b816970437e283e1708defa5cba32dd04625d4465ff88",
+    "tests/verify_local.py": "4a23c750f7eddef874ec316bede411c7304aef19cd21a89048da2dd51e3a3e7b"
+  },
+  "newIds": {
+    "practice_beams": {
+      "goal": 3,
+      "xp": 60,
+      "coins": 25,
+      "event": "PracticeBeam"
+    },
+    "arena_assist": {
+      "goal": 1,
+      "xp": 120,
+      "coins": 50,
+      "event": "ArenaAssist"
+    }
+  },
+  "legacyIdsPreserved": [
+    "nick",
+    "garden",
+    "beach",
+    "delivery",
+    "crowd",
+    "sprint",
+    "dodge",
+    "arena"
+  ],
+  "focused": {
+    "combatAssertions": 171,
+    "sourceContracts": 1,
+    "combatNegativeControls": 6,
+    "rendererAssertions": 431,
+    "rendererNegativeControls": 7,
+    "migrationAssertions": 374,
+    "pvpPayoutAssertions": 19,
+    "acceptAssertions": 8,
+    "claimAssertions": 8,
+    "promptAssertions": 23,
+    "guidanceAssertions": 81,
+    "stopDispatcherAssertions": 89
+  },
+  "fullCheckpoint": {
+    "pureSynthetic": 25,
+    "mocked": 81,
+    "productionCompiles": 59,
+    "builds": "all candidate/disposable builders and source audit passed",
+    "finalTestOnlyChange": "171 focused assertions and6 controls rerun after aggregate; no production/builder change"
+  },
+  "independentReview": "Exact production diff cleared. Reviewer independently reran171 assertions,1 source-order contract and6 controls after requesting newclaimed-state reload and expired-credit hardening; renderer431/7controls independently passed. No scoped blocker.",
+  "buildArtifacts": {
+    "AutomaticVoiceCandidate.rbxl": "eb31be585f01aac33b9ba9c30e003cd1e95f3db6240e857c758bc1fac3e2f845",
+    "SustainedLocalPlay.rbxl": "8135cc193e4c29f30adc10585fb7d919984f9eb25e07742bdb8fb433d5b8bda1",
+    "QuestCardsReview.rbxl": "8444523c1ba2f5e854756697e4ba6fb21ed903f4dc23cff2ae2779297baa279b"
+  },
+  "limitations": [
+    "Engine, raycast results, adapter output, UI text metrics and persistence services mocked; no full live quest dispatcher/transport validation",
+    "Legacy practice hook tested as accepted-obstruction slice plus source-order contract, not complete legacy cast raycast",
+    "Native quest-card fixture built only; no native readability, physical input, real microphone, multiplayer balance or live persistence validation",
+    "Older-server sanitation drops new quest progress/claims; release needs compatible rollout/rollback, otherwise new rewards may replay",
+    "Map paused; production geometry/projection and exact archived original unchanged"
+  ],
+  "nativeExecution": false,
+  "publication": false,
+  "liveDataStoreUse": false,
+  "cleanup": "No apps/tabs opened; read-only inventory found ChatGPT plus three existing app-picker windows, no Studio window"
+}
