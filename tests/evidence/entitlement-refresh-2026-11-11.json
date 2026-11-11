@@ -1,0 +1,56 @@
+{
+  "recordedAtUtc": "2026-11-11T21:21:01.743701+00:00",
+  "baseCommit": "670948dd6da0cba85672e71f8d0f294005864202",
+  "hashSemantics": "Exact final working-tree bytes; local newline encoding included",
+  "checks": {
+    "entitlementRefresh": {
+      "assertions": 40,
+      "negativeControls": 7,
+      "historicalBaseline": "670948d expected stale result failure",
+      "independentReview": "Focused controls and baseline rerun; registered purchase callback, both pass IDs, departure and same-ID replacement reviewed"
+    },
+    "legacyEntitlements": 9,
+    "commerce": {
+      "assertions": 46,
+      "negativeControls": 5
+    },
+    "aggregate": {
+      "pureSynthetic": 25,
+      "mocked": 92,
+      "productionCompiles": 60,
+      "builds": "all"
+    }
+  },
+  "commands": [
+    "python tests/entitlement_refresh.py --baseline",
+    "python tests/entitlement_refresh.py --negative-controls",
+    "python tests/entitlements.py (in aggregate and separate independent run)",
+    "python tests/commerce.py --negative-controls",
+    "python tests/verify_local.py --build"
+  ],
+  "limits": [
+    "Latent until pass configuration; production IDs remain zero",
+    "Mock ownership API/coroutines, not native service/purchases/replication",
+    "No API cancellation/retry redesign or native GC guarantee",
+    "No apps, map edits, live stores, product/audio configuration or publication",
+    "Quest writer runtime gate remains unresolved; separate oracle gaps queued for follow-up"
+  ],
+  "sources": {
+    "src/ServerScriptService/Entitlements.luau": "0616a35d7aec98be4f2324beba213cdf1bd225c070dd1859366756742c369be4",
+    "src/ReplicatedStorage/Shared/ShopCatalog.luau": "53860a7c662529027105a6c39bd154b15056e782ca44613fea5bbf2ee37e260c",
+    "src/ReplicatedStorage/Shared/Config.luau": "47bb409b104c8f3f89647dc9808fb3c434a1f42bdc5bd81637e8b55b968dca7b",
+    "tests/entitlement_refresh.py": "b0082c65bed98a04d219a9a91938342cbdba14e345588011535031d00ab31605",
+    "tests/verify_local.py": "eddd6bada3180ef42273c7d4d05050060a7454591e87aa85e8c4e6fe8bb82dc5",
+    "docs/ENTITLEMENT_REFRESH_REVIEW.md": "f09a4c9896bac8df7d2c4440d5dc276d4fe3c14376819e4970722d9347195693",
+    "docs/ROADMAP.md": "2b27cf49ef533ca8e3286789279a77d27115883fa91c0732e6ba17bcf2d56910",
+    "docs/PLAYTEST_BACKLOG.md": "fcd49b61fd6ff9207c940b9aaa613edc5a314c70b94eb2921734a84807ea182c"
+  },
+  "artifacts": {
+    "build/entitlement-refresh-baseline.log": "b348ab00010aadce14cb02e772b5c1b5251538b5442e9e73b261b0ce3a2e1e5e",
+    "build/entitlement-refresh-controls.log": "f224a4061e659833810e9129c1c7aa82faa4d7e18469acff32765dab3454aa57",
+    "build/entitlement-commerce-controls.log": "329f693b5e027a88da608e89f373a26dda9d914977c580a0277a15249064dcaa",
+    "build/entitlement-refresh-final.log": "ae7b333d18cd78e32917dff66ea186fb92fe2f379c3a51c040e010567c10279f",
+    "build/AutomaticVoiceCandidate.rbxl": "13e043c9661d0554e2f83f3d2bd2047b0625b2d176e0751de4550408abab2e3c",
+    "build/AutomaticVoiceCandidate.provenance.json": "539500b72c3f5f869ef02584c8eaa98898265cd463b22a9801ccf68ab961af08"
+  }
+}
