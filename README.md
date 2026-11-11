@@ -59,7 +59,7 @@ Configured boost purchases activate on confirmed server receipt delivery, extend
 
 ## Friend testing and release limits
 
-Public test tools remain enabled at the owner's request (`DeveloperAccess.PublicTestingEnabled = true`). The first test mutation freezes legitimate progress; test changes use a temporary copy and are not saved. Owner/product configuration is still needed for real pass and badge IDs.
+The unpublished candidate restricts TEST TOOLS to local Studio players or the verified owner in that owner's user-owned experience. Ordinary live players are rejected on the server even if they submit the command directly. This supersedes the candidate's earlier public friend-test flag; the published preview is unchanged. **+10 levels** adds ten test levels up to100, keeps XP below the cap and clears XP at100. It does not equip another style or grant paid entitlements. The first test mutation freezes legitimate progress; test changes use a temporary copy and are not saved. See [test-tool review](docs/DEVELOPER_TOOLS_REVIEW.md). Owner/product configuration is still needed for real pass and badge IDs.
 
 Outstanding release gates include real microphones and eligible accounts, physical device/multiplayer input and performance tests, live save contention/migration checks, completed city art review and a production backup/old-server drain. **Do not publish this branch as a finished release based on compilation or synthetic tests.** See the status log for active test runs and their exact source versions.
 
@@ -84,7 +84,7 @@ Requires local `luau` and `luau-compile`, plus `rojo` for `--build`. This runs p
 
 ### Studio movement-pass testing
 
-In local Studio Play, open **TEST TOOLS**, scroll to **Test movement**, and toggle it on. The normal microphone requirement still applies. This grants a temporary movement entitlement only in Studio; safe-area movement limits and arena cooldowns remain enforced. Toggle again to remove it. The server rejects this command outside Studio even while public test tools are enabled. No purchase is prompted, and legitimate save progress is frozen before the test mutation. Real pass IDs remain unconfigured.
+In local Studio Play, open **TEST TOOLS**, scroll to **Test movement**, and toggle it on. The normal microphone requirement still applies. This grants a temporary movement entitlement only in Studio; safe-area movement limits and arena cooldowns remain enforced. Toggle again to remove it. The server rejects this command outside Studio, including for the owner. No purchase is prompted, and legitimate save progress is frozen before the test mutation. Real pass IDs remain unconfigured.
 
 ### Standalone microphone feasibility lab
 

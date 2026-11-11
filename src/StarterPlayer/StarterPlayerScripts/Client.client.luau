@@ -327,7 +327,7 @@ devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60))
 local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
 label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
 label(devPanel,"Test commands disable saving this session.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
-local testCommands={{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level "..Config.MaxLevel},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}
+local testCommands={{"XP","+500 XP"},{"AddLevels","+10 levels"},{"Coins","+1,000 coins"},{"MaxLevel","Level "..Config.MaxLevel},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}
 if Run:IsStudio() then table.insert(testCommands,{"StudioMovement","Test movement"}) end
 testContent.CanvasSize=UDim2.fromOffset(0,math.ceil(#testCommands/2)*47)
 for i,item in ipairs(testCommands) do

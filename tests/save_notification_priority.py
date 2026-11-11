@@ -26,6 +26,7 @@ local Soccer={Status=function()end};local QuestGuide={Step=function()end}
 local Equipment={Sync=function()end};local TrainingRules={Recommended=function()return {name='Rookie'}end}
 local Entitlements={HasSpectrum=function()return false end,HasMovement=function()return false end}
 local Access={IsAuthorized=function()return false end};local game={}
+local RunService={IsStudio=function()return false end}
 Commerce.Status=function()return {} end
 local latest;local stateRemote={FireClient=function(_,player,value)latest=value;receiver(value)end}
 local saveMode='ownership';local Profiles={Save=function()return saveMode=='ok',saveMode end}

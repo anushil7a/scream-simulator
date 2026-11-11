@@ -2,12 +2,19 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice, with NPC, animation, district-color and repair scheduling refinements. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 bounded test-level tool and access gate
+
+- Started from clean, fetched `4e37a44`. Reproduced missing +10 command/button and ordinary production player authorization through the old public-testing flag before editing. Added fixed +10 test levels, capped100, preserving XP below the cap and zeroing it at100; selected style, coins and paid entitlements are unchanged.
+- Candidate server and visibility gate now permit Studio players or the verified owner in their user-owned experience. Ordinary live requests cannot enter test mode. Existing first-mutation deep baseline freeze and autosave/departure/shutdown baseline selection remain. This changes only the unpublished candidate, not the live preview.
+- Full25 pure/synthetic +64 mocked suites,57 production compiles and all builds pass. Focused94 actual-source authorization/command/sanitizer assertions,61 synthetic UI assertions and7 negative controls pass. Source checks distinguish the three baseline-saving session paths from the pre-session late-load release. An old fixture needed a RunService mock; corrected and full run repeated. Independent review cleared the change and reran both focused suites/controls. [Review and limits](DEVELOPER_TOOLS_REVIEW.md), [source hashes](../tests/evidence/developer-tools-2026-11-11.json).
+- Owner explicitly superseded repeated allowance checks: continue authorized small checkpointed work until asked to stop or an issue needs help. Actual hard limits still apply. No native execution, live stores, publication or disposable apps this batch. Map unchanged. Dodge reference is blocked on correct readable evidence; minimap/quest and remaining playtest work stay pending.
+
 ## November 11 automatic boost delivery and description correction
 
 - Reproduced actual receipt handler leaving purchases inactive. New receipts atomically record identity and extend absolute XP/coin expiry once; duplicate/lost-response replay never restarts time. Legacy saved boosts and historical receipt identity remain intact. Offline time still counts; unconfirmed failures are not acknowledged or granted locally. Product IDs remain zero.
 - Removed attack max-duration/cooldown wording only from the descriptive collection. Kept accurate current-level stats, live cooldown feedback and existing combat timings/map unchanged.
 - Full 25 pure/synthetic + 62 mocked suites, 57 production compiles and all builds passed. Focused checks: 46 receipt, 41 ledger, 26 shop UI and 1,180 beam assertions, plus 15 negative controls. Independent review caught an unknown-status label; corrected and rerun with no remaining blocker. No native or live purchase/store execution. [Behavior, evidence and gates](BOOST_PURCHASE_REVIEW.md).
-- Main checkpoint `c1d700a` pushed non-force and verified remotely, preserving `736a82f` and `f0dc1e7`. Narrow follow-up removes unwanted offline-timer wording from boost cards/footer and saved-boost confirmation without changing expiry behavior. Review, commit and verify its non-force delivery. No credential changes. No publication; no disposable apps were opened.
+- Main checkpoint `c1d700a` pushed non-force and verified remotely, preserving `736a82f` and `f0dc1e7`. Narrow follow-up removes unwanted offline-timer wording from boost cards/footer and saved-boost confirmation without changing expiry behavior. Follow-up `4e37a44` was independently cleared, pushed non-force and verified remotely. No credential changes. No publication; no disposable apps were opened.
 
 ## November 11 beam cooldown/readout checkpoint
 
@@ -119,7 +126,7 @@ The loop is: aim, scream into the mic, fight for space, earn XP and unlock more 
 
 ## Operating policy
 
-- Usage policy reaffirmed by owner November 9: continue while allowance remains; check usage at task boundaries and keep work checkpointed.
+- Latest November11 owner instruction supersedes prior usage checks: continue authorized work; the owner will report low allowance or ask to stop. Keep work checkpointed and respect actual hard limits.
 - Work locally in focused commits and disposable Studio copies. Publishing requires fresh owner approval. Preserve externally changed cloud state and existing saves.
 - The current chat's scheduled development follow-up was removed at the owner's request on November 9. Continue work on request; do not recreate scheduled work without a new request. Earlier scheduling entries below are historical.
 - Maintain completed evidence, known failures and the next concrete action here. Actual audio, hardware and multiplayer gates stay open until observed.

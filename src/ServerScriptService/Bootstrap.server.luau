@@ -89,7 +89,7 @@ local function state(p,message,conversation,messageUrgent,messageKey)
  availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
+ conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio()),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
 end
 Commerce.Start(function(p)
  local s=sessions[p]
@@ -559,8 +559,8 @@ local function talk(p,id)
 end
 local function dev(p,command)
  if Commerce.Busy(p) then state(p,"Wait for your purchase to finish saving.");return end
- local s=sessions[p];if not s or not Access.IsAuthorized(p,game.CreatorType,game.CreatorId) then return end
- local valid={Coins=true,XP=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true,StudioMovement=true}
+ local s=sessions[p];if not s or not Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio()) then return end
+ local valid={Coins=true,XP=true,AddLevels=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true,StudioMovement=true}
  if type(command)~="string" or not valid[command] then return end
  if command=="StudioMovement" and not game:GetService("RunService"):IsStudio() then return end
  -- Freeze legitimate progress before any test mutation. Keep renewing/releasing its lease.
@@ -569,6 +569,9 @@ local function dev(p,command)
  local positions={Hub=World.SafeSpawn,Arena=CFrame.new(0,6,0),Beach=CFrame.new(0,4,403)}
  if command=="Coins" then s.data.coins+=1000
  elseif command=="XP" then xp(p,500)
+ elseif command=="AddLevels" then
+  s.data.level=math.min(Config.MaxLevel,s.data.level+10)
+  if s.data.level==Config.MaxLevel then s.data.xp=0 end
  elseif command=="MaxLevel" then s.data.level=Config.MaxLevel;s.data.xp=0
  elseif command=="LevelOne" then s.data.level=1;s.data.xp=0;s.data.sound="TinyAah"
  elseif command=="Heal" and h then h.Health=h.MaxHealth
