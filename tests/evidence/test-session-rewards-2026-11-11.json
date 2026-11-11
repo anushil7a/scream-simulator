@@ -1,0 +1,66 @@
+{
+  "base": "1e14e91103f6855b77673784b022e603cec19ef6",
+  "status": "unpublished test-session combat/reward isolation",
+  "sourceHashDefinition": "exact verified working-tree bytes; checkout EOL conversion may differ",
+  "sourceSha256": {
+    "src/ServerScriptService/Bootstrap.server.luau": "3b78e66b55dc60c3b2deb18650966770ba4786e2a21f1d401d26bba4dbe34b44",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "1d9ba67473a1e91ec854eba3cee17243179330ca42d8f99f239452db416b6e8f",
+    "src/ReplicatedStorage/Shared/Config.luau": "47bb409b104c8f3f89647dc9808fb3c434a1f42bdc5bd81637e8b55b968dca7b",
+    "src/ReplicatedStorage/Shared/CombatCredit.luau": "77e0749e619c6bfbf4b6dbbeedd5e4a8d16f2aab612448a015bcaa8370ca72a1",
+    "src/ServerScriptService/Profiles.luau": "d1101ab834275507aed9a50536c5db98ae0df3323261421370fbf7d06bdaad43",
+    "tests/test_session_rewards.py": "2d94becabf95c8e55f8a72bbbc9c2bcb5492e45aebf197aee199686aaaee568c",
+    "tests/pvp_rewards.py": "04e1ff2e5cb96a61ae83a39ec9b28561bfe13917119952da5087a3cd0b02d44e",
+    "tests/combat_quests.py": "cc4982caffb7139928c3b08ce42c027b8107bbdb572bcec97367881e44bb0403",
+    "tests/developer_tools.py": "434d7f7c5c292f55b13631759babc9dcbd7009e152e4794926006d21ce36ea56",
+    "tests/developer_tools_ui.py": "44b0880d476409e29616d0adb773161b3b64fb65a6f626583fb0258653bbb7fa",
+    "tests/verify_local.py": "4e0e25fdcc66429b08043dd3e5727d04bf162ce58254e973313c4b5171ee236f"
+  },
+  "baseline": {
+    "victimTestLevel": 100,
+    "victimSavedBaselineLevel": 1,
+    "ordinaryRecipientXP": 862,
+    "ordinaryRecipientCoins": 25,
+    "ordinaryRecipientResultLevel": 8,
+    "contaminationSavedToFakeStore": true,
+    "sharedTrainerOrdinaryXP": 4,
+    "sharedTrainerChallengeStep": 1,
+    "nativeExploitVerified": false
+  },
+  "focused": {
+    "isolationAssertions": 56,
+    "isolationNegativeControls": 11,
+    "combatQuestAssertions": 173,
+    "questSourceContracts": 1,
+    "questNegativeControls": 6,
+    "pvpPayoutChecks": 19,
+    "developerAssertions": 94,
+    "developerSourceContracts": 3,
+    "developerUiAssertions": 61,
+    "questRendererAssertions": 431
+  },
+  "fullSuites": {
+    "pureSynthetic": 25,
+    "mocked": 82,
+    "productionCompiles": 59,
+    "builds": "all candidate/disposable builders and source audit passed"
+  },
+  "independentReview": "Exact production diff cleared; independently reran56/11 isolation,173/6 quest and19 PvP checks, inspected target predicate extraction, provenance, denominator and simulated save/rejoin preservation. No scoped blocker.",
+  "buildArtifacts": {
+    "AutomaticVoiceCandidate.rbxl": "fe7ff75559e7a63454620d7566cbb7ae8daccf25e69c788b2618e58617a34256",
+    "SustainedLocalPlay.rbxl": "01f72e56eef5d71b8b0fb98c734bf48cffb530b5a2092ee37112401637f0a872",
+    "QuestCardsReview.rbxl": "6c7784502c049cd5d278df70009b0b23dc927cddd1edb937740c451691ea78f9"
+  },
+  "limitations": [
+    "Actual helper/predicate slices with synthetic engine/geometry; not full native targeting/damage pipeline or networking",
+    "Fake atomic stores, no real persistence or shutdown/soak validation",
+    "Combat/reward boundary only; physical/sports/shared-world interactions not fully isolated",
+    "Client-reported microphone readiness/power authenticity not established",
+    "Continuous hits can extend provenance quarantine until genuine credit expiry or ledger consumption",
+    "New quest mixed-version rollback gate remains; older catalogs can drop unknown progress/claims",
+    "Map paused and original archive unchanged"
+  ],
+  "nativeExecution": false,
+  "publication": false,
+  "liveDataStoreUse": false,
+  "cleanup": "No apps or tabs opened"
+}

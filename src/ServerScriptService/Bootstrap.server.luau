@@ -138,14 +138,34 @@ local function combatChallenge(p,id,quiet)
  end
  return reward
 end
+local function sameCombatMode(a,b)
+ return a~=nil and b~=nil and (a.testBaseline~=nil)==(b.testBaseline~=nil)
+end
+local function canDamageBots(s)
+ -- Only the guarded local fixture makes every participant's profile temporary.
+ return s~=nil and (s.testBaseline==nil or localFixture==true)
+end
 local function recordCredit(ledger,p,damage,maximum,now)
+ local s=sessions[p];if not s or damage<=0 then return end
+ local previous=ledger[p.UserId]
  Credit.Add(ledger,p.UserId,damage,now,maximum)
+ local entry=ledger[p.UserId]
+ if entry and entry~=previous then
+  entry.rewardSession=s;entry.rewardTest=s.testBaseline~=nil
+ elseif entry and (entry.rewardSession~=s or entry.rewardTest~=(s.testBaseline~=nil)) then
+  -- Keep damage in the denominator, but never inherit another session/mode's credit.
+  entry.rewardSession=false
+ end
 end
 local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim,tier)
+ local fs=sessions[finisher]
+ if not fs or (victim and not sameCombatMode(fs,sessions[victim])) or (not victim and not canDamageBots(fs)) then table.clear(ledger);return end
+ local attribution=table.clone(ledger)
  local shares,meaningful=Credit.Split(ledger,finisher.UserId,now,maximum)
  for id,share in pairs(shares) do
   local recipient=Players:GetPlayerByUserId(id);local rs=recipient and sessions[recipient]
-  if not rs then continue end
+  local entry=attribution[id]
+  if not rs or not entry or entry.rewardSession~=rs or entry.rewardTest~=(rs.testBaseline~=nil) or not sameCombatMode(rs,fs) then continue end
   local factor=Config.Progression.RewardFactor(rs.data.level,tier and TrainingRules.RewardLevel(tier,rs.data.level) or targetLevel)
   local repeatFactor=victim and Credit.RepeatFactor(rewardHistory,id,victim.UserId,now) or 1
   local reward=math.floor(pool*share*factor*repeatFactor)
@@ -244,7 +264,7 @@ local function resolveSustained(ctx,direction,stats,now)
  if Config.InArena(ctx.position) then
   for _,p in ipairs(players) do
    local ts=sessions[p];local c,r,h=parts(p)
-   if p~=ctx.player and ts and r and Rules.CanTarget(ctx.position,r.Position,ts.protectedUntil,now,stats.range+2)
+   if p~=ctx.player and sameCombatMode(sessions[ctx.player],ts) and r and Rules.CanTarget(ctx.position,r.Position,ts.protectedUntil,now,stats.range+2)
     and Rules.InBeam(ctx.origin,direction,r.Position,length,stats.width,1) and audible(ctx.character,ctx.origin,r.Position,c) then
     if now<ts.dodgingUntil and not ts.premiumRoll then table.insert(dodged,p)
     else add("player:"..p.UserId,{player=p,session=ts,humanoid=h}) end
@@ -258,7 +278,7 @@ local function resolveSustained(ctx,direction,stats,now)
   if type(id)=="string" and not model:GetAttribute("Destroyed") then add("object:"..id,{object=model}) end
  end
  for _,bot in ipairs(World.Bots) do
-  if bot.alive and bot.root.Parent and (not bot.training or (ctx.position-bot.start).Magnitude<=TrainingRules.Radius) and Rules.InBeam(ctx.origin,direction,bot.root.Position,length,stats.width,1)
+  if canDamageBots(sessions[ctx.player]) and bot.alive and bot.root.Parent and (not bot.training or (ctx.position-bot.start).Magnitude<=TrainingRules.Radius) and Rules.InBeam(ctx.origin,direction,bot.root.Position,length,stats.width,1)
    and audible(ctx.character,ctx.origin,bot.root.Position,bot.model) then
    add("bot:"..tostring(bot.id),{bot=bot})
   end
@@ -411,7 +431,7 @@ local function cast(p,request)
  end
  local hits=0;local paid=0;local playerHits=0;local evades=0;local knockoutMessage
  for _,bot in ipairs(World.Bots) do
-  if bot.alive and bot.root.Parent and (not bot.training or (r.Position-bot.start).Magnitude<=TrainingRules.Radius) and Rules.InBeam(origin,direction,bot.root.Position,length,sound.width,1) and audible(c,origin,bot.root.Position,bot.model) then
+  if canDamageBots(s) and bot.alive and bot.root.Parent and (not bot.training or (r.Position-bot.start).Magnitude<=TrainingRules.Radius) and Rules.InBeam(origin,direction,bot.root.Position,length,sound.width,1) and audible(c,origin,bot.root.Position,bot.model) then
    hits+=1
    if bot.training then recordCredit(bot.credit,p,math.min(sound.damage,bot.health),bot.maxHealth,now);bot.trainingTarget=p;bot.lastTrainingHit=now end
    bot.health=math.max(0,bot.health-sound.damage);local ko=bot.health==0
@@ -429,7 +449,7 @@ local function cast(p,request)
  if Config.InArena(r.Position) then
   for _,target in ipairs(Players:GetPlayers()) do
    local ts=sessions[target];local tc,tr,th=parts(target)
-   if target~=p and ts and tr and Rules.CanTarget(r.Position,tr.Position,ts.protectedUntil,now,sound.range+2) and Rules.InBeam(origin,direction,tr.Position,length,sound.width,1) and audible(c,origin,tr.Position,tc) then
+   if target~=p and sameCombatMode(s,ts) and tr and Rules.CanTarget(r.Position,tr.Position,ts.protectedUntil,now,sound.range+2) and Rules.InBeam(origin,direction,tr.Position,length,sound.width,1) and audible(c,origin,tr.Position,tc) then
     if now<ts.dodgingUntil and not ts.premiumRoll then evades+=1;questProgress(target,"Evade")
     else
      playerHits+=1
@@ -558,8 +578,12 @@ local function dev(p,command)
  local valid={Coins=true,XP=true,AddLevels=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true,StudioMovement=true}
  if type(command)~="string" or not valid[command] then return end
  if command=="StudioMovement" and not game:GetService("RunService"):IsStudio() then return end
+ if command=="ResetBots" and not localFixture then state(p,"Reset bots requires the isolated local Studio fixture; shared fights are unchanged.");return end
  -- Freeze legitimate progress before any test mutation. Keep renewing/releasing its lease.
- if not s.testBaseline then s.testBaseline=Profiles.Sanitize(s.data);s.data=Profiles.Sanitize(s.data) end
+ if not s.testBaseline then
+  cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0);s.credit={}
+  s.testBaseline=Profiles.Sanitize(s.data);s.data=Profiles.Sanitize(s.data)
+ end
  local c,_,h=parts(p)
  local positions={Hub=World.SafeSpawn,Arena=Config.CompactCity and CFrame.new(Config.CityLayout.Teleports.Arena) or CFrame.new(0,6,0),Beach=Config.CompactCity and CFrame.new(Config.CityLayout.Teleports.Beach) or CFrame.new(0,4,403)}
  if command=="Coins" then s.data.coins+=1000
@@ -575,7 +599,7 @@ local function dev(p,command)
  elseif command=="StudioMovement" then Entitlements.SetStudioMovement(p,not Entitlements.HasStudioMovement(p))
  elseif command=="ResetBots" then for _,b in ipairs(World.Bots) do restoreBot(b) end
  else return end
- syncHealth(p,command=="Heal");state(p,command=="StudioMovement" and ("Studio movement test "..(Entitlements.HasStudioMovement(p) and "ON" or "OFF").." · safe areas only · not saved") or "Test applied · this session does not save")
+ syncHealth(p,command=="Heal");state(p,command=="StudioMovement" and ("Studio movement test "..(Entitlements.HasStudioMovement(p) and "ON" or "OFF").." · safe areas only · not saved") or "Test applied · progress is temporary. PvP is test-to-test only; NPC damage/reset requires the isolated local Studio fixture.")
 end
 World.OnVehicleSweep=function(car,previous,nextFrame)
  for player,s in pairs(sessions) do

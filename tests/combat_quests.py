@@ -109,7 +109,7 @@ local finisher={UserId=2};local victim={UserId=3};players[2]=finisher;players[3]
 local function assist(damage,level,hasVictim,at,online)
  local ss=session(p,'arena_assist');session(finisher,'arena');session(victim,nil)
  rewardHistory={pairs={}};players[1]=p;if online==false then players[1]=nil end
- local ledger={};Credit.Add(ledger,1,damage,at,100);Credit.Add(ledger,2,100-damage,at,100)
+ local ledger={};recordCredit(ledger,p,damage,100,at);recordCredit(ledger,finisher,100-damage,100,at)
  awardCombatKO(ledger,finisher,level,100,100,at,hasVictim and victim or nil)
  check(next(ledger)==nil,'KO ledger was not consumed')
  return ss,ledger
@@ -122,20 +122,26 @@ for _,row in ipairs({{9,20,true,true},{70,19,true,true},{70,20,false,true},{70,2
  s=assist(row[1],row[2],row[3],200,row[4]);check(s.data.quests.arena_assist.progress==0,'Ineligible assist progressed')
 end
 players[1]=p;s=session(p,'arena_assist');session(finisher,nil)
-ledger={};Credit.Add(ledger,1,100,300,100);awardCombatKO(ledger,p,20,100,100,300,victim)
+ledger={};recordCredit(ledger,p,100,100,300);awardCombatKO(ledger,p,20,100,100,300,victim)
 check(s.data.quests.arena_assist.progress==0,'Finisher counted as assist')
 s,ledger=assist(70,30,true,400,true);s.data.quests.arena_assist.progress=0
-Credit.Add(ledger,1,70,401,100);Credit.Add(ledger,2,30,401,100);awardCombatKO(ledger,finisher,30,100,100,401,victim)
+recordCredit(ledger,p,70,100,401);recordCredit(ledger,finisher,30,100,401);awardCombatKO(ledger,finisher,30,100,100,401,victim)
 check(s.data.quests.arena_assist.progress==0,'Repeat-suppressed reward counted as assist')
 s,ledger=assist(10,20,true,500,true);check(s.data.quests.arena_assist.progress==1,'Exact meaningful threshold rejected')
 -- Actual Credit.Window boundary and stale contribution rejection.
 for _,age in ipairs({25,25.001})do
  s=session(p,'arena_assist');session(finisher,nil);rewardHistory={pairs={}};players[1]=p
- ledger={};Credit.Add(ledger,1,70,600,100);Credit.Add(ledger,2,30,600,100)
+ ledger={};recordCredit(ledger,p,70,100,600);recordCredit(ledger,finisher,30,100,600)
  awardCombatKO(ledger,finisher,20,100,100,600+age,victim)
  check(s.data.quests.arena_assist.progress==(age==25 and 1 or 0),'Assist credit expiry boundary incorrect')
  check(next(ledger)==nil,'Expired/boundary ledger not consumed')
 end
+-- Credit is inactivity-based, not a rolling-damage window: chained hits retain it.
+s=session(p,'arena_assist');session(finisher,nil);session(victim,nil);rewardHistory={pairs={}}
+ledger={};recordCredit(ledger,p,10,100,700);recordCredit(ledger,p,1,100,724);recordCredit(ledger,p,1,100,748)
+recordCredit(ledger,finisher,88,100,749);awardCombatKO(ledger,finisher,20,100,100,749,victim)
+check(s.data.quests.arena_assist.progress==1,'Chained inactive-window credit semantics changed')
+check(Config.GetQuest('arena_assist').description:find('expires after 25 seconds without a hit',1,true)~=nil,'Assist copy falsely implies rolling damage window')
 -- Actual sanitize/load/save/release/rejoin with an isolated atomic store.
 local seed=P.Default();seed.level=20;seed.xp=7;seed.coins=123
 for _,q in ipairs(Config.Quests)do seed.quests[q.id]={progress=math.max(0,q.goal-1),claimed=q.id=='arena'};seed.availableQuests[q.id]=true end

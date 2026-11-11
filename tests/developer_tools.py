@@ -53,7 +53,8 @@ local Access=(function()
 """
 setup=r"""
 end)()
-local owner={UserId=11499795799};local ordinary={UserId=1234}
+local owner={UserId=11499795799,SetAttribute=function()end};local ordinary={UserId=1234,SetAttribute=function()end}
+local VoiceCombat=Combat;local function cancelSustained()end
 local sessions={};local busy=false;local notices=0;local healthSync=0;local entitlementWrites=0;local movement=false
 local Commerce={Busy=function()return busy end}
 local function state()notices+=1 end
@@ -66,7 +67,7 @@ local function restoreBot()error('Unexpected bot reset')end
 local function xp(p,n)sessions[p].data.xp+=n end
 local Entitlements={SetStudioMovement=function(_,enabled)movement=enabled;entitlementWrites+=1 end,HasStudioMovement=function()return movement end}
 local function fresh(p,level,xpValue)
- sessions[p]={data=Profiles.Sanitize({schemaVersion=4,level=level,xp=xpValue or 17,sound='TinyAah',aura='Gold',coins=123,
+ sessions[p]={voice=Combat.New(),data=Profiles.Sanitize({schemaVersion=4,level=level,xp=xpValue or 17,sound='TinyAah',aura='Gold',coins=123,
  amplifierOwned=true,amplifierEquipped=true,customColor='FA4FFF',useCustomColor=true,settings={volume=.4,reducedShake=true},
  achievements={FirstBeam=true},availableQuests={garden=true},quests={garden={progress=1,claimed=false}}})}
  return sessions[p]

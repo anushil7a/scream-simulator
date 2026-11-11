@@ -71,7 +71,7 @@ Config.Quests={
 }
 -- Additive identities: never repurpose old quest IDs or their saved claims.
 table.insert(Config.Quests,{id="practice_beams",name="Controlled Beams",description="Hit the mic practice target with 3 separate beams. Each beam counts once; accept this task before practicing.",goal=3,xp=60,coins=25,event="PracticeBeam",menuAvailable=true})
-table.insert(Config.Quests,{id="arena_assist",name="Team Effort",description="Help knock out an equal/higher-level player in the arena without landing the final hit. Contribute at least 10% of their maximum health in recent damage and earn KO credit; repeated opponents may not count.",goal=1,xp=120,coins=50,event="ArenaAssist",menuAvailable=true})
+table.insert(Config.Quests,{id="arena_assist",name="Team Effort",description="Help knock out an equal/higher-level player in the arena without landing the final hit. Deal at least 10% of their maximum health and earn KO credit. Your damage credit expires after 25 seconds without a hit; repeated opponents may not count.",goal=1,xp=120,coins=50,event="ArenaAssist",menuAvailable=true})
 local questGivers={beach="Mar Soler · Rambla Gardens",delivery="Pau Vidal · Mercat del Mar",crowd="Busker · west gardens",sprint="Commuter · Plaça del Sol",dodge="Fighter · Rambla Gardens",arena="Fighter · Rambla Gardens"}
 if Config.CompactCity then
  questGivers.crowd="Eric Sol · west courtyard"

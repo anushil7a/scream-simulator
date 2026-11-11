@@ -27,11 +27,12 @@ for _,isStudio in ipairs({false,true}) do
  buttons.AddLevels.call()
  check(#calls==1 and calls[1][1]=='DevCommand' and calls[1][2]=='AddLevels','Button sends wrong command or client amount')
  check((buttons.StudioMovement~=nil)==isStudio,'Studio-only movement exposed incorrectly')
+ check((buttons.ResetBots~=nil)==isStudio,'Live reset-bots control exposed')
  local n=0;for _,b in pairs(buttons)do
   n+=1;check(b.size.X>=44 and b.size.Y>=44,'Test target below minimum touch size')
   check(b.pos.Y+b.size.Y<=testContent.CanvasSize.Y,'Test control outside scroll canvas')
  end
- check(n==(isStudio and 12 or 11),'Existing test tools lost or duplicated')
+ check(n==(isStudio and 12 or 10),'Existing test tools lost or duplicated')
 end
 local testButton={Visible=false}
 local function update(data)

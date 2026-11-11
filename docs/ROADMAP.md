@@ -2,6 +2,12 @@
 
 Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 11 test-session combat economy isolation
+
+- Independently identified/reproduced test-level100 victim paying a normal level1 player862 XP/25coins that saved, while owner's legitimate baseline stayed level1. Added same-mode PvP eligibility, guarded-fixture-only test NPC damage/global reset, first-entry attack cancellation, and immutable session/mode credit attribution with denominator-preserving rejection. Normal combat and frozen baseline save selection remain.
+- Independent review reran56 assertions/11 controls,173 quest assertions/six controls and19 PvP checks. Full25 pure/synthetic +82 mocked suites,59 compiles and all builds pass. Team Effort copy now accurately describes inactivity-based25-second credit expiry; exact chained-hit regression preserves ledger balance. [Review and limits](TEST_SESSION_REWARDS_REVIEW.md).
+- No native/network/live-save claim, apps or publication. This does not isolate all shared physics/sports or authenticate client microphone reports. Map remains paused. Next: investigate supported server-side voice eligibility/trust mitigation without claiming audio authenticity, retaining native/device and mixed-version quest rollout gates.
+
 ## November 11 additive combat quests
 
 - Added two new-ID, one-time combat tasks without changing eight existing quest identities/rewards/claims: Controlled Beams (three separate practice-target beams) and Team Effort (meaningful rewarded equal/higher-level PvP assist, not the finisher). New tasks are menu-available; old NPC discovery gates remain. Clarified Crowd as distinct NPCs over one beam rather than simultaneous lineup. Map remains paused and unchanged.

@@ -15,6 +15,7 @@ local rewardHistory={pairs={}}
 local one={UserId=1};local two={UserId=2};local victim={UserId=3,DisplayName='Opponent'}
 local players={[1]=one,[2]=two,[3]=victim}
 local Players={GetPlayerByUserId=function(_,id)return players[id]end}
+local localFixture=false
 local sessions={}
 for _,p in pairs(players) do sessions[p]={data={level=20,xp=0,coins=0,combatChallenges={}},credit={}} end
 local notices={};local updates={};local quests={};local ejections=0
@@ -53,24 +54,24 @@ check(sessions[two].data.xp==100,'Offline credit redistributed into last-hit bon
 players[1]=one
 local ledger={};local tier=TrainingRules.Tiers[3]
 sessions[one].data.level=100;local before=sessions[one].data.xp
-Credit.Add(ledger,1,378,900,420);Credit.Add(ledger,2,42,900,420)
+recordCredit(ledger,one,378,420,900);recordCredit(ledger,two,42,420,900)
 awardCombatKO(ledger,two,60,420,420,900,nil,tier)
 check(sessions[one].data.xp==before+378 and sessions[one].data.combatChallenges.fighters==1 and sessions[one].data.combatChallenges.elite==nil,'Elite assist advanced duplicate retired challenge')
 sessions[one].data.level=60;sessions[one].data.combatChallenges={fighters=2,elite=1}
-ledger={};Credit.Add(ledger,1,420,901,420);local sent=updates[one];before=sessions[one].data.xp
+ledger={};recordCredit(ledger,one,420,420,901);local sent=updates[one];before=sessions[one].data.xp
 awardCombatKO(ledger,one,60,420,420,901,nil,tier)
 check(sessions[one].data.xp==before+570,'KO must award exactly one training challenge')
 check(updates[one]==sent+1 and notices[one]=='KO · +570 XP · challenge completed & renewed','Challenge feedback overwritten or emitted redundant state updates')
 check(sessions[one].data.combatChallenges.fighters==0 and sessions[one].data.combatChallenges.elite==1,'Retired elite counter changed or active challenge did not reset')
 -- No lower-level exclusion: difficult fighters still count for meaningful credit.
 sessions[one].data.level=1;sessions[one].data.combatChallenges.fighters=0
-ledger={};Credit.Add(ledger,1,420,910,420);before=sessions[one].data.xp
+ledger={};recordCredit(ledger,one,420,420,910);before=sessions[one].data.xp
 awardCombatKO(ledger,one,60,420,420,910,nil,tier)
 check(sessions[one].data.xp==before+525 and sessions[one].data.combatChallenges.fighters==1,'Underleveled eligible fighter credit denied')
 local rookie=TrainingRules.Tiers[1]
 for _,level in ipairs({44,45})do
  sessions[one].data.level=level;sessions[one].data.combatChallenges.fighters=0
- ledger={};Credit.Add(ledger,1,80,920+level,80)
+ ledger={};recordCredit(ledger,one,80,80,920+level)
  awardCombatKO(ledger,one,1,80,48,920+level,nil,rookie)
  check(sessions[one].data.combatChallenges.fighters==(level==44 and 1 or 0),'Upper reward-band challenge boundary incorrect')
 end
