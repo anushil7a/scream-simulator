@@ -399,6 +399,14 @@ render=function()
  local scroll=renderedTab==selected and content.CanvasPosition or Vector2.zero
  renderedMenuKey=key;renderedTab=selected;renderRevision+=1
  local revision=renderRevision
+ -- Card callbacks belong to this visible render, not a later reopened panel.
+ local makeButton=button
+ local function button(parent,name,text,size,pos,callback,color)
+  return makeButton(parent,name,text,size,pos,function(...)
+   if clientDestroyed or not modal.Visible or revision~=renderRevision then return end
+   return callback(...)
+  end,color)
+ end
  ShopUI.Clear()
  mapDot=nil
  narrow=gui.AbsoluteSize.X-24<620
@@ -541,11 +549,13 @@ render=function()
 end
 for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name=="Screams" and "BEAMS" or name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() if clientDestroyed or not modal.Visible then return end;selected=name;render() end) end
 local conversationNPC,conversationUntil
+local conversationRevision=0
 conversationPanel=frame(gui,"Conversation",UDim2.fromOffset(460,300),UDim2.fromScale(.5,.5));conversationPanel.AnchorPoint=Vector2.new(.5,.5);conversationPanel.Visible=false;conversationPanel.ZIndex=10
 local conversationName=label(conversationPanel,"",UDim2.new(1,-80,0,36),UDim2.fromOffset(18,12),19,gold)
 local conversationList=Instance.new("ScrollingFrame");conversationList.Size=UDim2.new(1,-36,1,-66);conversationList.Position=UDim2.fromOffset(18,54);conversationList.BackgroundTransparency=1;conversationList.BorderSizePixel=0;conversationList.ScrollBarThickness=4;conversationList.AutomaticCanvasSize=Enum.AutomaticSize.Y;conversationList.CanvasSize=UDim2.new();conversationList.Parent=conversationPanel
 local conversationLayout=Instance.new("UIListLayout");conversationLayout.Padding=UDim.new(0,10);conversationLayout.SortOrder=Enum.SortOrder.LayoutOrder;conversationLayout.Parent=conversationList
 closeConversation=function()
+ conversationRevision+=1
  if conversationPanel.Visible then action:FireServer("EndConversation") end
  conversationPanel.Visible=false;conversationNPC=nil
 end
@@ -563,6 +573,7 @@ end
 button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
 showConversation=function(info)
  cancelCapture();closeMenu();if devPanel then devPanel.Visible=false end
+ conversationRevision+=1;local revision=conversationRevision
  conversationNPC=info.npc;conversationUntil=os.clock()+20;conversationName.Text=info.name
  for _,child in ipairs(conversationList:GetChildren()) do if child:IsA("GuiObject") then child:Destroy() end end
  local order=0
@@ -571,7 +582,10 @@ showConversation=function(info)
  end
  local line=words(info.line,white)
  local function choice(text,callback)
-  order+=1;local b=button(conversationList,"Choice",text,UDim2.new(1,-10,0,48),UDim2.new(),callback);b.TextWrapped=true;b.LayoutOrder=order;return b
+  order+=1;local b=button(conversationList,"Choice",text,UDim2.new(1,-10,0,48),UDim2.new(),function(...)
+   if clientDestroyed or not conversationPanel.Visible or revision~=conversationRevision then return end
+   return callback(...)
+  end);b.TextWrapped=true;b.LayoutOrder=order;return b
  end
  choice("Tell me about this neighborhood",function() line.Text=info.hint end)
  for _,product in ipairs(info.products or {}) do

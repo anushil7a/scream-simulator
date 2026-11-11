@@ -7,6 +7,13 @@ Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 11 rendered panel action lifetimes
+
+- Actual retained callbacks can conditionally reset a newer quest attempt, spend 1,500 earned coins on an amplifier or replace a grandfathered color after the panel closes. Per-render menu and independent conversation revisions now reject stale callbacks after close/replacement/reopen, hidden state or client destruction. Current actions, server authority, quest progress/reward rules and equipment semantics are unchanged.
+- Independent 38 actual-callback/helper assertions and six controls pass, with four historical consequences separately reproduced. NPC disclosure remains 97/four controls; retained modal120/12 covers actual X/B wiring. Panel tests call actual close helpers and use mocked UI/sessions, not the complete remote dispatcher or native queue.
+- Final full25 pure/synthetic +97 mocked suites,60 compiles and all builds pass. Initial build stopped on duplicate button-signature instrumentation; an independently reviewed unique global anchor retains the new guard in captured callbacks. Both initial failure and final result are retained. [Review](PANEL_ACTION_LIFECYCLE_REVIEW.md), [exact evidence](../tests/evidence/panel-action-lifecycle-2026-11-11.json).
+- No native queued-event reachability/frequency or real state-loss incident is claimed. No apps, map changes, live services, purchases, publication or configuration. Unattributed temporary file preserved; normal unsavable play and blocked writer-fleet gate unchanged. Next: independent checkpoint review, then concrete non-map release validation; keep user updates quiet unless help/input is needed.
+
 ## November 11 saved-boost callback lifetime
 
 - Astra reproduced retained USE SAVED XP/Coins callbacks sending ActivateBoost after Shop.Clear. Saved-token callbacks now capture generation before construction and require current generation plus attached button and existing ready state. Clear, rerender and detachment invalidate old callbacks; current/reopened controls still work. Server activation, token inventory, receipts, timing and product IDs are unchanged.

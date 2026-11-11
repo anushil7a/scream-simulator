@@ -19,3 +19,5 @@ Latest owner directions supersede earlier conflicting plans. Keep reviewable bat
 Delivery update: main boost/description checkpoint `c1d700a` pushed non-force and verified remotely, including `736a82f` and `f0dc1e7`. Copy-only follow-up `4e37a44` is also pushed and remotely verified; it removes unwanted offline-timer wording.
 
 Save availability decision: owner chose ordinary **Keep playing**, including normal combat/reward interactions while saving is unavailable. This does not relax write ownership, paid-delivery gates or developer-test isolation. See SAVE_AVAILABILITY_POLICY.md.
+
+Panel action follow-up: rendered menu and NPC choices now reject callbacks from a closed/replaced generation, protecting newer quest attempts, earned-coin purchases, legacy color selections and calibration intent. Current commands/server rules are unchanged.38 mocked callback/helper assertions and six controls pass, with historical consequences reproduced; full25/97/60 and builds pass. Native deferred-event reachability remains unverified. See PANEL_ACTION_LIFECYCLE_REVIEW.md.

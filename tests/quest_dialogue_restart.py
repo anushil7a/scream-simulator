@@ -8,6 +8,7 @@ f=s[s.index('showConversation=function(info)'):s.index('\nlocal function refresh
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local UDim2={new=function(...)return {...}end};local Vector2={zero={}};local Enum={AutomaticSize={Y='Y'}}
+local conversationRevision=0;local clientDestroyed=false
 local modal={};local devPanel={};local conversationName={};local conversationPanel={};local conversationList={GetChildren=function()return {}end}
 local texts,buttons,sent={},{},{};local closed=0
 local function label(_,text)local l={Text=text};table.insert(texts,l);return l end

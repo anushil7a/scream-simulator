@@ -18,7 +18,8 @@ s=replace_once(s,'level=100,xp=30,xpNext=1800','level=1,xp=0,xpNext=103')
 s=replace_once(s,'activeQuest="garden",','')
 s=replace_once(s,'FireServer=function(_,verb) if verb=="Sync"','FireServer=function(_,verb,arg) table.insert(fixtureVerbs,verb); if verb=="SustainedBegin" then p:SetAttribute("SustainedActive",true);p:SetAttribute("SustainedSequence",arg.sequence) elseif verb=="SustainedStop" then p:SetAttribute("SustainedActive",false) end; if verb=="Sync"')
 s=replace_once(s,'voiceEligible=true,voiceStatus="eligible"','voiceEligible=false,voiceStatus="checking"')
-s=replace_once(s,'local function button(parent,name,text,size,pos,callback,color)','local fixtureCallbacks={}\nlocal function button(parent,name,text,size,pos,callback,color)')
+# Anchor the global constructor, not render's indented callback-lifetime wrapper.
+s=replace_once(s,'\nlocal function button(parent,name,text,size,pos,callback,color)','\nlocal fixtureCallbacks={}\nlocal function button(parent,name,text,size,pos,callback,color)')
 s=replace_once(s,'b.Activated:Connect(callback);return b','fixtureCallbacks[name]={button=b,callback=callback};b.Activated:Connect(callback);return b')
 s+='''
 local Http=game:GetService("HttpService")
