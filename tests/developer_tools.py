@@ -125,7 +125,7 @@ check(entitlementWrites==0 and healthSync>0,'Level tool modified movement entitl
 print('PASS '..n..' actual developer access/command/sanitizer assertions; mocked engine, no native or real save validation')
 """
 def assemble(access_source=access,dev_source=dev):
- return preamble+config+between+profiles+helpers+access_source+setup+dev_source+'\nlocal function visible(p)return '+visibility+' end\n'
+ return preamble+config+between+profiles+helpers+access_source+setup+'\nAccess.PrelaunchAllTesters=false -- retained owner-only policy matrix; enabled policy covered separately\n'+dev_source+'\nlocal function visible(p)return '+visibility+' end\n'
 def run(code,expected=None):
  with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',encoding='utf-8',delete=False) as f:
   path=Path(f.name);f.write(code)
@@ -147,7 +147,8 @@ else:
  assert len(saves)==4 and sum('s.testBaseline or s.data' in line for line in saves)==3,saves
  late=server[server.index(' if closing or not p.Parent then',server.index('local function joined(p)')):server.index(' local s={data=data',server.index('local function joined(p)'))]
  assert 'pcall(Profiles.Save,p.UserId,data,true)' in late and 'return' in late,'Unexpected raw-data save outside pre-session late-load release'
- assert 'devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio())' in server,'Visibility omitted server Studio context'
+ assert 'devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)' in server,'Visibility omitted server Studio/universe context'
+ assert server.count('Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)')==2,'Visibility/command must both use server universe'
  print('PASS three persistence call-site baseline selections and server-side visibility wiring (source checks only)')
  if args.negative_controls:
   bad_access=re.sub(r'function Access.IsAuthorized\(.*?\nend', 'function Access.IsAuthorized(player,creatorType,creatorId,isStudio)\n return player~=nil\nend',access,flags=re.S)

@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 from quest_writer_preflight import release_gate
+from developer_access_preflight import release_gate as developer_access_gate
 
 
 def digest(data):
@@ -87,7 +88,7 @@ def main():
         (out/'AutomaticVoiceCandidate.provenance.json').write_text(json.dumps({
             'builtAtUtc':datetime.now(timezone.utc).isoformat(),
             'status':'unpublished; native/device tests remain pending',
-            'releaseGates':{'questWriters':release_gate()},
+            'releaseGates':{'questWriters':release_gate(),'prelaunchTestTools':developer_access_gate()},
             'sourceCount':count,'sources':source_hashes,
             'projectSha256':project_hash,'referencedFiles':referenced_files,
             'artifactSha256':digest(candidate.read_bytes()),

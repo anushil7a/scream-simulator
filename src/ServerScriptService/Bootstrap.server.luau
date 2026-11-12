@@ -58,6 +58,7 @@ local sessions={}
 local closing=false
 local joinsInFlight=0
 local rewardHistory={pairs={}} -- survives reconnects in this server
+local testRewardHistory={pairs={}} -- temporary fights never consume normal-play anti-farm history
 local function parts(p)
  local c=p.Character;local r=c and c:FindFirstChild("HumanoidRootPart");local h=c and c:FindFirstChildOfClass("Humanoid")
  if r and h and h.Health>0 then return c,r,h end
@@ -102,7 +103,7 @@ local function state(p,message,conversation,messageUrgent,messageKey)
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  voiceEligible=VoiceEligibility.Allowed(s.voiceEligibility,os.clock()),voiceStatus=VoiceEligibility.Status(s.voiceEligibility,os.clock()),
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio()),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
+ conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
 end
 -- No remote can enqueue voice checks. Retry state belongs only to live sessions;
 -- at most eight actual API calls exist, with one new start per quarter-second.
@@ -231,7 +232,7 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
   local entry=attribution[id]
   if not rs or type(rs.rewardIdentity)~="table" or not entry or entry.rewardIdentity~=rs.rewardIdentity or entry.rewardTest~=(rs.testBaseline~=nil) or not sameCombatMode(rs,fs) then continue end
   local factor=Config.Progression.RewardFactor(rs.data.level,tier and TrainingRules.RewardLevel(tier,rs.data.level) or targetLevel)
-  local repeatFactor=victim and Credit.RepeatFactor(rewardHistory,id,victim.UserId,now) or 1
+  local repeatFactor=victim and Credit.RepeatFactor(rs.testBaseline and testRewardHistory or rewardHistory,id,victim.UserId,now) or 1
   local reward=math.floor(pool*share*factor*repeatFactor)
   if reward>0 then
    local underdog=targetLevel>=rs.data.level
@@ -638,7 +639,7 @@ local function talk(p,id)
 end
 local function dev(p,command)
  if Commerce.Busy(p) then state(p,"Wait for your purchase to finish saving.");return end
- local s=sessions[p];if not s or not Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio()) then return end
+ local s=sessions[p];if not s or not Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId) then return end
  local valid={Coins=true,XP=true,AddLevels=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true,StudioMovement=true}
  if type(command)~="string" or not valid[command] then return end
  if command=="StudioMovement" and not game:GetService("RunService"):IsStudio() then return end
