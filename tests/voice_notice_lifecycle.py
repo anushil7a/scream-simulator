@@ -7,7 +7,9 @@ constructor=client[client.index(' sustainedControl=require'):client.index(' scri
 constructor=constructor.replace('require(script.Parent:WaitForChild("SustainedControls"))','Controls')
 toggle=client[client.index('local function toggleVoice()'):client.index('local function releaseCapture(')]
 removal=next(line for line in client.splitlines() if line.startswith('connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough'))
-suspend=client[client.index('local function suspendGameplay()'):client.index('connectClient(UIS.WindowFocusReleased')]
+start=client.index('local function suspendGameplay()')
+suspend=client[start:client.index('connectClient(UIS.WindowFocusReleased',start)]
+assert 'sustainedControl:SetArmed(false)' in suspend
 payload='''
 local Queue=require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue')
 local Controls=require('../src/StarterPlayer/StarterPlayerScripts/SustainedControls')

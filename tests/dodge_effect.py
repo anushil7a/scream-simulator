@@ -31,6 +31,9 @@ local p={Character=character,UserId=7};local data={level=20,settings={reducedSha
 local Config={Auras={Blue=blue},GetSound=function(id)lookups+=1;if id=="Known" then return {effect="beam",variant=2,level=10}end end,VoiceCombat={Stats=function()return {range=55}end}}
 local ScreamEffects={Render=function(...)table.insert(renders,{...})end}
 local accepted=true;local hitFeedback={Accept=function()return accepted end}
+-- Decorative feedback is verified separately; preserve this fixture's audio/world assertions.
+local beamScreenFeedback={Hit=function()end,Clear=function()end};local sustainedControl=nil
+local function screenFeedbackAllowed()return false end
 local stops,removed,pulses,updates={},{},{},{}
 local attackAudio={Stop=function(_,id)table.insert(stops,id)end,Remove=function(_,id)table.insert(removed,id)end,Pulse=function(...)table.insert(pulses,{...})end}
 local sustainedBeams={Remove=function(_,id)table.insert(removed,id)end,Update=function(...)table.insert(updates,{...})end}

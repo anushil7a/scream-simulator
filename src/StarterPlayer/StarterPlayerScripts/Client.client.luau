@@ -68,6 +68,24 @@ local action=remotes:WaitForChild("Action")
 local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")
 local dark=Color3.fromRGB(10,16,31);local panel=Color3.fromRGB(23,34,55);local gold=Color3.fromRGB(80,226,255);local white=Color3.fromRGB(240,247,255);local muted=Color3.fromRGB(159,178,207)
 local data={level=1,xp=0,xpNext=Config.XPToNext(1),coins=0,health=100,sound="TinyAah",aura="Gold",quests={},settings={volume=.55,reducedShake=false}}
+-- Match the aim GUI's viewport coordinates without moving the camera or covering HUD.
+local beamFeedbackGui=Instance.new("ScreenGui");beamFeedbackGui.Name="BeamFeedback";beamFeedbackGui.ResetOnSpawn=false
+beamFeedbackGui.ScreenInsets=Enum.ScreenInsets.None;beamFeedbackGui.DisplayOrder=-1;beamFeedbackGui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;beamFeedbackGui.Parent=p.PlayerGui
+local beamScreenFeedback=require(script.Parent:WaitForChild("BeamScreenFeedback")).new(beamFeedbackGui)
+script.Destroying:Connect(function() beamScreenFeedback:Destroy();beamFeedbackGui:Destroy() end)
+connectClient(p.CharacterRemoving,function() beamScreenFeedback:Clear() end)
+connectClient(UIS.WindowFocusReleased,function() beamScreenFeedback:Clear() end)
+connectClient(GuiService.MenuOpened,function() beamScreenFeedback:Clear() end)
+-- Fail quiet if the platform comfort preference cannot be read.
+local platformReducedMotion=true
+local function refreshScreenComfort()
+ local ok,value=pcall(function() return GuiService.ReducedMotionEnabled end)
+ platformReducedMotion=not ok or value==true
+ if platformReducedMotion then beamScreenFeedback:Clear() end
+end
+refreshScreenComfort()
+local comfortOk,comfortSignal=pcall(function() return GuiService:GetPropertyChangedSignal("ReducedMotionEnabled") end)
+if comfortOk then connectClient(comfortSignal,refreshScreenComfort) end
 local function frame(parent,name,size,pos,color)
  local f=Instance.new("Frame");f.Name=name;f.Size=size;f.Position=pos;f.BackgroundColor3=color or dark;f.BorderSizePixel=0;f.Parent=parent
  local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,10);c.Parent=f;return f
@@ -172,6 +190,10 @@ local function blocked()
 end
 local function beamBlocked()
  return not mic.ready or data.voiceEligible~=true or blocked()
+end
+local function screenFeedbackAllowed()
+ return not clientDestroyed and windowFocused and sustainedControl~=nil and sustainedControl.armed
+  and not data.settings.reducedShake and not platformReducedMotion and not beamBlocked()
 end
 local function beginCapture(source)
  if sustainedControl or captureSource or beamBlocked() or os.clock()<nextCast then return end
@@ -724,10 +746,17 @@ if sustainedControl then
 end
 connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth,audioStyleId,attackLevel)
  if kind=="SustainedHit" then
-  if hitFeedback:Accept(id,aura,os.clock()) then playGameplayCue("Hit") end
+  if hitFeedback:Accept(id,aura,os.clock()) then playGameplayCue("Hit");beamScreenFeedback:Hit(os.clock(),screenFeedbackAllowed()) end
   return
  end
  if kind=="SustainedBeamEnd" then
+  if id==p.UserId then
+   -- End has no sequence payload. Consume the current local attempt, failing quiet
+   -- if an old End overlaps a new attempt, rather than launch after a known stop.
+   local ended=sustainedControl and sustainedControl.attack
+   if ended then beamScreenFeedback:Begin(ended.sequence,os.clock(),nil,false) end
+   beamScreenFeedback:Clear()
+  end
   attackAudio:Stop(id,os.clock())
   if sustainedBeams then sustainedBeams:Remove(id) end
   return
@@ -936,6 +965,12 @@ connectClient(Run.RenderStepped,function(dt)
    end
   end
  end
+ -- A current local acknowledgement, not visual-packet arrival order, owns launch feedback.
+ local screenAttack=sustainedControl and sustainedControl.attack
+ if screenAttack and screenAttack.acknowledged and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==screenAttack.sequence then
+  beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),Config.Auras.Gold,screenFeedbackAllowed())
+ end
+ beamScreenFeedback:Step(os.clock(),screenFeedbackAllowed(),data.settings.reducedShake or platformReducedMotion)
  cueContext();gameplayAudio:Step(os.clock(),dt)
  -- Audio consumes frame dt; keep ducking/calibration/fades outside the slow HUD gate.
  attackAudio:Step(os.clock(),dt,mic.ready and mic.power>.12,mic.phase~=nil)

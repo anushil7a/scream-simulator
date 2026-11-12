@@ -7,6 +7,12 @@ Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 12 restrained beam screen feedback
+
+- Original local feedback adds bounded peripheral launch lines and coalesced accepted-hit marks, with a fixed 13-Frame pool, no imported assets and no camera/aim/gameplay change. Reduced-effects/platform-comfort gates and lifecycle cleanup apply. Independent review corrected event/attribute ordering, screen-inset alignment and End-before-first-render replay; current matched local acknowledgement owns launch.
+- Final 25 pure/synthetic + 102 mocked suites, 61 production compiles and all builds pass. Astra independently reran module 94 assertions / 9 controls and actual Client/Controls integration 91 / 18. Retained voice-notice 1,217 / 2 and Dodge 127 / 4 pass after fixture-only extraction/dependency updates. [Review](BEAM_SCREEN_FEEDBACK_REVIEW.md), [evidence](../tests/evidence/beam-screen-feedback-2026-11-12.json).
+- Isolated native inset/geometry fixture is built and compiled, **not run**. Four supplied clips were sampled but no exact beam overlay reference was established. Device appearance/comfort, full-HUD overlap, real transport and GPU performance remain unverified. No apps opened, live services or publication. Map pause, test-place identity hold, minimized-picker limitation and existing release gates remain. Next: native visual check when safely available and evidence-backed short-screen notice/control layout work, not speculative effects expansion.
+
 ## November 12 microphone navigation and minimap
 
 - Owner resumed work and requested vault-informed fixes. Setup is dismissible/reopenable; mic loss does not force it back. Ordinary navigation/movement no longer needs mic readiness, while beams retain client/server readiness and eligibility. Hidden/destroyed calibration/check callbacks are fenced. Compact minimap remains through notices and authorized tester state, without N/arrow; authorized Test Tools sits below it. No world/map changes.
