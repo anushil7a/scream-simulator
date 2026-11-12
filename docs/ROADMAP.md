@@ -2,6 +2,11 @@
 
 Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub push is currently held pending direct confirmation after an authorization denial; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 12 focused player-path follow-up
+
+- Vault-first read-only audit of current input/modal lifecycles, authoritative quest interactions and disabled compact destruction found no new reproducible defect. Retained checks passed: sprint 49, recovery 54, mic navigation 35/10 controls, beam toggle 29/two controls, modal lifecycle 120/12, prompts 23, quest acceptance eight, claims eight, guidance 81/four controls, and compact integration 122/11 controls plus its source contract. No production changes were justified by this pass.
+- This is limited source/mock coverage, not a clean bill of health for runtime play. Highest-value remaining checks are actual prompt/route reachability, timed objectives, simultaneous touch input/modal interruption and native audio/listener/microphone mix. Manual Studio opening remains postponed; all-player tools still require confirmed test-universe isolation. Preserve local commits and the GitHub confirmation hold. No apps, live activity or push.
+
 ## November 12 compact ambience alignment
 
 - Reproduced old-map surf anchors beyond the compact bounds' audible-distance configuration and a guitar anchor outside the working busker gate. Compact-only shared positions now align coastal emitters and courtyard performer; original-map coordinates, assets, gains, counts, rolloff and bounded retries remain unchanged. Dependency/loading interruption cleanup is covered.
