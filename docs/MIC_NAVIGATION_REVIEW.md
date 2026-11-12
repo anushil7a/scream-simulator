@@ -1,5 +1,11 @@
 # Microphone setup and HUD navigation
 
+## Final minimap native follow-up
+
+The corrected fixture was subsequently run at b165525 and passed **195 native assertions / nine complete synthetic viewport rows** at 04:45:10.823 UTC, including the compact 640x360 MAP fallback. It verifies native allocated rectangles, TextFits and menu/map/authorized-tool flow with the short warning `Saving is unavailable. Progress is temporary.` It does not cover the full-length production warning; the long-notice short-screen overlap remains open. Independent result/source/fixture review found no assertion failure. Earlier pending-native statements below are superseded only for this scoped run. [Exact evidence](../tests/evidence/beam-minimap-native-2026-11-12.json).
+
+Both disposable Studio windows were stopped/closed without saving and verified absent afterward. Four minimized task-created app-picker dialogs remain inaccessible to supported restore controls. Preexisting user apps remain. No map traversal, world edits, physical-device/voice/network/live-service claim or new full-suite run.
+
 ## Result and boundaries
 
 Microphone setup can be dismissed and reopened from Settings. Closing cancels unfinished calibration, not completed calibration. A readiness edge can finish setup; input loss no longer forces a dismissed panel open. Opening setup stops capture, automatic beams and sprint. Hidden/destroyed CALIBRATE and CHECK ACCESS callbacks are ignored; a later deliberate reopening permits current actions. Native stale-event ordering across a close/reopen cycle is not claimed.

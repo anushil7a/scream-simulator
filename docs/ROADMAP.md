@@ -7,6 +7,16 @@ Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 12 bounded Blender evaluation
+
+- Used the already-installed, signature-verified Blender 5.2 headlessly for original source-derived level 1/50/100 regular/reduced beam comparisons. Six local .blend/PNG pairs and a contact sheet generated successfully in 3.64 seconds; process exited, no application window or additional dependency. Fixed 640x280 CPU renders, eight samples, four threads, 240-second cap and at most 78 objects per scene. [Review](BEAM_LOOKDEV_REVIEW.md), [hash evidence](../tests/evidence/beam-lookdev-2026-11-12.json).
+- Python proxy follows pinned cosmetic formulas at fixed illustrative length/width/time, not actual per-level combat stats. A preview-only cylinder orientation mistake was caught visually and corrected before accepted artifacts. Blender shading and side-view ring silhouettes are not Roblox defects, Neon/animation parity or device-performance proof. No imported/uploaded assets, production/map changes or new tool installation. Next: use this bounded pipeline only when it answers a concrete visual question; prioritize the actual short-screen warning/control overlap over speculative extra effects.
+
+## November 12 native feedback and corrected minimap follow-up
+
+- At b165525, isolated native beam feedback passed 218 assertions / five cases, and corrected actual-client minimap passed 195 / nine complete viewport rows. Independent result/source review cleared. Four detailed beam geometry log rows were truncated, not reconstructed; summary and center row are complete. Beam coverage is native inset/geometry/module behavior with synthetic time, not animation quality or transport; minimap tests only a short save warning, not the long production message. [Evidence](../tests/evidence/beam-minimap-native-2026-11-12.json).
+- Both Studio windows stopped and closed without saving; supported inventory confirms closure. Four minimized task-created app pickers remain beyond exposed restore controls. No current-map traversal, world/production/fixture edits, live services or publication. Retain b165525 full-suite evidence without claiming another run. Long-notice cramped-screen layout, devices and existing release gates remain. Next: bounded trusted Blender look-dev evaluation and coordinated readable notice layout, keeping map paused.
+
 ## November 12 restrained beam screen feedback
 
 - Original local feedback adds bounded peripheral launch lines and coalesced accepted-hit marks, with a fixed 13-Frame pool, no imported assets and no camera/aim/gameplay change. Reduced-effects/platform-comfort gates and lifecycle cleanup apply. Independent review corrected event/attribute ordering, screen-inset alignment and End-before-first-render replay; current matched local acknowledgement owns launch.

@@ -1,5 +1,11 @@
 # Beam screen feedback
 
+## Native follow-up at b165525
+
+A later disposable Studio run passed **218 assertions / five cases** at 04:42:55.782 UTC. Actual feedback and reticle centers matched; native module alpha/expiry/geometry/cleanup checks passed using synthetic times and four synthetic sizes. The complete result summary and center row are retained; four detailed geometry rows were truncated by Studio logging and are **not** fully reconstructed. Independent review verified summaries and disk/source correspondence. This does not validate Client acknowledgement flow, real transport, animation quality, full gameplay HUD overlap, physical devices or performance. Earlier build-only statements below describe the initial checkpoint and are superseded only within this narrow native scope. [Native evidence](../tests/evidence/beam-minimap-native-2026-11-12.json).
+
+Both disposable Studio sessions were stopped and closed without saving, with closure verified. Background Studio warnings and close-dialog errors remain. Launch/open created two further minimized app-picker dialogs; four remain inaccessible through supported restore controls. No process kill or user-program closure. No production or fixture edits were needed; full-suite results remain those from b165525, not a repeated run.
+
 ## Scope and behavior
 
 Original, local-only presentation now adds eight subtle peripheral launch lines and four small confirmed-hit marks. The fixed pool is 13 Frames plus one owning ScreenGui. It uses no image/audio assets, scheduled workers, camera motion, FOV change, blur or full-screen flash. The feedback GUI uses `ScreenInsets=None`, matching the existing aiming GUI, and `DisplayOrder=-1`, below existing HUD/reticle layers. The center is not intentionally filled; actual device rendering is still a release check.

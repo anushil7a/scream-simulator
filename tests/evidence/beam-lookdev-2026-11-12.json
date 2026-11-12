@@ -1,0 +1,59 @@
+{
+  "sourceHashes": {
+    "src/ReplicatedStorage/Shared/BeamStyle.luau": "7d04942802ed56fb09d18002e7a11dc02275783021fc06285433d61599ad58d2",
+    "src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau": "89ff773cebcb2d3a5876a6d70e3bc561d3a7573c12119232a5cce950a08eccda"
+  },
+  "scriptSha256": "0b3b59900af26327eb5b2172a2c4283cdb48c2326170534147968112333ba6fd",
+  "blender": "5.2 installed signed executable",
+  "elapsedSeconds": 3.64,
+  "inputs": {
+    "levels": [
+      1,
+      50,
+      100
+    ],
+    "length": 24,
+    "width": 3,
+    "age": 0.6,
+    "distanceBand": "near <=110; single beam, no pool pressure"
+  },
+  "expectedParts": [
+    15,
+    4,
+    41,
+    4,
+    77,
+    4
+  ],
+  "render": {
+    "engine": "Cycles CPU",
+    "samples": 8,
+    "resolution": [
+      640,
+      280
+    ],
+    "threads": 4,
+    "timeoutSeconds": 240
+  },
+  "artifacts": {
+    "level-1-regular.png": "382f450b3aecc94b9d046e6c147ea459cfd7ce2f28d50e17fc8cdd39fc9c9799",
+    "level-1-regular.blend": "32e4a52eea81670e2402b0b506ddbc45501373275423d7a129bab6b8611e73be",
+    "level-1-reduced.png": "52724f4ebf6e94739f4f4293d2a5666d97cba28fc9e93d79bb531787e8ffacea",
+    "level-1-reduced.blend": "fa7a91020b69fc03bc3a983f40b9012ccb4bed96bb0aebff40dcfadbfee061c6",
+    "level-50-regular.png": "9dbb2a7886606f01222e5d24f940f19d661545132f61ea9841575baa056051bf",
+    "level-50-regular.blend": "0131a54d192c83d246e5482d911fa6e83fcef664d8ecff19394a1f04faf93643",
+    "level-50-reduced.png": "7f40c00d1482b36d20f70848872987656acee655d730f9a7005506124eeef1bc",
+    "level-50-reduced.blend": "f7d7cf0642db7d70c014ad329edaaaa9fc3ff982b1aa01e1ab3150de0b07a858",
+    "level-100-regular.png": "f6b172acb4678a7483a49de33bf21da56dd489a986af7c863fe058bea81b7b63",
+    "level-100-regular.blend": "5f3e5fd9afcc2bd56d5df0f4518ed56245b6a0118ff6759b5bc49ea221c748ab",
+    "level-100-reduced.png": "0e2e0ef3accaabe20a14fdf59ddffdb6051a7bcf36156c49ea3e9c660452e55d",
+    "level-100-reduced.blend": "bd1ef4af3748225bbf49cd3c2cb97cc2223f56c92320b38748cb02fb33641d0c",
+    "comparison.png": "7dba8d0737c6c85e523ce8974fe8fc9e5a689c83a276ddd3ccd065b354542dd2",
+    "geometry.json": "1e209b5fa15d4628e80fb6c3c1df281896bcac424adc573c39f8eb02438247c9"
+  },
+  "limits": "Original mathematical proxy; no native Neon, actual combat stats, temporal animation, pooling pressure, player aim or Roblox performance validation.",
+  "validation": "Local artifact hashes and Python syntax independently checked; headless render completed and final pixels inspected. Not a native Roblox check.",
+  "productionChanged": false,
+  "published": false,
+  "independentReview": "Read-only reviewer verified all14 artifact hashes, script/two source hashes, six exact geometry cases, part/object limits, signed headless invocation and actual pixels. Camera is side-on to beam axis with elevation; no native parity claim."
+}
