@@ -2,6 +2,12 @@
 
 Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 12 interrupted player-animation initialization
+
+- Whole-script coroutine reproduction found late player/frame/rig subscriptions when dependency loading resumed after a delivered teardown. An early terminal flag and three resumption guards now prevent that conditional restart; normal animation and final cleanup are unchanged.
+- 15 startup assertions, 10 exact harness contracts, four controls and retained 32/14 lifecycle checks pass. Independent review corrected a test oracle before the final 25 pure/synthetic + 113 mocked/63 compile/full-build run. [Review and native limits](ANIMATION_STARTUP_REVIEW.md), [evidence](../tests/evidence/animation-startup-2026-11-12.json).
+- No native leak/Deferred cleanup/manual-unparent or performance guarantee. Main-client broader startup ownership remains a read-only conditional finding for separate review/native validation. No Studio app/login activity, live data or Roblox publication. Next high-value work remains native/device validation when sign-in is available; no speculative gameplay change.
+
 ## November 12 bounded native benchmark and local evidence
 
 - Prepared a guarded, exact-source native beam measurement fixture with baseline/24 regular/24 reduced phases, production animation cadence, retained pool, camera/viewport stability, expiry and independently attempted terminal cleanup. Build identity is emitted in each record. Independent 264 cleanup assertions/five controls and source/artifact correspondence passed. Studio currently needs sign-in, so no benchmark timing, GPU or phone result is claimed. [Fixture review](BEAM_LOOKDEV_REVIEW.md#bounded-native-measurement-fixture-november-12).

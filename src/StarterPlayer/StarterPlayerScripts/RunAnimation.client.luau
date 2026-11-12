@@ -2,9 +2,14 @@
 -- Default Roblox locomotion remains underneath; offsets are removed before each animation step.
 local Players=game:GetService("Players")
 local Run=game:GetService("RunService")
-local Config=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config"))
-local rigs,watchers,connections={},{},{}
 local destroyed=false
+-- Terminal startup fence before any dependency can yield.
+script.Destroying:Connect(function() destroyed=true end)
+local replicated=game:GetService("ReplicatedStorage")
+local shared=replicated:WaitForChild("Shared");if destroyed then return end
+local configModule=shared:WaitForChild("Config");if destroyed then return end
+local Config=require(configModule);if destroyed then return end
+local rigs,watchers,connections={},{},{}
 local function clearRig(player)
  local rig=rigs[player]
  if not rig then return end

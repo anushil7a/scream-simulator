@@ -1,0 +1,67 @@
+{
+  "date": "2026-11-12",
+  "baseCommit": "927ee4756e79eff2192b2a7ffd960821bf647ed7",
+  "status": "PASSED_LOCAL_CONDITIONAL_STARTUP",
+  "filesSha256": {
+    "src/StarterPlayer/StarterPlayerScripts/RunAnimation.client.luau": "9bb08f063d8d9971212eac41cea07b6e67641bc43c6e57c67545bea4034b4e83",
+    "tests/run_animation_startup.py": "624a5cfea65750c7663de5940826e868f702d10b831ccd2173df3634a9bd9043",
+    "tests/build_studio_harness.py": "35af77f3bde727684a11d6a9469d86f292d638c7c5360cd45e4d3d667cdc2418",
+    "tests/verify_local.py": "cb2aade5c74b4d5666247bf9ef082cdd72bc3fd869172a3190cb0669d49c293e"
+  },
+  "focused": {
+    "startupAssertions": 15,
+    "resolverContracts": 10,
+    "negativeControls": 4,
+    "baseline": "Actual 927ee47 whole script fails at Shared wait, Config wait and require resumption after mocked Destroying",
+    "retainedAnimationLifecycle": [
+      32,
+      14
+    ]
+  },
+  "independentReview": "Astra source/diff, paused whole-script cases, historical baseline, exact resolver contracts and retained lifecycle; conditional native limits explicit",
+  "aggregate": {
+    "command": "python tests/verify_local.py --build --report build/animation-startup-final-2026-11-12.json",
+    "status": "PASSED",
+    "suiteCounts": {
+      "pureSynthetic": 25,
+      "mocked": 113,
+      "productionCompiles": 63,
+      "buildsRequested": true
+    },
+    "commands": 223,
+    "elapsedSeconds": 25.827776100000847,
+    "scopedInputs": 309,
+    "beforeAfterUnchanged": true,
+    "postRunHashesRechecked": true,
+    "localReportSha256": "f4a35de6f5a428384009a0935675daeb9851da41f9599b96d621ac25eb0ba087",
+    "localLogSha256": "45674a998eacba048ed12b32caa6c0f088d54ba73d3f6c452b69c5179c13d80e",
+    "logShared": false
+  },
+  "releaseGates": {
+    "questWriters": {
+      "status": "BLOCKED_UNVERIFIED_WRITER_FLEET",
+      "reason": "Older quest catalogs erase additive progress/claims during profile acquisition, while retaining rewards.",
+      "requiredEvidence": [
+        "Complete serving-writer and rollback inventory, matched to exact source commits.",
+        "Offline preservation checks for every declared writer; incompatible writers excluded.",
+        "Verified cutover/drain with no old-server joins remaining; publishing or scheduling a restart is not proof.",
+        "Reviewed rollback floor; saved-version history is not an automatic reward-replay undo."
+      ],
+      "offlineCommand": "python tools/quest_writer_preflight.py --inventory <reviewed-local-inventory.json>",
+      "limits": "Local declarations/tests cannot verify Roblox fleet state, native persistence, or publication permission."
+    },
+    "prelaunchTestTools": {
+      "status": "BLOCKED",
+      "reason": "Temporary all-tester tools enabled; disable and review before public release",
+      "sourceSha256": "c8421f48023de5ff8788ecd243d44caca32b72fd2f76e644f470b19c156eaa62",
+      "limits": "Draft/disposable builds remain allowed. This does not prevent manual publication or verify any serving fleet."
+    }
+  },
+  "limits": [
+    "Actual production source with mocked dependency yields, events and services.",
+    "No native Script/Deferred scheduling, manual unparent teardown, animation appearance, physics or performance proof.",
+    "Own-script Destroying may not run under Deferred behavior. Main-client related finding is read-only and deferred for separately bounded lifetime review.",
+    "No Studio launch, live service, data write, Roblox publication or credential action.",
+    "Local report baseCommit/dirty state is metadata; fingerprints bind selected files rather than claiming transient-change detection."
+  ]
+}

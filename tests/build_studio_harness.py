@@ -42,6 +42,16 @@ def inline(path):
         if text.count(binding)!=1 or 'Config' not in MODULES:
             raise RuntimeError(f"Unsupported Residents Config binding in {path}")
         text=text.replace(binding,'local Config=modules.Config\nif destroyed then return end',1)
+    if path.resolve()==(client/'RunAnimation.client.luau').resolve() and 'require(configModule)' in text:
+        binding='\n'.join([
+            'local replicated=game:GetService("ReplicatedStorage")',
+            'local shared=replicated:WaitForChild("Shared");if destroyed then return end',
+            'local configModule=shared:WaitForChild("Config");if destroyed then return end',
+            'local Config=require(configModule);if destroyed then return end',
+        ])
+        if text.count(binding)!=1 or 'Config' not in MODULES:
+            raise RuntimeError(f"Unsupported RunAnimation Config binding in {path}")
+        text=text.replace(binding,'local Config=modules.Config\nif destroyed then return end',1)
     text=REQUIRE.sub(replace,text)
     if re.search(r'\brequire\s*\(',text):
         raise RuntimeError(f"Unsupported require expression in {path}")
