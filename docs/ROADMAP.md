@@ -7,6 +7,11 @@ Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 12 manual notice input handoff
+
+- Prepared a separate Studio/place0-only NoticeInputReview with the real UI and one full warning, no scripted scrolling/selection or new input bindings. Independently built/compiled and source-reviewed; no native run. Default320x315 synthetic touch/tools frame, configurable while stopped. [Exact opening steps and limits](NOTICE_LAYOUT_REVIEW.md#manual-native-entry-point-prepared-november-12).
+- Await a visible disposable Studio session through File > Open from File rather than another launcher/picker. Native input, larger-text, physical phone/gamepad and nearby-TALK gates remain; current map is not being used for this fixture. No production edits, apps, live services, push or publication. Last fresh usage reading42% at08:34UTC; shutdown threshold not reached.
+
 ## November 12 saturation-safe dialogue close
 
 - Reproduced a conditional closed-UI/server-conversation mismatch after 30 requests: the dropped close could reserve the NPC and block nearby beam capture until the 20-second deadline. Nil-only owner-scoped cleanup now survives quota without output, repeated work or resetting budgets/cooldowns. Independent 18 assertions/five controls plus pinned historical failure pass; full 25/105/63 and local builds pass. [Review](CONVERSATION_CLOSE_REVIEW.md).

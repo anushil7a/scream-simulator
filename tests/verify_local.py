@@ -62,6 +62,7 @@ def main():
         run([sys.executable, 'tests/build_minimap_review.py'])
         run([sys.executable, 'tests/build_beam_screen_review.py'])
         run([sys.executable, 'tests/build_notice_layout_review.py'])
+        run([sys.executable, 'tests/build_notice_input_review.py'])
         run([sys.executable, 'tests/build_compact_review.py'])
         run([sys.executable, 'tools/build_compact_city_draft.py'])
         for path in sorted((ROOT / 'build').glob('Studio*Harness.luau')) + [ROOT / 'build/StudioUIPreview.luau']:

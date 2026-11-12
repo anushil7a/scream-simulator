@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-12",
+  "baseCommit": "042da028dfb0457a0943270a6300ed7ef5bd5b10",
+  "productionChanged": [],
+  "command": "python tests/build_notice_input_review.py",
+  "buildCompile": "passed; independently rebuilt and source-reviewed",
+  "registered": "verify_local.py --build",
+  "fullSuite": "Not rerun for this fixture-only checkpoint; prior042da02 full25/105/63 retained",
+  "nativeExecuted": false,
+  "default": {
+    "syntheticFrame": [
+      320,
+      315
+    ],
+    "touchLayout": true,
+    "testTools": true,
+    "warningCharacters": 142
+  },
+  "marker": "NOTICE_INPUT_READY is initialization, not PASS",
+  "sha256": {
+    "tests/build_notice_input_review.py": "b996cd8242177c98178467c29c96dc72779592fa5de8491eb6261ad3b72daf57",
+    "tests/verify_local.py": "2f749b220286a9627bf578cd0d33ac0549eed764f1206960ea4952d775200400",
+    "src/StarterPlayer/StarterPlayerScripts/NoticeView.luau": "0bb66505dd2ebf90ed2d40f09679c60eac372f271abf8ac3bba6c5eb2bd58417",
+    "build/NoticeInputReview.client.luau": "bb2e702783e81bcf99d74a6a63d0523fae66b89f101331c21be63d3f14fd4365",
+    "build/NoticeInputReview.project.json": "2f5f6c5c1de24adc66493ce38db4013df10781891b19b14f292896f7555a537f",
+    "build/NoticeInputReview.rbxl": "e5a721f1723105745190f815f578fd68c32b789e8cd086ec03d37a44836e5189"
+  },
+  "limitations": [
+    "No physical phone/gamepad or input success claim",
+    "No real mic/server/gameplay/save transport",
+    "No nearby-NPC or real-map traversal",
+    "Queue consumes normally after exposure; Stop/Play resets"
+  ],
+  "delivery": "Local only; push confirmation pending"
+}
