@@ -38,6 +38,7 @@ snapshot()
 local function menuKey()return selected..version end
 local ShopUI={Clear=function()end,ColorMixer=function(_,ui)ui.button({},'Forward','Forward',{}, {},function(...)return ... end)end}
 local task={spawn=function()end};local Run={Heartbeat={Wait=function()end}}
+local openMicSetup;local micSetupOpen=false;local micPanel={Visible=false}
 local effects={calibrate=0,cancel=0,disarm=0,sprint=0}
 local function cancelCapture()effects.cancel+=1 end
 local function setSprint()effects.sprint+=1 end
@@ -47,6 +48,7 @@ local UIS={TouchEnabled=false};Config.DodgeCooldown=3;Config.SprintDuration=4;Co
 local attackAudio={level='NORMAL'};local gameplayAudio={enabled=true};local gameplayAudioSettings={Ready=function()return false end}
 '''
 def assemble(client):
+ open_helper=client[client.index('openMicSetup=function()'):client.index('local talkTarget')] if 'openMicSetup=function()' in client else ''
  close=client[client.index('local renderedMenuKey,renderedTab'):client.index('button(modal,"Close","X"')]
  toggle=client[client.index('local function toggleTab('):client.index('\nlocal shop=button(top,')]
  render=client[client.index('render=function()'):client.index('\nlocal conversationNPC,conversationUntil')]
@@ -57,7 +59,7 @@ def assemble(client):
  micro=server[server.index('local function microSpeaker(p,s,toggleOwned)'):server.index('local function vendorPurchase(p,s,arg)')]
  branches=server[server.index(' elseif verb=="SetAura" and'):server.index(' elseif verb=="SetSettings" and')]
  dispatch='local function dispatch(verb,arg) if verb=="MicroSpeaker" then microSpeaker(p,s,true)'+branches+' end end\n'
- return '\n'.join([setup,stop,micro,dispatch,ui,close,toggle,render,convdecl,closeconv,show])+r'''
+ return '\n'.join([setup,stop,micro,dispatch,ui,close,toggle,render,convdecl,closeconv,show,open_helper])+r'''
 local f={s=s,sent=sent,modal=modal,conversation=conversationPanel,effects=effects}
 function f.open(tab)snapshot();toggleTab(tab)end
 function f.tab(tab)tabs[tab].callback()end

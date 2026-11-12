@@ -1,0 +1,354 @@
+{
+  "baseCommit": "b60dadabef6275ddf60d7cdf542e4da89c92bc84",
+  "sourceSha256": {
+    "src/ServerScriptService/Bootstrap.server.luau": "a066b28be60deb5d94bcd3b5339cd2d623537dd349f433cb6fddfee6f95d2a6a",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "fb071d1ebd128db509a2a78626158121c5a9529e1855bfa100234426abd8087e",
+    "src/StarterPlayer/StarterPlayerScripts/CityMap.luau": "6468dd2bfddd0f634da7ab3777dc5e057de845096afefb78919cd659474befec",
+    "tests/build_onboarding_review.py": "190549fc562553013fd7d3644ae989dd7c4ab6e0f6e2398c9c607cc591f1fbd8",
+    "tests/build_minimap_review.py": "8da7e8769dac0345436de08a9db3f6e1a7b03a17936e417bc6dacdec23baaad3",
+    "tests/build_ui_preview.py": "b0979140beb3bdbe03572d893c4449fb8feea7683a62990ff98230a157babaf5",
+    "tests/mic_setup_navigation.py": "7b3c2a0f5dc1ef2d158fd8e849ed49c6f7c76c492145e78b474568ea5b289a0b",
+    "tests/microphone_movement.py": "ab4ae41126d0622930205097eeec8da2db132eff8d8f924950301073f7a12eab",
+    "tests/minimap.py": "959e165d6937872b33b08684c39d58eebb232bb6c0ce7c0c4b931c8ccf3c5e6c",
+    "tests/microphone_check_requests.py": "a084aaaa74cdfa3f72b1a93261924ad02f71babec253cece7d6ef7b1298059b6"
+  },
+  "nativeOnboarding": {
+    "result": {
+      "checks": 172,
+      "scope": "Actual client UI with synthetic callbacks, mic power, focus and server state; no real transport/audio/eligibility service",
+      "passed": true,
+      "synthetic": true,
+      "observedAtUtc": "2026-11-12T04:12:48.456Z"
+    },
+    "scriptedRows": 33,
+    "chunks": 212,
+    "allocatedTextClippingListsEmpty": true,
+    "beamReadouts": [
+      {
+        "viewport": "390, 844",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      },
+      {
+        "viewport": "844, 390",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      },
+      {
+        "viewport": "1280, 720",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      }
+    ],
+    "rowSummary": [
+      {
+        "stage": "setup",
+        "viewport": "320, 568",
+        "micReady": false,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "setup",
+        "viewport": "390, 844",
+        "micReady": false,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "setup",
+        "viewport": "844, 390",
+        "micReady": false,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "setup",
+        "viewport": "1280, 720",
+        "micReady": false,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "setup-dismissed-unready",
+        "viewport": "1280, 720",
+        "micReady": false,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "eligibility-checking",
+        "viewport": "390, 844",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "first-ready",
+        "viewport": "390, 844",
+        "micReady": true,
+        "armed": true,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "on",
+        "viewport": "320, 568",
+        "micReady": true,
+        "armed": true,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "320, 568",
+        "micReady": true,
+        "armed": true,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "off",
+        "viewport": "320, 568",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "settings",
+        "viewport": "320, 568",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "320, 568",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "on",
+        "viewport": "390, 844",
+        "micReady": true,
+        "armed": true,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "390, 844",
+        "micReady": true,
+        "armed": true,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "off",
+        "viewport": "390, 844",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "settings",
+        "viewport": "390, 844",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "390, 844",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "on",
+        "viewport": "844, 390",
+        "micReady": true,
+        "armed": true,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "844, 390",
+        "micReady": true,
+        "armed": true,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "off",
+        "viewport": "844, 390",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "settings",
+        "viewport": "844, 390",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "844, 390",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "on",
+        "viewport": "1280, 720",
+        "micReady": true,
+        "armed": true,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "1280, 720",
+        "micReady": true,
+        "armed": true,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "off",
+        "viewport": "1280, 720",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "settings",
+        "viewport": "1280, 720",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "1280, 720",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": false,
+        "clipped": []
+      },
+      {
+        "stage": "ready-input-lost",
+        "viewport": "1280, 720",
+        "micReady": false,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "eligibility-denied",
+        "viewport": "1280, 720",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "manual-resume-denied",
+        "viewport": "1280, 720",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "eligibility-unavailable",
+        "viewport": "1280, 720",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "manual-resume-unavailable",
+        "viewport": "1280, 720",
+        "micReady": true,
+        "armed": false,
+        "controlsVisible": true,
+        "clipped": []
+      },
+      {
+        "stage": "manual-ready",
+        "viewport": "390, 844",
+        "micReady": true,
+        "armed": true,
+        "controlsVisible": true,
+        "clipped": []
+      }
+    ],
+    "limits": "Actual native client UI; synthetic microphone, callbacks, focus, remotes and server state. No persistence or server movement scripts; no physical phone, authentic audio, voice API/network or native queued-event validation."
+  },
+  "minimapNative": {
+    "initialFixtureFailure": "Three-frame settle did not cross existing0.15-second HUD visibility gate; fixture now adds0.2 seconds.",
+    "secondRunFailure": "Native640x360touch reported Minimap covers urgent notification.",
+    "correction": "Conservative expanded-map budget against existing bottom-anchored notification; simulated checks pass. Final native minimap rerun NOT performed.",
+    "remaining": "Long capped notices can still overlap collapsed controls on very short screens; skipped non-fitting cases are not passes."
+  },
+  "focused": {
+    "micSetup": {
+      "assertions": 35,
+      "negativeControls": 10
+    },
+    "serverMovement": {
+      "assertions": 58,
+      "negativeControls": 10,
+      "sourceContracts": 2
+    },
+    "minimap": {
+      "moduleAssertions": 137,
+      "combinedAssertions": 406617,
+      "negativeControls": 16
+    },
+    "microphoneChecks": {
+      "assertions": 53,
+      "negativeControls": 9,
+      "sourceContracts": 1
+    }
+  },
+  "warnings": "Asset type mismatch for rbxassetid://203785492 appeared in both Studio logs; origin unestablished, no warning-free/audio-success claim.",
+  "cleanup": "Both disposable Studio windows absent in final supported inventory; exact disappearance cause not established. Two launch-created minimized Pick an app dialogs could not be bound: exposed API has no documented activate_window/get_window restore path. Preexisting ChatGPT and Settings preserved.",
+  "testAccess": "Deferred. Historical City Preview identity does not establish intended current test-version destination; DeveloperAccess unchanged.",
+  "restrictions": "Map/world unchanged; no live stores/purchases, product/audio configuration, Roblox publication or release merge.",
+  "aggregate": {
+    "command": "python tests/verify_local.py --build",
+    "pureSyntheticSuites": 25,
+    "mockedServiceSuites": 100,
+    "productionCompiles": 60,
+    "allBuildsPassed": true,
+    "logSha256": "f1fe137e9cecabdad25df2f51113f0b784a9550342dcc38a63c5c0a4bdbc0971",
+    "optInControlsSeparate": true
+  }
+}

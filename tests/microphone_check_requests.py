@@ -15,9 +15,11 @@ setup=setup.replace('IsVoiceEnabledForUserIdAsync=function()return true end',"Is
 endsetup=r'''
 end
 local Mic=loadMicrophone();local mic
+local micPanel={Visible=true};local clientDestroyed=false
 local f={}
 function f.start(v,q)response=v;if v==nil then response='yield'end;queued=q==true;mic=Mic.new();f.mic=mic end
 function f.retry() CALLBACK end
+function f.panel(visible,destroyed)micPanel.Visible=visible;clientDestroyed=destroyed==true end
 function f.at(t)now=t;mic:Step(.05)end
 function f.finish(i,value)local ok,e=coroutine.resume(pending[i],value);assert(ok,e)end
 function f.stats()return calls,#pending,#timeouts end
@@ -62,11 +64,18 @@ f=fixture();f.start();m=f.mic;m:Destroy();local oldStatus=m.status;f.finish(1,tr
 check(not m.eligible and not m.ready and m.status==oldStatus,'Late completion resurrected destroyed controller')
 f=fixture();f.start(nil,true);m=f.mic;m:Destroy();f.finish(1,true)
 check(f.stats()==0 and not m.eligible,'Queued worker called API after destroy')
+for _,state in ipairs({{false,false},{true,true}})do
+ f=fixture();f.start(true);m=f.mic;m.model.calibrated=true;f.at(2)
+ local oldStatus=m.status;local oldGeneration=m.generation
+ f.panel(state[1],state[2]);f.retry()
+ check(f.stats()==1 and m.ready and m.eligible and m.status==oldStatus and m.generation==oldGeneration,'Hidden/destroyed setup Retry reached controller')
+ f.panel(true,false);f.retry();check(f.stats()==2,'Visible setup Retry blocked after reopening')
+end
 print('PASS',n,'actual Microphone/Retry assertions; coroutine API and clock mocks only')
 '''
-def run(source,error=None,baseline=False):
+def run(source,error=None,baseline=False,callback_override=None):
  tail="local f=fixture();f.start();for i=1,120 do f.retry()end;local c,j,d=f.stats();assert(c==121 and j==121 and d==121);print('REPRO121 simulated concurrent calls/jobs and121 timeout closures')" if baseline else checks
- text='local n=0;local function check(v,m)assert(v,m);n+=1 end\nlocal function fixture()\n'+setup+source+endsetup+tail
+ text='local n=0;local function check(v,m)assert(v,m);n+=1 end\nlocal function fixture()\n'+setup+source+(endsetup if callback_override is None else endsetup.replace(callback,callback_override))+tail
  with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.mic_check_',dir=R/'tests',encoding='utf-8',delete=False)as t:t.write(text);q=Path(t.name)
  try:r=subprocess.run(['luau',str(q)],capture_output=True,text=True,timeout=15)
  finally:q.unlink()
@@ -84,5 +93,8 @@ else:
   fence='if self.destroyed or self.generation~=generation then return end'
   assert s.count(fence)==2
   run(s.replace(fence,'if false then return end',1),'Queued worker called API after destroy')
+  for guard in ('clientDestroyed or ', ' or not micPanel.Visible'):
+   assert guard in callback
+   run(s,'Hidden/destroyed setup Retry reached controller',callback_override=callback.replace(guard,''))
   assert not re.search(r'\.Active\s*=(?!=)|\.Muted\s*=(?!=)|\.IsReady\b',s)
   print('PASS source contract: no device Active/Muted writes or IsReady access')

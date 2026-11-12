@@ -101,6 +101,7 @@ local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size
 local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
 local selected="Shop";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local conversationPanel,showConversation,closeConversation
+local micPanel,openMicSetup,closeMicSetup
 local function toggleTab(name)
  local opening=not modal.Visible or selected~=name
  selected=name;if not opening then closeMenu();return end;modal.Visible=true
@@ -167,10 +168,10 @@ local function blocked()
  local humanoid=character and character:FindFirstChildOfClass("Humanoid")
  if not humanoid or humanoid.Health<=0 or humanoid.PlatformStand then return true end
  local now=workspace:GetServerTimeNow()
- return GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil or (conversationPanel and conversationPanel.Visible) or modal.Visible or (devPanel and devPanel.Visible) or not mic.ready or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
+ return GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil or (conversationPanel and conversationPanel.Visible) or modal.Visible or (devPanel and devPanel.Visible) or (micPanel and micPanel.Visible) or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
 end
 local function beamBlocked()
- return data.voiceEligible~=true or blocked()
+ return not mic.ready or data.voiceEligible~=true or blocked()
 end
 local function beginCapture(source)
  if sustainedControl or captureSource or beamBlocked() or os.clock()<nextCast then return end
@@ -250,12 +251,20 @@ voiceTimeTrack.Visible=false
 castButton.InputBegan:Connect(function(input)
  if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then beginCapture(input) end
 end)
-local micPanel=frame(gui,"MicSetup",UDim2.fromOffset(430,260),UDim2.fromScale(.5,.5));micPanel.AnchorPoint=Vector2.new(.5,.5);micPanel.ZIndex=20
-local micTitle=label(micPanel,"YOUR VOICE. YOUR POWER.",UDim2.new(1,-36,0,35),UDim2.fromOffset(18,16),21,gold)
+micPanel=frame(gui,"MicSetup",UDim2.fromOffset(430,260),UDim2.fromScale(.5,.5));micPanel.AnchorPoint=Vector2.new(.5,.5);micPanel.ZIndex=20
+local micTitle=label(micPanel,"MIC SETUP",UDim2.new(1,-88,0,35),UDim2.fromOffset(18,16),21,gold)
 local micStatus=label(micPanel,"",UDim2.new(1,-36,0,90),UDim2.fromOffset(18,58),15)
 label(micPanel,sustainedControl and "BEAMS ON: normal speech can attack. OFF does not mute voice. Avoid profanity. Roblox records and moderates voice." or "Roblox voice access required. Nearby players may hear you. Avoid profanity. Roblox records and moderates voice.",UDim2.new(1,-36,0,50),UDim2.fromOffset(18,146),12,muted)
-button(micPanel,"Calibrate","CALIBRATE MIC",UDim2.fromOffset(188,36),UDim2.fromOffset(18,208),function() mic:Calibrate() end,gold).TextColor3=dark
-button(micPanel,"Retry","CHECK ACCESS",UDim2.fromOffset(188,36),UDim2.fromOffset(224,208),function() mic:Check() end)
+local micSetupOpen=true
+local previousMicReady=false
+closeMicSetup=function()
+ micSetupOpen=false;micPanel.Visible=false
+ if mic.phase then mic:CancelCalibration();mic.status="Setup closed. Open MIC SETUP in Settings to calibrate." end
+end
+
+button(micPanel,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-54,0,8),closeMicSetup)
+button(micPanel,"Calibrate","CALIBRATE MIC",UDim2.fromOffset(188,36),UDim2.fromOffset(18,208),function() if clientDestroyed or not micPanel.Visible then return end;mic:Calibrate() end,gold).TextColor3=dark
+button(micPanel,"Retry","CHECK ACCESS",UDim2.fromOffset(188,36),UDim2.fromOffset(224,208),function() if clientDestroyed or not micPanel.Visible then return end;mic:Check() end)
 for _,v in ipairs(micPanel:GetDescendants()) do if v:IsA("GuiObject") then v.ZIndex=21 end end
 local micScale=Instance.new("UIScale");micScale.Parent=micPanel
 local meter=frame(gui,"MicPower",UDim2.fromOffset(230,62),UDim2.new(.5,-115,1,-74))
@@ -278,8 +287,8 @@ local sprinting=false
 local nextSprintSend=0
 local function setSprint(requested)
  local character=p.Character;local humanoid=character and character:FindFirstChildOfClass("Humanoid")
- if requested and (not windowFocused or not mic.ready or GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil
-  or modal.Visible or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible)
+ if requested and (not windowFocused or GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil
+  or modal.Visible or micPanel.Visible or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible)
   or not humanoid or humanoid.Health<=0 or humanoid.PlatformStand or humanoid.Sit or humanoid.SeatPart
   or workspace:GetServerTimeNow()<(p:GetAttribute("KnockdownEnds") or 0)) then requested=false end
  -- Reconcile a held request after a transient quota rejection; never retry OFF.
@@ -315,6 +324,12 @@ local function residentTargetInfo(model,humanoid,far,currentFar,covered)
   math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),not far and not currentFar and not covered
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end)
+openMicSetup=function()
+ closeMenu();if closeConversation then closeConversation() end
+ if devPanel then devPanel.Visible=false end
+ if sustainedControl then sustainedControl:SetArmed(false) end
+ cancelCapture();setSprint(false);micSetupOpen=true;micPanel.Visible=true
+end
 local talkTarget
 local nextResidentUi=0
 local function refreshResidentLabels(root,camera,residents)
@@ -346,7 +361,7 @@ local function refreshResidentLabels(root,camera,residents)
 end
 local function requestTalk()
  if not windowFocused or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() or modal.Visible
-  or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible) or not mic.ready then return end
+  or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible) or micPanel.Visible then return end
  local target=talkTarget
  if not target or not target.Parent or target:GetAttribute("ResidentActive")==false
   or not InteractionRules.CanReachNpc(p.Character,target,13) then return end
@@ -365,7 +380,7 @@ for i,item in ipairs(testCommands) do
  button(testContent,item[1],item[2],UDim2.fromOffset(98,44),UDim2.fromOffset(((i-1)%2)*108,math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
 end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then closeMenu() end end);testButton.Visible=false
--- Regular players use the former test-tools corner for a north-up map.
+-- Everyone sees the same navigation; authorized test controls sit below it.
 -- Keep a separate view: modal renders replace mapDot but never this HUD map.
 local miniMapButton=button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end)
 miniMapButton.TextSize=12;miniMapButton.TextYAlignment=Enum.TextYAlignment.Top;miniMapButton.Visible=false
@@ -519,10 +534,11 @@ render=function()
   info("VOICE SAFETY\nAvoid profanity. Roblox's profanity rules depend on the game's rating and settings; harassment, threats and hate speech are not allowed. Rule violations may restrict voice or your account.\nRoblox records voice for moderation. The beam mechanic reads volume, not words. Stopping attacks does not mute voice. Use Roblox's mic control to mute, or Report Abuse for violations.",100)
   info(string.format("Third-person camera\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
   info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
+  local setupCard=card(58)
+  button(setupCard,"OpenMicSetup","OPEN MIC SETUP",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),openMicSetup)
   local micCard=card(58)
   button(micCard,"Recalibrate","RECALIBRATE MICROPHONE",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
-   if sustainedControl then sustainedControl:SetArmed(false) end
-   cancelCapture();setSprint(false);mic:Calibrate();closeMenu()
+   openMicSetup();mic:Calibrate()
   end)
   info("Changed microphone or room noise? Recalibrate with a comfortable strong voice. "..(sustainedControl and "Beams stay OFF afterward; use BEAMS to turn attacks back on. Voice chat is unchanged." or "After calibration, hold BEAM and use a fresh live voice input."),80)
   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
@@ -743,7 +759,7 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  ScreamEffects.Render(s.effect,pos,direction,length,beamWidth or 4,color,data.settings.reducedShake,s.variant)
 end)
 local elapsed=0
-local lastViewport,lastTouch
+local lastViewport,lastTouch,lastDevAccess
 -- Visible modal buttons keep the pointer available while interacting with panels.
 modal.Close.Modal=true;micPanel.Calibrate.Modal=true;conversationPanel.Close.Modal=true
 testContent.XP.Modal=true
@@ -757,8 +773,8 @@ connectClient(Run.RenderStepped,function(dt)
  local touch=UIS.TouchEnabled
  -- Keep the raised notification above the touch/keyboard action targets.
  toast.Position=UDim2.fromOffset(viewport.X*.5,math.min(viewport.Y*.72,viewport.Y-(touch and 203 or 110)))
- local layoutChanged=viewport~=lastViewport or touch~=lastTouch
- if layoutChanged then lastViewport=viewport;lastTouch=touch;toastWidth=0 end
+ local layoutChanged=viewport~=lastViewport or touch~=lastTouch or data.devAccess~=lastDevAccess
+ if layoutChanged then lastViewport=viewport;lastTouch=touch;lastDevAccess=data.devAccess;toastWidth=0 end
  local notificationWidth=math.min(640,viewport.X-32)
  if notificationWidth~=toastWidth then
   toastWidth=notificationWidth;toast.TextSize=viewport.X<820 and 14 or 16
@@ -779,7 +795,10 @@ connectClient(Run.RenderStepped,function(dt)
  calibrate.Size=UDim2.fromOffset(micNarrow and micWidth-36 or 188,UIS.TouchEnabled and 44 or 36);retry.Size=calibrate.Size
  calibrate.Position=UDim2.fromOffset(18,micNarrow and 224 or 208);retry.Position=UDim2.fromOffset(micNarrow and 18 or 224,micNarrow and 270 or 208)
  end
- micPanel.Visible=not mic.ready and not modal.Visible and not devPanel.Visible
+ -- Readiness recovery may finish setup; loss never reopens a dismissed panel.
+ if mic.ready and not previousMicReady then micSetupOpen=false end
+ previousMicReady=mic.ready
+ micPanel.Visible=micSetupOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
  local calibrationActive=mic.phase~=nil and mic.phaseStarted~=nil
  micStatus.Text=calibrationActive and string.format("%s\n%.1fs remaining",mic.status,math.max(0,2-(os.clock()-mic.phaseStarted))) or mic.status
  micPanel.Calibrate.Text=calibrationActive and "RESTART SETUP" or "CALIBRATE MIC"
@@ -805,7 +824,7 @@ connectClient(Run.RenderStepped,function(dt)
   cancelCapture();notify("Capture expired. Hold attack again and use a fresh live voice input.",true,"capture")
  end
  if sprinting then setSprint(true) end
- local gameplayVisible=mic.ready and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
+ local gameplayVisible=not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
  local eligibilityHint=voiceEligibilityHint(true)
@@ -863,16 +882,17 @@ connectClient(Run.RenderStepped,function(dt)
  local tight=viewport.X<380
  shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "SHOP" or "SHOP [B]"
  questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
- testButton.Size=UDim2.fromOffset(tight and 90 or 112,touch and 44 or 32);testButton.Position=UDim2.new(1,tight and -104 or -126,0,14)
- local miniLayout=CityMap.MiniLayout(viewport,touch)
+ testButton.Size=UDim2.fromOffset(viewport.X<432 and 86 or 112,44)
+ local miniLayout=CityMap.MiniLayout(viewport,touch,data.devAccess==true)
  miniMapButton.Size=UDim2.fromOffset(miniLayout.width,miniLayout.height);miniMapButton.Position=UDim2.new(1,-miniLayout.width-14,0,14)
  miniMapHolder.Visible=miniLayout.expanded;miniMapAvailable=miniLayout.available
- hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,64) or UDim2.new(0,14,1,-108)
+ testButton.Position=UDim2.new(1,viewport.X<432 and -100 or -126,0,miniLayout.available and 14+miniLayout.height+8 or 14)
+ hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,data.devAccess==true and viewport.X<356 and miniLayout.height+74 or 64) or UDim2.new(0,14,1,-108)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
  talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
  talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
- tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and 160 or 64)
+ tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64)
  sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
  end
  hud.Visible=gameplayVisible;controls.Visible=gameplayVisible
@@ -970,8 +990,9 @@ connectClient(Run.RenderStepped,function(dt)
   talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
  end
  if mapDot then CityMap.update(mapDot,root) end
- local miniVisible=miniMapAvailable and gameplayVisible and windowFocused and not toast.Visible and data.devAccess~=true
+ local miniVisible=miniMapAvailable and gameplayVisible and windowFocused
  miniMapButton.Visible=miniVisible
+ testButton.Visible=data.devAccess==true and not GuiService.MenuIsOpen and not modal.Visible and not micPanel.Visible and not conversationPanel.Visible
  CityMap.MiniUpdate(miniMapView,root,os.clock(),miniVisible and miniMapHolder.Visible)
  talkButton.Text=touch and "TALK" or "TALK [T]"
  talkButton.Visible=talkTarget~=nil and gameplayVisible

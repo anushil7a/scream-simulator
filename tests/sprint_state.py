@@ -49,13 +49,15 @@ for i=1,100 do check(not tick(s,201+i*.1,.1),'Released sprint auto-restarted aft
 s=session();s.sprintRequested=true;tick(s,300,0);tick(s,303,3)
 check(s.sprintCharge==7,'Delayed tick undercharged sprint')
 -- Standing, airborne vertical-only, missing avatar and interruptions cannot grant speed.
-for _,mode in ipairs({'still','vertical','anchored','seated','seat','ragdoll','mic','dodge','knock','missing'}) do
+for _,mode in ipairs({'still','vertical','anchored','seated','seat','ragdoll','dodge','knock','missing'}) do
  s=session();s.sprintRequested=true;r.Anchored=mode=='anchored';h.Sit=mode=='seated';h.SeatPart=mode=='seat' and {} or nil;h.PlatformStand=mode=='ragdoll'
  s.micReady=mode~='mic';s.dodgingUntil=mode=='dodge' and 500 or 0;s.knockedUntil=mode=='knock' and 500 or 0
  r.AssemblyLinearVelocity.X=(mode=='still' or mode=='vertical') and 0 or 25;r.AssemblyLinearVelocity.Y=mode=='vertical' and 50 or 0
  check(not stepSprint(s,mode~='missing' and r or nil,mode~='missing' and h or nil,400,.1),'Blocked sprint allowed '..mode)
  check(s.sprintCharge==10,'Idle eligibility consumed fresh stamina '..mode)
 end
+s=session();s.micReady=false;s.sprintRequested=true;r.Anchored=false;h.Sit=false;h.SeatPart=nil;h.PlatformStand=false;r.AssemblyLinearVelocity.X=25
+check(stepSprint(s,r,h,400,0),'Missing microphone blocked sprint')
 -- Returning to a blocked state still pays for the last interval actually granted.
 s=session();s.sprintRequested=true;r.Anchored=false;h.Sit=false;h.SeatPart=nil;h.PlatformStand=false;r.AssemblyLinearVelocity.X=25
 tick(s,600,0);h.Sit=true;check(not tick(s,600.1,.1) and near(s.sprintCharge,9.9),'Interruption refunded granted interval');h.Sit=false

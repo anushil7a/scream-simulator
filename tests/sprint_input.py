@@ -10,7 +10,7 @@ local h={Health=100};local attrs={};local character={FindFirstChildOfClass=funct
 local p={Character=character,GetAttribute=function(_,k)return attrs[k]end}
 local windowFocused=true;local mic={ready=true};local GuiService={MenuIsOpen=false}
 local typing=false;local UIS={GetFocusedTextBox=function()return typing and {} or nil end}
-local modal={Visible=false};local devPanel={Visible=false};local conversationPanel={Visible=false}
+local micPanel={Visible=false};local modal={Visible=false};local devPanel={Visible=false};local conversationPanel={Visible=false}
 local workspace={GetServerTimeNow=function()return 10 end}
 local began,ended;local Enum={KeyCode={LeftShift='shift',V='v'}};UIS.InputBegan={};UIS.InputEnded={}
 local function connectClient(signal,fn)if signal==UIS.InputBegan then began=fn else ended=fn end end
@@ -24,7 +24,7 @@ setSprint(true);check(sprinting and #messages==1 and messages[1],'Start was not 
 setSprint(true);check(#messages==1,'Unchanged request spammed server')
 setSprint(false);check(not sprinting and #messages==2 and messages[2]==false,'Release did not stop sprint')
 local cases={
- function(v)windowFocused=not v end,function(v)mic.ready=not v end,
+ function(v)windowFocused=not v end,function(v)micPanel.Visible=v end,
  function(v)GuiService.MenuIsOpen=v end,function(v)typing=v end,
  function(v)modal.Visible=v end,function(v)devPanel.Visible=v end,
  function(v)conversationPanel.Visible=v end,function(v)h.Health=v and 0 or 100 end,
@@ -40,6 +40,7 @@ for i,block in ipairs(cases) do
  check(#messages==before,'Blocked retry sent a start '..i)
  block(false);check(not sprinting,'Clearing block silently resumed sprint '..i)
 end
+mic.ready=false;setSprint(true);check(sprinting,'Unready microphone blocked dismissed-setup sprint');setSprint(false);mic.ready=true
 setSprint(true);setSprint(not sprinting)
 check(not sprinting,'Button toggle disagreed with keyboard start')
 local shift={KeyCode=Enum.KeyCode.LeftShift}

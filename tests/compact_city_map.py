@@ -25,6 +25,7 @@ tests=r'''
 end)()
 local function find(parent,name)for _,o in ipairs(objects)do if o.Parent==parent and o.Name==name then return o end end end
 local full=CityMap.create({});local mini=CityMap.create({},true)
+check(find(full.map,'North') and not find(mini.map,'North') and full.arrow and not mini.arrow,'Compact decorations changed')
 check(near(CityMap.aspectRatio,1.2),'Compact aspect ratio wrong')
 check(CityMap.arenaPercent==24,'Compact arena fraction wrong')
 local min,max=Layout.BoundsMin,Layout.BoundsMax
@@ -69,8 +70,8 @@ check(near(arena.Size.X.Scale,320/720) and near(arena.Size.Y.Scale,320/600),'Are
 check(not find(full.map,'TimberPier') and not find(full.map,'Avenue'),'Legacy city geometry leaked into compact map')
 CityMap.MiniUpdate(mini,r,0,true);r.Parent=nil;CityMap.MiniUpdate(mini,r,.01,true);check(not mini.dot.Visible,'Detached root marker retained')
 local replacement={Parent={},Position={X=-270,Z=130},CFrame={LookVector={X=-1,Z=0}}}
-CityMap.MiniUpdate(mini,replacement,.02,true);check(mini.dot.Visible and near(mini.dot.Position.X.Scale,.125) and mini.arrow.Rotation==-90,'Respawn marker not immediate')
-local nextRoot={Parent={},Position={X=0,Z=0},CFrame={LookVector={X=1,Z=0}}};CityMap.MiniUpdate(mini,nextRoot,.025,true);check(near(mini.dot.Position.X.Scale,.5) and mini.arrow.Rotation==90,'Respawn marker not immediate')
+CityMap.MiniUpdate(mini,replacement,.02,true);check(mini.dot.Visible and near(mini.dot.Position.X.Scale,.125) and mini.arrow==nil,'Respawn marker not immediate')
+local nextRoot={Parent={},Position={X=0,Z=0},CFrame={LookVector={X=1,Z=0}}};CityMap.MiniUpdate(mini,nextRoot,.025,true);check(near(mini.dot.Position.X.Scale,.5) and mini.arrow==nil,'Respawn marker not immediate')
 CityMap.MiniUpdate(mini,replacement,.03,false);check(not mini.dot.Visible and mini.lastRoot==nil,'Hidden marker retained')
 print('PASS '..checks..' compact CityMap projection/render/lifecycle assertions; mocked GUI only')
 '''

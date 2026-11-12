@@ -539,7 +539,7 @@ end
 local function dodge(p)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
  if s then cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
- if not s or not r or r.Anchored or h.Sit or h.SeatPart or h.PlatformStand or not s.micReady or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
+ if not s or not r or r.Anchored or h.Sit or h.SeatPart or h.PlatformStand or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
  local cooldown=Entitlements.CanUseMovement(p,r.Position) and Config.DodgeDuration or Config.DodgeCooldown
  s.nextDodge=now+cooldown;s.dodgingUntil=now+Config.DodgeDuration
  s.lastDodge=now;s.premiumRoll=cooldown<Config.DodgeCooldown
@@ -774,7 +774,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="Cast" then cast(p,arg);return elseif verb=="Dodge" then dodge(p);return
  elseif verb=="ExtraJump" then
   local _,root,h=parts(p)
-  if root and not root.Anchored and not h.Sit and not h.SeatPart and not h.PlatformStand and s.micReady and Entitlements.CanUseMovement(p,root.Position) and now>=(s.nextExtraJump or 0) and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and h.FloorMaterial==Enum.Material.Air and s.jumpOriginY and root.Position.Y<s.jumpOriginY+24 then
+  if root and not root.Anchored and not h.Sit and not h.SeatPart and not h.PlatformStand and Entitlements.CanUseMovement(p,root.Position) and now>=(s.nextExtraJump or 0) and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and h.FloorMaterial==Enum.Material.Air and s.jumpOriginY and root.Position.Y<s.jumpOriginY+24 then
    s.nextExtraJump=now+.25
    local v=root.AssemblyLinearVelocity
    local remaining=math.max(0,s.jumpOriginY+24-root.Position.Y)
@@ -848,7 +848,7 @@ local function joined(p)
   if not h or not p.Parent or sessions[p]~=s or p.Character~=c or s.character==c then return end
   s.character=c;closeConversation(p)
   s.jumpPower=h.JumpPower;s.jumpHeight=h.JumpHeight
-  h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=s.micReady and 16 or 0
+  h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=16
   s.sprintCharge=Config.SprintDuration;s.sprintRequested=false;s.sprintRunning=false;s.sprintRegenAt=0;s.lastStep=os.clock();s.sprintLockedUntil=0;s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false
   s.nextHeal=os.clock()+Config.HealQuietSeconds
   p:SetAttribute("DodgeEnds",0);p:SetAttribute("DodgeStarted",0);p:SetAttribute("KnockdownEnds",0)
@@ -936,7 +936,7 @@ local function stepSprint(s,root,humanoid,now,dt)
  end
  local velocity=root and root.AssemblyLinearVelocity
  local moving=velocity and velocity.X*velocity.X+velocity.Z*velocity.Z>2.25
- local running=root~=nil and not root.Anchored and humanoid~=nil and not humanoid.Sit and not humanoid.SeatPart and not humanoid.PlatformStand and s.micReady and s.sprintRequested and moving==true
+ local running=root~=nil and not root.Anchored and humanoid~=nil and not humanoid.Sit and not humanoid.SeatPart and not humanoid.PlatformStand and s.sprintRequested and moving==true
   and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and s.sprintCharge>0 and now>=s.sprintLockedUntil
  s.sprintRunning=running==true
  return running
@@ -958,9 +958,8 @@ task.spawn(function()
    local running=stepSprint(s,r,h,now,dt)
    if h then
     if h.FloorMaterial~=Enum.Material.Air then s.jumpOriginY=r.Position.Y end
-    h.WalkSpeed=not s.micReady and 0 or now<(s.knockedUntil or 0) and 0 or now<s.dodgingUntil and 0 or running and 25 or 16
-    h.JumpPower=s.micReady and (s.jumpPower or 50) or 0;h.JumpHeight=s.micReady and (s.jumpHeight or 7.2) or 0
-    if not s.micReady then h.Jump=false end
+    h.WalkSpeed=now<(s.knockedUntil or 0) and 0 or now<s.dodgingUntil and 0 or running and 25 or 16
+    h.JumpPower=s.jumpPower or 50;h.JumpHeight=s.jumpHeight or 7.2
     local healed,nextHeal=Healing.Step(h.Health,h.MaxHealth,s.nextHeal,now)
     if healed~=h.Health then h.Health=healed end;s.nextHeal=nextHeal
     if Config.CompactCity and (r.Position.X<Config.MapMin.X-10 or r.Position.X>Config.MapMax.X+10 or r.Position.Z<Config.MapMin.Z-10 or r.Position.Z>Config.MapMax.Z+10 or r.Position.Y< -15) then

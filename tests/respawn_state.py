@@ -43,7 +43,7 @@ check(c.h.Health==42 and protects==1,'Duplicate registration healed/reprotected 
 removed(character());check(s.character==c and cancels==0,'Old character removal canceled current character')
 removed(c);check(s.character==nil and s.voice.capture==nil and cancels==1 and p.attributes.CaptureStarted==0,'Character removal retained attack')
 local replacement=character();p.Character=replacement;s.micReady=false;spawn(replacement)
-check(replacement.h.WalkSpeed==0 and s.character==replacement,'New character did not respect microphone gate')
+check(replacement.h.WalkSpeed==16 and s.character==replacement,'Microphone loss blocked replacement character movement')
 local late=character();p.Character=late;p.Parent=nil;spawn(late)
 check(s.character==replacement and protects==2,'Late spawn initialized departed player')
 p.Parent=true;sessions[p]={};spawn(late)

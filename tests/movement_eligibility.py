@@ -28,8 +28,8 @@ for _,mode in ipairs({'seated','seat attachment','ragdoll','anchored'})do
 end
 h.Sit=false;h.SeatPart=nil;h.PlatformStand=false;root.Anchored=false
 s.nextDodge=11;h.FloorMaterial='ground';check(not canDodge(s,root,h,10),'Dodge cooldown bypassed')
-s.nextDodge=0;s.micReady=false;check(not canDodge(s,root,h,10),'Missing mic allowed dodge')
-h.FloorMaterial='air';check(not canJump(s,root,h,10),'Missing mic allowed jump')
+s.nextDodge=0;s.micReady=false;check(canDodge(s,root,h,10),'Missing mic blocked dodge')
+h.FloorMaterial='air';check(canJump(s,root,h,10),'Missing mic blocked jump')
 s.micReady=true;premium=false;check(not canJump(s,root,h,10),'Missing movement entitlement allowed jump')
 premium=true;root.Position.Y=24;check(not canJump(s,root,h,10),'Height cap bypassed')
 print('PASS '..checks..' actual movement eligibility checks with mocked state')

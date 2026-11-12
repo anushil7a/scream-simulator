@@ -16,7 +16,7 @@ local s={nextAction=999,sprintRequested=false,micReady=true,sprintRunning=false,
 local sessions={[p]=s};local dispatch;local sends={}
 local action={OnServerEvent={Connect=function(_,fn)dispatch=fn end},FireServer=function(_,verb,arg)table.insert(sends,{now,arg});dispatch(p,verb,arg)end}
 local windowFocused=true;local mic={ready=true};local GuiService={};local focused=nil
-local UIS={GetFocusedTextBox=function()return focused end};local modal={};local devPanel={};local conversationPanel={}
+local UIS={GetFocusedTextBox=function()return focused end};local micPanel={Visible=false};local modal={};local devPanel={};local conversationPanel={}
 local Config={SprintDuration=10,SprintRegenDelay=.75,SprintRecovery=3}
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 '''
@@ -39,14 +39,15 @@ now+=2;count=#sends;setSprint(true);check(#sends==count+1,'Fresh ON delayed')
 now+=.01;setSprint(false);check(#sends==count+2 and not s.sprintRequested,'Fast OFF delayed')
 now+=.01;setSprint(true);check(#sends==count+3 and s.sprintRequested,'Fresh transition throttled')
 setSprint(false)
-for _,kind in ipairs({'focus','mic','menu','typing','modal','dev','conversation','missing','dead','platform','sit','seat','knock'})do
+for _,kind in ipairs({'focus','setup','menu','typing','modal','dev','conversation','missing','dead','platform','sit','seat','knock'})do
  now+=2;setSprint(true);check(sprinting,'Precondition failed '..kind)
  local character=p.Character
- if kind=='focus'then windowFocused=false elseif kind=='mic'then mic.ready=false elseif kind=='menu'then GuiService.MenuIsOpen=true elseif kind=='typing'then focused={} elseif kind=='modal'then modal.Visible=true elseif kind=='dev'then devPanel.Visible=true elseif kind=='conversation'then conversationPanel.Visible=true elseif kind=='missing'then p.Character=nil elseif kind=='dead'then h.Health=0 elseif kind=='platform'then h.PlatformStand=true elseif kind=='sit'then h.Sit=true elseif kind=='seat'then h.SeatPart={} elseif kind=='knock'then attrs.KnockdownEnds=now+1 end
+ if kind=='focus'then windowFocused=false elseif kind=='setup'then micPanel.Visible=true elseif kind=='menu'then GuiService.MenuIsOpen=true elseif kind=='typing'then focused={} elseif kind=='modal'then modal.Visible=true elseif kind=='dev'then devPanel.Visible=true elseif kind=='conversation'then conversationPanel.Visible=true elseif kind=='missing'then p.Character=nil elseif kind=='dead'then h.Health=0 elseif kind=='platform'then h.PlatformStand=true elseif kind=='sit'then h.Sit=true elseif kind=='seat'then h.SeatPart={} elseif kind=='knock'then attrs.KnockdownEnds=now+1 end
  now+=.01;count=#sends;setSprint(true);check(not sprinting and not s.sprintRequested and #sends==count+1 and sends[#sends][2]==false,'Interrupted intent retained '..kind)
- windowFocused=true;mic.ready=true;GuiService.MenuIsOpen=false;focused=nil;modal.Visible=false;devPanel.Visible=false;conversationPanel.Visible=false;p.Character=character;h.Health=100;h.PlatformStand=false;h.Sit=false;h.SeatPart=nil;attrs.KnockdownEnds=nil
+ windowFocused=true;mic.ready=true;micPanel.Visible=false;GuiService.MenuIsOpen=false;focused=nil;modal.Visible=false;devPanel.Visible=false;conversationPanel.Visible=false;p.Character=character;h.Health=100;h.PlatformStand=false;h.Sit=false;h.SeatPart=nil;attrs.KnockdownEnds=nil
  now+=2;if sprinting then setSprint(true)end;check(#sends==count+1,'Interruption automatically resumed '..kind)
 end
+mic.ready=false;s.micReady=false;now+=2;setSprint(true);check(sprinting and s.sprintRequested,'Unready microphone blocked dismissed-setup sprint');setSprint(false);mic.ready=true;s.micReady=true
 local root={AssemblyLinearVelocity={X=4,Z=0}};s.sprintCharge=8;s.sprintRunning=true;s.sprintRegenAt=0;s.sprintLockedUntil=0
 local before=s.sprintCharge
 for i=1,10 do dispatch(p,'Sprint',true)end

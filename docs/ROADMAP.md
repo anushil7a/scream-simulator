@@ -1,11 +1,17 @@
 # Scream Simulator development roadmap
 
-Updated November 11, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
+Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub development pushes remain authorized; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
 
 
 
 
+
+## November 12 microphone navigation and minimap
+
+- Owner resumed work and requested vault-informed fixes. Setup is dismissible/reopenable; mic loss does not force it back. Ordinary navigation/movement no longer needs mic readiness, while beams retain client/server readiness and eligibility. Hidden/destroyed calibration/check callbacks are fenced. Compact minimap remains through notices and authorized tester state, without N/arrow; authorized Test Tools sits below it. No world/map changes.
+- Final25 pure/100 mocked suites,60 compiles and builds pass. Independent review cleared35/10 setup,58/10 movement,137 module/406,617 combined minimap assertions/16 controls and53/9 access-check controls. Final native onboarding172checks/33rows/212chunks passes. Native minimap found a short-landscape notice collision; its conservative correction is simulation-reviewed, final native rerun pending. Long notices can still overlap collapsed controls on very short screens. [Review](MIC_NAVIGATION_REVIEW.md), [evidence](../tests/evidence/mic-navigation-2026-11-12.json).
+- All-player Test Tools remains deferred without verified intended test-place identity. DeveloperAccess unchanged. Studio windows absent at cleanup; two minimized launch-created app-pickers remain inaccessible to supported restore controls. No live services/publication; preexisting user files/apps preserved. Next: verify intended test access, final minimap native/device check and restrained vault-informed beam feedback, preserving map pause and real-voice/writer-fleet gates. The historical pause below was superseded by the owner's new Continue instruction; no scheduled continuation.
 
 ## November 11 current-head native UI check
 

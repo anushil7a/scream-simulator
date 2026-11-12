@@ -26,4 +26,4 @@ Commerce lifetime follow-up: departed Player objects cannot regain purchase cach
 
 Current-head native follow-up: 6b859a3 actual Client UI passed 161 checks/31 scripted rows plus one manual observation, with no reported allocated-text clipping. Desktop BEAMS OFF and Shop X/B close/reopen worked. Synthetic inputs/state only; no phone/audio/network/persistence or native stale-callback proof. See NATIVE_CURRENT_UI_REVIEW.md and exact evidence. Studio closed; one minimized launch-created app-picker remains inaccessible to supported restore control.
 
-Owner pause: finish this native evidence/review draft checkpoint, then stop until new direction. No next task or scheduled continuation.
+Owner resumed on November12 with vault-informed microphone/navigation/minimap testing feedback. See MIC_NAVIGATION_REVIEW.md: final native onboarding172checks, full25/100/60 build and independent review pass; final minimap native rerun and very-short-screen long-notice layout remain. Authorized Test Tools now sits below MAP, but all-test-player access is deferred pending the intended server-bound test identity. Map work remains paused; no publication or scheduled continuation.

@@ -64,7 +64,9 @@ function CityMap.create(parent,compact)
  end
  local boundary=box(map,'ArenaBoundary',arenaX,arenaZ,arenaWidth,arenaHeight,cream);boundary.BackgroundTransparency=1
  local stroke=Instance.new('UIStroke');stroke.Color=Color3.fromRGB(247,139,120);stroke.Thickness=2;stroke.Parent=boundary
- local north=box(map,'North',.04,.025,.25,.075,cream);north.BackgroundTransparency=1;text(north,'N ↑',13)
+ if not compact then
+  local north=box(map,'North',.04,.025,.25,.075,cream);north.BackgroundTransparency=1;text(north,'N ↑',13)
+ end
  for i,v in ipairs(compact and {} or landmarks) do
   local pin=box(map,'Landmark'..i,0,0,0,0,Color3.fromRGB(22,39,46));pin.Size=UDim2.fromOffset(23,23);pin.AnchorPoint=Vector2.new(.5,.5);pin.Position=position(v.x,v.z)
   local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=pin;text(pin,tostring(i),13)
@@ -72,7 +74,8 @@ function CityMap.create(parent,compact)
  local dot=box(map,'Player',0,0,0,0,gold);dot.Size=UDim2.fromOffset(18,18);dot.AnchorPoint=Vector2.new(.5,.5);dot.ZIndex=5
  dot.Visible=false
  local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=dot
- local arrow=text(dot,'▲',14,Color3.fromRGB(19,32,40));arrow.ZIndex=6
+ local arrow
+ if not compact then arrow=text(dot,'▲',14,Color3.fromRGB(19,32,40));arrow.ZIndex=6 end
  return {map=map,dot=dot,arrow=arrow}
 end
 function CityMap.update(view,root)
@@ -81,16 +84,22 @@ function CityMap.update(view,root)
  if not view.dot.Visible then return end
  view.dot.Position=position(root.Position.X,root.Position.Z)
  local look=root.CFrame.LookVector
- view.arrow.Rotation=math.deg(math.atan2(look.X,-look.Z))
+ if view.arrow then view.arrow.Rotation=math.deg(math.atan2(look.X,-look.Z)) end
 end
 -- Reserve the compact HUD's left column and combat/talk controls below.
-function CityMap.MiniLayout(viewport,touch)
+function CityMap.MiniLayout(viewport,touch,testTools)
  local available=viewport.X>=280 and viewport.Y>=(touch and 315 or 168)
  local width=math.min(160,viewport.X-278)
  -- The quest tracker is wider than the HUD. Stay above it or to its right.
  width=math.min(width,math.max(119,viewport.X-328))
- if touch then width=math.min(width,(viewport.Y-269)*CityMap.aspectRatio+16) end
- local expanded=width>=96 and viewport.Y>=360
+ if touch then width=math.min(width,(viewport.Y-269-(testTools and 52 or 0))*CityMap.aspectRatio+16) end
+ -- Reserve the notification's maximum bounded height before expanding.
+ -- At extremely short heights even the 44px launcher can share a long toast's
+ -- area; keep navigation available rather than hide or shrink urgent text.
+ local notificationTop=math.min(viewport.Y*.72,viewport.Y-(touch and 203 or 110))-viewport.Y*.35
+ local mapHeightBudget=notificationTop-14-8-(testTools and 52 or 0)
+ width=math.min(width,(mapHeightBudget-52)*CityMap.aspectRatio+16)
+ local expanded=width>=96 and viewport.Y>=(testTools and 412 or 360)
  if not expanded then return {width=math.min(90,math.max(44,viewport.X-220)),height=44,expanded=false,available=available} end
  return {width=width,height=52+(width-16)/CityMap.aspectRatio,expanded=true,available=available}
 end

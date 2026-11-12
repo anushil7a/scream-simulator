@@ -76,7 +76,7 @@ check(edges(p)==2 and first.characterAddedConnection and first.characterRemoving
 local oldAdded=next(p.CharacterAdded.callbacks);local oldAddedFn=p.CharacterAdded.callbacks[oldAdded]
 local oldRemoved=next(p.CharacterRemoving.callbacks);local oldRemovedFn=p.CharacterRemoving.callbacks[oldRemoved]
 local c=character();p.Character=c;p.CharacterAdded:Fire(c)
-check(first.character==c and protects==1 and c.humanoid.WalkSpeed==0,'Normal character spawn initialization changed')
+check(first.character==c and protects==1 and c.humanoid.WalkSpeed==16,'Unready character spawn movement initialization changed')
 first.micReady=true;p.CharacterRemoving:Fire(c)
 check(first.character==nil and cancels==1,'Normal removal failed to cancel old character')
 local c2=character();p.Character=c2;p.CharacterAdded:Fire(c2)

@@ -13,7 +13,7 @@ local GuiService={MenuIsOpen=false}
 local typing=false
 local UIS={GetFocusedTextBox=function()return typing and {} or nil end}
 local conversationPanel={Visible=false};local modal={Visible=false};local devPanel={Visible=false}
-local mic={ready=true}
+local mic={ready=true};local micPanel={Visible=false};local data={voiceEligible=true}
 local humanoid={Health=100,PlatformStand=false}
 local character={FindFirstChildOfClass=function()return humanoid end}
 local attrs={}
@@ -22,22 +22,23 @@ local p={Character=character,GetAttribute=function(_,name)return attrs[name] end
 checks='''
 local checks=0
 local function check(value,message)assert(value,message);checks+=1 end
-check(not blocked(),'Healthy available character blocked')
-humanoid.PlatformStand=true;check(blocked(),'Ragdoll accepted capture')
-humanoid.PlatformStand=false;check(not blocked(),'Ragdoll recovery remained blocked')
-humanoid.Health=0;check(blocked(),'Dead character accepted capture');humanoid.Health=100
-p.Character=nil;check(blocked(),'Missing character accepted capture');p.Character=character
-local saved=humanoid;humanoid=nil;check(blocked(),'Missing humanoid accepted capture');humanoid=saved
+check(not beamBlocked(),'Healthy available character blocked')
+humanoid.PlatformStand=true;check(beamBlocked(),'Ragdoll accepted capture')
+humanoid.PlatformStand=false;check(not beamBlocked(),'Ragdoll recovery remained blocked')
+humanoid.Health=0;check(beamBlocked(),'Dead character accepted capture');humanoid.Health=100
+p.Character=nil;check(beamBlocked(),'Missing character accepted capture');p.Character=character
+local saved=humanoid;humanoid=nil;check(beamBlocked(),'Missing humanoid accepted capture');humanoid=saved
 for _,name in ipairs({'ProtectionEnds','DodgeEnds','KnockdownEnds'})do
- attrs[name]=11;check(blocked(),'Active interruption accepted: '..name)
- attrs[name]=10;check(not blocked(),'Expired interruption remained: '..name)
+ attrs[name]=11;check(beamBlocked(),'Active interruption accepted: '..name)
+ attrs[name]=10;check(not beamBlocked(),'Expired interruption remained: '..name)
 end
-for _,panel in ipairs({conversationPanel,modal,devPanel})do
- panel.Visible=true;check(blocked(),'Open panel accepted capture');panel.Visible=false
+for _,panel in ipairs({conversationPanel,modal,devPanel,micPanel})do
+ panel.Visible=true;check(beamBlocked(),'Open panel accepted capture');panel.Visible=false
 end
-GuiService.MenuIsOpen=true;check(blocked(),'Roblox menu accepted capture');GuiService.MenuIsOpen=false
-typing=true;check(blocked(),'Typing accepted capture');typing=false
-mic.ready=false;check(blocked(),'Missing microphone accepted capture')
+GuiService.MenuIsOpen=true;check(beamBlocked(),'Roblox menu accepted capture');GuiService.MenuIsOpen=false
+typing=true;check(beamBlocked(),'Typing accepted capture');typing=false
+mic.ready=false;check(beamBlocked(),'Missing microphone accepted capture');check(not blocked(),'Mic loss blocked ordinary movement')
+mic.ready=true;data.voiceEligible=false;check(beamBlocked(),'Unverified account accepted capture');check(not blocked(),'Voice eligibility blocked ordinary movement')
 print('PASS '..checks..' actual capture gate checks with mocked avatar/UI')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:

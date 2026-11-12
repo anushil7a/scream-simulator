@@ -105,6 +105,15 @@ for _,view in ipairs({{320,568,true},{390,844,true},{844,390,true},{1280,720,fal
  gui.Size=UDim2.fromOffset(view[1],view[2]);fixtureTouch=view[3];mic.ready=false
  settle();observe("setup")
 end
+-- Dismiss unready setup and navigate without silently enabling attacks.
+closeMicSetup();settle()
+check(not micPanel.Visible and controls.Visible and miniMapButton.Visible,"Unready dismissal still blocks navigation")
+check(GuiService.TouchControlsEnabled==originalTouchControls,"Dismissed setup did not restore original touch controls")
+check(not sustainedControl.armed,"Unready dismissal armed beams")
+observe("setup-dismissed-unready")
+selected="Settings";modal.Visible=true;render();settle();press("OpenMicSetup")
+check(micPanel.Visible and not modal.Visible,"Settings did not reopen setup")
+closeMicSetup();settle()
 gui.Size=UDim2.fromOffset(390,844);fixtureTouch=true;mic.ready=true;data.micReady=true;mic.power=0
 receiveEligibility(false,"checking");settle();check(not sustainedControl.armed,"Checking state armed")
 observe("eligibility-checking")
@@ -132,6 +141,16 @@ for _,view in ipairs({{320,568,true},{390,844,true},{844,390,true},{1280,720,fal
  render();settle();check(fixtureCallbacks.GameplayAudio.button.Text=="GAMEPLAY SFX: OFF","Reopen masks cue OFF")
  observe("settings-audio-cycle");modal.Visible=false
 end
+-- Loss of a calibrated input must not force the dismissed popup back.
+mic.ready=false;data.micReady=false;settle()
+check(not micPanel.Visible and controls.Visible and miniMapButton.Visible,"Input loss trapped navigation")
+check(not sustainedControl.armed,"Input loss retained armed state")
+observe("ready-input-lost")
+mic.ready=true;data.micReady=true;settle()
+check(not sustainedControl.armed,"Input recovery auto-rearmed beams")
+selected="Settings";modal.Visible=true;render();settle();press("OpenMicSetup")
+check(micPanel.Visible,"Already-ready setup closed immediately")
+closeMicSetup();settle();check(mic.ready,"Dismissing ready setup erased calibration")
 for _,status in ipairs({"denied","unavailable"}) do
  mic.power=0;toggleVoice();task.wait(.5);mic.power=.8;awaitAttack()
  check(sustainedControl.attack~=nil,"Eligibility interruption lacks active beam")
