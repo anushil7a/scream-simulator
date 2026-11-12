@@ -34,7 +34,8 @@ for _,pos in ipairs({Vector3.new(-120.01,0,0),Vector3.new(200.01,0,0),Vector3.ne
 local parent={};local layout=City.Build(parent)
 local World={Bots={},Cars={},SafeSpawn=layout.spawn};local C={green={},gold={}}
 local function makeBot(_,index,x,z,role,job,training)table.insert(World.Bots,{index=index,x=x,z=z,role=role,job=job,training=training})end
-local function part()return {}end
+local builtPads={}
+local function part(_,name,size,position,color,material) local p={Name=name,Size=size,Position=position,Color=color,Material=material};if name:sub(1,12)=="TrainingPad_" then builtPads[name]=p end;return p end
 local function billboard()return {Parent={}}end
 local function vehicle()error('Legacy traffic created in compact world')end
 local function taxi()error('Legacy traffic created in compact world')end
@@ -47,6 +48,10 @@ for i,seed in ipairs(layout.seeds)do local bot=World.Bots[i];check(bot.x==seed[1
 for i,job in ipairs(layout.jobs)do local bot=World.Bots[#layout.seeds+i];check(bot.job==job and bot.x==job.stations[1].position.X and bot.z==job.stations[1].position.Z,'Compact job ignored')end
 for i,tier in ipairs(TrainingRules.Tiers)do
  local bot=World.Bots[#layout.seeds+#layout.jobs+i];local home=Layout.TrainingHomes[i]
+ local pad=builtPads['TrainingPad_'..tier.id];local spec
+ for _,v in ipairs(Layout.PartSpecs)do if v.id=='TrainingPad'..i then spec=v end end
+ check(pad and spec and pad.Color==spec.color,'Authoritative pad masks compact tier color')
+ check(pad.Size.X==64 and pad.Size.Y==.2 and pad.Size.Z==64 and pad.Position.X==home.x and pad.Position.Y==.1 and pad.Position.Z==home.z and pad.Material==Enum.Material.SmoothPlastic,'Pad geometry or material changed')
  check(bot.training~=tier and bot.x==home.x and bot.z==home.z,'Trainer relocation did not clone tier')
  for k,v in pairs(original[i])do check(tier[k]==v,'Pure training tier mutated')end
  check(bot.training.health==tier.health and bot.training.xp==tier.xp and bot.training.level==tier.level,'Training reward stats changed')
@@ -116,7 +121,15 @@ sports+="\ncheck(serve==Layout.Volley.serve and minimum==Layout.Volley.min and m
 net_predicate=re.search(r'elseif (old.Y[^\n]+) then',volley)[1]
 a=volley.index('  if state.phase=="Playing" then');landing=volley[a:volley.index('  state.position=position',a)]
 height_tests="\ndo\n"+volleydecl+"\nlocal function netHit(y)local old={Y=y};local position={Y=y};local alpha=.5;return "+net_predicate+" end\ncheck(netHit(9.199) and not netHit(9.2),'Actual volley crossing height wrong')\nlocal function land(y)\n local position=V(serve.X,y,serve.Z);local state={phase='Playing'};local reason\n local function fault(_,why)reason=why end\n"+landing+"\n return position,reason\nend\nlocal landed,why=land(1.1);check(landed.Y==1.1 and why=='Ball landed','Actual volley landing threshold wrong')\nlocal airborne,reason=land(1.101);check(airborne.Y==1.101 and reason==nil,'Volley landed above threshold')\nend\n"
-code=setup+pre+layout+bridge+config+citybridge+city+worldsetup+spawn+worldchecks+reset+rescuechecks+height_tests+sports
+trainer_loop=spawn[spawn.index('    for index,originalTier'):spawn.index('    if layout.traffic') ]
+legacy='\nConfig.CompactCity=false;builtPads={}\n'+trainer_loop+'''
+for _,tier in ipairs(TrainingRules.Tiers)do local pad=builtPads['TrainingPad_'..tier.id]
+ check(pad.Color==C.green and pad.Position.X==tier.x and pad.Position.Y==1.1 and pad.Position.Z==tier.z,'Original-map pad appearance or position changed')
+ check(pad.Size.X==64 and pad.Size.Y==.2 and pad.Size.Z==64,'Original-map pad geometry changed')
+end
+Config.CompactCity=true;World.Bots={}
+'''
+code=setup+pre+layout+bridge+config+citybridge+city+worldsetup+spawn+worldchecks+legacy+reset+rescuechecks+height_tests+sports
 def run(body,error=None):
  with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=ROOT/'tests',encoding='utf-8',delete=False)as f:f.write(body);path=Path(f.name)
  try:r=subprocess.run(['luau',str(path)],text=True,capture_output=True)
@@ -126,7 +139,7 @@ def run(body,error=None):
  else:assert r.returncode==0,out;print(out.strip())
 run(code)
 if args.negative_controls:
- for old,new,error in [('tier=table.clone(originalTier)','tier=originalTier','Trainer relocation did not clone tier'),('if layout.traffic~=false then','if true then','Legacy traffic created'),('resetMovement(p,s,h,r);running=false','running=false','Compact rescue retained own seat'),('if Config.ObjectDestruction==true then Destruction.Start','if true then Destruction.Start','Disabled destruction started'),('if Config.ObjectDestruction==true and obstruction then','if obstruction then','Disabled sustained destruction emitted target'),('Config.ObjectDestruction==true and Destruction.Damage','true and Destruction.Damage','Disabled legacy destruction damaged'),('nextPosition.X<minimum.X','nextPosition.X< -9999','Soccer outside accepted'),('position.X<minimum.X','position.X< -9999','Volley outside accepted'),('alpha<minimumCrossingHeight','alpha<10.2','Actual volley crossing height wrong'),('position.Y<=floorBallY','position.Y<=2.1','Volley landed above threshold')]:
+ for old,new,error in [('then padColor=spec.color;break end','then padColor=C.green;break end','Authoritative pad masks compact tier color'),('tier=table.clone(originalTier)','tier=originalTier','Trainer relocation did not clone tier'),('if layout.traffic~=false then','if true then','Legacy traffic created'),('resetMovement(p,s,h,r);running=false','running=false','Compact rescue retained own seat'),('if Config.ObjectDestruction==true then Destruction.Start','if true then Destruction.Start','Disabled destruction started'),('if Config.ObjectDestruction==true and obstruction then','if obstruction then','Disabled sustained destruction emitted target'),('Config.ObjectDestruction==true and Destruction.Damage','true and Destruction.Damage','Disabled legacy destruction damaged'),('nextPosition.X<minimum.X','nextPosition.X< -9999','Soccer outside accepted'),('position.X<minimum.X','position.X< -9999','Volley outside accepted'),('alpha<minimumCrossingHeight','alpha<10.2','Actual volley crossing height wrong'),('position.Y<=floorBallY','position.Y<=2.1','Volley landed above threshold')]:
   changed=code.replace(old,new);assert changed!=code,old;run(changed,error)
 client=read('src/StarterPlayer/StarterPlayerScripts/Client.client.luau')
 assert 'Next destruction tier:' not in client and 'All destruction tiers unlocked' not in client,'UI advertises disabled destruction tiers'

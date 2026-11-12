@@ -18,6 +18,16 @@ Layout.MapRoads={
 {name="WestWalk",x=-180,z=-35,width=20,depth=400},
 {name="EastWalk",x=225,z=-10,width=20,depth=390},
 }
+-- Quiet, cosmetic-only first-minute route. These do not redefine walkability or PvP.
+Layout.GuidanceSpecs={
+{id="RouteToPractice",position=V(-270,.10,97),size=V(8,.02,86),color=Color3.fromRGB(177,174,153)},
+{id="RouteToTrainingTurn",position=V(-257.5,.10,50),size=V(33,.02,8),color=Color3.fromRGB(177,174,153)},
+{id="RouteToTraining",position=V(-245,.10,35.5),size=V(8,.02,21),color=Color3.fromRGB(177,174,153)},
+{id="RouteToArena",position=V(-183,.10,50),size=V(116,.02,8),color=Color3.fromRGB(177,174,153)},
+{id="PracticeFrameNear",position=V(-280.8,8,48),size=V(.3,16,1),color=Color3.fromRGB(221,209,175)},
+{id="PracticeFrameFar",position=V(-280.8,8,82),size=V(.3,16,1),color=Color3.fromRGB(221,209,175)},
+{id="PracticeFrameCrown",position=V(-280.8,16.4,65),size=V(.3,.8,35),color=Color3.fromRGB(255,203,99)},
+}
 Layout.PartSpecs={
 {id="Ground",position=V(0,-1,0),size=V(720,2,600),color=Color3.fromRGB(212,195,158),collidable=true,kind="ground"},
 {id="HubPaving",position=V(-260,0.04,50),size=V(180,0.08,390),color=Color3.fromRGB(229,216,186),collidable=false,kind="paving"},

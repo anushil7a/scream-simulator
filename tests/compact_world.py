@@ -12,7 +12,7 @@ local Color3={fromRGB=function(r,g,b)return {R=r,G=g,B=b}end}
 local CFrame={new=function(p)return {Position=p}end}
 local Enum={Material={SmoothPlastic=1},KeyCode={F=1},Font={GothamBold=1}}
 local UDim2={fromOffset=function(x,y)return {X=x,Y=y}end,fromScale=function(x,y)return {X=x,Y=y}end}
-local nodes={};local Instance={new=function(class)local n={ClassName=class,attributes={}};function n:SetAttribute(k,v)self.attributes[k]=v end;table.insert(nodes,n);return n end}
+local nodes={};local Instance={new=function(class)local n={ClassName=class,attributes={},Transparency=0};function n:SetAttribute(k,v)self.attributes[k]=v end;table.insert(nodes,n);return n end}
 local Layout=(function()
 '''
 between=r'''
@@ -28,11 +28,22 @@ end)()
 local result=City.Build({});check(result.compact and result.traffic==false,'Wrong compact build mode')
 check(result.spawn.Position==Layout.Spawn and Layout.Spawn.X==-270 and Layout.Spawn.Z==130,'Wrong compact spawn')
 check(#result.jobs==7 and #result.seeds==4,'Missing residents')
+local guidanceNames={RouteToPractice=true,RouteToTrainingTurn=true,RouteToTraining=true,RouteToArena=true,PracticeFrameNear=true,PracticeFrameFar=true,PracticeFrameCrown=true}
+local guidanceFolder;local guidanceCount=0
+for _,n in ipairs(nodes)do if n.Name=='FirstMinuteGuidance' then check(n.ClassName=='Folder' and guidanceFolder==nil,'Duplicate/wrong guidance folder');guidanceFolder=n end end
+check(guidanceFolder~=nil,'First-minute guidance missing')
 local byName={};local prompts={}
 for _,n in ipairs(nodes)do
  if n.ClassName=='Part' then
-  check(n.Anchored and (n.CanQuery or n.Name=='PracticeWayfinding' or n.Name=='ArenaWayfinding' or n.Name=='StandLine' or n.Name=='SpawnWayfinding') and n.CanTouch==false,'Unsafe static geometry flags')
+  check(n.Anchored and (n.CanQuery or guidanceNames[n.Name] or n.Name=='PracticeWayfinding' or n.Name=='ArenaWayfinding' or n.Name=='StandLine' or n.Name=='SpawnWayfinding') and n.CanTouch==false,'Unsafe static geometry flags')
   check(n.attributes.DestructibleType==nil and n.attributes.ObjectId==nil and n.attributes.ObjectHealth==nil and n.attributes.RequiredLevel==nil and n.attributes.Destructible==nil and n.attributes.DestructionLevel==nil and n.attributes.Breakable==nil,'Compact geometry tagged for destruction')
+  if guidanceNames[n.Name] then
+   check(n.Parent==guidanceFolder and not byName[n.Name],'Guidance part ownership/uniqueness invalid')
+   check(n.Anchored==true and n.CanCollide==false and n.CanTouch==false and n.CanQuery==false and n.CastShadow==false,'Guidance physics/query/shadow enabled')
+   check(n.Transparency==0 and n.Material==Enum.Material.SmoothPlastic,'Guidance invisible or emissive')
+   check(next(n.attributes)==nil,'Guidance carries gameplay attributes')
+   guidanceCount+=1
+  elseif n.Parent==guidanceFolder then error('Unexpected guidance part') end
   byName[n.Name]=n
   print(string.format('PART|%s|%.6f|%.6f|%.6f|%.6f|%.6f|%.6f|%s',n.Name,n.Position.X,n.Position.Y,n.Position.Z,n.Size.X,n.Size.Y,n.Size.Z,tostring(n.CanCollide)))
  elseif n.ClassName=='ProximityPrompt' then
@@ -40,6 +51,44 @@ for _,n in ipairs(nodes)do
   check(not prompts[parent.Name],'Duplicate prompt marker');prompts[parent.Name]=parent
   print(string.format('REACH|%s|%.6f|%.6f|%.6f|10',parent.Name,parent.Position.X,parent.Position.Y,parent.Position.Z))
  end
+end
+check(guidanceCount==7,'Expected exactly seven guidance parts')
+for _,n in ipairs(nodes)do
+ if n.Parent==guidanceFolder then check(n.ClassName=='Part' and guidanceNames[n.Name],'Unexpected guidance child') end
+ if n.Parent and guidanceNames[n.Parent.Name] then error('Guidance has prompt/light/descendant') end
+end
+local arena=byName.RouteToArena;local training=byName.RouteToTraining
+check(arena.Position.X+arena.Size.X/2==-125 and arena.Position.X+arena.Size.X/2<Layout.ZoneMin.X,'Route crosses PvP threshold')
+check(training.Position.Z-training.Size.Z/2>=25 and training.Position.Z-training.Size.Z/2>Layout.TrainingHomes[1].z+32,'Route overlaps rookie eligibility pad')
+local target=byName.PracticeTarget
+for name in pairs(guidanceNames)do
+ local g=byName[name];check(g~=nil,'Named guidance part missing')
+ -- Axis-aligned source geometry: no decorative volume may cover the target face or westward shot corridor.
+ local xOverlap=g.Position.X+g.Size.X/2>=target.Position.X-target.Size.X/2 and g.Position.X-g.Size.X/2<=Layout.Practice.position.X
+ local yOverlap=g.Position.Y+g.Size.Y/2>target.Position.Y-target.Size.Y/2 and g.Position.Y-g.Size.Y/2<target.Position.Y+target.Size.Y/2
+ local zOverlap=g.Position.Z+g.Size.Z/2>target.Position.Z-target.Size.Z/2 and g.Position.Z-g.Size.Z/2<target.Position.Z+target.Size.Z/2
+ check(not(xOverlap and yOverlap and zOverlap),'Guidance obscures practice shot corridor')
+end
+local routes={byName.RouteToPractice,byName.RouteToTrainingTurn,byName.RouteToTraining,byName.RouteToArena}
+local linked={}
+for i=1,4 do linked[i]={} end
+for i=1,4 do for j=i+1,4 do
+ local a,b=routes[i],routes[j]
+ local ox=math.min(a.Position.X+a.Size.X/2,b.Position.X+b.Size.X/2)-math.max(a.Position.X-a.Size.X/2,b.Position.X-b.Size.X/2)
+ local oz=math.min(a.Position.Z+a.Size.Z/2,b.Position.Z+b.Size.Z/2)-math.max(a.Position.Z-a.Size.Z/2,b.Position.Z-b.Size.Z/2)
+ check(not(ox>0 and oz>0),'Route rectangles have coplanar area overlap')
+ if (ox==0 and oz>0) or (oz==0 and ox>0) then linked[i][j]=true;linked[j][i]=true end
+end end
+local reached={[1]=true}
+for _=1,4 do for i=1,4 do if reached[i] then for j in pairs(linked[i])do reached[j]=true end end end end
+for i=1,4 do check(reached[i],'Route network lacks shared-edge connectivity') end
+local expectedGuidance={
+ RouteToPractice={-270,.10,97,8,.02,86},RouteToTrainingTurn={-257.5,.10,50,33,.02,8},RouteToTraining={-245,.10,35.5,8,.02,21},RouteToArena={-183,.10,50,116,.02,8},
+ PracticeFrameNear={-280.8,8,48,.3,16,1},PracticeFrameFar={-280.8,8,82,.3,16,1},PracticeFrameCrown={-280.8,16.4,65,.3,.8,35}}
+for name,e in pairs(expectedGuidance)do
+ local g=byName[name];check(g.Position.X==e[1] and g.Position.Y==e[2] and g.Position.Z==e[3] and g.Size.X==e[4] and g.Size.Y==e[5] and g.Size.Z==e[6],'Guidance source dimensions differ')
+ local r,h,b=177,174,153;if name=='PracticeFrameCrown' then r,h,b=255,203,99 elseif string.find(name,'PracticeFrame',1,true)then r,h,b=221,209,175 end
+ check(g.Color.R==r and g.Color.G==h and g.Color.B==b,'Guidance palette changed')
 end
 for _,pair in ipairs({{'Flowerbed228','Garden'},{'Flowerbed250','Garden'},{'Flowerbed272','Garden'},{'CoffeeOrder','Pickup'},{'BoardwalkStart','RaceStart'},{'PierFinish','RaceFinish'},{'StageDelivery','Dropoff'},{'LookoutDelivery','Dropoff'},{'PierDelivery','Dropoff'}})do
  check(prompts[pair[1]] and prompts[pair[1]].attributes.QuestAction==pair[2],'Legacy quest marker/action missing')
@@ -87,7 +136,10 @@ local function objective(name,position,radius)
  print(string.format('REACH|%s|%f|3|%f|%f',name,position.X,position.Z,radius or 0))
 end
 for i,home in ipairs(Layout.TrainingHomes)do objective('TrainerHome'..i,Vector3.new(home.x,3,home.z),8)end
-check(byName.StandLine.Position.X==Layout.Practice.position.X and byName.StandLine.Position.Z==Layout.Practice.position.Z and byName.StandLine.Position.Y==.05 and not byName.StandLine.CanCollide and not byName.StandLine.CanQuery,'StandLine is not safe/aligned')
+for _,surface in ipairs({byName.HubPaving,byName.RouteToPractice})do
+ check(byName.StandLine.Position.Y-byName.StandLine.Size.Y/2>surface.Position.Y+surface.Size.Y/2,'Practice stand line buried under paving')
+end
+check(byName.StandLine.Position.X==Layout.Practice.position.X and byName.StandLine.Position.Z==Layout.Practice.position.Z and byName.StandLine.Position.Y==.14 and not byName.StandLine.CanCollide and not byName.StandLine.CanQuery,'StandLine is not safe/aligned')
 objective('PracticeStand',byName.StandLine.Position);objective('ArenaEntrance',byName.ArenaWayfinding.Position)
 objective('SoccerOrigin',Layout.Soccer.origin)
 for i,pos in ipairs(Layout.Soccer.gates)do objective('SoccerGate'..i,pos)end
@@ -141,11 +193,34 @@ def reachability(output):
  return len(targets)
 
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');args=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');p.add_argument('--baseline',action='store_true');args=p.parse_args()
+ if args.baseline:
+  layout=subprocess.check_output(['git','show','232b89285640fe601ca68d3626b85df142bda3c9:src/ReplicatedStorage/Shared/CompactLayout.luau'],text=True,cwd=ROOT)
+  city=subprocess.check_output(['git','show','232b89285640fe601ca68d3626b85df142bda3c9:src/ServerScriptService/CompactCity.luau'],text=True,cwd=ROOT)
  assert 'CollectionService' not in city and 'CityDestructible' not in city,'Compact city imports destruction tagging'
- code=setup+layout+between+city+tests.replace('__RAY_POLICY__',policy);output=execute(code)
+ code=setup+layout+between+city+tests.replace('__RAY_POLICY__',policy)
+ if args.baseline:
+  try:execute(code)
+  except AssertionError as e:assert 'First-minute guidance missing' in str(e);print('PASS expected baseline: first-minute guidance absent');raise SystemExit(0)
+  raise AssertionError('Baseline unexpectedly has guidance')
+ output=execute(code)
  print('\n'.join(line for line in output.splitlines()if line.startswith('PASS')));reachability(output)
  if args.negative_controls:
+  for old,new,message in [
+   ('position=V(-270,.10,97),size=V(8,.02,86)','position=V(-270,.10,95),size=V(8,.02,90)','Route rectangles have coplanar area overlap'),
+   ('size=V(33,.02,8)','size=V(24,.02,8)','Route network lacks shared-edge connectivity'),
+   ('p.CanQuery=false;p.CastShadow=false','p.CanQuery=true;p.CastShadow=false','Guidance physics/query/shadow enabled'),
+   ('p.CanQuery=false;p.CastShadow=false','p.CanQuery=false;p.CastShadow=false;p.CanCollide=true','Guidance physics/query/shadow enabled'),
+   ('p.CanQuery=false;p.CastShadow=false;p.Transparency=0','p.CanQuery=false;p.CastShadow=false;p.Transparency=1','Guidance invisible or emissive'),
+   ('p.CanQuery=false;p.CastShadow=false','p.CanQuery=false;p.CastShadow=false;p:SetAttribute("QuestAction","Garden")','Guidance carries gameplay attributes'),
+   ('position=V(-280.8,8,48)','position=V(-280.8,8,65)','Guidance obscures practice shot corridor'),
+   ('position=V(-183,.10,50)','position=V(-175,.10,50)','Route crosses PvP threshold'),
+   ('position=V(-245,.10,35.5)','position=V(-245,.10,27.5)','Route overlaps rookie eligibility pad'),
+   ('V(Layout.Practice.position.X,.14,Layout.Practice.position.Z)','V(Layout.Practice.position.X,.05,Layout.Practice.position.Z)','Practice stand line buried under paving')]:
+   assert code.count(old)==1,old
+   try:execute(code.replace(old,new))
+   except AssertionError as e:assert message in str(e),str(e);print('PASS negative control:',message)
+   else:raise AssertionError('Guidance mutation accepted')
   for old,new,message in [('p:SetAttribute("MicPracticeTarget",true)','p:SetAttribute("WrongPractice",true)','Practice target wiring missing'),('position=V(x,3,z)','position=V(x,4,z)','Compact job root elevation wrong'),('p.Material=Enum.Material.SmoothPlastic','p:SetAttribute("DestructibleType","Test");p.Material=Enum.Material.SmoothPlastic','Compact geometry tagged for destruction'),('gui.MaxDistance=65','gui.MaxDistance=100000','Unbounded wayfinding GUI'),('minimumCrossingHeight=9.2','minimumCrossingHeight=10.2','Volley crossing clearance disagrees with visual net and ball radius'),('center=V(285,1.2,245.5)','center=V(285,2.2,245.5)','Soccer floor alignment changed'),('p.CanCollide=true;p:SetAttribute("MicPracticeTarget"','p.CanCollide=false;p:SetAttribute("MicPracticeTarget"','Practice target excluded by actual beam raycast policy')]:
    assert old in code
    try:execute(code.replace(old,new))

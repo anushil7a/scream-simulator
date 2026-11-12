@@ -28,7 +28,13 @@ function City.Build(parent)
   if spec.id=="Ground" then p:SetAttribute("GroundSurface",true) end
   if spec.id=="PracticeTarget" then p.CanCollide=true;p:SetAttribute("MicPracticeTarget",true);p:SetAttribute("RestColor",spec.color) end
  end
- local stand=part(parent,"StandLine",V(.35,.04,10),V(Layout.Practice.position.X,.05,Layout.Practice.position.Z),Color3.fromRGB(255,203,99),false);stand.CanQuery=false
+ local guidance=Instance.new("Folder");guidance.Name="FirstMinuteGuidance";guidance.Parent=parent
+ for _,spec in ipairs(Layout.GuidanceSpecs) do
+  local p=part(guidance,spec.id,spec.size,spec.position,spec.color,false)
+  p.CanQuery=false;p.CastShadow=false;p.Transparency=0
+ end
+ -- Above the existing paving and cosmetic route; never a collision/raycast surface.
+ local stand=part(parent,"StandLine",V(.35,.04,10),V(Layout.Practice.position.X,.14,Layout.Practice.position.Z),Color3.fromRGB(255,203,99),false);stand.CanQuery=false
  wayfinding(parent,"SpawnWayfinding",V(Layout.Spawn.X,4,Layout.Spawn.Z),"MIC PRACTICE: NORTH\nTraining pads are in the west courtyard")
  wayfinding(parent,"PracticeWayfinding",V(-270,4,65),"MIC PRACTICE / AIM WEST, SPEAK, GO QUIET")
  wayfinding(parent,"ArenaWayfinding",V(-137,4,50),"BEAM ARENA / PVP INSIDE RED LINES")

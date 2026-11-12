@@ -91,6 +91,22 @@ task.spawn(function()
   end
   for i,position in ipairs(Layout.Soccer.lost)do reachable("LostBall:"..i,position,8)end
   local target=assert(world:FindFirstChild("PracticeTarget",true));local line=assert(target.Parent:FindFirstChild("StandLine"))
+  local guidance=assert(world:FindFirstChild("FirstMinuteGuidance"))
+  check(#guidance:GetChildren()==7,"Unexpected first-minute guidance budget")
+  for _,spec in ipairs(Layout.GuidanceSpecs)do
+   local item=assert(guidance:FindFirstChild(spec.id))
+   check(item:IsA("BasePart") and item.Anchored and not item.CanCollide and not item.CanTouch and not item.CanQuery and not item.CastShadow,"Cosmetic guidance changes physics/query behavior")
+   check(item.Position==spec.position and item.Size==spec.size and item.Color==spec.color and item.Transparency==0,"Guidance differs from shared design")
+  end
+  for _,name in ipairs({"HubPaving","RouteToPractice"})do
+   local floor=assert(world:FindFirstChild(name,true))
+   check(line.Position.Y-line.Size.Y/2>floor.Position.Y+floor.Size.Y/2,"Practice standing line is buried")
+  end
+  for index,tier in ipairs(require(ReplicatedStorage.Shared.TrainingRules).Tiers)do
+   local pad=assert(world:FindFirstChild("TrainingPad_"..tier.id))
+   local color=assert(world:FindFirstChild("TrainingPad"..index)).Color
+   check(pad.Color==color,"Authoritative pad hides the compact tier color")
+  end
   reachable("PracticeStand",line.Position,0)
   reachable("ArenaEntrance",assert(world:FindFirstChild("ArenaWayfinding",true)).Position,0)
   reachable("SoccerOrigin",Layout.Soccer.origin,0)

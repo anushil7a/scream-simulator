@@ -851,11 +851,14 @@ function World.Build()
     for i,job in ipairs(layout.jobs or {}) do local point=job.stations[1].position;makeBot(parent,#seeds+i,point.X,point.Z,job.role,job) end
     -- Dedicated sparring pads sit outside PvP and do not recruit city workers.
     for index,originalTier in ipairs(TrainingRules.Tiers) do
-        local tier=originalTier
+        local tier=originalTier;local padColor=C.green
         if Config.CompactCity then
             tier=table.clone(originalTier);local home=Config.CityLayout.TrainingHomes[index];tier.x=home.x;tier.z=home.z
+            for _,spec in ipairs(Config.CityLayout.PartSpecs) do
+                if spec.id=="TrainingPad"..index then padColor=spec.color;break end
+            end
         end
-        local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,Config.CompactCity and .1 or 1.1,tier.z),C.green,Enum.Material.SmoothPlastic)
+        local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,Config.CompactCity and .1 or 1.1,tier.z),padColor,Enum.Material.SmoothPlastic)
         local sign=part(parent,"TrainingSign_"..tier.id,Vector3.new(1,1,1),Vector3.new(tier.x,7,tier.z+30),C.gold,nil,false);sign.Transparency=1
         local words=billboard(sign,tier.name.." · recommended Lv "..tier.level.."\n"..tier.health.." HP · "..tier.xp.." base XP\nHit to spar · move out of red strikes",Vector3.zero,280)
         words.Parent.Size=UDim2.fromOffset(280,76);words.Parent.MaxDistance=100
