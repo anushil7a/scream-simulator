@@ -16,7 +16,18 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build', action='store_true', help='Also build disposable review places and UI harnesses')
+    parser.add_argument('--report', metavar='BUILD_JSON', help='Write optional local-run JSON and child-output log under build/')
     args = parser.parse_args()
+    if args.report:
+        from local_run_report import Report
+        report = Report(ROOT, args.report, [sys.executable, *sys.argv])
+        with report.session():
+            verify(args, report)
+    else:
+        verify(args)
+
+
+def verify(args, report=None):
     env = os.environ.copy()
     env['PATH'] = env.get('PATH', '') + os.pathsep + '/opt/homebrew/bin'
     for tool in ('luau', 'luau-compile') + (('rojo',) if args.build else ()):
@@ -24,6 +35,8 @@ def main():
             raise SystemExit(f'Required local tool missing: {tool}')
 
     def run(command, quiet=False):
+        if report is not None:
+            return report.run(command, env, quiet)
         subprocess.run(command, cwd=ROOT, env=env, check=True,
                        stdout=subprocess.DEVNULL if quiet else None)
 
@@ -42,6 +55,7 @@ def main():
     mocked += ('panel_action_lifecycle.py', 'commerce_lifecycle.py', 'mic_setup_navigation.py', 'microphone_movement.py')
     mocked += ('beam_screen_feedback.py', 'beam_screen_integration.py')
     mocked += ('notice_view.py', 'beam_pool_composition.py', 'conversation_stop_rate_limit.py', 'reward_credit_feedback.py', 'nick_practice_goal.py', 'compact_ambience.py', 'prelaunch_release_gate.py', 'prelaunch_test_isolation.py')
+    mocked += ('local_run_reporting.py', 'beam_performance_cleanup.py')
     for name in mocked:
         print(f'Checking {name} (mocked services)', flush=True)
         run([sys.executable, str(ROOT / 'tests' / name)])
@@ -61,6 +75,7 @@ def main():
         run([sys.executable, 'tests/build_style_review.py'])
         run([sys.executable, 'tests/build_minimap_review.py'])
         run([sys.executable, 'tests/build_beam_screen_review.py'])
+        run([sys.executable, 'tests/build_beam_performance_review.py'])
         run([sys.executable, 'tests/build_notice_layout_review.py'])
         run([sys.executable, 'tests/build_notice_input_review.py'])
         run([sys.executable, 'tests/build_compact_review.py'])
@@ -68,6 +83,8 @@ def main():
         for path in sorted((ROOT / 'build').glob('Studio*Harness.luau')) + [ROOT / 'build/StudioUIPreview.luau']:
             run(['luau-compile', str(path)], quiet=True)
         print('Built/compiled review fixtures; native runtime and UI appearance remain untested.', flush=True)
+    if report is not None:
+        report.data['suiteCounts'] = {'pureSynthetic': len(suites), 'mocked': len(mocked), 'productionCompiles': len(sources), 'buildsRequested': args.build}
     print(f'PASS: {len(suites)} pure/synthetic suites, {len(mocked)} mocked-service suites, production compilation.')
 
 

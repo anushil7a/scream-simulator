@@ -1,0 +1,47 @@
+{
+  "dateUtc": "2026-11-12",
+  "execution": "local-not-CI",
+  "status": "PASSED",
+  "baseCommit": "4c23fce57968e0538871d0f8863f43ec779d4426",
+  "workingTreeDirtyAtStart": true,
+  "testedCommit": null,
+  "reportPath": "build/checkpoint-2026-11-12.json",
+  "reportSha256": "6507a893955e73d97386354dea445450b253a0e56c6830efb4a107426f8efa97",
+  "logSha256": "f0decc7c6055f78a71567bacd12947c554be9b1eaa1e5acdc5a3dab14de83c84",
+  "logShared": false,
+  "elapsedSeconds": 25.02980480000042,
+  "commandsPassed": 222,
+  "selectedInputFiles": 308,
+  "beforeAfterInputsUnchanged": true,
+  "finalSelectedFilesRecheckedAgainstReport": true,
+  "suites": {
+    "pureSynthetic": 25,
+    "mocked": 112,
+    "productionCompiles": 63,
+    "disposableBuildsPassed": true
+  },
+  "focusedReporterAssertions": 36,
+  "independentReview": {
+    "result": "CLEARED_TEST_TOOLING",
+    "actualReporterStateChecksInMemory": 33,
+    "fullFilesystemSuiteIndependentlyRerun": false,
+    "beamCleanupAssertions": 264,
+    "beamRejectionControls": 5
+  },
+  "sourceSha256": {
+    "tests/local_run_report.py": "2534f170eee46ec128b25d4831d99fb606310b31d868e1e8b1f8c2bc0a8c68f6",
+    "tests/local_run_reporting.py": "b816be135444a6ee37a2eb23bb3429157bec0460e5c88ec1628c037d7137c4e5",
+    "tests/verify_local.py": "766d7c98ff65b4ab1f56d4e3b877d93d9e8e6f1440d809176634a47b30454572"
+  },
+  "releaseGates": {
+    "questWriters": "BLOCKED_UNVERIFIED_WRITER_FLEET",
+    "prelaunchTestTools": "BLOCKED"
+  },
+  "limits": [
+    "No CI or native benchmark run",
+    "Before/after fingerprints are selected-input snapshots, not detection of transient restored edits",
+    "Git baseCommit and dirty state are metadata, not tested-commit identity",
+    "Child log is unredacted local output; not committed",
+    "Native evidence references retain their original scope; no release authorization"
+  ]
+}

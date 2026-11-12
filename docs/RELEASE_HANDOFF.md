@@ -1,6 +1,6 @@
 # Scream Simulator release handoff
 
-Updated November 11, 2026. Development branch: `feature/microphone-city-redesign`. Use [ROADMAP.md](ROADMAP.md) for current work and [AUTOMATIC_VOICE_PLAYTEST.md](AUTOMATIC_VOICE_PLAYTEST.md) for pending device/native checks.
+Updated November 12, 2026. Development branch: `feature/microphone-city-redesign`. Use [ROADMAP.md](ROADMAP.md) for current work and [AUTOMATIC_VOICE_PLAYTEST.md](AUTOMATIC_VOICE_PLAYTEST.md) for pending device/native checks.
 
 ## Last recorded publication
 
@@ -33,12 +33,12 @@ The additive quest candidate also has an explicit **BLOCKED, unverified writer-f
 
 ## Before requesting the next release
 
-1. Record the exact commit and candidate provenance. Preserve collaborators' work and inspect the current cloud source/configuration before planning an overwrite.
+1. Disable and review temporary all-tester access, then require the prelaunch-tools check to pass for the reviewed disabled source. This local check does not replace fleet or publication approval. Record the exact commit and candidate provenance. Preserve collaborators' work and inspect the current cloud source/configuration before planning an overwrite.
 2. Run focused source checks and relevant disposable native tests. Record failures and unavailable tests honestly. Begin with the “Start here” smoke test in the automatic-voice playtest plan, then complete relevant detailed checks rather than historical hold/release lab instructions for this candidate.
 3. Complete real voice/listener, physical input, multiplayer and save migration/rejoin checks in an explicitly approved test environment. Use legitimate progress for persistence evidence, not test-tool mutations. Do not experiment on production player keys.
 4. Present the concrete candidate, outstanding risks and target to the owner for new upload/publication approval. Do not change live access/settings as part of that action without authorization.
 5. After an approved publication, reopen the cloud place, record the new version, compare source/configuration against that candidate and check a fresh-server startup. Mark that authorization complete; do not reuse it for later releases.
 
-City art acceptance, representative desktop/phone performance and a 30-minute multiplayer soak remain pending. Cosmetics, pass/badge configuration and monetization come after core gameplay. The current candidate restricts test tools to the owner or Studio, freezes the legitimate save baseline after test entry, and isolates test combat rewards. Global trainer reset requires the strict disposable local fixture. This describes current source, not the historical published build's settings.
+City art acceptance, representative desktop/phone performance and a 30-minute multiplayer soak remain pending. Cosmetics, pass/badge configuration and monetization come after core gameplay. The current candidate temporarily permits testers in the allowlisted City Preview universe (10769005350) with matching creator, plus retained owner/Studio access. It freezes the legitimate save baseline after test entry and isolates test combat rewards. The local prelaunch-tools release gate is BLOCKED until this temporary access is disabled and independently reviewed; it does not enforce manual publication or verify deployed servers. Global trainer reset requires the strict disposable local fixture. This describes current source, not the historical published build's settings.
 
 Historical publication evidence remains in [QA_REPORT.md](QA_REPORT.md) and [RELEASE_32_NOTES.md](RELEASE_32_NOTES.md); older recovery instructions and authorizations are superseded by this handoff.
