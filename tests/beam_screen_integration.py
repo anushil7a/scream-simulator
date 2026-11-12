@@ -6,7 +6,7 @@ p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_t
 c=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 fx=(R/'src/StarterPlayer/StarterPlayerScripts/BeamScreenFeedback.luau').read_text()
 def build(c):
- comfort=c[c.index('\n',c.index('local beamScreenFeedback=require('))+1:c.index('local function frame(parent,',c.index('local platformReducedMotion'))]
+ comfort=c[c.index('\n',c.index('beamScreenFeedback=beamScreenFeedback.new('))+1:c.index('local function frame(parent,',c.index('local platformReducedMotion'))]
  helpers=c[c.index('local function blocked()'):c.index('local function beginCapture(')]
  effect=c[c.index('connectClient(remotes.Effect.OnClientEvent,function('):c.index('\nlocal elapsed=0',c.index('connectClient(remotes.Effect.OnClientEvent,function('))]
  a=c.index(' -- A current local acknowledgement,',c.index('connectClient(Run.RenderStepped'))
@@ -17,7 +17,7 @@ def build(c):
  tail_start=min(c.index(' beamScreenFeedback:Step(',hook_end),c.index(' cueContext();',hook_end))
  cadence=c[a:hook_end]+'\n'+c[tail_start:cadence_end]
  assert cadence.count('beamScreenFeedback:Step(')==1
- gui=c[c.index('local beamFeedbackGui='):c.index('local beamScreenFeedback=require(')]
+ gui=c[c.index('local beamFeedbackGui='):c.index('local beamScreenFeedback=loadClientDependency(')]
  control=c[c.index('  sustainedControl:Step(dt,'):c.index('\n end',c.index('  sustainedControl:Step(dt,'))]
  return SETUP+'\nlocal BeamFX=(function()\n'+fx+'\nend)()\n'+gui+'local beamScreenFeedback=BeamFX.new(beamFeedbackGui)\n'+comfort+helpers+effect+'\nlocal elapsed=0;local function tick(dt)now+=dt;local alive=h.Health>0;local voiceCooldown=0;local voiceActive=attrs.SustainedActive\nif sustainedControl then\n'+control+'\nend\n'+cadence+'\nend\n'+CHECKS.replace('HOOK_ONLY',cadence[:cadence.index('\n end')+5])
 SETUP=r'''
@@ -34,6 +34,7 @@ local gold=Color3.fromRGB(255,220,90);local attrs={SustainedActive=true,Sustaine
 local h={Health=100,PlatformStand=false};local root={Position=vec(0,0,0)}
 local character={FindFirstChild=function()return root end,FindFirstChildOfClass=function()return h end}
 local p={PlayerGui={},UserId=7,Character=character,CharacterRemoving={},GetAttribute=function(_,k)return attrs[k]end}
+local cleanups={};local function ownClient(fn)table.insert(cleanups,fn)end;local function clientCheckpoint()return true end
 local callbacks={};local function connectClient(signal,fn)callbacks[signal]=fn end
 local script={Destroying={Connect=function(self,fn)callbacks[self]=fn end}}
 local comfortSignal={};local comfort=false;local comfortError=false;local signalError=false
@@ -113,7 +114,7 @@ for _,signal in ipairs({UIS.WindowFocusReleased,GuiService.MenuOpened})do
  callbacks[signal]();check(not beamScreenFeedback.root.Visible and beamScreenFeedback.launchEnds==0,'Immediate focus/menu cleanup missing');seq=start();ack(seq)
 end
 callbacks[p.CharacterRemoving]();check(not beamScreenFeedback.root.Visible and beamScreenFeedback.launchEnds==0,'Character removal retained effect')
-seq=start();ack(seq);callbacks[script.Destroying]();check(beamScreenFeedback.destroyed and beamScreenFeedback.root==nil and beamFeedbackGui.dead,'Destroy retained effect')
+seq=start();ack(seq);for i=#cleanups,1,-1 do cleanups[i]()end;check(beamScreenFeedback.destroyed and beamScreenFeedback.root==nil and beamFeedbackGui.dead,'Destroy retained effect')
 print('PASS',checks,'actual Client feedback integration assertions; real Controls ack, mocked GUI/world/audio and synthetic events')
 '''
 
@@ -144,7 +145,7 @@ if args.negative_controls:
  ('connectClient(GuiService.MenuOpened,function() beamScreenFeedback:Clear() end)','connectClient(GuiService.MenuOpened,function() end)','Immediate focus/menu cleanup'),
  ('platformReducedMotion=not ok or value==true','platformReducedMotion=ok and value==true','Comfort read failure'),
  ('connectClient(p.CharacterRemoving,function() beamScreenFeedback:Clear() end)','connectClient(p.CharacterRemoving,function() end)','Character removal retained'),
- ('script.Destroying:Connect(function() beamScreenFeedback:Destroy();beamFeedbackGui:Destroy() end)','script.Destroying:Connect(function() end)','Destroy retained'),
+ ('ownClient(function() beamScreenFeedback:Destroy() end)','ownClient(function() end)','Destroy retained'),
  ]
  for old,new,error in cases:
   assert c.count(old)==1,old;run(c.replace(old,new),error)

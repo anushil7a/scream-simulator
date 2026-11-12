@@ -24,7 +24,8 @@ def callbacks(c):
  recal=c[c.index('button(micCard,"Recalibrate"'):c.index('\n  info("Changed microphone')];recal=recal.split('function()',1)[1].rsplit('end)',1)[0]
  convo=c[c.index('showConversation=function(info)'):].splitlines()[1]
  state=(c[c.index('local renderedMenuKey,renderedTab'):c.index('button(modal,"Close","X"')] if 'local function closeMenu()' in c else c[c.index('local renderedMenuKey,renderedTab'):c.index('local function menuKey()')])
- if 'local function closeMenu()' in c: state+=re.search(r'script.Destroying:Connect\(function\(\)[^\n]*gui:Destroy\(\) end\)',c).group(0)+'\n'
+ if 'local function ownClient(' in c: state+=c[:c.index('local function menuKey()')].rstrip().splitlines()[-1]+'\n'
+ elif 'local function closeMenu()' in c: state+=re.search(r'script.Destroying:Connect\(function\(\)[^\n]*gui:Destroy\(\) end\)',c).group(0)+'\n'
  key=c[c.index('local function menuKey()'):c.index('render=function()')]
  head=c[c.index('render=function()'):];head=head[:head.index(' if selected=="Shop" then')]
  tail=c[c.index(' -- Restore only after AutomaticCanvasSize'):c.index('\nfor i,name in ipairs({"Shop"')]
@@ -41,7 +42,7 @@ local modal={Visible=false};local gui={AbsoluteSize={X=720},Destroy=function()f.
 local content={CanvasPosition={X=0,Y=40},AbsoluteCanvasSize={Y=600},AbsoluteWindowSize={Y=200},GetChildren=function()return {}end}
 local tabs={};local panel={};local title={};local subtitle={};local mapDot;local narrow=false
 local devPanel={Visible=false};local data={level=1,xp=0,xpNext=100,savingAvailable=true,settings={},quests={},aura='Gold',shop={ready=true,inventory={},ends={},serverNow=100}}
-local destroyed={};local script={Destroying={Connect=function(_,fn)table.insert(destroyed,fn)end}}
+local destroyed={};local script={Destroying={Connect=function(_,fn)table.insert(destroyed,fn);return {Disconnect=function()end}end}}
 local Run={Heartbeat={Wait=function()coroutine.yield()end}}
 local oldGet=game.GetService;function game:GetService(name)if name=='HttpService'then return {JSONEncode=function()return 'stable'end}end;return oldGet(self,name)end
 local function cancelCapture()end;local function setSprint()end;local mic={Calibrate=function()end};local sustainedControl=nil
@@ -49,7 +50,18 @@ local function closeConversation()end
 local openMicSetup;local micSetupOpen=false;local micPanel={Visible=false}
 '''
  input_setup="local keyCallback;local textFocus;local UIS={InputBegan={},GetFocusedTextBox=function()return textFocus end};local GuiService={};Enum.KeyCode={B='B'};local function connectClient(_,fn)keyCallback=fn end\n"
+ if 'local function clearShop()' in c:
+  owner=c[c.index('local clientConnections={}'):c.index('local function loadClientDependency(')]
+  owner+='\n'+c[c.index('local shopUsed=false'):c.index('local ScreamEffects=')]
+  owner+='\nownClient(function() gui:Destroy() end)\n'
+ else:
+  owner=re.search(r'script.Destroying:Connect\(function\(\) ShopUI.Clear\(\) end\)',c).group(0)+'\n'+c[c.index('script.Destroying:Connect(function()'):c.index('local originalTouchControls=')]
  renderbody=" if selected=='Shop' then ShopUI.Render(data,ui,action) elseif selected=='Style' then ShopUI.ColorMixer(data,ui,action) end\n"
+ if 'local function clearShop()' in c:
+  for verb in ('Render','ColorMixer'):
+   line=next(line for line in c.splitlines() if 'ShopUI.'+verb+'(' in line)
+   prefix=line.split('ShopUI.'+verb+'(')[0].strip()
+   renderbody=renderbody.replace('ShopUI.'+verb+'(',prefix+'ShopUI.'+verb+'(')
  finish=r'''
 f.closeX=function() XCLOSE end
 f.closeDev=function() DEVCLOSE end
@@ -68,7 +80,7 @@ f.reply=function(index,result)local job=f.priceJobs()[index];assert(coroutine.re
 return f
 end
 '''.replace('XCLOSE',x).replace('DEVCLOSE',dev).replace('RECALCLOSE',recal).replace('CONVOCLOSE',convo)
- return setup+shop+tailSetup+context+re.search(r'script.Destroying:Connect\(function\(\) ShopUI.Clear\(\) end\)',c).group(0)+'\n'+c[c.index('script.Destroying:Connect(function()'):c.index('local originalTouchControls=')]+'\n'+state+'\n'+open_helper+'\nmodal.Visible=true;(function() '+x+' end)();check(not modal.Visible,"Early X close failed")\n'+key+toggle+'\n'+head+renderbody+tail+'\n'+input_setup+c[c.index('connectClient(UIS.InputBegan,function(input,processed)'):c.index('connectClient(UIS.InputEnded,function(input)')]+'\n'+c[c.index('for i,name in ipairs({"Shop"'):].splitlines()[0]+'\n'+finish
+ return setup+shop+tailSetup+context+owner+'\n'+state+'\n'+open_helper+'\nmodal.Visible=true;(function() '+x+' end)();check(not modal.Visible,"Early X close failed")\n'+key+toggle+'\n'+head+renderbody+tail+'\n'+input_setup+c[c.index('connectClient(UIS.InputBegan,function(input,processed)'):c.index('connectClient(UIS.InputEnded,function(input)')]+'\n'+c[c.index('for i,name in ipairs({"Shop"'):].splitlines()[0]+'\n'+finish
 checks=r'''
 for _,route in ipairs({'closeX','toggle','keyB','sameTab','closeDev','closeRecalibrate','closeConversation','destroy'})do
  local f=fixture();f.tab('Shop');check(#f.stats().views==4,'Opening did not render Shop')
@@ -127,6 +139,6 @@ else:
  assert client.index('local function closeMenu()')<client.index('button(modal,"Close","X"'), 'Close registered before helper initialization'
  run(client)
  if a.negative_controls:
-  mutants=[('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'selected=name;render()', 'Hidden tab callback rebuilt subscriptions or changed selection: Shop'),('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'if not modal.Visible then return end;selected=name;render()', 'Destroyed tab callback rebuilt subscriptions'),('elseif k==Enum.KeyCode.B then toggle()','elseif k==Enum.KeyCode.B then do end','Close wiring retained views: keyB'),('function() closeMenu() end)','function() modal.Visible=false end)','Close wiring retained views: closeX'),('if modal.Visible then closeMenu() else','if modal.Visible then modal.Visible=false else','Close wiring retained views: toggle'),('if not opening then closeMenu();return end','if not opening then modal.Visible=false;return end','Close wiring retained views: sameTab'),('if devPanel.Visible then closeMenu() end','if devPanel.Visible then modal.Visible=false end','Close wiring retained views: closeDev'),(' closeMenu();if closeConversation then',' modal.Visible=false;if closeConversation then','Close wiring retained views: closeRecalibrate'),('cancelCapture();closeMenu();if devPanel','cancelCapture();modal.Visible=false;if devPanel','Close wiring retained views: closeConversation'),('renderedMenuKey=nil;renderRevision+=1','renderRevision+=1','Unchanged key reopen lost subscriptions'),('renderedMenuKey=nil;renderRevision+=1','renderedMenuKey=nil','Pending scroll survived close'),('function() closeMenu();gui:Destroy() end','function() gui:Destroy() end','Pending scroll survived close: destroy')]
+  mutants=[('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'selected=name;render()', 'Hidden tab callback rebuilt subscriptions or changed selection: Shop'),('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'if not modal.Visible then return end;selected=name;render()', 'Destroyed tab callback rebuilt subscriptions'),('elseif k==Enum.KeyCode.B then toggle()','elseif k==Enum.KeyCode.B then do end','Close wiring retained views: keyB'),(next(line for line in client.splitlines() if line.startswith('button(modal,"Close","X"')),next(line for line in client.splitlines() if line.startswith('button(modal,"Close","X"')).replace('closeMenu()','modal.Visible=false'),'Close wiring retained views: closeX'),('if modal.Visible then closeMenu() else','if modal.Visible then modal.Visible=false else','Close wiring retained views: toggle'),('if not opening then closeMenu();return end','if not opening then modal.Visible=false;return end','Close wiring retained views: sameTab'),('if devPanel.Visible then closeMenu() end','if devPanel.Visible then modal.Visible=false end','Close wiring retained views: closeDev'),(' closeMenu();if closeConversation then',' modal.Visible=false;if closeConversation then','Close wiring retained views: closeRecalibrate'),('cancelCapture();closeMenu();if devPanel','cancelCapture();modal.Visible=false;if devPanel','Close wiring retained views: closeConversation'),('renderedMenuKey=nil;renderRevision+=1','renderRevision+=1','Unchanged key reopen lost subscriptions'),('renderedMenuKey=nil;renderRevision+=1','renderedMenuKey=nil','Pending scroll survived close'),('ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)','ownClient(function() modal.Visible=false;renderedMenuKey=nil end)','Pending scroll survived close: destroy')]
   for old,new,error in mutants:
-   assert client.count(old)==1,old;run(client.replace(old,new),error)
+   assert client.count(old)==(2 if old=="renderedMenuKey=nil;renderRevision+=1" else 1),old;run(client.replace(old,new,1),error)

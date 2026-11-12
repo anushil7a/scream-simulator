@@ -6,12 +6,14 @@ import re
 root=Path(__file__).resolve().parents[1]
 s=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 a=s.index('local renderRevision=0');b=s.index('button(modal,"Close","X"',a)
-cleanup_source=re.search(r'script.Destroying:Connect\(function\(\)[^\n]*gui:Destroy\(\) end\)',s).group(0)
+owner=s[s.index('local clientConnections={}'):s.index('local function loadClientDependency(')]
+cleanup_source=re.search(r'ownClient\(function\(\) gui:Destroy\(\) end\)',s).group(0)+'\n'+re.search(r'ownClient\(function\(\) modal.Visible=false;renderedMenuKey=nil;renderRevision\+=1 end\)',s).group(0)
+shop=s[s.index('local shopUsed=false'):s.index('ownClient(clearShop)')]
 x=s.index(' task.spawn(function()',s.index('-- Restore only after AutomaticCanvasSize'))
 y=s.index('\nend\nfor i,name',x)
 setup='''
 local modal={Visible=true};local ShopUI={Clear=function()end};local renderedMenuKey
-local cleanup;local script={Destroying={Connect=function(_,fn)cleanup=fn end}}
+local cleanup;local script={Destroying={Connect=function(_,fn)cleanup=fn;return {Disconnect=function()end}end}}
 local gui={Destroy=function(self)self.destroyed=true end}
 local queue={};local task={spawn=function(fn)table.insert(queue,fn)end}
 local Run={Heartbeat={Wait=function()end}}
@@ -29,6 +31,6 @@ check(content.CanvasPosition.Y==300,'Deferred scroll wrote after teardown')
 print('PASS '..checks..' actual menu cleanup checks with mocked GUI/scheduling')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
- path=Path(f.name);f.write(setup+s[a:b]+cleanup_source+'\nlocal function schedule(y)\nlocal revision=renderRevision;local scroll={Y=y}\n'+s[x:y]+'\nend\n'+checks)
+ path=Path(f.name);f.write(setup+owner+shop+s[a:b]+cleanup_source+'\nlocal function schedule(y)\nlocal revision=renderRevision;local scroll={Y=y}\n'+s[x:y]+'\nend\n'+checks)
 try: subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally: path.unlink()

@@ -3,8 +3,9 @@ from pathlib import Path
 import subprocess,sys,tempfile
 root=Path(__file__).resolve().parents[1]
 client=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
-constructor=client[client.index(' sustainedControl=require'):client.index(' script.Destroying:Connect(function() sustainedControl:Destroy()')]
-constructor=constructor.replace('require(script.Parent:WaitForChild("SustainedControls"))','Controls')
+constructor=client[client.index(' sustainedControl=sustainedControl.new('):client.index(' ownClient(function() sustainedControl:Destroy()')]
+constructor=constructor.replace('sustainedControl=sustainedControl.new(', 'sustainedControl=Controls.new(',1)
+
 toggle=client[client.index('local function toggleVoice()'):client.index('local function releaseCapture(')]
 removal=next(line for line in client.splitlines() if line.startswith('connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough'))
 start=client.index('local function suspendGameplay()')
@@ -14,6 +15,7 @@ payload='''
 local Queue=require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue')
 local Controls=require('../src/StarterPlayer/StarterPlayerScripts/SustainedControls')
 local VoiceActivation=require('../src/ReplicatedStorage/Shared/VoiceActivation')
+local clientDestroyed=false
 local notifications=Queue.new();local sustainedControl;local windowFocused=true
 local action={FireServer=function()end};local unavailable=false
 local function blocked()return unavailable end

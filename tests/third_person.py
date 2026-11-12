@@ -3,8 +3,8 @@ from pathlib import Path
 import argparse,json,subprocess,tempfile
 root=Path(__file__).resolve().parents[1]
 s=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
-a=s.index('local originalCameraMode=');b=s.index('local Config=',a);policy=s[a:b]
-a=s.index('script.Destroying:Connect(function()\n p.CameraMode=');b=s.index('local function blocked()',a);cleanup=s[a:b]
+a=s.index('local originalCameraMode=');b=s.index('local shared=',a);policy=s[a:b]
+cleanup=''
 for removed in ('toggleCamera','firstPerson','viewButton','Enum.KeyCode.V','LockFirstPerson','CameraToggle'):
  assert removed not in s,removed
 props=json.loads((root/'default.project.json').read_text())['tree']['StarterPlayer']['$properties']
@@ -12,6 +12,9 @@ assert props['CameraMode']=='Classic' and props['CameraMinZoomDistance']>=6
 setup='''local Enum={CameraMode={Classic='classic'}}
 local p={CameraMode='locked',CameraMinZoomDistance=.5,CameraMaxZoomDistance=4,CharacterAdded={}}
 local added,cleanup
+local clientDestroyed=false
+
+local function ownClient(fn)cleanup=fn end
 local function connectClient(signal,fn)assert(signal==p.CharacterAdded);added=fn end
 local script={Destroying={Connect=function(_,fn)cleanup=fn end}}
 '''
@@ -21,6 +24,9 @@ check(type(added)=='function','Respawn callback missing')
 p.CameraMode='locked';p.CameraMinZoomDistance=.5;added()
 check(p.CameraMode=='classic' and p.CameraMinZoomDistance==6,'Respawn lost third-person policy')
 cleanup();check(p.CameraMode=='locked' and p.CameraMinZoomDistance==.5 and p.CameraMaxZoomDistance==4,'Teardown failed to restore prior properties')
+p.CameraMode='replacement';p.CameraMinZoomDistance=20;p.CameraMaxZoomDistance=90;cleanup()
+check(p.CameraMode=='replacement' and p.CameraMinZoomDistance==20 and p.CameraMaxZoomDistance==90,'Teardown overwrote differing replacement camera')
+clientDestroyed=true;added();check(p.CameraMode=='replacement','Terminal respawn wrote camera')
 print('PASS '..n..' third-person policy checks plus removed UI/input/project contracts')
 '''
 def run(code,expected=None):

@@ -9,7 +9,8 @@ name='src/StarterPlayer/StarterPlayerScripts/Client.client.luau'
 src=subprocess.check_output(['git','show','899b0b8:'+name],cwd=ROOT,text=True,encoding='utf-8') if args.baseline else (ROOT/name).read_text(encoding='utf-8')
 setup_line=next(line for line in src.splitlines() if line.startswith('label(micPanel,sustainedControl and'))
 info_start=src.index('local function info(')
-info=src[info_start:src.index('\nscript.Destroying:Connect(',info_start)]
+info_end='\nscript.Destroying:Connect(' if args.baseline else '\nownClient('
+info=src[info_start:src.index(info_end,info_start)]
 a=src.index('  title.Text="SETTINGS & CONTROLS"');b=src.index('\n end\n -- Restore only after AutomaticCanvasSize',a);settings=src[a:b]
 a=src.index(' local key=menuKey()',src.index('render=function()'));b=src.index(' if selected=="Shop" then',a);prefix=src[a:b]
 a=src.index(' -- Restore only after AutomaticCanvasSize');b=src.index('\nfor i,name in ipairs',a);tail=src[a:b]
@@ -57,7 +58,8 @@ end
 '''
 close_helper=src[src.index('local function closeMenu()'):src.index('button(modal,"Close","X"')] if 'local function closeMenu()' in src else ''
 open_helper=src[src.index('openMicSetup=function()'):src.index('local talkTarget')] if 'openMicSetup=function()' in src else ''
-before_render='\n'+close_helper+'\nlocal openMicSetup;local micSetupOpen=false\n'+open_helper+'\nrender=function()\n'
+shop_helper=src[src.index('local shopUsed=false'):src.index('ownClient(clearShop)')] if 'local shopUsed=false' in src else ''
+before_render='\n'+shop_helper+close_helper+'\nlocal openMicSetup;local micSetupOpen=false\n'+open_helper+'\nrender=function()\n'
 after_prefix='\n if selected=="Settings" then\n'
 after_settings='\n end\n'
 checks=r'''

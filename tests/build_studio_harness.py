@@ -52,6 +52,37 @@ def inline(path):
         if text.count(binding)!=1 or 'Config' not in MODULES:
             raise RuntimeError(f"Unsupported RunAnimation Config binding in {path}")
         text=text.replace(binding,'local Config=modules.Config\nif destroyed then return end',1)
+    if path.resolve()==(client/'Client.client.luau').resolve():
+        # Exact audited startup loader only; standalone bundles own these modules.
+        binding='\n'.join([
+            'local function loadClientDependency(parent,name,direct)',
+            ' if not clientCheckpoint() then return end',
+            ' local dependency',
+            ' if direct then dependency=parent[name] else dependency=parent:WaitForChild(name) end',
+            ' if not clientCheckpoint() then return end',
+            ' local value=require(dependency)',
+            ' if not clientCheckpoint() then return end',
+            ' return value',
+            'end',
+        ])
+        if text.count(binding)!=1:
+            raise RuntimeError('Unsupported Client startup dependency loader')
+        text=text.replace(binding,'',1)
+        def client_dependency(match):
+            name=match.group(2)
+            expected=client if match.group(1)=='script.Parent' else shared
+            if bool(match.group(3)) != (name in ('AttackAudioConfig','GameplayAudioConfig')):
+                raise RuntimeError('Changed Client direct dependency semantics '+name)
+            if name not in MODULES or MODULES[name].parent!=expected:
+                raise RuntimeError('Unknown/mis-scoped Client dependency '+name)
+            return 'modules.'+name
+        text=re.sub(r'loadClientDependency\((script\.Parent|RS\.Shared|shared),"([A-Za-z0-9_]+)"(,true)?\)',client_dependency,text)
+        if 'loadClientDependency' in text:
+            raise RuntimeError('Unsupported Client dependency call')
+        shared_binding='local shared=RS:WaitForChild("Shared");if not clientCheckpoint() then return end'
+        if text.count(shared_binding)!=1:
+            raise RuntimeError('Unsupported Client Shared startup binding')
+        text=text.replace(shared_binding,'if not clientCheckpoint() then return end',1)
     text=REQUIRE.sub(replace,text)
     if re.search(r'\brequire\s*\(',text):
         raise RuntimeError(f"Unsupported require expression in {path}")

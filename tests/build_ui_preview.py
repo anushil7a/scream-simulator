@@ -14,16 +14,18 @@ def replace_once(source, original, replacement):
     return source.replace(original, replacement, 1)
 
 source=(root/'build/StudioClientHarness.luau').read_text()
-source=replace_once(source,'local mic=modules.Microphone.new()', '''local mic={Destroy=function() end,ready=true,power=.55,status="UI preview: simulated mic",Cancel=function() end,CancelCalibration=function(self) self.phase=nil;self.phaseStarted=nil end,Begin=function() return false end,Release=function() return 0 end,Check=function() end,Calibrate=function() end}''')
-source=replace_once(source,'local remotes=RS:WaitForChild("ScreamRemotes")','''local receiver
+source=replace_once(source,'mic=mic.new()', '''mic={Destroy=function() end,ready=true,power=.55,status="UI preview: simulated mic",Cancel=function() end,CancelCalibration=function(self) self.phase=nil;self.phaseStarted=nil end,Begin=function() return false end,Release=function() return 0 end,Check=function() end,Calibrate=function() end}''')
+source=replace_once(source,'local remotes=RS:WaitForChild("ScreamRemotes");if not clientCheckpoint() then return end','''local receiver
 local sample={level=100,xp=30,xpNext=1800,coins=1500,activeQuest="garden",health=450,maxHealth=450,sound="TinyAah",aura="Gold",quests={},availableQuests={},settings={volume=.55,reducedShake=false},micReady=true,voiceEligible=true,voiceStatus="eligible",devAccess=true,savingAvailable=true,protection=0,dodgeCooldown=0,castCooldown=0,questTime=90}
 sample.shop={ready=true,inventory={xp=2,coins=1},ends={xp=os.time()+1800,coins=0},serverNow=os.time()}
 for _,q in ipairs(Config.Quests) do sample.availableQuests[q.id]=true;sample.quests[q.id]={progress=0} end
 local actionMock={FireServer=function(_,verb) if verb=="Sync" and receiver then receiver(sample) end end}
 local remotes={GetAttribute=function(_,name) return name=="AutomaticVoice" and true or nil end,WaitForChild=function() return actionMock end,State={OnClientEvent={Connect=function(_,fn) receiver=fn;return {Disconnect=function() if receiver==fn then receiver=nil end end} end}},Effect={OnClientEvent={Connect=function() return {Disconnect=function() end} end}}}''')
-original='local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")'
-replacement=f'''local screen=Instance.new("ScreenGui");screen.Name="LayoutPreview";screen.ResetOnSpawn=false;screen.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;screen.Parent=p:WaitForChild("PlayerGui")
-local gui=Instance.new("Frame");gui.Name="ScreamUI";gui.Size=UDim2.fromOffset({width},{height});gui.Position=UDim2.fromOffset(10,10);gui.BackgroundTransparency=1;gui.Parent=screen'''
+original='local gui=Instance.new("ScreenGui");ownClient(function() gui:Destroy() end);if not clientCheckpoint() then return end\ngui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=playerGui'
+replacement=f'''local screen=Instance.new("ScreenGui");ownClient(function() screen:Destroy() end);if not clientCheckpoint() then return end
+screen.Name="LayoutPreview";screen.ResetOnSpawn=false;screen.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;screen.Parent=playerGui
+local gui=Instance.new("Frame");ownClient(function() gui:Destroy() end);if not clientCheckpoint() then return end
+gui.Name="ScreamUI";gui.Size=UDim2.fromOffset({width},{height});gui.Position=UDim2.fromOffset(10,10);gui.BackgroundTransparency=1;gui.Parent=screen'''
 source=replace_once(source,original,replacement).replace('workspace.CurrentCamera.ViewportSize',f'Vector2.new({width},{height})').replace('UIS.TouchEnabled','fixtureTouch')
 source='local fixtureTouch=true\n'+source
 source+='''

@@ -20,7 +20,7 @@ s=replace_once(s,'FireServer=function(_,verb) if verb=="Sync"','FireServer=funct
 s=replace_once(s,'voiceEligible=true,voiceStatus="eligible"','voiceEligible=false,voiceStatus="checking"')
 # Anchor the global constructor, not render's indented callback-lifetime wrapper.
 s=replace_once(s,'\nlocal function button(parent,name,text,size,pos,callback,color)','\nlocal fixtureCallbacks={}\nlocal function button(parent,name,text,size,pos,callback,color)')
-s=replace_once(s,'b.Activated:Connect(callback);return b','fixtureCallbacks[name]={button=b,callback=callback};b.Activated:Connect(callback);return b')
+s=replace_once(s,'b.Activated:Connect(function(...) if not clientDestroyed then callback(...) end end);return b','local guardedCallback=function(...) if not clientDestroyed then callback(...) end end;fixtureCallbacks[name]={button=b,callback=guardedCallback};b.Activated:Connect(guardedCallback);return b')
 s+='''
 local Http=game:GetService("HttpService")
 local rowSerial=0

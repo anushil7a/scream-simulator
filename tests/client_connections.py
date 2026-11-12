@@ -4,10 +4,10 @@ import subprocess
 import tempfile
 root = Path(__file__).resolve().parents[1]
 s = (root / 'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
-helper = s[s.index('local clientConnections={}'):s.index('local originalTouchControls=')]
+helper = s[s.index('local clientConnections={}'):s.index('local function loadClientDependency(')]+'\n'+s[s.index('local function connectClient('):s.index('local originalTouchControls=')]
 setup = '''
 local cleanup
-local script={Destroying={Connect=function(_,fn)cleanup=fn end}}
+local script={Destroying={Connect=function(_,fn)cleanup=fn;return {Disconnect=function()end} end}}
 local listeners={}
 local signal={Connect=function(_,fn)
  local connection={callback=fn,disconnects=0}

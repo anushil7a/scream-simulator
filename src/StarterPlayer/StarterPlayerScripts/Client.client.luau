@@ -1,4 +1,38 @@
-local CityMap=require(script.Parent:WaitForChild("CityMap"))
+-- This owner covers only this Client's resources; terminal cleanup is reentrant.
+local clientConnections={}
+local clientCleanups={}
+local clientDestroyed=false
+local function attemptClientCleanup(callback)
+ local ok=pcall(callback)
+ if not ok then warn("ScreamSimulator Client cleanup failed") end
+end
+local function retireClient()
+ if clientDestroyed then return end
+ clientDestroyed=true
+ for _,connection in ipairs(clientConnections) do attemptClientCleanup(function() connection:Disconnect() end) end
+ table.clear(clientConnections)
+ for i=#clientCleanups,1,-1 do attemptClientCleanup(clientCleanups[i]) end
+ table.clear(clientCleanups)
+end
+local function ownClient(cleanup)
+ if clientDestroyed then attemptClientCleanup(cleanup) else table.insert(clientCleanups,cleanup) end
+end
+local function clientCheckpoint()
+ if not clientDestroyed and not script:IsDescendantOf(game) then retireClient() end
+ return not clientDestroyed
+end
+table.insert(clientConnections,script.Destroying:Connect(retireClient))
+local function loadClientDependency(parent,name,direct)
+ if not clientCheckpoint() then return end
+ local dependency
+ if direct then dependency=parent[name] else dependency=parent:WaitForChild(name) end
+ if not clientCheckpoint() then return end
+ local value=require(dependency)
+ if not clientCheckpoint() then return end
+ return value
+end
+if not clientCheckpoint() then return end
+local CityMap=loadClientDependency(script.Parent,"CityMap");if not clientCheckpoint() then return end
 local Players=game:GetService("Players")
 local RS=game:GetService("ReplicatedStorage")
 local UIS=game:GetService("UserInputService")
@@ -7,9 +41,6 @@ local Tween=game:GetService("TweenService")
 local Debris=game:GetService("Debris")
 local TextService=game:GetService("TextService")
 local GuiService=game:GetService("GuiService")
--- External signals outlive the HUD; suppress queued callbacks during teardown too.
-local clientConnections={}
-local clientDestroyed=false
 local function connectClient(signal,callback)
  if clientDestroyed then return end
  local connection=signal:Connect(function(...)
@@ -18,33 +49,45 @@ local function connectClient(signal,callback)
  table.insert(clientConnections,connection)
  return connection
 end
-script.Destroying:Connect(function()
- clientDestroyed=true
- for _,connection in ipairs(clientConnections) do connection:Disconnect() end
- table.clear(clientConnections)
-end)
 local originalTouchControls=GuiService.TouchControlsEnabled
-script.Destroying:Connect(function() GuiService.TouchControlsEnabled=originalTouchControls end)
+local lastTouchControls
+ownClient(function()
+ if lastTouchControls~=nil and GuiService.TouchControlsEnabled==lastTouchControls then GuiService.TouchControlsEnabled=originalTouchControls end
+end)
 local p=Players.LocalPlayer
 local originalCameraMode=p.CameraMode
 local originalMinZoom,originalMaxZoom=p.CameraMinZoomDistance,p.CameraMaxZoomDistance
+local lastCameraMode,lastMinZoom,lastMaxZoom
+ownClient(function()
+ if lastCameraMode~=nil and p.CameraMode==lastCameraMode then p.CameraMode=originalCameraMode end
+ if lastMinZoom~=nil and p.CameraMinZoomDistance==lastMinZoom then p.CameraMinZoomDistance=originalMinZoom end
+ if lastMaxZoom~=nil and p.CameraMaxZoomDistance==lastMaxZoom then p.CameraMaxZoomDistance=originalMaxZoom end
+end)
 -- Keep wheel/pinch zoom outside first person on desktop and touch.
 local function applyThirdPerson()
- p.CameraMaxZoomDistance=math.max(originalMaxZoom,6)
- p.CameraMinZoomDistance=math.max(originalMinZoom,6)
- p.CameraMode=Enum.CameraMode.Classic
+ if clientDestroyed then return end
+ lastMaxZoom=math.max(originalMaxZoom,6);p.CameraMaxZoomDistance=lastMaxZoom
+ lastMinZoom=math.max(originalMinZoom,6);p.CameraMinZoomDistance=lastMinZoom
+ lastCameraMode=Enum.CameraMode.Classic;p.CameraMode=lastCameraMode
 end
 applyThirdPerson()
 connectClient(p.CharacterAdded,applyThirdPerson)
-local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
-local FirstBeamGuide=require(RS.Shared:WaitForChild("FirstBeamGuide"))
-local InteractionRules=require(RS.Shared:WaitForChild("InteractionRules"))
-local mic=require(script.Parent:WaitForChild("Microphone")).new()
-local attackAudio=require(script.Parent:WaitForChild("AttackAudio")).new()
-local attackAudioSettings=require(RS.Shared.AttackAudioConfig)
-local gameplayAudio=require(script.Parent:WaitForChild("GameplayAudio")).new()
-local gameplayAudioSettings=require(RS.Shared.GameplayAudioConfig)
-script.Destroying:Connect(function() gameplayAudio:Destroy() end)
+local shared=RS:WaitForChild("Shared");if not clientCheckpoint() then return end
+local Config=loadClientDependency(shared,"Config");if not clientCheckpoint() then return end
+local FirstBeamGuide=loadClientDependency(RS.Shared,"FirstBeamGuide");if not clientCheckpoint() then return end
+local InteractionRules=loadClientDependency(RS.Shared,"InteractionRules");if not clientCheckpoint() then return end
+local mic=loadClientDependency(script.Parent,"Microphone");if not clientCheckpoint() then return end
+mic=mic.new()
+ownClient(function() mic:Destroy() end);if not clientCheckpoint() then return end
+local attackAudio=loadClientDependency(script.Parent,"AttackAudio");if not clientCheckpoint() then return end
+attackAudio=attackAudio.new()
+ownClient(function() attackAudio:Destroy() end);if not clientCheckpoint() then return end
+local attackAudioSettings=loadClientDependency(RS.Shared,"AttackAudioConfig",true);if not clientCheckpoint() then return end
+local gameplayAudio=loadClientDependency(script.Parent,"GameplayAudio");if not clientCheckpoint() then return end
+gameplayAudio=gameplayAudio.new()
+ownClient(function() gameplayAudio:Destroy() end);if not clientCheckpoint() then return end
+local gameplayAudioSettings=loadClientDependency(RS.Shared,"GameplayAudioConfig",true);if not clientCheckpoint() then return end
+
 connectClient(p.CharacterRemoving,function() gameplayAudio:Clear() end)
 local function cueContext()
  gameplayAudio:SetContext(mic.ready and mic.power>.12,mic.phase~=nil or not mic.ready)
@@ -57,22 +100,32 @@ local function playGameplayCue(kind,position)
  end
  gameplayAudio:Play(kind,os.clock(),position)
 end
-script.Destroying:Connect(function() attackAudio:Destroy() end)
-script.Destroying:Connect(function() mic:Destroy() end)
-local ShopUI=require(script.Parent:WaitForChild("ShopUI"))
-script.Destroying:Connect(function() ShopUI.Clear() end)
-local ScreamEffects=require(script.Parent:WaitForChild("ScreamEffects"))
-script.Destroying:Connect(function() ScreamEffects.Clear() end)
-local remotes=RS:WaitForChild("ScreamRemotes")
-local action=remotes:WaitForChild("Action")
-local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")
+
+
+local ShopUI=loadClientDependency(script.Parent,"ShopUI");if not clientCheckpoint() then return end
+local shopUsed=false
+local function clearShop()
+ if shopUsed then ShopUI.Clear() end
+end
+ownClient(clearShop)
+local ScreamEffects=loadClientDependency(script.Parent,"ScreamEffects");if not clientCheckpoint() then return end
+local screamEffectsUsed=false
+ownClient(function() if screamEffectsUsed then ScreamEffects.Clear() end end)
+local remotes=RS:WaitForChild("ScreamRemotes");if not clientCheckpoint() then return end
+local action=remotes:WaitForChild("Action");if not clientCheckpoint() then return end
+local playerGui=p:WaitForChild("PlayerGui");if not clientCheckpoint() then return end
+local gui=Instance.new("ScreenGui");ownClient(function() gui:Destroy() end);if not clientCheckpoint() then return end
+gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=playerGui
 local dark=Color3.fromRGB(10,16,31);local panel=Color3.fromRGB(23,34,55);local gold=Color3.fromRGB(80,226,255);local white=Color3.fromRGB(240,247,255);local muted=Color3.fromRGB(159,178,207)
 local data={level=1,xp=0,xpNext=Config.XPToNext(1),coins=0,health=100,sound="TinyAah",aura="Gold",quests={},settings={volume=.55,reducedShake=false}}
 -- Match the aim GUI's viewport coordinates without moving the camera or covering HUD.
-local beamFeedbackGui=Instance.new("ScreenGui");beamFeedbackGui.Name="BeamFeedback";beamFeedbackGui.ResetOnSpawn=false
+local beamFeedbackGui=Instance.new("ScreenGui");ownClient(function() beamFeedbackGui:Destroy() end);if not clientCheckpoint() then return end
+beamFeedbackGui.Name="BeamFeedback";beamFeedbackGui.ResetOnSpawn=false
 beamFeedbackGui.ScreenInsets=Enum.ScreenInsets.None;beamFeedbackGui.DisplayOrder=-1;beamFeedbackGui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;beamFeedbackGui.Parent=p.PlayerGui
-local beamScreenFeedback=require(script.Parent:WaitForChild("BeamScreenFeedback")).new(beamFeedbackGui)
-script.Destroying:Connect(function() beamScreenFeedback:Destroy();beamFeedbackGui:Destroy() end)
+local beamScreenFeedback=loadClientDependency(script.Parent,"BeamScreenFeedback");if not clientCheckpoint() then return end
+beamScreenFeedback=beamScreenFeedback.new(beamFeedbackGui)
+ownClient(function() beamScreenFeedback:Destroy() end);if not clientCheckpoint() then return end
+
 connectClient(p.CharacterRemoving,function() beamScreenFeedback:Clear() end)
 connectClient(UIS.WindowFocusReleased,function() beamScreenFeedback:Clear() end)
 connectClient(GuiService.MenuOpened,function() beamScreenFeedback:Clear() end)
@@ -95,7 +148,7 @@ local function label(parent,text,size,pos,fontSize,color)
 end
 local function button(parent,name,text,size,pos,callback,color)
  local b=Instance.new("TextButton");b.Name=name;b.Size=size;b.Position=pos;b.BackgroundColor3=color or panel;b.TextColor3=white;b.Text=text;b.TextSize=14;b.Font=Enum.Font.GothamBold;b.AutoButtonColor=true;b.BorderSizePixel=0;b.Parent=parent
- local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,8);c.Parent=b;b.Activated:Connect(callback);return b
+ local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,8);c.Parent=b;b.Activated:Connect(function(...) if not clientDestroyed then callback(...) end end);return b
 end
 local top=frame(gui,"Navigation",UDim2.fromOffset(250,40),UDim2.fromOffset(14,12));top.BackgroundTransparency=1
 local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,0);modal.ZIndex=10;modal.Visible=false
@@ -110,7 +163,7 @@ local renderedMenuKey,renderedTab
 local renderRevision=0
 local function closeMenu()
  modal.Visible=false
- ShopUI.Clear()
+ clearShop()
  -- Retain the previous tab/scroll position, but rebuild its subscriptions on reopen.
  renderedMenuKey=nil;renderRevision+=1
 end
@@ -174,11 +227,14 @@ local trackerPadding=Instance.new("UIPadding");trackerPadding.PaddingLeft=UDim.n
 local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center;toast.AnchorPoint=Vector2.new(.5,1);toast.Position=UDim2.fromScale(.5,.72)
 toast.Name="Notification";toast.ZIndex=30;toast.BackgroundColor3=dark;toast.BackgroundTransparency=.08;toast.Visible=false
 local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
-local notifications=require(script.Parent:WaitForChild("NotificationQueue")).new()
+local notifications=loadClientDependency(script.Parent,"NotificationQueue");if not clientCheckpoint() then return end
+notifications=notifications.new();if not clientCheckpoint() then return end
 local toastWidth=0
-local NoticeLayout=require(script.Parent:WaitForChild("NoticeLayout"))
-local noticeView=require(script.Parent:WaitForChild("NoticeView")).new(gui,toast)
-script.Destroying:Connect(function() noticeView:Destroy() end)
+local NoticeLayout=loadClientDependency(script.Parent,"NoticeLayout");if not clientCheckpoint() then return end
+local noticeView=loadClientDependency(script.Parent,"NoticeView");if not clientCheckpoint() then return end
+noticeView=noticeView.new(gui,toast)
+ownClient(function() noticeView:Destroy() end);if not clientCheckpoint() then return end
+
 local function notify(t,urgent,key) notifications:Push(t,urgent,key) end
 local nextCast=0;local sequence=0;local captureSource=nil
 local sustainedControl,sustainedRules
@@ -188,10 +244,6 @@ local function cancelCapture()
  if sustainedControl then sustainedControl:Cancel();return end
  captureSource=nil;mic:Cancel();action:FireServer("CancelCast")
 end
-script.Destroying:Connect(function()
- p.CameraMode=originalCameraMode
- p.CameraMinZoomDistance=originalMinZoom;p.CameraMaxZoomDistance=originalMaxZoom
-end)
 local function blocked()
  local character=p.Character
  local humanoid=character and character:FindFirstChildOfClass("Humanoid")
@@ -219,17 +271,18 @@ local function aimRay()
  return ray,workspace:Raycast(ray.Origin,ray.Direction*1000,params)
 end
 if remotes:GetAttribute("AutomaticVoice")==true then
- sustainedRules=require(RS.Shared:WaitForChild("SustainedAttack"))
- local VoiceActivation=require(RS.Shared:WaitForChild("VoiceActivation"))
- sustainedControl=require(script.Parent:WaitForChild("SustainedControls")).new(VoiceActivation.new(),
-  function(verb,arg) action:FireServer(verb,arg) end,
+ sustainedRules=loadClientDependency(RS.Shared,"SustainedAttack");if not clientCheckpoint() then return end
+ local VoiceActivation=loadClientDependency(RS.Shared,"VoiceActivation");if not clientCheckpoint() then return end
+ sustainedControl=loadClientDependency(script.Parent,"SustainedControls");if not clientCheckpoint() then return end
+ sustainedControl=sustainedControl.new(VoiceActivation.new(),
+  function(verb,arg) if verb=="SustainedStop" or not clientDestroyed then action:FireServer(verb,arg) end end,
   function()
    if not workspace.CurrentCamera then return nil end
    local ray,hit=aimRay()
    if not ray then return nil end
    return hit and hit.Position or ray.Origin+ray.Direction*1000
   end,function() notifications:Remove("voice") end)
- script.Destroying:Connect(function() sustainedControl:Destroy() end)
+ ownClient(function() sustainedControl:Destroy() end);if not clientCheckpoint() then return end
 end
 local function voiceEligibilityHint(compact)
  if data.voiceEligible==true then return nil end
@@ -309,9 +362,10 @@ if sustainedControl then
  threshold.AnchorPoint=Vector2.new(.5,.5);threshold.ZIndex=meterFill.ZIndex+1
 end
 local aimGui=Instance.new("ScreenGui");aimGui.Name="ScreamAim";aimGui.ResetOnSpawn=false;aimGui.ScreenInsets=Enum.ScreenInsets.None;aimGui.Parent=p.PlayerGui
-script.Destroying:Connect(function() aimGui:Destroy() end)
+ownClient(function() aimGui:Destroy() end);if not clientCheckpoint() then return end
 local reticle=label(aimGui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.Name="Crosshair";reticle.TextXAlignment=Enum.TextXAlignment.Center
-local hitFeedback=require(script.Parent:WaitForChild("HitFeedback")).new()
+local hitFeedback=loadClientDependency(script.Parent,"HitFeedback");if not clientCheckpoint() then return end
+hitFeedback=hitFeedback.new();if not clientCheckpoint() then return end
 local hitText=label(aimGui,"",UDim2.fromOffset(210,26),UDim2.new(.5,-105,.5,-48),16,gold);hitText.Name="ConfirmedDamage";hitText.TextXAlignment=Enum.TextXAlignment.Center;hitText.Visible=false
 local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
 local reportedReady=nil;local readyReportAt=0
@@ -427,7 +481,7 @@ local function card(height)
  return c
 end
 local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
-script.Destroying:Connect(function() closeMenu();gui:Destroy() end)
+ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)
 local function menuKey()
  local fields
  if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped}
@@ -455,14 +509,14 @@ render=function()
    return callback(...)
   end,color)
  end
- ShopUI.Clear()
+ clearShop()
  mapDot=nil
  narrow=gui.AbsoluteSize.X-24<620
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Shop" then
   title.Text="THE AMPLIFIER";subtitle.Text="SIGNATURE COLORS / POWER YOUR PROGRESS"
-  ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow},action)
+  shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow},action)
  elseif selected=="Screams" then
   title.Text="BEAM COLLECTION"
   local nextStyle
@@ -535,7 +589,7 @@ render=function()
   end
  elseif selected=="Style" then
   title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your beam effects."
-  ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
+  shopUsed=true;ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
   local equipment=card(narrow and 142 or 90)
   label(equipment,"MICRO-SPEAKER",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
   label(equipment,"+12% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
@@ -743,17 +797,25 @@ connectClient(p:GetAttributeChangedSignal("ProtectionEnds"),function() setSprint
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
-local BeamVisuals=require(script.Parent:WaitForChild("BeamVisuals"))
-script.Destroying:Connect(function() BeamVisuals.Clear() end)
+local BeamVisuals=loadClientDependency(script.Parent,"BeamVisuals");if not clientCheckpoint() then return end
+local beamVisualsUsed=false
+-- Registered before the manager so reverse cleanup destroys owned rigs first.
+ownClient(function() if beamVisualsUsed then BeamVisuals.Clear() end end)
+local function createOwnedBeam(...)
+ if clientDestroyed then return end
+ beamVisualsUsed=true;return BeamVisuals.Create(...)
+end
 local beamFrame=0
 local sustainedBeams
 if sustainedControl then
- sustainedBeams=require(script.Parent:WaitForChild("SustainedBeams")).new(BeamVisuals.Create,BeamVisuals.Update,BeamVisuals.Destroy)
+ sustainedBeams=loadClientDependency(script.Parent,"SustainedBeams");if not clientCheckpoint() then return end
+ sustainedBeams=sustainedBeams.new(createOwnedBeam,BeamVisuals.Update,BeamVisuals.Destroy)
+ ownClient(function() sustainedBeams:Destroy() end);if not clientCheckpoint() then return end
  connectClient(p.CharacterRemoving,function() sustainedBeams:Clear() end)
  connectClient(p.CharacterRemoving,function() attackAudio:Clear() end)
  connectClient(Players.PlayerRemoving,function(leaving) sustainedBeams:Remove(leaving.UserId) end)
  connectClient(Players.PlayerRemoving,function(leaving) attackAudio:Remove(leaving.UserId) end)
- script.Destroying:Connect(function() sustainedBeams:Destroy() end)
+
 end
 connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth,audioStyleId,attackLevel)
  if kind=="SustainedHit" then
@@ -796,7 +858,7 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  local s=Config.GetSound(id);if not s then return end
  -- Actual voice stays on Roblox proximity audio. Owner-selected SFX are separate.
  direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range
- ScreamEffects.Render(s.effect,pos,direction,length,beamWidth or 4,color,data.settings.reducedShake,s.variant)
+ screamEffectsUsed=true;ScreamEffects.Render(s.effect,pos,direction,length,beamWidth or 4,color,data.settings.reducedShake,s.variant)
 end)
 local elapsed=0
 local lastViewport,lastTouch,lastDevAccess
@@ -858,7 +920,7 @@ connectClient(Run.RenderStepped,function(dt)
  if sprinting then setSprint(true) end
  local gameplayVisible=not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible and not micPanel.Visible
- if GuiService.TouchControlsEnabled~=showTouchControls then GuiService.TouchControlsEnabled=showTouchControls end
+ if GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
  local eligibilityHint=voiceEligibilityHint(true)
  local guide=sustainedControl and not eligibilityHint and FirstBeamGuide.Text(data,sustainedControl.armed,voiceCooldown or 0,voiceActive,touch)
  tracked.Text=guide or trackedQuestText
@@ -1051,6 +1113,7 @@ connectClient(Run.RenderStepped,function(dt)
  talkButton.Text=touch and "TALK" or "TALK [T]"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
 end)
+if not clientCheckpoint() then return end
 action:FireServer("Sync")
 
 -- JumpRequest supports the built-in keyboard, controller and touch jump controls.
