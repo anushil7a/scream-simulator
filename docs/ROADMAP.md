@@ -7,10 +7,15 @@ Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 12 saturation-safe dialogue close
+
+- Reproduced a conditional closed-UI/server-conversation mismatch after 30 requests: the dropped close could reserve the NPC and block nearby beam capture until the 20-second deadline. Nil-only owner-scoped cleanup now survives quota without output, repeated work or resetting budgets/cooldowns. Independent 18 assertions/five controls plus pinned historical failure pass; full 25/105/63 and local builds pass. [Review](CONVERSATION_CLOSE_REVIEW.md).
+- Local checkpoint only pending explicit GitHub push confirmation; preserve ffb53a5 and c1a0673, remote remains0004c77. No apps, map edits, live services or publication. Native transport/ordinary-traffic saturation and long-notice physical/keyboard/gamepad access remain unverified. Next: safely available native validation and verified test-place identity, not speculative features.
+
 ## November 12 measured notice cue
 
 - Replaced the fixed overlay with a measured in-content header, keeping full44px scroll targets and complete body text. Enlarged cue/body bounds reset exposure; entry replacement resets cached maxima. Independent615/19/3 checks and full25/104/63 plus builds pass. Native largest-font, touch and keyboard/gamepad access remain unverified; no navigation or gameplay change. [Review](NOTICE_LAYOUT_REVIEW.md#measured-in-content-cue-correction), [evidence](../tests/evidence/notice-header-2026-11-12.json).
-- Writer documentation commitffb53a5 remains local after the push was denied twice before execution. Last verified remote0004c77. Preserve pending changes; do not bypass the authorization blocker. No apps, map edits, live data or publication.
+- Writer documentation commitffb53a5 remains local after the push was denied twice before execution. Last verified remote 0004c77. Preserve pending changes; do not bypass the authorization blocker. No apps, map edits, live data or publication.
 
 ## November 12 quest-writer rollout reassessment
 

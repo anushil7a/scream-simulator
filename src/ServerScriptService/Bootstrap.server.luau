@@ -730,6 +730,10 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  local s=sessions[p];if not s or type(verb)~="string" then return end
  -- Validated idempotent stops must survive saturation; they grant no new action.
  if verb=="Sprint" and arg==false then s.sprintRequested=false;return end
+ if verb=="EndConversation" and arg==nil then
+  if s.conversationBot then closeConversation(p) end
+  return
+ end
  local now=os.clock()
  if verb=="SustainedStop" and s.sustained then
   local active=s.sustained.protocol.active
@@ -769,7 +773,6 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   p:SetAttribute("CaptureStarted",0)
   if VoiceCombat.Begin(s.voice,now,arg,canCapture(p,s,now)) then p:SetAttribute("CaptureStarted",workspace:GetServerTimeNow()) end;return
  elseif verb=="CancelCast" then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0);return
- elseif verb=="EndConversation" then closeConversation(p);return
  elseif verb=="MicReady" then s.micReady=arg==true;if not s.micReady then cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end;return
  elseif verb=="Cast" then cast(p,arg);return elseif verb=="Dodge" then dodge(p);return
  elseif verb=="ExtraJump" then
