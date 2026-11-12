@@ -244,7 +244,7 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
     bonus,bonusXP=combatChallenge(recipient,"fighters",true)
    end
    state(recipient,(recipient==finisher and "KO" or "Assist").." · +"..(credited+bonusXP).." XP"..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
-  elseif recipient==finisher then state(recipient,"KO · repeat-opponent reward limited") end
+  elseif recipient==finisher then state(recipient,"KO · no reward awarded") end
  end
 end
 local function stopQuest(p)

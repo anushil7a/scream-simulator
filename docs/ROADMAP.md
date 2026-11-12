@@ -2,6 +2,12 @@
 
 Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 12 truthful zero-reward KO feedback
+
+- Actual first trainer/player KO paths could round a tiny contribution to zero yet blame repeat opponents. Changed only that notice to "KO · no reward awarded"; payouts, histories, contribution/quest gates and saved state are unchanged.
+- 45 focused checks/six controls, pinned old-text reproduction, retained credited-amount baseline and 19 PvP checks pass; Astra independently cleared the exact one-string diff and isolated additional cases. Full 25/115 suites, 63 compiles/all builds passed in 37.04 seconds; 311 input hashes unchanged/rechecked. [Review](REWARD_CREDIT_FEEDBACK_REVIEW.md) and [evidence](../tests/evidence/zero-ko-feedback-2026-11-12.json).
+- No native UI, real services, login or publication. Separate bounded movement audit found no new defect; meaningful remaining movement/voice/device gates require native access, not speculative changes.
+
 ## November 12 bounded main-client startup ownership
 
 - Reproduced continued initialization after interrupted dependencies in the actual whole Client script. A terminal owner now checks each startup continuation, retires late returned resources, preserves the owned attack Stop, and restores camera/touch only when their values still match its writes. Loaded-but-unused shared state is not cleared; ordinary gameplay/load order is preserved.
