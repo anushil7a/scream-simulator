@@ -9,7 +9,7 @@ Layout.CafePickup=V(30,2,-225)
 Layout.DeliveryStops={{id="StageDelivery",name="boardwalk music stage",position=V(-70,2,200)},{id="LookoutDelivery",name="lifeguard lookout",position=V(-220,2,200)},{id="PierDelivery",name="coastal pier stop",position=V(285,2,200)}}
 Layout.Teleports={Arena=V(40,4,50),Beach=V(-220,4,200)}
 Layout.Practice={position=V(-270,3,65),target=V(-280.8,6,65),aim=V(-1,0,0)}
-Layout.Soccer={center=V(285,1.2,245.5),origin=V(252,1.2,251),min=V(229,0,203),max=V(341,0,288),lost={V(227,1.2,161),V(189,1.2,264),V(320,1.2,183)},gates={V(275,1.2,231),V(290,1.2,256),V(270,1.2,279),V(313,1.2,260)},obstacles={V(262,1.2,241),V(282,1.2,242),V(280,1.2,269),V(292,1.2,272)},goals={V(301,1.2,251),V(243,1.2,219),V(327,1.2,218),V(254,1.2,277),V(323,1.2,276)}}
+Layout.Soccer={practiceGoal=V(265,1.05,287),center=V(285,1.2,245.5),origin=V(252,1.2,251),min=V(229,0,203),max=V(341,0,288),lost={V(227,1.2,161),V(189,1.2,264),V(320,1.2,183)},gates={V(275,1.2,231),V(290,1.2,256),V(270,1.2,279),V(313,1.2,260)},obstacles={V(262,1.2,241),V(282,1.2,242),V(280,1.2,269),V(292,1.2,272)},goals={V(301,1.2,251),V(243,1.2,219),V(327,1.2,218),V(254,1.2,277),V(323,1.2,276)}}
 Layout.Volley={center=V(-20,2,250),serve=V(-20,3,234),board=V(-45,4,229),min=V(-40,0,224),max=V(0,0,276),playerMin=V(-47,0,217),playerMax=V(7,0,283),netZ=250,netMinX=-40,netMaxX=0,minimumCrossingHeight=9.2,floorBallY=1.1}
 Layout.MapLandmarks={{name="1 Spawn",x=-270,z=130},{name="2 Practice",x=-270,z=65},{name="3 Training",x=-245,z=-100},{name="4 Arena",x=40,z=-20},{name="5 Gardens",x=-295,z=-235},{name="6 Market",x=30,z=-225},{name="7 Coast",x=-220,z=200},{name="8 Nick court",x=285,z=245.5}}
 Layout.MapRoads={

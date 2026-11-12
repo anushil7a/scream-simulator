@@ -2,6 +2,12 @@
 
 Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub push is currently held pending direct confirmation after an authorization denial; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 12 compact Nick practice goal
+
+- Corrected the local OwnGoal ball animation still targeting the old city's coordinates. A shared compact endpoint and three nonphysical goal pieces now align with Nick, retaining original-map behavior, timing and personal challenge scoring. Review caught and fixed delayed-startup teardown before checkpoint; normal animation behavior is unchanged.
+- Final 602 constructor/animation assertions, 19 interrupted-startup checks, 12 controls, historical failure and 10 fail-closed debug harness contracts pass. Full 25 pure/synthetic + 107 mocked suites, 63 compiles and all local builds pass. Independent production review cleared; [review](NICK_PRACTICE_GOAL_REVIEW.md) and [evidence](../tests/evidence/nick-practice-goal-2026-11-12.json). No native appearance, physics or actual teardown scheduling claim.
+- No app launch, live service, publication or push. Existing GitHub confirmation hold remains. Next scoped fix: replace old-city ambient emitter positions in compact mode, preserving existing assets, levels and bounded loading; native audibility and map walking remain gates.
+
 ## November 12 truthful reward confirmations
 
 - Actual helper/call-site reproduction showed a capped quest applying0XP/10coins while claiming120XP/50coins. Confirmations now report actual credited amounts, including level-crossing XP and cap truncation, rather than recalculating nominal rewards. Claim consumption, challenge renewal, grant formulas/caps, reward eligibility and the owner's normal-play-during-save-failure decision remain unchanged.

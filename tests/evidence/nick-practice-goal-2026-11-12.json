@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "dateUtc": "2026-11-12T16:44:13.241315+00:00",
+  "baseCommit": "0c68c0540eab9a7d098f2f8cfd51437137de7b59",
+  "scope": "Compact Nick decorative goal and local practice-ball endpoint, safe dependency startup, standalone debug bundle compatibility; no challenge scoring/reward/save changes",
+  "sourceHashes": {
+    "src/ReplicatedStorage/Shared/CompactLayout.luau": "53703668b4bb0a161069a42a65c2be4cf507eb02a3a726652a63916916b08dee",
+    "src/ServerScriptService/CompactCity.luau": "67680f1dfcb3998a234c94f19df0dae4038ed90d40c31dc8c02bc2ed4a1eafb5",
+    "src/StarterPlayer/StarterPlayerScripts/Residents.client.luau": "0818fd9af4d3541ac7c3f70e7d5d43987442c66eddadd2be9dcbf0335f7b4faf",
+    "tests/nick_practice_goal.py": "fcc7f8d8ad433b945031a965a026d8a9a3a727f8b6a53853997e59b26b442911",
+    "tests/animation_lifecycle.py": "d3819c44b968af8b74d094fe1a4abeecdc286071b757f84457287d8613735a56",
+    "tests/compact_world.py": "9469c8c288c6b4091ff0140f0132baed0dc173888ef43d4261c804e8062d344c",
+    "tests/build_studio_harness.py": "1ae893bf279d2e6af65ca51479980a5c301d3ed150a061d95b9c3ac713c96a3f",
+    "tests/verify_local.py": "6a441c4527d276cdcb5b65c5529791154b4bf4c80f07d4097de416e67075857c"
+  },
+  "checks": [
+    {
+      "command": "python tests/nick_practice_goal.py --negative-controls",
+      "constructorAnimationAssertions": 602,
+      "wholeScriptStartupAssertions": 19,
+      "negativeControls": 12,
+      "builderResolverContracts": 10,
+      "rejectedResolverInputs": 7,
+      "mode": "actual constructor/animation fragment plus whole-script startup coroutine mocks; no engine execution"
+    },
+    {
+      "command": "python tests/nick_practice_goal.py --baseline",
+      "result": "Pinned old actual animation branch fails compact endpoint check"
+    },
+    {
+      "command": "python tests/verify_local.py --build",
+      "pureSyntheticSuites": 25,
+      "mockedSuites": 107,
+      "productionCompiles": 63,
+      "builds": "all configured local candidate/disposable builds passed",
+      "timing": "Final production and builder correction"
+    }
+  ],
+  "independentReview": {
+    "production": "No blocker; independently reran602/19/12, retainedResidents14 and constructor/facing checks",
+    "builder": "No blocker; independently passed10 resolver contracts and matched generated animation bundle to fresh in-memory assembly; synchronous dependency limitation preserved",
+    "scope": "Source, mocked geometry/lifetime and resolver contracts, not native runtime"
+  },
+  "logs": {
+    "build/nick-practice-focused.log": "6c0446b0f60ae723b33a2928f1ec71b4597c07641acac2abede3fa011f069969",
+    "build/nick-practice-baseline.log": "a4f2700eb43ea667e74fc4957f3b9f6b9704d7c2b11a0ef8fd4b25c2483220fe",
+    "build/nick-practice-full.log": "1d3fc89958c6efe671f05f8b378ffa4972cdb9a70a3d0c5f79900e01fa813c59",
+    "build/nick-practice-production.diff": "ca326294cea93b85d7777d620b23ca2734ae914169ee5422ffab708710dcc8f4"
+  },
+  "nativeExecuted": false,
+  "liveDataOrPurchases": false,
+  "published": false,
+  "push": "Held pending direct user confirmation",
+  "limits": [
+    "Animation checks use nominal station input and analytic/mock vectors, not actual pathfinding/physics/visual rendering",
+    "New startup race was reproduced with coroutine yields, not native engine scheduling",
+    "Debug bundle substitutes dependency resolution and does not validate real loading",
+    "Real microphone/device/network/multiplayer and mixed-version writer release gates remain"
+  ],
+  "finalWhitespaceCleanup": "Removed one trailing space before a Luau setup string; focused602/19/10 and12 controls rerun, no executable or production change"
+}

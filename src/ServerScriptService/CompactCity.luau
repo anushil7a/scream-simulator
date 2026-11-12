@@ -50,6 +50,16 @@ function City.Build(parent)
  -- Net is cosmetic and non-colliding; authoritative ball rules live in BeachVolley.
  local net=part(parent,"VolleyNet",V(40,4,.2),V(-20,6,250),Color3.fromRGB(235,235,220),false);net.Transparency=.6
  for _,x in ipairs({-41,1}) do part(parent,"VolleyPost",V(.5,9,.5),V(x,4.5,250),Color3.fromRGB(235,235,220),true) end
+ -- Decorative practice goal only; local resident animation never scores or collides.
+ local practiceGoal=Layout.Soccer.practiceGoal
+ for _,spec in ipairs({
+  {name="NickPracticeGoalLeft",size=V(.35,7,.35),position=V(practiceGoal.X-8,3.5,practiceGoal.Z-1)},
+  {name="NickPracticeGoalRight",size=V(.35,7,.35),position=V(practiceGoal.X+8,3.5,practiceGoal.Z-1)},
+  {name="NickPracticeGoalCrossbar",size=V(16,.35,.35),position=V(practiceGoal.X,7,practiceGoal.Z-1)},
+ }) do
+  local goal=part(parent,spec.name,spec.size,spec.position,Color3.fromRGB(235,235,220),false)
+  goal.CanQuery=false;goal.CanTouch=false;goal.CastShadow=false
+ end
  local walk,activities={},{}
  for _,point in ipairs(Layout.Walk) do table.insert(walk,point);table.insert(activities,{position=point,kind="Stroll"}) end
  local function station(x,z,lookX,lookZ,action)return {position=V(x,3,z),lookAt=V(lookX or x,3,lookZ or z-5),action=action} end
@@ -57,7 +67,7 @@ function City.Build(parent)
   {role="Gardener",name="Mar Soler",quests={"garden","beach"},stations={station(-325,-250,-325,-270,"Watering flowers"),station(-295,-250,-295,-270,"Watering flowers"),station(-265,-250,-265,-270,"Watering flowers")}},
   {role="Vendor",name="Pau Vidal",quests={"delivery"},stations={station(30,-225,30,-247,"Arranging produce")}},
   {role="CafeWorker",name="Julia Ferrer",stations={station(42,-225,30,-225,"Preparing coffee")}},
-  {role="Soccer",name="Nick Booty",quests={"nick"},stations={station(239,281,252,251,"Practicing missed kicks")}},
+  {role="Soccer",name="Nick Booty",quests={"nick"},stations={station(239,281,practiceGoal.X,practiceGoal.Z-1,"Practicing missed kicks")}},
   {role="Busker",name="Eric Sol",quests={"crowd"},stations={station(-300,125,-310,140,"Playing for the courtyard")}},
   {role="Commuter",name="Boardwalk runner",quests={"sprint"},stations={station(-220,190,-220,200,"Waiting by the promenade")}},
   {role="Fighter",name="Arena coach",quests={"dodge","arena"},stations={station(-137,40,-100,50,"Watching the arena")}},

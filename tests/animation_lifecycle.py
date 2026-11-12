@@ -46,6 +46,7 @@ local shared={WaitForChild=function()return 'config' end}
 local services={Players=players,RunService=run,CollectionService=collection,ReplicatedStorage={WaitForChild=function()return shared end}}
 local game={GetService=function(_,name)return services[name] end}
 local require=function(name)assert(name=='config');return {} end
+local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}
 local CFrame={identity='identity'}
 local workspace={GetServerTimeNow=function()return 100 end}
 local Enum={Material={Air='Air'}}

@@ -27,7 +27,22 @@ def inline(path):
         if name not in MODULES:
             raise RuntimeError(f"Unknown dependency {name} in {path}")
         return 'modules.'+name
-    text=REQUIRE.sub(replace,path.read_text())
+    text=path.read_text()
+    # Only this audited alias chain is accepted. Standalone bundles already own Config;
+    # retaining waits would incorrectly require external Shared/Config instances.
+    if path.resolve()==(client/'Residents.client.luau').resolve() and 'require(configModule)' in text:
+        binding='\n'.join([
+            'local shared=game:GetService("ReplicatedStorage"):WaitForChild("Shared")',
+            'if destroyed then return end',
+            'local configModule=shared:WaitForChild("Config")',
+            'if destroyed then return end',
+            'local Config=require(configModule)',
+            'if destroyed then return end',
+        ])
+        if text.count(binding)!=1 or 'Config' not in MODULES:
+            raise RuntimeError(f"Unsupported Residents Config binding in {path}")
+        text=text.replace(binding,'local Config=modules.Config\nif destroyed then return end',1)
+    text=REQUIRE.sub(replace,text)
     if re.search(r'\brequire\s*\(',text):
         raise RuntimeError(f"Unsupported require expression in {path}")
     return text

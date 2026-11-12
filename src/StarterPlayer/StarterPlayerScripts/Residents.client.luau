@@ -32,6 +32,19 @@ local function clearRig(model)
  for _,joint in pairs({rig.rootJoint,rig.neck}) do if joint.Parent then joint.Transform=CFrame.identity end end
  rigs[model]=nil
 end
+script.Destroying:Connect(function()
+ destroyed=true
+ for _,connection in ipairs(connections) do connection:Disconnect() end
+ for model in pairs(rigs) do clearRig(model) end
+end)
+-- Install teardown before yielding for dependencies; a stopped client must not resume subscriptions.
+local shared=game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+if destroyed then return end
+local configModule=shared:WaitForChild("Config")
+if destroyed then return end
+local Config=require(configModule)
+if destroyed then return end
+local practiceGoal=Config.CompactCity and Config.CityLayout.Soccer.practiceGoal or Vector3.new(628,2.05,586)
 local function register(model)
  if destroyed or rigs[model] then return end
  rigs[model]={model=model,joints={},phase=(model:GetAttribute("AnimationSeed") or 1)*.71,blend=0,elapsed=0}
@@ -101,7 +114,7 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
     if routine=="OwnGoal" then
      local t=math.clamp((workAge-1.2)/2.5,0,1)
      -- This local prop rolls through the existing goal; it never scores quest progress.
-     position=position:Lerp(Vector3.new(628,2.05,586),1-(1-t)^2);spin=t*math.pi*10
+     position=position:Lerp(practiceGoal,1-(1-t)^2);spin=t*math.pi*10
     elseif routine=="Trip" then
      local t=math.clamp((workAge-1.3)/1.5,0,1)
      position+=forward*t*2.2;spin=t*3
@@ -154,8 +167,3 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
   end
  end
 end))
-script.Destroying:Connect(function()
- destroyed=true
- for _,connection in ipairs(connections) do connection:Disconnect() end
- for model in pairs(rigs) do clearRig(model) end
-end)

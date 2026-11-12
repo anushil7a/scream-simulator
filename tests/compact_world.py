@@ -28,6 +28,7 @@ end)()
 local result=City.Build({});check(result.compact and result.traffic==false,'Wrong compact build mode')
 check(result.spawn.Position==Layout.Spawn and Layout.Spawn.X==-270 and Layout.Spawn.Z==130,'Wrong compact spawn')
 check(#result.jobs==7 and #result.seeds==4,'Missing residents')
+local practiceGoalNames={NickPracticeGoalLeft=true,NickPracticeGoalRight=true,NickPracticeGoalCrossbar=true}
 local guidanceNames={RouteToPractice=true,RouteToTrainingTurn=true,RouteToTraining=true,RouteToArena=true,PracticeFrameNear=true,PracticeFrameFar=true,PracticeFrameCrown=true}
 local guidanceFolder;local guidanceCount=0
 for _,n in ipairs(nodes)do if n.Name=='FirstMinuteGuidance' then check(n.ClassName=='Folder' and guidanceFolder==nil,'Duplicate/wrong guidance folder');guidanceFolder=n end end
@@ -35,8 +36,9 @@ check(guidanceFolder~=nil,'First-minute guidance missing')
 local byName={};local prompts={}
 for _,n in ipairs(nodes)do
  if n.ClassName=='Part' then
-  check(n.Anchored and (n.CanQuery or guidanceNames[n.Name] or n.Name=='PracticeWayfinding' or n.Name=='ArenaWayfinding' or n.Name=='StandLine' or n.Name=='SpawnWayfinding') and n.CanTouch==false,'Unsafe static geometry flags')
+  check(n.Anchored and (n.CanQuery or practiceGoalNames[n.Name] or guidanceNames[n.Name] or n.Name=='PracticeWayfinding' or n.Name=='ArenaWayfinding' or n.Name=='StandLine' or n.Name=='SpawnWayfinding') and n.CanTouch==false,'Unsafe static geometry flags')
   check(n.attributes.DestructibleType==nil and n.attributes.ObjectId==nil and n.attributes.ObjectHealth==nil and n.attributes.RequiredLevel==nil and n.attributes.Destructible==nil and n.attributes.DestructionLevel==nil and n.attributes.Breakable==nil,'Compact geometry tagged for destruction')
+  if practiceGoalNames[n.Name] then check(n.CanCollide==false and n.CanQuery==false and n.CanTouch==false and n.CastShadow==false and next(n.attributes)==nil,'Practice goal changes gameplay') end
   if guidanceNames[n.Name] then
    check(n.Parent==guidanceFolder and not byName[n.Name],'Guidance part ownership/uniqueness invalid')
    check(n.Anchored==true and n.CanCollide==false and n.CanTouch==false and n.CanQuery==false and n.CastShadow==false,'Guidance physics/query/shadow enabled')
