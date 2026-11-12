@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-12",
+  "baseCommit": "0004c77e6e72402111bc7af90d24f81afd9a5c34",
+  "productionChanged": false,
+  "commands": [
+    {
+      "command": "python tests/quest_writer_compatibility.py --negative-controls",
+      "replayAssertions": 47,
+      "negativeControls": 11,
+      "result": "passed; historical loss reproduced and current four-state all-ID probe passes"
+    },
+    {
+      "command": "python tests/quest_writer_preflight.py --negative-controls",
+      "assertions": 36,
+      "negativeControls": 4,
+      "result": "passed synthetic validator cases only"
+    }
+  ],
+  "sha256": {
+    "src/ServerScriptService/Profiles.luau": "d1101ab834275507aed9a50536c5db98ae0df3323261421370fbf7d06bdaad43",
+    "src/ReplicatedStorage/Shared/ProfileLease.luau": "19fdfeeafedb584b2eec830a825758c6d515cda573b20a9e0dd928e493893d9f",
+    "src/ReplicatedStorage/Shared/Config.luau": "47bb409b104c8f3f89647dc9808fb3c434a1f42bdc5bd81637e8b55b968dca7b",
+    "tests/quest_writer_compatibility.py": "3f5ad645460058278ebd4c24c1b01df2cad955aed1a2768522c5e4b1efac817a",
+    "tests/quest_writer_preflight.py": "14aadcae608f8eb1cc70fbfccb61fcc69ab83ad0c2ce856dc0f521afdfb41fbd",
+    "tools/quest_writer_preflight.py": "34a3d065938ed48ff2861833baa1f14b3ed70b10f1a85a2f1179855416f15184"
+  },
+  "logs": {
+    "build/quest-writer-revisit.log": "6f683b879a426ee441a5a91f7d94fdfa7ac80b97b9ab2b7ae22bd5650fb69957",
+    "build/quest-writer-preflight-revisit.log": "a859f696512605c80964aa23ded91c4a5fd8f84e58ff7fabe5c36810ebfb0242"
+  },
+  "independentReview": "Source/design review confirms no candidate-only fix constrains deployed incompatible writers; operational gate remains.",
+  "liveInventoryVerified": false,
+  "bridgeBuilt": false,
+  "nativeExecuted": false,
+  "releaseStatus": "BLOCKED_UNVERIFIED_WRITER_FLEET",
+  "limits": [
+    "Fake-store finite preservation probes, not a full historical server",
+    "No live access/settings/data or publication",
+    "No fresh full aggregate/build claim"
+  ]
+}

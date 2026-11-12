@@ -49,3 +49,18 @@ No Studio/apps opened for this batch, no live services/purchases or publication.
 - `vault/fwjelaa/fwjelaa vault/05 UI and UX/Notification and Toast Systems.md`, sections1/3: channel choice, bounded queues and readable lifetime. Reference guidance, not permission to replace the architecture.
 - `vault/fwjelaa/fwjelaa vault/42 Accessibility and Inclusive Design/Readable Text and UI Scale.md`, sections1/2: preserve readable type and allow scrolling rather than silently shrinking content.
 - `vault/fwjelaa/fwjelaa vault/05 UI and UX/Safe Areas and Insets.md`, sections1/2: interactive coordinates remain within the existing safe-area GUI.
+
+
+## November 12 larger-text and input follow-up
+
+A read-only audit found two limits not resolved by the earlier geometry checks. The main notice can expand from observed TextBounds, but the passive scroll cue and end padding are fixed at16px and never measure the cue's own bounds. If a preferred font/text setting makes that cue taller, it can clip; this has not been observed on a native preference setting. FullNotice sets Active but has no explicit selectable/focus or keyboard/gamepad scrolling path. Do not infer either failure or accessibility success from undocumented default properties. Existing fixtures set CanvasPosition directly, so they prove bottom-exposure handling, not input discoverability/reachability.
+
+Native acceptance checklist, still **not run**:
+
+- Use the actual full93/85/142/114-character warnings at640x360 and320x315 safe-area sizes, with and without Test Tools and nearby TALK. Repeat with the largest supported text preference and change it while a notice is visible. Check the complete body/cue TextBounds and TextFits, no control overlap, and reset/reflow on replacement/resize.
+- Touch: discover the overflow cue, drag beginning on body and cue, reach the last line, revisit the beginning, and verify queue dwell pauses during input without blocking nearby movement/action controls. Use a physical phone for thumbstick/cutout reachability; a frame resize is not a phone test.
+- Keyboard: without mouse scrolling, discover the NOTICE/Quests fallback and reachable full text, scroll to the end, and return focus to the existing menu/gameplay controls. Verify typing/menu bindings are not stolen.
+- Gamepad: use native selection navigation to discover/reach the notice, scroll to the end and leave it. Verify visible focus, no trapped selection, no unintended attacks, and current-menu navigation. Programmatically selecting a GUI or setting CanvasPosition is not a substitute.
+- Interrupt with main menu/setup/focus loss/respawn and an urgent replacement; confirm no hidden dwell, stale text/focus or lost critical warning.
+
+A future correction should preserve the44px actual scroll target and avoid growing an overlay until it covers the warning. Native text preference, cue pass-through and keyboard/controller completion remain release-test gaps, not passed tests. No application or setting was changed for this audit. References checked: [GuiObject selection semantics](https://create.roblox.com/docs/reference/engine/classes/GuiObject.md), [ScrollingFrame](https://create.roblox.com/docs/reference/engine/classes/ScrollingFrame.md), [TextService](https://create.roblox.com/docs/reference/engine/classes/TextService.md).

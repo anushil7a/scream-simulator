@@ -7,6 +7,11 @@ Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 12 quest-writer rollout reassessment
+
+- Existing replay47/11 and preflight36/4 controls pass again; the eight-ID acquisition still drops additive claims, while current four-state probes pass. No candidate-only flag can constrain deployed old code. [Concrete cutover/bridge decision](QUEST_WRITER_ROLLOUT_REVIEW.md#november-12-operational-rollout-decision) now requires the exact universe/store writer boundary and compatible rollback floor, not just one place/public-server list. No bridge generated against an unidentified deployed source; runtime unchanged and release remains blocked.
+- Parallel accessibility follow-up is checking larger text and non-pointer notice access; no native input claim. Map and all-tester access remain held, no live publication.
+
 ## November 12 beam pool composition coverage
 
 - Test-only actual manager/renderer/style composition passed 117,904 repeated assertions and seven targeted controls, independently rerun. Peak/created/destroyed mocked Parts each 512; expiry, core reservation, reuse and terminal cleanup covered. Production unchanged. [Review](BEAM_POOL_COMPOSITION_REVIEW.md), [evidence](../tests/evidence/beam-pool-composition-2026-11-12.json).
