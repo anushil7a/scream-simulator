@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "dateUtc": "2026-11-12T16:20:44.857854+00:00",
+  "baseCommit": "b0099a0113d8ae0fc96c512d36a34b622c85a0b0",
+  "scope": "Actual credited reward feedback; no grant policy, cap, claim, reward eligibility or persistence change",
+  "sourceHashes": {
+    "src/ServerScriptService/Bootstrap.server.luau": "580193c2b7d487b6a42d501c3a47ff6f98788cea1c8e37e794ad5699c365fcc1",
+    "tests/reward_credit_feedback.py": "5cf7296a9bda88be5517894790beacbbabb8ef0b7edea2fa427bbbdae051fc6e",
+    "tests/action_feedback.py": "9af6adb00c2095d939d78452f84cb8cc1e0b0950ac52ede9f8e1b6d61b43b932",
+    "tests/combat_credit_identity.py": "e4f29454e7a1b4763e4f5766dfa62947cd7291dc8ee3b4584ce2dac5cab6bad1",
+    "tests/combat_quests.py": "e2c13d65573ba910e3a261127e2b02978a1851dac9f0efc97baabb1e83390d03",
+    "tests/panel_action_lifecycle.py": "6d2882a0738d8add6cc1b0a6788097d2e9d0645f5ab572f11f6efc5d094bf95e",
+    "tests/pvp_rewards.py": "2f7a10320dd52e99725bc8b924ea7834dd719ff3bf18216b478c6fd4b4f991b3",
+    "tests/quest_claim.py": "53bb94997239d4036067432d724aeb770ff2f6e0cc84e279cfd1a55a8ed84610",
+    "tests/verify_local.py": "113d93deb5bded91ccf30ad929a554a45b061911305484691da236a41a8ae4c8"
+  },
+  "checks": [
+    {
+      "command": "python tests/reward_credit_feedback.py --negative-controls",
+      "assertions": 29,
+      "negativeControls": 5,
+      "mode": "actual helper/call-site fragments; mock players/state, real Progression/Credit/TrainingRules"
+    },
+    {
+      "command": "python tests/reward_credit_feedback.py --baseline",
+      "result": "Pinned b0099a0 applies0XP/10coins at caps while claiming120XP/50coins"
+    },
+    {
+      "command": "python tests/verify_local.py --build",
+      "pureSyntheticSuites": 25,
+      "mockedSuites": 106,
+      "productionCompiles": 63,
+      "builds": "all configured candidate/disposable builds passed",
+      "timing": "Before three test-only KO boost-expiry assertions were added; final29/5 focused rerun passed; production unchanged"
+    }
+  ],
+  "independentReview": {
+    "result": "No blocker; nominal eligibility/underdog/repeat/claims/renewal and ordinary unsavable play unchanged",
+    "focused": "26 assertions/5 controls and reverse-diff historical failure independently rerun before final3test-onlyassertions",
+    "extraValidSessionDifferentialCases": 10868,
+    "extraKoAssertions": 5,
+    "scope": "Actual source helper mutation/return accounting; not full dispatcher, native, live services or persistence integration"
+  },
+  "logs": {
+    "build/reward-credit-full.log": "1582c806f24ebd7bbee492bf3dd919700966d6505b4aee6b1b49ddf2efde847d",
+    "build/reward-credit-focused.log": "c071bbd2a6c26b1709db906854602b7beae78b94b74028e5942012bea0751c33",
+    "build/reward-credit-baseline.log": "e2f09bd95d1912452dbd5f741f39a2e41260408387cf7b8bb90fde94e003c97d",
+    "build/reward-credit-production.diff": "82655051ad2abe6f5816376c82414035d05a40cbf18a601c430692eb457ee02c"
+  },
+  "nativeExecuted": false,
+  "liveDataOrPurchases": false,
+  "published": false,
+  "push": "Held pending direct user confirmation",
+  "limits": [
+    "No real service/persistence or native UI claim",
+    "Zero credit still consumes an otherwise valid claim and preserves challenge completion, matching existing policy",
+    "Quest cards retain configured base reward previews; confirmations now describe current-session credit, not durable-save guarantees",
+    "Existing real voice, device, native map and mixed-version writer release gates unchanged"
+  ],
+  "finalWhitespaceCleanup": "Removed one trailing space before the Luau setup string; no executable change"
+}

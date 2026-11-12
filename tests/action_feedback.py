@@ -36,8 +36,8 @@ local function packet(message,milestone)
 end
 local function state(_,message,conversation,urgent)local value=packet(message,'LEVEL 10 milestone');value.messageUrgent=urgent;receiver(value)end
 local Commerce={Multiplier=function()return 1 end}
-local function coins(_,amount)s.data.coins+=amount end
-local function xp(_,amount)earned+=amount end
+local function coins(_,amount)s.data.coins+=amount;return amount end
+local function xp(_,amount)earned+=amount;return amount end
 local function stopQuest()stops+=1;s.activeQuest=nil end
 '''
 checks = '''

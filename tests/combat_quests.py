@@ -29,8 +29,8 @@ local Players={GetPlayerByUserId=function(_,id)return players[id]end}
 local Commerce={Multiplier=function()return 1 end}
 local notices=0;local reenter;local earned=0
 local function state()notices+=1 end
-local function coins(p,amount)sessions[p].data.coins+=amount end
-local function xp(p,amount)earned+=amount;if reenter then local f=reenter;reenter=nil;f()end end
+local function coins(p,amount)sessions[p].data.coins+=amount;return amount end
+local function xp(p,amount)earned+=amount;if reenter then local f=reenter;reenter=nil;f()end;return amount end
 local QuestLifecycle=realQuestLifecycle
 local function stopQuest(p)QuestLifecycle.Clear(sessions[p],Config.GetQuest) end
 local function parts()return nil,nil end

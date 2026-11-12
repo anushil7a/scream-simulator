@@ -41,7 +41,7 @@ def main():
     mocked += ('microphone_active.py', 'microphone_check_requests.py', 'shop_price_requests.py', 'shop_modal_lifecycle.py')
     mocked += ('panel_action_lifecycle.py', 'commerce_lifecycle.py', 'mic_setup_navigation.py', 'microphone_movement.py')
     mocked += ('beam_screen_feedback.py', 'beam_screen_integration.py')
-    mocked += ('notice_view.py', 'beam_pool_composition.py', 'conversation_stop_rate_limit.py')
+    mocked += ('notice_view.py', 'beam_pool_composition.py', 'conversation_stop_rate_limit.py', 'reward_credit_feedback.py')
     for name in mocked:
         print(f'Checking {name} (mocked services)', flush=True)
         run([sys.executable, str(ROOT / 'tests' / name)])

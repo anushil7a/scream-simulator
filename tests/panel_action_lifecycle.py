@@ -23,7 +23,7 @@ for _,id in ipairs({'garden','practice_beams'})do table.insert(Config.Quests,{id
 function Config.GetQuest(id)for _,q in ipairs(Config.Quests)do if q.id==id then return q end end end
 local p={};local s={activeQuest='garden',data={coins=2000,xp=0,aura='Blue',useCustomColor=false,amplifierOwned=false,amplifierEquipped=false,availableQuests={garden=true},quests={garden={progress=1,claimed=false},practice_beams={progress=2,claimed=false}},achievements={}}}
 local sessions={[p]=s};local Soccer={Cancel=function()end};local Commerce={Multiplier=function()return 1 end}
-local function state()end;local function coins(_,v)s.data.coins+=v end;local function xp(_,v)s.data.xp+=v end
+local function state()end;local function coins(_,v)s.data.coins+=v;return v end;local function xp(_,v)s.data.xp+=v;return v end
 local QuestLifecycle=require('../src/ReplicatedStorage/Shared/QuestLifecycle')
 '''
 ui=r'''

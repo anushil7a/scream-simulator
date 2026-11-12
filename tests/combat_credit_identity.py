@@ -22,7 +22,7 @@ local VoiceCombat={New=function()return {}end};local VoiceEligibility={New=funct
 local sessions={};local players={};local localFixture=false;local rewardHistory={pairs={}}
 local Players={GetPlayerByUserId=function(_,id)return players[id]end}
 local Commerce={Multiplier=function()return 1 end}
-local function xp(p,n)sessions[p].data.xp+=n end
+local function xp(p,n)sessions[p].data.xp+=n;return n end
 local function coins(p,n)sessions[p].data.coins+=n end
 local events={};local function questProgress(p,event)events[event]=(events[event] or 0)+1 end
 local function state()end

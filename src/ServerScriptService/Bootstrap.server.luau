@@ -158,7 +158,8 @@ end,state)
 local function coins(p,amount)
  local s=sessions[p];if not s then return 0 end
  local reward=math.max(0,math.floor(amount*Commerce.Multiplier(p,"coins")))
- s.data.coins=math.min(1000000000,s.data.coins+reward);return reward
+ local before=s.data.coins
+ s.data.coins=math.min(1000000000,s.data.coins+reward);return s.data.coins-before
 end
 local function syncHealth(p,full)
  local s=sessions[p];local _,_,h=parts(p);if not s or not h then return end
@@ -166,12 +167,13 @@ local function syncHealth(p,full)
  h.MaxHealth=maximum;h.Health=full and maximum or math.clamp(h.Health+gain,1,maximum)
 end
 local function xp(p,amount)
- local s=sessions[p];if not s then return end
+ local s=sessions[p];if not s then return 0 end
  amount=amount*Commerce.Multiplier(p,"xp")
- local d=s.data;if d.level>=Config.MaxLevel then return end
- d.xp+=math.max(0,math.floor(amount));local before=d.level
+ local d=s.data;if d.level>=Config.MaxLevel then return 0 end
+ local credited=math.max(0,math.floor(amount))
+ d.xp+=credited;local before=d.level
  while d.level<Config.MaxLevel and d.xp>=Config.XPToNext(d.level) do d.xp-=Config.XPToNext(d.level);d.level+=1 end
- if d.level==Config.MaxLevel then d.xp=0 end
+ if d.level==Config.MaxLevel then credited-=d.xp;d.xp=0 end
  if d.level>before then
   syncHealth(p,false)
   local unlock="";for _,v in ipairs(Config.Sounds) do if v.level>before and v.level<=d.level then unlock=" · Unlocked "..v.name end end
@@ -181,6 +183,7 @@ local function xp(p,amount)
   end
   state(p,string.format("Level %d%s · %d HP · %.1f max DPS",d.level,unlock,stats.health,stats.maxDps))
  end
+ return credited
 end
 local function questProgress(p,event,amount)
  local s=sessions[p];if not s or not s.activeQuest then return end
@@ -189,13 +192,14 @@ local function questProgress(p,event,amount)
  v.progress=math.min(q.goal,v.progress+(amount or 1));state(p,v.progress==q.goal and "Quest complete! Claim your reward in Quests." or nil)
 end
 local function combatChallenge(p,id,quiet)
- local s=sessions[p];if not s then return 0 end
+ local s=sessions[p];if not s then return 0,0 end
  local reward,name=Config.Progression.Advance(s.data.combatChallenges,id,s.data.level)
+ local credited=0
  if reward>0 then
-  xp(p,reward)
-  if not quiet then state(p,name.." · +"..(reward*Commerce.Multiplier(p,"xp")).." XP · challenge renewed") end
+  credited=xp(p,reward)
+  if not quiet then state(p,name.." · +"..credited.." XP · challenge renewed") end
  end
- return reward
+ return reward,credited
 end
 local function sameCombatMode(a,b)
  return a~=nil and b~=nil and (a.testBaseline~=nil)==(b.testBaseline~=nil)
@@ -231,14 +235,14 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
   local reward=math.floor(pool*share*factor*repeatFactor)
   if reward>0 then
    local underdog=targetLevel>=rs.data.level
-   xp(recipient,reward);coins(recipient,math.floor((victim and 20 or 5)*share*factor*repeatFactor))
+   local credited=xp(recipient,reward);coins(recipient,math.floor((victim and 20 or 5)*share*factor*repeatFactor))
    if victim and recipient==finisher and underdog then questProgress(recipient,"Underdog") end
    if victim and recipient~=finisher and underdog and meaningful[id] then questProgress(recipient,"ArenaAssist") end
-   local bonus=0
+   local bonus,bonusXP=0,0
    if tier and factor>=.5 and meaningful[id] then
-    bonus+=combatChallenge(recipient,"fighters",true)
+    bonus,bonusXP=combatChallenge(recipient,"fighters",true)
    end
-   state(recipient,(recipient==finisher and "KO" or "Assist").." · +"..((reward+bonus)*Commerce.Multiplier(recipient,"xp")).." XP"..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
+   state(recipient,(recipient==finisher and "KO" or "Assist").." · +"..(credited+bonusXP).." XP"..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
   elseif recipient==finisher then state(recipient,"KO · repeat-opponent reward limited") end
  end
 end
@@ -818,7 +822,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="AbandonQuest" then stopQuest(p);state(p,"Task abandoned. Unfinished progress was reset; earned rewards remain claimable.")
  elseif verb=="ClaimQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg);local v=q and s.data.quests[q.id]
-  if v and not v.claimed and v.progress>=q.goal then v.claimed=true;if q.id=="nick" then s.data.achievements.NickChampion=true end;coins(p,q.coins);xp(p,q.xp);if s.activeQuest==q.id then stopQuest(p) end;state(p,"Quest reward · +"..(q.xp*Commerce.Multiplier(p,"xp")).." XP · +"..(q.coins*Commerce.Multiplier(p,"coins")).." coins") end
+  if v and not v.claimed and v.progress>=q.goal then v.claimed=true;if q.id=="nick" then s.data.achievements.NickChampion=true end;local coinCredit=coins(p,q.coins);local xpCredit=xp(p,q.xp);if s.activeQuest==q.id then stopQuest(p) end;state(p,"Quest reward · +"..xpCredit.." XP · +"..coinCredit.." coins") end
  elseif verb=="SetSettings" and type(arg)=="table" then
   if type(arg.volume)=="number" and arg.volume==arg.volume then s.data.settings.volume=math.clamp(arg.volume,0,1) end
   if type(arg.reducedShake)=="boolean" then s.data.settings.reducedShake=arg.reducedShake end;state(p)

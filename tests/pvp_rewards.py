@@ -22,7 +22,7 @@ local notices={};local updates={};local quests={};local ejections=0
 local function state(p,message)notices[p]=message;updates[p]=(updates[p] or 0)+1 end
 local Commerce={Multiplier=function()return 1 end}
 local function coins(p,amount)sessions[p].data.coins+=amount end
-local function xp(p,amount)sessions[p].data.xp+=amount end
+local function xp(p,amount)sessions[p].data.xp+=amount;return amount end
 local function questProgress(_,event)quests[event]=(quests[event] or 0)+1 end
 local function eject(_,h)ejections+=1;h.Health=h.MaxHealth end
 """

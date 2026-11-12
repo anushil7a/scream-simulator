@@ -12,8 +12,8 @@ local definitions={garden={id='garden',goal=3,coins=40,xp=100},nick={id='nick',g
 local Config={GetQuest=function(id)return definitions[id]end}
 local s={activeQuest='garden',data={coins=10,achievements={},quests={garden={progress=2,claimed=false}}}}
 local Commerce={Multiplier=function()return 1 end}
-local function coins(_,amount)s.data.coins+=amount end
-local function xp(_,amount)earned+=amount;if reenter then local fn=reenter;reenter=nil;fn() end end
+local function coins(_,amount)s.data.coins+=amount;return amount end
+local function xp(_,amount)earned+=amount;if reenter then local fn=reenter;reenter=nil;fn() end;return amount end
 local function state()messages+=1 end
 local function stopQuest()stops+=1;s.activeQuest=nil end
 '''
