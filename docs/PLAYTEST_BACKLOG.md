@@ -2,6 +2,14 @@
 
 Latest owner directions supersede earlier conflicting plans. Keep reviewable batches, reproduce before behavior fixes, preserve concurrent work/entitlements and push verified work to existing draft PR #1 when GitHub authentication is available. No publication or live DataStore access. This is a backlog, not a claim of completion or scheduled background work.
 
+## Latest November 12 checkpoint
+
+The status history below is chronological, not a renewed approval hold. The owner resumed map work and approved pushing saved changes to the existing draft branch. No Roblox publication is authorized. Current map work includes reviewed route/target readability, Nick goal alignment and compact ambience positioning; actual traversal, perceived mix and multiplayer/device validation remain open.
+
+Temporary Test Tools now has a server-owned City Preview universe allowlist (10769005350), with creator validation and protected legitimate save baselines. Existing owner/Studio access remains. The release preflight explicitly blocks public release while temporary access is enabled. Historical place/universe evidence is not a fresh cloud-settings check. See PRELAUNCH_TEST_TOOLS_REVIEW.md.
+
+Native local testing verified dismissing mic setup, moving without readiness and rejecting an unready beam toggle without hiding the minimap. A real fractional notice-height clipping issue was reproduced and corrected; normal 14px and fixture-only 24px text fit and native mouse/keyboard scrolling passed. These are not real microphone, phone, controller or OS text-preference tests. See NOTICE_LAYOUT_REVIEW.md and tests/evidence/native-input-2026-11-12.json.
+
 | Request | Status and next evidence |
 | --- | --- |
 | 1. Sprint spam exploit | Implemented locally: charge granted intervals, delayed partial refill, flood-safe release, respawn reset. Full simulated checks pass. Held-sprint recovery now reasserts the existing request at a bounded half-second cadence after transient quota rejection; immediate OFF, fresh transitions, quota and stamina remain unchanged.53 helper/dispatcher assertions and five explicit controls pass; continuous saturation and real-network timing remain unproven. Native full-server movement/input validation remains. See CORE_CONTROLS_REVIEW.md. |

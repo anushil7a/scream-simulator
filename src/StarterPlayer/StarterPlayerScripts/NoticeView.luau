@@ -23,21 +23,22 @@ function View:Update(message,layout,visible,now,textSize,entry)
  if not self.visible then self.hover=false;return end
  self.root.Position=UDim2.fromOffset(layout.x,layout.y)
  local rendered=self.text.TextBounds
- if not fresh and rendered and self.measuredHeight and rendered.Y>self.measuredHeight+1 then self.renderedHeight=rendered.Y;self.key=nil end
+ if not fresh and rendered and self.measuredHeight and rendered.Y>self.measuredHeight then self.renderedHeight=rendered.Y;self.key=nil end
  local hintBounds=self.hint.TextBounds
- if not fresh and self.overflow and hintBounds and self.measuredHintHeight and hintBounds.Y>self.measuredHintHeight+1 then self.renderedHintHeight=hintBounds.Y;self.key=nil end
+ if not fresh and self.overflow and hintBounds and self.measuredHintHeight and hintBounds.Y>self.measuredHintHeight then self.renderedHintHeight=hintBounds.Y;self.key=nil end
  local key=tostring(layout.width)..":"..layout.height..":"..textSize
  if key~=self.key then
   self.key=key;self.atBottom=false;fresh=true
   self.root.Position=UDim2.fromOffset(layout.x,layout.y);self.root.Size=UDim2.fromOffset(layout.width,layout.height)
   self.text.TextSize=textSize
   local measured=TextService:GetTextSize(message,textSize,self.text.Font,Vector2.new(layout.width-16,100000)).Y
-  measured=math.max(measured,self.renderedHeight or 0);self.measuredHeight=measured
+  -- UDim offsets use whole pixels; round up so fractional text metrics never clip.
+  measured=math.ceil(math.max(measured,self.renderedHeight or 0));self.measuredHeight=measured
   self.textHeight=measured+8;self.panelHeight=math.min(layout.height,math.max(44,self.textHeight));self.overflow=self.textHeight>self.panelHeight
   self.root.Size=UDim2.fromOffset(layout.width,self.panelHeight)
   -- A measured header scrolls with the body; it never covers the last line.
   local hintHeight=TextService:GetTextSize(self.hint.Text,self.hint.TextSize,self.hint.Font,Vector2.new(layout.width-16,100000)).Y
-  self.measuredHintHeight=math.max(hintHeight,self.renderedHintHeight or 0)
+  self.measuredHintHeight=math.ceil(math.max(hintHeight,self.renderedHintHeight or 0))
   self.headerHeight=self.overflow and self.measuredHintHeight+8 or 0
   self.visibleHeight=self.panelHeight;self.contentHeight=self.textHeight+self.headerHeight
   self.scroll.Size=UDim2.new(1,0,0,self.visibleHeight);self.scroll.CanvasSize=UDim2.fromOffset(0,self.contentHeight)

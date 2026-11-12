@@ -160,6 +160,24 @@ receiveQuests({a={progress=3,claimed=true},b={progress=2,claimed=false}});frame(
 notifications:Remove(nil);notifications=Queue.new();frame();check(questsToggle.Text=='QUESTS 1','Recovery restored stale reward count')
 notifications:Push(samples[1],true,'save');frame();viewport=Vector2.new(640,360);frame();check(questsToggle.Text=='QUESTS 1','Resize restored stale reward count')
 receiveQuests({a={progress=3,claimed=true},b={progress=2,claimed=true}});frame();check(questsToggle.Text=='QUESTS','Claimed reward count persisted')
+-- Native fractional-height reproduction modeled at the actual allocation boundary.
+local oldMeasure=TextService.GetTextSize
+TextService.GetTextSize=function(_,text)measured+=1;return {Y=text=='Scroll for full notice' and 16.2000008 or 81.5999985}end
+local f=make();local id={};local lane={available=true,x=14,y=66,width=194,height=46}
+f:Update('Fractional recovery warning',lane,true,1,14,id)
+check(math.floor(f.text.Size.Y.Offset)>=81.5999985,'Fractional body allocation truncates text')
+check(math.floor(f.hint.Size.Y.Offset)>=16.2000008,'Fractional header allocation truncates text')
+check(f.contentHeight==115 and f.scroll.CanvasSize.Y.Offset==115,'Fractional canvas not derived from rounded text')
+f.scroll.CanvasPosition=Vector2.new(0,f.contentHeight-f.visibleHeight)
+f:Update('Fractional recovery warning',lane,true,2,14,id)
+check(f.text.Position.Y.Offset+82-f.scroll.CanvasPosition.Y<=46,'Fractional last line inaccessible at bottom')
+f.text.TextBounds=Vector2.new(178,82.2);f.hint.TextBounds=Vector2.new(178,17.2)
+f:Update('Fractional recovery warning',lane,true,3,14,id)
+check(f.text.Size.Y.Offset==83 and f.hint.Size.Y.Offset==18,'Subpixel rendered growth ignored')
+check(not f:CanAdvance(),'Fractional growth retained old exposure')
+local count=measured;f:Update('Fractional recovery warning',lane,true,4,14,id)
+check(measured==count,'Rounded measurement causes repeated invalidation')
+f:Destroy();TextService.GetTextSize=oldMeasure
 print('PASS',n,'notice module/Client assertions; mock text metrics/GUI, no native access claim')
 '''.replace('MINI',mini).replace('SAMPLES','{'+','.join(json.dumps(t) for t in texts)+'}').replace('INTEGRATION',integration).replace('TOGGLE',client[client.index('local function toggleTab('):client.index('local function toggle()')]).replace('QUEST_LABEL',client[client.index('local function questLauncherText()'):client.index('local hud=frame(gui,"CompactHUD"')]).replace('RECEIVER_COUNT',client[client.index(' local unclaimed=0'):client.index(' refreshQuestObjects();stats.Text=')]).replace('QUEST_BUTTON',next(x for x in client.splitlines() if x.startswith('local questsToggle=button(')))
 def run(layout,view,body=checks,error=None):
@@ -174,7 +192,7 @@ def run(layout,view,body=checks,error=None):
  else:assert r.returncode==0,out;print(out.strip())
 run(sources['NoticeLayout'],sources['NoticeView'])
 if a.negative_controls:
- for old,new,error in [('hint.Parent=scroll','hint.Parent=root','Cue remains outside scroll content'),('self.measuredHintHeight=math.max(hintHeight,self.renderedHintHeight or 0)','self.measuredHintHeight=16','Cue measurement omitted'),('self.renderedHintHeight=hintBounds.Y;self.key=nil','self.renderedHintHeight=nil','Enlarged cue clipped'),('self.visibleHeight=self.panelHeight;','self.visibleHeight=self.panelHeight-16;','Actual scrolling target below44px'),('self.textHeight+self.headerHeight','self.textHeight','Last text line remains under cue'),('hint.Interactable=false','hint.Interactable=true','Cue intercepts scroll input'),('self.atBottom and not self.hover','true and not self.hover','Unseen overflow expires'),('and not self.hover','and true','Hovered notice expires'),('entry~=self.entry','false','Same-text replacement keeps stale exposure'),('and now>=self.pauseUntil','and true','Scrolling charges dwell'),('not fresh and self.atBottom','self.atBottom','New message immediately charged dwell'),('self.visible==true and','true and','Covered notice expires'),('self.root.Position=UDim2.fromOffset(layout.x,layout.y)\n local rendered','local rendered','Same-size reposition used stale drawn bounds')]:
+ for old,new,error in [('math.ceil(math.max(measured,self.renderedHeight or 0))','math.max(measured,self.renderedHeight or 0)','Fractional body allocation truncates text'),('math.ceil(math.max(hintHeight,self.renderedHintHeight or 0))','math.max(hintHeight,self.renderedHintHeight or 0)','Fractional header allocation truncates text'),('rendered.Y>self.measuredHeight','rendered.Y>self.measuredHeight+1','Subpixel rendered growth ignored'),('hintBounds.Y>self.measuredHintHeight','hintBounds.Y>self.measuredHintHeight+1','Subpixel rendered growth ignored'),('hint.Parent=scroll','hint.Parent=root','Cue remains outside scroll content'),('self.measuredHintHeight=math.ceil(math.max(hintHeight,self.renderedHintHeight or 0))','self.measuredHintHeight=16','Cue measurement omitted'),('self.renderedHintHeight=hintBounds.Y;self.key=nil','self.renderedHintHeight=nil','Enlarged cue clipped'),('self.visibleHeight=self.panelHeight;','self.visibleHeight=self.panelHeight-16;','Actual scrolling target below44px'),('self.textHeight+self.headerHeight','self.textHeight','Last text line remains under cue'),('hint.Interactable=false','hint.Interactable=true','Cue intercepts scroll input'),('self.atBottom and not self.hover','true and not self.hover','Unseen overflow expires'),('and not self.hover','and true','Hovered notice expires'),('entry~=self.entry','false','Same-text replacement keeps stale exposure'),('and now>=self.pauseUntil','and true','Scrolling charges dwell'),('not fresh and self.atBottom','self.atBottom','New message immediately charged dwell'),('self.visible==true and','true and','Covered notice expires'),('self.root.Position=UDim2.fromOffset(layout.x,layout.y)\n local rendered','local rendered','Same-size reposition used stale drawn bounds')]:
   assert old in sources['NoticeView'];run(sources['NoticeLayout'],sources['NoticeView'].replace(old,new),error=error)
  bad=checks.replace('notifications:Step(dt,noticeView:CanAdvance())','notifications:Step(dt,true)');run(sources['NoticeLayout'],sources['NoticeView'],bad,'Unseen Client overflow expired')
 if a.negative_controls:

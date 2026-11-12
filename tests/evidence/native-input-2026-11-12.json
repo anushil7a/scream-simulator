@@ -1,0 +1,115 @@
+{
+  "dateUtc": "2026-11-12",
+  "scope": "native Studio local place0/universe0, simulated desktop input; not physical phone or real microphone",
+  "fullGame": {
+    "build": "SustainedLocalPlay",
+    "sourceFingerprint": "19a71e16963c7e246301cbf54978db7a6416fff11a0965d4f2b2c4cbed733a73",
+    "micDismissed": true,
+    "micReady": false,
+    "walkStart": [
+      -269.9647521972656,
+      3.8156614303588867,
+      130.3309326171875
+    ],
+    "walkEnd": [
+      -269.9645690917969,
+      3.8024039268493652,
+      119.43719482421875
+    ],
+    "walkInput": "MCP W down800ms/up",
+    "walkSpeed": 16,
+    "unreadyEToggle": {
+      "active": false,
+      "micPanelVisible": false,
+      "minimapVisible": true
+    },
+    "stoppedToEdit": true
+  },
+  "warning": {
+    "fixtureFrame": [
+      320,
+      315
+    ],
+    "touchLayoutSimulated": true,
+    "warningCharacters": 142,
+    "width": 178,
+    "nativeMeasuredHeight": 81.5999985,
+    "causalHeightControl": [
+      {
+        "height": 81,
+        "textFits": false,
+        "textBoundsY": 68
+      },
+      {
+        "height": 82,
+        "textFits": true,
+        "textBoundsY": 81.5999985
+      },
+      {
+        "height": 81,
+        "textFits": false,
+        "textBoundsY": 68
+      }
+    ],
+    "fixedDefault": {
+      "fontSize": 14,
+      "textHeight": 82,
+      "textFits": true,
+      "canvasHeight": 110,
+      "scrollWindowHeight": 46,
+      "keyboardSelected": "NoticeViewport.FullNotice",
+      "keyboardInput": "BackSlash and arrows for discovery; PageDown",
+      "keyboardScrollY": 64,
+      "forcedSelectionOrCanvas": false
+    },
+    "largerTextFixtureOnly": {
+      "fontSize": 24,
+      "textHeight": 216,
+      "textFits": true,
+      "canvasHeight": 244,
+      "scrollWindowHeight": 46,
+      "nativeWheelScrollY": 198,
+      "nativeMaxY": 198,
+      "lastTextPixelBottom": 117.60000610351562,
+      "viewportBottom": 122,
+      "variantRestored": true
+    },
+    "finalNormalizedNativeSourceSha256": "56cb0244210ee6f1238a148f2e465fbc9575506ce13f40f8c164af6d94560d2f",
+    "finalSourceEqualsGeneratedFileAfterNewlineNormalization": true,
+    "stoppedToEdit": true
+  },
+  "rawFileSha256": {
+    "src/StarterPlayer/StarterPlayerScripts/NoticeView.luau": "f373b8babd96ed2801fe413f4aedea9007735ef7cc32306f9e3c9266e8a9c7d6",
+    "tests/notice_view.py": "161315d41e116c03967bd70470f89c5f1b7e325bd43c72803bd5b8bdaf0b1dd4",
+    "build/NoticeInputReview.client.luau": "df1b9a8808cb9bd9afd97ed575af57b4daab10531eab71077da46c45b8fc5dc1",
+    "build/NoticeInputReview.rbxl": "cd50a3f27b1d0f48601b92b4160cf0cf766f02c20089c5b71dec5a57f494db1c"
+  },
+  "limits": [
+    "Physical touch, phone OS safe areas and thumbstick reachability not tested",
+    "No controller attached; gamepad hardware path untested",
+    "24px is a fixture-only size override, not an OS accessibility preference test",
+    "No real audio, voice transport, multiplayer or live persistence tested",
+    "The tiny synthetic frame is not a general HUD layout approval",
+    "Studio emitted asset203785492 type-mismatch warning; origin not established",
+    "MCP multi_edit replace_all returned success without the expected size change; actual source was checked, then explicit local-only source mutation verified; no success inferred from tool status alone"
+  ],
+  "publication": false,
+  "cleanup": {
+    "fullGameWindowClosedWithoutSavingEditorState": true,
+    "warningWindowClosedWithoutSavingEditorState": true,
+    "normalFixtureSourceRestoredBeforeClose": true,
+    "userCloudCopiesUntouched": true,
+    "minimizedTaskCreatedPickersRemaining": 2,
+    "pickerLimitation": "Supported app binding fails on minimized windows; no undocumented activation used"
+  },
+  "independentReview": {
+    "result": "CLEARED_SCOPED_DRAFT",
+    "focusedAssertions": 622,
+    "negativeControls": 23,
+    "sourceContracts": 3,
+    "additionalFractionalChecks": 1206,
+    "exactProductionDiffVerified": true,
+    "nativeArtifactHashesMatched": true,
+    "reviewerReranStudio": false
+  }
+}
