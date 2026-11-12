@@ -7,6 +7,11 @@ Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 12 beam pool composition coverage
+
+- Test-only actual manager/renderer/style composition passed 117,904 repeated assertions and seven targeted controls, independently rerun. Peak/created/destroyed mocked Parts each 512; expiry, core reservation, reuse and terminal cleanup covered. Production unchanged. [Review](BEAM_POOL_COMPOSITION_REVIEW.md), [evidence](../tests/evidence/beam-pool-composition-2026-11-12.json).
+- Registered once in the aggregate runner; prior d5cc5d5 full25/103/63 and builds retained only, not a fresh104-suite run. Mock Parts/orientation/colors do not establish native geometry, FPS or transparency overdraw. Next: controlled native baseline/normal/reduced overlapping-attack measurements when safely available. No apps, map edits, live services or publication.
+
 ## November 12 full-warning short-screen layout
 
 - Full messages now use a bounded scrollable safe-area lane instead of clipping/overlapping MAP and actions. Dwell waits for overflow exposure and pauses during interaction/coverage. Main-menu errors remain above modal navigation; constrained nearby-NPC cases expose retained text through the existing NOTICE/Quests launcher, preserving current reward counts. TALK never relocates into the bottom-left thumbstick area. Queue priority/server/map behavior unchanged.
