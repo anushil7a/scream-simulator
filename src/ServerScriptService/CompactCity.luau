@@ -68,7 +68,7 @@ function City.Build(parent)
   {role="Vendor",name="Pau Vidal",quests={"delivery"},stations={station(30,-225,30,-247,"Arranging produce")}},
   {role="CafeWorker",name="Julia Ferrer",stations={station(42,-225,30,-225,"Preparing coffee")}},
   {role="Soccer",name="Nick Booty",quests={"nick"},stations={station(239,281,practiceGoal.X,practiceGoal.Z-1,"Practicing missed kicks")}},
-  {role="Busker",name="Eric Sol",quests={"crowd"},stations={station(-300,125,-310,140,"Playing for the courtyard")}},
+  {role="Busker",name="Eric Sol",quests={"crowd"},stations={station(Layout.Ambience.buskerPosition.X,Layout.Ambience.buskerPosition.Z,-310,140,"Playing for the courtyard")}},
   {role="Commuter",name="Boardwalk runner",quests={"sprint"},stations={station(-220,190,-220,200,"Waiting by the promenade")}},
   {role="Fighter",name="Arena coach",quests={"dodge","arena"},stations={station(-137,40,-100,50,"Watching the arena")}},
  }

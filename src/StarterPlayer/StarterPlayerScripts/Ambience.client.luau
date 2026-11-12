@@ -4,6 +4,12 @@ local Run=game:GetService("RunService")
 local SoundService=game:GetService("SoundService")
 local Content=game:GetService("ContentProvider")
 local destroyed=false
+-- Install terminal startup guard before dependency waits or a yielding require.
+script.Destroying:Connect(function() destroyed=true end)
+local replicated=game:GetService("ReplicatedStorage")
+local shared=replicated:WaitForChild("Shared");if destroyed then return end
+local configModule=shared:WaitForChild("Config");if destroyed then return end
+local Config=require(configModule);if destroyed then return end
 local assets={}
 local group=Instance.new("SoundGroup");group.Name="CityAmbience";group.Volume=.55;group.Parent=SoundService
 local folder=Instance.new("Folder");folder.Name="LocalCitySoundscape";folder.Parent=workspace
@@ -13,8 +19,9 @@ local function source(name,position,id,volume,near,far)
  assets[id]=assets[id] or {};table.insert(assets[id],sound)
  return sound
 end
-for _,x in ipairs({-540,-180,180,540}) do source("CoastalSurf",Vector3.new(x,1,590),"9119677305",.16,45,230) end
-local stage=Vector3.new(150,5,426)
+local surfPositions=Config.CompactCity and Config.CityLayout.Ambience.surfPositions or {Vector3.new(-540,1,590),Vector3.new(-180,1,590),Vector3.new(180,1,590),Vector3.new(540,1,590)}
+for _,position in ipairs(surfPositions) do source("CoastalSurf",position,"9119677305",.16,45,230) end
+local stage=Config.CompactCity and Config.CityLayout.Ambience.buskerPosition or Vector3.new(150,5,426)
 local guitar=source("BuskerGuitar",stage,"15675051846",0,8,70)
 -- Load each shared asset once, then start its emitters together. A transient
 -- CDN failure gets two retries; failed ambience never blocks gameplay or loops

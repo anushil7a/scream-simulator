@@ -4,6 +4,7 @@ local Layout={}
 Layout.BoundsMin=V(-360,-20,-300);Layout.BoundsMax=V(360,200,300)
 Layout.ZoneMin=V(-120,-20,-180);Layout.ZoneMax=V(200,200,140)
 Layout.Spawn=V(-270,4,130)
+Layout.Ambience={surfPositions={V(-270,1,295),V(-90,1,295),V(90,1,295),V(270,1,295)},buskerPosition=V(-300,3,125)}
 Layout.TrainingHomes={{x=-245,z=-15},{x=-245,z=-100},{x=-245,z=-185}}
 Layout.CafePickup=V(30,2,-225)
 Layout.DeliveryStops={{id="StageDelivery",name="boardwalk music stage",position=V(-70,2,200)},{id="LookoutDelivery",name="lifeguard lookout",position=V(-220,2,200)},{id="PierDelivery",name="coastal pier stop",position=V(285,2,200)}}

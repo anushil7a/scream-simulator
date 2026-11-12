@@ -2,6 +2,12 @@
 
 Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. GitHub push is currently held pending direct confirmation after an authorization denial; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 12 compact ambience alignment
+
+- Reproduced old-map surf anchors beyond the compact bounds' audible-distance configuration and a guitar anchor outside the working busker gate. Compact-only shared positions now align coastal emitters and courtyard performer; original-map coordinates, assets, gains, counts, rolloff and bounded retries remain unchanged. Dependency/loading interruption cleanup is covered.
+- 199 focused assertions/eight controls and pinned historical construction/Heartbeat reproduction pass; full 25 pure/synthetic + 108 mocked suites, 63 compiles and all builds pass. Independent review cleared the exact diff, tests and actual busker alignment; [review](COMPACT_AMBIENCE_REVIEW.md), [evidence](../tests/evidence/compact-ambience-2026-11-12.json). Geometry and mocked playback are not native audibility, overlap/loudness or microphone-feedback proof.
+- No native app launch, live service, publication or push. Next meaningful audio gate is real listener/mix and microphone testing; native current-map movement/readability, isolated test-place identity and mixed-version writer release gates remain unresolved.
+
 ## November 12 compact Nick practice goal
 
 - Corrected the local OwnGoal ball animation still targeting the old city's coordinates. A shared compact endpoint and three nonphysical goal pieces now align with Nick, retaining original-map behavior, timing and personal challenge scoring. Review caught and fixed delayed-startup teardown before checkpoint; normal animation behavior is unchanged.
