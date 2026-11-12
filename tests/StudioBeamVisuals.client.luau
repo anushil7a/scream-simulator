@@ -8,15 +8,17 @@ local rigs={}
 for i=1,24 do
  local rig=Visuals.Create();table.insert(rigs,rig)
  Visuals.Update(rig,Vector3.zero,Vector3.yAxis,40,7,Color3.fromRGB(70,220,255),100,false)
- Visuals.Animate(rig,1,Vector3.zero,false)
+ Visuals.Animate(rig,rig.born+.6,Vector3.zero,false)
  check(#rig.parts>=5,"Core starved by other beams")
+ -- Sample settled age, independent of how long Studio took to start this client.
+ check(math.abs(rig.parts[2].Size.Y-7*(.24+Style.Tier(100)*.012)*.85)<.001,"Settled core width still uses launch scale")
 end
 check(Visuals.Budget()<=Style.MaxParts,"Exceeded global allocation cap")
 for _,rig in ipairs(rigs) do
  for _,part in ipairs(rig.parts) do check(not part.CanCollide and not part.CanQuery and not part.CanTouch,"Cosmetic changed physics") end
- Visuals.Animate(rig,2,Vector3.zero,true)
+ Visuals.Animate(rig,rig.born+.7,Vector3.zero,true)
  check(#rig.parts==4,"Reduced effects retained decoration")
- Visuals.Animate(rig,3,Vector3.new(1000,0,0),false)
+ Visuals.Animate(rig,rig.born+.8,Vector3.new(1000,0,0),false)
  check(#rig.parts==0,"Offscreen distance retained parts")
  Visuals.Destroy(rig);Visuals.Destroy(rig)
 end

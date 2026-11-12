@@ -32,3 +32,14 @@ Cycles emission/transparency is only an approximation of Roblox Neon and its ble
 Recorded artifact hashes: [beam-lookdev evidence](../tests/evidence/beam-lookdev-2026-11-12.json). The local generated .blend/PNG files are reproducible review artifacts, not runtime Roblox assets. No new full gameplay-suite run was needed for this isolated tooling/documentation change; b165525 remains the last production verification.
 
 Independent read-only review confirmed all 14 artifact hashes, both source hashes, exact generated geometry for all six fixed cases, signed bounded headless execution and the preview limitations.
+
+
+## Native audit clock correction, November 12
+
+A source review found that `StudioBeamVisuals.client.luau` sampled absolute times1/2/3 even though each rig records `born=os.clock()`. For example, a rig born at10 receives negative age at the first sample and uses launch scale0.55, not settled geometry. This does not invalidate the earlier part-count, physics-flag, reduced-mode, distance-culling or cleanup assertions; they did not assert settled width. The subsequent animated showcase already uses os.clock correctly. No production bug or perpetual frozen animation is claimed.
+
+The three audit samples now use `rig.born + .6/.7/.8`. A new native assertion checks the second, non-pulsed core cylinder's settled thickness. Existing core reservation protects it from decorative pool exhaustion. Independent source review and Luau compilation pass; existing pure beam style/launch tests pass. A bounded arithmetic check verified positive post-launch relative ages at clock origins0/10/10000. `python tests/build_shop_review.py` rebuilt ShopReviewVerified and BeamReview without launching either. The new native assertion is **not executed**; no new full gameplay-suite run is claimed because production is unchanged.
+
+Useful next tool step remains actual Roblox rendering/input verification, not more tooling. The targeted vault `14 3D Modeling/Blender Workflow for Roblox Creators.md` scene-unit/axis/export guidance is relevant when an original mesh is needed, but current beams use Roblox Parts. The already-installed bounded Blender proxy suffices for offline comparisons; no community MCP, installer, mesh import/upload or dependency was added. Native renderer/material parity and device performance remain open.
+
+Corrected BeamReview.rbxl SHA256: `7205d901c7cb5da9d0991e5d087d33058b7f7f3b1e94ad04bf9eebb825602021`. Audit source SHA256: `0a2119505a9fa00d58873afc0c66c4fe760a2599579b68d4fb84559dc215e91d`.

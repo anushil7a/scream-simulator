@@ -7,6 +7,11 @@ Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 12 native beam audit clock
+
+- Corrected three audit-only samples to be relative to rig creation; added a settled, non-pulsed core-thickness assertion. Production animation/showcase already use the correct clock. Independent source review/compilation, retained pure beam-style tests and local BeamReview build pass; new native assertion remains unrun. [Scope and exact hashes](BEAM_LOOKDEV_REVIEW.md#native-audit-clock-correction-november-12).
+- Sameer-PC reattached, source/vault accessible. Fresh usage42% at12:10UTC; no Studio window, same four task-created pickers. No new apps, installation, map edits, live services or push. Await user confirmation for GitHub and visible manual NoticeInputReview; do not create speculative systems while real-device/native gates remain.
+
 ## November 12 manual notice input handoff
 
 - Prepared a separate Studio/place0-only NoticeInputReview with the real UI and one full warning, no scripted scrolling/selection or new input bindings. Independently built/compiled and source-reviewed; no native run. Default320x315 synthetic touch/tools frame, configurable while stopped. [Exact opening steps and limits](NOTICE_LAYOUT_REVIEW.md#manual-native-entry-point-prepared-november-12).
