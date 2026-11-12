@@ -63,7 +63,7 @@ for _,size in ipairs({{320,315},{640,360},{390,844},{1280,720}})do
     v.scroll.CanvasPosition=Vector2.new(0,v.contentHeight-v.visibleHeight);v.scroll.changed:Fire();v:Update(message,l,true,now,14,entry)
     check(not v:CanAdvance(),'Scrolling charges dwell')
     now=4;v:Update(message,l,true,now,14,entry);check(v:CanAdvance(),'Bottom exposure never enables dwell')
-    check(v.textHeight-v.scroll.CanvasPosition.Y<=v.visibleHeight-16,'Last text line remains under cue')
+    check(v.text.Position.Y.Offset+v.text.Size.Y.Offset-v.scroll.CanvasPosition.Y<=v.visibleHeight,'Last text line remains under cue')
    else check(v:CanAdvance(),'Fitting notice never enables dwell')end
    local before=measured;for i=1,120 do v:Update(message,l,true,now,14,entry)end;check(measured==before,'Measured text every frame')
    v.scroll.MouseEnter:Fire();v:Update(message,l,true,now,14,entry);check(not v:CanAdvance(),'Hovered notice expires');v.scroll.MouseLeave:Fire();v:Update(message,l,true,now,14,entry)
@@ -82,6 +82,28 @@ local v=make();v:Update('Short',compact,true,1,14,{});check(v.panelHeight==44,'S
 local identity={};v:Update('Larger native text bounds',compact,true,1,14,identity);local initial=v.textHeight
 v.text.TextBounds=Vector2.new(180,300);v:Update('Larger native text bounds',compact,true,2,14,identity)
 check(v.textHeight==308 and v.overflow and not v:CanAdvance(),'Larger actual TextBounds clipped or charged time');v:Destroy()
+-- Enlarged rendered cue is content, not a fixed overlay. Actual engine metrics are mocked.
+local v=make();local id={};local message=string.rep('Critical warning ',30)
+v:Update(message,compact,true,1,14,id)
+check(v.hint.Parent==v.scroll and v.hint.TextWrapped,'Cue remains outside scroll content')
+check(v.hint.Size.Y.Offset>=18,'Cue measurement omitted')
+v.scroll.CanvasPosition=Vector2.new(0,v.contentHeight-v.visibleHeight);v:Update(message,compact,true,2,14,id)
+check(v:CanAdvance(),'Initial bottom never exposed')
+v.hint.TextBounds=Vector2.new(100,80)
+v:Update(message,compact,true,3,14,id)
+check(v.measuredHintHeight==80 and v.hint.Size.Y.Offset==80,'Enlarged cue clipped')
+check(v.text.Position.Y.Offset>=v.hint.Position.Y.Offset+v.hint.Size.Y.Offset,'Cue overlaps body')
+v.text.TextBounds=Vector2.new(100,900);v:Update(message,compact,true,3.1,14,id)
+check(v.text.Size.Y.Offset==900 and v.scroll.Size.Y.Offset>=44,'Enlarged body or scroll target clipped')
+check(not v:CanAdvance() and not v.atBottom,'Remeasure kept stale bottom exposure')
+v.scroll.CanvasPosition=Vector2.new(0,v.contentHeight-v.visibleHeight);v:Update(message,compact,true,4,14,id)
+check(v:CanAdvance() and v.text.Position.Y.Offset+v.text.Size.Y.Offset-v.scroll.CanvasPosition.Y<=v.visibleHeight,'Enlarged last line inaccessible')
+local calls=measured;v:Update(message,compact,true,5,14,id);check(measured==calls,'Enlarged metrics repeatedly measured')
+local wider={x=14,y=66,width=300,height=80,available=true};v:Update(message,wider,true,6,14,id)
+check(not v:CanAdvance() and v.hint.Size.X.Offset==284,'Resize did not remeasure cue')
+v.hint.TextBounds=nil;v.text.TextBounds=nil;v:Update('Short',compact,true,7,14,{})
+check(v.headerHeight==0 and not v.hint.Visible and v.text.Position.Y.Offset==4 and v.scroll.CanvasPosition.Y==0,'Replacement retained header offsets')
+v:Destroy()
 -- Execute the actual per-frame Client queue/layout block with real helper/queue.
 local NoticeLayout=Layout;local noticeView=make();local notifications=Queue.new();local viewport=Vector2.new(320,315);local touch=true;local data={devAccess=true}
 local modal={Visible=false};local shop={Visible=true};local talkTarget
@@ -125,7 +147,7 @@ check(not noticeView.root.Visible and questsToggle.Text=='NOTICE' and questsTogg
 windowFocused=false;frame();check(questsToggle.Text=='QUESTS','Unfocused fallback launcher not restored');windowFocused=true;frame()
 questsToggle.callback();frame();check(modal.Visible and noticeView.root.Visible and noticeView.text.Text==samples[3],'Actual NOTICE launcher does not expose full retained warning')
 check(noticeView.scroll.Size.Y.Offset>=44,'Modal scroll target below44px')
-noticeView.scroll.CanvasPosition=Vector2.new(0,noticeView.contentHeight-noticeView.visibleHeight);frame();check(noticeView.textHeight-noticeView.scroll.CanvasPosition.Y<=noticeView.visibleHeight-16,'Modal last line remains beneath cue')
+noticeView.scroll.CanvasPosition=Vector2.new(0,noticeView.contentHeight-noticeView.visibleHeight);frame();check(noticeView.text.Position.Y.Offset+noticeView.text.Size.Y.Offset-noticeView.scroll.CanvasPosition.Y<=noticeView.visibleHeight,'Modal last line remains beneath cue')
 modal.Visible=false;viewport=Vector2.new(640,360);frame();check(questsToggle.Text=='QUESTS' and noticeView.root.Visible,'Fitting resize retained fallback disclosure')
 notifications:Remove('save');frame();check(questsToggle.Text=='QUESTS' and questsToggle.Visible,'Recovered notice retained disclosure launcher')
 local v=make();local id={};v:Update('Short',Layout.Modal(1024,720),true,1,16,id);local before=measured
@@ -152,7 +174,7 @@ def run(layout,view,body=checks,error=None):
  else:assert r.returncode==0,out;print(out.strip())
 run(sources['NoticeLayout'],sources['NoticeView'])
 if a.negative_controls:
- for old,new,error in [('self.visibleHeight=self.panelHeight;','self.visibleHeight=self.panelHeight-16;','Actual scrolling target below44px'),('self.textHeight+(self.overflow and 16 or 0)','self.textHeight','Last text line remains under cue'),('hint.Interactable=false','hint.Interactable=true','Cue intercepts scroll input'),('self.atBottom and not self.hover','true and not self.hover','Unseen overflow expires'),('and not self.hover','and true','Hovered notice expires'),('entry~=self.entry','false','Same-text replacement keeps stale exposure'),('and now>=self.pauseUntil','and true','Scrolling charges dwell'),('not fresh and self.atBottom','self.atBottom','New message immediately charged dwell'),('self.visible==true and','true and','Covered notice expires'),('self.root.Position=UDim2.fromOffset(layout.x,layout.y)\n local rendered','local rendered','Same-size reposition used stale drawn bounds')]:
+ for old,new,error in [('hint.Parent=scroll','hint.Parent=root','Cue remains outside scroll content'),('self.measuredHintHeight=math.max(hintHeight,self.renderedHintHeight or 0)','self.measuredHintHeight=16','Cue measurement omitted'),('self.renderedHintHeight=hintBounds.Y;self.key=nil','self.renderedHintHeight=nil','Enlarged cue clipped'),('self.visibleHeight=self.panelHeight;','self.visibleHeight=self.panelHeight-16;','Actual scrolling target below44px'),('self.textHeight+self.headerHeight','self.textHeight','Last text line remains under cue'),('hint.Interactable=false','hint.Interactable=true','Cue intercepts scroll input'),('self.atBottom and not self.hover','true and not self.hover','Unseen overflow expires'),('and not self.hover','and true','Hovered notice expires'),('entry~=self.entry','false','Same-text replacement keeps stale exposure'),('and now>=self.pauseUntil','and true','Scrolling charges dwell'),('not fresh and self.atBottom','self.atBottom','New message immediately charged dwell'),('self.visible==true and','true and','Covered notice expires'),('self.root.Position=UDim2.fromOffset(layout.x,layout.y)\n local rendered','local rendered','Same-size reposition used stale drawn bounds')]:
   assert old in sources['NoticeView'];run(sources['NoticeLayout'],sources['NoticeView'].replace(old,new),error=error)
  bad=checks.replace('notifications:Step(dt,noticeView:CanAdvance())','notifications:Step(dt,true)');run(sources['NoticeLayout'],sources['NoticeView'],bad,'Unseen Client overflow expired')
 if a.negative_controls:

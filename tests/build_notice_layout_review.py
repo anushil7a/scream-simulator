@@ -32,7 +32,7 @@ for _,view in ipairs({{320,315,true},{640,360,true},{390,844,true},{844,390,true
     task.wait(.3);check(notifications.active.remaining==remaining,"Unexposed full text lost dwell")
     noticeView.scroll.CanvasPosition=Vector2.new(0,noticeView.contentHeight-noticeView.visibleHeight)
     settle();check(noticeView.atBottom,"Programmatic native scrolling did not expose bottom")
-    check(toast.AbsolutePosition.Y+toast.AbsoluteSize.Y<=noticeView.root.AbsolutePosition.Y+noticeView.root.AbsoluteSize.Y-16+1,"Last line hidden behind scroll cue")
+    check(toast.AbsolutePosition.Y+toast.AbsoluteSize.Y<=noticeView.root.AbsolutePosition.Y+noticeView.root.AbsoluteSize.Y+1,"Last line outside scroll viewport")
    end
    windowFocused=false;settle();remaining=notifications.active.remaining;task.wait(.3)
    check(notifications.active.remaining==remaining,"Inactive window consumed notice")

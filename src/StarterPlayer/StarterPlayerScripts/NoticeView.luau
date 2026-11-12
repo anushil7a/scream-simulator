@@ -6,7 +6,7 @@ function View.new(parent,text)
  local root=Instance.new("Frame");root.Name="NoticeViewport";root.BackgroundColor3=text.BackgroundColor3;root.BackgroundTransparency=.08;root.BorderSizePixel=0;root.ZIndex=30;root.Visible=false;root.Parent=parent
  local scroll=Instance.new("ScrollingFrame");scroll.Name="FullNotice";scroll.BackgroundTransparency=1;scroll.BorderSizePixel=0;scroll.ScrollBarThickness=4;scroll.ScrollingDirection=Enum.ScrollingDirection.Y;scroll.Active=true;scroll.ZIndex=31;scroll.Parent=root
  text.Parent=scroll;text.AnchorPoint=Vector2.zero;text.Position=UDim2.fromOffset(6,4);text.BackgroundTransparency=1;text.ZIndex=31;text.TextWrapped=true;text.TextYAlignment=Enum.TextYAlignment.Top
- local hint=Instance.new("TextLabel");hint.Name="NoticeScrollHint";hint.BackgroundColor3=root.BackgroundColor3;hint.BackgroundTransparency=.08;hint.Active=false;hint.Selectable=false;hint.Interactable=false;hint.TextColor3=text.TextColor3;hint.Font=text.Font;hint.TextSize=12;hint.ZIndex=32;hint.Parent=root
+ local hint=Instance.new("TextLabel");hint.Name="NoticeScrollHint";hint.BackgroundColor3=root.BackgroundColor3;hint.BackgroundTransparency=.08;hint.Active=false;hint.Selectable=false;hint.Interactable=false;hint.TextColor3=text.TextColor3;hint.Font=text.Font;hint.TextSize=12;hint.ZIndex=32;hint.TextWrapped=true;hint.TextYAlignment=Enum.TextYAlignment.Top;hint.Text="Scroll for full notice";hint.Parent=scroll
  local self=setmetatable({root=root,scroll=scroll,text=text,hint=hint,message="",connections={},hover=false,pauseUntil=0,atBottom=false,destroyed=false},View)
  local function connect(signal,fn)table.insert(self.connections,signal:Connect(fn))end
  connect(scroll.MouseEnter,function()self.hover=true end);connect(scroll.MouseLeave,function()self.hover=false end)
@@ -17,13 +17,15 @@ end
 function View:Update(message,layout,visible,now,textSize,entry)
  if self.destroyed then return end
  local fresh=false
- if message~=self.message or entry~=self.entry then self.entry=entry;self.message=message;fresh=true;self.text.Text=message;self.scroll.CanvasPosition=Vector2.zero;self.atBottom=false;self.key=nil;self.renderedHeight=nil end
+ if message~=self.message or entry~=self.entry then self.entry=entry;self.message=message;fresh=true;self.text.Text=message;self.scroll.CanvasPosition=Vector2.zero;self.atBottom=false;self.key=nil;self.renderedHeight=nil;self.renderedHintHeight=nil end
  self.layout=layout;self.visible=visible==true and layout.available and message~=""
  self.root.Visible=self.visible;self.text.Visible=message~=""
  if not self.visible then self.hover=false;return end
  self.root.Position=UDim2.fromOffset(layout.x,layout.y)
  local rendered=self.text.TextBounds
  if not fresh and rendered and self.measuredHeight and rendered.Y>self.measuredHeight+1 then self.renderedHeight=rendered.Y;self.key=nil end
+ local hintBounds=self.hint.TextBounds
+ if not fresh and self.overflow and hintBounds and self.measuredHintHeight and hintBounds.Y>self.measuredHintHeight+1 then self.renderedHintHeight=hintBounds.Y;self.key=nil end
  local key=tostring(layout.width)..":"..layout.height..":"..textSize
  if key~=self.key then
   self.key=key;self.atBottom=false;fresh=true
@@ -33,16 +35,17 @@ function View:Update(message,layout,visible,now,textSize,entry)
   measured=math.max(measured,self.renderedHeight or 0);self.measuredHeight=measured
   self.textHeight=measured+8;self.panelHeight=math.min(layout.height,math.max(44,self.textHeight));self.overflow=self.textHeight>self.panelHeight
   self.root.Size=UDim2.fromOffset(layout.width,self.panelHeight)
-  -- The full viewport remains the scroll target; the passive cue overlays it.
-  -- Padding lets the last line scroll completely above the cue.
-  self.visibleHeight=self.panelHeight;self.contentHeight=self.textHeight+(self.overflow and 16 or 0)
+  -- A measured header scrolls with the body; it never covers the last line.
+  local hintHeight=TextService:GetTextSize(self.hint.Text,self.hint.TextSize,self.hint.Font,Vector2.new(layout.width-16,100000)).Y
+  self.measuredHintHeight=math.max(hintHeight,self.renderedHintHeight or 0)
+  self.headerHeight=self.overflow and self.measuredHintHeight+8 or 0
+  self.visibleHeight=self.panelHeight;self.contentHeight=self.textHeight+self.headerHeight
   self.scroll.Size=UDim2.new(1,0,0,self.visibleHeight);self.scroll.CanvasSize=UDim2.fromOffset(0,self.contentHeight)
-  self.text.Size=UDim2.fromOffset(layout.width-16,measured)
-  self.hint.Position=UDim2.new(0,0,1,-16);self.hint.Size=UDim2.new(1,0,0,16);self.hint.Visible=self.overflow
+  self.text.Position=UDim2.fromOffset(6,4+self.headerHeight);self.text.Size=UDim2.fromOffset(layout.width-16,measured)
+  self.hint.Position=UDim2.fromOffset(6,4);self.hint.Size=UDim2.fromOffset(layout.width-16,self.measuredHintHeight);self.hint.Visible=self.overflow
  end
  self.layout={x=layout.x,y=layout.y,width=layout.width,height=self.panelHeight}
  if not self.overflow or self.scroll.CanvasPosition.Y+self.visibleHeight>=self.contentHeight-1 then self.atBottom=true end
- self.hint.Text=self.atBottom and "Scroll to review" or "Scroll for full notice"
  self.canAdvance=not fresh and self.atBottom and not self.hover and now>=self.pauseUntil
 end
 function View:CanAdvance()return not self.destroyed and self.visible==true and self.canAdvance==true end

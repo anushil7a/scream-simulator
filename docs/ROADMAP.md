@@ -7,6 +7,11 @@ Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 12 measured notice cue
+
+- Replaced the fixed overlay with a measured in-content header, keeping full44px scroll targets and complete body text. Enlarged cue/body bounds reset exposure; entry replacement resets cached maxima. Independent615/19/3 checks and full25/104/63 plus builds pass. Native largest-font, touch and keyboard/gamepad access remain unverified; no navigation or gameplay change. [Review](NOTICE_LAYOUT_REVIEW.md#measured-in-content-cue-correction), [evidence](../tests/evidence/notice-header-2026-11-12.json).
+- Writer documentation commitffb53a5 remains local after the push was denied twice before execution. Last verified remote0004c77. Preserve pending changes; do not bypass the authorization blocker. No apps, map edits, live data or publication.
+
 ## November 12 quest-writer rollout reassessment
 
 - Existing replay47/11 and preflight36/4 controls pass again; the eight-ID acquisition still drops additive claims, while current four-state probes pass. No candidate-only flag can constrain deployed old code. [Concrete cutover/bridge decision](QUEST_WRITER_ROLLOUT_REVIEW.md#november-12-operational-rollout-decision) now requires the exact universe/store writer boundary and compatible rollback floor, not just one place/public-server list. No bridge generated against an unidentified deployed source; runtime unchanged and release remains blocked.
