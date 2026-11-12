@@ -12,10 +12,10 @@ local Http=game:GetService("HttpService")
 selected="Shop";modal.Visible=true;render()
 notify("Roblox could not open this purchase. Please try again.",true)
 task.wait(.2)
-local pos,size=toast.AbsolutePosition,toast.AbsoluteSize
+local pos,size=noticeView.root.AbsolutePosition,noticeView.root.AbsoluteSize
 local hits=p.PlayerGui:GetGuiObjectsAtPosition(pos.X+size.X/2,pos.Y+size.Y/2)
-print("TOAST_MENU "..Http:JSONEncode({top=hits[1] and hits[1].Name,toastZ=toast.ZIndex,menuZ=modal.ZIndex,above=hits[1]==toast,text=toast.Text,clipped=not toast.TextFits}))
-assert(hits[1]==toast,"Shop obscured critical notification")
+print("TOAST_MENU "..Http:JSONEncode({top=hits[1] and hits[1].Name,toastZ=toast.ZIndex,menuZ=modal.ZIndex,above=hits[1] and hits[1]:IsDescendantOf(noticeView.root),text=toast.Text,clipped=not toast.TextFits}))
+assert(hits[1] and (hits[1]==noticeView.root or hits[1]:IsDescendantOf(noticeView.root)),"Shop obscured critical notification")
 modal.Visible=false;notifications=modules.NotificationQueue.new()
 Run.RenderStepped:Wait();Run.RenderStepped:Wait()
 local segments={};local current;local lastAt=os.clock()
@@ -30,7 +30,7 @@ local audit=Run.RenderStepped:Connect(function(dt)
  local viewKey=tostring(gui.AbsoluteSize);stableFrames=viewKey==lastView and stableFrames+1 or 0;lastView=viewKey
  local now=os.clock();local text=toast.Text
  if text~="" and controls.Visible and stableFrames>=2 then
-  local a,b=toast.AbsolutePosition,toast.AbsoluteSize;local c,d=controls.AbsolutePosition,controls.AbsoluteSize
+  local a,b=noticeView.root.AbsolutePosition,noticeView.root.AbsoluteSize;local c,d=controls.AbsolutePosition,controls.AbsoluteSize
   if a.X<c.X+d.X and a.X+b.X>c.X and a.Y<c.Y+d.Y and a.Y+b.Y>c.Y then controlOverlapFrames+=1 end
  end
  if not current or current.text~=text then finish();current={text=text,started=now,frames=0,dwell=0,clipped=0,views={}} end

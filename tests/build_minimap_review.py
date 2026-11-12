@@ -35,8 +35,8 @@ for _,view in ipairs({{320,568,true},{360,800,true},{390,844,true},{430,844,true
  for _,obj in ipairs({hud,tracked,controls,talkButton}) do if obj.Visible then check(not overlaps(testButton,obj),"Tools overlap "..obj.Name) end end
  data.devAccess=false;receiver(data);settle()
  notify("Saving is unavailable. Progress is temporary.",true,"save");settle()
- check(toast.Visible and miniMapButton.Visible,"Notification hides minimap")
- check(not overlaps(miniMapButton,toast),"Minimap covers urgent notification")
+ check(noticeView.root.Visible and miniMapButton.Visible,"Notification hides minimap")
+ check(not overlaps(miniMapButton,noticeView.root),"Minimap covers urgent notification")
  notifications=modules.NotificationQueue.new();settle()
 end
 local result={checks=checks,rows=rows,limits="Synthetic viewport/state/mic/remotes. No physical controls, actual phone or live services."}

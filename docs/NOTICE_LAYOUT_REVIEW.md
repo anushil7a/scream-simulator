@@ -1,0 +1,51 @@
+# Readable short-screen notices
+
+November 12, 2026. Local UI correction based on source/geometry reproductions. No native execution of this change.
+
+## Established problem
+
+The old full-width, bottom-anchored toast could overlap MAP, authorized Test Tools and nearby-NPC TALK at cramped touch sizes, including320x315 and640x360. Its35%-height cap could clip full warning text while queue lifetime continued. The earlier native minimap pass used only a short placeholder warning and did not establish full production-warning readability. This is not a claimed physical-device incident.
+
+## Implemented behavior
+
+- NoticeLayout reserves a lane below top navigation and left of MAP/tools in the existing safe-area GUI. Only overlapping passive HUD labels are temporarily hidden. One-line messages use a compact panel rather than the full lane.
+- NoticeView keeps the complete string in a bounded scrolling viewport. Font size is not shrunk. Measured text is cached, with conservative adjustment when actual TextBounds grows. Position updates independently of the measurement cache.
+- Overflow pauses normal queue dwell until its bottom has been exposed. Hover and recent input/scroll pause time too; new entries and layout changes do not immediately consume dwell. Entry identity resets exposure even when replacement text is identical. Existing queue priority, save coalescing/removal and eight-pending bound are unchanged.
+- The entire44px-or-larger panel remains the scrolling target. A passive16px cue overlays it; extra canvas padding lets the final line scroll above the cue. This is source/mock validation, not native touch pass-through proof.
+- In the main menu, failed purchase/quest notices remain visible in a lane above modal Close/tabs. Redundant top launchers hide temporarily; modal navigation remains. Other setup/conversation/developer panels and focus/core-menu interruptions pause notices rather than spend hidden dwell.
+- TALK moves only into a fitting top-navigation slot, never into the bottom-left thumbstick area. If a cramped nearby-NPC layout cannot accommodate the notice, it stays retained and the existing Quests launcher says NOTICE. Its unchanged callback opens the main menu and exposes the full retained message. The normal current unclaimed-quest count restores after disclosure/clear/resize.
+
+No server, save, map/world, product or asset configuration changes. No new modal, copied queue, per-message jobs or imported assets.
+
+## Review and verification
+
+- Final focused actual modules plus Client-fragment tests:604 assertions,16 explicit mutation controls and3 source contracts. Uses exact93/85/142/114-character production warnings, synthetic GUI/text metrics and the actual queue. Separate Astra rerun in memory cleared all controls and final source hashes.
+- Retained minimap suite:137 module prefix /987,778 combined geometry assertions and16 controls. Replaces obsolete fixed-toast arithmetic with actual NoticeLayout and the NoticeView panel-height expression; unavailable tiny cases are explicitly classified, not counted as visible passes. No CityMap edits.
+- Retained beam integration:91 assertions/18 controls. Extraction now excludes unrelated resident/notice code inserted between the acknowledgement hook and feedback cadence, while preserving the actual hook and Step-versus-HUD-gate ordering. Independent rerun confirmed the moved-Step control still fails as intended.
+- Final aggregate:25 pure/synthetic suites,103 mocked-service suites,63 production compiles and all disposable builds passed. Initial aggregate failed at the removed old toast-position extractor; a subsequent remaining-fixture sweep found the unrelated-fragment beam extraction issue. Both fixture adaptations are recorded, not production regressions concealed by removing checks.
+- Independent review caught and corrected two candidate regressions before checkpoint: the per-frame default quest label erased unclaimed counts, and a separate hint footer reduced the actual scrolling target below44px. Corrective tests include actual receiver/launcher transitions and padded last-line clearance.
+- Built/compiled NoticeLayoutReview exercises full strings across48 synthetic viewport/access/message cases, programmatic scrolling, focus pause, modal navigation separation and cached-width recentering. Retained native builders now use the visible viewport, not full offscreen text-canvas bounds. **These fixtures were not run in Studio.**
+
+Commands actually run:
+
+```text
+python tests/notice_view.py --negative-controls
+python tests/minimap.py --negative-controls
+python tests/beam_screen_integration.py --negative-controls
+python tests/build_notice_layout_review.py
+python tests/verify_local.py --build
+```
+
+Exact source, fixture and log hashes: [notice-layout evidence](../tests/evidence/notice-layout-2026-11-12.json).
+
+## Limits and next gate
+
+Bottom exposure is not proof of reading. Ignored overflow may intentionally hold the active bounded queue indefinitely; higher-priority save warnings can still preempt and state recovery removes them. Normal bounded overflow policy still may discard lower-priority pending messages. Arbitrarily small viewports may not fit even the existing navigation; no universal accessibility claim. Actual font preferences, native cue/input pass-through, scrolling, safe areas, physical thumbstick reachability and user comprehension remain unverified. Complete native/device verification when a disposable Studio route is available without creating further orphan picker windows.
+
+No Studio/apps opened for this batch, no live services/purchases or publication. Existing map approval, test-place identity and writer-fleet release gates remain.
+
+## References actually consulted
+
+- `vault/fwjelaa/fwjelaa vault/05 UI and UX/Notification and Toast Systems.md`, sections1/3: channel choice, bounded queues and readable lifetime. Reference guidance, not permission to replace the architecture.
+- `vault/fwjelaa/fwjelaa vault/42 Accessibility and Inclusive Design/Readable Text and UI Scale.md`, sections1/2: preserve readable type and allow scrolling rather than silently shrinking content.
+- `vault/fwjelaa/fwjelaa vault/05 UI and UX/Safe Areas and Insets.md`, sections1/2: interactive coordinates remain within the existing safe-area GUI.

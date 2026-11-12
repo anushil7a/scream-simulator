@@ -10,7 +10,13 @@ def build(c):
  helpers=c[c.index('local function blocked()'):c.index('local function beginCapture(')]
  effect=c[c.index('connectClient(remotes.Effect.OnClientEvent,function('):c.index('\nlocal elapsed=0',c.index('connectClient(remotes.Effect.OnClientEvent,function('))]
  a=c.index(' -- A current local acknowledgement,',c.index('connectClient(Run.RenderStepped'))
- cadence=c[a:c.index(' aimInfo.Text=',a)]
+ # Isolate the actual acknowledged-attack hook and feedback/audio cadence.
+ # Resident/notice presentation between them is covered by its own integration suite.
+ hook_end=c.index('\n end',a)+5
+ cadence_end=c.index(' aimInfo.Text=',a)
+ tail_start=min(c.index(' beamScreenFeedback:Step(',hook_end),c.index(' cueContext();',hook_end))
+ cadence=c[a:hook_end]+'\n'+c[tail_start:cadence_end]
+ assert cadence.count('beamScreenFeedback:Step(')==1
  gui=c[c.index('local beamFeedbackGui='):c.index('local beamScreenFeedback=require(')]
  control=c[c.index('  sustainedControl:Step(dt,'):c.index('\n end',c.index('  sustainedControl:Step(dt,'))]
  return SETUP+'\nlocal BeamFX=(function()\n'+fx+'\nend)()\n'+gui+'local beamScreenFeedback=BeamFX.new(beamFeedbackGui)\n'+comfort+helpers+effect+'\nlocal elapsed=0;local function tick(dt)now+=dt;local alive=h.Health>0;local voiceCooldown=0;local voiceActive=attrs.SustainedActive\nif sustainedControl then\n'+control+'\nend\n'+cadence+'\nend\n'+CHECKS.replace('HOOK_ONLY',cadence[:cadence.index('\n end')+5])

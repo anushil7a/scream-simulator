@@ -133,10 +133,11 @@ print('PASS '..checks..' actual minimap module/client assertions; synthetic layo
  positions='\n'.join(next(line for line in client.splitlines() if line.startswith(' '+key+'.Position=')) for key in ['tracked','hud','controls','talkButton'])+'\n'+next(line for line in client.splitlines() if line.startswith(' controls.Size='))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
  nav=client[client.index(' local tight=viewport.X<380'):client.index(' testButton.Size=')]
  nav_origin=re.search(r'local top=frame\(gui,"Navigation",UDim2.fromOffset\(\d+,\d+\),(UDim2.fromOffset\(\d+,\d+\))',client)[1]
- toast_position=next(line.strip() for line in client.splitlines() if line.strip().startswith('toast.Position=UDim2.fromOffset(viewport.'))
- toast_size=next(line.strip() for line in client.splitlines() if line.strip().startswith('toast.Size=UDim2.fromOffset(notificationWidth,'))
- toast_anchor=re.search(r'toast.AnchorPoint=Vector2.new\(([^)]+)\)',client)[1]
- toast_geometry="local toast={};local notificationWidth=math.min(640,viewport.X-32)\n"+toast_position+'\n'+toast_size+'\nlocal anchor=Vector2.new('+toast_anchor+')\nlocal notice=rectangle(toast,viewport);notice.x-=anchor.X*notice.w;notice.y-=anchor.Y*notice.h\n'
+ notice_source=read('src/StarterPlayer/StarterPlayerScripts/NoticeLayout.luau')
+ notice_view=read('src/StarterPlayer/StarterPlayerScripts/NoticeView.luau')
+ height_expression=re.search(r'self.panelHeight=([^;]+);self.overflow',notice_view)[1].replace('self.textHeight','(textHeight+8)')
+ toast_geometry="local layout=NoticeLayout.Get(viewport.X,viewport.Y,touch,miniLayout,testAccess,true)\nlocal notice={x=layout.x,y=layout.y,w=layout.width,h="+height_expression+"}\n"
+ client_setup+='\nlocal NoticeLayout=(function()\n'+notice_source+'\nend)()\n'
  sweep=r'''
 local function rectangle(o,viewport)
  local x=o.Position.X.Scale*viewport.X+o.Position.X.Offset;local y=o.Position.Y.Scale*viewport.Y+o.Position.Y.Offset
@@ -165,12 +166,21 @@ __POSITIONS__
    check(not overlaps(m,rectangle(talkButton,viewport)),'Minimap overlaps Talk button')
    for _,textHeight in ipairs({18,30,60,10000})do
 __TOAST__
-    local totalBottom=m.y+m.h+(testAccess and 52 or 0)
-    if miniLayout.expanded then
-     check(totalBottom+8<=notice.y or m.x>=notice.x+notice.w,'Expanded minimap overlaps bounded notification')
-    elseif notice.y>=14+44+(testAccess and 52 or 0) then
-     check(not overlaps(m,notice),'Collapsed minimap overlaps fitting notification')
-     if testAccess then check(not overlaps(rectangle(testButton,viewport),notice),'Tools overlap fitting notification')end
+    if layout.available then
+     check(not overlaps(m,notice),'Minimap overlaps visible notice viewport')
+     if testAccess then check(not overlaps(rectangle(testButton,viewport),notice),'Tools overlap visible notice viewport')end
+     check(not overlaps(rectangle(shop,viewport),notice) and not overlaps(rectangle(questsToggle,viewport),notice),'Notice overlaps navigation')
+     if touch then check(not overlaps(rectangle(controls,viewport),notice),'Notice overlaps touch controls')end
+     local talk=rectangle(talkButton,viewport)
+     if layout.moveTalk then talk.x=layout.talkX;talk.y=layout.talkY end
+     check(not overlaps(talk,notice),'Notice overlaps resolved TALK')
+     check(not overlaps(talk,m),'Resolved TALK overlaps MAP')
+     if testAccess then check(not overlaps(talk,rectangle(testButton,viewport)),'Resolved TALK overlaps tools')end
+     if layout.moveTalk then check(talk.y==14,'Resolved TALK enters native thumbstick area')end
+    else
+     -- Explicit retained-message fallback, not a passed visibility/layout case.
+     local baseTalk=rectangle(talkButton,viewport)
+     check(layout.width<120 or layout.height<44 or (touch and (width<312 or overlaps(baseTalk,{x=layout.x,y=layout.y,w=layout.width,h=layout.height}))), 'Notice unavailable without constrained layout')
     end
    end
    if testAccess then
@@ -196,7 +206,7 @@ else:
  run(code)
  if args.negative_controls:
   cases=[(code.replace('compact and {} or landmarks','{}'),'Modal landmark missing'),(code.replace('compact and {} or landmarks','landmarks'),'Compact landmark clutter'),(code.replace('if view.lastRoot==root and view.nextUpdate and now<view.nextUpdate', 'if false and view.lastRoot==root and view.nextUpdate and now<view.nextUpdate'),'Minimap throttle missing'),(code.replace('view.dot.Visible=false;view.nextUpdate=nil','view.dot.Visible=true;view.nextUpdate=nil'),'Hidden minimap marker retained'),(code.replace('viewport.X-278','viewport.X-200'),'Minimap overlaps left HUD'),(code.replace('miniMapAvailable and gameplayVisible and windowFocused','miniMapAvailable and gameplayVisible and windowFocused and not toast.Visible'),'MAP visibility gate failed'),(code.replace('width=math.min(width,math.max(119,viewport.X-328))',''),'Minimap overlaps quest tracker'),(code.replace('view.lastRoot==root and view.nextUpdate','view.nextUpdate'),'Replacement root throttled'),(code.replace('miniMapAvailable and gameplayVisible','gameplayVisible'),'MAP visibility gate failed'),(code.replace('touch and 315 or 168','touch and 314 or 167',1),'Minimap availability boundary wrong'),(code.replace('touch and 315 or 168','touch and 261 or 168'),'Minimap overlaps Talk button')]
-  cases.append((code.replace('width=math.min(width,(mapHeightBudget-52)*CityMap.aspectRatio+16)',''),'Expanded minimap overlaps bounded notification'))
+  cases.append((code.replace('width-map.width-22','width-14'),'Resolved TALK overlaps MAP'))
   cases.extend([(code.replace("if not compact then\n  local north","if true then\n  local north"),'Compact north decoration retained'),(code.replace("if not compact then arrow=text","if true then arrow=text"),'Compact facing arrow retained')])
   cases.extend([(code.replace('viewport.X<432 and -100 or -126','viewport.X<432 and -104 or -126'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
   for changed,message in cases:

@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-12",
+  "baseCommit": "efb124873e658a6de6335feb5aa5c94ab1621231",
+  "production": {
+    "scope": "Local notice presentation and current quest badge only; queue/server/map unchanged",
+    "sha256": {
+      "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "e7e1d91415227fb5bc29d80ff726b84059611b87bc4672476ffc9157b38d20b8",
+      "src/StarterPlayer/StarterPlayerScripts/NoticeLayout.luau": "5333a47e561a85a4f67187c9fb1430ffc7f6af6bc82acae540ae29f31d86576b",
+      "src/StarterPlayer/StarterPlayerScripts/NoticeView.luau": "8c2fc59e6e83b97388bdb6f52bc634daa8ec6dedbd71f2675cc229d0d7e0bddf",
+      "src/StarterPlayer/StarterPlayerScripts/NotificationQueue.luau": "7050c1d15437eb47541d659ed0e9af34945a212f97f439dc548e322a18542de3",
+      "tests/notice_view.py": "46b05cdb7ae35a47c8beebc0e21707a9d603b1a3ca5f3b371c2581d5a0a825eb",
+      "tests/minimap.py": "ea122b67c0224a9b8125ba35f84bb5595947ac460bb02e90d4d6e082d8fc963b",
+      "tests/beam_screen_integration.py": "227e1d8ad1dd8865f388fb665e4bbe694e8481230cb96d0e6e8e883bdd92b5aa",
+      "tests/build_notice_layout_review.py": "28a81f443e1f5dfa8dd1139ca7813d209dc2e0ba7a347ef3b295120cb6c417a0",
+      "tests/build_notification_review.py": "9660a422545b542810f9a2f750ec1ce406d49db6303f30ad411b61e4bcb49790",
+      "tests/build_save_notice_review.py": "1f7a2e39f66b4e8ccae0533a48b1ba10bab0a4312e4d1ae944db7dd758def228",
+      "tests/build_minimap_review.py": "fb82bf5788b0cc62ecf9f8cbb9010faf668244c9a9c87aa0ee56bfa490bcfef3",
+      "tests/verify_local.py": "5d42b2c19a2ef54df8c10f1c3582a16de57fcc480f78ea57503732134379feee"
+    }
+  },
+  "checks": {
+    "noticeAssertions": 604,
+    "noticeNegativeControls": 16,
+    "sourceContracts": 3,
+    "minimapCombinedAssertions": 987778,
+    "minimapModulePrefix": 137,
+    "minimapNegativeControls": 16,
+    "retainedBeamAssertions": 91,
+    "retainedBeamNegativeControls": 18,
+    "fullPureSyntheticSuites": 25,
+    "fullMockedSuites": 103,
+    "productionCompiles": 63,
+    "allBuildsPassed": true
+  },
+  "independentReview": "Astra independently reran final604/16/3; quest badge and full scroll-target/padded-bottom corrections cleared. Separate reviewer reran beam91/18 and reviewed native builder. Minimap adaptation was rerun by its implementation worker and source-reviewed by coordinator.",
+  "logs": {
+    "build/notice-layout-full.log": "eb718ef32959e2c28142f02b1db80514269b3cbc7c7a9faf7c0ec48f473155ca",
+    "build/notice-layout-fixture-sweep.log": "3bd39f2b8cf24db89c35e083dedab4079a7fd6033685baa8ba4487c6e1e6475e",
+    "build/notice-layout-beam-retained.log": "23a939f6c53fc3b30fce3bda4cf8b0c0e65dd23e08bb1b810ba868d3f006fd8e",
+    "build/notice-layout-focused.log": "6ba8aa1cb11faa648fe2c9f49e8d8bcf45990836a92d50dd545234d041f46908",
+    "build/notice-layout-final-full.log": "9f199af6ad794bb68062c64e90ed98dcb1fc24022c8ad035b7dc7efe57b4f114"
+  },
+  "native": {
+    "executed": false,
+    "fixture": "build/NoticeLayoutReview.rbxl",
+    "fixtureSha256": "cc1abe445a8b6a5b19496b36928b211bc13ed63d7cb84d1a04a79223ac439cf2",
+    "clientSha256": "4b3c3f6ab6d76418a6d64cd992b73b2f9603a2391d3759c66d69a440de57172e",
+    "warningLengths": [
+      93,
+      85,
+      142,
+      114
+    ],
+    "cases": 48,
+    "scope": "Build/compile only; synthetic viewport/state/mic and programmatic scroll/helpers. No physical or human-reading evidence."
+  },
+  "limitations": [
+    "Ignored overflow can hold bounded queue indefinitely until exposure/preemption/removal.",
+    "Bottom exposure does not prove reading.",
+    "Native scrolling/cue pass-through, fonts, physical safe areas and thumbstick access unverified.",
+    "Arbitrary tiny viewports not universally supported.",
+    "Four earlier task-created minimized pickers remain inaccessible; no new apps opened.",
+    "No live stores/purchases, map edits, publication or release-gate change."
+  ]
+}

@@ -7,6 +7,12 @@ Updated November 12, 2026. The owner confirmed `feature/microphone-city-redesign
 
 
 
+## November 12 full-warning short-screen layout
+
+- Full messages now use a bounded scrollable safe-area lane instead of clipping/overlapping MAP and actions. Dwell waits for overflow exposure and pauses during interaction/coverage. Main-menu errors remain above modal navigation; constrained nearby-NPC cases expose retained text through the existing NOTICE/Quests launcher, preserving current reward counts. TALK never relocates into the bottom-left thumbstick area. Queue priority/server/map behavior unchanged.
+- Final604 focused assertions/16 controls/3 contracts independently rerun by Astra; retained minimap987,778 combined/16 controls and beam91/18 pass. Full25 pure/synthetic +103 mocked suites,63 compiles and all builds pass. Review caught/fixed quest-count overwrite and actual scroll-target sizing before checkpoint. Native builders compile but were not executed. [Review](NOTICE_LAYOUT_REVIEW.md), [evidence](../tests/evidence/notice-layout-2026-11-12.json).
+- Ignored overflow can hold the bounded queue; bottom exposure is not proof of reading. Native touch/cue pass-through, preferred fonts, physical safe areas and arbitrary tiny viewports remain gates. No apps opened, map edits, live services or publication. Next: safely available native full-warning/device verification; later VFX baseline/normal/reduced overlapping-attack frame-time and transparency measurements, not Blender performance inference.
+
 ## November 12 bounded Blender evaluation
 
 - Used the already-installed, signature-verified Blender 5.2 headlessly for original source-derived level 1/50/100 regular/reduced beam comparisons. Six local .blend/PNG pairs and a contact sheet generated successfully in 3.64 seconds; process exited, no application window or additional dependency. Fixed 640x280 CPU renders, eight samples, four threads, 240-second cap and at most 78 objects per scene. [Review](BEAM_LOOKDEV_REVIEW.md), [hash evidence](../tests/evidence/beam-lookdev-2026-11-12.json).

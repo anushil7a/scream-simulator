@@ -24,7 +24,7 @@ local function settle()Run.RenderStepped:Wait();Run.RenderStepped:Wait()end
 local function sampleWarning(expected,seconds)
  local started=os.clock();local frames=0;local peak=0
  repeat
-  assert(toast.Visible and toast.Text==expected,"Native save warning displaced")
+  assert(noticeView.root.Visible and toast.Text==expected,"Native save warning displaced")
   assert(toast.TextFits,"Native save warning clipped")
   assert(#notifications.pending<=8,"Native queue exceeded bound")
   peak=math.max(peak,#notifications.pending);frames+=1

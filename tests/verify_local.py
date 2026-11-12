@@ -41,6 +41,7 @@ def main():
     mocked += ('microphone_active.py', 'microphone_check_requests.py', 'shop_price_requests.py', 'shop_modal_lifecycle.py')
     mocked += ('panel_action_lifecycle.py', 'commerce_lifecycle.py', 'mic_setup_navigation.py', 'microphone_movement.py')
     mocked += ('beam_screen_feedback.py', 'beam_screen_integration.py')
+    mocked += ('notice_view.py',)
     for name in mocked:
         print(f'Checking {name} (mocked services)', flush=True)
         run([sys.executable, str(ROOT / 'tests' / name)])
@@ -60,6 +61,7 @@ def main():
         run([sys.executable, 'tests/build_style_review.py'])
         run([sys.executable, 'tests/build_minimap_review.py'])
         run([sys.executable, 'tests/build_beam_screen_review.py'])
+        run([sys.executable, 'tests/build_notice_layout_review.py'])
         run([sys.executable, 'tests/build_compact_review.py'])
         run([sys.executable, 'tools/build_compact_city_draft.py'])
         for path in sorted((ROOT / 'build').glob('Studio*Harness.luau')) + [ROOT / 'build/StudioUIPreview.luau']:

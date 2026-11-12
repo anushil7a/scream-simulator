@@ -135,6 +135,14 @@ local function toggle()
 end
 local shop=button(top,"ShopToggle","SHOP  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),function() toggleTab("Shop") end,gold);shop.TextColor3=dark
 local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests") end)
+local function questLauncherText()
+ local count=0
+ for _,quest in ipairs(Config.Quests)do
+  local progress=data.quests and data.quests[quest.id]
+  if progress and not progress.claimed and progress.progress>=quest.goal then count+=1 end
+ end
+ return count>0 and ("QUESTS "..count) or "QUESTS"
+end
 local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.08
 frame(hud,"EnergyAccent",UDim2.new(1,-24,0,2),UDim2.fromOffset(12,2),gold)
 local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-24,0,22),UDim2.fromOffset(12,7),14,gold)
@@ -168,6 +176,9 @@ toast.Name="Notification";toast.ZIndex=30;toast.BackgroundColor3=dark;toast.Back
 local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
 local notifications=require(script.Parent:WaitForChild("NotificationQueue")).new()
 local toastWidth=0
+local NoticeLayout=require(script.Parent:WaitForChild("NoticeLayout"))
+local noticeView=require(script.Parent:WaitForChild("NoticeView")).new(gui,toast)
+script.Destroying:Connect(function() noticeView:Destroy() end)
 local function notify(t,urgent,key) notifications:Push(t,urgent,key) end
 local nextCast=0;local sequence=0;local captureSource=nil
 local sustainedControl,sustainedRules
@@ -793,23 +804,15 @@ local lastViewport,lastTouch,lastDevAccess
 modal.Close.Modal=true;micPanel.Calibrate.Modal=true;conversationPanel.Close.Modal=true
 testContent.XP.Modal=true
 connectClient(Run.RenderStepped,function(dt)
- local notice=notifications:Step(dt,windowFocused and not GuiService.MenuIsOpen)
+ local notice=notifications:Step(0,false)
  if notice~=toast.Text then toast.Text=notice;toastWidth=0 end
- toast.Visible=notice~=""
+ -- NoticeView owns full-text visibility and readable dwell.
  ShopUI.Tick()
  refreshHealth()
  local viewport=gui.AbsoluteSize
  local touch=UIS.TouchEnabled
- -- Keep the raised notification above the touch/keyboard action targets.
- toast.Position=UDim2.fromOffset(viewport.X*.5,math.min(viewport.Y*.72,viewport.Y-(touch and 203 or 110)))
  local layoutChanged=viewport~=lastViewport or touch~=lastTouch or data.devAccess~=lastDevAccess
- if layoutChanged then lastViewport=viewport;lastTouch=touch;lastDevAccess=data.devAccess;toastWidth=0 end
- local notificationWidth=math.min(640,viewport.X-32)
- if notificationWidth~=toastWidth then
-  toastWidth=notificationWidth;toast.TextSize=viewport.X<820 and 14 or 16
-  local textHeight=TextService:GetTextSize(toast.Text,toast.TextSize,toast.Font,Vector2.new(notificationWidth,10000)).Y
-  toast.Size=UDim2.fromOffset(notificationWidth,math.min(viewport.Y*.35,textHeight+12))
- end
+ if layoutChanged then lastViewport=viewport;lastTouch=touch;lastDevAccess=data.devAccess end
  if layoutChanged then conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-36)) end
  refreshConversation()
  saveNotice.Text=saveStatus()
@@ -970,6 +973,27 @@ connectClient(Run.RenderStepped,function(dt)
  if screenAttack and screenAttack.acknowledged and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==screenAttack.sequence then
   beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),Config.Auras.Gold,screenFeedbackAllowed())
  end
+ local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+ if os.clock()>=nextResidentUi then
+  nextResidentUi=os.clock()+.1
+  talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
+ end
+ -- Pause queue time while covered, too small, interacting, or overflow remains unseen.
+ local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,CityMap.MiniLayout(viewport,touch,data.devAccess==true),data.devAccess==true,talkTarget~=nil)
+ if modal.Visible then noticeLayout=NoticeLayout.Modal(viewport.X,viewport.Y) end
+ local noticeVisible=(gameplayVisible or modal.Visible) and windowFocused and not GuiService.MenuIsOpen
+ local noticeNow=os.clock()
+ noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active)
+ local nextNotice=notifications:Step(dt,noticeView:CanAdvance())
+ if nextNotice~=notice then notice=nextNotice;noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active) end
+ shop.Visible=not (modal.Visible and noticeView.visible);questsToggle.Visible=shop.Visible
+ questsToggle.Text=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
+ talkButton.Visible=talkTarget~=nil and gameplayVisible
+ talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
+ if noticeView.visible and noticeLayout.moveTalk then talkButton.Position=UDim2.fromOffset(noticeLayout.talkX,noticeLayout.talkY) end
+ for _,passive in ipairs({hud,tracked,zone,saveNotice})do
+  if noticeView:Overlaps(passive,gui) or noticeView:Overlaps(passive,gui,talkButton) then passive.Visible=false end
+ end
  beamScreenFeedback:Step(os.clock(),screenFeedbackAllowed(),data.settings.reducedShake or platformReducedMotion)
  cueContext();gameplayAudio:Step(os.clock(),dt)
  -- Audio consumes frame dt; keep ducking/calibration/fades outside the slow HUD gate.
@@ -1018,11 +1042,6 @@ connectClient(Run.RenderStepped,function(dt)
    end
    aimInfo.TextColor3=(data.level<required or far or currentFar) and muted or gold
   end
- end
- local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
- if os.clock()>=nextResidentUi then
-  nextResidentUi=os.clock()+.1
-  talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
  end
  if mapDot then CityMap.update(mapDot,root) end
  local miniVisible=miniMapAvailable and gameplayVisible and windowFocused
