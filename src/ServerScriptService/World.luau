@@ -61,6 +61,36 @@ local function billboard(parent, words, offset, width)
     return text
 end
 
+-- Identity and damaged health have separate lanes; speech keeps its original helper.
+local function nameplate(parent, words)
+    local gui=Instance.new("BillboardGui")
+    gui.Name="Nameplate";gui.Size=UDim2.fromOffset(180,60)
+    gui.StudsOffsetWorldSpace=Vector3.new(0,2.5,0)
+    gui.AlwaysOnTop=false;gui.MaxDistance=18;gui.LightInfluence=0;gui.Parent=parent
+    local panel=Instance.new("Frame")
+    panel.Name="Plate";panel.Size=UDim2.fromOffset(180,36)
+    panel.BackgroundColor3=Color3.fromRGB(20,32,48);panel.BackgroundTransparency=.08
+    panel.BorderSizePixel=0;panel.Parent=gui
+    local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=panel
+    local edge=Instance.new("UIStroke");edge.Color=Color3.fromRGB(217,180,108)
+    edge.Thickness=1;edge.Transparency=.35;edge.Parent=panel
+    local text=Instance.new("TextLabel")
+    text.Name="Identity";text.Size=UDim2.fromOffset(164,32);text.Position=UDim2.fromOffset(8,2)
+    text.BackgroundTransparency=1;text.TextColor3=Color3.fromRGB(255,247,218)
+    text.Font=Enum.Font.GothamBold;text.TextSize=15;text.TextWrapped=true;text.Text=words;text.Parent=gui
+    local health=Instance.new("TextLabel")
+    health.Name="Health";health.Size=UDim2.fromOffset(164,18);health.Position=UDim2.fromOffset(8,34)
+    health.BackgroundTransparency=1;health.TextColor3=Color3.fromRGB(235,224,197)
+    health.Font=Enum.Font.GothamMedium;health.TextSize=14;health.Text="";health.Visible=false;health.Parent=gui
+    local track=Instance.new("Frame")
+    track.Name="HealthTrack";track.Size=UDim2.fromOffset(164,3);track.Position=UDim2.fromOffset(8,54)
+    track.BackgroundColor3=Color3.fromRGB(55,68,82);track.BorderSizePixel=0;track.Visible=false;track.Parent=gui
+    local fill=Instance.new("Frame")
+    fill.Name="HealthFill";fill.Size=UDim2.fromScale(1,1);fill.BackgroundColor3=Color3.fromRGB(245,202,111)
+    fill.BorderSizePixel=0;fill.Parent=track
+    return text,health,track,fill,panel
+end
+
 local function vehicle(parent, kind, paint)
     local model = Instance.new("Model")
     model.Name = kind .. "Car"
@@ -631,17 +661,22 @@ local function makeBot(parent, index, x, z, role, job, training)
     humanoid.Parent = model
     model.PrimaryPart = root
     if RunService:IsRunning() then root:SetNetworkOwner(nil) end
-    local nameLabel = billboard(head, displayName, Vector3.new(0, 2.5, 0))
+    local nameLabel,nameplateHealth,nameplateTrack,nameplateFill,nameplatePanel = nameplate(head, displayName)
     local speech = billboard(head, "", Vector3.new(0, 4.4, 0), 185)
     nameLabel.Parent.Name="Nameplate"
     speech.Parent.Name="SpeechBubble";speech.Parent.Size=UDim2.fromOffset(200,48)
+    -- Shared projected anchor plus size-relative offset keeps a six-pixel gap:
+    -- speech bottom = -48*1.25+24 = -36; nameplate top = -60/2 = -30.
+    -- https://create.roblox.com/docs/reference/engine/classes/BillboardGui#SizeOffset
+    speech.Parent.StudsOffsetWorldSpace=Vector3.new(0,2.5,0)
+    speech.Parent.SizeOffset=Vector2.new(0,1.25)
     nameLabel.Parent.MaxDistance = 18
     speech.Parent.MaxDistance = 24
     speech.Visible = false
     speech.BackgroundColor3 = Color3.fromRGB(244, 237, 211)
     speech.TextColor3 = C.dark
     local bot = {id = "Bot" .. index, name = displayName, role = role, model = model, root = root, humanoid = humanoid,
-        training=training,credit={},maxHealth=maximum,health = maximum, alive = true, label = nameLabel, speech = speech, questIds=job and job.quests or (not Config.CompactCity and (index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"})) or nil, job=job, jobTool=jobTool, water=water, carryParts=carryParts, cleaningParts=cleaningParts, repairParts=repairParts, jobStep=0,
+        training=training,credit={},maxHealth=maximum,health = maximum, alive = true, label = nameLabel, nameplateHealth=nameplateHealth,nameplateTrack=nameplateTrack,nameplateFill=nameplateFill,nameplatePanel=nameplatePanel, speech = speech, questIds=job and job.quests or (not Config.CompactCity and (index==4 and {"sprint"} or index==5 and {"crowd"} or index==6 and {"dodge","arena"})) or nil, job=job, jobTool=jobTool, water=water, carryParts=carryParts, cleaningParts=cleaningParts, repairParts=repairParts, jobStep=0,
         start = home, lastGrounded=home, roamRadius = role == "Commuter" and 200 or 125,
         joints = {ls, rs, lh, rh}, lastGreeting = -1000}
     for _, limb in ipairs(bot.joints) do limb:SetAttribute("RestPose", limb.C0) end
@@ -927,7 +962,15 @@ function World.UpdateBot(bot)
         bot.socialUntil=0;bot.talkingTo=nil;bot.reactionUntil=0;bot.gestureUntil=0
         bot.speechToken=(bot.speechToken or 0)+1;bot.speech.Visible=false
     end
-    bot.label.Text=bot.alive and (bot.health<(bot.maxHealth or Config.BotMaxHealth) and (bot.name.."  "..bot.health.."/"..(bot.maxHealth or Config.BotMaxHealth)) or bot.name) or "RECOVERING"
+    bot.label.Text=bot.alive and bot.name or "RECOVERING"
+    local nameplateMaximum=bot.maxHealth or Config.BotMaxHealth
+    local showHealth=bot.alive==true and bot.health<nameplateMaximum
+    if bot.nameplateHealth then
+        bot.nameplateHealth.Text=tostring(bot.health).." / "..tostring(nameplateMaximum).." HP"
+        bot.nameplateHealth.Visible=showHealth;bot.nameplateTrack.Visible=showHealth
+        bot.nameplateFill.Size=UDim2.fromScale(nameplateMaximum>0 and math.clamp(bot.health/nameplateMaximum,0,1) or 0,1)
+        bot.nameplatePanel.Size=UDim2.fromOffset(180,showHealth and 60 or 36)
+    end
     if bot.alive then
         bot.humanoid.Health=bot.health
         if bot.health==(bot.maxHealth or Config.BotMaxHealth) then

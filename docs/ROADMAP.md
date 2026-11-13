@@ -2,6 +2,12 @@
 
 Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 13 NPC nameplate visual upgrade
+
+- Added coherent navy/gold NPC and trainer plates, separate readable health and proportional bar, preserving names, levels, recovery, bounded visibility and native occlusion. Native review caught and fixed speech overlap before acceptance. Player overhead labels are not part of this checkpoint.
+- Independent 137 assertions/four contracts/eight controls and all 240 local commands pass; 326 input fingerprints rechecked. Exact-source Studio views, text fit, visibility boundary cases and one occlusion case reviewed. [Review/before-after images](NPC_NAMEPLATE_REVIEW.md), [evidence](../tests/evidence/npc-nameplates-2026-11-13.json).
+- Simulated health/native rendering is not real combat, physical-device or performance evidence. Adds five GUI descendants per NPC, no new loops. Disposable Studio stopped/restored/closed; PC on, no publication. Next: remaining requested visual refinements, keeping real microphone/multiplayer and mixed-version release gates explicit.
+
 ## November 13 truthful automatic sound cards
 
 - Removed legacy visual-effect descriptions from automatic-mode sound cards, since automatic silhouettes follow player level rather than selected sound. Names, unlocks, equip state and shared power/range explanation remain; legacy text/layout and Config are unchanged. Cards are more compact.
