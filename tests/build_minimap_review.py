@@ -4,7 +4,9 @@ import json, subprocess, sys
 root=Path(__file__).resolve().parents[1];out=root/'build'
 subprocess.run([sys.executable,str(root/'tests/build_ui_preview.py'),'390','844'],check=True)
 source=(out/'StudioUIPreview.luau').read_text(encoding='utf-8')
-source=source[:source.rindex('local report={}')] + r'''local checks=0;local rows={}
+source=source[:source.rindex('local report={}')] + r'''
+;(function()
+local checks=0;local rows={}
 local function check(ok,message)assert(ok,message);checks+=1 end
 -- Visibility follows the production 0.15-second HUD update; wait past that gate.
 local function settle()for _=1,3 do Run.RenderStepped:Wait() end;task.wait(.2) end
@@ -42,6 +44,7 @@ end
 local result={checks=checks,rows=rows,limits="Synthetic viewport/state/mic/remotes. No physical controls, actual phone or live services."}
 local encoded=game:GetService("HttpService"):JSONEncode(result)
 workspace:SetAttribute("MiniMapReviewResult",encoded);print("MINIMAP_REVIEW_RESULT "..encoded)
+end)()
 '''
 (out/'MiniMapReview.client.luau').write_text(source,encoding='utf-8')
 project={'name':'MiniMapReview_DO_NOT_PUBLISH','tree':{'$className':'DataModel',

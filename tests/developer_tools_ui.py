@@ -4,7 +4,7 @@ import argparse, subprocess, tempfile
 root=Path(__file__).resolve().parents[1]
 source=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text(encoding='utf-8')
 start=source.index('local testCommands=')
-fragment=source[start:source.index('local testButton=',start)]
+fragment=source[start:source.index('\n end\n testContent.XP.Modal=true',start)]
 visibility=next(line for line in source.splitlines() if 'testButton.Visible=data.devAccess' in line)
 setup="""
 local checks=0;local function check(ok,message)assert(ok,message);checks+=1 end

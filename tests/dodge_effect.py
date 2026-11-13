@@ -8,7 +8,7 @@ def baseline(path):return subprocess.check_output(['git','show','078dbb1:'+path]
 client=baseline(name) if args.baseline else (root/name).read_text(encoding='utf-8')
 def extract(s):
  a=s.index('local function fxPart(');constructor=s[a:s.index('local BeamVisuals=',a)]
- a=s.index('connectClient(remotes.Effect.OnClientEvent,');return constructor+s[a:s.index('local elapsed=0',a)]
+ a=s.index('connectClient(remotes.Effect.OnClientEvent,');return constructor+s[a:s.index('\nlocal elapsed=0',a)]
 fragment=extract(client)
 setup=r'''
 local checks=0;local function check(v,m)assert(v,m);checks+=1 end

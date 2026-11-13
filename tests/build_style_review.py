@@ -7,7 +7,9 @@ root=Path(__file__).resolve().parents[1]
 out=root/'build'
 subprocess.run([sys.executable,str(root/'tests/build_ui_preview.py'),'390','844'],check=True)
 source=(out/'StudioUIPreview.luau').read_text(encoding='utf-8')
-source=source[:source.rindex('local report={}')] + r'''local checks=0
+source=source[:source.rindex('local report={}')] + r'''
+;(function()
+local checks=0
 local function check(ok,message) assert(ok,message);checks+=1 end
 local report={}
 local cases={
@@ -53,6 +55,7 @@ local result={checks=checks,cases=report,limits="Synthetic state and microphone;
 local encoded=game:GetService("HttpService"):JSONEncode(result)
 workspace:SetAttribute("StyleReviewResult",encoded)
 print("STYLE_REVIEW_RESULT "..encoded)
+end)()
 '''
 (out/'StyleReview.client.luau').write_text(source,encoding='utf-8')
 project={'name':'StyleReview_DO_NOT_PUBLISH','tree':{'$className':'DataModel',

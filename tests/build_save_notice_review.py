@@ -10,6 +10,7 @@ if control:
  assert s.count(needle)==1
  s=s.replace(needle,'urgent and 1 or 0')
 s+='''
+;(function()
 local character=p.Character or p.CharacterAdded:Wait();character:WaitForChild("Humanoid")
 windowFocused=true;mic.power=0;mic.ready=true;modal.Visible=false
 task.wait(.5);sustainedControl:SetArmed(false)
@@ -65,6 +66,7 @@ for _,view in ipairs({{390,844,true},{844,390,true},{1280,720,false}}) do
  table.insert(rows,row);print("SAVE_NOTICE_NATIVE_ROW "..Http:JSONEncode(row))
 end
 print("SAVE_NOTICE_NATIVE_PASS "..Http:JSONEncode({rows=#rows,synthetic=true}))
+end)()
 '''
 name='SaveNoticeControl' if control else 'SaveNoticeReview'
 client=out/(name+'.client.luau');client.write_text(s)

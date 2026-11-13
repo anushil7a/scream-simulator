@@ -137,8 +137,10 @@ local function refreshScreenComfort()
  if platformReducedMotion then beamScreenFeedback:Clear() end
 end
 refreshScreenComfort()
-local comfortOk,comfortSignal=pcall(function() return GuiService:GetPropertyChangedSignal("ReducedMotionEnabled") end)
-if comfortOk then connectClient(comfortSignal,refreshScreenComfort) end
+do
+ local comfortOk,comfortSignal=pcall(function() return GuiService:GetPropertyChangedSignal("ReducedMotionEnabled") end)
+ if comfortOk then connectClient(comfortSignal,refreshScreenComfort) end
+end
 local function frame(parent,name,size,pos,color)
  local f=Instance.new("Frame");f.Name=name;f.Size=size;f.Position=pos;f.BackgroundColor3=color or dark;f.BorderSizePixel=0;f.Parent=parent
  local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,10);c.Parent=f;return f
@@ -171,10 +173,12 @@ function academy.mark(parent,kind,pos,size,color)
 end
 local top=frame(gui,"Navigation",UDim2.fromOffset(250,40),UDim2.fromOffset(14,12));top.BackgroundTransparency=1
 local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,0);modal.ZIndex=10;modal.Visible=false
-local menuEdge=Instance.new("UIStroke");menuEdge.Color=gold;menuEdge.Transparency=.5;menuEdge.Parent=modal
-modal.BackgroundColor3=Color3.new(1,1,1)
-local menuGlow=Instance.new("UIGradient");menuGlow.Color=ColorSequence.new(Color3.fromRGB(46,61,65),dark);menuGlow.Rotation=80;menuGlow.Parent=modal
-local brandStripe=frame(modal,"SignalStripe",UDim2.new(1,-44,0,2),UDim2.fromOffset(22,8),gold)
+do
+ local menuEdge=Instance.new("UIStroke");menuEdge.Color=gold;menuEdge.Transparency=.5;menuEdge.Parent=modal
+ modal.BackgroundColor3=Color3.new(1,1,1)
+ local menuGlow=Instance.new("UIGradient");menuGlow.Color=ColorSequence.new(Color3.fromRGB(46,61,65),dark);menuGlow.Rotation=80;menuGlow.Parent=modal
+ frame(modal,"SignalStripe",UDim2.new(1,-44,0,2),UDim2.fromOffset(22,8),gold)
+end
 local menuScale=Instance.new("UIScale");menuScale.Parent=modal
 local title=label(modal,"BEAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
 local subtitle=label(modal,"Train for XP. Unlock a new beam style every ten levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
@@ -188,7 +192,7 @@ local function closeMenu()
 end
 button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function() closeMenu() end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
-local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
+do local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content end
 local selected="Shop";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local conversationPanel,showConversation,closeConversation
 local micPanel,openMicSetup,closeMicSetup
@@ -225,8 +229,7 @@ frame(hud,"EnergyAccent",UDim2.new(1,-24,0,1),UDim2.fromOffset(12,2),gold)
 local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-48,0,22),UDim2.fromOffset(36,7),12,white);stats.Font=Enum.Font.GothamBold
 academy.mark(hud,"health",UDim2.fromOffset(12,35),10,Color3.fromRGB(130,211,174))
 local health=label(hud,"100 HP",UDim2.fromOffset(55,20),UDim2.fromOffset(26,31),12)
-local hb=frame(hud,"HealthTrack",UDim2.fromOffset(142,6),UDim2.fromOffset(83,38),panel)
-local hf=frame(hb,"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
+local hf=frame(frame(hud,"HealthTrack",UDim2.fromOffset(142,6),UDim2.fromOffset(83,38),panel),"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
 local displayedHealth,displayedMaximum
 local function refreshHealth()
  local character=p.Character
@@ -242,8 +245,7 @@ local function refreshHealth()
  hf.Size=UDim2.fromScale(current/maximum,1)
 end
 local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-38,0,19),UDim2.fromOffset(26,52),12,muted)
-local xb=frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,79),panel)
-local xf=frame(xb,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
+local xf=frame(frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,79),panel),"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 academy.mark(hud,"progress",UDim2.fromOffset(12,55),10,gold)
 local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
 zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08
@@ -251,8 +253,10 @@ do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corne
 local tracked=label(gui,"",UDim2.fromOffset(290,50),UDim2.fromOffset(16,56),13);tracked.Name="QuestTracker";tracked.TextYAlignment=Enum.TextYAlignment.Top
 tracked.BackgroundColor3=dark;tracked.BackgroundTransparency=.06
 academy.surface(tracked)
-local trackerCorner=Instance.new("UICorner");trackerCorner.CornerRadius=UDim.new(0,8);trackerCorner.Parent=tracked
-local trackerPadding=Instance.new("UIPadding");trackerPadding.PaddingLeft=UDim.new(0,6);trackerPadding.PaddingRight=UDim.new(0,6);trackerPadding.PaddingTop=UDim.new(0,4);trackerPadding.PaddingBottom=UDim.new(0,4);trackerPadding.Parent=tracked
+do
+ local trackerCorner=Instance.new("UICorner");trackerCorner.CornerRadius=UDim.new(0,8);trackerCorner.Parent=tracked
+ local trackerPadding=Instance.new("UIPadding");trackerPadding.PaddingLeft=UDim.new(0,6);trackerPadding.PaddingRight=UDim.new(0,6);trackerPadding.PaddingTop=UDim.new(0,4);trackerPadding.PaddingBottom=UDim.new(0,4);trackerPadding.Parent=tracked
+end
 local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center;toast.AnchorPoint=Vector2.new(.5,1);toast.Position=UDim2.fromScale(.5,.72)
 toast.Name="Notification";toast.ZIndex=30;toast.BackgroundColor3=dark;toast.BackgroundTransparency=.08;toast.Visible=false
 local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
@@ -294,15 +298,17 @@ local function beginCapture(source)
  if sustainedControl or captureSource or beamBlocked() or os.clock()<nextCast then return end
  if mic:Begin() then sequence+=1;captureSource=source;action:FireServer("BeginCast",sequence) end
 end
-local LockOn=loadClientDependency(script.Parent,"LockOn");if not clientCheckpoint() then return end
-local TrainingRules=loadClientDependency(RS.Shared,"TrainingRules");if not clientCheckpoint() then return end
-local lockHomes={}
-for index,tier in ipairs(TrainingRules.Tiers) do
- local home=Config.CompactCity and Config.CityLayout.TrainingHomes[index]
- lockHomes[tier.id]=Vector3.new(home and home.x or tier.x,Config.CompactCity and 3.2 or 4.2,home and home.z or tier.z)
+do
+ local LockOn=loadClientDependency(script.Parent,"LockOn");if not clientCheckpoint() then return end
+ local TrainingRules=loadClientDependency(RS.Shared,"TrainingRules");if not clientCheckpoint() then return end
+ local lockHomes={}
+ for index,tier in ipairs(TrainingRules.Tiers) do
+  local home=Config.CompactCity and Config.CityLayout.TrainingHomes[index]
+  lockHomes[tier.id]=Vector3.new(home and home.x or tier.x,Config.CompactCity and 3.2 or 4.2,home and home.z or tier.z)
+ end
+ lockController=LockOn.new({world=workspace,players=Players,collection=game:GetService("CollectionService"),
+  localPlayer=p,trainingHomes=lockHomes,trainingRadius=TrainingRules.Radius,inArena=Config.InArena})
 end
-lockController=LockOn.new({world=workspace,players=Players,collection=game:GetService("CollectionService"),
- localPlayer=p,trainingHomes=lockHomes,trainingRadius=TrainingRules.Radius,inArena=Config.InArena})
 ownClient(function() lockController:Destroy() end);if not clientCheckpoint() then return end
 connectClient(p.CharacterRemoving,function() lockController:Clear() end)
 local function lockContext(power)
@@ -429,11 +435,14 @@ local micScale=Instance.new("UIScale");micScale.Parent=micPanel
 local meter=frame(gui,"MicPower",UDim2.fromOffset(230,62),UDim2.new(.5,-115,1,-74))
 academy.surface(meter)
 local meterText=label(meter,"LIVE MIC 0%\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,white)
-local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,49),panel)
-local meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
-if sustainedControl then
- local threshold=frame(meterTrack,"VoiceStartThreshold",UDim2.fromOffset(2,11),UDim2.new(sustainedControl.gate.OnPower,0,.5,0),white)
- threshold.AnchorPoint=Vector2.new(.5,.5);threshold.ZIndex=meterFill.ZIndex+1
+local meterFill
+do
+ local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,49),panel)
+ meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
+ if sustainedControl then
+  local threshold=frame(meterTrack,"VoiceStartThreshold",UDim2.fromOffset(2,11),UDim2.new(sustainedControl.gate.OnPower,0,.5,0),white)
+  threshold.AnchorPoint=Vector2.new(.5,.5);threshold.ZIndex=meterFill.ZIndex+1
+ end
 end
 local aimGui=Instance.new("ScreenGui");aimGui.Name="ScreamAim";aimGui.ResetOnSpawn=false;aimGui.ScreenInsets=Enum.ScreenInsets.None;aimGui.Parent=p.PlayerGui
 ownClient(function() aimGui:Destroy() end);if not clientCheckpoint() then return end
@@ -537,21 +546,28 @@ local function requestTalk()
 end
 local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),requestTalk);talkButton.Visible=false
 devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false;devPanel.ZIndex=10
-local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
-label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
-label(devPanel,"Temporary progress. Shared combat is isolated.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
-local testCommands={{"XP","+500 XP"},{"AddLevels","+10 levels"},{"Coins","+1,000 coins"},{"MaxLevel","Level "..Config.MaxLevel},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"}}
-if Run:IsStudio() then table.insert(testCommands,{"ResetBots","Reset bots"});table.insert(testCommands,{"StudioMovement","Test movement"}) end
-testContent.CanvasSize=UDim2.fromOffset(0,math.ceil(#testCommands/2)*47)
-for i,item in ipairs(testCommands) do
- button(testContent,item[1],item[2],UDim2.fromOffset(98,44),UDim2.fromOffset(((i-1)%2)*108,math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
+do
+ local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
+ label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
+ label(devPanel,"Temporary progress. Shared combat is isolated.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
+ do
+  local testCommands={{"XP","+500 XP"},{"AddLevels","+10 levels"},{"Coins","+1,000 coins"},{"MaxLevel","Level "..Config.MaxLevel},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"}}
+  if Run:IsStudio() then table.insert(testCommands,{"ResetBots","Reset bots"});table.insert(testCommands,{"StudioMovement","Test movement"}) end
+  testContent.CanvasSize=UDim2.fromOffset(0,math.ceil(#testCommands/2)*47)
+  for i,item in ipairs(testCommands) do
+   button(testContent,item[1],item[2],UDim2.fromOffset(98,44),UDim2.fromOffset(((i-1)%2)*108,math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
+  end
+ end
+ testContent.XP.Modal=true
 end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then closeMenu() end end);testButton.Visible=false
 -- Everyone sees the same navigation; authorized test controls sit below it.
 -- Keep a separate view: modal renders replace mapDot but never this HUD map.
 local miniMapButton=button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end)
 miniMapButton.TextSize=12;miniMapButton.TextYAlignment=Enum.TextYAlignment.Top;miniMapButton.Visible=false
-local miniMapPadding=Instance.new("UIPadding");miniMapPadding.PaddingTop=UDim.new(0,10);miniMapPadding.Parent=miniMapButton
+do
+ local miniMapPadding=Instance.new("UIPadding");miniMapPadding.PaddingTop=UDim.new(0,10);miniMapPadding.Parent=miniMapButton
+end
 local miniMapHolder=frame(miniMapButton,"MiniMapHolder",UDim2.new(1,-16,1,-42),UDim2.fromOffset(8,34));miniMapHolder.BackgroundTransparency=1
 local miniMapView=CityMap.create(miniMapHolder,true)
 local miniMapAvailable=false
@@ -737,7 +753,7 @@ local conversationRevision=0
 conversationPanel=frame(gui,"Conversation",UDim2.fromOffset(460,300),UDim2.fromScale(.5,.5));conversationPanel.AnchorPoint=Vector2.new(.5,.5);conversationPanel.Visible=false;conversationPanel.ZIndex=10
 local conversationName=label(conversationPanel,"",UDim2.new(1,-80,0,36),UDim2.fromOffset(18,12),19,gold)
 local conversationList=Instance.new("ScrollingFrame");conversationList.Size=UDim2.new(1,-36,1,-66);conversationList.Position=UDim2.fromOffset(18,54);conversationList.BackgroundTransparency=1;conversationList.BorderSizePixel=0;conversationList.ScrollBarThickness=4;conversationList.AutomaticCanvasSize=Enum.AutomaticSize.Y;conversationList.CanvasSize=UDim2.new();conversationList.Parent=conversationPanel
-local conversationLayout=Instance.new("UIListLayout");conversationLayout.Padding=UDim.new(0,10);conversationLayout.SortOrder=Enum.SortOrder.LayoutOrder;conversationLayout.Parent=conversationList
+do local conversationLayout=Instance.new("UIListLayout");conversationLayout.Padding=UDim.new(0,10);conversationLayout.SortOrder=Enum.SortOrder.LayoutOrder;conversationLayout.Parent=conversationList end
 closeConversation=function()
  conversationRevision+=1
  if conversationPanel.Visible then action:FireServer("EndConversation") end
@@ -876,6 +892,7 @@ end
 connectClient(UIS.WindowFocusReleased,function() windowFocused=false;suspendGameplay() end)
 connectClient(GuiService.MenuOpened,suspendGameplay)
 connectClient(p:GetAttributeChangedSignal("ProtectionEnds"),function() setSprint(false) end)
+;(function()
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
@@ -946,7 +963,6 @@ local elapsed=0
 local lastViewport,lastTouch,lastDevAccess
 -- Visible modal buttons keep the pointer available while interacting with panels.
 modal.Close.Modal=true;micPanel.Calibrate.Modal=true;conversationPanel.Close.Modal=true
-testContent.XP.Modal=true
 connectClient(Run.RenderStepped,function(dt)
  local notice=notifications:Step(0,false)
  if notice~=toast.Text then toast.Text=notice;toastWidth=0 end
@@ -1202,6 +1218,7 @@ connectClient(Run.RenderStepped,function(dt)
  talkButton.Text=touch and "TALK" or "TALK [T]"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
 end)
+end)()
 if not clientCheckpoint() then return end
 action:FireServer("Sync")
 
