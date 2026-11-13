@@ -547,7 +547,8 @@ render=function()
   title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
   info("COURTYARD TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads in the west courtyard. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
   for _,spec in ipairs(Config.Progression.Challenges) do
-   info(spec.name.." · "..((data.combatChallenges or {})[spec.id] or 0).."/"..spec.goal.."\n+"..Config.Progression.ChallengeXP(data.level).." XP on completion · renews automatically",68)
+   local rewardText=data.level>=Config.MaxLevel and "MAX LEVEL · no XP awarded" or ("+"..Config.Progression.ChallengeXP(data.level).." XP on completion")
+   info(spec.name.." · "..((data.combatChallenges or {})[spec.id] or 0).."/"..spec.goal.."\n"..rewardText.." · renews automatically",68)
   end
   info("Training: contribute at least 10% damage. You must be no more than 20 levels above the fighter's reward band (Rookie 1-24, Brawler 25-59, Elite 60-100). Each qualifying KO or assist counts once. Environment cover is static. PvP XP is shared by damage; weak and repeated opponents pay less.")
   if data.activeQuest then

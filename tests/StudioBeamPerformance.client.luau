@@ -9,11 +9,12 @@ local RS=game:GetService("ReplicatedStorage")
 local Visuals=require(RS.BeamVisuals);if startupDestroyed then startupConnection:Disconnect();return end
 local Beams=require(RS.SustainedBeams);if startupDestroyed then startupConnection:Disconnect();return end
 local Style=require(RS.Shared.BeamStyle);if startupDestroyed then startupConnection:Disconnect();return end
-local camera=assert(workspace.CurrentCamera,"Camera unavailable")
-local original={type=camera.CameraType,cf=camera.CFrame,fov=camera.FieldOfView}
+local camera,original
+local readinessStarted=os.clock();local readinessCandidate,readinessViewport,readinessSince
+local fixedFrame,fixedFov,fixedViewport
 local manager=Beams.new(Visuals.Create,Visuals.Update,Visuals.Destroy)
 local beamFrame=0;local tracked={};local connection,destruction,watchdog
-local done=false;local checks=0;local phase=1;local phaseStart=os.clock();local nextPulse=0
+local done=false;local checks=0;local phase=1;local phaseStart=nil;local nextPulse=0
 local sampleFirst,sampleLast
 local names={"baseline","regular24","reduced24"};local frames,costs={},{};local rows={}
 local function check(v,m)assert(v,m);checks+=1 end
@@ -31,9 +32,9 @@ local function finish(ok,reason)
  local function attempt(name,fn)local ok,err=pcall(fn);if not ok then table.insert(errors,name..": "..tostring(err))end end
  attempt("manager",function()manager:Destroy()end)
  attempt("visuals",function()Visuals.Clear()end)
- attempt("cameraType",function()camera.CameraType=original.type end)
- attempt("cameraFrame",function()camera.CFrame=original.cf end)
- attempt("cameraFov",function()camera.FieldOfView=original.fov end)
+ attempt("cameraType",function()if camera and original then camera.CameraType=original.type end end)
+ attempt("cameraFrame",function()if camera and original then camera.CFrame=original.cf end end)
+ attempt("cameraFov",function()if camera and original then camera.FieldOfView=original.fov end end)
  attempt("budget",function()
   local allocated,cached=Visuals.Budget()
   check(manager.count==0 and next(manager.entries)==nil and allocated==0 and cached==0,"Terminal budget leak")
@@ -44,15 +45,33 @@ end
 destruction=script.Destroying:Connect(function()finish(false,"Script destroyed")end)
 startupConnection:Disconnect()
 watchdog=task.delay(35,function()finish(false,"35-second scheduler watchdog")end)
+-- Wait for a real, stable viewport before fixing camera or starting any phase.
+-- Bounds are scheduler-time limits, not guarantees while Studio is paused.
+local function settleCamera(now)
+ if now-readinessStarted>=5 then finish(false,"Camera/viewport not ready within 5 seconds");return false end
+ local candidate=workspace.CurrentCamera
+ local viewport=candidate and candidate.ViewportSize
+ if not viewport or viewport.X<64 or viewport.Y<64 then
+  readinessCandidate=nil;readinessViewport=nil;readinessSince=nil;return false
+ end
+ if candidate~=readinessCandidate or viewport~=readinessViewport then
+  readinessCandidate=candidate;readinessViewport=viewport;readinessSince=now;return false
+ end
+ if now-readinessSince<.5 then return false end
+ camera=candidate;original={type=camera.CameraType,cf=camera.CFrame,fov=camera.FieldOfView}
+ phaseStart=now
 camera.CameraType=Enum.CameraType.Scriptable;camera.CFrame=CFrame.lookAt(Vector3.new(0,8,24),Vector3.new(0,8,-20));camera.FieldOfView=60
-local fixedFrame=camera.CFrame;local fixedFov=camera.FieldOfView
-local fixedViewport=camera.ViewportSize
+fixedFrame=camera.CFrame;fixedFov=camera.FieldOfView
+fixedViewport=camera.ViewportSize
 local quality="unknown";pcall(function()quality=tostring(UserSettings():GetService("UserGameSettings").SavedQualityLevel)end)
 print("BEAM_PERFORMANCE_START "..Http:JSONEncode({buildIdentity=buildIdentity,viewport={camera.ViewportSize.X,camera.ViewportSize.Y},savedQualityPreference=quality,rendererQualityControlled=false,warmSeconds=2,sampleSeconds=5,maxBeams=24,animationCadence="accumulated dt >=1/30 then reset0 (Client)",clock="os.clock",units="ms",limitations="Studio frame intervals and instrumented script section elapsed duration only; no GPU/phone/network claim"}))
+ return true
+end
 connection=Run.RenderStepped:Connect(function(dt)
  if done then return end
  local ok,err=xpcall(function()
   local now=os.clock()
+  if not fixedViewport and not settleCamera(now) then return end
   check(camera.ViewportSize==fixedViewport,"Viewport changed; comparison invalid")
   check(workspace.CurrentCamera==camera and camera.CameraType==Enum.CameraType.Scriptable and camera.CFrame==fixedFrame and camera.FieldOfView==fixedFov,"Camera changed; comparison invalid")
   if phase==4 then

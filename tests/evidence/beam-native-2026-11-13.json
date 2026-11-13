@@ -1,0 +1,191 @@
+{
+  "recordedAtUtc": "2026-11-13T01:04:52.502036+00:00",
+  "baseCommit": "b402c3fa22d291f5534b6ff02ec33ea77d07dce7",
+  "scope": "One native Studio local place0 client-only benchmark; synthetic overlapping visuals, no map/combat/audio/network/phone/GPU proof",
+  "firstAttempt": [
+    {
+      "marker": "BEAM_PERFORMANCE_START",
+      "record": {
+        "limitations": "Studio frame intervals and instrumented script section elapsed duration only; no GPU/phone/network claim",
+        "animationCadence": "accumulated dt >=1/30 then reset0 (Client)",
+        "buildIdentity": "508ad4e5697c85fef6b684c649ca95307c98a5720ef6f6b3489951bcff7a89df",
+        "units": "ms",
+        "clock": "os.clock",
+        "maxBeams": 24,
+        "warmSeconds": 2,
+        "viewport": [
+          1,
+          1
+        ],
+        "sampleSeconds": 5,
+        "rendererQualityControlled": false,
+        "savedQualityPreference": "Enum.SavedQualitySetting.Automatic"
+      }
+    },
+    {
+      "marker": "BEAM_PERFORMANCE_RESULT",
+      "record": {
+        "ok": false,
+        "checks": 3,
+        "rows": 0,
+        "buildIdentity": "508ad4e5697c85fef6b684c649ca95307c98a5720ef6f6b3489951bcff7a89df",
+        "studioOnly": true,
+        "gpuTiming": false,
+        "disconnected": true,
+        "error": "Players.InfernalBeast21.PlayerScripts.Review:19: Viewport changed; comparison invalid\nPlayers.InfernalBeast21.PlayerScripts.Review:19\nPlayers.InfernalBeast21.PlayerScripts.Review:54\n",
+        "cleanupErrors": []
+      }
+    }
+  ],
+  "correctedRun": [
+    {
+      "marker": "BEAM_PERFORMANCE_START",
+      "record": {
+        "limitations": "Studio frame intervals and instrumented script section elapsed duration only; no GPU/phone/network claim",
+        "animationCadence": "accumulated dt >=1/30 then reset0 (Client)",
+        "buildIdentity": "2c6263383c5cc30fd533b3e13db7aaffbeba826f47e1895874411b1f185f7cb2",
+        "units": "ms",
+        "clock": "os.clock",
+        "maxBeams": 24,
+        "warmSeconds": 2,
+        "viewport": [
+          1626.4000244140625,
+          734.4000244140625
+        ],
+        "sampleSeconds": 5,
+        "rendererQualityControlled": false,
+        "savedQualityPreference": "Enum.SavedQualitySetting.Automatic"
+      }
+    },
+    {
+      "marker": "BEAM_PERFORMANCE_ROW",
+      "record": {
+        "visible": 0,
+        "script": {
+          "p50": 0.000100000761449337,
+          "p95": 0.000100000761449337,
+          "p99": 0.000100000761449337,
+          "max": 0.0025999979698099196,
+          "n": 302
+        },
+        "phase": "baseline",
+        "allocated": 0,
+        "buildIdentity": "2c6263383c5cc30fd533b3e13db7aaffbeba826f47e1895874411b1f185f7cb2",
+        "sampleSpanSeconds": 5.016515999996045,
+        "cached": 0,
+        "frame": {
+          "p50": 16.702499240636826,
+          "p95": 17.292700707912445,
+          "p99": 17.584800720214844,
+          "max": 18.077600747346878,
+          "n": 302
+        },
+        "count": 0,
+        "sampledFrameSeconds": 5.033572209998965
+      }
+    },
+    {
+      "marker": "BEAM_PERFORMANCE_ROW",
+      "record": {
+        "visible": 512,
+        "script": {
+          "p50": 0.0012999953469261527,
+          "p95": 2.974000002723187,
+          "p99": 3.0871999988448806,
+          "max": 3.213200005120598,
+          "n": 300
+        },
+        "phase": "regular24",
+        "allocated": 512,
+        "buildIdentity": "2c6263383c5cc30fd533b3e13db7aaffbeba826f47e1895874411b1f185f7cb2",
+        "sampleSpanSeconds": 4.984507400004077,
+        "cached": 0,
+        "frame": {
+          "p50": 16.718899831175804,
+          "p95": 17.750300467014313,
+          "p99": 18.089700490236282,
+          "max": 18.320700153708458,
+          "n": 300
+        },
+        "count": 24,
+        "sampledFrameSeconds": 5.001186477020383
+      }
+    },
+    {
+      "marker": "BEAM_PERFORMANCE_ROW",
+      "record": {
+        "visible": 96,
+        "script": {
+          "p50": 0.0012000018614344299,
+          "p95": 0.14620000001741573,
+          "p99": 0.17010000010486692,
+          "max": 0.23139999393606558,
+          "n": 301
+        },
+        "phase": "reduced24",
+        "allocated": 512,
+        "buildIdentity": "2c6263383c5cc30fd533b3e13db7aaffbeba826f47e1895874411b1f185f7cb2",
+        "sampleSpanSeconds": 5.000360400001227,
+        "cached": 416,
+        "frame": {
+          "p50": 16.709299758076668,
+          "p95": 17.927199602127075,
+          "p99": 18.254799768328667,
+          "max": 18.49590055644512,
+          "n": 301
+        },
+        "count": 24,
+        "sampledFrameSeconds": 5.016660206951201
+      }
+    },
+    {
+      "marker": "BEAM_PERFORMANCE_RESULT",
+      "record": {
+        "ok": true,
+        "checks": 5384,
+        "rows": 3,
+        "buildIdentity": "2c6263383c5cc30fd533b3e13db7aaffbeba826f47e1895874411b1f185f7cb2",
+        "studioOnly": true,
+        "gpuTiming": false,
+        "disconnected": true,
+        "cleanupErrors": []
+      }
+    }
+  ],
+  "localIdentity": {
+    "identityMatches": true,
+    "isStudio": true,
+    "gameId": 0,
+    "serverScripts": 0,
+    "placeId": 0,
+    "name": "BeamPerformanceReview.rbxl"
+  },
+  "stopped": "Game Stopped",
+  "artifactProvenance": {
+    "nativeExecuted": false,
+    "buildIdentity": "2c6263383c5cc30fd533b3e13db7aaffbeba826f47e1895874411b1f185f7cb2",
+    "builderSha256": "0dd5a545fc4cc284c8be7a07455ce8acbeaa75239b0289ca226111a727f4535f",
+    "generatedFixtureSha256": "0789b3db8b72a6f4e56bdb6311b58a96c3c13933a64c5f900053536fb31fca32",
+    "sourceHashes": {
+      "Fixture": "3c99322825162e74d25b9d77bd6c62e4e114912964db3489ada667662be1add2",
+      "BeamVisuals": "89ff773cebcb2d3a5876a6d70e3bc561d3a7573c12119232a5cce950a08eccda",
+      "SustainedBeams": "f540efde768105a226c89e556a0231829e1314e71e6688928e2bfe01df8ced40",
+      "ClientCadence": "af4abeaaa544ac07d57481c0d8dbe11c931c60a8ca2194e4080af3eda3cbb4b9",
+      "BeamStyle": "7d04942802ed56fb09d18002e7a11dc02275783021fc06285433d61599ad58d2"
+    },
+    "artifactSha256": "ee1ac293d48f4379a2ad226e6d903881e166c546871ea7daf12059913abcb383",
+    "scope": "Studio-only client visuals; frame intervals/script durations, not GPU, phone or network measurements"
+  },
+  "sourceHashes": {
+    "tests/StudioBeamPerformance.client.luau": "3c99322825162e74d25b9d77bd6c62e4e114912964db3489ada667662be1add2",
+    "tests/beam_performance_cleanup.py": "c1daabc29cf8625533c9a01efad26fe12d486e875a450a41d025ae627ad07841",
+    "tests/build_beam_performance_review.py": "0dd5a545fc4cc284c8be7a07455ce8acbeaa75239b0289ca226111a727f4535f"
+  },
+  "limitations": [
+    "One fixed-order run, automatic rendering quality, Studio and background activity uncontrolled",
+    "Visible field counts active geometry, not GPU draw calls or unoccluded pixels",
+    "Reduced keeps512allocated with416cached; no immediate memory saving claim",
+    "Three asset-type warnings were present; their source is not established",
+    "Readiness/cleanup tests are mocked; native success does not prove all interruption cases"
+  ]
+}
