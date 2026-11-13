@@ -17,6 +17,7 @@ local Controls=require('../src/StarterPlayer/StarterPlayerScripts/SustainedContr
 local VoiceActivation=require('../src/ReplicatedStorage/Shared/VoiceActivation')
 local clientDestroyed=false
 local lockController={Clear=function()end}
+local academy={lockLostUntil=0} -- Presentation dependency; voice-notice assertions remain unchanged.
 local notifications=Queue.new();local sustainedControl;local windowFocused=true
 local action={FireServer=function()end};local unavailable=false
 local function blocked()return unavailable end

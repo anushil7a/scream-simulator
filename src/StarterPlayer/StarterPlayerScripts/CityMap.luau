@@ -36,6 +36,12 @@ local landmarks=CompactLayout and CompactLayout.MapLandmarks or {
  {name='7 · Timber pier',x=525,z=537},
  {name='8 · Training fighters',x=-320,z=545},
 }
+-- Pad fills use authored world colors; badges echo the trainers' uniform accents.
+local trainingBadges={
+ TrainingPad1={label="L1",color=Color3.fromRGB(111,196,180)},
+ TrainingPad2={label="L25",color=Color3.fromRGB(219,120,94)},
+ TrainingPad3={label="L60",color=Color3.fromRGB(240,192,89)},
+}
 function CityMap.create(parent,compact)
  local map=box(parent,'CityMap',.5,.5,1,1,Color3.fromRGB(47,69,69));map.AnchorPoint=Vector2.new(.5,.5)
  local ratio=Instance.new('UIAspectRatioConstraint');ratio.AspectRatio=CityMap.aspectRatio;ratio.AspectType=Enum.AspectType.FitWithinMaxSize;ratio.Parent=map
@@ -58,8 +64,18 @@ function CityMap.create(parent,compact)
    local court=part.id=='Court'
    if architecture or training or cover or court then
     local start=position(part.position.X-part.size.X/2,part.position.Z-part.size.Z/2)
-    local color=architecture and Color3.fromRGB(173,181,167) or training and Color3.fromRGB(87,144,137) or cover and Color3.fromRGB(166,131,111) or Color3.fromRGB(110,157,148)
+    local color=architecture and Color3.fromRGB(173,181,167) or training and part.color or cover and Color3.fromRGB(166,131,111) or Color3.fromRGB(110,157,148)
     box(map,'Footprint_'..part.id,start.X.Scale,start.Y.Scale,part.size.X/width,part.size.Z/depth,color)
+    local tier=trainingBadges[part.id]
+    if tier and not compact then
+     local badge=box(map,'TrainingTier_'..part.id,0,0,0,0,tier.color)
+     badge.Size=UDim2.fromOffset(36,20);badge.AnchorPoint=Vector2.new(0,.5)
+     badge.Position=position(part.position.X,part.position.Z);badge.ZIndex=3
+     local edge=Instance.new('UIStroke');edge.Color=Color3.fromRGB(22,39,46);edge.Thickness=1;edge.Parent=badge
+     local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(0,4);corner.Parent=badge
+     local words=text(badge,tier.label,12,Color3.fromRGB(22,39,46));words.ZIndex=4
+     words.Position=UDim2.fromOffset(8,0);words.Size=UDim2.new(1,-8,1,0)
+    end
    end
   end
   for _,road in ipairs(CompactLayout.MapRoads) do
@@ -86,7 +102,13 @@ function CityMap.create(parent,compact)
  local boundary=box(map,'ArenaBoundary',arenaX,arenaZ,arenaWidth,arenaHeight,cream);boundary.BackgroundTransparency=1
  local stroke=Instance.new('UIStroke');stroke.Color=Color3.fromRGB(247,139,120);stroke.Thickness=2;stroke.Parent=boundary
  for i,v in ipairs(compact and {} or landmarks) do
+  if CompactLayout and v.name=="2 Training" then continue end
   local pin=box(map,'Landmark'..i,0,0,0,0,Color3.fromRGB(22,39,46));pin.Size=UDim2.fromOffset(23,23);pin.AnchorPoint=Vector2.new(.5,.5);pin.Position=position(v.x,v.z)
+  if CompactLayout then
+   -- Give nearby pins breathing room on narrow maps without shrinking their text.
+   pin.Size=UDim2.fromScale(.08,.08*CityMap.aspectRatio)
+   local size=Instance.new('UISizeConstraint');size.MinSize=Vector2.new(18,18);size.MaxSize=Vector2.new(23,23);size.Parent=pin
+  end
   local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=pin;text(pin,tostring(i),13)
  end
  local dot=box(map,'Player',0,0,0,0,gold);dot.Size=UDim2.fromOffset(compact and 8 or 18,compact and 8 or 18);dot.AnchorPoint=Vector2.new(.5,.5);dot.ZIndex=5
@@ -140,7 +162,11 @@ if CompactLayout then
  CityMap.activityHelp="PvP ends at the marked arena boundary."
  CityMap.legendHeight=#landmarks*20+24
  local lines={}
- for _,landmark in ipairs(landmarks) do table.insert(lines,landmark.name) end
+ for _,landmark in ipairs(landmarks) do
+  if landmark.name=="2 Training" then
+   table.insert(lines,"Training: L1 Rookie / L25 Brawler / L60 Elite")
+  else table.insert(lines,landmark.name) end
+ end
  CityMap.legend=table.concat(lines,"\n")
 end
 return CityMap

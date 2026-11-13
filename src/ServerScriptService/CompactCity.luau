@@ -108,6 +108,27 @@ local function academyArt(parent,byId)
  end
  detail("ArenaFascia",V(.35,3,39),V(-122.2,13.5,50),slate)
  detail("ArenaFasciaBand",V(.4,.5,39),V(-122.4,15.3,50),gold)
+ -- An overhead voice crest gives the entrance an identity without false cover.
+ for _,z in ipairs({34,66})do
+  detail("AcademySignSupport"..z,V(.7,3,1),V(-120,15.5,z),slate)
+ end
+ local academySign=detail("AcademyNameplate",V(.8,4,37),V(-120,19,50),slate)
+ detail("AcademySignTop",V(.95,.35,37.5),V(-120,21.15,50),gold)
+ detail("AcademySignBottom",V(.95,.35,37.5),V(-120,16.85,50),gold)
+ detail("AcademyCrestRim",V(.6,10,10),V(-120,26,50),gold,Enum.PartType.Cylinder)
+ for _,side in ipairs({-1,1})do
+  detail("AcademyCrestFace"..side,V(.1,8.5,8.5),V(-120+side*.36,26,50),slate,Enum.PartType.Cylinder)
+  for i,height in ipairs({2.4,4.5,6.4,4.5,2.4})do
+   detail("AcademyVoiceBar"..side.."_"..i,V(.16,height,.85),V(-120+side*.49,26,50+(i-3)*1.5),i==3 and gold or ivory)
+  end
+  local gui=Instance.new("SurfaceGui");gui.Name="AcademySign"..side
+  gui.Face=side<0 and Enum.NormalId.Left or Enum.NormalId.Right
+  gui.SizingMode=Enum.SurfaceGuiSizingMode.FixedSize;gui.CanvasSize=Vector2.new(600,72)
+  gui.LightInfluence=0;gui.MaxDistance=140;gui.AlwaysOnTop=false;gui.Parent=academySign
+  local text=Instance.new("TextLabel");text.Name="AcademyName";text.Size=UDim2.fromScale(1,1)
+  text.BackgroundTransparency=1;text.Text="SCREAM ACADEMY";text.TextColor3=ivory
+  text.Font=Enum.Font.GothamBold;text.TextSize=50;text.TextWrapped=false;text.Parent=gui
+ end
  -- Calm ground articulation: small cross-joints, never new borders resembling
  -- a damage or collision boundary. Route strips remain above.
  for z=-140,140,20 do

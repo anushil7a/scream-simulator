@@ -2,6 +2,13 @@
 
 Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 13 completed visual integration
+
+- Training map colors/tier labels, narrow full-map pin spacing and acquired/lost lock feedback are complete. Native local map/lock samples cover fitted labels, scrolled legend and simulated pointer/key states. [Training](TRAINING_MAP_REVIEW.md), [spacing](SMALL_SCREEN_MAP_REVIEW.md), [lock](LOCK_INDICATOR_REVIEW.md), [native scope](NATIVE_VISUAL_VALIDATION.md).
+- The academy entrance has an original two-sided crest/title; confirmed damage has bounded dark-backed contact strokes; L80-100 detailed beams use quieter supporting contours and a clearer spine. [Academy](ACADEMY_LANDMARK_REVIEW.md), [contact](BEAM_CONTACT_REVIEW.md), [high tiers](HIGH_TIER_REVIEW.md).
+- Source matches the completed reviewed local checkpoint. Machine-local logs/diagnostic histories remain private. Exact reachable baseline bindings and one hash-checked renderer fixture make the integrated regression tests portable. [Integration verification](NOVEMBER13_INTEGRATION_REVIEW.md).
+- Existing draft PR #1 remains the development destination. No Roblox publication or release merge. Next: genuine eligible microphone, physical-device/input, animated comfort, multiplayer/performance and persistence/release-gate acceptance. Native fixtures, static images and mocks do not establish those results.
+
 ## November 13 isolated player-name art prototype
 
 - Native Studio normal/long/Unicode name-only navy/gold prototype is readable; six art states report TextFits. Portable source and explicit build instructions are preserved separately from production. [Prototype/images](PLAYER_TAG_PROTOTYPE_REVIEW.md), [evidence](../tests/evidence/player-tag-prototype-2026-11-13.json).

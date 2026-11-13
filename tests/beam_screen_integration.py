@@ -147,7 +147,13 @@ if args.negative_controls:
  ('connectClient(p.CharacterRemoving,function() beamScreenFeedback:Clear() end)','connectClient(p.CharacterRemoving,function() end)','Character removal retained'),
  ('ownClient(function() beamScreenFeedback:Destroy() end)','ownClient(function() end)','Destroy retained'),
  ]
+ hook_start=c.index(' -- A current local acknowledgement,',c.index('connectClient(Run.RenderStepped'))
+ hook_end=c.index(' local root=',hook_start);hook=c[hook_start:hook_end]
  for old,new,error in cases:
-  assert c.count(old)==1,old;run(c.replace(old,new),error)
+  # Contact has its own acknowledgement fence; mutate only the screen hook here.
+  if old in hook:
+   assert hook.count(old)==1,old;run(c[:hook_start]+hook.replace(old,new)+c[hook_end:],error)
+  else:
+   assert c.count(old)==1,old;run(c.replace(old,new),error)
  line=next(s for s in c.splitlines()if s.strip().startswith('beamScreenFeedback:Step('));gate=' elapsed+=dt;if elapsed<.15 then return end;elapsed=0'
  assert gate in c;run(c.replace(line+'\n','').replace(gate,gate+'\n'+line),'Screen feedback throttled')

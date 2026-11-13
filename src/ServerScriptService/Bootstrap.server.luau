@@ -397,8 +397,17 @@ local function stepSustained(p,s,now)
   end
  end
  local dealt=0
+ local contactPosition,contactChosen
  for _,hit in ipairs(hits) do
   local target=details[hit.id]
+  local dealtBefore=dealt
+  local targetRoot=target.bot and target.bot.root
+  if target.player then
+   local character=target.player.Character
+   targetRoot=typeof(character)=="Instance" and character:IsA("Model") and character:FindFirstChild("HumanoidRootPart") or nil
+  end
+  local position=typeof(targetRoot)=="Instance" and targetRoot:IsA("BasePart") and targetRoot.Parent and targetRoot.Position
+  if typeof(position)~="Vector3" or not VoiceCombat.IsFinite(position.X) or not VoiceCombat.IsFinite(position.Y) or not VoiceCombat.IsFinite(position.Z) then position=nil end
   if target.player then
    local ts,h=target.session,target.humanoid
    local actual=math.min(hit.damage,h.Health);dealt+=actual
@@ -439,11 +448,12 @@ local function stepSustained(p,s,now)
     if rewardCoins>0 or rewardXP>0 then coins(p,rewardCoins);xp(p,rewardXP) end
    end
   end
+  if dealt>dealtBefore and not contactChosen then contactChosen=true;contactPosition=position end
  end
  if dealt>0 then
   s.nextHeal=now+Config.HealQuietSeconds
   intent.damageTotal=(intent.damageTotal or 0)+dealt
-  effect:FireClient(p,"SustainedHit",nil,p:GetAttribute("SustainedSequence"),math.floor(intent.damageTotal+.5))
+  effect:FireClient(p,"SustainedHit",contactPosition,p:GetAttribute("SustainedSequence"),math.floor(intent.damageTotal+.5))
  end
 end
 local function cast(p,request)

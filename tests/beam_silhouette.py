@@ -27,9 +27,15 @@ for _,level in ipairs({1,40,100})do
   local spec=StyleSource.Detail(level,false,0)
   check(r.parts[1].Material==Enum.Material.SmoothPlastic and r.parts[2].Material==Enum.Material.SmoothPlastic and r.parts[4].Material==Enum.Material.SmoothPlastic and r.parts[5].Material==Enum.Material.SmoothPlastic,'Wide regular body still emissive')
   check(r.parts[3].Material==Enum.Material.Neon and r.parts[6].Material==Enum.Material.Neon,'Fine energy detail not emissive')
+  if level>=80 then
+   for i=6,5+spec.rings*10 do
+    check(r.parts[i].Material==(i<=15 and Enum.Material.Neon or Enum.Material.SmoothPlastic),'High-tier collar hierarchy changed')
+   end
+  end
   check(#r.parts==5+spec.rings*10+spec.strands*12+spec.sparks,'Part budget/detail count changed')
-  check(near(r.parts[1].Size.Y,radius*1.35*pulse) and r.parts[1].Transparency==.55,'Regular body not slim/quiet')
+  check(near(r.parts[1].Size.Y,radius*1.35*pulse) and r.parts[1].Transparency==(level>=80 and .78 or .55),'Regular body not slim/quiet')
   check(same(r.parts[2].Color,tint) and near(r.parts[2].Size.Y,radius*.85),'Semantic body tint/diameter changed')
+  check(r.parts[2].Transparency==(level>=80 and .7 or .18),'Body transparency tier boundary changed')
   check(near(r.parts[3].Size.Y,radius*.1) and same(r.parts[3].Color,tint:Lerp(white,.72)),'Hot spine lost hierarchy/tint')
   check(r.parts[4].Shape==Enum.PartType.Cylinder and near(r.parts[4].Size.X,radius*.22) and near(r.parts[4].Size.Y,radius*1.25),'Termination lens missing')
   check(near(r.parts[4].CFrame.Position.Z,40-radius*.11) and near(r.parts[4].CFrame.Target.Z,40),'Lens exceeds endpoint')

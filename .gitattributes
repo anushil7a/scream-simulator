@@ -16,3 +16,6 @@ prototypes/compact-city/*.rbxmx text eol=lf
 
 # Preserve exact pinned legacy quest writer bytes across Windows checkouts.
 tests/fixtures/quest-writer-7a0b044/*.luau text eol=lf
+
+# Preserve the exact reviewed renderer baseline across Windows checkouts.
+tests/fixtures/nov13-contact-baseline/*.luau text eol=lf

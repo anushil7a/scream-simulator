@@ -37,7 +37,7 @@ end
 check(Layout.Practice==nil,'Retired layout practice metadata remains')
 for _,n in ipairs(nodes)do check(not n.Name or not n.Name:match('^Practice') and n.Name~='StandLine' and n.Name~='SpawnWayfinding','Retired mic area was recreated') end
 table.sort(originals);for _,line in ipairs(originals)do print('ORIGINAL|'..line)end
-check(count==291,'Unexpected cosmetic budget')
+check(count==309,'Unexpected cosmetic budget')
 for _,name in ipairs({'CanopyCrown0','MarketCornice0','OldTownCornice0','TowerLantern256','ArenaFascia','CourtyardJoint0','PromenadeJoint0','CoverTop0'})do check(names[name],'Missing art family '..name)end
 print('PASS '..checks..' coastal art assertions; '..count..' static cosmetic parts')
 '''

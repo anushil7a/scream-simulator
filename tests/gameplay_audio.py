@@ -96,7 +96,8 @@ try:
 finally:
     path.unlink()
 client=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
-assert 'if hitFeedback:Accept(id,aura,os.clock()) then playGameplayCue("Hit");beamScreenFeedback:Hit(os.clock(),screenFeedbackAllowed()) end' in client
+hit=client[client.index(' if kind=="SustainedHit" then'):client.index(' if kind=="SustainedBeamEnd" then')]
+assert ' '.join(hit.split()).startswith('if kind=="SustainedHit" then if hitFeedback:Accept(id,aura,os.clock()) then playGameplayCue("Hit");beamScreenFeedback:Hit(os.clock(),screenFeedbackAllowed())')
 assert 'gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())' in client
 assert 'playGameplayCue("Dodge",pos)' in client and 'playGameplayCue("Break",pos)' in client
 assert 'gameplayAudio:Clear()' in client and 'gameplayAudio:Destroy()' in client

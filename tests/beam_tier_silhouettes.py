@@ -34,6 +34,7 @@ for _,e in ipairs(cases)do
   local age=.6;local radius=7*(.24+s.tier*.012)
   Visuals.Animate(r,r.born+age,Vector3.zero,false)
   check(#r.parts==5+s.rings*10+s.strands*12+s.sparks,'Actual geometry count mismatches profile')
+  check(r.parts[1].Transparency==(level>=80 and .78 or .55) and r.parts[2].Transparency==(level>=80 and .7 or .18),'Body transparency tier boundary changed')
   local travel=(age*(.6+s.tier*.025)+1/s.rings)%1;local rr=radius*(.85+.2*math.sin(travel*math.pi))*(s.tier>=1 and 1.25 or 1);local angle=(1-.28)*math.pi/5+age*.9+.6
   local radial=rr
   if e[5]=='diamond' then radial/=math.abs(math.cos(angle))+math.abs(math.sin(angle)) elseif e[5]=='star' then radial*=.72+.28*(.5+.5*math.cos(angle*5)) end
@@ -41,6 +42,9 @@ for _,e in ipairs(cases)do
   check(near(endPoint.X,math.cos(angle)*radial) and near(endPoint.Y,math.sin(angle)*radial),'Actual collar ignores authored silhouette')
   check(near(endPoint.Z,travel*40+(e[5]=='diamond' and math.cos(angle)*radial*.75 or 0)),'Side-view collar sweep missing')
   check(near(r.parts[6].Size.Y,.16+s.tier*.012),'Readable collar thickness missing')
+  if level>=80 then
+   for i=16,5+s.rings*10 do check(near(r.parts[i].Size.Y,.1) and near(r.parts[i].Size.Z,.1),'Supporting collar thickness changed')end
+  end
   if s.strands>0 then
    for strand=1,s.strands do
     for i=1,12 do
@@ -85,7 +89,7 @@ def main():
   r=run(style,plain);assert r.returncode==0,r.stdout+r.stderr;print('PASS same tier assertions without pre-existing local collar fade')
  if args.negative_controls:
   cases=[(style.replace('[1]={collar="diamond"','[1]={collar="round"'),visual,'Authored tier identity missing'),(style,visual.replace('local offset=collarOffset','local offset=offset'),'Actual collar ignores'),(style,visual.replace('if spec.ribbon=="zigzag" then','if false then'),'Actual ribbon ignores'),(style,visual.replace('spec.ribbon=="braid" and (strand==1 and 1 or -1) or 1','1'),'Actual ribbon ignores'),(style,visual.replace('2*spec.turns*winding','3*winding'),'Actual ribbon ignores')]
-  cases += [(style,visual.replace('*(tier>=1 and 1.25 or 1)',''),'Actual collar ignores'),(style,visual.replace('math.cos(angle)*r*.75','0'),'Side-view collar sweep missing'),(style,visual.replace('.16+tier*.012,color','.055+tier*.008,color'),'Readable collar thickness missing')]
+  cases += [(style,visual.replace('*(tier>=1 and 1.25 or 1)',''),'Actual collar ignores'),(style,visual.replace('math.cos(angle)*r*.75','0'),'Side-view collar sweep missing'),(style,visual.replace('.16+tier*.012,support and color','.055+tier*.008,support and color'),'Readable collar thickness missing')]
   for st,vs,message in cases:
    assert st!=style or vs!=visual;r=run(st,vs);assert r.returncode and message in r.stderr,r.stdout+r.stderr
   print('PASS 8 targeted silhouette controls')

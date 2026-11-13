@@ -9,6 +9,7 @@ respawn_line=next(line for line in s.splitlines() if line.startswith('connectCli
 setup='''
 local unavailable=false;local windowFocused=true
 local lockController={Clear=function()end}
+local academy={lockLostUntil=0} -- Presentation dependency; voice assertions remain unchanged.
 local blocked=function()return unavailable end
 local beamBlocked=blocked;local voiceEligibilityHint=function()return nil end
 local calls=0;local sustainedControl={armed=false}

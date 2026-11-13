@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "originCommit": "b76c94fafd65be4cec85f1c5f2caa4355262e43b",
+  "originPath": "src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau",
+  "file": "BeamVisuals.luau",
+  "bytes": 9006,
+  "sha256": "2b274f82ae70814f4c2347d49edc83c9888b6f08b9eb977449e532c14c90c290",
+  "scope": "Exact reviewed contact renderer before high-tier styling; test fixture only, never production. Origin commit remains local; this file makes comparisons portable."
+}

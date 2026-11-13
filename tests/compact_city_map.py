@@ -45,9 +45,15 @@ for _,heading in ipairs({{0,-1,0},{1,0,90},{0,1,180},{-1,0,-90},{1,-1,45},{-1,1,
 end
 for i,v in ipairs(Layout.MapLandmarks)do
  local pin=find(full.map,'Landmark'..i);local projected=CityMap.Project(v.x,v.z)
- check(pin and near(pin.Position.X.Scale,projected.X.Scale) and near(pin.Position.Y.Scale,projected.Y.Scale),'Compact landmark misplaced')
+ if v.name=='2 Training' then
+  check(not pin,'Generic training pin retained')
+  for tier=1,3 do check(find(full.map,'TrainingTier_TrainingPad'..tier)~=nil and not find(mini.map,'TrainingTier_TrainingPad'..tier),'Training tier replacement missing or mini clutter')end
+  check(CityMap.legend:find('Training: L1 Rookie / L25 Brawler / L60 Elite',1,true)~=nil,'Training legend missing')
+ else
+  check(pin and near(pin.Position.X.Scale,projected.X.Scale) and near(pin.Position.Y.Scale,projected.Y.Scale),'Compact landmark misplaced')
+  check(string.find(CityMap.legend,v.name,1,true)~=nil,'Legend omits compact landmark')
+ end
  check(not find(mini.map,'Landmark'..i),'Minimap landmark clutter')
- check(string.find(CityMap.legend,v.name,1,true)~=nil,'Legend omits compact landmark')
 end
 for _,road in ipairs(Layout.MapRoads)do
  local projected=CityMap.Project(road.x-road.width/2,road.z-road.depth/2)
@@ -88,6 +94,7 @@ def run(body,error=None):
 run(source)
 if args.negative_controls:
  for old,new,error in [
+  ('if CompactLayout and v.name=="2 Training" then continue end','','Generic training pin retained'),
   ('Red: PvP arena.','Red: PvP arena. Pale paths connect the courtyard, market and coast.','Compact map copy drift'),
   ('PvP ends at the marked arena boundary.','Explore the city.','Compact boundary warning drift'),
   ('(x-minX)/width','(x+720)/1440','Compact arena fraction wrong'),
