@@ -599,18 +599,17 @@ render=function()
    local nextStats=Config.VoiceCombat.Stats(nextStyle.level,1,false)
    progress..=string.format("\nAt level %d: %d HP · %.1f max DPS",nextStyle.level,nextStats.health,nextStats.maxDps)
   end
-  info(progress..string.format("\nNow: %d HP · %.1f max DPS\nTrain at the %s pad. Challenges are in Quests.",stats.health,stats.maxDps,data.training or "Rookie"))
+  info(progress..string.format("\nNow: %d HP · %.1f max DPS",stats.health,stats.maxDps))
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
   local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs",data.level,maximum.maxDps,maximum.maxRange)
    or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs",data.level,maximum.damage,maximum.maxRange)
   info(combatSummary,narrow and 112 or 82)
   info("Sound styles change audio, not damage or range. These limits use your current level for the next attack. Lower voice power and cover shorten reach. DPS requires full power and continuous contact.",narrow and 150 or 96)
   for _,s in ipairs(Config.Sounds) do
-   local c=card(narrow and 194 or 118);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
+   local c=card(narrow and 150 or 76);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,narrow and 44 or 26),UDim2.fromOffset(14,8),17,gold)
    label(c,s.description,UDim2.new(1,narrow and -28 or -158,0,narrow and 40 or 25),UDim2.fromOffset(14,narrow and 54 or 36),13)
-   label(c,"SOUND STYLE · uses your level's beam power",UDim2.new(1,-28,0,40),UDim2.fromOffset(14,narrow and 95 or 69),12,muted)
    local unlocked=data.level>=s.level
-   local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,narrow and 145 or 21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
+   local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,narrow and 102 or 21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
    if not unlocked then b.TextColor3=muted end
   end
  elseif selected=="Quests" then
@@ -687,13 +686,13 @@ render=function()
   local touch=UIS.TouchEnabled
   local attackHelp
   if sustainedControl then
-   attackHelp=string.format("BEAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each beam.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap BEAMS" or "E / BEAMS")
+   attackHelp=string.format("Beams start OFF. BEAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each beam.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap BEAMS" or "E / BEAMS")
   else attackHelp=touch and "Hold BEAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / BEAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
   info("VOICE SAFETY\nAvoid profanity. Roblox's profanity rules depend on the game's rating and settings; harassment, threats and hate speech are not allowed. Rule violations may restrict voice or your account.\nRoblox records voice for moderation. The beam mechanic reads volume, not words. Stopping attacks does not mute voice. Use Roblox's mic control to mute, or Report Abuse for violations.",100)
   info(string.format("Third-person camera\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
   info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
-  info("MICROPHONE\n"..mic.status.."\nBeams start OFF. Turn BEAMS ON deliberately; normal speech can attack. OFF does not mute Roblox voice.",90)
+  info("MICROPHONE\n"..mic.status,60)
   if not mic.eligible and not mic.checkPending then
    local accessCard=card(64)
    button(accessCard,"RetryVoiceAccess","RETRY VOICE ACCESS",UDim2.new(1,-24,0,44),UDim2.fromOffset(12,10),function()

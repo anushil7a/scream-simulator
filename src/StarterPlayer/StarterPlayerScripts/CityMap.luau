@@ -136,8 +136,8 @@ CityMap.legendHeight=94
 CityMap.mapHelp="Gold arrow: you and your facing direction. Red: PvP. Green and sand: safe. Pale coast path: promenade."
 CityMap.activityHelp="Coffee: collect at the west café, then check your objective for the assigned stop. Race: lifeguard start to east promenade finish. PvP ends at the marked district boundary."
 if CompactLayout then
- CityMap.mapHelp="Gold arrow: you and your facing direction. Red: PvP arena. Pale paths connect the courtyard, market and coast."
- CityMap.activityHelp="Coffee: collect at the north market, then follow your assigned stop. Training is in the west courtyard. Race starts on the west promenade. PvP ends at the marked arena boundary."
+ CityMap.mapHelp="Gold arrow: you and your facing direction. Red: PvP arena."
+ CityMap.activityHelp="PvP ends at the marked arena boundary."
  CityMap.legendHeight=#landmarks*20+24
  local lines={}
  for _,landmark in ipairs(landmarks) do table.insert(lines,landmark.name) end

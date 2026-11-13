@@ -73,6 +73,8 @@ local replacement={Parent={},Position={X=-270,Z=130},CFrame={LookVector={X=-1,Z=
 CityMap.MiniUpdate(mini,replacement,.02,true);check(mini.dot.Visible and near(mini.dot.Position.X.Scale,.125) and mini.arrow==nil,'Respawn marker not immediate')
 local nextRoot={Parent={},Position={X=0,Z=0},CFrame={LookVector={X=1,Z=0}}};CityMap.MiniUpdate(mini,nextRoot,.025,true);check(near(mini.dot.Position.X.Scale,.5) and mini.arrow==nil,'Respawn marker not immediate')
 CityMap.MiniUpdate(mini,replacement,.03,false);check(not mini.dot.Visible and mini.lastRoot==nil,'Hidden marker retained')
+check(CityMap.mapHelp=='Gold arrow: you and your facing direction. Red: PvP arena.','Compact map copy drift')
+check(CityMap.activityHelp=='PvP ends at the marked arena boundary.','Compact boundary warning drift')
 print('PASS '..checks..' compact CityMap projection/render/lifecycle assertions; mocked GUI only')
 '''
 def run(body,error=None):
@@ -86,6 +88,8 @@ def run(body,error=None):
 run(source)
 if args.negative_controls:
  for old,new,error in [
+  ('Red: PvP arena.','Red: PvP arena. Pale paths connect the courtyard, market and coast.','Compact map copy drift'),
+  ('PvP ends at the marked arena boundary.','Explore the city.','Compact boundary warning drift'),
   ('(x-minX)/width','(x+720)/1440','Compact arena fraction wrong'),
   ('(z-minZ)/depth','(z+600)/1200','Compact arena fraction wrong'),
   ('math.atan2(look.X,-look.Z)','math.atan2(-look.X,-look.Z)','Compact facing direction wrong'),

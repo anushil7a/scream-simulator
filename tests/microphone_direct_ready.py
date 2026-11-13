@@ -99,7 +99,7 @@ if '--baseline' in sys.argv:
  print('PASS pinned historical actual-Microphone reproduction: live input requires calibration');sys.exit(0)
 out=run(build());print(out.stdout,end='');assert out.returncode==0,out.stderr
 assert 'micPanel' not in c and 'FirstBeamGuide' not in c and ':Calibrate()' not in c
-assert 'RETRY VOICE ACCESS' in c and 'normal speech can attack' in c and 'VOICE SAFETY' in c
+assert 'RETRY VOICE ACCESS' in c and 'normal speech can fire attacks' in c and 'VOICE SAFETY' in c
 assert 'micStatus=mic.status' in c
 print('PASS 3 no-wall/status source contracts')
 if '--negative-controls' in sys.argv:

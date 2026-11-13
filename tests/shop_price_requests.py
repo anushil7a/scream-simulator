@@ -6,7 +6,7 @@ path='src/StarterPlayer/StarterPlayerScripts/ShopUI.luau';s=subprocess.check_out
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
- local f={now=0,jobs={},buttons={},sent=0};local os={clock=function()return f.now end,time=function()return 100 end}
+ local f={now=0,jobs={},buttons={},sent=0,labels={}};local os={clock=function()return f.now end,time=function()return 100 end}
  local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement'})do table.insert(Catalog.Items,{key=key,id=100+i,kind=(i==1 or i==4) and 'pass' or 'product'})end
  function Catalog.Get(key)for _,v in ipairs(Catalog.Items)do if v.key==key then return v end end end
  for _,item in ipairs(Catalog.Items)do item.tag='tag';item.name=item.key;item.description='description';item.boost=item.key=='XP' and 'xp' or 'coins'end
@@ -19,7 +19,7 @@ local function fixture()
   local args={...};local co=coroutine.create(fn);table.insert(f.jobs,{co=co,args=args});assert(coroutine.resume(co,...))
  end}
  local ui={button=function(_,_,text,_,_,callback)local b={Text=text,Parent=true,callback=callback};table.insert(f.buttons,b);return b end}
- ui.card=function()return {}end;ui.label=function(_,text)return {Text=text}end;ui.frame=function()return {}end;ui.info=function()end
+ ui.card=function()return {}end;ui.label=function(_,text)f.labels[text]=true;return {Text=text}end;ui.frame=function()return {}end;ui.info=function()end
  local action={FireServer=function()f.sent+=1 end}
  local function module()
 '''
@@ -36,6 +36,8 @@ end
 checks=r'''
 for _,narrow in ipairs({false,true})do
  local rendered=fixture();for i=1,120 do rendered.render(narrow)end
+ check(rendered.labels['Yellow base. Saved colors are kept.'] and rendered.labels['One pass. Choose your beam hue.'],'Spectrum concise copy missing')
+ check(not rendered.labels['Unlock the hue picker. Yellow is the base color; saved colors are kept.'],'Repeated hue instruction retained')
  check(#rendered.jobs==4 and #rendered.stats().views==4,'Full Render did not bound four product views/calls')
  rendered.shop.Clear();check(#rendered.stats().views==0,'Full Render clear retained views')
 end
@@ -105,6 +107,10 @@ f=fixture();b=f.draw(2,true,false);f.finish(1,{IsForSale=true,PriceInRobux=10});
 f=fixture();f.items[2].id=0;b=f.draw();check(#f.jobs==0 and b.Text=='COMING SOON','Disabled product queried')
 print('PASS',n,'actual price-path assertions; coroutine API and GUI mocks only')
 '''
+# Historical lifecycle repros retain their original UI copy and intended failure oracle.
+if a.baseline or a.callback_baseline or a.disabled_baseline:
+ checks='\n'.join(line for line in checks.split('\n') if 'Spectrum concise copy missing' not in line and 'Repeated hue instruction retained' not in line)
+
 def run(source,error=None,baseline=False):
  tail="local f=fixture();for i=1,120 do f.draw()end;assert(#f.jobs==120);print('REPRO120 rerenders create120 pending price calls')" if baseline else checks
  with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=R/'tests',encoding='utf-8',delete=False)as t:t.write(setup+source+endsetup+tail);q=Path(t.name)
@@ -119,7 +125,7 @@ elif a.baseline:run(s,baseline=True)
 else:
  run(s)
  if a.negative_controls:
-  mutations=[('revision==generation and b and b.Parent and available','b and b.Parent and available','Obsolete priced callback sent after clear'),('revision==generation and b and b.Parent and available','revision==generation and available','Obsolete priced callback sent after detach'),(' or prices[item.key] and prices[item.key].key~=item.kind..":"..id','','Owned changed configuration retained obsolete request'),('if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end' ,'-- omitted disabled invalidation','Disabled ID roundtrip reused obsolete request'),('if record.info and os.clock()<record.expires then view.apply(record.info,false);return end','-- omitted synchronous cache apply','Synchronous success displayed unavailable'),('not record.pending and now>=','now>=','Rerenders duplicated pending request'),('priceInFlight<PRICE_LIMIT','true','Hung slot abandoned/replaced'),('record.retryAt=now+PRICE_RETRY','record.retryAt=now','Error not unavailable'),('now<record.deadline and validPrice(info)','validPrice(info)','Timed-out response cached'),('table.clear(priceViews)','do end','Full Render did not bound four product views/calls'),('if prices[record.itemKey]~=record then return end','if false then return end','Obsolete ID record accepted result')]
+  mutations=[('Yellow base. Saved colors are kept.','Unlock the hue picker. Yellow is the base color; saved colors are kept.','Spectrum concise copy missing'),('revision==generation and b and b.Parent and available','b and b.Parent and available','Obsolete priced callback sent after clear'),('revision==generation and b and b.Parent and available','revision==generation and available','Obsolete priced callback sent after detach'),(' or prices[item.key] and prices[item.key].key~=item.kind..":"..id','','Owned changed configuration retained obsolete request'),('if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end' ,'-- omitted disabled invalidation','Disabled ID roundtrip reused obsolete request'),('if record.info and os.clock()<record.expires then view.apply(record.info,false);return end','-- omitted synchronous cache apply','Synchronous success displayed unavailable'),('not record.pending and now>=','now>=','Rerenders duplicated pending request'),('priceInFlight<PRICE_LIMIT','true','Hung slot abandoned/replaced'),('record.retryAt=now+PRICE_RETRY','record.retryAt=now','Error not unavailable'),('now<record.deadline and validPrice(info)','validPrice(info)','Timed-out response cached'),('table.clear(priceViews)','do end','Full Render did not bound four product views/calls'),('if prices[record.itemKey]~=record then return end','if false then return end','Obsolete ID record accepted result')]
   for old,new,error in mutations:
    assert s.count(old)==1,old;run(s.replace(old,new),error)
 

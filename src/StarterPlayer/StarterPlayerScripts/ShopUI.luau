@@ -106,7 +106,7 @@ function Shop.Render(data,ui,action)
   local ring=ui.frame(hero,"EnergyRing",UDim2.fromOffset(14,42),UDim2.new(i/5,-7,0,122),accent)
   ring.BackgroundTransparency=1;stroke(ring,Color3.fromHSV(i/5,.5,1),2)
  end
- ui.label(hero,"Unlock the hue picker. Yellow is the base color; saved colors are kept.",UDim2.new(1,-32,0,narrow and 42 or 30),UDim2.fromOffset(16,167),13,soft)
+ ui.label(hero,"Yellow base. Saved colors are kept.",UDim2.new(1,-32,0,narrow and 42 or 30),UDim2.fromOffset(16,167),13,soft)
  purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,UDim2.new(1,-32,0,44),UDim2.fromOffset(16,narrow and 238 or 206))
  for index,key in ipairs({"XP","Coins"}) do
   local item=Catalog.Get(key);local tint=key=="XP" and violet or gold

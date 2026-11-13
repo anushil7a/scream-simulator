@@ -2,6 +2,13 @@
 
 Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 13 concise interface text
+
+- Removed repeated collection/Settings instructions, compact-map activity directions and redundant shop hue-picker wording. Kept controls, voice safety, live status, stats/unlocks, objectives and purchase/save terms. Collection cards use less empty space; no gameplay behavior changed.
+- Final local checkpoint passes 239 commands (25 pure/synthetic, 128 mocked suites, 64 production compiles/all builds), with 325 inputs unchanged and rechecked. Independent review and focused negative controls cover the scoped changes.
+- A local-only actual-client fixture passed 196 native text/allocation checks across 16 synthetic layouts/modes. Desktop screenshots inspected; physical device/OS scaling and real input are not proven. [Review and images](UI_COPY_CLEANUP_REVIEW.md), [evidence](../tests/evidence/ui-copy-cleanup-2026-11-13.json).
+- Disposable Studio stopped/closed, PC left on. No live publication. This is a bounded text pass, not removal of all instructions. Remaining old sound-card descriptions should be checked for claims inconsistent with audio-only style selection; real mic/multiplayer and mixed-version save release gates remain open.
+
 ## November 13 calibration-free entry and practice retirement
 
 - Removed the mandatory mic test, setup panel, runtime testing area and its tutorial/objective. Live input uses existing normalization defaults; Roblox eligibility and server combat gates remain. Beams start OFF and require deliberate ON. Graph loss/replacement or access retry cancels/disarms through a latched interruption, including same-step recovery.
