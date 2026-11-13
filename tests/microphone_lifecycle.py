@@ -39,7 +39,7 @@ end
 local Mic=loadMicrophone();local checks=0
 local function check(value,message)assert(value,message);checks+=1 end
 local m=Mic.new();m:Step(.05)
-check(m.eligible and not m.ready and m.analyzer~=nil,'Ready before calibration or no analyzer')
+check(m.eligible and m.ready and not m.model.calibrated and m.analyzer~=nil,'Finite live input did not become ready without calibration')
 local function samples(phase,rms)
  local count=0
  while m.phase==phase and count<100 do
@@ -74,12 +74,12 @@ end
 m:Calibrate();m.analyzer.RmsLevel=0/0;m:Step(.05)
 check(m.phase==nil and not m.ready and #m.quiet==0 and #m.spoken==0,'Invalid signal retained partial calibration')
 m.analyzer.RmsLevel=.001;m:Step(.05)
-check(not m.ready,'Valid signal bypassed interrupted calibration')
-check(m.status=='Microphone signal restored. Calibrate before attacking.','Signal recovery omitted fresh calibration guidance')
+check(m.ready and not m.model.calibrated,'Valid signal did not recover without completing interrupted calibration')
+check(string.find(m.status,'Microphone ready',1,true)~=nil,'Signal recovery omitted current readiness guidance')
 m:Calibrate();samples('quiet',.001);samples('voice',.08)
 local old=m.analyzer
 player.input.Parent=nil;player.input={Parent=true,Muted=false,Active=true};m:Step(.05)
-check(old.destroyed and m.analyzer~=old and not m.ready and not m.model.calibrated,'Input replacement retained analyzer/calibration')
+check(old.destroyed and m.analyzer~=old and m.ready and not m.model.calibrated,'Input replacement retained analyzer/calibration')
 m:Calibrate();samples('quiet',.001);samples('voice',.08)
 check(m:Begin(),'Legacy capture did not start after replacement calibration')
 now+=.3;player.input.Muted=true;m:Step(.05)
@@ -92,8 +92,8 @@ for _,phase in ipairs({'quiet','voice'})do
  player.input.Muted=true;m:Step(.05)
  check(m.phase==nil and #m.quiet==0 and #m.spoken==0,'Mute retained partial '..phase..' calibration')
  player.input.Muted=false;m:Step(.05)
- check(not m.ready and not m.model.calibrated,'Unmute completed interrupted '..phase..' calibration')
- check(m.status=='Microphone unmuted. Calibrate before attacking.','Interrupted calibration retained muted status after unmute')
+ check(m.ready and not m.model.calibrated,'Unmute completed interrupted '..phase..' calibration')
+ check(string.find(m.status,'Microphone ready',1,true)~=nil,'Interrupted calibration retained muted status after unmute')
 end
 m:Calibrate();samples('quiet',.001)
 local disconnectedAnalyzer=m.analyzer
@@ -101,15 +101,15 @@ player.input.Parent=nil;player.input=nil;m:Step(.05)
 check(m.phase==nil and #m.quiet==0 and #m.spoken==0 and not m.ready,'Disconnected input retained calibration samples')
 check(disconnectedAnalyzer.destroyed and m.analyzer==nil,'Disconnect retained old analyzer')
 player.input={Parent=true,Muted=false,Active=true};m:Step(.05)
-check(not m.model.calibrated and not m.ready,'Reconnected input inherited calibration')
+check(not m.model.calibrated and m.ready,'Reconnected finite input retained calibration or stayed unavailable')
 m:Calibrate();samples('quiet',.001);samples('voice',.08)
 check(m.ready,'Fresh calibration after interrupted input failed')
 local lostAnalyzer=m.analyzer
 check(m:Begin(),'Analyzer-loss fixture could not begin capture')
 lostAnalyzer:Destroy();m:Step(.05)
 check(m.analyzer~=lostAnalyzer and m.analyzer.Parent==player,'Removed analyzer was not rebuilt')
-check(not m.ready and not m.model.calibrated and m.captureStarted==nil and m.power==0,'Analyzer loss retained readiness or captured energy')
-check(m.status=='Microphone input found. Calibrate before attacking.','Analyzer recovery retained stale readiness text')
+check(m.ready and not m.model.calibrated and m.captureStarted==nil and m.power==0,'Analyzer loss retained readiness or captured energy')
+check(string.find(m.status,'Microphone ready',1,true)~=nil,'Analyzer recovery omitted current readiness text')
 check(m:Release()==0,'Analyzer loss released a stale capture')
 m:Calibrate();samples('quiet',.001);samples('voice',.08)
 check(m.ready,'Fresh calibration after analyzer replacement failed')
@@ -125,8 +125,8 @@ for _,breakLink in ipairs({
  local wire=instances[#instances]
  check(wire.SourceInstance==player.input and wire.TargetInstance==m.analyzer and wire.Parent==m.analyzer,'Replacement wire endpoints invalid')
  check(oldWire.destroyed,'Detached old wire was not cleaned up')
- check(not m.ready and not m.model.calibrated and m.captureStarted==nil,'Broken wire retained capture readiness')
- check(m.status=='Microphone input found. Calibrate before attacking.','Wire recovery omitted calibration guidance')
+ check(m.ready and not m.model.calibrated and m.captureStarted==nil,'Broken wire retained stale capture or failed fresh readiness')
+ check(string.find(m.status,'Microphone ready',1,true)~=nil,'Wire recovery omitted current readiness guidance')
  m:Calibrate();samples('quiet',.001);samples('voice',.08)
  check(m.ready,'Fresh calibration after wire repair failed')
 end

@@ -197,7 +197,7 @@ if __name__=='__main__':
  for auto in [False,True]:
   r=run(source,auto,fixed=not args.baseline);assert r.returncode==0,r.stdout+r.stderr
   boundaries=re.findall(r'^BOUNDARY (\d+) (.+)$',r.stdout,re.M)
-  expected=EXPECTED_COMMON+([] if args.baseline else ['wait:PlayerScripts/LockOn','require:LockOn','wait:Shared/TrainingRules','require:TrainingRules'])+(EXPECTED_AUTO if auto else [])+EXPECTED_TAIL+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
+  expected=([name for name in EXPECTED_COMMON if args.baseline or name not in ('wait:Shared/FirstBeamGuide','require:FirstBeamGuide')])+([] if args.baseline else ['wait:PlayerScripts/LockOn','require:LockOn','wait:Shared/TrainingRules','require:TrainingRules'])+(EXPECTED_AUTO if auto else [])+EXPECTED_TAIL+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
   assert [name for _,name in boundaries]==expected,'Startup dependency boundary coverage changed'
   print(('automatic' if auto else 'legacy')+' boundaries='+str(len(boundaries)))
   for i,name in boundaries:

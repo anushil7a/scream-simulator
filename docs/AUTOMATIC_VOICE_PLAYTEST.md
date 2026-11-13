@@ -1,8 +1,12 @@
 # Automatic voice candidate — manual checks
 
+## Current input flow (November 13)
+
+Beams start **OFF**. Deliberately use **E / BEAMS ON/OFF** to enable attacks, then allow fresh quiet before speaking. **Normal speech may trigger attacks while ON.** OFF stops attacks without muting the microphone or ordinary proximity voice. No calibration, setup panel or mic-testing area is required. Mic readiness and server voice eligibility still gate attacks, not movement. Actual microphone sensitivity and comfortable-speech behavior remain unverified. Historical calibration-specific checks below are retained as evidence context, not current setup instructions.
+
 ## Owner-selected attack audio review
 
-All ten tier assets passed silent local Studio loading; see `tests/evidence/attack-audio-assets-2026-11-09.json`. Actual gameplay listening and City Preview asset access remain pending. Equip each tier 10 through 100 and confirm its assigned sound plays once at original pitch; level 1 is voice-only. Change equipped style between attacks and verify remote listeners hear the attacker's selection, not their own. Short clips should finish naturally; long clips fade with attack end. Compare one and four simultaneous beams near/far, with headphones and speakers. Player voice must remain intelligible; check local-mic ducking, calibration silence, LOW/OFF, end/dodge/respawn/departure and missing-update cleanup. Check that speaker playback does not falsely trigger microphone attacks. Synthetic mix/adapter tests do not establish listening balance. See `assets/audio/README.md` for the exact mapping and mix.
+All ten tier assets passed silent local Studio loading; see `tests/evidence/attack-audio-assets-2026-11-09.json`. Actual gameplay listening and City Preview asset access remain pending. Equip each tier 10 through 100 and confirm its assigned sound plays once at original pitch; level 1 is voice-only. Change equipped style between attacks and verify remote listeners hear the attacker's selection, not their own. Short clips should finish naturally; long clips fade with attack end. Compare one and four simultaneous beams near/far, with headphones and speakers. Player voice must remain intelligible; check local-mic ducking, NORMAL/LOW/OFF, end/dodge/respawn/departure and missing-update cleanup. Check that speaker playback does not falsely trigger microphone attacks. Synthetic mix/adapter tests do not establish listening balance. See `assets/audio/README.md` for the exact mapping and mix.
 
 Current candidate is local and unpublished. City Preview version 19 still uses hold/release. Run `python3 tests/verify_local.py --build` to check sources and regenerate identified review builds, then open `build/SustainedLocalPlay.rbxl` for isolated temporary-profile gameplay. Never publish disposable fixtures. `AutomaticVoiceCandidate.rbxl` uses normal profiles and is not the default sandbox for experiments.
 
@@ -10,14 +14,14 @@ Review builds now include matching `build/<name>.provenance.json` files with sou
 
 ## Start here: first owner smoke test
 
-These are **pending checks**, not completed results. Save your open Studio work first. Open the disposable local file, start Play and let the city generate. Stop at a reproducible failure in a step; other independent checks may still proceed. A failed mic setup is not a reason to enable live APIs or change production settings.
+These are **pending checks**, not completed results. Save your open Studio work first. Open the disposable local file, start Play and let the city generate. Stop at a reproducible failure in a step; other independent checks may still proceed. Unavailable microphone input is not a reason to enable live APIs or change production settings.
 
-1. **Mic and aiming:** with eligible voice input available, calibrate, stay quiet briefly, aim and speak. Expect automatic onset without holding E, a beam aimed at the mouse (screen center on touch), and silence stopping it. Confirm the live-power meter changes independently of the voice-button timing bar. A meter reaching 100% alone is not a pass.
-2. **Attack boundaries:** sustain one attack up to four seconds, then verify five seconds of cooldown after it ends. Continuous speech through cooldown must not restart it; quiet followed by fresh voice must. Use E or SCREAMS: ON to turn screams OFF, speak and verify no attack while ordinary voice remains audible. Resume explicitly with SCREAMS: OFF.
+1. **Mic and aiming:** verify beams start OFF and speaking cannot attack. With eligible voice input available, deliberately turn beams ON, stay quiet briefly, aim and speak. No setup panel or calibration should be required. Expect automatic onset without holding E, a beam aimed at the mouse (screen center on touch), and silence stopping it. Confirm the live-power meter changes independently of the voice-button timing bar. A meter reaching 100% alone is not a pass.
+2. **Attack boundaries:** sustain one attack up to four seconds, then verify five seconds of cooldown after it ends. Continuous speech through cooldown must not restart it; quiet followed by fresh voice must. Use E or BEAMS ON to turn screams OFF, speak and verify no attack while ordinary voice remains audible. Resume explicitly with BEAMS OFF.
 3. **Interruptions:** during an attack, try dodge, NPC dialogue, text chat and the Roblox menu separately. Damage must stop while blocked. Dodge alone must not scream. Mute, respawn and focus loss must require deliberate voice resume. If real input is unavailable, leave this untested rather than substituting synthetic input and calling it a voice pass.
 4. **Combat and destruction:** use the disposable two-client fixture for safe-zone/arena, five-second spawn protection and blocked attacks during protection. Compare level-locked versus unlocked props, then stand in a damaged prop’s repair volume and verify repair waits until clear. Synthetic fixtures can establish only their named engine checks; real voice/PvP behavior still needs eligible players.
 5. **City and recovery:** talk to a quest giver, walk away, and return. Try a car knockdown with dialogue open: it should close and become available again after recovery. Watch NPC work/sit/walk transitions and busker activity; look for floating, stuck routes or stale speech labels. Open Map at the promenade/pier and across respawn; check the player marker and landmark 7.
-6. **Small-screen UI:** inspect the mic setup, open/close Screams, Quests and Map, and check text wrapping, timing-bar contrast and tap targets. Record the viewport/device. Studio phone emulation is a layout check, not a real phone microphone/performance pass.
+6. **Small-screen UI:** verify movement and menus work without microphone setup; open/close Beams, Quests and Map, and check text wrapping, timing-bar contrast and tap targets. Record the viewport/device. Studio phone emulation is a layout check, not a real phone microphone/performance pass.
 
 ### Tests requiring a separate environment
 
@@ -32,16 +36,16 @@ Record commit, build filename/provenance, device/viewport, local versus uploaded
 
 ## Human microphone checks (pending)
 
-Use two voice-eligible accounts/devices when available. Calibrate with a comfortable strong voice; no need to physically shout. No audio recording/replay is stored by the game. The meter reflects normalized input energy, not physical decibels or proof of a human scream.
+Use two voice-eligible accounts/devices when available. Use comfortable speech; do not strain or physically shout. There is no calibration step. This checks the game's volume mechanic, not Roblox's separate recording/moderation behavior. The meter reflects normalized input energy, not physical decibels or proof of a human scream.
 
-1. After calibration, stay quiet briefly. Aim and speak without pressing E: beam starts after sustained input, follows aim and stops when quiet. Maximum active duration is four seconds; cooldown is five seconds after the end.
+1. Start OFF, confirm ordinary speech cannot attack, then deliberately turn ON and stay quiet briefly. Aim and speak without holding E: beam starts after sustained input, follows aim and stops when quiet. Maximum active duration is four seconds; cooldown is five seconds after the end.
 2. Speak throughout cooldown: it must not restart immediately on expiry. Become quiet, then speak again.
-3. Tap E or SCREAMS: ON to turn screams OFF; speaking cannot attack and ordinary proximity voice must remain audible. Tap SCREAMS: OFF to resume, then quiet/voice must work. Muting, death or losing focus must stop attacks and require deliberate resume after they have been armed.
+3. Tap E or BEAMS ON to turn screams OFF; speaking cannot attack and ordinary proximity voice must remain audible. Tap BEAMS OFF to resume, then quiet/voice must work. Muting, death or losing focus must stop attacks and require deliberate resume after they have been armed.
 4. While talking, roll, open menus, talk to an NPC, focus text chat, or enter spawn protection. No attack damage should continue while blocked. Rolling itself must never trigger a scream.
-   Also open Roblox’s Escape menu during an attack: damage and sprint must stop. Closing it must leave voice paused until E or SCREAMS: OFF, followed by fresh quiet and voice. Check on desktop and phone.
-5. Test third-person mouse aim and phone center-screen aim, cover, PvP boundaries, increasing range with level, and louder calibrated voice within the maximum range.
+   Also open Roblox’s Escape menu during an attack: damage and sprint must stop. Closing it must leave voice paused until E or BEAMS OFF, followed by fresh quiet and voice. Check on desktop and phone.
+5. Test third-person mouse aim and phone center-screen aim, cover, PvP boundaries, increasing range with level, and varying comfortable voice within the maximum range.
 6. Verify the other player hears live proximity voice near/far. The attacker need not hear their own microphone loopback.
-7. Practice target should show feedback. Soccer and volleyball receive at most one successful impulse per scream. Crowd credits three different bots once per attack; dodge quest credit is bounded per attacker scream.
+7. There must be no mic practice area or active Controlled Beams objective. Previously earned, unclaimed rewards should remain claimable once; partial/claimed records stay hidden. Check confirmed-hit feedback against eligible training targets instead. Soccer and volleyball receive at most one successful impulse per beam. Crowd credits three different bots once per attack; dodge quest credit is bounded per attacker scream.
 8. On a separately approved test-universe upload, earn normal progress, leave and rejoin. Confirm level/coins/unlocked styles persist. Never use test-tool mutations as proof of legitimate saves.
 
 ## City/NPC review (pending)
@@ -72,7 +76,7 @@ Record commit/build, devices, exact reproduction steps and expected/observed beh
 
 - Destruction level feedback: below level 26, aim an automatic scream at a small tree. Confirm one required-level message for the whole attack, no damage/reward, and no message flicker on subsequent ticks. Repeat after unlocking the tier and confirm normal damage. Synthetic response checks pass; native targeting/HUD behavior remains pending.
 
-- Microphone teardown: in a disposable client, remove the gameplay client/controller during calibration or a ready microphone session; check its analyzer stays removed and no queued retry recreates it. Rejoining should create a fresh controller and require calibration. Twenty-two mocked lifecycle checks pass; hardware and native event ordering remain pending.
+**Historical calibration-era scenario; not a current setup requirement.** - Microphone teardown: in a disposable client, remove the gameplay client/controller during calibration or a ready microphone session; check its analyzer stays removed and no queued retry recreates it. Rejoining should create a fresh controller and require calibration. Twenty-two mocked lifecycle checks pass; hardware and native event ordering remain pending.
 
 - Worker navigation: block a station approach in a disposable place and inspect workers near steps/gaps. They should stop/replan rather than walk the final direct segment after a jump-required waypoint. Confirm ordinary unobstructed arrivals still reach tools. Fifteen actual-coroutine checks use synthetic paths/time, not native pathfinding or physics.
 
@@ -80,7 +84,7 @@ Record commit/build, devices, exact reproduction steps and expected/observed beh
 
 - Sprint input: start via Shift, then toggle using the button; repeat on touch. Open Screams/Quests/dialogue, start typing, mute, lose focus, reset or get hit by a car. Sprint should stop and require fresh input after interruption. After KO/lifeguard rescue, one tap should start sprint rather than consume a stale toggle. Thirty-four mocked helper checks pass; device/events remain pending.
 
-- Mic-dependent aim range: aim at a player or destructible between minimum and maximum range, then vary comfortable calibrated input. The readout should change between BEYOND CURRENT RANGE and normal target information; beyond the cap must remain OUT OF MAX RANGE. Server cover/hit rules remain authoritative. Twelve mocked player text checks pass; native distances and HUD fit pending.
+**Historical calibration-era scenario; not a current setup requirement.** - Mic-dependent aim range: aim at a player or destructible between minimum and maximum range, then vary comfortable calibrated input. The readout should change between BEYOND CURRENT RANGE and normal target information; beyond the cap must remain OUT OF MAX RANGE. Server cover/hit rules remain authoritative. Twelve mocked player text checks pass; native distances and HUD fit pending.
 
 - Fall/lifeguard rescue: fall below the world or leave the buoy area while rolling, sprinting or knocked down. Confirm safe relocation with no carried velocity/spin, stuck ragdoll or delayed car repositioning. Health and movement budgets should be preserved, with five-second protection and attacks blocked during it. Fourteen mocked movement reset/callback checks pass; native physics/ownership checks pending.
 
@@ -104,9 +108,9 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 
 - NPC recovery/reset: knock out a bot, use Reset bots before its recovery, damage/knock it out again and wait past the original deadline. It must keep the new damage or remain down until its own later recovery. Verify the test session remains non-saving. Nine mocked callback checks pass; native timing pending.
 
-- First calibration in background: during the first successful calibration, switch away from the window or open Roblox's menu. After returning, voice attacks must remain paused until SCREAMS: OFF or E and a fresh quiet period. Twenty synthetic control checks pass; real microphone/focus/menu event testing pending.
+**Historical calibration-era scenario; not a current setup requirement.** - First calibration in background: during the first successful calibration, switch away from the window or open Roblox's menu. After returning, voice attacks must remain paused until SCREAMS: OFF or E and a fresh quiet period. Twenty synthetic control checks pass; real microphone/focus/menu event testing pending.
 
-- Recalibration from Settings: with a ready mic, open Settings and select RECALIBRATE MICROPHONE. Confirm attacks/sprint stop, the live calibration panel opens, and completion leaves attacks paused until SCREAMS: OFF or E. Try failed calibration and retry as well. Existing mocked calibration checks pass; actual input quality and phone/desktop UI fit remain pending.
+**Historical calibration-era scenario; not a current setup requirement.** - Recalibration from Settings: with a ready mic, open Settings and select RECALIBRATE MICROPHONE. Confirm attacks/sprint stop, the live calibration panel opens, and completion leaves attacks paused until SCREAMS: OFF or E. Try failed calibration and retry as well. Existing mocked calibration checks pass; actual input quality and phone/desktop UI fit remain pending.
 
 - Noncolliding occupants: in a disposable fixture, keep a queryable character part with CanCollide=false inside a damaged object's repair bounds at its deadline. Repair must defer until clear; also recheck ordinary players/residents. Eighteen mocked service checks model the documented query behavior; actual Roblox geometry remains pending.
 
@@ -134,7 +138,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 
 - Expired NPC conversations: allow player dialogue to expire, then observe that resident talking to another NPC, including the delayed reply. Closing the old player panel must not interrupt the new conversation. Active player conversations must remain exclusive. Full function mocked tests pass; native social timing remains pending.
 
-- Calibration recovery: mute midway through quiet sampling and midway through voice sampling; unmute and verify calibration must restart. Disconnect/reconnect the microphone during voice sampling and complete a fresh calibration. Retry access after a transient failure. The controller passes mocked lifecycle regressions; actual audio-device/permission behavior remains pending.
+**Historical calibration-era scenario; not a current setup requirement.** - Calibration recovery: mute midway through quiet sampling and midway through voice sampling; unmute and verify calibration must restart. Disconnect/reconnect the microphone during voice sampling and complete a fresh calibration. Retry access after a transient failure. The controller passes mocked lifecycle regressions; actual audio-device/permission behavior remains pending.
 
 - NPC aim readout: aim at residents beyond nameplate distance in third person and touch mode. Verify name/health, current-power versus maximum-range messages, walls obscuring target selection, and clearing on loss of aim. Mocked formatting/range-state tests pass; actual raycast selection and layout remain pending.
 
@@ -210,7 +214,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Landmark follow-up: test failed asset loading and stream-out/re-entry during loading. Fallback should remain until the current load succeeds; an older result must not swap current visuals. Eleven actual-loader checks now cover these with fake asset status/errors and coroutine/deferred scheduling, not Roblox CDN/streaming.
 
 ### Live voice threshold feedback
-- Pending visual/device: confirm the white start marker aligns with the configured onset threshold, voiced onset briefly shows the detection hint, and paused/quiet/cooldown/interruption guidance remains clear on small screens. Use comfortable calibrated speech; the marker is normalized input power, not a physical loudness target.
+**Historical calibration-era scenario; not a current setup requirement.** - Pending visual/device: confirm the white start marker aligns with the configured onset threshold, voiced onset briefly shows the detection hint, and paused/quiet/cooldown/interruption guidance remains clear on small screens. Use comfortable calibrated speech; the marker is normalized input power, not a physical loudness target.
 - Evidence: full local verification/build only. No native layout or real-microphone usability result; attack tuning is unchanged.
 
 ### Ambience interrupted startup
@@ -257,7 +261,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 
 ### Voice access timeout and retry ordering
 
-Pending device check: with a slow voice eligibility response, confirm timeout guidance appears, retry access, and verify an older timeout cannot replace the newer result. A late successful response should recover access; calibration and explicit arming requirements still apply. End the client during a pending check and confirm no stale UI changes. Five additional mocked timer checks pass (43 microphone lifecycle checks total); these do not verify Roblox eligibility timing or microphone hardware.
+**Historical calibration-era scenario; not a current setup requirement.** Pending device check: with a slow voice eligibility response, confirm timeout guidance appears, retry access, and verify an older timeout cannot replace the newer result. A late successful response should recover access; calibration and explicit arming requirements still apply. End the client during a pending check and confirm no stale UI changes. Five additional mocked timer checks pass (43 microphone lifecycle checks total); these do not verify Roblox eligibility timing or microphone hardware.
 
 ### Client external-signal teardown
 
@@ -265,11 +269,11 @@ Pending native check: remove/replace Client while its HUD is open and an automat
 
 ### Removed microphone analyzer recovery
 
-Pending native/device check: during capture in a disposable client, remove the local ScreamInputMeter AudioAnalyzer. Confirm it is rebuilt, the active capture cancels, attack readiness is lost, and fresh calibration plus deliberate resume restores use. Mocked removal/recalibration coverage passes; it does not establish actual audio-engine reconnection.
+**Historical calibration-era scenario; not a current setup requirement.** Pending native/device check: during capture in a disposable client, remove the local ScreamInputMeter AudioAnalyzer. Confirm it is rebuilt, the active capture cancels, attack readiness is lost, and fresh calibration plus deliberate resume restores use. Mocked removal/recalibration coverage passes; it does not establish actual audio-engine reconnection.
 
 ### Broken microphone meter wire
 
-Pending native/device check: in a disposable client, remove the meter Wire or clear either endpoint during capture. Verify capture cancels, the old wire/meter is removed, and a new wire connects the local input to its replacement analyzer. Fresh calibration and deliberate resume should restore attacks. Mocked endpoint/lifecycle checks pass; actual audio flow remains unverified.
+**Historical calibration-era scenario; not a current setup requirement.** Pending native/device check: in a disposable client, remove the meter Wire or clear either endpoint during capture. Verify capture cancels, the old wire/meter is removed, and a new wire connects the local input to its replacement analyzer. Fresh calibration and deliberate resume should restore attacks. Mocked endpoint/lifecycle checks pass; actual audio flow remains unverified.
 
 ### Destruction registry restart
 
@@ -321,19 +325,19 @@ Pending UI check: an unfinished active task should show CURRENT/ABANDON; an earn
 
 ### Microphone recovery guidance
 
-During input/analyzer/wire recovery checks, confirm the setup panel explicitly asks for calibration instead of retaining “Microphone ready.” Four new mocked message assertions pass; native device/UI behavior remains pending.
+**Historical calibration-era scenario; not a current setup requirement.** During input/analyzer/wire recovery checks, confirm the setup panel explicitly asks for calibration instead of retaining “Microphone ready.” Four new mocked message assertions pass; native device/UI behavior remains pending.
 
-### Interrupted calibration and unmute
+### Interrupted calibration and unmute (historical; superseded by calibration-free input)
 
-Pending device/UI check: mute separately during the quiet and voice calibration phases. After unmuting, the panel should request fresh calibration rather than continue displaying “Microphone muted.” An already calibrated microphone should retain its valid calibration; deliberate attack resume remains required. Two new mocked transition assertions pass; real mute/device timing remains unverified.
+**Historical calibration-era scenario; not a current setup requirement.** Pending device/UI check: mute separately during the quiet and voice calibration phases. After unmuting, the panel should request fresh calibration rather than continue displaying “Microphone muted.” An already calibrated microphone should retain its valid calibration; deliberate attack resume remains required. Two new mocked transition assertions pass; real mute/device timing remains unverified.
 
 ### Player animation component gaps
 
 Pending native animation check: detach/restore the cached player root or humanoid in a disposable R6/R15 client. Additive charge/sprint/landing state should clear during the gap without retained roll/sprint indicators. Six mocked interruption assertions pass; actual Animator/streaming recovery is unverified. Replacing components with entirely new objects is not covered by this change.
 
-### Calibration during access checks
+### Calibration during access checks (historical; superseded by calibration-free input)
 
-Pending device check: press Calibrate while access is checking or timed out but unresolved. Existing guidance should remain; no calibration begins until eligibility resolves. Retry access and calibrate after success. Two mocked pending-state assertions pass; actual Roblox access timing remains unverified.
+**Historical calibration-era scenario; not a current setup requirement.** Pending device check: press Calibrate while access is checking or timed out but unresolved. Existing guidance should remain; no calibration begins until eligibility resolves. Retry access and calibrate after success. Two mocked pending-state assertions pass; actual Roblox access timing remains unverified.
 
 ### Unconfirmed attack feedback
 
@@ -343,9 +347,9 @@ Pending native/latency check: delay or suppress attack acknowledgement in a disp
 
 Pending native check: delay attack acknowledgement beyond the client timeout, then deliver the old active state. Verify there are no pulses/new starts while that state is active, no held-voice restart after it ends, and fresh quiet/onset starts a new sequence. Old-sequence state must not acknowledge the newer attempt. Seven synthetic controller assertions cover this ordering locally; they do not demonstrate actual network timing or microphone behavior.
 
-### Muted calibration cleanup
+### Muted calibration cleanup (historical; superseded by calibration-free input)
 
-Pending native check: with a calibrated microphone, mute and press Calibrate while an attack/capture is active. Check readiness and live power clear immediately, partial calibration/capture stops, and unmute still requires deliberate attack resume. Mocked controller tests cover the pre-Heartbeat state; actual device timing and UI appearance remain untested.
+**Historical calibration-era scenario; not a current setup requirement.** Pending native check: with a calibrated microphone, mute and press Calibrate while an attack/capture is active. Check readiness and live power clear immediately, partial calibration/capture stops, and unmute still requires deliberate attack resume. Mocked controller tests cover the pre-Heartbeat state; actual device timing and UI appearance remain untested.
 
 ### Destructible tag removal before registration
 
@@ -359,13 +363,13 @@ Pending native check: test a representative bench, bin, tree, bike, house front,
 
 Pending native check: observe workers reaching their work surfaces, interrupt the last few studs with dialogue or a scream, and temporarily obstruct the final approach in a disposable place. Check tools align after arrival, old movement does not cancel the reaction, and workers recover normal speed after timeout/interruption. Synthetic route tests pass for these control-flow boundaries; actual navigation and animation alignment remain unverified.
 
-### Calibration countdown
+### Calibration countdown (historical; superseded by calibration-free input)
 
-Pending visual/device check: each quiet/voice calibration phase should show its own countdown from two seconds, with RESTART SETUP during sampling. Completion or interruption should remove the countdown and restore CALIBRATE MIC. Check status wrapping on narrow phones and that restart really begins the quiet phase. The UI fixture compiled; appearance and real audio timing remain unverified.
+**Historical calibration-era scenario; not a current setup requirement.** Pending visual/device check: each quiet/voice calibration phase should show its own countdown from two seconds, with RESTART SETUP during sampling. Completion or interruption should remove the countdown and restore CALIBRATE MIC. Check status wrapping on narrow phones and that restart really begins the quiet phase. The UI fixture compiled; appearance and real audio timing remain unverified.
 
 ### Invalid microphone signal recovery
 
-Pending integration check: in a disposable fixture with explicitly injected synthetic meter samples, nonfinite/negative RMS should clear readiness/capture and show unavailable guidance. Valid zero must remain normal silence. Recovery after interrupted calibration must request fresh calibration; verify the automatic controls observe unavailable state and require deliberate resume after a sustained outage. These samples are not real device evidence; real voice recovery still needs eligible-account testing.
+**Historical calibration-era scenario; not a current setup requirement.** Pending integration check: in a disposable fixture with explicitly injected synthetic meter samples, nonfinite/negative RMS should clear readiness/capture and show unavailable guidance. Valid zero must remain normal silence. Recovery after interrupted calibration must request fresh calibration; verify the automatic controls observe unavailable state and require deliberate resume after a sustained outage. These samples are not real device evidence; real voice recovery still needs eligible-account testing.
 
 Synthetic integration update: actual microphone/gate/controls pass seven outage-to-recovery assertions, including one stop, no silent rearm and fresh quiet after manual resume. The harness orders microphone sampling before each controls frame and supplies fake acknowledgement; native scheduling, server delivery and real-device recovery remain pending.
 

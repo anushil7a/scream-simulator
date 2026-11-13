@@ -14,7 +14,7 @@ def replace_once(source, original, replacement):
     return source.replace(original, replacement, 1)
 
 source=(root/'build/StudioClientHarness.luau').read_text()
-source=replace_once(source,'mic=mic.new()', '''mic={Destroy=function() end,ready=true,power=.55,status="UI preview: simulated mic",Cancel=function() end,CancelCalibration=function(self) self.phase=nil;self.phaseStarted=nil end,Begin=function() return false end,Release=function() return 0 end,Check=function() end,Calibrate=function() end}''')
+source=replace_once(source,'mic=mic.new()', '''mic={Destroy=function() end,ready=true,power=.55,status="UI preview: simulated mic",eligible=true,interruptionEpoch=0,Cancel=function() end,CancelCalibration=function(self) self.phase=nil;self.phaseStarted=nil end,Begin=function() return false end,Release=function() return 0 end,Check=function() end,Calibrate=function() end}''')
 source=replace_once(source,'local remotes=RS:WaitForChild("ScreamRemotes");if not clientCheckpoint() then return end','''local receiver
 local sample={level=100,xp=30,xpNext=1800,coins=1500,activeQuest="garden",health=450,maxHealth=450,sound="TinyAah",aura="Gold",quests={},availableQuests={},settings={volume=.55,reducedShake=false},micReady=true,voiceEligible=true,voiceStatus="eligible",devAccess=true,savingAvailable=true,protection=0,dodgeCooldown=0,castCooldown=0,questTime=90}
 sample.shop={ready=true,inventory={xp=2,coins=1},ends={xp=os.time()+1800,coins=0},serverNow=os.time()}

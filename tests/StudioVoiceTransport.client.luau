@@ -4,6 +4,7 @@
 assert(Run:IsStudio() and game.PlaceId==0)
 task.spawn(function()
  local probe=remotes:WaitForChild("VoiceTransportProbe",20);assert(probe)
+ local expectedCooldown=require(RS.Shared.SustainedAttack).Cooldown
  local checks=0;local sent={};local stages={};local started=os.clock()
  local function check(value,message) assert(value,message);checks+=1 end
  local function waitFor(predicate,seconds,message)
@@ -36,7 +37,9 @@ task.spawn(function()
   end
   windowFocused=true -- fixture focus, not a physical keyboard/focus test
   mic.ready=true;mic.power=0
-  waitFor(function() return data.micReady and sustainedControl.armed end,6,"Readiness did not round trip")
+  waitFor(function() return data.micReady end,6,"Readiness did not round trip")
+  check(not sustainedControl.armed,"Initial readiness silently armed beams")
+  toggleVoice();check(sustainedControl.armed,"Explicit initial toggle failed")
   check(snapshot().eligible,"Malformed-input tests require an eligible server context")
   stage("malformed")
   local baseline=snapshot().received
@@ -48,17 +51,17 @@ task.spawn(function()
   task.wait(.2)
   local invalid=snapshot()
   check(invalid.received>=baseline+5,"Malformed messages did not reach native Action")
-  check(not invalid.active and not invalid.firstBeam and invalid.cooldown==0,"Malformed begin mutated combat")
+  check(not invalid.active and invalid.beamSteps==0 and not invalid.retiredAchievement and invalid.cooldown==0,"Malformed begin mutated combat")
   check(invalid.lastSequence==1,"Invalid consumed sequence not recorded")
   -- The real client next sends sequence 1; replay rejection must time out safely.
   task.wait(.35);mic.power=.5
   waitFor(function() return (sustainedControl.unconfirmedUntil or 0)>os.clock() end,4,"Replayed client begin did not expose acknowledgement timeout")
-  check(not snapshot().active and not snapshot().firstBeam,"Rejected begin produced a practice hit")
+  check(not snapshot().active and snapshot().beamSteps==0,"Rejected begin produced a fixture cover")
   check(#sent==2 and sent[1].verb=="SustainedBegin" and sent[2].verb=="SustainedStop","Unacknowledged begin sent pulses or repeated stop")
   stage("scheduled attack")
   mic.power=0;task.wait(.4);mic.power=.5
   waitFor(function() return p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==2 end,4,"Fresh quiet retry was not acknowledged")
-  waitFor(function() local v=snapshot();return v.firstBeam and (v.sample or 0)>=3 end,3,"Actual scheduler/server loop did not confirm practice hit")
+  waitFor(function() local v=snapshot();return v.beamSteps>0 and v.beamSequence==2 and (v.sample or 0)>=3 end,3,"Actual scheduler/server loop did not confirm fixture cover")
   local active=snapshot();check(active.sequence==2 and active.power==.5,"Accepted attack state incorrect")
   local pulses={}
   for _,entry in ipairs(sent) do if entry.verb=="SustainedPulse" then table.insert(pulses,entry);check(entry.ack,"Client pulsed before replicated acknowledgement") end end
@@ -91,7 +94,7 @@ task.spawn(function()
   unchangedRejection(badRequest,"sequence")
   unchangedRejection(badSample,"sample")
   unchangedRejection(staleStop,"sequence")
-  check(snapshot().practicePulse==active.practicePulse,"Repeated practice feedback within one attack")
+  check(not snapshot().retiredAchievement,"Transport created retired practice achievement")
   -- Fresh but invalid aim must cancel, rather than extending the active beam.
   action:FireServer("SustainedPulse",{sequence=2,sample=1000,power=.5,aim=Vector3.new(0/0,0,0)})
   waitFor(function() return not snapshot().active end,2,"Invalid aim did not cancel active attack")
@@ -112,7 +115,7 @@ task.spawn(function()
   waitFor(function() return sustainedControl.sequence==3 and (sustainedControl.unconfirmedUntil or 0)>os.clock() end,4,"Consumed cooldown sequence did not reject safely")
   mic.power=0;task.wait(.4);mic.power=.5
   waitFor(function() return p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==4 end,4,"Cooldown recovery retry not acknowledged")
-  waitFor(function() return snapshot().practicePulse>active.practicePulse end,2,"Recovered attack did not reach target")
+  waitFor(function() return snapshot().beamSequence==4 and snapshot().beamSteps>active.beamSteps end,2,"Recovered attack did not reach target")
   stage("availability interruption")
   mic.ready=false;mic.power=0
   waitFor(function() local v=snapshot();return not v.micReady and not v.active and not sustainedControl.armed end,3,"Availability loss did not traverse MicReady/Stop and disarm")
@@ -126,7 +129,7 @@ task.spawn(function()
   check(sustainedControl.armed and not snapshot().active,"Manual resume bypassed fresh quiet")
   mic.power=0;task.wait(.4);mic.power=.5
   waitFor(function() return p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==5 end,4,"Manual resume/fresh quiet recovery failed")
-  waitFor(function() return snapshot().practicePulse>interrupted.practicePulse end,2,"Final recovered attack missed practice target")
+  waitFor(function() return snapshot().beamSequence==5 and snapshot().beamSteps>interrupted.beamSteps end,2,"Final recovered attack missed fixture cover")
   local stopCursor=snapshot().auditCount
   mic.power=0
   waitFor(function()
@@ -140,9 +143,9 @@ task.spawn(function()
   check(stop.now<stop.before.lastPulse+sustainedRules.InputTimeout and stop.now<stop.before.started+sustainedRules.MaxDuration,"Quiet stop arrived after an expiry deadline")
   local stopSends=0;for _,entry in ipairs(sent) do if entry.verb=="SustainedStop" and entry.sequence==5 then stopSends+=1 end end
   check(stopSends==1,"Quiet transition did not send exactly one matching stop")
-  check(not sustainedControl.attack and snapshot().cooldown>7,"Quiet-stop acknowledgement or cooldown missing")
-  local finalPulse=snapshot().practicePulse;task.wait(.4)
-  check(snapshot().practicePulse==finalPulse,"Practice hit continued after quiet stop")
+  check(not sustainedControl.attack and math.abs(stop.after.nextStart-stop.now-expectedCooldown)<.001,"Quiet-stop acknowledgement or exact cooldown missing")
+  local finalPulse=snapshot().beamSteps;task.wait(.4)
+  check(snapshot().beamSteps==finalPulse,"Beam resolution continued after quiet stop")
   stage("screams toggle")
   waitFor(function() return (p:GetAttribute("SustainedReadyAt") or 0)<=workspace:GetServerTimeNow() end,12,"Toggle setup cooldown did not expire")
   mic.power=0;task.wait(.4);mic.power=.5
@@ -162,7 +165,7 @@ task.spawn(function()
   local toggleSends=0;for _,entry in ipairs(sent) do if entry.verb=="SustainedStop" and entry.sequence==6 then toggleSends+=1 end end
   check(toggleSends==1 and snapshot().micReady,"Toggle duplicated stop or disabled server mic readiness")
   local toggleCount=#sent;local readyAt=p:GetAttribute("SustainedReadyAt")
-  check(snapshot().cooldown>8,"Toggle OFF lost cooldown")
+  check(math.abs(toggleStop.after.nextStart-toggleStop.now-expectedCooldown)<.001,"Toggle OFF lost exact cooldown")
   toggleVoice();mic.power=0;task.wait(.4);mic.power=.5;task.wait(.4)
   check(sustainedControl.armed and #sent==toggleCount and not snapshot().active and p:GetAttribute("SustainedReadyAt")==readyAt,"Toggle ON bypassed or reset cooldown")
   toggleVoice()

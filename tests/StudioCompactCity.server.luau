@@ -90,42 +90,26 @@ task.spawn(function()
    else reachable("Resident:"..bot.id,bot.start,0,true)end
   end
   for i,position in ipairs(Layout.Soccer.lost)do reachable("LostBall:"..i,position,8)end
-  local target=assert(world:FindFirstChild("PracticeTarget",true));local line=assert(target.Parent:FindFirstChild("StandLine"))
+  check(not world:FindFirstChild("PracticeTarget",true) and not world:FindFirstChild("PracticeBackstop",true) and not world:FindFirstChild("StandLine",true),"Retired mic area exists")
   local guidance=assert(world:FindFirstChild("FirstMinuteGuidance"))
-  check(#guidance:GetChildren()==7,"Unexpected first-minute guidance budget")
+  check(#guidance:GetChildren()==4,"Unexpected first-minute guidance budget")
   for _,spec in ipairs(Layout.GuidanceSpecs)do
    local item=assert(guidance:FindFirstChild(spec.id))
    check(item:IsA("BasePart") and item.Anchored and not item.CanCollide and not item.CanTouch and not item.CanQuery and not item.CastShadow,"Cosmetic guidance changes physics/query behavior")
    check(item.Position==spec.position and item.Size==spec.size and item.Color==spec.color and item.Transparency==0,"Guidance differs from shared design")
-  end
-  for _,name in ipairs({"HubPaving","RouteToPractice"})do
-   local floor=assert(world:FindFirstChild(name,true))
-   check(line.Position.Y-line.Size.Y/2>floor.Position.Y+floor.Size.Y/2,"Practice standing line is buried")
   end
   for index,tier in ipairs(require(ReplicatedStorage.Shared.TrainingRules).Tiers)do
    local pad=assert(world:FindFirstChild("TrainingPad_"..tier.id))
    local color=assert(world:FindFirstChild("TrainingPad"..index)).Color
    check(pad.Color==color,"Authoritative pad hides the compact tier color")
   end
-  reachable("PracticeStand",line.Position,0)
-  reachable("ArenaEntrance",assert(world:FindFirstChild("ArenaWayfinding",true)).Position,0)
+  reachable("ArenaEntrance",Vector3.new(-137,3,50),0)
   reachable("SoccerOrigin",Layout.Soccer.origin,0)
   for i,pos in ipairs(Layout.Soccer.gates)do reachable("SoccerGate:"..i,pos,0)end
   for i,pos in ipairs(Layout.Soccer.goals)do reachable("SoccerGoal:"..i,pos,0)end
   reachable("VolleyServe",Layout.Volley.serve,0)
   reachable("VolleyReturn",Vector3.new(Layout.Volley.center.X,3,Layout.Volley.netZ+16),0)
 
-  check(target:GetAttribute("MicPracticeTarget")==true and target.CanCollide,"Practice target cannot be hit by actual beam ray policy")
-  local Gate=require(ReplicatedStorage.Shared.VoiceActivation)
-  for _,power in ipairs({Gate.OnPower,Gate.OffPower+.001})do
-   session.data.achievements.FirstBeam=nil;session.sustained=sustained.New()
-   character:PivotTo(CFrame.lookAt(line.Position+Vector3.new(0,3,0),target.Position))
-   local now=os.clock()
-   check(sustained.Begin(session.sustained,now,{sequence=1,power=power,aim=target.Position},sustainedContext(player,session,now)),"Synthetic practice begin rejected")
-   stepSustained(player,session,now+.2)
-   check(session.data.achievements.FirstBeam==true,"Actual practice ray missed at tested low power")
-   cancelSustained(player,session,now+.21)
-  end
   local function activate(id)
    session.activeQuest=id;session.data.availableQuests[id]=true;session.data.quests[id]={progress=0,claimed=false};session.collected={}
    session.carrying=false;session.deliveryStop=nil;session.raceStart=nil;session.questDeadline=nil

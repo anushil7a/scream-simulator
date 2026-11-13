@@ -32,7 +32,7 @@ for _,name in ipairs({'ProtectionEnds','DodgeEnds','KnockdownEnds'})do
  attrs[name]=11;check(beamBlocked(),'Active interruption accepted: '..name)
  attrs[name]=10;check(not beamBlocked(),'Expired interruption remained: '..name)
 end
-for _,panel in ipairs({conversationPanel,modal,devPanel,micPanel})do
+for _,panel in ipairs({conversationPanel,modal,devPanel})do
  panel.Visible=true;check(beamBlocked(),'Open panel accepted capture');panel.Visible=false
 end
 GuiService.MenuIsOpen=true;check(beamBlocked(),'Roblox menu accepted capture');GuiService.MenuIsOpen=false

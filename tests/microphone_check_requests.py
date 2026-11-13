@@ -1,11 +1,13 @@
-"""Actual Microphone and actual CHECK ACCESS callback; fake clock/API/audio only."""
+"""Actual Microphone and actual Settings retry callback and scoped render guard; fake clock/API/audio only."""
 from pathlib import Path
 import argparse,ast,re,subprocess,tempfile
 R=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
 path='src/StarterPlayer/StarterPlayerScripts/Microphone.luau';s=(R/path).read_text()
 client=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
-callback=re.search(r'button\(micPanel,"Retry".*?function\(\) (.*?) end\)',client).group(1)
+callback=re.search(r'button\(accessCard,"RetryVoiceAccess".*?function\(\)\s*(.*?)\s*end\)',client,re.S).group(1)
+wrapper_start=client.index(' local function button(parent,name,text,size,pos,callback,color)')
+wrapper=client[wrapper_start:client.index(' clearShop()',wrapper_start)]
 tree=ast.parse((R/'tests/microphone_lifecycle.py').read_text())
 setup=next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='setup' for t in n.targets))
 setup=setup.replace('local pending={};local timeouts={};local deferCheck=false',"local pending={};local timeouts={};local deferCheck=false;local calls=0;local response='yield';local queued=false")
@@ -15,17 +17,22 @@ setup=setup.replace('IsVoiceEnabledForUserIdAsync=function()return true end',"Is
 endsetup=r'''
 end
 local Mic=loadMicrophone();local mic
-local micPanel={Visible=true};local clientDestroyed=false
+local modal={Visible=true};local clientDestroyed=false;local revision=1;local renderRevision=1
+local registered
+local function makeButton(_,_,_,_,_,fn)registered=fn end
+WRAPPER
+button(nil,nil,nil,nil,nil,function() CALLBACK end)
 local f={}
 function f.start(v,q)response=v;if v==nil then response='yield'end;queued=q==true;mic=Mic.new();f.mic=mic end
-function f.retry() CALLBACK end
-function f.panel(visible,destroyed)micPanel.Visible=visible;clientDestroyed=destroyed==true end
+function f.retry() mic:Check() end
+function f.settings() registered() end
+function f.panel(visible,destroyed)modal.Visible=visible;clientDestroyed=destroyed==true end
 function f.at(t)now=t;mic:Step(.05)end
 function f.finish(i,value)local ok,e=coroutine.resume(pending[i],value);assert(ok,e)end
 function f.stats()return calls,#pending,#timeouts end
 return f
 end
-'''.replace('CALLBACK',callback)
+'''.replace('CALLBACK',callback).replace('WRAPPER',wrapper)
 checks=r'''
 local f=fixture();f.start();local m=f.mic;local generation=m.generation
 for i=1,120 do f.retry()end
@@ -65,12 +72,14 @@ check(not m.eligible and not m.ready and m.status==oldStatus,'Late completion re
 f=fixture();f.start(nil,true);m=f.mic;m:Destroy();f.finish(1,true)
 check(f.stats()==0 and not m.eligible,'Queued worker called API after destroy')
 for _,state in ipairs({{false,false},{true,true}})do
- f=fixture();f.start(true);m=f.mic;m.model.calibrated=true;f.at(2)
+ f=fixture();f.start(false);m=f.mic;f.at(2)
  local oldStatus=m.status;local oldGeneration=m.generation
- f.panel(state[1],state[2]);f.retry()
- check(f.stats()==1 and m.ready and m.eligible and m.status==oldStatus and m.generation==oldGeneration,'Hidden/destroyed setup Retry reached controller')
- f.panel(true,false);f.retry();check(f.stats()==2,'Visible setup Retry blocked after reopening')
+ f.panel(state[1],state[2]);f.settings()
+ check(f.stats()==1 and m.status==oldStatus and m.generation==oldGeneration,'Hidden/destroyed Settings retry reached controller')
+ f.panel(true,false);f.settings();check(f.stats()==2,'Visible failed-access retry blocked after reopening')
 end
+f=fixture();f.start(true);f.at(2);f.settings();check(f.stats()==1 and f.mic.ready,'Settings retried already eligible access')
+f=fixture();f.start();local g=f.mic.generation;f.settings();check(f.stats()==1 and f.mic.generation==g,'Settings retried pending access')
 print('PASS',n,'actual Microphone/Retry assertions; coroutine API and clock mocks only')
 '''
 def run(source,error=None,baseline=False,callback_override=None):
@@ -93,8 +102,10 @@ else:
   fence='if self.destroyed or self.generation~=generation then return end'
   assert s.count(fence)==2
   run(s.replace(fence,'if false then return end',1),'Queued worker called API after destroy')
-  for guard in ('clientDestroyed or ', ' or not micPanel.Visible'):
-   assert guard in callback
-   run(s,'Hidden/destroyed setup Retry reached controller',callback_override=callback.replace(guard,''))
+  for guard in ('clientDestroyed or ', 'not modal.Visible or '):
+   assert guard in wrapper
+   old=endsetup;endsetup=endsetup.replace(guard,'')
+   try:run(s,'Hidden/destroyed Settings retry reached controller')
+   finally:endsetup=old
   assert not re.search(r'\.Active\s*=(?!=)|\.Muted\s*=(?!=)|\.IsReady\b',s)
   print('PASS source contract: no device Active/Muted writes or IsReady access')

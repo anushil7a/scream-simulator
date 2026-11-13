@@ -22,7 +22,7 @@ local function find(parent,name)for _,o in ipairs(objects)do if o.Parent==parent
 local full=CityMap.create({});local mini=CityMap.create({},true)
 local expected=0
 for _,spec in ipairs(Layout.PartSpecs)do
- local selected=spec.id:match('^MarketHouse') or spec.id:match('^OldTownHouse') or spec.id:match('^Basilica') or spec.id:match('^GardenBed') or spec.id:match('^TrainingPad') or spec.kind=='cover' or spec.id=='Court' or spec.id=='PracticeBackstop'
+ local selected=spec.id:match('^MarketHouse') or spec.id:match('^OldTownHouse') or spec.id:match('^Basilica') or spec.id:match('^GardenBed') or spec.id:match('^TrainingPad') or spec.kind=='cover' or spec.id=='Court'
  for _,view in ipairs({full,mini})do
   local f=find(view.map,'Footprint_'..spec.id)
   check((f~=nil)==(selected and true or false),'Static footprint selection mismatch')
@@ -35,7 +35,7 @@ for _,spec in ipairs(Layout.PartSpecs)do
  end
  if selected then expected+=1 end
 end
-check(expected==37,'Unexpected static footprint count')
+check(expected==36,'Unexpected static footprint count')
 for _,route in ipairs(Layout.GuidanceSpecs)do
  for _,view in ipairs({full,mini})do
   local f=find(view.map,'Route_'..route.id)
@@ -68,7 +68,7 @@ def run(s,expected=None):
 run(source)
 if args.negative_controls:
  for a,b,e in [
-  ("if architecture or training or cover or court or part.id=='PracticeBackstop' then","if false then","Static footprint selection mismatch"),
+  ("if architecture or training or cover or court then","if false then","Static footprint selection mismatch"),
   ("part.size.X/width,part.size.Z/depth,color","part.size.X/depth,part.size.Z/width,color","Footprint dimensions drift"),
   ("if route.id:match('^Route') then","if false then","Route missing or target-frame added"),
   ("compact and 8 or 18","18","Mini marker hides map"),

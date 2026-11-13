@@ -25,7 +25,7 @@ tests=r'''
 end)()
 local function find(parent,name)for _,o in ipairs(objects)do if o.Parent==parent and o.Name==name then return o end end end
 local full=CityMap.create({});local mini=CityMap.create({},true)
-check(find(full.map,'North') and not find(mini.map,'North') and full.arrow and not mini.arrow,'Compact decorations changed')
+check(not find(full.map,'North') and not find(mini.map,'North') and full.arrow and not mini.arrow,'Compact decorations changed')
 check(near(CityMap.aspectRatio,1.2),'Compact aspect ratio wrong')
 check(CityMap.arenaPercent==24,'Compact arena fraction wrong')
 local min,max=Layout.BoundsMin,Layout.BoundsMax

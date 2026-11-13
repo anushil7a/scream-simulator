@@ -4,6 +4,17 @@ local transportProbe=Instance.new("RemoteFunction")
 transportProbe.Name="VoiceTransportProbe";transportProbe.Parent=remotes
 local transportOwner,transportSaved,transportTarget
 local transportReceived={};local transportCounts={}
+local transportBeamSteps=0;local transportBeamSequence
+local transportResolve=resolveSustained
+resolveSustained=function(ctx,direction,stats,now)
+ local ids,details,beam=transportResolve(ctx,direction,stats,now)
+ if ctx.player==transportOwner and transportTarget and beam.obstruction and beam.obstruction.Instance==transportTarget then
+  transportBeamSteps+=1
+  local active=sessions[transportOwner].sustained.protocol.active
+  transportBeamSequence=active and active.sequence
+ end
+ return ids,details,beam
+end
 local transportAudit={};local transportOriginals={}
 local function transportScalar(value)
  if type(value)=="number" and (value~=value or math.abs(value)==math.huge) then return "nonfinite" end
@@ -53,6 +64,8 @@ local function transportRestore()
   state(player)
  end
  if c and r then c:PivotTo(transportSaved.frame);r.Anchored=transportSaved.anchored end
+ if transportTarget then transportTarget:Destroy();transportTarget=nil end
+ resolveSustained=transportResolve
  transportSaved=nil
 end
 transportProbe.OnServerInvoke=function(player,verb,report)
@@ -62,10 +75,9 @@ transportProbe.OnServerInvoke=function(player,verb,report)
   assert(not transportOwner,"One fixture run per session")
   transportOwner=player
   local c,r=parts(player);assert(c and r)
-  for _,obj in ipairs(workspace:GetDescendants()) do
-   if obj:IsA("BasePart") and obj:GetAttribute("MicPracticeTarget")==true then transportTarget=obj;break end
-  end
-  assert(transportTarget)
+  transportTarget=Instance.new("Part");transportTarget.Name="VoiceTransportFixtureCover"
+  transportTarget.Anchored=true;transportTarget.Size=Vector3.new(10,10,1)
+  transportTarget.CFrame=CFrame.new(0,505,-5);transportTarget.Parent=workspace
   transportSaved={data=s.data,micReady=s.micReady,protectedUntil=s.protectedUntil,dodgingUntil=s.dodgingUntil,knockedUntil=s.knockedUntil,frame=c:GetPivot(),anchored=r.Anchored,attributes={}}
   for _,name in ipairs({"ProtectionEnds","DodgeEnds","KnockdownEnds","SustainedActive","SustainedSequence","SustainedEndsAt","SustainedReadyAt"}) do
    transportSaved.attributes[name]={value=player:GetAttribute(name)}
@@ -75,8 +87,7 @@ transportProbe.OnServerInvoke=function(player,verb,report)
   s.data=Profiles.Default();s.sustained=sustained.New();s.micReady=false
   s.protectedUntil=0;s.dodgingUntil=0;s.knockedUntil=0
   r.Anchored=true
-  local line=assert(transportTarget.Parent:FindFirstChild("StandLine"))
-  c:PivotTo(CFrame.lookAt(line.Position+Vector3.new(0,3,0),transportTarget.Position))
+  c:PivotTo(CFrame.lookAt(Vector3.new(0,503,0),transportTarget.Position))
   state(player)
   task.delay(120,function() if transportSaved then transportRestore();warn("VOICE_TRANSPORT_TIMEOUT") end end)
   return {aim=transportTarget.Position,sourceSha256=workspace:GetAttribute("ReviewSourceSha256")}
@@ -87,7 +98,7 @@ transportProbe.OnServerInvoke=function(player,verb,report)
   return {active=a~=nil,sequence=a and a.sequence,power=a and a.power,sample=s.sustained.intent and s.sustained.intent.sample,
    aim=s.sustained.intent and s.sustained.intent.aim,lastSequence=s.sustained.protocol.lastSequence,
    cooldown=math.max(0,s.sustained.protocol.nextStart-os.clock()),micReady=s.micReady,eligible=sustainedContext(player,s,os.clock())~=nil,
-   practicePulse=transportTarget:GetAttribute("PracticePulse") or 0,firstBeam=s.data.achievements.FirstBeam==true,
+   beamSteps=transportBeamSteps,beamSequence=transportBeamSequence,retiredAchievement=s.data.achievements.FirstBeam==true,
    received=#transportReceived,counts=table.clone(transportCounts),auditCount=#transportAudit}
  elseif verb=="audit" then
   local cursor=tonumber(report) or 0

@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');args=p.parse_args()
 name='src/StarterPlayer/StarterPlayerScripts/Client.client.luau'
 src=subprocess.check_output(['git','show','899b0b8:'+name],cwd=ROOT,text=True,encoding='utf-8') if args.baseline else (ROOT/name).read_text(encoding='utf-8')
-setup_line=next(line for line in src.splitlines() if line.startswith('label(micPanel,sustainedControl and'))
+setup_line='' # Mandatory setup panel retired; disclosure remains in Settings.
 info_start=src.index('local function info(')
 info_end='\nscript.Destroying:Connect(' if args.baseline else '\nownClient('
 info=src[info_start:src.index(info_end,info_start)]
@@ -38,7 +38,7 @@ local TextService={GetTextSize=function(_,text,size,font,dimensions)
 end}
 local sustainedControl;local sustainedRules={MaxDuration=4,Cooldown=5};local UIS={TouchEnabled=false}
 local Config={DodgeCooldown=3,SprintDuration=5,SprintRecovery=4,SprintRegenDelay=2}
-local mic={Calibrate=function(self)self.count=(self.count or 0)+1 end};local modal={Visible=true}
+local mic={status='unavailable',eligible=false,Check=function(self)self.count=(self.count or 0)+1 end};local modal={Visible=true}
 local cancellations,sprints=0,0;local function cancelCapture()cancellations+=1 end;local function setSprint()sprints+=1 end
 local action={FireServer=function()error('Rendering safety notice must not send a server action')end}
 local data={settings={volume=.5,reducedShake=false}}
@@ -65,12 +65,6 @@ after_settings='\n end\n'
 checks=r'''
 for _,automatic in ipairs({false,true})do
  sustainedControl=automatic and {SetArmed=function(self,v)self.armed=v end} or nil
- local notice=setupNotice()
- check(string.find(notice.Text,'Avoid profanity.',1,true)~=nil,'Setup profanity warning missing')
- check(string.find(notice.Text,'Roblox records and moderates voice.',1,true)~=nil,'Setup recording/moderation warning missing')
- check(notice.Size.Y.Offset==50 and notice.Position.Y.Offset==146,'Setup warning moved existing controls')
- if automatic then check(string.find(notice.Text,'OFF does not mute voice.',1,true)~=nil,'Setup confuses attack off and voice mute')
- else check(string.find(notice.Text,'Roblox voice access required.',1,true)~=nil,'Legacy access notice missing')end
  for _,width in ipairs({320,390,844,1280})do
   for _,touch in ipairs({false,true})do
    gui.AbsoluteSize.X=width;UIS.TouchEnabled=touch;selected='Settings';renderedMenuKey=nil;cards={};content.children={};labels={};buttons={};modal.Visible=true
@@ -83,12 +77,11 @@ for _,automatic in ipairs({false,true})do
    check(not string.find(text,'automatically banned',1,true) and not string.find(text,'we record',1,true),'Safety notice invents enforcement or recording')
    check(safety.height>=measured[text]+24,'Safety card fails measured height growth')
    check(safety.labels[1].Size.Y.Scale==1 and safety.labels[1].Size.Y.Offset==-20,'Safety label no longer fills dynamic card')
-   for _,id in ipairs({'Recalibrate','Volume','AttackAudio','GameplayAudio','ReducedFX'})do check(buttons[id]~=nil,'Existing settings control removed')end
+   for _,id in ipairs({'RetryVoiceAccess','Volume','AttackAudio','GameplayAudio','ReducedFX'})do check(buttons[id]~=nil,'Existing settings control removed')end
    local old=#cards;render();flush();check(#cards==old,'Unchanged menu duplicated safety notice')
    content.CanvasPosition={X=0,Y=220};renderedMenuKey=nil;render();flush();check(content.CanvasPosition.Y==220,'Same-tab rebuild lost scroll')
    selected='Map';render();flush();selected='Settings';render();flush();check(content.CanvasPosition.Y==0,'New tab retained stale scroll')
-   local before=mic.count or 0;buttons.Recalibrate.call();check(mic.count==before+1 and not modal.Visible,'Recalibration callback changed')
-   if automatic then check(sustainedControl.armed==false,'Recalibration failed to disarm')end
+   local before=mic.count or 0;buttons.RetryVoiceAccess.call();check(mic.count==before+1 and modal.Visible,'Access retry callback changed')
   end
  end
 end
@@ -108,11 +101,11 @@ def run(code,expected=None):
  out=r.stdout+r.stderr
  if expected:assert r.returncode and expected in out,out;print('PASS negative control:',expected)
  else:assert r.returncode==0,out;print(out.strip())
-if args.baseline:run(code,'Setup profanity warning missing')
+if args.baseline:run(code,'VoiceSafety card missing')
 else:
  run(code)
  if args.negative_controls:
-  cases=[(assemble(settings_text=settings.replace('VOICE SAFETY','OTHER NOTICE')),'VoiceSafety card missing'),(assemble(settings_text=settings.replace('Stopping attacks does not mute voice','Stopping attacks mutes voice')),'Safety notice missing required distinction: Stopping attacks does not mute voice'),(assemble(info_text=info.replace('math.max(height or 70,fit)','height or 70')),'Safety card fails measured height growth'),(assemble(setup_text=setup_line.replace('OFF does not mute voice.','OFF mutes voice.')),'Setup confuses attack off and voice mute')]
+  cases=[(assemble(settings_text=settings.replace('VOICE SAFETY','OTHER NOTICE')),'VoiceSafety card missing'),(assemble(settings_text=settings.replace('Stopping attacks does not mute voice','Stopping attacks mutes voice')),'Safety notice missing required distinction: Stopping attacks does not mute voice'),(assemble(info_text=info.replace('math.max(height or 70,fit)','height or 70')),'Safety card fails measured height growth')]
   for changed,message in cases:
    assert changed!=code,'Mutation missing: '+message
    run(changed,message)

@@ -21,11 +21,11 @@ task.spawn(function()
    assert(VoiceCombat.Begin(s.voice,os.clock()-.5,sequence,true))
    message=nil;cast(p,{sequence=sequence,power=1,aim=Vector3.new(0,505,-100)})
   end
-  fire(1);assert(message=="Scream missed",tostring(message));checks+=1
+  fire(1);assert(message=="Beam missed",tostring(message));checks+=1
   testPart=Instance.new("Part");testPart.Anchored=true;testPart.Size=Vector3.new(20,20,1);testPart.CFrame=CFrame.new(0,505,-12);testPart.Parent=workspace
-  fire(2);assert(message=="Scream stopped by cover",tostring(message));checks+=1
+  fire(2);assert(message=="Beam stopped by cover",tostring(message));checks+=1
   testPart:SetAttribute("MicPracticeTarget",true);testPart:SetAttribute("RestColor",testPart.Color)
-  fire(3);assert(string.find(message,"Practice hit",1,true),tostring(message));checks+=1
+  fire(3);assert(message=="Beam stopped by cover",tostring(message));checks+=1
   testPart:Destroy();testPart=nil
   bot.health=Config.BotMaxHealth;bot.alive=true;bot.model:PivotTo(CFrame.new(0,504,-12));bot.root.Anchored=true;World.Bots={bot}
   fire(4)

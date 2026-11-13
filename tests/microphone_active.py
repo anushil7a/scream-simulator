@@ -16,10 +16,10 @@ player.input.Active=true;m:Calibrate();check(m.phase=='quiet','Active input coul
 now+=.1;m.analyzer.RmsLevel=.001;m:Step(.05)
 player.input.Active=false;m:Step(.05)
 check(m.phase==nil and #m.quiet==0 and #m.spoken==0,'Inactive input retained partial calibration')
-player.input.Active=true;m:Step(.05);check(not m.ready and not m.model.calibrated,'Interrupted calibration silently completed')
+player.input.Active=true;m:Step(.05);check(m.ready and not m.model.calibrated,'Interrupted calibration silently completed or finite input failed recovery')
 m:Calibrate();m.phase='voice';m.quiet={.001,.001};m.spoken={.08};player.input.Active=false;m:Step(.05)
 check(m.phase==nil and #m.quiet==0 and #m.spoken==0,'Inactive voice calibration retained samples')
-player.input.Active=true;m:Step(.05);check(not m.ready,'Interrupted voice calibration restored readiness')
+player.input.Active=true;m:Step(.05);check(m.ready and not m.model.calibrated,'Interrupted voice calibration completed or finite input failed recovery')
 local function calibrate()
  m:Calibrate()
  for _,phase in ipairs({'quiet','voice'}) do
@@ -65,7 +65,7 @@ check(not m.ready and m.phase==nil and m.power==0,'Calibrate bypassed inactive g
 player.input.Active=true;frames(1,0);check(m.ready and not control.armed,'Unmute/reactivation failed deliberate rearm')
 local old=m.input;old.Parent=nil;player.input={Parent=true,Muted=false,Active=false};frames(1,0)
 check(m.input~=old and not m.model.calibrated and not m.ready,'Inactive replacement retained old calibration')
-player.input.Active=true;frames(1,0);check(not m.ready,'Replacement bypassed fresh calibration')
+player.input.Active=true;frames(1,0);check(m.ready and not m.model.calibrated,'Finite replacement failed default readiness or retained calibration')
 calibrate();check(not control.armed,'Replacement recalibration silently rearmed initialized control')
 control:Destroy();m:Destroy();check(m.destroyed and not m.ready,'Cleanup failed')
 print('PASS',n,'actual inactive-input/controller assertions; synthetic Active transitions, not device/voice transport')
@@ -90,7 +90,7 @@ if __name__=='__main__':
             assert source.count(guard)==2
             run(source.replace(guard,'-- omitted calibration guard',1),'Inactive input began calibration')
             at=source.rindex(guard)
-            run(source[:at]+source[at:].replace(guard,'-- omitted heartbeat guard',1),'Inactive input retained partial calibration')
+            run(source[:at]+source[at:].replace(guard,'-- omitted heartbeat guard',1),'Inactive before calibration was ready')
             begin_guard='if input.Active==false then self:HandleInactive();return false end'
             assert source.count(begin_guard)==1
             run(source.replace(begin_guard,'-- omitted direct Begin guard'),'Direct Begin missed inactive input before heartbeat')
@@ -99,10 +99,12 @@ if __name__=='__main__':
             run(source.replace(release_guard,'-- omitted direct Release guard'),'Direct Release leaked cached inactive energy')
             start=source.index('function Microphone:HandleInactive()');end=source.index('function Microphone:Step(dt)',start)
             body=source[start:end]
-            changed=body.replace('self.ready=false;','')
+            # Interrupt now independently clears readiness/capture on the first loss.
+            # Remove both reset sites for this invariant control, not just its redundant line.
+            changed=body.replace('self.ready=false;','').replace('self:Interrupt()','')
             assert changed!=body
             run(source[:start]+changed+source[end:],'Direct Begin missed inactive input before heartbeat')
-            changed=body.replace('self:Cancel();','')
+            changed=body.replace('self:Cancel();','').replace('self:Interrupt()','')
             assert changed!=body
             run(source[:start]+changed+source[end:],'Direct Release leaked cached inactive energy')
             changed=body.replace('self.model:Reset();','self.model:Reset();self.model.calibrated=false;')

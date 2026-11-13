@@ -39,7 +39,7 @@ now+=2;count=#sends;setSprint(true);check(#sends==count+1,'Fresh ON delayed')
 now+=.01;setSprint(false);check(#sends==count+2 and not s.sprintRequested,'Fast OFF delayed')
 now+=.01;setSprint(true);check(#sends==count+3 and s.sprintRequested,'Fresh transition throttled')
 setSprint(false)
-for _,kind in ipairs({'focus','setup','menu','typing','modal','dev','conversation','missing','dead','platform','sit','seat','knock'})do
+for _,kind in ipairs({'focus','menu','typing','modal','dev','conversation','missing','dead','platform','sit','seat','knock'})do
  now+=2;setSprint(true);check(sprinting,'Precondition failed '..kind)
  local character=p.Character
  if kind=='focus'then windowFocused=false elseif kind=='setup'then micPanel.Visible=true elseif kind=='menu'then GuiService.MenuIsOpen=true elseif kind=='typing'then focused={} elseif kind=='modal'then modal.Visible=true elseif kind=='dev'then devPanel.Visible=true elseif kind=='conversation'then conversationPanel.Visible=true elseif kind=='missing'then p.Character=nil elseif kind=='dead'then h.Health=0 elseif kind=='platform'then h.PlatformStand=true elseif kind=='sit'then h.Sit=true elseif kind=='seat'then h.SeatPart={} elseif kind=='knock'then attrs.KnockdownEnds=now+1 end

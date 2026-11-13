@@ -9,25 +9,21 @@ Layout.TrainingHomes={{x=-245,z=-15},{x=-245,z=-100},{x=-245,z=-185}}
 Layout.CafePickup=V(30,2,-225)
 Layout.DeliveryStops={{id="StageDelivery",name="boardwalk music stage",position=V(-70,2,200)},{id="LookoutDelivery",name="lifeguard lookout",position=V(-220,2,200)},{id="PierDelivery",name="coastal pier stop",position=V(285,2,200)}}
 Layout.Teleports={Arena=V(40,4,50),Beach=V(-220,4,200)}
-Layout.Practice={position=V(-270,3,65),target=V(-280.8,6,65),aim=V(-1,0,0)}
 Layout.Soccer={practiceGoal=V(265,1.05,287),center=V(285,1.2,245.5),origin=V(252,1.2,251),min=V(229,0,203),max=V(341,0,288),lost={V(227,1.2,161),V(189,1.2,264),V(320,1.2,183)},gates={V(275,1.2,231),V(290,1.2,256),V(270,1.2,279),V(313,1.2,260)},obstacles={V(262,1.2,241),V(282,1.2,242),V(280,1.2,269),V(292,1.2,272)},goals={V(301,1.2,251),V(243,1.2,219),V(327,1.2,218),V(254,1.2,277),V(323,1.2,276)}}
 Layout.Volley={center=V(-20,2,250),serve=V(-20,3,234),board=V(-45,4,229),min=V(-40,0,224),max=V(0,0,276),playerMin=V(-47,0,217),playerMax=V(7,0,283),netZ=250,netMinX=-40,netMaxX=0,minimumCrossingHeight=9.2,floorBallY=1.1}
-Layout.MapLandmarks={{name="1 Spawn",x=-270,z=130},{name="2 Practice",x=-270,z=65},{name="3 Training",x=-245,z=-100},{name="4 Arena",x=40,z=-20},{name="5 Gardens",x=-295,z=-235},{name="6 Market",x=30,z=-225},{name="7 Coast",x=-220,z=200},{name="8 Nick court",x=285,z=245.5}}
+Layout.MapLandmarks={{name="1 Spawn",x=-270,z=130},{name="2 Training",x=-245,z=-100},{name="3 Arena",x=40,z=-20},{name="4 Gardens",x=-295,z=-235},{name="5 Market",x=30,z=-225},{name="6 Coast",x=-220,z=200},{name="7 Nick court",x=285,z=245.5}}
 Layout.MapRoads={
 {name="Promenade",x=0,z=200,width=690,depth=40},
 {name="NorthWalk",x=20,z=-225,width=650,depth=20},
 {name="WestWalk",x=-180,z=-35,width=20,depth=400},
 {name="EastWalk",x=225,z=-10,width=20,depth=390},
 }
--- Quiet, cosmetic-only first-minute route. These do not redefine walkability or PvP.
+-- Quiet, cosmetic-only route from spawn to training and arena. These do not redefine walkability or PvP.
 Layout.GuidanceSpecs={
-{id="RouteToPractice",position=V(-270,.10,97),size=V(8,.02,86),color=Color3.fromRGB(177,174,153)},
+{id="RouteFromSpawn",position=V(-270,.10,97),size=V(8,.02,86),color=Color3.fromRGB(177,174,153)},
 {id="RouteToTrainingTurn",position=V(-257.5,.10,50),size=V(33,.02,8),color=Color3.fromRGB(177,174,153)},
 {id="RouteToTraining",position=V(-245,.10,35.5),size=V(8,.02,21),color=Color3.fromRGB(177,174,153)},
 {id="RouteToArena",position=V(-183,.10,50),size=V(116,.02,8),color=Color3.fromRGB(177,174,153)},
-{id="PracticeFrameNear",position=V(-280.8,8,48),size=V(.3,16,1),color=Color3.fromRGB(221,209,175)},
-{id="PracticeFrameFar",position=V(-280.8,8,82),size=V(.3,16,1),color=Color3.fromRGB(221,209,175)},
-{id="PracticeFrameCrown",position=V(-280.8,16.4,65),size=V(.3,.8,35),color=Color3.fromRGB(255,203,99)},
 }
 Layout.PartSpecs={
 {id="Ground",position=V(0,-1,0),size=V(720,2,600),color=Color3.fromRGB(212,195,158),collidable=true,kind="ground"},
@@ -46,8 +42,6 @@ Layout.PartSpecs={
 {id="ArenaGate30",position=V(-120,6,30),size=V(4,12,4),color=Color3.fromRGB(170,95,83),collidable=true,kind="architecture"},
 {id="ArenaGate70",position=V(-120,6,70),size=V(4,12,4),color=Color3.fromRGB(170,95,83),collidable=true,kind="architecture"},
 {id="ArenaGateBeam",position=V(-120,13,50),size=V(4,2,44),color=Color3.fromRGB(170,95,83),collidable=true,kind="overhead"},
-{id="PracticeBackstop",position=V(-282,8,65),size=V(2,16,36),color=Color3.fromRGB(38,59,65),collidable=true,kind="architecture"},
-{id="PracticeTarget",position=V(-280.8,6,65),size=V(0.2,7,7),color=Color3.fromRGB(255,203,99),collidable=false,kind="marker"},
 {id="TrainingPad1",position=V(-245,0.065,-15),size=V(64,0.05,64),color=Color3.fromRGB(170,195,149),collidable=false,kind="pad"},
 {id="TrainingPad2",position=V(-245,0.065,-100),size=V(64,0.05,64),color=Color3.fromRGB(174,188,190),collidable=false,kind="pad"},
 {id="TrainingPad3",position=V(-245,0.065,-185),size=V(64,0.05,64),color=Color3.fromRGB(194,175,190),collidable=false,kind="pad"},

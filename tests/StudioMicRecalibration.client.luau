@@ -1,4 +1,5 @@
--- Append to Client in a disposable Studio copy. Real calibration controller with
+-- Internal legacy calibration API compatibility only; no calibration UI or requirement.
+-- Append to Client in a disposable Studio copy. Real microphone controller with
 -- synthetic RMS/readiness; not hardware, voice eligibility or live audio evidence.
 task.spawn(function()
  assert(game.PlaceId==0 and game:GetService("RunService"):IsStudio())
@@ -23,7 +24,7 @@ task.spawn(function()
   phase(.002);check(test.phase=="voice","Quiet phase failed to advance")
   phase(.002);check(test.phase==nil and not test.ready,"Failed retry remained ready")
   test:Step(.016);test:Step(.016)
-  check(not test.ready and not test.model.calibrated and not test:Begin(),"Old calibration silently restored readiness")
+  check(test.ready and not test.model.calibrated and test:Begin(),"Finite live input did not recover default-threshold readiness")
   test:Calibrate();phase(.002);phase(.08)
   check(test.ready and test.model.calibrated and test:Begin(),"Good retry did not restore readiness")
  end,debug.traceback)

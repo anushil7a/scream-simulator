@@ -59,7 +59,7 @@ def verify(args, report=None):
     mocked += ('client_startup_lifecycle.py', 'client_startup_builder.py')
     mocked += ('challenge_cap_copy.py',)
     mocked += ('lock_on.py', 'lock_on_integration.py', 'hud_presentation.py', 'coastal_art.py', 'minimap_visuals.py', 'beam_silhouette.py')
-    mocked += ('sustained_ttk.py', 'beam_tier_silhouettes.py')
+    mocked += ('sustained_ttk.py', 'beam_tier_silhouettes.py', 'microphone_direct_ready.py', 'practice_retirement.py', 'cast_feedback_contract.py')
     for name in mocked:
         print(f'Checking {name} (mocked services)', flush=True)
         run([sys.executable, str(ROOT / 'tests' / name)])

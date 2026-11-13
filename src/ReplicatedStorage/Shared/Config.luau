@@ -69,8 +69,9 @@ Config.Quests={
  {id="dodge",name="Can't Touch This",description="Dodge 3 enemy beams in the central arena.",goal=3,xp=160,coins=70,event="Evade"},
  {id="arena",name="Underdog",description="Knock out a player whose level is at least yours in the central arena.",goal=1,xp=180,coins=80,event="Underdog"},
 }
--- Additive identities: never repurpose old quest IDs or their saved claims.
-table.insert(Config.Quests,{id="practice_beams",name="Controlled Beams",description="Hit the mic practice target with 3 separate beams. Each beam counts once; accept this task before practicing.",goal=3,xp=60,coins=25,event="PracticeBeam",menuAvailable=true})
+-- Permanent identities: retired definitions preserve earned claims and dormant counters.
+-- They are not offered or progressed, and their IDs/rewards must never be reused.
+table.insert(Config.Quests,{id="practice_beams",name="Controlled Beams",retired=true,goal=3,xp=60,coins=25,event="PracticeBeam"})
 table.insert(Config.Quests,{id="arena_assist",name="Team Effort",description="Help knock out an equal/higher-level player in the arena without landing the final hit. Deal at least 10% of their maximum health and earn KO credit. Your damage credit expires after 25 seconds without a hit; repeated opponents may not count.",goal=1,xp=120,coins=50,event="ArenaAssist",menuAvailable=true})
 local questGivers={beach="Mar Soler · Rambla Gardens",delivery="Pau Vidal · Mercat del Mar",crowd="Busker · west gardens",sprint="Commuter · Plaça del Sol",dodge="Fighter · Rambla Gardens",arena="Fighter · Rambla Gardens"}
 if Config.CompactCity then

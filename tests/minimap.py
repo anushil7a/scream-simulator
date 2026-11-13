@@ -29,7 +29,8 @@ for _,name in ipairs({'Arena','Beach','Promenade','TimberPier','ArenaBoundary'})
  local a,b=find(full.map,name),find(mini.map,name);check(a~=nil and b~=nil,'Compact map geometry missing')
  for _,axis in ipairs({'X','Y'})do check(near(a.Position[axis].Scale,b.Position[axis].Scale) and near(a.Size[axis].Scale,b.Size[axis].Scale),'Compact geometry differs from full map')end
 end
-check(find(full.map,'North') and not find(mini.map,'North'),'Compact north decoration retained')
+check(not find(full.map,'North') and not find(mini.map,'North'),'Retired north decoration retained')
+check(not CityMap.mapHelp:find('North is up',1,true),'Retired orientation instructions retained')
 check(full.arrow and not mini.arrow,'Compact facing arrow retained')
 check(CityMap.arenaPercent==40,'Arena fraction changed')
 local r={Parent={},Position={X=0,Z=0},CFrame={LookVector={X=0,Z=-1}}}
@@ -207,7 +208,7 @@ else:
  if args.negative_controls:
   cases=[(code.replace('compact and {} or landmarks','{}'),'Modal landmark missing'),(code.replace('compact and {} or landmarks','landmarks'),'Compact landmark clutter'),(code.replace('if view.lastRoot==root and view.nextUpdate and now<view.nextUpdate', 'if false and view.lastRoot==root and view.nextUpdate and now<view.nextUpdate'),'Minimap throttle missing'),(code.replace('view.dot.Visible=false;view.nextUpdate=nil','view.dot.Visible=true;view.nextUpdate=nil'),'Hidden minimap marker retained'),(code.replace('viewport.X-278','viewport.X-200'),'Minimap overlaps left HUD'),(code.replace('miniMapAvailable and gameplayVisible and windowFocused','miniMapAvailable and gameplayVisible and windowFocused and not toast.Visible'),'MAP visibility gate failed'),(code.replace('width=math.min(width,math.max(119,viewport.X-328))',''),'Minimap overlaps quest tracker'),(code.replace('view.lastRoot==root and view.nextUpdate','view.nextUpdate'),'Replacement root throttled'),(code.replace('miniMapAvailable and gameplayVisible','gameplayVisible'),'MAP visibility gate failed'),(code.replace('touch and 315 or 168','touch and 314 or 167',1),'Minimap availability boundary wrong'),(code.replace('touch and 315 or 168','touch and 261 or 168'),'Minimap overlaps Talk button')]
   cases.append((code.replace('width-map.width-22','width-14'),'Resolved TALK overlaps MAP'))
-  cases.extend([(code.replace("if not compact then\n  local north","if true then\n  local north"),'Compact north decoration retained'),(code.replace("if not compact then arrow=text","if true then arrow=text"),'Compact facing arrow retained')])
+  cases.extend([(code.replace(" for i,v in ipairs(compact and {} or landmarks)"," box(map,'North',.04,.025,.25,.075,cream)\n for i,v in ipairs(compact and {} or landmarks)"),'Retired north decoration retained'),(code.replace("if not compact then arrow=text","if true then arrow=text"),'Compact facing arrow retained')])
   cases.extend([(code.replace('viewport.X<432 and -100 or -126','viewport.X<432 and -104 or -126'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
   for changed,message in cases:
    assert changed!=code,'Mutation did not match: '+message

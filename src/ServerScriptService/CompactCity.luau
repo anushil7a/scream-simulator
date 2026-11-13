@@ -15,23 +15,15 @@ end
 local function wayfinding(parent,name,position,text)
  local anchor=part(parent,name,V(.2,.2,.2),position,Color3.fromRGB(255,203,99),false)
  anchor.Transparency=1;anchor.CanQuery=false
- local isPractice=name=="PracticeWayfinding"
- local isHeader=isPractice or name=="ArenaWayfinding"
- local gui
- if isHeader then
-  -- Attached header text cannot float across the hittable target like a billboard.
-  anchor.Size=isPractice and V(.2,4,36) or V(.2,3,39)
-  gui=Instance.new("SurfaceGui");gui.Face=isPractice and Enum.NormalId.Right or Enum.NormalId.Left
-  gui.SizingMode=Enum.SurfaceGuiSizingMode.FixedSize;gui.CanvasSize=Vector2.new(600,100)
-  gui.LightInfluence=0;gui.MaxDistance=65;gui.AlwaysOnTop=false
- else
-  gui=Instance.new("BillboardGui");gui.Size=UDim2.fromOffset(260,60);gui.StudsOffset=V(0,3,0)
-  gui.MaxDistance=65;gui.AlwaysOnTop=false
- end
+ -- Only the arena's meaningful PvP boundary label remains; no mic tutorial signs.
+ anchor.Size=V(.2,3,39)
+ local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Left
+ gui.SizingMode=Enum.SurfaceGuiSizingMode.FixedSize;gui.CanvasSize=Vector2.new(600,100)
+ gui.LightInfluence=0;gui.MaxDistance=65;gui.AlwaysOnTop=false
  gui.Name="Wayfinding";gui.Parent=anchor
  local label=Instance.new("TextLabel");label.Name="Text";label.Size=UDim2.fromScale(1,1)
- label.BackgroundColor3=Color3.fromRGB(30,48,54);label.BackgroundTransparency=isHeader and 1 or .15;label.TextColor3=Color3.fromRGB(255,243,214)
- label.TextSize=isHeader and 36 or 16;label.TextWrapped=true;label.Font=Enum.Font.GothamBold;label.Text=text;label.Parent=gui
+ label.BackgroundColor3=Color3.fromRGB(30,48,54);label.BackgroundTransparency=1;label.TextColor3=Color3.fromRGB(255,243,214)
+ label.TextSize=36;label.TextWrapped=true;label.Font=Enum.Font.GothamBold;label.Text=text;label.Parent=gui
 end
 -- Original, static coastal-academy art. None of these pieces participate in hits,
 -- navigation, touch events or quest state. Existing solid silhouettes remain opaque.
@@ -108,22 +100,6 @@ local function academyArt(parent,byId)
   detail("TowerLantern"..x,V(3,3,3),V(x,71.5,-262),gold,Enum.PartType.Ball)
  end
  detail("BasilicaFacadeBand",V(48,1,.4),V(275,27,-237.7),ivory)
- -- A substantial framed practice station. Keep its actual hittable yellow face
- -- and the full target-to-standing corridor uncovered.
- detail("PracticeHeader",V(2.6,4,36),V(-282,19,65),slate)
- detail("PracticeHeaderGold",V(2.7,.5,36),V(-282,21.3,65),gold)
- for _,z in ipairs({49,81})do
-  detail("PracticeFlank"..z,V(.3,13,2),V(-280.65,8,z),ivory)
- end
- -- One tall, spawn-facing signal makes the side-on station legible from arrival.
- -- Its stem follows the existing wall end; the wide badge is above head/shot height.
- detail("PracticeBeaconStem",V(2,14,2),V(-282,23,82),ivory)
- detail("PracticeBeaconFace",V(18,10,.6),V(-282,28,83.4),slate)
- detail("PracticeBeaconTop",V(18,.6,.7),V(-282,33.3,83.4),gold)
- detail("PracticeBeaconBottom",V(18,.6,.7),V(-282,22.7,83.4),ivory)
- for j=0,4 do
-  detail("PracticeBeaconSignal"..j,V(1.4,3+2*(2-math.abs(j-2)),.12),V(-288+j*3,28,83.76),gold)
- end
  -- Portal dressing follows existing gate posts/beam, retaining the 36-stud opening.
  for _,z in ipairs({30,70})do
   detail("ArenaPostFace"..z,V(.35,11,3.5),V(-122.2,6,z),slate)
@@ -133,7 +109,7 @@ local function academyArt(parent,byId)
  detail("ArenaFascia",V(.35,3,39),V(-122.2,13.5,50),slate)
  detail("ArenaFasciaBand",V(.4,.5,39),V(-122.4,15.3,50),gold)
  -- Calm ground articulation: small cross-joints, never new borders resembling
- -- a damage or collision boundary. Route strips and practice stand remain above.
+ -- a damage or collision boundary. Route strips remain above.
  for z=-140,140,20 do
   detail("CourtyardJoint"..z,V(178,.012,.18),V(-260,.087,z),seam)
  end
@@ -159,17 +135,12 @@ function City.Build(parent)
  for _,spec in ipairs(Layout.PartSpecs) do
   local p=part(parent,spec.id,spec.size,spec.position,spec.color,spec.collidable);byId[spec.id]=p
   if spec.id=="Ground" then p:SetAttribute("GroundSurface",true) end
-  if spec.id=="PracticeTarget" then p.CanCollide=true;p:SetAttribute("MicPracticeTarget",true);p:SetAttribute("RestColor",spec.color) end
  end
  local guidance=Instance.new("Folder");guidance.Name="FirstMinuteGuidance";guidance.Parent=parent
  for _,spec in ipairs(Layout.GuidanceSpecs) do
   local p=part(guidance,spec.id,spec.size,spec.position,spec.color,false)
   p.CanQuery=false;p.CastShadow=false;p.Transparency=0
  end
- -- Above the existing paving and cosmetic route; never a collision/raycast surface.
- local stand=part(parent,"StandLine",V(.35,.04,10),V(Layout.Practice.position.X,.14,Layout.Practice.position.Z),Color3.fromRGB(255,203,99),false);stand.CanQuery=false
- wayfinding(parent,"SpawnWayfinding",V(Layout.Spawn.X-18,4,Layout.Spawn.Z+5),"MIC PRACTICE: NORTH\nTraining pads are in the west courtyard")
- wayfinding(parent,"PracticeWayfinding",V(-280.45,19,65),"MIC PRACTICE\nAim west, speak, then go quiet")
  wayfinding(parent,"ArenaWayfinding",V(-122.6,13.5,50),"BEAM ARENA\nPVP INSIDE RED LINES")
  local quests=Instance.new("Folder");quests.Name="QuestObjects";quests.Parent=parent
  for _,spec in ipairs(Layout.QuestMarkers) do

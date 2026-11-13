@@ -97,7 +97,7 @@ local blockers={
  function(v)clientDestroyed=v end,function(v)windowFocused=not v end,function(v)sustainedControl.armed=not v end,
  function(v)mic.ready=not v end,function(v)data.voiceEligible=not v end,function(v)data.settings.reducedShake=v end,
  function(v)platformReducedMotion=v end,function(v)modal.Visible=v end,function(v)devPanel.Visible=v end,
- function(v)conversationPanel.Visible=v end,function(v)micPanel.Visible=v end,function(v)GuiService.MenuIsOpen=v end,
+ function(v)conversationPanel.Visible=v end,function(v)GuiService.MenuIsOpen=v end,
  function(v)typing=v and {} or nil end,function(v)h.PlatformStand=v end,function(v)h.Health=v and 0 or 100 end,
  function(v)attrs.KnockdownEnds=v and now+1 or 0 end}
 for i,f in ipairs(blockers)do

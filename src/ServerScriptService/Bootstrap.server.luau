@@ -188,7 +188,7 @@ local function xp(p,amount)
 end
 local function questProgress(p,event,amount)
  local s=sessions[p];if not s or not s.activeQuest then return end
- local q=Config.GetQuest(s.activeQuest);if not q or q.event~=event then return end
+ local q=Config.GetQuest(s.activeQuest);if not q or q.retired==true or q.event~=event then return end
  local v=s.data.quests[q.id];if not v or v.claimed or v.progress>=q.goal then return end
  v.progress=math.min(q.goal,v.progress+(amount or 1));state(p,v.progress==q.goal and "Quest complete! Claim your reward in Quests." or nil)
 end
@@ -389,16 +389,6 @@ local function stepSustained(p,s,now)
   -- One successful impulse per activity per scream, not five impulses per second.
   if not intent.soccerHit then intent.soccerHit=Soccer.Hit(p,beam.origin,beam.direction,beam.length,beam.width,beam.power)==true end
   if not intent.volleyHit then intent.volleyHit=BeachVolley.Hit(p,beam.origin,beam.direction,beam.length,beam.width,beam.power)==true end
-  local practice=beam.obstruction and beam.obstruction.Instance
-  if not intent.practiceHit and practice and practice:GetAttribute("MicPracticeTarget")==true then
-   intent.practiceHit=true
-   questProgress(p,"PracticeBeam")
-   local firstBeam=not s.data.achievements.FirstBeam
-   s.data.achievements.FirstBeam=true
-   state(p,firstBeam and "First beam landed! Train at the Rookie pad for XP and coins. Open Quests for your challenges." or string.format("Practice hit · %d%% power · %.0f studs",math.floor(beam.power*100+.5),beam.length))
-   local pulse=(practice:GetAttribute("PracticePulse") or 0)+1;practice:SetAttribute("PracticePulse",pulse);practice.Color=Color3.fromRGB(255,205,111)
-   task.delay(.3,function() if practice.Parent and practice:GetAttribute("PracticePulse")==pulse then practice.Color=practice:GetAttribute("RestColor") end end)
-  end
   for _,viewer in ipairs(Players:GetPlayers()) do
    local _,root=parts(viewer)
    if root and (root.Position-beam.origin).Magnitude<=180 then
@@ -475,13 +465,6 @@ local function cast(p,request)
  Soccer.Hit(p,origin,direction,length,sound.width,sound.power)
  BeachVolley.Hit(p,origin,direction,length,sound.width,sound.power)
  local castMessage
- if obstruction and obstruction.Instance:GetAttribute("MicPracticeTarget")==true then
-  questProgress(p,"PracticeBeam")
-  s.data.achievements.FirstBeam=true
-  castMessage=string.format("Practice hit · %d%% power · %.0f studs · %d damage",math.floor(sound.power*100+.5),length,sound.damage)
-  local target=obstruction.Instance;local pulse=(target:GetAttribute("PracticePulse") or 0)+1;target:SetAttribute("PracticePulse",pulse);target.Color=Color3.fromRGB(255,205,111)
-  task.delay(.3,function() if target.Parent and target:GetAttribute("PracticePulse")==pulse then target.Color=target:GetAttribute("RestColor") end end)
- end
  if obstruction then
   local result=Config.ObjectDestruction==true and Destruction.Damage(obstruction.Instance,s.data.level,sound.damage) or nil
   if result then
@@ -807,6 +790,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="SetAura" and arg=="Gold" then s.data.aura=arg;s.data.useCustomColor=false;state(p)
  elseif verb=="AcceptQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg)
+  if q and q.retired==true then return end
   if q and q.menuAvailable~=true and not s.data.availableQuests[q.id] then state(p,"Meet "..(q.giver or "the quest giver").." to unlock this task.");return end
   if q and q.id=="nick" then
    local _,root=parts(p)

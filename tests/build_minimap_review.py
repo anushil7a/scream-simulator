@@ -29,7 +29,7 @@ for _,view in ipairs({{320,568,true},{360,800,true},{390,844,true},{430,844,true
  check(not miniMapView.map:FindFirstChild("Landmark1") and not miniMapView.map:FindFirstChild("North") and not miniMapView.arrow,"Compact map decorations remain")
  table.insert(rows,{viewport=tostring(gui.AbsoluteSize),expanded=miniMapHolder.Visible,size=tostring(miniMapButton.AbsoluteSize),position=tostring(miniMapButton.AbsolutePosition)})
  toggleTab("Map");settle();check(modal.Visible and not miniMapButton.Visible,"Map menu did not replace minimap")
- check(mapDot~=nil and mapDot~=miniMapView and mapDot.map:FindFirstChild("Landmark8"),"Full map lost landmarks or shared HUD state")
+ check(mapDot~=nil and mapDot~=miniMapView and mapDot.map:FindFirstChild("Landmark7"),"Full map lost landmarks or shared HUD state")
  toggleTab("Map");settle();check(miniMapButton.Visible and miniMapView.map==miniIdentity,"Closing map lost HUD map")
  data.devAccess=true;receiver(data);settle();check(miniMapButton.Visible and testButton.Visible,"Authorized tester lost minimap/tools")
  check(testButton.TextFits,"Test tools label clipped")

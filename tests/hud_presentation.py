@@ -52,9 +52,9 @@ def run(source):
 def main():
  p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');args=p.parse_args();source=CLIENT.read_text(encoding='utf-8')
  r=run(source);assert r.returncode==0,r.stdout+r.stderr;print(r.stdout.strip())
- contracts=['zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08','saveNotice.BackgroundColor3=dark;saveNotice.BackgroundTransparency=.08','UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108)','micPanel.Size=UDim2.fromOffset(micWidth,micNarrow and 320 or 260)','calibrate.Size=UDim2.fromOffset(micNarrow and micWidth-36 or 188,UIS.TouchEnabled and 44 or 36)','UDim2.fromOffset(44,44),UDim2.new(1,-54,0,8),closeMicSetup','local micStatus=label(micPanel,"",UDim2.new(1,-36,0,90),UDim2.fromOffset(18,58),15)','local meterText=label(meter,"LIVE MIC 0%\\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,white)']
+ contracts=['zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08', 'saveNotice.BackgroundColor3=dark;saveNotice.BackgroundTransparency=.08', 'UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108)', 'local meterText=label(meter,"LIVE MIC 0%\\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,white)']
  for c in contracts:assert c in source,c
- print('PASS 8 retained authored-rectangle/status contracts')
+ print(f'PASS {len(contracts)} retained authored-rectangle/status contracts')
  if args.negative_controls:
   cases=[('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),('f.Active=false','f.Active=true','Glyph intercepts input'),('bar(.74,.26,.12,.48)','bar(.94,.26,.12,.48)','Glyph exceeds local bounds'),('stroke.Thickness=1','stroke.Thickness=5','Border affects text readability')]
   for old,new,diagnostic in cases:

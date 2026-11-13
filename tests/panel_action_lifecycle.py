@@ -39,10 +39,10 @@ local function menuKey()return selected..version end
 local ShopUI={Clear=function()end,ColorMixer=function(_,ui)ui.button({},'Forward','Forward',{}, {},function(...)return ... end)end}
 local task={spawn=function()end};local Run={Heartbeat={Wait=function()end}}
 local openMicSetup;local micSetupOpen=false;local micPanel={Visible=false}
-local effects={calibrate=0,cancel=0,disarm=0,sprint=0}
+local effects={retry=0,calibrate=0,cancel=0,disarm=0,sprint=0}
 local function cancelCapture()effects.cancel+=1 end
 local function setSprint()effects.sprint+=1 end
-local mic={Calibrate=function()effects.calibrate+=1 end}
+local mic={status="unavailable",eligible=false,checkPending=false,Check=function()effects.retry+=1 end,Calibrate=function()effects.calibrate+=1 end}
 local sustainedControl={SetArmed=function()effects.disarm+=1 end};local sustainedRules={MaxDuration=4,Cooldown=5}
 local UIS={TouchEnabled=false};Config.DodgeCooldown=3;Config.SprintDuration=4;Config.SprintRecovery=3;Config.SprintRegenDelay=1
 local attackAudio={level='NORMAL'};local gameplayAudio={enabled=true};local gameplayAudioSettings={Ready=function()return false end}
@@ -122,11 +122,11 @@ end
 f=fixture();f.dialogue('practice_beams',true);f.npcAction()();check(f.s.data.coins==2000 and not f.s.data.quests.practice_beams.claimed,'Incomplete server claim gate changed')
 f=fixture();f.open('Quests');local accept=f.button('practice_beams');f.close();f.open('Quests');accept();check(f.s.activeQuest=='garden' and f.s.data.quests.garden.progress==1,'Old menu accept reset current attempt')
 for _,mode in ipairs({'close','replace','destroy'})do
- f=fixture();f.open('Settings');local old=f.button('Recalibrate')
+ f=fixture();f.open('Settings');local old=f.button('RetryVoiceAccess')
  if mode=='close'then f.close()elseif mode=='replace'then f.rerender()else f.destroy()end
- old();check(f.effects.calibrate==0 and f.effects.cancel==0 and f.effects.disarm==0 and f.effects.sprint==0,'Stale recalibration changed microphone intent: '..mode)
+ old();check(f.effects.retry==0,'Stale access retry reached controller: '..mode)
 end
-f=fixture();f.open('Settings');f.button('Recalibrate')();check(f.effects.calibrate==1 and f.effects.cancel==1 and f.effects.disarm==1 and f.effects.sprint==1 and not f.modal.Visible,'Current recalibration blocked')
+f=fixture();f.open('Settings');f.button('RetryVoiceAccess')();check(f.effects.retry==1 and f.modal.Visible,'Current access retry blocked')
 print('PASS',n,'registered panel callbacks with actual quest/style server helpers; mocked GUI/session')
 '''
 def run(client,error=None,case=None):

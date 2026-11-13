@@ -56,7 +56,7 @@ function CityMap.create(parent,compact)
    local training=part.id:match('^TrainingPad')
    local cover=part.kind=='cover'
    local court=part.id=='Court'
-   if architecture or training or cover or court or part.id=='PracticeBackstop' then
+   if architecture or training or cover or court then
     local start=position(part.position.X-part.size.X/2,part.position.Z-part.size.Z/2)
     local color=architecture and Color3.fromRGB(173,181,167) or training and Color3.fromRGB(87,144,137) or cover and Color3.fromRGB(166,131,111) or Color3.fromRGB(110,157,148)
     box(map,'Footprint_'..part.id,start.X.Scale,start.Y.Scale,part.size.X/width,part.size.Z/depth,color)
@@ -85,9 +85,6 @@ function CityMap.create(parent,compact)
  end
  local boundary=box(map,'ArenaBoundary',arenaX,arenaZ,arenaWidth,arenaHeight,cream);boundary.BackgroundTransparency=1
  local stroke=Instance.new('UIStroke');stroke.Color=Color3.fromRGB(247,139,120);stroke.Thickness=2;stroke.Parent=boundary
- if not compact then
-  local north=box(map,'North',.04,.025,.25,.075,cream);north.BackgroundTransparency=1;text(north,'N ↑',13)
- end
  for i,v in ipairs(compact and {} or landmarks) do
   local pin=box(map,'Landmark'..i,0,0,0,0,Color3.fromRGB(22,39,46));pin.Size=UDim2.fromOffset(23,23);pin.AnchorPoint=Vector2.new(.5,.5);pin.Position=position(v.x,v.z)
   local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=pin;text(pin,tostring(i),13)
@@ -136,10 +133,10 @@ function CityMap.MiniUpdate(view,root,now,visible)
 end
 CityMap.legend='1  Plaça del Sol / spawn     2  Rambla gardens\n3  Basilica     4  Market     5  Old town\n6  Beach & promenade     7  Timber pier\n8  Training fighters (west beach)'
 CityMap.legendHeight=94
-CityMap.mapHelp="Gold arrow: you and your facing direction. Red: PvP. Green and sand: safe. Pale coast path: promenade. North is up."
+CityMap.mapHelp="Gold arrow: you and your facing direction. Red: PvP. Green and sand: safe. Pale coast path: promenade."
 CityMap.activityHelp="Coffee: collect at the west café, then check your objective for the assigned stop. Race: lifeguard start to east promenade finish. PvP ends at the marked district boundary."
 if CompactLayout then
- CityMap.mapHelp="Gold arrow: you and your facing direction. Red: PvP arena. Pale paths connect the courtyard, market and coast. North is up."
+ CityMap.mapHelp="Gold arrow: you and your facing direction. Red: PvP arena. Pale paths connect the courtyard, market and coast."
  CityMap.activityHelp="Coffee: collect at the north market, then follow your assigned stop. Training is in the west courtyard. Race starts on the west promenade. PvP ends at the marked arena boundary."
  CityMap.legendHeight=#landmarks*20+24
  local lines={}

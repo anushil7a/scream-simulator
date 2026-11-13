@@ -92,14 +92,14 @@ for _,isNarrow in ipairs({false,true})do
  check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(Config.GetQuest('beach').description,1,true),'Distinct undiscovered objectives missing')
  check(buttons.garden.card.labels[2]~=buttons.beach.card.labels[2],'Distinct tasks look like duplicate generic quests')
  check(Config.GetQuest('garden').giver==Config.GetQuest('beach').giver and garden:find(Config.GetQuest('garden').giver,1,true) and beach:find(Config.GetQuest('beach').giver,1,true),'Shared correct giver missing')
- grouped(9)
- for _,q in ipairs(Config.Quests)do if not q.hidden and q.menuAvailable~=true then
+ grouped(8)
+ for _,q in ipairs(Config.Quests)do if not q.retired and not q.hidden and q.menuAvailable~=true then
   local b=buttons[q.id];local cardText=table.concat(b.card.labels,' | ')
   check(cardText:find(q.description,1,true) and cardText:find('To unlock:',1,true) and cardText:find(q.giver,1,true),'Locked card lacks objective or discovery instructions')
   check(b.text=='MEET NPC','Undiscovered button bypasses meet requirement');b.call()
   check(#calls==0,'Undiscovered quest action bypassed guard')
  end end
- for _,id in ipairs({'practice_beams','arena_assist'})do
+ for _,id in ipairs({'arena_assist'})do
   local b=buttons[id];check(b and b.text=='ACCEPT','Direct-available combat quest locked')
   check(not table.concat(b.card.labels,' | '):find('To unlock:',1,true),'Direct quest shows nonexistent giver lock')
   local before=#calls;b.call();check(#calls==before+1 and calls[#calls][1]=='AcceptQuest' and calls[#calls][2]==id,'Direct quest acceptance missing')
@@ -108,17 +108,17 @@ for _,isNarrow in ipairs({false,true})do
  -- Even a stale completed progress packet must not bypass discovery.
  for _,q in ipairs(Config.Quests)do value.quests[q.id]={progress=q.goal}end
  renderChecked(value,isNarrow);check(not buttons.nick,'Hidden quest exposed by progress alone')
- for _,q in ipairs(Config.Quests)do if not q.hidden and q.menuAvailable~=true then buttons[q.id].call();check(#calls==0,'Locked completed quest bypassed discovery')end end
+ for _,q in ipairs(Config.Quests)do if not q.retired and not q.hidden and q.menuAvailable~=true then buttons[q.id].call();check(#calls==0,'Locked completed quest bypassed discovery')end end
  -- Discovery reveals every original quest, preserving acceptance and hiding unlock instructions.
  for _,q in ipairs(Config.Quests)do value.availableQuests[q.id]=true;value.quests[q.id]={progress=0}end
- renderChecked(value,isNarrow);grouped(10)
- for _,q in ipairs(Config.Quests)do
+ renderChecked(value,isNarrow);grouped(9)
+ for _,q in ipairs(Config.Quests)do if not q.retired then
   local b=buttons[q.id];check(b and b.text=='ACCEPT','Discovered quest cannot be accepted')
   check(b.card.labels[2]==q.description,'Discovered objective still has lock text or changed description')
   local old=#calls;b.call();check(#calls==old+1 and calls[#calls][1]=='AcceptQuest' and calls[#calls][2]==q.id,'Accept command changed')
- end
+ end end
  value.activeQuest='garden';value.quests.garden.progress=1
- renderChecked(value,isNarrow);grouped(10)
+ renderChecked(value,isNarrow);grouped(9)
  check(buttons.ActiveQuestAction and buttons.ActiveQuestAction.text=='ABANDON','Current active quest card missing')
  check(cards[1]==buttons.ActiveQuestAction.card,'Current active quest card no longer first')
  check(buttons.garden.text=='TRACKING','Active quest tracking state lost')
@@ -140,7 +140,8 @@ for _,isNarrow in ipairs({false,true})do
  end
  restartValue.availableQuests.delivery=true;restartValue.quests.delivery={progress=0,claimed=false}
  renderChecked(restartValue,isNarrow)
- for _,id in ipairs({'practice_beams','garden'})do
+ check(not buttons.practice_beams,'Retired partial quest offers restart')
+ for _,id in ipairs({'garden'})do
   local b=buttons[id];check(b.text=='RESTART','Inactive partial quest misleading ACCEPT label')
   check(table.concat(b.card.labels,' | '):lower():find('reset',1,true),'Restart does not disclose progress reset')
   local old=#calls;b.call();check(#calls==old+1 and calls[#calls][1]=='AcceptQuest' and calls[#calls][2]==id,'Restart changed server command')
@@ -156,6 +157,28 @@ for _,isNarrow in ipairs({false,true})do
  local old=#calls;buttons.ActiveQuestAction.call()
  check(#calls==old+1 and calls[#calls][1]=='ClaimQuest' and calls[#calls][2]=='garden','Active completed quest no longer claimable')
  check(value.combatChallenges.cover==4 and value.combatChallenges.elite==1,'Renderer mutated dormant counters')
+ -- Retired data remains durable but only an earned, unclaimed reward is actionable.
+ for _,state in ipairs({{}, {progress=0}, {progress=1}, {progress=2}, {progress=3}, {progress=3,claimed=true}})do
+  for _,discovered in ipairs({false,true})do
+   for _,active in ipairs({false,true})do
+    local retiredValue={level=20,quests={practice_beams=state.progress and copy(state) or nil},availableQuests={practice_beams=discovered},activeQuest=active and 'practice_beams' or nil}
+    renderChecked(retiredValue,isNarrow)
+    check(not buttons.ActiveQuestAction,'Retired active objective exposed')
+    local earned=state.progress==3 and not state.claimed
+    local b=buttons.practice_beams
+    check((b~=nil)==earned,'Retired card visibility violates earned-only rule')
+    if earned then
+     check(b.text=='CLAIM','Retired earned card is not claim-only')
+     check(b.card.labels[2]=='Earned reward available.','Retired objective instructions resurfaced')
+     b.call();check(#calls==1 and calls[1][1]=='ClaimQuest' and calls[1][2]=='practice_beams','Retired earned reward action changed')
+    else check(#calls==0,'Hidden retired state emitted action') end
+    local sequence=grouped(earned and 9 or 8)
+    local wanted=earned and {'crowd','dodge','arena','practice_beams','arena_assist','garden','beach','delivery','sprint'} or {'crowd','dodge','arena','arena_assist','garden','beach','delivery','sprint'}
+    check(equal(sequence,wanted),'Remaining catalog order changed')
+   end
+  end
+ end
+
 end
 print('PASS '..checks..' actual quest renderer/catalog assertions; synthetic UI only, no native text-fit claim')
 """
@@ -187,7 +210,7 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
   if args.negative_controls:
    run(code.replace('local function render(value,isNarrow)','table.insert(Config.Progression.Challenges,{id="cover",name="Destroy 5 eligible cover objects",goal=5})\nlocal function render(value,isNarrow)'),'Retired challenge displayed')
    run(code.replace('if q.hidden and not available then continue end','if false then continue end'),'Hidden city quest exposed before discovery')
-   generic=code.replace('local description=q.description','local description=available and q.description or "Meet "..(q.giver or "a resident")')
+   generic=code.replace('local description=q.retired==true and "Earned reward available." or q.description','local description=available and q.description or "Meet "..(q.giver or "a resident")')
    assert generic!=code
    run(generic,'Distinct undiscovered objectives missing')
    reversed_groups=code.replace('for _,group in ipairs(questGroups) do','for _,group in ipairs({questGroups[2],questGroups[1]}) do')
@@ -208,3 +231,13 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    restart_warning=code.replace('Restarting resets this unfinished progress.','Restarting this task.')
    assert restart_warning!=code
    run(restart_warning,'Restart does not disclose progress reset')
+
+   hidden=code.replace('if q.retired==true and (v.claimed or v.progress<q.goal) then continue end','if false then continue end')
+   assert hidden!=code
+   run(hidden,'Visible quest count changed')
+   earned=code.replace('local available=q.retired==true or','local available=')
+   assert earned!=code
+   run(earned,'Retired earned card is not claim-only')
+   active=code.replace('if data.activeQuest and not (Config.GetQuest(data.activeQuest) and Config.GetQuest(data.activeQuest).retired==true) then','if data.activeQuest then')
+   assert active!=code
+   run(active,'Retired active objective exposed')

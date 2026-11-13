@@ -185,7 +185,7 @@ local n=0;local function check(v,m)assert(v,m);n+=1 end
 check(not blocked() and beamBlocked(),'Voice eligibility gated ordinary movement or failed beam gate')
 observeVoiceEligibility(data);frame();check(not sustainedControl.armed,'Pending autoarmed')
 local ready={voiceEligible=true,voiceStatus='eligible'};observeVoiceEligibility(ready);data=ready;frame()
-check(sustainedControl.armed,'First normal success lost calibration autoarm')
+check(not sustainedControl.armed,'First normal success silently autoarmed');sustainedControl:SetArmed(true)
 sustainedControl.attack={sequence=1};local lost={voiceEligible=false,voiceStatus='denied'}
 receive(lost);receive(ready);frame()
 check(not sustainedControl.armed and sustainedControl.attack==nil and sends==1,'False-true same-frame transition retained attack/arm')
@@ -247,7 +247,7 @@ if __name__=='__main__':
 
   for name,old,new,expected in [
    ('client revocation cancellation','sustainedControl:SetArmed(false)\n elseif captureSource','sustainedControl:SetArmed(true)\n elseif captureSource','False-true same-frame transition'),
-   ('client interrupted autoarm',' and not voiceAccessInterrupted)',' )','First success after error silently autoarmed')]:
+   ('client initial autoarm','sustainedControl:ObserveAvailability(alive and mic.ready and data.voiceEligible==true,false)','sustainedControl:ObserveAvailability(alive and mic.ready and data.voiceEligible==true,true)','First normal success silently autoarmed')]:
    def mutate(c):
     assert old in c,name
     return c.replace(old,new,1)

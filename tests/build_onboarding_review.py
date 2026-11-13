@@ -12,7 +12,7 @@ def replace_once(text,old,new):
 s=(out/'StudioUIPreview.luau').read_text()
 assert s.count('\nlocal report={}')==1
 s=s.split('\nlocal report={}')[0]
-s=replace_once(s,'ready=true,power=.55,status="UI preview: simulated mic"','ready=false,power=0,status="UI preview: synthetic calibration readiness"')
+s=replace_once(s,'ready=true,power=.55,status="UI preview: simulated mic",eligible=true,interruptionEpoch=0','ready=false,power=0,status="UI preview: synthetic input availability",eligible=false,interruptionEpoch=0')
 s=replace_once(s,'local receiver\nlocal sample=','local receiver\nlocal fixtureVerbs={}\nlocal sample=')
 s=replace_once(s,'level=100,xp=30,xpNext=1800','level=1,xp=0,xpNext=103')
 s=replace_once(s,'activeQuest="garden",','')
@@ -38,18 +38,6 @@ local function observe(stage)
  local all=table.concat(seen," | "):lower()
  local avoidsProfanity=all:find("avoid profanity",1,true)~=nil
  local moderation=all:find("roblox records and moderates voice",1,true)~=nil or all:find("roblox records voice for moderation",1,true)~=nil
- if stage=="setup" then
-  assert(avoidsProfanity and moderation,"Setup voice safety disclosure missing")
-  local found=0
-  for _,obj in ipairs(micPanel:GetDescendants()) do
-   if obj:IsA("TextLabel") and obj.Text:find("Avoid profanity",1,true) then
-    found+=1
-    -- Allocated label fit only, not scroll viewport visibility or human accessibility.
-    assert(obj.TextFits,"Native setup voice safety text does not fit its allocated label")
-   end
-  end
-  assert(found==1,"Setup voice safety label duplicated or missing")
- end
  if stage=="settings" or stage=="settings-audio-cycle" then
   assert(avoidsProfanity and moderation and all:find("rating and settings",1,true) and all:find("volume, not words",1,true) and all:find("stopping attacks does not mute voice",1,true),"Settings voice safety distinctions missing")
   local found=0
@@ -105,21 +93,15 @@ local fixtureCharacter=p.Character or p.CharacterAdded:Wait();fixtureCharacter:W
 windowFocused=true;data.activeQuest=nil;data.achievements={};modal.Visible=false
 for _,view in ipairs({{320,568,true},{390,844,true},{844,390,true},{1280,720,false}}) do
  gui.Size=UDim2.fromOffset(view[1],view[2]);fixtureTouch=view[3];mic.ready=false
- settle();observe("setup")
+ settle();check(controls.Visible and miniMapButton.Visible and not sustainedControl.armed,"Unavailable input blocked navigation or armed beams");observe("input-unavailable")
 end
--- Dismiss unready setup and navigate without silently enabling attacks.
-closeMicSetup();settle()
-check(not micPanel.Visible and controls.Visible and miniMapButton.Visible,"Unready dismissal still blocks navigation")
-check(GuiService.TouchControlsEnabled==originalTouchControls,"Dismissed setup did not restore original touch controls")
-check(not sustainedControl.armed,"Unready dismissal armed beams")
-observe("setup-dismissed-unready")
-selected="Settings";modal.Visible=true;render();settle();press("OpenMicSetup")
-check(micPanel.Visible and not modal.Visible,"Settings did not reopen setup")
-closeMicSetup();settle()
-gui.Size=UDim2.fromOffset(390,844);fixtureTouch=true;mic.ready=true;data.micReady=true;mic.power=0
+-- Availability is not a mandatory panel or calibration workflow.
+check(GuiService.TouchControlsEnabled==originalTouchControls,"Unavailable input changed touch controls")
+check(gui:FindFirstChild("MicSetup")==nil,"Retired setup panel returned")
+gui.Size=UDim2.fromOffset(390,844);fixtureTouch=true;mic.ready=true;mic.eligible=true;data.micReady=true;mic.power=0
 receiveEligibility(false,"checking");settle();check(not sustainedControl.armed,"Checking state armed")
 observe("eligibility-checking")
-receiveEligibility(true,"eligible");settle();check(sustainedControl.armed,"Initial delayed eligibility did not auto-arm");observe("first-ready")
+receiveEligibility(true,"eligible");settle();check(not sustainedControl.armed,"Initial delayed eligibility silently armed");observe("first-ready")
 for _,view in ipairs({{320,568,true},{390,844,true},{844,390,true},{1280,720,false}}) do
  gui.Size=UDim2.fromOffset(view[1],view[2]);fixtureTouch=view[3];windowFocused=true;mic.power=0
  if not sustainedControl.armed then toggleVoice() end
@@ -143,16 +125,13 @@ for _,view in ipairs({{320,568,true},{390,844,true},{844,390,true},{1280,720,fal
  render();settle();check(fixtureCallbacks.GameplayAudio.button.Text=="GAMEPLAY SFX: OFF","Reopen masks cue OFF")
  observe("settings-audio-cycle");modal.Visible=false
 end
--- Loss of a calibrated input must not force the dismissed popup back.
+-- Input loss must not introduce a setup wall or arm on recovery.
 mic.ready=false;data.micReady=false;settle()
-check(not micPanel.Visible and controls.Visible and miniMapButton.Visible,"Input loss trapped navigation")
+check(controls.Visible and miniMapButton.Visible,"Input loss trapped navigation")
 check(not sustainedControl.armed,"Input loss retained armed state")
 observe("ready-input-lost")
 mic.ready=true;data.micReady=true;settle()
 check(not sustainedControl.armed,"Input recovery auto-rearmed beams")
-selected="Settings";modal.Visible=true;render();settle();press("OpenMicSetup")
-check(micPanel.Visible,"Already-ready setup closed immediately")
-closeMicSetup();settle();check(mic.ready,"Dismissing ready setup erased calibration")
 for _,status in ipairs({"denied","unavailable"}) do
  mic.power=0;toggleVoice();task.wait(.5);mic.power=.8;awaitAttack()
  check(sustainedControl.attack~=nil,"Eligibility interruption lacks active beam")

@@ -24,7 +24,7 @@ setSprint(true);check(sprinting and #messages==1 and messages[1],'Start was not 
 setSprint(true);check(#messages==1,'Unchanged request spammed server')
 setSprint(false);check(not sprinting and #messages==2 and messages[2]==false,'Release did not stop sprint')
 local cases={
- function(v)windowFocused=not v end,function(v)micPanel.Visible=v end,
+ function(v)windowFocused=not v end,
  function(v)GuiService.MenuIsOpen=v end,function(v)typing=v end,
  function(v)modal.Visible=v end,function(v)devPanel.Visible=v end,
  function(v)conversationPanel.Visible=v end,function(v)h.Health=v and 0 or 100 end,

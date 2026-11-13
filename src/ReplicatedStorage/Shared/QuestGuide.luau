@@ -10,7 +10,6 @@ function Guide.Step(quest,progress,carrying,racing,soccerDetail,deliveryName)
   garden="Water flowerbeds in Rambla Gardens",
   beach="Collect bottles along the beach",
   crowd="Hit 3 different NPCs during one beam",
-  practice_beams="Hit the practice target with separate beams",
   arena_assist="Assist an equal/higher-level arena KO",
   dodge="Dodge enemy beams in the arena",
   arena="KO an equal/higher-level arena player",

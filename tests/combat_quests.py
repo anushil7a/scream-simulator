@@ -14,10 +14,9 @@ def build(baseline=False,mutation=None):
  hooks=bootstrap[bootstrap.index('local function questProgress('):bootstrap.index('local function stopQuest(')]
  accept=bootstrap.split(' elseif verb=="AcceptQuest" then',1)[1].split(' elseif verb=="AbandonQuest" then',1)[0]
  claim=bootstrap.split(' elseif verb=="ClaimQuest" then',1)[1].split(' elseif verb=="SetSettings"',1)[0]
- practice=bootstrap[bootstrap.index('  local practice=beam.obstruction'):bootstrap.index('  for _,viewer in ipairs(Players:GetPlayers())',bootstrap.index('  local practice=beam.obstruction'))]
  guarded=bootstrap[bootstrap.index('local function stepSustained('):bootstrap.index('  for _,viewer in ipairs(Players:GetPlayers())',bootstrap.index('local function stepSustained('))]+' end\nend\n'
  legacy=bootstrap[bootstrap.index(' local castMessage',bootstrap.index('local function cast(')):bootstrap.index(' if obstruction then',bootstrap.index(' local castMessage',bootstrap.index('local function cast(')))]
- return "local realQuestLifecycle=require('../src/ReplicatedStorage/Shared/QuestLifecycle')\nlocal realGuide=require('../src/ReplicatedStorage/Shared/QuestGuide')\nlocal realCredit=require('../src/ReplicatedStorage/Shared/CombatCredit')\nlocal realTraining=require('../src/ReplicatedStorage/Shared/TrainingRules')\n"+PRE+progression+AFTER_PROGRESSION+config+AFTER_CONFIG+profiles+'\nend\nlocal P=loadProfiles()\n'+SETUP+hooks+guarded+'\nlocal function accept(p,s,arg)\n'+accept+'\nend\nlocal function claim(p,s,arg)\n'+claim+'\nend\nlocal function practiceHit(p,intent,beam) local s=sessions[p]\n'+practice+'\nend\nlocal function legacyPractice(p,obstruction) local s=sessions[p];local sound={power=.8,damage=10};local length=12\n'+legacy+'\nend\n'+CHECKS
+ return "local realQuestLifecycle=require('../src/ReplicatedStorage/Shared/QuestLifecycle')\nlocal realGuide=require('../src/ReplicatedStorage/Shared/QuestGuide')\nlocal realCredit=require('../src/ReplicatedStorage/Shared/CombatCredit')\nlocal realTraining=require('../src/ReplicatedStorage/Shared/TrainingRules')\n"+PRE+progression+AFTER_PROGRESSION+config+AFTER_CONFIG+profiles+'\nend\nlocal P=loadProfiles()\n'+SETUP+hooks+guarded+'\nlocal function accept(p,s,arg)\n'+accept+'\nend\nlocal function claim(p,s,arg)\n'+claim+'\nend\n'+CHECKS
 PRE="\nlocal Healing=require('../src/ReplicatedStorage/Shared/Healing')\nlocal Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat')\nlocal Lease=require('../src/ReplicatedStorage/Shared/ProfileLease')\nlocal Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}\nlocal Color3={fromRGB=function(r,g,b)return {r,g,b}end}\nlocal Progression=(function()\n"
 AFTER_PROGRESSION="\nend)()\n-- MUTATION_INSERT\nlocal script={Parent={WaitForChild=function(_,name)return name end}}\nlocal config\nlocal require=function(name)\n if name=='Healing' then return Healing elseif name=='VoiceCombat' then return Combat elseif name=='Progression' then return Progression\n elseif name=='Config' then return config elseif name=='Lease' then return Lease end\n error('Unexpected dependency '..tostring(name))\nend\nlocal function loadConfig()\n"
 AFTER_CONFIG="\nend\nconfig=loadConfig()\nlocal now,clock,guid=1000,100,0\nlocal os={time=function()return now end,clock=function()return clock end}\nlocal task={wait=function(t)now+=t;clock+=t end}\nlocal durable;local writes=0\nlocal store={UpdateAsync=function(_,key,transform)\n assert(key=='Player_7','Unexpected test key');writes+=1\n local result=transform(durable)\n if result~=nil then durable=result end\n return result\nend}\nlocal services={DataStoreService={GetDataStore=function(_,name)assert(name=='ScreamSimulator_v1','Wrong fake store');return store end},\n ReplicatedStorage={Shared={Config='Config',ProfileLease='Lease'}},RunService={IsStudio=function()return false end},\n HttpService={GenerateGUID=function()guid+=1;return 'retirement-'..guid end}}\nlocal game={JobId='retirement-fixture',GetService=function(_,name)return services[name]end}\nlocal warn=function()end\nlocal function loadProfiles()\n"
@@ -55,7 +54,7 @@ local legacy={nick={1,1800,1200,'Soccer'},garden={3,130,80,'Garden'},beach={6,10
 check(#Config.Quests==10,'Unexpected quest catalog size')
 local crowd=Config.GetQuest('crowd').description
 check(crowd:find('3 different NPCs',1,true) and crowd:find('residents or training fighters',1,true) and crowd:find('during one beam',1,true) and crowd:find('do not need to be hit at the same instant',1,true),'Crowd copy lost distinct-target/non-simultaneous clarification')
-for _,row in ipairs({{'crowd','Hit 3 different NPCs during one beam'},{'practice_beams','Hit the practice target with separate beams'},{'arena_assist','Assist an equal/higher-level arena KO'}})do
+for _,row in ipairs({{'crowd','Hit 3 different NPCs during one beam'},{'arena_assist','Assist an equal/higher-level arena KO'}})do
  local q=Config.GetQuest(row[1]);check(realGuide.Step(q,0)==row[2],'Quest guide objective mismatch')
  check(realGuide.Step(q,q.goal):find('claim in Quests',1,true)~=nil,'Completed quest guide missing claim')
 end
@@ -65,7 +64,7 @@ for _,q in ipairs(Config.Quests)do
  local old=legacy[q.id]
  if old then check(q.goal==old[1] and q.xp==old[2] and q.coins==old[3] and q.event==old[4] and q.menuAvailable~=true,'Legacy quest semantics changed')end
 end
-for _,row in ipairs({{'practice_beams',3,60,25,'PracticeBeam'},{'arena_assist',1,120,50,'ArenaAssist'}})do
+for _,row in ipairs({{'arena_assist',1,120,50,'ArenaAssist'}})do
  local q=Config.GetQuest(row[1]);check(q.goal==row[2] and q.xp==row[3] and q.coins==row[4] and q.event==row[5] and q.menuAvailable==true,'New quest contract mismatch')
  local s=session(p,nil);accept(p,s,q.id)
  check(s.activeQuest==q.id and s.data.quests[q.id].progress==0,'Menu quest requires nonexistent giver')
@@ -78,34 +77,10 @@ end
 for id in pairs(legacy)do
  local s=session(p,nil);accept(p,s,id);check(s.activeQuest==nil and s.data.quests[id]==nil,'Legacy discovery bypassed')
 end
-local s=session(p,'practice_beams');local target={Parent=true,attrs={MicPracticeTarget=true,RestColor={}}}
-function target:GetAttribute(k)return self.attrs[k]end
-function target:SetAttribute(k,v)self.attrs[k]=v end
-local beam={obstruction={Instance=target},power=.1,length=12}
-local intent={};practiceHit(p,intent,beam)
-check(s.data.quests.practice_beams.progress==1 and s.data.achievements.FirstBeam,'Confirmed practice target failed')
-for i=1,20 do practiceHit(p,intent,beam)end
-check(s.data.quests.practice_beams.progress==1,'One beam tick farmed practice objective')
-practiceHit(p,{}, {power=1,length=12});check(s.data.quests.practice_beams.progress==1,'Unobstructed forged power advanced practice')
-target.attrs.MicPracticeTarget=false;practiceHit(p,{},beam);check(s.data.quests.practice_beams.progress==1,'Nonpractice obstruction counted')
-target.attrs.MicPracticeTarget=true;practiceHit(p,{},beam);practiceHit(p,{},beam)
-check(s.data.quests.practice_beams.progress==3,'Three separate target beams did not complete')
-practiceHit(p,{},beam);check(s.data.quests.practice_beams.progress==3,'Completed objective overflowed')
-s=session(p,'garden');practiceHit(p,{},beam);check(s.data.quests.garden.progress==0,'Practice advanced unrelated task')
-s=session(p,'practice_beams');legacyPractice(p,nil);check(s.data.quests.practice_beams.progress==0,'Legacy empty obstruction counted')
-legacyPractice(p,{Instance=target});check(s.data.quests.practice_beams.progress==1,'Legacy accepted practice obstruction not counted')
-target.attrs.MicPracticeTarget=false;legacyPractice(p,{Instance=target});check(s.data.quests.practice_beams.progress==1,'Legacy nonpractice counted');target.attrs.MicPracticeTarget=true
-s=session(p,nil);local previousIntent={};practiceHit(p,previousIntent,beam)
-accept(p,s,'practice_beams');practiceHit(p,previousIntent,beam)
-check(s.data.quests.practice_beams.progress==0,'Accepting mid-beam retroactively credited prior hit')
-practiceHit(p,{},beam);check(s.data.quests.practice_beams.progress==1,'Next beam after acceptance failed')
-s=session(p,'practice_beams');s.sustained={intent={}};beam.dodged={}
-fixtureBeam=beam;fixtureEnded={reason='timeout'};stepSustained(p,s,1)
-check(s.data.quests.practice_beams.progress==0,'Ended adapter result credited practice')
-fixtureBeam=nil;fixtureEnded=nil;stepSustained(p,s,1)
-check(s.data.quests.practice_beams.progress==0,'No beam adapter result credited practice')
-fixtureBeam=beam;stepSustained(p,s,1)
-check(s.data.quests.practice_beams.progress==1,'Live beam adapter result failed practice')
+local retired=Config.GetQuest('practice_beams')
+check(retired.retired==true and retired.goal==3 and retired.xp==60 and retired.coins==25,'Retired quest identity or reward changed')
+local s=session(p,nil);accept(p,s,'practice_beams');check(s.activeQuest==nil and s.data.quests.practice_beams==nil,'Retired acceptance allowed')
+s=session(p,'practice_beams');questProgress(p,'PracticeBeam');check(s.data.quests.practice_beams.progress==0,'Retired objective progressed')
 local finisher={UserId=2};local victim={UserId=3};players[2]=finisher;players[3]=victim
 local function assist(damage,level,hasVictim,at,online)
  local ss=session(p,'arena_assist');session(finisher,'arena');session(victim,nil)
@@ -189,6 +164,7 @@ s={data=restartData,collected={}};sessions[p]=s
 for _,id in ipairs({'practice_beams','garden','delivery'})do
  local q=Config.GetQuest(id)
  check(s.data.quests[id].progress==q.goal-1,'Reload lost unfinished counter before restart')
+ if q.retired then accept(p,s,id);check(s.activeQuest~=id and s.data.quests[id].progress==q.goal-1,'Retired restart altered dormant progress');continue end
  accept(p,s,id);check(s.activeQuest==id and s.data.quests[id].progress==0,'Inactive acceptance did not restart attempt')
  if q.goal>1 then
   s.data.quests[id].progress=1;accept(p,s,id)
@@ -219,8 +195,8 @@ if __name__=='__main__':
  if result.returncode:sys.exit(result.returncode)
  raw=read('src/ServerScriptService/Bootstrap.server.luau')
  cast=raw[raw.index('local function cast('):raw.index('local function dodge(')]
- assert cast.index('if not VoiceCombat.Release(')<cast.index('questProgress(p,"PracticeBeam")'),'Legacy quest hook precedes accepted release'
- print('PASS source contract: legacy practice hook follows accepted release; obstruction slice is not full raycast/network validation')
+ assert 'MicPracticeTarget' not in raw and 'questProgress(p,"PracticeBeam")' not in raw,'Retired production practice hook remains'
+ print('PASS source contract: no production mic-practice target/progress hooks')
  if '--negative-controls' in sys.argv:
   def change(which,old,new):
    def mutate(c,p,b):
@@ -228,7 +204,8 @@ if __name__=='__main__':
     values[which]=values[which].replace(old,new,1);return tuple(values)
    return mutate
   controls=[
-   ('practice tick dedupe',change(2,'if not intent.practiceHit and practice and','if practice and'),'One beam tick farmed'),
+   ('retired acceptance gate',change(2,'if q and q.retired==true then return end',''),'Retired restart altered dormant progress'),
+   ('retired progress gate',change(2,' or q.retired==true',''),'Retired objective progressed'),
    ('assist finisher gate',change(2,'victim and recipient~=finisher and underdog and meaningful[id]','victim and underdog and meaningful[id]'),'Finisher counted as assist'),
    ('assist level gate',change(2,'victim and recipient~=finisher and underdog and meaningful[id]','victim and recipient~=finisher and meaningful[id]'),'Ineligible assist progressed'),
    ('menu acceptance gate',change(2,'q.menuAvailable~=true and not s.data.availableQuests[q.id]','not s.data.availableQuests[q.id]'),'Menu quest requires'),

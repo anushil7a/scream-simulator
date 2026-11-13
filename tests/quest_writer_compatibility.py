@@ -43,7 +43,8 @@ local function release(module,data)check(module.Save(7,data,true),'Fake release 
 local function attach(data) local s={data=data,collected={}};sessions[p]=s;return s end
 local function completeAndClaim(data,id)
  local s=attach(data);local q=Config.GetQuest(id);accept(p,s,id)
- for i=1,q.goal do questProgress(p,q.event)end
+ -- Retired reward was completed before retirement, not newly completable.
+ if q.retired then data.quests[id]={progress=q.goal,claimed=false} else for i=1,q.goal do questProgress(p,q.event)end end
  claim(p,s,id);return s
 end
 for _,id in ipairs({'practice_beams','arena_assist'})do
@@ -67,6 +68,13 @@ for _,id in ipairs({'practice_beams','arena_assist'})do
  check(durable.quests.garden.claimed and oldData.quests.garden.claimed,'Historical writer lost known claim')
  release(old,oldData)
  local nextCandidate=moduleFor(false);local nextData=acquire(nextCandidate)
+ if q.retired then
+  local ss=attach(nextData);accept(p,ss,id);claim(p,ss,id)
+  check(nextData.quests[id]==nil and nextData.coins==q.coins and earned==q.xp,'Retired erased record recreated or repaid')
+  release(nextCandidate,nextData)
+  print('REPRO',id,'historical writer still loses tombstone; retired objective cannot earn again')
+  continue
+ end
  completeAndClaim(nextData,id)
  check(nextData.coins==2*q.coins and earned==2*q.xp and nextData.quests[id].claimed,'Mixed writer duplicate reward not reproduced')
  release(nextCandidate,nextData)

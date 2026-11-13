@@ -4,7 +4,7 @@
 
 **Attack audio:** [owner-selected tier effects](assets/audio/README.md) now map levels 10 through 100 to the ten supplied Roblox IDs, with original pitch, selectable NORMAL/LOW/OFF mixing and local-mic ducking. NORMAL raises the non-speaking mix budget; LOW preserves the old quiet mix, and detected local voice retains the old ceiling. All ten loaded in a silent local Studio check; gameplay listening and City Preview access remain unverified. Level 1 stays voice-only. Attack duration stays four seconds.
 
-**Current direction (November 11):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 5 seconds cooldown), preserving normal profiles. Calibrate once, stay quiet briefly, then aim and speak; E/BEAMS turns attacks off/on without muting voice chat. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue authorized work until the owner asks to stop or a real blocker needs help.
+**Current direction (November 13):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 5 seconds cooldown), preserving normal profiles. Beams start OFF. Deliberately turn them ON with E/BEAMS, stay quiet briefly, then aim and speak; normal speech may trigger attacks while ON. There is no calibration requirement or mic-testing panel/area. OFF stops attacks without muting voice chat. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue authorized work until the owner asks to stop or a real blocker needs help.
 
 [GitHub repository](https://github.com/anushil7a/scream-simulator) · [City Preview](https://www.roblox.com/games/90337242377543/Scream-Simulator-City-Preview) · [Separate original experience](https://www.roblox.com/games/122465114514497/Scream-Simulator)
 
@@ -12,17 +12,17 @@
 
 **Active development, not a completed release.** Current work is on `feature/microphone-city-redesign`. The last recorded City Preview release is version 19; subsequent automatic-voice changes are unpublished. Original-experience version numbers are separate. [Historical release notes](docs/RELEASE_32_NOTES.md) describe that older build.
 
-**Voice safety notice:** setup and Settings explain that Roblox records/moderates voice, advise avoiding profanity, and distinguish the beam volume meter from speech recognition. Stopping attacks does not mute voice; Roblox microphone/report controls remain separate. Current game rating/settings and native notice readability remain unverified. [Policy sources and scope](docs/MICROPHONE_POLICY_REVIEW.md).
+**Voice safety notice:** Settings explains that Roblox records/moderates voice, advises avoiding profanity, and distinguishes the beam volume meter from speech recognition. Stopping attacks does not mute voice; Roblox microphone/report controls remain separate. Current game rating/settings and native notice readability remain unverified. [Policy sources and scope](docs/MICROPHONE_POLICY_REVIEW.md).
 
-**Server voice checks:** beam eligibility is checked independently with bounded automatic recovery and globally paced calls. Account voice access is not authentic microphone-power proof. Calibrated movement and ordinary proximity voice remain separate; native API/device validation is still pending. [Current scope and limits](docs/VOICE_ELIGIBILITY_RECOVERY_REVIEW.md).
+**Server voice checks:** beam eligibility is checked independently with bounded automatic recovery and globally paced calls. Account voice access is not authentic microphone-power proof. Movement and ordinary proximity voice remain separate; native API/device validation is still pending. [Current scope and limits](docs/VOICE_ELIGIBILITY_RECOVERY_REVIEW.md).
 
 ## Integrated smaller-map candidate
 
-The current unpublished candidate now uses the **720 x 600 compact city**, 75% less footprint than the original. Spawn, practice, training pads, arena boundaries, quest interactions, sports and both map views use matching coordinates. Environment cover is static: object destruction is excluded. The original repository-generated city remains preserved as an exact source archive plus guarded local place files.
+The current unpublished candidate now uses the **720 x 600 compact city**, 75% less footprint than the original. Spawn, training pads, arena boundaries, quest interactions, sports and both map views use matching coordinates. Environment cover is static: object destruction is excluded. The original repository-generated city remains preserved as an exact source archive plus guarded local place files.
 
 Use `python tests/verify_local.py --build` and the guarded `build/SustainedLocalPlay.rbxl` for local review, not the normal-profile candidate. Native geometry/gameplay validation is still pending; do not publish. [Integration evidence and remaining gates](docs/COMPACT_CITY_INTEGRATION_REVIEW.md). The separate `compact-city-draft.project.json` remains a historical geometry-only design preview, not the integrated game.
 
-**Combat tasks:** Controlled Beams and Team Effort are two additional menu-accessible quest IDs. The eight earlier quest IDs, saved progress and claims remain; mixed-version rollout/rollback safety is still a release gate. [Quest review](docs/COMBAT_QUESTS_REVIEW.md).
+**Combat tasks:** Team Effort remains menu-accessible. Controlled Beams is retired: its original ID/progress/claims are preserved, incomplete records stay inactive, and previously completed-unclaimed rewards remain claimable without a new objective. The eight earlier quest IDs, saved progress and claims remain; mixed-version rollout/rollback safety is still a release gate. [Quest review](docs/COMBAT_QUESTS_REVIEW.md).
 
 ## Build the current source
 
@@ -44,7 +44,7 @@ The [release handoff](docs/RELEASE_HANDOFF.md) records the latest local build, l
 
 ## Implemented in this branch
 
-- Automatic live-mic attacks: calibrate, allow a brief quiet interval, then aim and speak. Sustained beams follow aim for up to four seconds, followed by five seconds cooldown from attack end. E/BEAMS turns attacks on/off; real microphone/proximity-voice validation remains outstanding.
+- Automatic live-mic attacks: start OFF, deliberately turn ON, allow a brief quiet interval, then aim and speak. No calibration is required; normal speech may trigger attacks while ON. Sustained beams follow aim for up to four seconds, followed by five seconds cooldown from attack end. E/BEAMS turns attacks on/off; real microphone/proximity-voice validation remains outstanding.
 - Levels 1–100, bounded power/level scaling, visual style unlocks every ten levels, compact menus, mouse aim and touch controls. City Preview version 19 already has the 100-level cap but retains hold/release combat.
 - Central PvP district, safe city surroundings, spawn protection, separate dodge, sprint stamina, level-scaled health and quiet-time healing.
 - Compact Barcelona-inspired draft with west courtyard/training, central arena, north market/gardens, east landmark blocks and a south promenade/sports area. It is pedestrian-only with static cover and bounded rescue; art, native route/collision checks and balance remain under review. The larger original city is preserved separately.
@@ -56,14 +56,14 @@ These are source/integration milestones, not blanket verification of every devic
 
 ## Controls
 
-- Current local candidate: aim and use your calibrated mic to attack. **Normal speech can trigger attacks while beams are ON.** **E** / **BEAMS ON/OFF** toggles attack activation; it is not required for each beam. **OFF** stops an active attack and lets you talk without attacking, leaving microphone/proximity voice unchanged. After respawn or microphone/focus loss, deliberately turn beams back on; cooldown and fresh-quiet requirements still apply. The choice lasts for this session. City Preview version 19 still uses hold/use mic/release.
+- Current local candidate: beams start OFF. Deliberately turn ON, then aim and speak after a brief quiet interval. No calibration is required. **Normal speech can trigger attacks while beams are ON.** **E** / **BEAMS ON/OFF** toggles attack activation; it is not required for each beam. **OFF** stops an active attack and lets you talk without attacking, leaving microphone/proximity voice unchanged. After respawn or microphone/focus loss, deliberately turn beams back on; cooldown and fresh-quiet requirements still apply. The choice lasts for this session. City Preview version 19 still uses hold/use mic/release.
 - **Q** / **DODGE**: roll with cooldown; dodge cancels the active voice attack.
 - Hold **Shift** / tap **SPRINT**: up to ten seconds of sprint, then five seconds of recovery.
 - **T** / **TALK**: nearby NPC dialogue. Use world interaction prompts (**F** on keyboard; on-screen prompts on touch).
 - **B** / **SHOP**: toggle the menu; **BEAMS** opens the collection tab. **M**: map. Quests, Style and Settings are menu tabs.
 - **Camera**: third person only, with a six-stud minimum wheel/pinch zoom. Desktop aims at the mouse; touch aims at the centered reticle. There is no V/view toggle.
 
-A microphone and Roblox voice eligibility are required for gameplay. Studio setup without usable voice may remain on the microphone panel. Synthetic fixtures in `tests/` can exercise selected mechanics, but are not a substitute for live voice validation and must never be appended to production source.
+A usable microphone and Roblox voice eligibility are required for microphone-driven attacks, not for movement or ordinary menus. There is no blocking microphone setup panel. Actual microphone sensitivity and comfortable-speech behavior remain unverified. Synthetic fixtures in `tests/` can exercise selected mechanics, but are not a substitute for live voice validation and must never be appended to production source.
 
 ## Boost delivery (unpublished local candidate)
 
@@ -80,7 +80,7 @@ Outstanding release gates include real microphones and eligible accounts, physic
 ### Still unfinished
 
 - Real paid game passes and published Roblox badges: product/badge IDs and ownership/award verification are not configured. Cosmetic options, entitlement hooks, Studio movement testing and in-game Nick achievements exist.
-- Two-account live voice listening, permission/reconnect behavior and comfortable-volume calibration across actual microphones.
+- Two-account live voice listening, permission/reconnect behavior and comfortable-volume sensitivity across actual microphones.
 - Physical phone/touch and multiplayer combat, roll/attack cancellation, quests and static-cover interactions. Traffic and object destruction/repair are excluded from the compact candidate.
 - Live test-universe save/rejoin, migration and concurrent-session verification.
 - Final city art/game-feel acceptance and measured desktop/phone performance at the intended player count, including a representative 30-minute multiplayer soak.
@@ -98,7 +98,7 @@ Requires local `luau` and `luau-compile`, plus `rojo` for `--build`. This runs p
 
 ### Studio movement-pass testing
 
-In local Studio Play, open **TEST TOOLS**, scroll to **Test movement**, and toggle it on. The normal microphone requirement still applies. This grants a temporary movement entitlement only in Studio; safe-area movement limits and arena cooldowns remain enforced. Toggle again to remove it. The server rejects this command outside Studio, including for the owner. No purchase is prompted, and legitimate save progress is frozen before the test mutation. Real pass IDs remain unconfigured.
+In local Studio Play, open **TEST TOOLS**, scroll to **Test movement**, and toggle it on. Movement does not require microphone setup; microphone-driven attacks still require usable voice input and eligibility. This grants a temporary movement entitlement only in Studio; safe-area movement limits and arena cooldowns remain enforced. Toggle again to remove it. The server rejects this command outside Studio, including for the owner. No purchase is prompted, and legitimate save progress is frozen before the test mutation. Real pass IDs remain unconfigured.
 
 ### Standalone microphone feasibility lab
 
