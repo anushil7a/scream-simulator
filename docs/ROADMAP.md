@@ -2,6 +2,12 @@
 
 Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 13 truthful automatic sound cards
+
+- Removed legacy visual-effect descriptions from automatic-mode sound cards, since automatic silhouettes follow player level rather than selected sound. Names, unlocks, equip state and shared power/range explanation remain; legacy text/layout and Config are unchanged. Cards are more compact.
+- Independent review and 406 renderer assertions/six controls pass. Final local verification passes 239 commands with 325 unchanged/rechecked inputs. A separate local-only native fixture passes 332 checks/16 cases; desktop screenshot reviewed. [Review/image](SOUND_CARD_COPY_REVIEW.md), [evidence](../tests/evidence/sound-card-copy-2026-11-13.json).
+- No real audio/device or multiplayer claim. Disposable Studio stopped/closed, PC on; no publication. Next requested visual task: clearer NPC nameplates while preserving identity/health, visibility/occlusion, speech bubbles and bounded work.
+
 ## November 13 concise interface text
 
 - Removed repeated collection/Settings instructions, compact-map activity directions and redundant shop hue-picker wording. Kept controls, voice safety, live status, stats/unlocks, objectives and purchase/save terms. Collection cards use less empty space; no gameplay behavior changed.
