@@ -2,6 +2,12 @@
 
 Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 13 isolated player-name art prototype
+
+- Native Studio normal/long/Unicode name-only navy/gold prototype is readable; six art states report TextFits. Portable source and explicit build instructions are preserved separately from production. [Prototype/images](PLAYER_TAG_PROTOTYPE_REVIEW.md), [evidence](../tests/evidence/player-tag-prototype-2026-11-13.json).
+- Production player tags remain unchanged. The cloned dummy's native name/HP baseline was blank and inconclusive; name-only art suppresses dummy HP and is not a replacement. Genuine two-player visibility/health/team/respawn validation is required before integration. Mock16/two controls +41 and relative builds pass; no new full-aggregate or device claim.
+- Disposable play stopped and task Studio closed; PC stays on. Next: supported genuine two-client baseline, or independent requested SFX/visual work without changing player visibility policy.
+
 ## November 13 academy trainer model update
 
 - Original navy/ivory sparring outfits with mint/coral/gold tier accents replace the mixed civilian costume look on trainers only. Eight safe cosmetic parts per trainer; original bodies, ordinary residents and gameplay remain unchanged.

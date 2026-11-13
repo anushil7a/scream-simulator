@@ -1,0 +1,682 @@
+{
+  "date": "2026-11-13",
+  "scope": "Isolated original name-only art prototype; NOT production Player display replacement",
+  "gameCodeBase": "f7513928cd68c7957519feaf91be80755d49a920",
+  "sourceHash": "8a5e426377119e3106adf76024f73cbe179cb266671a4af67e9c5cc185be8123",
+  "binaryHash": "5ec591a4c53b4a3d458c15f7729108d4cd70bc000d8ef85ac4ae5f08c6ee8ee7",
+  "placeId": 0,
+  "gameId": 0,
+  "identityNote": "Initial IsA(Script) inventory counted the LocalScript; exact ClassName=LocalScript/RunContext Legacy was verified, no server game scripts.",
+  "native": {
+    "caseSnapshots": 15,
+    "prototypeCases": 6,
+    "allSixPrototypeTextFits": true,
+    "realPlayerSubjects": 0,
+    "nativeBaselineNameHealth": "Not visible in captured clone baseline, even unobstructed. Inconclusive, not engine/player behavior proof.",
+    "frontCamera": {
+      "position": [
+        3,
+        6,
+        -32
+      ],
+      "lookAt": [
+        0,
+        4,
+        -20
+      ],
+      "scope": "Art views and unoccluded Case1 only. Wall cases retain original camera; front camera is NOT wall evidence."
+    },
+    "sanitizedRecords": {
+      "case-1-front-state": {
+        "sequence": 19,
+        "subjectIsPlayer": false,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "HUMANOID FIXTURE"
+        },
+        "viewport": "858.400024, 496",
+        "viewerRoot": "0, 3, 0",
+        "rootDistance": 20,
+        "case": "UntouchedDamaged"
+      },
+      "case-1-state": {
+        "sequence": 2,
+        "subjectIsPlayer": false,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "HUMANOID FIXTURE"
+        },
+        "viewport": "858.400024, 496",
+        "viewerRoot": "0, 3, 0",
+        "rootDistance": 20,
+        "case": "UntouchedDamaged"
+      },
+      "case-12-state": {
+        "sequence": 6,
+        "subjectIsPlayer": false,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "25",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.NoOcclusion",
+          "NameDisplayDistance": "50",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Subject",
+          "HealthDisplayDistance": "40",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "80",
+          "MaxHealth": 100,
+          "DisplayName": "HUMANOID FIXTURE"
+        },
+        "viewport": "858.400024, 496",
+        "viewerRoot": "0, 3, 0",
+        "rootDistance": 20,
+        "case": "OpaqueNoOcclusion"
+      },
+      "case-3-state": {
+        "sequence": 3,
+        "subjectIsPlayer": false,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "25",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "50",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 38.11823654174805,
+        "camera": "0, 6, 8, 0.999999881, 2.0270998e-05, -0.00057828438, -0, 0.999386311, 0.035032168, 0.000578639563, -0.0350321643, 0.999386072",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "40",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "80",
+          "MaxHealth": 100,
+          "DisplayName": "HUMANOID FIXTURE"
+        },
+        "viewport": "858.400024, 496",
+        "viewerRoot": "0, 3, 0",
+        "rootDistance": 30,
+        "case": "ViewerNameOnly"
+      },
+      "case-4-state": {
+        "sequence": 4,
+        "subjectIsPlayer": false,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "25",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "50",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 63.071388244628906,
+        "camera": "0, 6, 8, 0.999999881, 7.35700951e-06, -0.000348449219, -0, 0.999777138, 0.0211088732, 0.000348526868, -0.0211088713, 0.999777138",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "40",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "80",
+          "MaxHealth": 100,
+          "DisplayName": "HUMANOID FIXTURE"
+        },
+        "viewport": "858.400024, 496",
+        "viewerRoot": "0, 3, 0",
+        "rootDistance": 55,
+        "case": "ViewerFar"
+      },
+      "case-9-state": {
+        "sequence": 5,
+        "subjectIsPlayer": false,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "25",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "50",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Subject",
+          "HealthDisplayDistance": "40",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "80",
+          "MaxHealth": 100,
+          "DisplayName": "HUMANOID FIXTURE"
+        },
+        "viewport": "858.400024, 496",
+        "viewerRoot": "0, 3, 0",
+        "rootDistance": 20,
+        "case": "OpaqueOcclude"
+      },
+      "prototype-1-front-state": {
+        "sequence": 21,
+        "subjectIsPlayer": false,
+        "prototype": {
+          "healthEquivalent": false,
+          "textBounds": "75.2000046, 16",
+          "textFits": true,
+          "maxDistance": 80,
+          "text": "HarborAce",
+          "kind": "Name-only art on owned clone; native name and HP suppressed ONLY on this dummy",
+          "alwaysOnTop": false,
+          "allocation": "126.399994, 34.4000015"
+        },
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.None",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "HarborAce"
+        },
+        "viewerRoot": "0, 3, 0",
+        "viewport": "858.400024, 496",
+        "rootDistance": 20,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "case": "PROTOTYPE_NormalName"
+      },
+      "prototype-1-state": {
+        "sequence": 8,
+        "subjectIsPlayer": false,
+        "prototype": {
+          "healthEquivalent": false,
+          "textBounds": "75.2000046, 16",
+          "textFits": true,
+          "maxDistance": 80,
+          "text": "HarborAce",
+          "kind": "Name-only art on owned clone; native name and HP suppressed ONLY on this dummy",
+          "alwaysOnTop": false,
+          "allocation": "126.399994, 34.4000015"
+        },
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.None",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "HarborAce"
+        },
+        "viewerRoot": "0, 3, 0",
+        "viewport": "858.400024, 496",
+        "rootDistance": 20,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "case": "PROTOTYPE_NormalName"
+      },
+      "prototype-2-front-state": {
+        "sequence": 23,
+        "subjectIsPlayer": false,
+        "prototype": {
+          "healthEquivalent": false,
+          "textBounds": "215.199997, 16",
+          "textFits": true,
+          "maxDistance": 80,
+          "text": "CaptainOfTheCoastalAcademy",
+          "kind": "Name-only art on owned clone; native name and HP suppressed ONLY on this dummy",
+          "alwaysOnTop": false,
+          "allocation": "220, 34.4000015"
+        },
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.None",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "CaptainOfTheCoastalAcademy"
+        },
+        "viewerRoot": "0, 3, 0",
+        "viewport": "858.400024, 496",
+        "rootDistance": 20,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "case": "PROTOTYPE_LongName"
+      },
+      "prototype-2-state": {
+        "sequence": 10,
+        "subjectIsPlayer": false,
+        "prototype": {
+          "healthEquivalent": false,
+          "textBounds": "215.199997, 16",
+          "textFits": true,
+          "maxDistance": 80,
+          "text": "CaptainOfTheCoastalAcademy",
+          "kind": "Name-only art on owned clone; native name and HP suppressed ONLY on this dummy",
+          "alwaysOnTop": false,
+          "allocation": "220, 34.4000015"
+        },
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.None",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "CaptainOfTheCoastalAcademy"
+        },
+        "viewerRoot": "0, 3, 0",
+        "viewport": "858.400024, 496",
+        "rootDistance": 20,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "case": "PROTOTYPE_LongName"
+      },
+      "prototype-3-front-state": {
+        "sequence": 25,
+        "subjectIsPlayer": false,
+        "prototype": {
+          "healthEquivalent": false,
+          "textBounds": "120, 16",
+          "textFits": true,
+          "maxDistance": 80,
+          "text": "Étoile・海風・Nova",
+          "kind": "Name-only art on owned clone; native name and HP suppressed ONLY on this dummy",
+          "alwaysOnTop": false,
+          "allocation": "126.399994, 34.4000015"
+        },
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.None",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "Étoile・海風・Nova"
+        },
+        "viewerRoot": "0, 3, 0",
+        "viewport": "858.400024, 496",
+        "rootDistance": 20,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "case": "PROTOTYPE_UnicodeName"
+      },
+      "prototype-3-state": {
+        "sequence": 12,
+        "subjectIsPlayer": false,
+        "prototype": {
+          "healthEquivalent": false,
+          "textBounds": "120, 16",
+          "textFits": true,
+          "maxDistance": 80,
+          "text": "Étoile・海風・Nova",
+          "kind": "Name-only art on owned clone; native name and HP suppressed ONLY on this dummy",
+          "alwaysOnTop": false,
+          "allocation": "126.399994, 34.4000015"
+        },
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.None",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "Étoile・海風・Nova"
+        },
+        "viewerRoot": "0, 3, 0",
+        "viewport": "858.400024, 496",
+        "rootDistance": 20,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "case": "PROTOTYPE_UnicodeName"
+      },
+      "prototype-4-state": {
+        "sequence": 14,
+        "subjectIsPlayer": false,
+        "prototype": {
+          "healthEquivalent": false,
+          "textBounds": "75.2000046, 16",
+          "textFits": true,
+          "maxDistance": 80,
+          "text": "HarborAce",
+          "kind": "Name-only art on owned clone; native name and HP suppressed ONLY on this dummy",
+          "alwaysOnTop": false,
+          "allocation": "126.399994, 34.4000015"
+        },
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.None",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "HarborAce"
+        },
+        "viewerRoot": "0, 3, 0",
+        "viewport": "858.400024, 496",
+        "rootDistance": 20,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "case": "PROTOTYPE_OpaqueWall"
+      },
+      "prototype-5-state": {
+        "sequence": 16,
+        "subjectIsPlayer": false,
+        "prototype": {
+          "healthEquivalent": false,
+          "textBounds": "75.2000046, 16",
+          "textFits": true,
+          "maxDistance": 80,
+          "text": "HarborAce",
+          "kind": "Name-only art on owned clone; native name and HP suppressed ONLY on this dummy",
+          "alwaysOnTop": false,
+          "allocation": "126.399994, 34.4000015"
+        },
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.None",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "HarborAce"
+        },
+        "viewerRoot": "0, 3, 0",
+        "viewport": "858.400024, 496",
+        "rootDistance": 20,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "case": "PROTOTYPE_Point99Wall"
+      },
+      "prototype-6-state": {
+        "sequence": 18,
+        "subjectIsPlayer": false,
+        "prototype": {
+          "healthEquivalent": false,
+          "textBounds": "75.2000046, 16",
+          "textFits": true,
+          "maxDistance": 80,
+          "text": "HarborAce",
+          "kind": "Name-only art on owned clone; native name and HP suppressed ONLY on this dummy",
+          "alwaysOnTop": false,
+          "allocation": "126.399994, 34.4000015"
+        },
+        "viewer": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.Viewer",
+          "HealthDisplayDistance": "100",
+          "Health": 100,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100
+        },
+        "cameraDistance": 28.160255432128906,
+        "camera": "0, 6, 8, 0.999999642, 3.74118281e-05, -0.000785408542, -0, 0.998867393, 0.0475796424, 0.000786299061, -0.0475796238, 0.998867154",
+        "subject": {
+          "DisplayDistanceType": "Enum.HumanoidDisplayDistanceType.None",
+          "HealthDisplayDistance": "100",
+          "Health": 50,
+          "HealthDisplayType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+          "NameOcclusion": "Enum.NameOcclusion.OccludeAll",
+          "NameDisplayDistance": "100",
+          "MaxHealth": 100,
+          "DisplayName": "HarborAce"
+        },
+        "viewerRoot": "0, 3, 0",
+        "viewport": "858.400024, 496",
+        "rootDistance": 20,
+        "scope": "Configured state only; screenshots required for native visibility. No Player/team/network/respawn proof.",
+        "case": "PROTOTYPE_Point995Wall"
+      }
+    },
+    "sanitization": "Baseline account names removed and viewer DisplayName omitted. Raw local records are hashed but not included.",
+    "cleanup": {
+      "occlusion": "Enum.NameOcclusion.OccludeAll",
+      "controlAbsent": true,
+      "rootAnchored": false,
+      "stopped": "Stopped; owned objects removed and best-effort restoration",
+      "healthDistance": 100,
+      "cameraType": "Enum.CameraType.Custom",
+      "display": "Enum.HumanoidDisplayDistanceType.Viewer",
+      "nameDistance": 100,
+      "healthType": "Enum.HumanoidHealthDisplayType.DisplayWhenDamaged",
+      "folderAbsent": true
+    },
+    "stop": {
+      "jsonrpc": "2.0",
+      "id": 2,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Game Stopped"
+          }
+        ],
+        "isError": false
+      }
+    },
+    "processClose": {
+      "remaining": false,
+      "normalCloseAccepted": false,
+      "pid": 17480
+    }
+  },
+  "artifactSha256": {
+    "build/player-tag-native/case-1-capture.json": "d08c3d389d8794717626ea374108b40bb9d20b029e12f896a529b1f63fcc72bb",
+    "build/player-tag-native/case-1-front-capture.json": "5d2d2109bc7800aae93e88fb1395ec2d1fcaee0a4bcf79d0bb7d1f00578cc128",
+    "build/player-tag-native/case-1-front-state.json": "a217b42c9a311f1eaf54d3ec652a6cf1c08ab157a49511105ab168c2aff0209c",
+    "build/player-tag-native/case-1-state.json": "b412c5080a14091d2da93752e0ae99818ccd59cbeae47bd014def333453b787d",
+    "build/player-tag-native/case-12-capture.json": "e9ec5e029f78e7d96a304ddff874f6e3da2bfddbd721743eedc71b513606a0f9",
+    "build/player-tag-native/case-12-state.json": "16befbdc6071a0e1f194c59e49a7f9c6c8e17a5dd24962511a3e3f244e80499c",
+    "build/player-tag-native/case-3-capture.json": "470935eba3ad7614a56a85b0d130b34e289e0bb82e8aa36b1586011afd785c69",
+    "build/player-tag-native/case-3-state.json": "21b88434f50faea5ab0735fa3296effe9c00cb6e9d592943ae2282a8a2f0e1cd",
+    "build/player-tag-native/case-4-capture.json": "51cf805d258d9ee487cd9f999a128e06512e0dd9a0728fcdec52e9c2be47878b",
+    "build/player-tag-native/case-4-state.json": "fe041ba3f3083e316711c26d3927aa3cd9dd965ece07e6d32964a188bd0ce030",
+    "build/player-tag-native/case-9-capture.json": "7998909d603d4f65f7fd40b7bf5c7fbf291284a02ee80716bd2bf9023adcd88d",
+    "build/player-tag-native/case-9-state.json": "2400ed1b8920d51b478c77d109691c9adcc65e235f4926505acd82caaf856eff",
+    "build/player-tag-native/cleanup.json": "544c3702915e2e4cfa6c8dbf75dc0b472c80f6dae28f6b6d1446f492a364620e",
+    "build/player-tag-native/console-final.json": "2e3714c430750465787b59b70366c91b591027a00c9daaee2e876a478ea004ab",
+    "build/player-tag-native/process-before-close.json": "20f89aaf5b3a97263e34828c3435b48cc4ac86086f8e2f3d22f6c98ae4165fb7",
+    "build/player-tag-native/process-close.json": "9ece3dca67f74846de4257e79d1d95c990515743e3d491df6861367cb993619e",
+    "build/player-tag-native/prototype-1-capture.json": "3ccd2213483907baf3c04bfa3fdc9b856dbfe1092ad50acc410a84c394c7af3b",
+    "build/player-tag-native/prototype-1-front-capture.json": "9bdb4577d3214ea722dca1416caa005dd424b874c56a843cc7c1da13534e81c5",
+    "build/player-tag-native/prototype-1-front-state.json": "e00002f771a3bd0d6a57a605d43012f34e34a649dce3d709d0a19fc78a6660fb",
+    "build/player-tag-native/prototype-1-state.json": "3577db720b3fa3f991bf156a834baaaee676d6e0b923c76fd561d61ff24cfb6e",
+    "build/player-tag-native/prototype-2-capture.json": "ddfd7183a112eedcacd7d8f5e78e18098cfdeb349ffa52797c425b84de8b3f8f",
+    "build/player-tag-native/prototype-2-front-capture.json": "17e0abde1f8e813d8244d21a631c9bce0dcba557a0ad78ec8f19d3a37e309367",
+    "build/player-tag-native/prototype-2-front-state.json": "37789e75bab9f7ce7ee653f8c05beefb38138188fbaf0e8fb4fc38c18cfd78f5",
+    "build/player-tag-native/prototype-2-state.json": "7c795adca15e19aae120ea52834a518129f33736c70a4d1e69c757c41dd630b8",
+    "build/player-tag-native/prototype-3-capture.json": "ca8e8a49200ef19c411d2390f37ebf09afca44dbbc7954a248c9d8fd0cc9b4cb",
+    "build/player-tag-native/prototype-3-front-capture.json": "28d23c57f5bfeea6bf5af8f968b9443dd1661ea3b9dd5d53783ff09ba929c8dc",
+    "build/player-tag-native/prototype-3-front-state.json": "0aff4a3dfcdd9377f5b6986309e1e32f428907842d14a805a78d9b8a8381cd65",
+    "build/player-tag-native/prototype-3-state.json": "c71bba90d7161e45d427e91c1d28bf5a30caa186f78ebfe7c5b02fd36246ce93",
+    "build/player-tag-native/prototype-4-capture.json": "859bf473df0091898028f6db6338a6e447099e5236d73cda17f077a79225c5ad",
+    "build/player-tag-native/prototype-4-state.json": "61dfefcd4c733a6368da6a86e4c7d25e509860b0dec228b6a846d9aaa8f5884d",
+    "build/player-tag-native/prototype-5-capture.json": "34df919d19d0dce35367f3c6614bac1f67aca227430a362c1bbd828005211d5d",
+    "build/player-tag-native/prototype-5-state.json": "35f93c41127b8dfb6607d34143c76846890b2fdf0a971bdf9305c720b1bdea3b",
+    "build/player-tag-native/prototype-6-capture.json": "9cb58af0ba6f52c8c2bc7d1d8a83d446df371ce32e526de98908c3e42e63d17c",
+    "build/player-tag-native/prototype-6-state.json": "ce5821c4c80d5895908932738e256be8b27cbfcadc3d40ba26d43f9ecd0888d4",
+    "build/player-tag-native/stop.json": "600974a7cffcd0a4c6029c715664cb75e39ce589dac53e2f4376f29fca66d63f",
+    "docs/images/player-tag-prototype-2026-11-13/case-1-front.jpg": "1311aa23605b0da91074bbf148001bb132b469e78c5445dbbb9dbeb114c1d83a",
+    "docs/images/player-tag-prototype-2026-11-13/prototype-1-front.jpg": "de8c49cff69934ee3c00407f62ed9071b478b0febb82a6ca52ee4e45bf1c69da",
+    "docs/images/player-tag-prototype-2026-11-13/prototype-2-front.jpg": "b33f3ba2a513668700bc940a5f71ae60433428fbb0560716e7710d34efe95be1",
+    "docs/images/player-tag-prototype-2026-11-13/prototype-3-front.jpg": "a7661310857a61402a8c077e76857e7bffca4b95dead7b18b9f750b2c5142191",
+    "docs/images/player-tag-prototype-2026-11-13/prototype-4.jpg": "b5700971d9aa236d99e5bfac3435ef100ed8580a15c999a890bf6a2a185398a2",
+    "docs/images/player-tag-prototype-2026-11-13/prototype-5.jpg": "85b1b5d69ac5a35acc691b16112b1c5fd980e9f649f69697956d0bc3d8e5e1a0",
+    "docs/images/player-tag-prototype-2026-11-13/prototype-6.jpg": "ec634777092f7f6f5748cf203f8798e848dc58f83da7f642306c319c60710806",
+    "build/player-tag-art-identity.json": "77ba70e1d56796924ace69ee1fd5298882935606f6b1074089397a084a8823fc",
+    "build/player-tag-art-run-context.json": "9a1719fea230023031a249680db3d36d508f08dbfa63bc9cb4d63f7622c7dca2",
+    "build/player-tag-art-start.json": "c090da2df80255070e9fe44a781a794cb969f052fd57f35534f62d60360a6ab1",
+    "build/player-tag-art.client.luau": "8a5e426377119e3106adf76024f73cbe179cb266671a4af67e9c5cc185be8123",
+    "build/player-tag-art.rbxl": "5ec591a4c53b4a3d458c15f7729108d4cd70bc000d8ef85ac4ae5f08c6ee8ee7",
+    "build/player-tag-baseline.client.luau": "20d4f26a2bf1c75095941ed4e118d21c78a531fc4f24ca396de180e0a137d75f",
+    "build/player-tag-baseline.rbxl": "0025ea971d440f07a27eef0215010f4c6fb5679018d2d5fbdda84d6d51112755"
+  },
+  "limits": [
+    "Dummy only; not a second Player or multiplayer validation",
+    "Name-only custom mode suppresses BOTH native name and HP on the owned dummy only; not health-equivalent",
+    "Production player visibility/health/team/self/replication behavior unchanged and unverified by prototype",
+    "Baseline native labels blank; distance/occlusion equivalence NOT established",
+    "No physical-device/OS text scaling/performance claim",
+    "No live publication or data calls",
+    "Genuine two-client baseline needed before considering integration"
+  ],
+  "portableSourceSha256": {
+    "prototypes/player-tags/player-tag-art.client.luau": "8a5e426377119e3106adf76024f73cbe179cb266671a4af67e9c5cc185be8123",
+    "prototypes/player-tags/player-tag-art.project.json": "1b5a80295b7af8d3c89c2b3596d93f5ab3dc4dbc997599a305a8659e51e30212",
+    "prototypes/player-tags/player-tag-baseline-smoke-template.luau": "cbcd53fde6d601af50e7f535a4aaae270c98e8a996e1fcb30ab5a93e5dbb81d1",
+    "prototypes/player-tags/player-tag-baseline.client.luau": "20d4f26a2bf1c75095941ed4e118d21c78a531fc4f24ca396de180e0a137d75f",
+    "prototypes/player-tags/player-tag-baseline.project.json": "c0796163ac5f783fbd5bda45df55ea4edb71f4f10035eaecc01950188cb5520f",
+    "prototypes/player-tags/README.md": "6fdbb7cca99ccc43054fe8b879c303d9319a3459fb95c4d589aee587fa73f572",
+    "prototypes/player-tags/run_player_tag_art_smoke.py": "3362875d43a0955b74790c0158a9fd33f9cf670b69e845cf12296b1136789366",
+    "prototypes/player-tags/run_player_tag_smoke.py": "fb33d2ed244fc210e277bd21fc02c51c8a43e9a050ceff458aeb5b1380b5ca62"
+  },
+  "checks": {
+    "baselineWholeFixtureMock": 16,
+    "baselineNegativeControls": 2,
+    "artWholeFixtureMock": 41,
+    "bothSourcesCompile": true,
+    "bothPortableRojoProjectsBuild": true,
+    "aggregateRerun": false,
+    "aggregateReason": "No production change; prototype scope is not part of standard aggregate. Separate exact-source and native checks recorded."
+  }
+}
