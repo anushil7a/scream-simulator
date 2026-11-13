@@ -2,6 +2,12 @@
 
 Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 13 boost-card readability
+
+- XP/Coins cards have filled multiplier tiles and passive active/neutral status bands, with larger status text and separated purchase controls. Timer arithmetic/wording, purchases, saved inventory, access, hue picker and gameplay are unchanged. Cards grow slightly and require more Shop scrolling. [Ten matched native images and limits](BOOST_STATUS_REVIEW.md), [historical local evidence](../tests/evidence/boost-status-2026-11-13.json).
+- The reviewed local pass completed 249 commands/339 selected inputs, 29,879 focused assertions/11 controls, ten native images, 64 After text/button fits and actual-time expiry palette reset. Two test/build baselines now use the byte-identical published prior ShopUI. Fresh single-branch integration passes 249 aggregate/build commands with 341 unchanged/rechecked inputs plus the focused controls and review builder; this remains separate from those historical local counts. [Integrated evidence](../tests/evidence/boost-status-github-integration-2026-11-13.json).
+- Existing draft PR #1 remains the development destination. No Roblox publication or release merge. Actual phone/input, full-Shop, commerce and persistence acceptance remain separate.
+
 ## November 13 completed visual integration
 
 - Training map colors/tier labels, narrow full-map pin spacing and acquired/lost lock feedback are complete. Native local map/lock samples cover fitted labels, scrolled legend and simulated pointer/key states. [Training](TRAINING_MAP_REVIEW.md), [spacing](SMALL_SCREEN_MAP_REVIEW.md), [lock](LOCK_INDICATOR_REVIEW.md), [native scope](NATIVE_VISUAL_VALIDATION.md).

@@ -13,7 +13,8 @@ local checks=0;local function check(ok,msg)assert(ok,msg);checks+=1 end
 local clock=0;local os={clock=function()return clock end,time=function()return 100 end}
 local timers={};local priceViews={};local Shop={};local generation=0
 local UDim2={new=function(sx,ox,sy,oy)return {sx=sx,ox=ox,sy=sy,oy=oy}end,fromOffset=function(x,y)return {x=x,y=y}end,fromScale=function(x,y)return {sx=x,sy=y}end}
-local Enum={TextXAlignment={Center=1},Font={GothamBlack=1}}
+local Enum={TextXAlignment={Center=1},Font={GothamBlack=1,GothamBold=2}}
+local Color3={fromRGB=function(r,g,b)return {R=r/255,G=g/255,B=b/255}end}
 local violet,gold,ink,soft={},{},{},{}
 local labels,buttons,buys,actions={},{},{},{}
 local ui={card=function()return {}end,frame=function()return {}end}

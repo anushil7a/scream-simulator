@@ -59,7 +59,13 @@ function Shop.Tick()
  for _,timer in ipairs(timers) do
   local remaining=math.max(0,math.ceil(timer.ends-timer.serverNow-(os.clock()-timer.received)))
   local text=not timer.ready and "Boost status unavailable" or remaining>0 and string.format("ACTIVE · %02d:%02d remaining",math.floor(remaining/60),remaining%60) or "Not active"
-  if timer.label.Text~=text then timer.label.Text=text end
+  if timer.label.Text~=text then
+   timer.label.Text=text
+   local active=timer.ready and remaining>0
+   timer.label.TextColor3=active and Color3.fromRGB(112,230,174) or soft
+   timer.band.BackgroundColor3=active and Color3.fromRGB(18,42,40) or ink
+   timer.indicator.BackgroundColor3=active and Color3.fromRGB(112,230,174) or soft
+  end
  end
 end
 local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
@@ -110,16 +116,22 @@ function Shop.Render(data,ui,action)
  purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,UDim2.new(1,-32,0,44),UDim2.fromOffset(16,narrow and 238 or 206))
  for index,key in ipairs({"XP","Coins"}) do
   local item=Catalog.Get(key);local tint=key=="XP" and violet or gold
-  local c=ui.card(narrow and 244 or 210);c.Name="Boost"..key;stroke(c,tint)
-  local badge=ui.frame(c,"Multiplier",UDim2.fromOffset(54,54),UDim2.fromOffset(16,16),ink)
-  local badgeText=ui.label(badge,"2×",UDim2.fromScale(1,1),UDim2.new(),27,tint);badgeText.TextXAlignment=Enum.TextXAlignment.Center;badgeText.Font=Enum.Font.GothamBlack
+  local c=ui.card(narrow and 262 or 242);c.Name="Boost"..key;stroke(c,tint)
+  local badge=ui.frame(c,"Multiplier",UDim2.fromOffset(54,54),UDim2.fromOffset(16,16),tint)
+  local badgeText=ui.label(badge,"2×",UDim2.fromScale(1,1),UDim2.new(),27,ink);badgeText.TextXAlignment=Enum.TextXAlignment.Center;badgeText.Font=Enum.Font.GothamBlack
   ui.label(c,"0"..(index+1).." / "..item.tag,UDim2.new(1,-100,0,20),UDim2.fromOffset(84,13),12,tint)
   ui.label(c,item.name,UDim2.new(1,-100,0,32),UDim2.fromOffset(84,34),narrow and 18 or 22)
   ui.label(c,item.description.." Starts automatically on confirmed delivery.",UDim2.new(1,-32,0,narrow and 56 or 40),UDim2.fromOffset(16,80),14,soft)
   local shop=data.shop or {};local inventory=shop.inventory or {};local ends=shop.ends or {}
-  local status=ui.label(c,shop.ready==true and "Not active" or "Boost status unavailable",UDim2.new(1,-32,0,24),UDim2.fromOffset(16,narrow and 143 or 124),13,tint)
-  table.insert(timers,{label=status,ready=shop.ready==true,ends=ends[item.boost] or 0,serverNow=shop.serverNow or os.time(),received=os.clock()})
-  local y=narrow and 184 or 158
+  -- A passive status band separates the live countdown from purchase actions.
+  local band=ui.frame(c,"BoostStatus",UDim2.new(1,-32,0,40),UDim2.fromOffset(16,narrow and 148 or 128),ink)
+  band.Active=false;band.Selectable=false;band.Interactable=false
+  local indicator=ui.frame(band,"StateIndicator",UDim2.fromOffset(3,18),UDim2.fromOffset(8,11),soft)
+  indicator.Active=false;indicator.Selectable=false;indicator.Interactable=false
+  local status=ui.label(band,shop.ready==true and "Not active" or "Boost status unavailable",UDim2.new(1,-32,1,0),UDim2.fromOffset(20,0),14,soft)
+  status.Name="BoostStatusText";status.Font=Enum.Font.GothamBold
+  table.insert(timers,{label=status,band=band,indicator=indicator,ready=shop.ready==true,ends=ends[item.boost] or 0,serverNow=shop.serverNow or os.time(),received=os.clock()})
+  local y=narrow and 202 or 182
   local count=inventory[item.boost] or 0
   purchaseButton(item,c,false,data,ui,action,UDim2.new(count>0 and .5 or 1,count>0 and -22 or -32,0,44),UDim2.fromOffset(16,y))
   if count>0 then
