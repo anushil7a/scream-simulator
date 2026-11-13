@@ -6,7 +6,7 @@ local last=0
 for l=1,Rules.MaxLevel do
  local stats=Rules.Stats(l,1,false)
  check(stats.maxRange>last,'every level must increase range');last=stats.maxRange
- check(stats.damage<=48 and stats.range<=110 and stats.health<=450 and stats.maxDps<=68,'balance caps')
+ check(stats.damage<=48 and stats.range<=110 and stats.health<=450 and stats.maxDps<=110,'balance caps')
  local previous=0
  for n=0,10 do local v=Rules.Stats(l,n/10,true);check(v.range>=previous and v.range<=stats.maxRange,'loudness/amplifier caps');previous=v.range end
 end
@@ -22,12 +22,12 @@ for level=1,100 do
  check(stats.width>=4 and stats.width<=7,'Progression widened the beam beyond bounds')
  previousHealth,previousDps=stats.health,stats.maxDps
 end
-for _,tier in ipairs({{1,100,15},{25,150,23},{50,225,34},{75,325,49},{100,450,68}}) do
+for _,tier in ipairs({{1,100,15},{25,150,23},{50,225,34},{75,325,49},{100,450,110}}) do
  local stats=Rules.Stats(tier[1],1,false)
  check(stats.health==tier[2] and stats.maxDps==tier[3],'Approved health/DPS anchor changed')
  check(Rules.Stats(tier[1],0,true).maxDps==tier[3],'Mic power or amplifier changed the maximum budget')
 end
-check(Rules.Stats(0,1,false).maxDps==15 and Rules.Stats(300,1,false).maxDps==68,'Invalid/legacy level escaped DPS clamp')
+check(Rules.Stats(0,1,false).maxDps==15 and Rules.Stats(300,1,false).maxDps==110,'Invalid/legacy level escaped DPS clamp')
 local s=Rules.New()
 check(Rules.Begin(s,0,1,true),'begin')
 Rules.Cancel(s) -- roll cancels a pending attack

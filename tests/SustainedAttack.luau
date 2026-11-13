@@ -85,7 +85,7 @@ end
 for _,bad in ipairs({0/0,math.huge,-1,0,2^31+1,"1"}) do
  local s=Attack.New();check(not Attack.Begin(s,0,bad,10,1,true),"Invalid sequence accepted")
 end
-for _,bad in ipairs({0/0,math.huge,-1,0,68.01,"10"}) do
+for _,bad in ipairs({0/0,math.huge,-1,0,110.01,"10"}) do
  local s=Attack.New();check(not Attack.Begin(s,0,1,bad,1,true),"Invalid server budget accepted")
 end
 for _,bad in ipairs({0/0,math.huge,-1,0,1.01,"1"}) do

@@ -2,6 +2,13 @@
 
 Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 13 requested upper-level damage tuning
+
+- Raised only the level100 sustained DPS anchor/protocol cap from68 to110, with existing interpolation affecting levels76-99. Lower anchors, health, range, cooldown and all server authority/protection gates remain unchanged.
+- Actual-path synthetic level100-versus-level1 timing is1.0/1.4/2.0s at full/half/minimum accepted power; fine sampled scheduling phases reach2.040s. This meets approximately1-2s under tested conditions, not a universal latency guarantee or diagnosis of the owner's live-mic mismatch. Real multiplayer/microphone validation remains open.
+- Astra independently passed7,618 actual-path checks, three negative controls, pinned historical baseline and retained protocol/adapter/balance suites. A composed local integration run passed25 pure/synthetic +124 mocked suites,64 compiles/all builds,235 commands. That run also included the separately uncommitted tier candidate and is not a damage-only or CI claim. [Review](SUSTAINED_TTK_REVIEW.md), [evidence](../tests/evidence/sustained-ttk-2026-11-13.json).
+- Work is isolated from preserved contributor edits. Continue tier visual acceptance, then calibration/area/objective retirement with save preservation. No live publication; PC stays on.
+
 ## November 13 integrated visual and lock-on checkpoint
 
 - Original coastal map dressing and landmarks, a clearer gold/slate HUD, detailed static minimap, and layered tinted beam visuals are implemented. Native desktop comparisons drove practice/arena header and beam-material refinements. Gameplay geometry and original archive remain preserved. This is an initial art pass, not a finished dense city.

@@ -18,7 +18,7 @@ end
 local tiers = {
  {level=1,health=100,dps=15}, {level=25,health=150,dps=23},
  {level=50,health=225,dps=34}, {level=75,health=325,dps=49},
- {level=100,health=450,dps=68},
+ {level=100,health=450,dps=110},
 }
 local function progression(level)
  for i=2,#tiers do
