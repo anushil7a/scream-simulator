@@ -57,7 +57,9 @@ def main():
  print(f'PASS {len(contracts)} retained authored-rectangle/status contracts')
  if args.negative_controls:
   cases=[('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),('f.Active=false','f.Active=true','Glyph intercepts input'),('bar(.74,.26,.12,.48)','bar(.94,.26,.12,.48)','Glyph exceeds local bounds'),('stroke.Thickness=1','stroke.Thickness=5','Border affects text readability')]
+  start=source.index('local academy={}')
+  end=source.index('-- Original, static menu glyphs.',start);helpers=source[start:end]
   for old,new,diagnostic in cases:
-   assert source.count(old)==1;result=run(source.replace(old,new));assert result.returncode and diagnostic in result.stderr,result.stdout+result.stderr
+   assert helpers.count(old)==1;result=run(source[:start]+helpers.replace(old,new)+source[end:]);assert result.returncode and diagnostic in result.stderr,result.stdout+result.stderr
   print('PASS 4 targeted negative controls')
 if __name__=='__main__':main()

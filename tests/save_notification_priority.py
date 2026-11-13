@@ -85,7 +85,8 @@ for _=1,150 do frame()end
 check(notifications.active==nil,'Save toast became permanently sticky')
 print('PASS '..checks..' save notification integration assertions; synthetic store/UI/time/coin changes')
 '''
-payload=setup+receiver+extra+state+autosave+speaker+checks
+# Keep the client HUD label separate from the reused server coins helper.
+payload=setup+'\ndo local coins={}\n'+receiver+'\nend\n'+extra+state+autosave+speaker+checks
 def run(source,failure=None):
  with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',suffix='.luau',dir=root/'tests',delete=False) as f:
   path=Path(f.name);f.write(source)

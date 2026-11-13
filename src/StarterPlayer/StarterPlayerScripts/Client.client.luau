@@ -276,12 +276,18 @@ local function questLauncherText()
 end
 local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.04
 academy.surface(hud,gold)
-academy.mark(hud,"voice",UDim2.fromOffset(12,9),18,gold)
 frame(hud,"EnergyAccent",UDim2.new(1,-24,0,1),UDim2.fromOffset(12,2),gold)
-local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-48,0,22),UDim2.fromOffset(36,7),12,white);stats.Font=Enum.Font.GothamBold
-academy.mark(hud,"health",UDim2.fromOffset(12,35),10,Color3.fromRGB(130,211,174))
-local health=label(hud,"100 HP",UDim2.fromOffset(55,20),UDim2.fromOffset(26,31),12)
-local hf=frame(frame(hud,"HealthTrack",UDim2.fromOffset(142,6),UDim2.fromOffset(83,38),panel),"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
+local levelBadge=frame(hud,"LevelBadge",UDim2.fromOffset(82,24),UDim2.fromOffset(12,8),gold)
+levelBadge.Active=false;levelBadge.Selectable=false;levelBadge.Interactable=false
+local stats=label(levelBadge,"LEVEL 1",UDim2.fromScale(1,1),UDim2.new(),12,dark)
+stats.Name="LevelValue";stats.Font=Enum.Font.GothamBold;stats.TextXAlignment=Enum.TextXAlignment.Center;stats.TextWrapped=false
+local coins=label(hud,"0 coins",UDim2.fromOffset(128,24),UDim2.fromOffset(102,8),13,white)
+coins.Name="CoinValue";coins.Font=Enum.Font.GothamBold;coins.TextXAlignment=Enum.TextXAlignment.Right;coins.TextWrapped=false
+coins.Active=false;coins.Selectable=false;coins.Interactable=false
+academy.mark(hud,"health",UDim2.fromOffset(12,36),10,Color3.fromRGB(130,211,174))
+local health=label(hud,"100 HP",UDim2.fromOffset(204,18),UDim2.fromOffset(26,32),14)
+health.Name="HealthValue";health.Font=Enum.Font.GothamBold;health.TextWrapped=false
+local hf=frame(frame(hud,"HealthTrack",UDim2.fromOffset(218,8),UDim2.fromOffset(12,51),panel),"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
 local displayedHealth,displayedMaximum
 local function refreshHealth()
  local character=p.Character
@@ -296,9 +302,9 @@ local function refreshHealth()
  health.Text=string.format("%d/%d",math.ceil(current),math.ceil(maximum))
  hf.Size=UDim2.fromScale(current/maximum,1)
 end
-local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-38,0,19),UDim2.fromOffset(26,52),12,muted)
-local xf=frame(frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,79),panel),"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
-academy.mark(hud,"progress",UDim2.fromOffset(12,55),10,gold)
+local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-38,0,19),UDim2.fromOffset(26,61),12,muted)
+local xf=frame(frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,82),panel),"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
+academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
 local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
 zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08
 do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=zone end
@@ -904,7 +910,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  end
  questsToggle.Text=unclaimed>0 and ("QUESTS "..unclaimed) or "QUESTS"
  questsToggle.TextColor3=unclaimed>0 and gold or white
- refreshQuestObjects();stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";refreshHealth()
+ refreshQuestObjects();stats.Text="LEVEL "..data.level;coins.Text=data.coins.." coins";refreshHealth()
  xpText.Text=progressLabel(gui.AbsoluteSize.X<820);xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
  zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
  testButton.Visible=data.devAccess==true

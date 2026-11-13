@@ -70,7 +70,8 @@ reproduce = '--reproduce' in sys.argv
 checks = checks.replace('CHECK_REJECTION', "check(#notices==1,'Expected baseline suppression missing')" if reproduce else "check(notices[#notices]=='Micro-speaker costs 250 coins. You need 240 more.','Milestone hid upgrade rejection')")
 checks = checks.replace('CHECK_REWARD', "check(#notices==1,'Expected baseline reward suppression missing')" if reproduce else "check(notices[#notices]=='Quest reward · +100 XP · +40 coins','Milestone hid reward confirmation')")
 checks = checks.replace('CHECK_COMPLETE', "check(#notices==1,'Expected baseline completion suppression missing')" if reproduce else "check(notices[#notices]=='Quest complete! Claim your reward in Quests.','Milestone hid task completion')")
-payload = setup+receiver+speaker+'\nlocal function claim(p,s,arg)\n'+claim+'\nend\n'+checks
+# Client label and server reward helper have separate namespaces in production.
+payload = setup+'\ndo local coins={}\n'+receiver+'\nend\n'+speaker+'\nlocal function claim(p,s,arg)\n'+claim+'\nend\n'+checks
 
 def run(source, failure=None):
     with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix='.luau', dir=root/'tests', delete=False) as f:

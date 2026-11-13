@@ -59,6 +59,7 @@ def verify(args, report=None):
     mocked += ('local_run_reporting.py', 'beam_performance_cleanup.py', 'run_animation_startup.py')
     mocked += ('client_startup_lifecycle.py', 'client_startup_builder.py')
     mocked += ('challenge_cap_copy.py',)
+    mocked += ('hud_readability.py',)
     mocked += ('lock_on.py', 'lock_on_integration.py', 'hud_presentation.py', 'coastal_art.py', 'academy_landmark.py', 'minimap_visuals.py', 'beam_silhouette.py')
     mocked += ('beam_contact_anchor.py', 'beam_contact_visuals.py', 'beam_contact_integration.py')
     mocked += ('high_tier_clarity.py',)
