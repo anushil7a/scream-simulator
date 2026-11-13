@@ -248,6 +248,30 @@ local function accessory(model, attachedTo, name, size, offset, color, material,
     return p
 end
 
+-- Original academy sparring kit: cosmetic shells only, never additional hitboxes.
+local function trainerOutfit(model,torso,leftArm,rightArm,leftLeg,rightLeg,tier)
+    local navy=Color3.fromRGB(31,48,67)
+    local ivory=Color3.fromRGB(238,230,207)
+    local accent=tier.id=="elite" and Color3.fromRGB(240,192,89)
+        or tier.id=="brawler" and Color3.fromRGB(219,120,94) or Color3.fromRGB(111,196,180)
+    torso.Color=navy;leftLeg.Color=navy;rightLeg.Color=navy
+    for _,name in ipairs({"LeftSleeve","RightSleeve"}) do
+        local sleeve=model:FindFirstChild(name);if sleeve then sleeve.Color=navy end
+    end
+    -- Retain original parts/RNG, but avoid civilian layers crossing the new padding.
+    for _,name in ipairs({"Jacket","FighterArmband"}) do
+        local old=model:FindFirstChild(name);if old then old.Transparency=1 end
+    end
+    accessory(model,torso,"AcademyChestLeft",Vector3.new(.73,1.28,.18),CFrame.new(-.48,.12,-.58),ivory,Enum.Material.SmoothPlastic)
+    accessory(model,torso,"AcademyChestRight",Vector3.new(.73,1.28,.18),CFrame.new(.48,.12,-.58),ivory,Enum.Material.SmoothPlastic)
+    accessory(model,torso,"AcademyCenter",Vector3.new(.22,.96,.2),CFrame.new(0,.16,-.59),accent,Enum.Material.SmoothPlastic)
+    accessory(model,torso,"AcademyBack",Vector3.new(1.72,1.3,.16),CFrame.new(0,.1,.57),ivory,Enum.Material.SmoothPlastic)
+    accessory(model,torso,"AcademyBelt",Vector3.new(2.04,.26,1.04),CFrame.new(0,-.77,0),accent,Enum.Material.SmoothPlastic)
+    accessory(model,leftArm,"AcademyWristLeft",Vector3.new(1.06,.58,1.06),CFrame.new(0,-.66,0),accent,Enum.Material.SmoothPlastic)
+    accessory(model,rightArm,"AcademyWristRight",Vector3.new(1.06,.58,1.06),CFrame.new(0,-.66,0),accent,Enum.Material.SmoothPlastic)
+    accessory(model,torso,"AcademyCollar",Vector3.new(1.14,.18,1.04),CFrame.new(0,.85,0),ivory,Enum.Material.SmoothPlastic)
+end
+
 local function faceToward(bot, position)
     if not bot.alive or not bot.model.Parent then return end
     local flat = Vector3.new(position.X, bot.root.Position.Y, position.Z)
@@ -648,6 +672,7 @@ local function makeBot(parent, index, x, z, role, job, training)
         accessory(model, torso, "CrossbodyBag", Vector3.new(1.25, 0.9, 0.35),
             CFrame.new(0.4, -0.5, -0.72), Color3.fromRGB(86, 61, 47), Enum.Material.Fabric)
     end
+    if training then trainerOutfit(model,torso,la,ra,ll,rl,training) end
     local humanoid = Instance.new("Humanoid")
     humanoid.RigType = Enum.HumanoidRigType.R6
     humanoid.HipHeight=0;humanoid.AutoJumpEnabled=false;humanoid.JumpPower=0;humanoid.JumpHeight=0

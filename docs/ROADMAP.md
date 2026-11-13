@@ -2,6 +2,12 @@
 
 Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 13 academy trainer model update
+
+- Original navy/ivory sparring outfits with mint/coral/gold tier accents replace the mixed civilian costume look on trainers only. Eight safe cosmetic parts per trainer; original bodies, ordinary residents and gameplay remain unchanged.
+- Independent 701,178 differential assertions/one source contract/seven controls pass, as do all 242 local commands with 328 rechecked inputs. Native before/after and actual local trainer poses inspected; Fabric was rejected and refined to clean SmoothPlastic. [Review/images](TRAINER_MODELS_REVIEW.md), [evidence](../tests/evidence/trainer-models-2026-11-13.json).
+- No full combat/multiplayer/device/FPS claim. Play stopped and original fixture sources restored; task process closed and absence verified through host inventory after transport recovery. PC stays on; no live publication. Next: isolated player-tag art, with production native name/health policy unchanged until genuine two-player validation.
+
 ## November 13 original menu icons
 
 - Added six cohesive original static symbols to the menu tabs while preserving labels, selection, callbacks and 44-pixel targets. Measured-width fallback keeps small tabs text-first; no image upload/dependency or new loop.
