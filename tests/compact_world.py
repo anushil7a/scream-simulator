@@ -10,7 +10,8 @@ local Vector3={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},V)end}
 V.__sub=function(a,b)return Vector3.new(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end
 local Color3={fromRGB=function(r,g,b)return {R=r,G=g,B=b}end}
 local CFrame={new=function(p)return {Position=p}end}
-local Enum={Material={SmoothPlastic=1},KeyCode={F=1},Font={GothamBold=1}}
+local Vector2={new=function(x,y)return {X=x,Y=y}end}
+local Enum={NormalId={Right=1,Left=2},SurfaceGuiSizingMode={FixedSize=1},PartType={Ball=1},Material={SmoothPlastic=1},KeyCode={F=1},Font={GothamBold=1}}
 local UDim2={fromOffset=function(x,y)return {X=x,Y=y}end,fromScale=function(x,y)return {X=x,Y=y}end}
 local nodes={};local Instance={new=function(class)local n={ClassName=class,attributes={},Transparency=0};function n:SetAttribute(k,v)self.attributes[k]=v end;table.insert(nodes,n);return n end}
 local Layout=(function()
@@ -36,7 +37,7 @@ check(guidanceFolder~=nil,'First-minute guidance missing')
 local byName={};local prompts={}
 for _,n in ipairs(nodes)do
  if n.ClassName=='Part' then
-  check(n.Anchored and (n.CanQuery or practiceGoalNames[n.Name] or guidanceNames[n.Name] or n.Name=='PracticeWayfinding' or n.Name=='ArenaWayfinding' or n.Name=='StandLine' or n.Name=='SpawnWayfinding') and n.CanTouch==false,'Unsafe static geometry flags')
+  check(n.Anchored and (n.CanQuery or practiceGoalNames[n.Name] or guidanceNames[n.Name] or n.Name=='PracticeWayfinding' or n.Name=='ArenaWayfinding' or n.Name=='StandLine' or n.Name=='SpawnWayfinding' or (n.Parent and n.Parent.Name=='CoastalAcademyArt')) and n.CanTouch==false,'Unsafe static geometry flags')
   check(n.attributes.DestructibleType==nil and n.attributes.ObjectId==nil and n.attributes.ObjectHealth==nil and n.attributes.RequiredLevel==nil and n.attributes.Destructible==nil and n.attributes.DestructionLevel==nil and n.attributes.Breakable==nil,'Compact geometry tagged for destruction')
   if practiceGoalNames[n.Name] then check(n.CanCollide==false and n.CanQuery==false and n.CanTouch==false and n.CastShadow==false and next(n.attributes)==nil,'Practice goal changes gameplay') end
   if guidanceNames[n.Name] then
@@ -114,11 +115,12 @@ for _,node in ipairs(nodes)do
  if node.ClassName=='BillboardGui' then
   check(node.MaxDistance==65 and node.Size.X==260 and node.Size.Y==60 and node.AlwaysOnTop==false,'Unbounded wayfinding GUI')
   check(node.Parent and not node.Parent.CanCollide and not node.Parent.CanQuery,'Wayfinding blocks gameplay raycasts')
- elseif node.ClassName=='TextLabel' then signs[node.Parent.Parent.Name]=node.Text;check(node.TextWrapped and node.TextSize==16,'Wayfinding text settings wrong')end
+ elseif node.ClassName=='SurfaceGui' then check((node.Parent.Name=='PracticeWayfinding' and node.Face==Enum.NormalId.Right or node.Parent.Name=='ArenaWayfinding' and node.Face==Enum.NormalId.Left) and node.CanvasSize.X==600 and node.CanvasSize.Y==100 and node.AlwaysOnTop==false and node.MaxDistance==65,'Guidance not attached to outward header')
+ elseif node.ClassName=='TextLabel' then signs[node.Parent.Parent.Name]=node.Text;check(node.TextWrapped and node.TextSize==(node.Parent.ClassName=='SurfaceGui' and 36 or 16),'Wayfinding text settings wrong')end
 end
 check(signs.SpawnWayfinding=='MIC PRACTICE: NORTH\nTraining pads are in the west courtyard','Spawn practice direction missing')
-check(signs.PracticeWayfinding=='MIC PRACTICE / AIM WEST, SPEAK, GO QUIET','Practice onboarding sign missing')
-check(signs.ArenaWayfinding=='BEAM ARENA / PVP INSIDE RED LINES','Arena warning sign missing')
+check(signs.PracticeWayfinding=='MIC PRACTICE\nAim west, speak, then go quiet','Practice onboarding sign missing')
+check(signs.ArenaWayfinding=='BEAM ARENA\nPVP INSIDE RED LINES','Arena warning sign missing')
 local quests={};for _,job in ipairs(result.jobs)do
  for _,id in ipairs(job.quests or {})do check(not quests[id],'Duplicate quest giver mapping');quests[id]=true end
  for _,station in ipairs(job.stations)do
@@ -142,7 +144,7 @@ for _,surface in ipairs({byName.HubPaving,byName.RouteToPractice})do
  check(byName.StandLine.Position.Y-byName.StandLine.Size.Y/2>surface.Position.Y+surface.Size.Y/2,'Practice stand line buried under paving')
 end
 check(byName.StandLine.Position.X==Layout.Practice.position.X and byName.StandLine.Position.Z==Layout.Practice.position.Z and byName.StandLine.Position.Y==.14 and not byName.StandLine.CanCollide and not byName.StandLine.CanQuery,'StandLine is not safe/aligned')
-objective('PracticeStand',byName.StandLine.Position);objective('ArenaEntrance',byName.ArenaWayfinding.Position)
+objective('PracticeStand',byName.StandLine.Position);objective('ArenaEntrance',Vector3.new(-137,3,50)) -- Walkable gate approach, not overhead label.
 objective('SoccerOrigin',Layout.Soccer.origin)
 for i,pos in ipairs(Layout.Soccer.gates)do objective('SoccerGate'..i,pos)end
 for i,pos in ipairs(Layout.Soccer.goals)do objective('SoccerGoal'..i,pos)end

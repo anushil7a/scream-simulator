@@ -47,6 +47,7 @@ local modal={Visible=false};local devPanel={Visible=false};local conversationPan
 local originalTouchControls=true;local GuiService={MenuIsOpen=false};local textFocus;local UIS={GetFocusedTextBox=function()return textFocus end}
 local attrs={};local humanoid={Health=100,PlatformStand=false};local p={Character={FindFirstChildOfClass=function()return humanoid end},GetAttribute=function(_,k)return attrs[k]end}
 local data={voiceEligible=false,voiceStatus='denied',micReady=false,devAccess=false};local windowFocused=true;local voiceAccessInterrupted=false
+local lockController={Clear=function()end}
 local mic={ready=false,power=0,phase=nil,model={calibrated=false},calibrations=0}
 function mic:Calibrate()self.ready=false;self.phase='quiet';self.phaseStarted=now;self.calibrations+=1 end
 local buttons={};local function button(_,name,_,_,_,callback)local b={callback=callback};buttons[name]=b;return b end

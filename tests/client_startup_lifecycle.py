@@ -64,7 +64,7 @@ local game=object('game');local workspace=object('Workspace',game)
 workspace.CurrentCamera=object('Camera',workspace);workspace.CurrentCamera.ViewportSize={X=640,Y=360}
 function workspace:GetServerTimeNow()return 100 end
 local services={};function game:GetService(n)assert(services[n],'Missing service '..n);return services[n] end
-for _,n in ipairs({'Players','ReplicatedStorage','UserInputService','RunService','TweenService','Debris','TextService','GuiService','HttpService'})do services[n]=object(n,game)end
+for _,n in ipairs({'Players','ReplicatedStorage','UserInputService','RunService','TweenService','Debris','TextService','GuiService','HttpService','CollectionService'})do services[n]=object(n,game)end
 local player=object('Player',services.Players);services.Players.LocalPlayer=player
 player.CameraMode='original';player.CameraMinZoomDistance=.5;player.CameraMaxZoomDistance=12
 player.PlayerGui=object('PlayerGui',player);player.Character=nil
@@ -93,11 +93,12 @@ local function resource(name)
  function o:Pulse()end
  if name~='NotificationQueue' and name~='HitFeedback' and name~='VoiceActivation' then table.insert(owned,o)end;if variant=="late-"..name then script.Destroying:Fire()end;return o
 end
-for _,n in ipairs({'CityMap','Config','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams'})do
+for _,n in ipairs({'CityMap','Config','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','LockOn','TrainingRules'})do
  local node=object(n,shared);shared[n]=node;scriptParent[n]=node
  modules[n]={new=function(...)return resource(n)end,Clear=function()singletonClears[n]=(singletonClears[n] or 0)+1;table.insert(cleanupOrder,n)end}
 end
 modules.Config={MaxLevel=100,MicroSpeakerPrice=1500,MovementPassId=0,XPToNext=function()return 100 end,Auras={Gold={}}}
+modules.TrainingRules={Tiers={{id='rookie',x=0,z=0}},Radius=32}
 modules.CityMap.create=function()return {}end
 modules.Config.GetSound=function()return {effect='fixture',level=1}end
 modules.AttackAudioConfig.Range=100
@@ -196,7 +197,7 @@ if __name__=='__main__':
  for auto in [False,True]:
   r=run(source,auto,fixed=not args.baseline);assert r.returncode==0,r.stdout+r.stderr
   boundaries=re.findall(r'^BOUNDARY (\d+) (.+)$',r.stdout,re.M)
-  expected=EXPECTED_COMMON+(EXPECTED_AUTO if auto else [])+EXPECTED_TAIL+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
+  expected=EXPECTED_COMMON+([] if args.baseline else ['wait:PlayerScripts/LockOn','require:LockOn','wait:Shared/TrainingRules','require:TrainingRules'])+(EXPECTED_AUTO if auto else [])+EXPECTED_TAIL+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
   assert [name for _,name in boundaries]==expected,'Startup dependency boundary coverage changed'
   print(('automatic' if auto else 'legacy')+' boundaries='+str(len(boundaries)))
   for i,name in boundaries:
@@ -210,9 +211,9 @@ if __name__=='__main__':
  print(f'PASS {total} whole-script boundary scenarios; '+('historical continuation reproduced' if args.baseline else 'terminal cleanup and in-DataModel reparent controls'))
 
  if not args.baseline:
-  for variant in ['touch-owned','touch-replacement','used-shop','used-style','used-shop-switch','used-effects','used-beams','active-stop','cleanup-error','replacement','late-gui','late-Microphone','late-AttackAudio','late-GameplayAudio','late-BeamScreenFeedback','late-NoticeView','late-SustainedControls','late-SustainedBeams']:
+  for variant in ['touch-owned','touch-replacement','used-shop','used-style','used-shop-switch','used-effects','used-beams','active-stop','cleanup-error','replacement','late-gui','late-Microphone','late-AttackAudio','late-GameplayAudio','late-BeamScreenFeedback','late-NoticeView','late-SustainedControls','late-SustainedBeams','late-LockOn']:
    r=run(source,True,fixed=True,variant=variant);assert r.returncode==0,variant+'\n'+r.stdout+r.stderr
-  print('PASS 18 actual ownership/late-constructor/Controls cancellation scenarios')
+  print('PASS 19 actual ownership/late-constructor/Controls cancellation scenarios')
   if args.negative_controls:
    mutations=[('table.insert(clientConnections,script.Destroying:Connect(retireClient))','',1,'destroy','normal'),('if not clientDestroyed and not script:IsDescendantOf(game) then retireClient() end','',1,'ancestor','normal'),('if clientDestroyed then attemptClientCleanup(cleanup) else table.insert(clientCleanups,cleanup) end','if not clientDestroyed then table.insert(clientCleanups,cleanup) end',0,'destroy','late-Microphone'),('if shopUsed then ShopUI.Clear() end','ShopUI.Clear()',0,'destroy','normal'),('if screamEffectsUsed then ScreamEffects.Clear() end','ScreamEffects.Clear()',0,'destroy','normal'),('if beamVisualsUsed then BeamVisuals.Clear() end','BeamVisuals.Clear()',0,'destroy','normal')]
    mutations += [('screamEffectsUsed=true;ScreamEffects.Render(', 'ScreamEffects.Render(',0,'destroy','used-effects'),('if verb=="SustainedStop" or not clientDestroyed then','if not clientDestroyed then',0,'destroy','active-stop'),('local ok=pcall(callback)','callback();local ok=true',0,'destroy','cleanup-error')]

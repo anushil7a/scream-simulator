@@ -31,17 +31,19 @@ function Visuals.Update(rig,origin,direction,length,width,color,level,reduced)
  rig.origin=origin;rig.direction=direction.Unit;rig.length=math.clamp(length,.01,110)
  rig.width=math.clamp(width,1,7);rig.color=color;rig.level=level;rig.reduced=reduced
 end
-local function draw(rig,shape,size,cf,color,alpha)
+local function draw(rig,shape,size,cf,color,alpha,material)
  rig.used+=1
  local part=rig.parts[rig.used]
  if not part then part=take(rig.used>5);if not part then return end;rig.parts[rig.used]=part end
+ -- A pooled slot may previously have been a non-emissive shell or a Neon detail.
+ part.Material=material or Enum.Material.Neon
  part.Shape=shape;part.Size=size;part.CFrame=cf;part.Color=color;part.Transparency=alpha;part.Parent=workspace
 end
-local function line(rig,a,b,thickness,color,alpha)
+local function line(rig,a,b,thickness,color,alpha,material)
  local delta=b-a;local length=delta.Magnitude;if length<.001 then return end
  local direction=delta/length
  draw(rig,Enum.PartType.Cylinder,Vector3.new(length,thickness,thickness),
-  CFrame.lookAt((a+b)*.5,b,math.abs(direction.Y)>.98 and Vector3.zAxis or Vector3.yAxis)*CFrame.Angles(0,math.pi/2,0),color,alpha)
+  CFrame.lookAt((a+b)*.5,b,math.abs(direction.Y)>.98 and Vector3.zAxis or Vector3.yAxis)*CFrame.Angles(0,math.pi/2,0),color,alpha,material)
 end
 function Visuals.Animate(rig,now,viewer,reduced)
  if not rig.origin then return end
@@ -58,12 +60,21 @@ function Visuals.Animate(rig,now,viewer,reduced)
   local finish=origin+dir*length
   -- Smooth low-amplitude breathing; no screen flash, camera shake or lights.
   local pulse=quiet and 1 or 1+.035*math.sin(age*9)
-  line(rig,origin,finish,radius*1.65*pulse,color,quiet and .72 or .68)
-  line(rig,origin,finish,radius*.85,color,quiet and .32 or .12)
-  line(rig,origin,finish,radius*.28,white,quiet and .45 or .08)
-  draw(rig,Enum.PartType.Ball,Vector3.one*math.min(length,radius*1.5),CFrame.new(finish),color,.3)
+  local detailed=not quiet and distance<=Style.FarDistance
+  -- Quiet mode retains its simple silhouette. Regular energy has a slim hot spine
+  -- inside a non-emissive tinted body: Neon is reserved for the thin spine/details.
+  line(rig,origin,finish,radius*(detailed and 1.35 or 1.65)*pulse,detailed and color:Lerp(Color3.fromRGB(0,0,0),.35) or color,quiet and .72 or detailed and .55 or .68,detailed and Enum.Material.SmoothPlastic or nil)
+  line(rig,origin,finish,radius*.85,color,quiet and .32 or detailed and .18 or .12,detailed and Enum.Material.SmoothPlastic or nil)
+  line(rig,origin,finish,radius*(detailed and .10 or .28),detailed and color:Lerp(white,.72) or white,quiet and .45 or .08)
+  if quiet or distance>Style.FarDistance then
+   draw(rig,Enum.PartType.Ball,Vector3.one*math.min(length,radius*1.5),CFrame.new(finish),color,.3)
+  else
+   -- An energy termination lens, not a hit-confirmation flash. Stay within range.
+   local depth=math.min(length,radius*.22)
+   line(rig,finish-dir*depth,finish,radius*1.25,color,.18,Enum.Material.SmoothPlastic)
+  end
   if not quiet and distance<=Style.FarDistance then
-   draw(rig,Enum.PartType.Ball,Vector3.one*radius*1.15,CFrame.new(origin),white,.18)
+   draw(rig,Enum.PartType.Ball,Vector3.one*radius*.72,CFrame.new(origin),color,.18,Enum.Material.SmoothPlastic)
    local function offset(angle,r) return (right*math.cos(angle)+up*math.sin(angle))*r end
    for ring=1,spec.rings do
     local travel=(age*(.6+tier*.025)+ring/spec.rings)%1
@@ -71,7 +82,8 @@ function Visuals.Animate(rig,now,viewer,reduced)
     local r=radius*(.85+.2*math.sin(travel*math.pi))
     for i=1,10 do
      local phase=age*.9+ring*.6
-     line(rig,center+offset((i-1)*math.pi/5+phase,r),center+offset(i*math.pi/5+phase,r),.055+tier*.008,color,.22+travel*.28)
+     -- Broken collars leave clear channels instead of stacking opaque hoops.
+     line(rig,center+offset((i-1)*math.pi/5+phase,r),center+offset((i-.28)*math.pi/5+phase,r),.055+tier*.008,color,.26+travel*.32)
     end
    end
    for strand=1,spec.strands do
@@ -85,7 +97,8 @@ function Visuals.Animate(rig,now,viewer,reduced)
    for i=1,spec.sparks do
     local phase=i*math.pi*2/spec.sparks+age*(i%2==0 and .6 or -.6)
     -- Endpoint corona stays inside the authoritative beam width.
-    line(rig,finish+offset(phase,radius*.35),finish+offset(phase,width*.47),.08+tier*.006,color,.3)
+    local back=math.min(length*.15,radius*.8)
+    line(rig,finish+offset(phase,radius*.25),finish-dir*back+offset(phase,width*.42),.08+tier*.006,color,.3)
    end
   end
  end

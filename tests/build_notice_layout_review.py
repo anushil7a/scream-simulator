@@ -4,7 +4,9 @@ import json, re, subprocess, sys
 root=Path(__file__).resolve().parents[1];out=root/'build'
 subprocess.run([sys.executable,str(root/'tests/build_ui_preview.py'),'390','844'],cwd=root,check=True)
 source=(out/'StudioUIPreview.luau').read_text(encoding='utf-8')
+# Isolate fixture-only locals; no scheduling or assertion change.
 source=source[:source.rindex('local report={}')] + r"""
+;(function()
 local checks=0;local rows={}
 local function check(ok,message)assert(ok,message);checks+=1 end
 local function settle()for _=1,3 do Run.RenderStepped:Wait() end;task.wait(.2) end
@@ -56,6 +58,7 @@ closeMenu();notifications=modules.NotificationQueue.new();settle()
 local Http=game:GetService("HttpService")
 for index,row in ipairs(rows)do print("NOTICE_LAYOUT_ROW "..Http:JSONEncode({index=index,row=row}))end
 print("NOTICE_LAYOUT_RESULT "..Http:JSONEncode({checks=checks,rows=#rows,limits="Synthetic viewport, state, mic and programmatic scroll/helper calls. No physical phone, thumbstick reachability, real saves or human reading claim. Nearby-NPC fallback requires separate mocked callback evidence."}))
+end)()
 """
 bootstrap=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text(encoding='utf-8-sig')
 profile=(root/'src/ServerScriptService/Profiles.luau').read_text(encoding='utf-8-sig')

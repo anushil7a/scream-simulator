@@ -116,7 +116,7 @@ local action=remotes:WaitForChild("Action");if not clientCheckpoint() then retur
 local playerGui=p:WaitForChild("PlayerGui");if not clientCheckpoint() then return end
 local gui=Instance.new("ScreenGui");ownClient(function() gui:Destroy() end);if not clientCheckpoint() then return end
 gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=playerGui
-local dark=Color3.fromRGB(10,16,31);local panel=Color3.fromRGB(23,34,55);local gold=Color3.fromRGB(80,226,255);local white=Color3.fromRGB(240,247,255);local muted=Color3.fromRGB(159,178,207)
+local dark=Color3.fromRGB(17,25,29);local panel=Color3.fromRGB(35,47,52);local gold=Color3.fromRGB(235,190,105);local white=Color3.fromRGB(246,241,226);local muted=Color3.fromRGB(177,192,193)
 local data={level=1,xp=0,xpNext=Config.XPToNext(1),coins=0,health=100,sound="TinyAah",aura="Gold",quests={},settings={volume=.55,reducedShake=false}}
 -- Match the aim GUI's viewport coordinates without moving the camera or covering HUD.
 local beamFeedbackGui=Instance.new("ScreenGui");ownClient(function() beamFeedbackGui:Destroy() end);if not clientCheckpoint() then return end
@@ -150,11 +150,30 @@ local function button(parent,name,text,size,pos,callback,color)
  local b=Instance.new("TextButton");b.Name=name;b.Size=size;b.Position=pos;b.BackgroundColor3=color or panel;b.TextColor3=white;b.Text=text;b.TextSize=14;b.Font=Enum.Font.GothamBold;b.AutoButtonColor=true;b.BorderSizePixel=0;b.Parent=parent
  local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,8);c.Parent=b;b.Activated:Connect(function(...) if not clientDestroyed then callback(...) end end);return b
 end
+-- Presentation only: no subscriptions, assets, input handlers or independent lifetime.
+local academy={}
+function academy.surface(object,accent)
+ local stroke=Instance.new("UIStroke");stroke.Name="AcademyEdge";stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;stroke.Color=accent or Color3.fromRGB(89,110,114);stroke.Transparency=.45;stroke.Thickness=1;stroke.Parent=object
+ local shade=Instance.new("UIGradient");shade.Name="AcademyDepth";shade.Color=ColorSequence.new(Color3.new(1,1,1),Color3.fromRGB(183,196,201));shade.Rotation=90;shade.Parent=object
+end
+function academy.mark(parent,kind,pos,size,color)
+ local icon=Instance.new("Frame");icon.Name="AcademyIcon_"..kind;icon.BackgroundTransparency=1;icon.Position=pos;icon.Size=UDim2.fromOffset(size,size);icon.Active=false;icon.Selectable=false;icon.Interactable=false;icon.Parent=parent
+ local function bar(x,y,w,h)
+  local f=Instance.new("Frame");f.Name="Glyph";f.BorderSizePixel=0;f.BackgroundColor3=color;f.Position=UDim2.fromScale(x,y);f.Size=UDim2.fromScale(w,h);f.Active=false;f.Selectable=false;f.Interactable=false;f.Parent=icon
+  local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,2);corner.Parent=f
+ end
+ if kind=="voice" then
+  bar(.08,.36,.12,.28);bar(.30,.18,.12,.64);bar(.52,.06,.12,.88);bar(.74,.26,.12,.48)
+ elseif kind=="health" then bar(.36,.1,.28,.8);bar(.1,.36,.8,.28)
+ elseif kind=="progress" then bar(.10,.65,.18,.25);bar(.40,.4,.18,.5);bar(.70,.1,.18,.8)
+ end
+ return icon
+end
 local top=frame(gui,"Navigation",UDim2.fromOffset(250,40),UDim2.fromOffset(14,12));top.BackgroundTransparency=1
 local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,0);modal.ZIndex=10;modal.Visible=false
 local menuEdge=Instance.new("UIStroke");menuEdge.Color=gold;menuEdge.Transparency=.5;menuEdge.Parent=modal
 modal.BackgroundColor3=Color3.new(1,1,1)
-local menuGlow=Instance.new("UIGradient");menuGlow.Color=ColorSequence.new(Color3.fromRGB(36,50,76),dark);menuGlow.Rotation=80;menuGlow.Parent=modal
+local menuGlow=Instance.new("UIGradient");menuGlow.Color=ColorSequence.new(Color3.fromRGB(46,61,65),dark);menuGlow.Rotation=80;menuGlow.Parent=modal
 local brandStripe=frame(modal,"SignalStripe",UDim2.new(1,-44,0,2),UDim2.fromOffset(22,8),gold)
 local menuScale=Instance.new("UIScale");menuScale.Parent=modal
 local title=label(modal,"BEAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
@@ -173,7 +192,9 @@ local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrd
 local selected="Shop";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local conversationPanel,showConversation,closeConversation
 local micPanel,openMicSetup,closeMicSetup
+local lockController
 local function toggleTab(name)
+ if lockController then lockController:Clear() end
  local opening=not modal.Visible or selected~=name
  selected=name;if not opening then closeMenu();return end;modal.Visible=true
  if opening then
@@ -188,6 +209,7 @@ local function toggle()
 end
 local shop=button(top,"ShopToggle","SHOP  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),function() toggleTab("Shop") end,gold);shop.TextColor3=dark
 local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests") end)
+academy.surface(shop);academy.surface(questsToggle)
 local function questLauncherText()
  local count=0
  for _,quest in ipairs(Config.Quests)do
@@ -196,10 +218,13 @@ local function questLauncherText()
  end
  return count>0 and ("QUESTS "..count) or "QUESTS"
 end
-local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.08
-frame(hud,"EnergyAccent",UDim2.new(1,-24,0,2),UDim2.fromOffset(12,2),gold)
-local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-24,0,22),UDim2.fromOffset(12,7),14,gold)
-local health=label(hud,"100 HP",UDim2.fromOffset(65,20),UDim2.fromOffset(12,31),12)
+local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.04
+academy.surface(hud,gold)
+academy.mark(hud,"voice",UDim2.fromOffset(12,9),18,gold)
+frame(hud,"EnergyAccent",UDim2.new(1,-24,0,1),UDim2.fromOffset(12,2),gold)
+local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-48,0,22),UDim2.fromOffset(36,7),12,white);stats.Font=Enum.Font.GothamBold
+academy.mark(hud,"health",UDim2.fromOffset(12,35),10,Color3.fromRGB(130,211,174))
+local health=label(hud,"100 HP",UDim2.fromOffset(55,20),UDim2.fromOffset(26,31),12)
 local hb=frame(hud,"HealthTrack",UDim2.fromOffset(142,6),UDim2.fromOffset(83,38),panel)
 local hf=frame(hb,"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
 local displayedHealth,displayedMaximum
@@ -216,17 +241,23 @@ local function refreshHealth()
  health.Text=string.format("%d/%d",math.ceil(current),math.ceil(maximum))
  hf.Size=UDim2.fromScale(current/maximum,1)
 end
-local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-24,0,19),UDim2.fromOffset(12,52),12,muted)
+local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-38,0,19),UDim2.fromOffset(26,52),12,muted)
 local xb=frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,79),panel)
 local xf=frame(xb,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
+academy.mark(hud,"progress",UDim2.fromOffset(12,55),10,gold)
 local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
+zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08
+do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=zone end
 local tracked=label(gui,"",UDim2.fromOffset(290,50),UDim2.fromOffset(16,56),13);tracked.Name="QuestTracker";tracked.TextYAlignment=Enum.TextYAlignment.Top
-tracked.BackgroundColor3=dark;tracked.BackgroundTransparency=.12
+tracked.BackgroundColor3=dark;tracked.BackgroundTransparency=.06
+academy.surface(tracked)
 local trackerCorner=Instance.new("UICorner");trackerCorner.CornerRadius=UDim.new(0,8);trackerCorner.Parent=tracked
 local trackerPadding=Instance.new("UIPadding");trackerPadding.PaddingLeft=UDim.new(0,6);trackerPadding.PaddingRight=UDim.new(0,6);trackerPadding.PaddingTop=UDim.new(0,4);trackerPadding.PaddingBottom=UDim.new(0,4);trackerPadding.Parent=tracked
 local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center;toast.AnchorPoint=Vector2.new(.5,1);toast.Position=UDim2.fromScale(.5,.72)
 toast.Name="Notification";toast.ZIndex=30;toast.BackgroundColor3=dark;toast.BackgroundTransparency=.08;toast.Visible=false
 local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
+saveNotice.BackgroundColor3=dark;saveNotice.BackgroundTransparency=.08
+do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=saveNotice end
 local notifications=loadClientDependency(script.Parent,"NotificationQueue");if not clientCheckpoint() then return end
 notifications=notifications.new();if not clientCheckpoint() then return end
 local toastWidth=0
@@ -241,6 +272,7 @@ local sustainedControl,sustainedRules
 local voiceAccessInterrupted=false
 local windowFocused=true
 local function cancelCapture()
+ if lockController then lockController:Clear() end
  if sustainedControl then sustainedControl:Cancel();return end
  captureSource=nil;mic:Cancel();action:FireServer("CancelCast")
 end
@@ -262,7 +294,41 @@ local function beginCapture(source)
  if sustainedControl or captureSource or beamBlocked() or os.clock()<nextCast then return end
  if mic:Begin() then sequence+=1;captureSource=source;action:FireServer("BeginCast",sequence) end
 end
-local function aimRay()
+local LockOn=loadClientDependency(script.Parent,"LockOn");if not clientCheckpoint() then return end
+local TrainingRules=loadClientDependency(RS.Shared,"TrainingRules");if not clientCheckpoint() then return end
+local lockHomes={}
+for index,tier in ipairs(TrainingRules.Tiers) do
+ local home=Config.CompactCity and Config.CityLayout.TrainingHomes[index]
+ lockHomes[tier.id]=Vector3.new(home and home.x or tier.x,Config.CompactCity and 3.2 or 4.2,home and home.z or tier.z)
+end
+lockController=LockOn.new({world=workspace,players=Players,collection=game:GetService("CollectionService"),
+ localPlayer=p,trainingHomes=lockHomes,trainingRadius=TrainingRules.Radius,inArena=Config.InArena})
+ownClient(function() lockController:Destroy() end);if not clientCheckpoint() then return end
+connectClient(p.CharacterRemoving,function() lockController:Clear() end)
+local function lockContext(power)
+ local character=p.Character;local root=character and character:FindFirstChild("HumanoidRootPart")
+ local head=character and character:FindFirstChild("Head")
+ local origin=root and root.Position+Vector3.new(0,1,0)
+ if root and head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
+ return {character=character,position=root and root.Position,origin=origin,camera=workspace.CurrentCamera,
+  range=Config.VoiceCombat.Stats(data.level,power or mic.power,data.amplifierEquipped).range,
+  now=workspace:GetServerTimeNow(),allowed=not clientDestroyed and windowFocused and not beamBlocked()
+   and (not sustainedControl or sustainedControl.armed==true)}
+end
+local nextLockAcquire=0
+local function toggleLock()
+ if clientDestroyed then return end
+ if not lockController.target then
+  local now=os.clock();if now<nextLockAcquire then return end;nextLockAcquire=now+.2
+ end
+ lockController:Toggle(lockContext())
+end
+local function aimRay(power)
+ local locked,target=lockController:Resolve(lockContext(power))
+ if locked then
+  local origin=lockContext(power).origin
+  return {Origin=origin,Direction=(locked-origin).Unit},{Position=locked,Instance=target}
+ end
  local camera=workspace.CurrentCamera
  if not camera or camera.ViewportSize.X<2 or camera.ViewportSize.Y<2 then return nil end
  local location=UIS.TouchEnabled and camera.ViewportSize/2 or UIS:GetMouseLocation()
@@ -297,6 +363,7 @@ end
 -- Process every server transition, not only the last state visible next frame.
 local function observeVoiceEligibility(nextData)
  if nextData.voiceEligible==true then return end
+ lockController:Clear()
  if nextData.voiceStatus=="denied" or nextData.voiceStatus=="unavailable" then voiceAccessInterrupted=true end
  if sustainedControl then sustainedControl:SetArmed(false)
  elseif captureSource then cancelCapture() end
@@ -308,6 +375,7 @@ local function toggleVoice()
   notify(voiceEligibilityHint() or "Beams stay OFF. Finish mic setup or wait for gameplay to be ready, then turn them on.",true,"voice");return
  end
  sustainedControl:SetArmed(not sustainedControl.armed)
+ if not sustainedControl.armed then lockController:Clear() end
  notify(sustainedControl.armed and "Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
   or "Beams OFF. Talk freely without attacking. Voice chat is unchanged.",false,"voice")
 end
@@ -319,7 +387,7 @@ local function releaseCapture(source)
  captureSource=nil
  if beamBlocked() then cancelCapture();return end
  local power,reason=mic:Release();if power<.08 then action:FireServer("CancelCast");notify(reason or "Use your voice while holding attack.",true,"capture");return end
- local ray,hit=aimRay()
+ local ray,hit=aimRay(power)
  if not ray then action:FireServer("CancelCast");return end
  action:FireServer("Cast",{sequence=sequence,power=power,aim=hit and hit.Position or ray.Origin+ray.Direction*1000})
  nextCast=os.clock()+4
@@ -331,6 +399,7 @@ end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
 local castButton=button(controls,"Cast","BEAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),toggleVoice,gold);castButton.TextColor3=dark
 castButton.TextWrapped=true;castButton.Selectable=true
+academy.surface(castButton);academy.surface(dodgeButton)
 local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-12,0,3),UDim2.new(0,6,1,-6),panel)
 local voiceTimeFill=frame(voiceTimeTrack,"RemainingOrRecovery",UDim2.fromScale(0,1),UDim2.new(),muted)
 voiceTimeTrack.Visible=false
@@ -338,8 +407,12 @@ castButton.InputBegan:Connect(function(input)
  if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then beginCapture(input) end
 end)
 micPanel=frame(gui,"MicSetup",UDim2.fromOffset(430,260),UDim2.fromScale(.5,.5));micPanel.AnchorPoint=Vector2.new(.5,.5);micPanel.ZIndex=20
-local micTitle=label(micPanel,"MIC SETUP",UDim2.new(1,-88,0,35),UDim2.fromOffset(18,16),21,gold)
-local micStatus=label(micPanel,"",UDim2.new(1,-36,0,90),UDim2.fromOffset(18,58),15)
+academy.surface(micPanel,gold)
+academy.mark(micPanel,"voice",UDim2.fromOffset(18,17),30,gold)
+label(micPanel,"VOICE CALIBRATION",UDim2.new(1,-130,0,14),UDim2.fromOffset(62,10),10,muted)
+local micTitle=label(micPanel,"MIC SETUP",UDim2.new(1,-130,0,30),UDim2.fromOffset(62,26),21,white);micTitle.Font=Enum.Font.GothamBold
+do local well=frame(micPanel,"StatusWell",UDim2.new(1,-24,0,90),UDim2.fromOffset(12,55),panel);well.BackgroundTransparency=.25;well.Active=false;well.Selectable=false;well.Interactable=false end
+local micStatus=label(micPanel,"",UDim2.new(1,-36,0,90),UDim2.fromOffset(18,58),15);micStatus.TextColor3=white
 label(micPanel,sustainedControl and "BEAMS ON: normal speech can attack. OFF does not mute voice. Avoid profanity. Roblox records and moderates voice." or "Roblox voice access required. Nearby players may hear you. Avoid profanity. Roblox records and moderates voice.",UDim2.new(1,-36,0,50),UDim2.fromOffset(18,146),12,muted)
 local micSetupOpen=true
 local previousMicReady=false
@@ -354,7 +427,8 @@ button(micPanel,"Retry","CHECK ACCESS",UDim2.fromOffset(188,36),UDim2.fromOffset
 for _,v in ipairs(micPanel:GetDescendants()) do if v:IsA("GuiObject") then v.ZIndex=21 end end
 local micScale=Instance.new("UIScale");micScale.Parent=micPanel
 local meter=frame(gui,"MicPower",UDim2.fromOffset(230,62),UDim2.new(.5,-115,1,-74))
-local meterText=label(meter,"LIVE MIC 0%\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,gold)
+academy.surface(meter)
+local meterText=label(meter,"LIVE MIC 0%\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,white)
 local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,49),panel)
 local meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 if sustainedControl then
@@ -411,6 +485,12 @@ local function residentTargetInfo(model,humanoid,far,currentFar,covered)
   math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),not far and not currentFar and not covered
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end)
+local lockButton=button(controls,"LockTarget","LOCK [R]",UDim2.fromOffset(88,44),UDim2.fromOffset(0,52),toggleLock)
+lockButton.TextSize=11;lockButton.TextWrapped=true;lockButton.Selectable=true;academy.surface(lockButton)
+local lockMarker=label(aimGui,"LOCKED",UDim2.fromOffset(84,24),UDim2.new(),12,gold)
+lockMarker.Name="LockedTarget";lockMarker.AnchorPoint=Vector2.new(.5,1);lockMarker.Visible=false
+lockMarker.TextXAlignment=Enum.TextXAlignment.Center
+
 openMicSetup=function()
  closeMenu();if closeConversation then closeConversation() end
  if devPanel then devPanel.Visible=false end
@@ -777,6 +857,7 @@ connectClient(UIS.InputBegan,function(input,processed)
  if processed or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() then return end
  local k=input.KeyCode
  if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
+ elseif k==Enum.KeyCode.R or k==Enum.KeyCode.ButtonR3 then toggleLock()
  elseif k==Enum.KeyCode.M then toggleTab("Map")
  elseif k==Enum.KeyCode.LeftShift then setSprint(true)
  elseif k==Enum.KeyCode.T then requestTalk() end
@@ -1057,6 +1138,13 @@ connectClient(Run.RenderStepped,function(dt)
  for _,passive in ipairs({hud,tracked,zone,saveNotice})do
   if noticeView:Overlaps(passive,gui) or noticeView:Overlaps(passive,gui,talkButton) then passive.Visible=false end
  end
+ local lockedPoint=lockController:Resolve(lockContext())
+ lockMarker.Visible=lockedPoint~=nil and gameplayVisible
+ if lockedPoint then
+  local screen=workspace.CurrentCamera:WorldToViewportPoint(lockedPoint)
+  lockMarker.Position=UDim2.fromOffset(screen.X,screen.Y-24)
+ end
+ lockButton.Text=lockedPoint and "UNLOCK" or (touch and "AIM CENTER\nLOCK" or UIS.GamepadEnabled and "AIM CENTER\nLOCK [R3]" or "AIM CENTER\nLOCK [R]")
  beamScreenFeedback:Step(os.clock(),screenFeedbackAllowed(),data.settings.reducedShake or platformReducedMotion)
  cueContext();gameplayAudio:Step(os.clock(),dt)
  -- Audio consumes frame dt; keep ducking/calibration/fades outside the slow HUD gate.

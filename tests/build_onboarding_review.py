@@ -21,7 +21,9 @@ s=replace_once(s,'voiceEligible=true,voiceStatus="eligible"','voiceEligible=fals
 # Anchor the global constructor, not render's indented callback-lifetime wrapper.
 s=replace_once(s,'\nlocal function button(parent,name,text,size,pos,callback,color)','\nlocal fixtureCallbacks={}\nlocal function button(parent,name,text,size,pos,callback,color)')
 s=replace_once(s,'b.Activated:Connect(function(...) if not clientDestroyed then callback(...) end end);return b','local guardedCallback=function(...) if not clientDestroyed then callback(...) end end;fixtureCallbacks[name]={button=b,callback=guardedCallback};b.Activated:Connect(guardedCallback);return b')
+# Keep fixture-only locals in their own function register scope; actual Client remains intact.
 s+='''
+;(function()
 local Http=game:GetService("HttpService")
 local rowSerial=0
 local function observe(stage)
@@ -190,6 +192,7 @@ if fixtureOk then print("ONBOARDING_READY synthetic mic/remotes/callbacks; no pe
 local fixtureResult={passed=fixtureOk,checks=fixtureChecks,error=not fixtureOk and tostring(fixtureError) or nil,synthetic=true,scope="Actual client UI with synthetic callbacks, mic power, focus and server state; no real transport/audio/eligibility service"}
 workspace:SetAttribute("OnboardingReviewResult",Http:JSONEncode(fixtureResult))
 print("ONBOARDING_RESULT",Http:JSONEncode(fixtureResult))
+end)()
 '''
 (out/'OnboardingReview.client.luau').write_text(s)
 subprocess.run(['luau-compile',str(out/'OnboardingReview.client.luau')],stdout=subprocess.DEVNULL,check=True)

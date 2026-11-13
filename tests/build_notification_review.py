@@ -4,7 +4,9 @@ import json,subprocess,sys
 root=Path(__file__).resolve().parents[1];out=root/'build'
 subprocess.run([sys.executable,str(root/'tests/build_ui_preview.py'),'390','844'],cwd=root,check=True)
 s=(out/'StudioUIPreview.luau').read_text().split('\nlocal report={}')[0]
+# Isolate fixture-only locals from the real Client register budget.
 s+='''
+;(function()
 local character=p.Character or p.CharacterAdded:Wait();character:WaitForChild("Humanoid")
 windowFocused=true;mic.power=0;mic.ready=true;modal.Visible=false
 task.wait(.5);notifications=modules.NotificationQueue.new()
@@ -101,6 +103,7 @@ for _,kind in ipairs({"mic-unavailable","suspend","character-removal"}) do
  print("TOAST_LIFECYCLE_PASS "..Http:JSONEncode({kind=kind,removed=removed,pending=#notifications.pending,text=toast.Text,synthetic=true}))
 end
 print("TOAST_INTERACTIONS_PASS synthetic mic/state, native labels and local CharacterRemoving; no real respawn/network")
+end)()
 '''
 (out/'NotificationReview.client.luau').write_text(s)
 subprocess.run(['luau-compile',str(out/'NotificationReview.client.luau')],stdout=subprocess.DEVNULL,check=True)

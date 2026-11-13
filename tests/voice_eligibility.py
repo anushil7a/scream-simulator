@@ -170,6 +170,7 @@ CLIENT_SETUP=r"""
 local Controls=require('../src/StarterPlayer/StarterPlayerScripts/SustainedControls')
 local Gate=require('../src/ReplicatedStorage/Shared/VoiceActivation')
 local data={voiceEligible=false,voiceStatus='checking'};local voiceAccessInterrupted=false
+local lockController={Clear=function()end}
 local unavailable=false;local function blocked()return unavailable end
 local alive=true;local mic={ready=true};local windowFocused=true;local GuiService={MenuIsOpen=false}
 local sends=0;local captureSource;local canceled=0

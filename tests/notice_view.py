@@ -4,7 +4,7 @@ import argparse,json,re,subprocess,tempfile
 R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
 paths=['NoticeLayout','NoticeView'];sources={n:(R/f'src/StarterPlayer/StarterPlayerScripts/{n}.luau').read_text(encoding='utf-8-sig') for n in paths}
 client=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text();city=(R/'src/StarterPlayer/StarterPlayerScripts/CityMap.luau').read_text();mini=city[city.index('function CityMap.MiniLayout('):city.index('function CityMap.MiniUpdate(')]
-integration=client[client.index(' -- Pause queue time while covered,'):client.index(' beamScreenFeedback:Step(',client.index(' -- Pause queue time while covered,'))]
+integration=client[client.index(' -- Pause queue time while covered,'):client.index(' local lockedPoint=',client.index(' -- Pause queue time while covered,'))]
 texts=[]
 for f in (R/'src').rglob('*.luau'):
  for t in re.findall(r'"([^"\n]+)"',f.read_text(encoding='utf-8-sig')):

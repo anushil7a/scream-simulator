@@ -8,6 +8,7 @@ s=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 respawn_line=next(line for line in s.splitlines() if line.startswith('connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough'))
 setup='''
 local unavailable=false;local windowFocused=true
+local lockController={Clear=function()end}
 local blocked=function()return unavailable end
 local beamBlocked=blocked;local voiceEligibilityHint=function()return nil end
 local calls=0;local sustainedControl={armed=false}
