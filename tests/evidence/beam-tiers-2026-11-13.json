@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-13",
+  "task": "ten-level regular-near beam silhouettes",
+  "baseCommit": "53d62134646d187344993fec57ac1b0b3e6dba3d",
+  "sources": {
+    "src/ReplicatedStorage/Shared/BeamStyle.luau": "4cdf52b61d7172693c05f0df32376568a1661e59a468b9790662dbe6f35423b8",
+    "src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau": "64f8419c630fcb74a78fefcbf761f86abc4f0f27096c734d7bb89bc56da1901b",
+    "tests/beam_tier_silhouettes.py": "8706bb381bb2950f6a98b9055ff0aeec921a3c8a4d95f3e7e6daf99bfffb0c0a",
+    "tests/beam_silhouette.py": "e994cb3d1c2e6c67268a3f2d39f1e2e2efd95b3a6614fd5282f876f7b83f9585"
+  },
+  "focused": {
+    "tierAssertions": 4034,
+    "tierNegativeControls": 8,
+    "retainedSilhouetteAssertions": 695,
+    "retainedControls": 7,
+    "poolAssertions": 117904,
+    "poolControls": 7,
+    "peakParts": 512,
+    "compile": "Both changed production modules and gallery compiled"
+  },
+  "native": {
+    "placeId": 0,
+    "gameId": 0,
+    "mode": "Private cloned cosmetic module gallery inserted into disposable SustainedLocalPlay fixture; no attack/remote generation",
+    "fixture": {
+      "nativeExecuted": false,
+      "sourceHashes": {
+        "BeamStyle": "4cdf52b61d7172693c05f0df32376568a1661e59a468b9790662dbe6f35423b8",
+        "BeamVisuals": "64f8419c630fcb74a78fefcbf761f86abc4f0f27096c734d7bb89bc56da1901b"
+      },
+      "fixtureHash": "cda46cb0a240135c6ad179e1846c22d4d9b6878817c18140ca3c4c2923a5bb2b",
+      "artifactHash": "f2298294d76587ba3b2b3c081f81033490617ce5af9db5ae8bdbe5272c0e5efb",
+      "adaptation": "Only BeamVisuals require path changes to cloned sibling actual BeamStyle",
+      "limits": "Fixed-age synthetic visual comparison, not gameplay, native acceptance or performance proof"
+    },
+    "fixtureBinaryOpened": false,
+    "sourceInsertedIntoVerifiedLocalPlace": true,
+    "age": 0.6,
+    "width": 7,
+    "length": 40,
+    "labels": "Top-to-bottom order; fixed screen-space legend",
+    "sideCamera": [
+      375,
+      215,
+      320
+    ],
+    "lookAt": [
+      300,
+      215,
+      320
+    ],
+    "endCamera": [
+      300,
+      215,
+      365
+    ],
+    "sideColorRgb": [
+      255,
+      215,
+      70
+    ],
+    "endColorRgb": [
+      160,
+      70,
+      255
+    ],
+    "partCounts": [
+      [
+        15,
+        15,
+        19,
+        29
+      ],
+      [
+        41,
+        41,
+        51,
+        55
+      ],
+      [
+        67,
+        77,
+        77,
+        4
+      ]
+    ],
+    "galleryPeakAllocated": 276,
+    "images": [
+      {
+        "path": "docs/images/beam-tiers-2026-11-13/page1.jpg",
+        "sha256": "a49d974f5bdfcc881a285dea2adc9ca5942ea249c161945be3bd6bbead155c08"
+      },
+      {
+        "path": "docs/images/beam-tiers-2026-11-13/page2.jpg",
+        "sha256": "55a3183b68f582474f631c60d4ccc14a16695e5e33c64d8a1d0d86f98d865372"
+      },
+      {
+        "path": "docs/images/beam-tiers-2026-11-13/page3.jpg",
+        "sha256": "bb88ca7a9f734d16db48d8930773f22d96818313a727a00b989c47bcf4b3207e"
+      },
+      {
+        "path": "docs/images/beam-tiers-2026-11-13/end.jpg",
+        "sha256": "fe9d34f9c545dd12f85cab4ae543e40957e0ab40fa5d60926bc62f14fbfc9247"
+      }
+    ],
+    "cleanup": {
+      "build/tier-refined-cleanup.json": "7806bee4032898594e4e16ee70194f9618b0e578aba85efbcde20221126bad70",
+      "build/tier-refined-console.json": "6ca8916573790c2eef426050e9bfc2d16ca06f5e175c39960a8d2e9e0ce0f0f1",
+      "build/tier-refined-stop.json": "600974a7cffcd0a4c6029c715664cb75e39ce589dac53e2f4376f29fca66d63f"
+    },
+    "cleanupResult": "Gallery and labels absent, cleanup marker printed, Game Stopped confirmed",
+    "warnings": "Three asset-type warnings and temporary-save warning were present; origin not inferred"
+  },
+  "aggregate": "Earlier composed 235-command run passed before the native-informed collar refinement. Final focused checks above rerun after refinement; current simultaneous mic work is outside this checkpoint. No final-refinement full-suite or CI claim.",
+  "limitations": [
+    "Fixed-age gallery, not actual combat, microphone, network or target visibility acceptance.",
+    "Adjacent middle-tier differences remain modest from some side angles; reduced/far intentionally simplify.",
+    "No native animation-timing, mobile/GPU or overlapping-attacker performance measurement.",
+    "Decorations are best-effort under shared resource pressure.",
+    "Cosmetic collars can extend slightly beyond endpoint; damage geometry is unchanged.",
+    "No live publication or DataStore writes."
+  ],
+  "independentReview": "Astra independently reran 4034 assertions/eight controls, verified source/image hashes and accepted refined gallery as bounded improvement. 40-to-50 and60-to-70 remain subtle; no combat/performance acceptance."
+}

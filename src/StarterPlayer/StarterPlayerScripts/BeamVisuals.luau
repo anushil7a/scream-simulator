@@ -76,21 +76,32 @@ function Visuals.Animate(rig,now,viewer,reduced)
   if not quiet and distance<=Style.FarDistance then
    draw(rig,Enum.PartType.Ball,Vector3.one*radius*.72,CFrame.new(origin),color,.18,Enum.Material.SmoothPlastic)
    local function offset(angle,r) return (right*math.cos(angle)+up*math.sin(angle))*r end
+   local function collarOffset(angle,r)
+    if spec.collar=="diamond" then r/=math.abs(math.cos(angle))+math.abs(math.sin(angle))
+    elseif spec.collar=="star" then r*=.72+.28*(.5+.5*math.cos(angle*5)) end
+    local sweep=spec.collar=="diamond" and math.cos(angle)*r*.75 or 0
+    return offset(angle,r)+dir*sweep
+   end
    for ring=1,spec.rings do
     local travel=(age*(.6+tier*.025)+ring/spec.rings)%1
     local center=origin+dir*(travel*length)
-    local r=radius*(.85+.2*math.sin(travel*math.pi))
+    local r=radius*(.85+.2*math.sin(travel*math.pi))*(tier>=1 and 1.25 or 1)
+    local offset=collarOffset
     for i=1,10 do
      local phase=age*.9+ring*.6
      -- Broken collars leave clear channels instead of stacking opaque hoops.
-     line(rig,center+offset((i-1)*math.pi/5+phase,r),center+offset((i-.28)*math.pi/5+phase,r),.055+tier*.008,color,.26+travel*.32)
+     line(rig,center+offset((i-1)*math.pi/5+phase,r),center+offset((i-.28)*math.pi/5+phase,r),.16+tier*.012,color,.26+travel*.32)
     end
    end
    for strand=1,spec.strands do
     local previous=origin
     for i=1,12 do
-     local t=i/12;local phase=t*math.pi*(tier>=9 and 5 or 3)-age*5+strand*math.pi
-     local point=origin+dir*(length*t)+offset(phase,radius*.95*math.sin(t*math.pi))
+     local t=i/12
+     local winding=spec.ribbon=="braid" and (strand==1 and 1 or -1) or 1
+     local phase=t*math.pi*2*spec.turns*winding-age*5+strand*math.pi
+     local radial=radius*.95*math.sin(t*math.pi)
+     if spec.ribbon=="zigzag" then phase=age*.35+strand*math.pi;radial*=i%2==0 and -1 or 1 end
+     local point=origin+dir*(length*t)+offset(phase,radial)
      line(rig,previous,point,.065+tier*.006,color:Lerp(white,.4),.25);previous=point
     end
    end

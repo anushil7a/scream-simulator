@@ -34,8 +34,16 @@ for _,level in ipairs({1,40,100})do
   check(r.parts[4].Shape==Enum.PartType.Cylinder and near(r.parts[4].Size.X,radius*.22) and near(r.parts[4].Size.Y,radius*1.25),'Termination lens missing')
   check(near(r.parts[4].CFrame.Position.Z,40-radius*.11) and near(r.parts[4].CFrame.Target.Z,40),'Lens exceeds endpoint')
   check(near(r.parts[5].Size.X,radius*.72) and same(r.parts[5].Color,tint),'Emitter obscures origin')
-  local travel=(age*(.6+spec.tier*.025)+1/spec.rings)%1;local rr=radius*(.85+.2*math.sin(travel*math.pi))
-  check(near(r.parts[6].Size.X,2*rr*math.sin(.72*math.pi/10)),'Collar has no open channel')
+  local travel=(age*(.6+spec.tier*.025)+1/spec.rings)%1;local rr=radius*(.85+.2*math.sin(travel*math.pi))*(spec.tier>=1 and 1.25 or 1)
+  local angleA=age*.9+.6;local angleB=.72*math.pi/5+angleA
+  local function collarRadius(angle)
+   if spec.collar=='diamond' then return rr/(math.abs(math.cos(angle))+math.abs(math.sin(angle)))
+   elseif spec.collar=='star' then return rr*(.72+.28*(.5+.5*math.cos(angle*5))) end
+   return rr
+  end
+  local ra,rb=collarRadius(angleA),collarRadius(angleB)
+  local axial=spec.collar=='diamond' and .75*(math.cos(angleB)*rb-math.cos(angleA)*ra) or 0
+  check(near(r.parts[6].Size.X,math.sqrt(ra*ra+rb*rb-2*ra*rb*math.cos(angleB-angleA)+axial*axial)),'Collar has no open channel')
   if spec.sparks>0 then
    for i=#r.parts-spec.sparks+1,#r.parts do
     check(r.parts[i].CFrame.Target.Z<40 and r.parts[i].CFrame.Target.Z>=0,'Flare not directed back within beam')

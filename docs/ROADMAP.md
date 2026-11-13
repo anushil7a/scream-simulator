@@ -2,6 +2,13 @@
 
 Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 13 ten-level beam evolution
+
+- Regular nearby beams now gain authored diamond collars, spokes, helices, crowns and braided/star profiles at ten-level milestones. Native comparison exposed nearly invisible early collars; a same-budget refinement makes the early diamond outline readable. Reduced/far effects, custom tint, core geometry and authority remain unchanged.
+- Astra independently accepted the final source and local gallery as a bounded improvement. Levels40-to-50 and60-to-70 are still subtler from some angles; fixed-age images are not live combat, phone or performance evidence. [Images and review](BEAM_TIER_SILHOUETTES_REVIEW.md), [exact evidence](../tests/evidence/beam-tiers-2026-11-13.json).
+- Final focused verification passes4,034 tier assertions/eight controls,695 retained silhouette assertions/seven controls and117,904 pool assertions/seven controls; both changed modules compile. The earlier235-command full run predates the final collar refinement, and is not represented as a final-refinement aggregate.
+- Native gallery/labels were removed and play stopped. No cloud place change or publication. Next: finish removal of mandatory mic setup and practice area/objectives while preserving historical quest records and existing earned rewards.
+
 ## November 13 requested upper-level damage tuning
 
 - Raised only the level100 sustained DPS anchor/protocol cap from68 to110, with existing interpolation affecting levels76-99. Lower anchors, health, range, cooldown and all server authority/protection gates remain unchanged.
