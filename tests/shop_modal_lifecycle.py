@@ -40,6 +40,9 @@ def assemble(c):
 local ShopUI=m.shop;local selected='Shop';local render;local closeMenu;local clientDestroyed=false;local clientConnections={};local button=ui.button
 local modal={Visible=false};local gui={AbsoluteSize={X=720},Destroy=function()f.destroyed=true end}
 local content={CanvasPosition={X=0,Y=40},AbsoluteCanvasSize={Y=600},AbsoluteWindowSize={Y=200},GetChildren=function()return {}end}
+
+-- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
+local academy={tabIcons={},tabIcon=function()return {},{} end}
 local tabs={};local panel={};local title={};local subtitle={};local mapDot;local narrow=false
 local devPanel={Visible=false};local data={level=1,xp=0,xpNext=100,savingAvailable=true,settings={},quests={},aura='Gold',shop={ready=true,inventory={},ends={},serverNow=100}}
 local destroyed={};local script={Destroying={Connect=function(_,fn)table.insert(destroyed,fn);return {Disconnect=function()end}end}}
@@ -80,7 +83,7 @@ f.reply=function(index,result)local job=f.priceJobs()[index];assert(coroutine.re
 return f
 end
 '''.replace('XCLOSE',x).replace('DEVCLOSE',dev).replace('RECALCLOSE',recal).replace('CONVOCLOSE',convo)
- return setup+shop+tailSetup+context+owner+'\n'+state+'\n'+open_helper+'\nmodal.Visible=true;(function() '+x+' end)();check(not modal.Visible,"Early X close failed")\n'+key+toggle+'\n'+head+renderbody+tail+'\n'+input_setup+c[c.index('connectClient(UIS.InputBegan,function(input,processed)'):c.index('connectClient(UIS.InputEnded,function(input)')]+'\n'+c[c.index('for i,name in ipairs({"Shop"'):].splitlines()[0]+'\n'+finish
+ return setup+shop+tailSetup+context+owner+'\n'+state+'\n'+open_helper+'\nmodal.Visible=true;(function() '+x+' end)();check(not modal.Visible,"Early X close failed")\n'+key+toggle+'\n'+head+renderbody+tail+'\n'+input_setup+c[c.index('connectClient(UIS.InputBegan,function(input,processed)'):c.index('connectClient(UIS.InputEnded,function(input)')]+'\n'+c[c.index('for i,name in ipairs({"Shop"'):c.index('\nlocal conversationNPC',c.index('for i,name in ipairs({"Shop"'))]+'\n'+finish
 checks=r'''
 for _,route in ipairs({'closeX','toggle','keyB','sameTab','closeDev','closeConversation','destroy'})do
  local f=fixture();f.tab('Shop');check(#f.stats().views==4,'Opening did not render Shop')

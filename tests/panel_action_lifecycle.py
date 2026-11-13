@@ -30,6 +30,9 @@ ui=r'''
 local sent={};local action={FireServer=function(_,verb,arg)table.insert(sent,{verb,arg});dispatch(verb,arg)end}
 local clientDestroyed=false;local modal=node();modal.Visible=false;local gui={AbsoluteSize={X=720}}
 local content=node();content.CanvasPosition={X=0,Y=40};content.AbsoluteCanvasSize={Y=600};content.AbsoluteWindowSize={Y=200}
+
+-- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
+local academy={tabIcons={},tabIcon=function()return {},{} end}
 local title,subtitle={},{};local selected='Quests';local render;local tabs={};local devPanel=node();local narrow=false
 local conversationPanel=node();conversationPanel.Visible=false;local showConversation,closeConversation;local conversationName=node();local conversationList=node()
 local muted,gold,panel,white={},{},{},{};local version=0;local data

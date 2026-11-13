@@ -44,6 +44,9 @@ local action={FireServer=function()error('Rendering safety notice must not send 
 local data={settings={volume=.5,reducedShake=false}}
 local attackAudio={level='NORMAL',SetLevel=function(self,v)self.level=v end}
 local gameplayAudio={enabled=true,SetEnabled=function(self,v)self.enabled=v end};local gameplayAudioSettings={Ready=function()return true end}
+
+-- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
+local academy={tabIcons={},tabIcon=function()return {},{} end}
 local title,subtitle={},{};local tabs={};local ShopUI={Clear=function()end};local mapDot
 local selected='Settings';local renderedMenuKey,renderedTab;local renderRevision=0;local narrow;local render
 local function menuKey()return selected..':'..gui.AbsoluteSize.X..':'..tostring(sustainedControl)..':'..tostring(UIS.TouchEnabled)end

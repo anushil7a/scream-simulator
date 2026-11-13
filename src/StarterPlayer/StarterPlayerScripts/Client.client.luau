@@ -170,6 +170,58 @@ function academy.mark(parent,kind,pos,size,color)
  end
  return icon
 end
+-- Original, static menu glyphs. Labels remain the accessible action identity.
+academy.tabIcons={}
+function academy.tabIcon(parent,kind)
+ local icon=Instance.new("Frame");icon.Name="MenuIcon_"..kind;icon.Size=UDim2.fromOffset(20,20)
+ icon.ZIndex=parent.ZIndex+1;icon.BackgroundTransparency=1;icon.Visible=false;icon.Active=false;icon.Selectable=false;icon.Interactable=false;icon.Parent=parent
+ local ink=Color3.fromRGB(28,36,64);local light=Color3.fromRGB(255,242,199)
+ local warm=Color3.fromRGB(240,190,91);local cool=Color3.fromRGB(143,191,202)
+ local function shape(name,x,y,w,h,color,rotation,round)
+  local f=Instance.new("Frame");f.Name=name;f.Position=UDim2.fromOffset(x,y);f.Size=UDim2.fromOffset(w,h)
+  f.ZIndex=icon.ZIndex;f.BorderSizePixel=0;f.BackgroundColor3=color;f.Rotation=rotation or 0
+  f.Active=false;f.Selectable=false;f.Interactable=false;f.Parent=icon
+  if round then local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,round);c.Parent=f end
+  return f
+ end
+ if kind=="Shop" then
+  shape("StackInk",2,8,16,10,ink,0,4);shape("StackShade",4,10,12,6,warm,0,3)
+  shape("CoinInk",2,2,16,11,ink,0,5);shape("CoinFace",4,4,12,7,light,0,4);shape("CoinFacet",5,8,10,2,warm,0,1)
+ elseif kind=="Screams" then
+  shape("BeamInk",2,7,16,7,ink,-18,2);shape("BeamFace",3,8,14,4,warm,-18,1)
+  shape("EmitterInk",2,5,6,11,ink,-18,2);shape("EmitterFace",3,6,3,8,cool,-18,1)
+  shape("Core",7,8,10,2,light,-18,1)
+ elseif kind=="Quests" then
+  shape("PageInk",3,1,14,18,ink,0,3);shape("PageFace",5,3,10,14,light,0,2)
+  shape("CheckShort",6,7,3,2,cool,40);shape("CheckLong",8,6,6,2,cool,-42)
+  shape("LineOne",7,12,6,2,warm);shape("LineTwo",7,15,4,1,warm)
+ elseif kind=="Style" then
+  shape("BackInk",2,3,12,14,ink,-18,3);shape("BackFace",4,5,8,10,cool,-18,2)
+  shape("FrontInk",6,3,12,14,ink,15,3);shape("FrontFace",8,5,8,10,warm,15,2);shape("Shine",9,6,5,2,light,15,1)
+ elseif kind=="Map" then
+  shape("MapInk",1,3,18,15,ink,0,2);shape("WestFold",3,5,4,10,light)
+  shape("MiddleFold",7,4,6,12,cool);shape("EastFold",13,5,4,10,light)
+  shape("Route",5,9,10,2,warm,-18);shape("Destination",13,7,3,3,ink,0,1)
+ elseif kind=="Settings" then
+  for i=0,2 do
+   shape("Rail"..i,2,3+i*6,16,3,ink,0,1)
+   local x=({5,11,7})[i+1]
+   shape("KnobInk"..i,x,1+i*6,5,7,ink,0,2)
+   shape("KnobFace"..i,x+1,2+i*6,3,4,i==1 and cool or light,0,1)
+  end
+ end
+ local padding=Instance.new("UIPadding");padding.Name="MenuTextInset";padding.Parent=parent
+ return icon,padding
+end
+function academy.layoutTab(button,icon,padding,width)
+ local measured=TextService:GetTextSize(button.Text,button.TextSize,button.Font,Vector2.new(1000,1000)).X
+ local total=20+6+math.ceil(measured)
+ local fits=width>=total+16
+ icon.Visible=fits
+ padding.PaddingRight=UDim.new(0,fits and (width-total)/2 or 0)
+ button.TextXAlignment=fits and Enum.TextXAlignment.Right or Enum.TextXAlignment.Center
+ icon.Position=UDim2.new(0,(width-total)/2,0.5,-10)
+end
 local top=frame(gui,"Navigation",UDim2.fromOffset(250,40),UDim2.fromOffset(14,12));top.BackgroundTransparency=1
 local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,0);modal.ZIndex=10;modal.Visible=false
 do
@@ -723,7 +775,9 @@ render=function()
   content.CanvasPosition=Vector2.new(0,math.clamp(scroll.Y,0,math.max(0,content.AbsoluteCanvasSize.Y-content.AbsoluteWindowSize.Y)))
  end)
 end
-for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name=="Screams" and "BEAMS" or name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() if clientDestroyed or not modal.Visible then return end;selected=name;render() end) end
+for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name=="Screams" and "BEAMS" or name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() if clientDestroyed or not modal.Visible then return end;selected=name;render() end)
+ local icon,padding=academy.tabIcon(tabs[name],name);academy.tabIcons[name]={icon=icon,padding=padding}
+end
 local conversationNPC,conversationUntil
 local conversationRevision=0
 conversationPanel=frame(gui,"Conversation",UDim2.fromOffset(460,300),UDim2.fromScale(.5,.5));conversationPanel.AnchorPoint=Vector2.new(.5,.5);conversationPanel.Visible=false;conversationPanel.ZIndex=10
@@ -1034,6 +1088,7 @@ connectClient(Run.RenderStepped,function(dt)
  local tabWidth=(width-40-(columns-1)*6)/columns
  for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do
   local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(20+((i-1)%columns)*(tabWidth+6),tabY+math.floor((i-1)/columns)*50);b.TextSize=width<620 and 12 or 14
+  local decoration=academy.tabIcons[name];academy.layoutTab(b,decoration.icon,decoration.padding,tabWidth)
  end
  content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
  if width~=lastLayoutWidth then lastLayoutWidth=width;if modal.Visible then render() end end

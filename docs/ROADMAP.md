@@ -2,6 +2,12 @@
 
 Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through 4c23fce to the draft branch; another Roblox upload requires fresh approval. Native/device checks remain pending as documented below.
 
+## November 13 original menu icons
+
+- Added six cohesive original static symbols to the menu tabs while preserving labels, selection, callbacks and 44-pixel targets. Measured-width fallback keeps small tabs text-first; no image upload/dependency or new loop.
+- Independent focused review and 471 checks/seven controls; final 241-command local run passes with 327 inputs rechecked. Native exact-source UI fixture passes 5,943 checks across 24 allocated layout/selection rows; desktop and narrow screenshots inspected. [Review/images](MENU_ICONS_REVIEW.md), [evidence](../tests/evidence/menu-icons-2026-11-13.json).
+- Physical input/device and performance remain unverified. Disposable Studio stopped/closed, PC on; no live publication. Next: remaining player-nameplate/SFX/model visual requests, without silently changing PvP name-visibility policy.
+
 ## November 13 NPC nameplate visual upgrade
 
 - Added coherent navy/gold NPC and trainer plates, separate readable health and proportional bar, preserving names, levels, recovery, bounded visibility and native occlusion. Native review caught and fixed speech overlap before acceptance. Player overhead labels are not part of this checkpoint.
