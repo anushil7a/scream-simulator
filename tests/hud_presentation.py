@@ -50,9 +50,10 @@ def run(source):
  try:return subprocess.run(['luau',str(p)],cwd=ROOT,capture_output=True,text=True)
  finally:p.unlink()
 RETAINED_CONTRACTS=['zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08', 'saveNotice.BackgroundColor3=dark;saveNotice.BackgroundTransparency=.08', 'UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108)', 'local meterText=label(meter,"LIVE MIC 0%\\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,white)']
-SURFACE_CONTRACTS=['academy.surface(zone)', 'academy.surface(saveNotice,gold)', 'academy.surface(sprintButton)', 'academy.surface(talkButton,gold)', 'academy.surface(conversationPanel,gold)']
+SURFACE_CONTRACTS=['academy.surface(zone)', 'academy.surface(saveNotice,gold)', 'academy.surface(sprintButton)', 'academy.surface(talkButton,gold)', 'academy.surface(conversationPanel,gold)', 'academy.surface(devPanel)', 'academy.surface(testButton)']
 def check_contracts(source):
  for c in RETAINED_CONTRACTS+SURFACE_CONTRACTS:assert c in source,c
+ assert source.index('local dodgeButton=button(') < source.index('academy.surface(dodgeButton)'), 'dodgeButton surfaced before declaration'
 def main():
  p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');args=p.parse_args();source=CLIENT.read_text(encoding='utf-8')
  r=run(source);assert r.returncode==0,r.stdout+r.stderr;print(r.stdout.strip())
@@ -70,5 +71,11 @@ def main():
    try:check_contracts(source.replace(c,''))
    except AssertionError as exc:assert c in str(exc),str(exc)
    else:raise AssertionError(f'Negative control did not fail for {c}')
-  print(f'PASS {len(cases)+len(SURFACE_CONTRACTS)} targeted negative controls')
+  swapped=source.replace(';academy.surface(dodgeButton)','').replace('academy.surface(castButton)','academy.surface(castButton);academy.surface(dodgeButton)')
+  try:check_contracts(swapped)
+  except AssertionError as exc:
+   assert 'dodgeButton surfaced before declaration' in str(exc),str(exc)
+   print('PASS control: dodgeButton surfaced before declaration')
+  else:raise AssertionError('Negative control did not fail for dodgeButton surfaced before declaration')
+  print(f'PASS {len(cases)+len(SURFACE_CONTRACTS)+1} targeted negative controls')
 if __name__=='__main__':main()
