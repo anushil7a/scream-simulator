@@ -110,6 +110,7 @@ damage=next(line.strip() for line in server.splitlines() if 'local result=Config
 a=server.index('local function resolveSustained(');resolve=server[a:server.index('local function restoreBot(',a)]
 rescuechecks=rescuechecks.replace('__RESCUE__',rescue).replace('__START__',start).replace('__DAMAGE__',damage).replace('__RESOLVE__',resolve)
 soccer=read('src/ServerScriptService/SoccerChallenge.luau');volley=read('src/ServerScriptService/BeachVolley.luau')
+fountain=read('src/ServerScriptService/Fountain.luau');art=read('src/ServerScriptService/StreetArt.luau')
 soccerdecl=soccer[soccer.index('local compact='):soccer.index('local function sphere(')]
 volleydecl=volley[volley.index('local compact='):volley.index('local gameState')]
 socceroutside=re.search(r'if (nextPosition.X<minimum.X[^\n]+) then',soccer)[1]
@@ -124,23 +125,53 @@ height_tests="\ndo\n"+volleydecl+"\nlocal function netHit(y)local old={Y=y};loca
 equipment=read('src/ServerScriptService/Equipment.luau')
 module_checks=r'''
 do
- local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}
- local Color3={fromRGB=function(r,g,b)return {R=r,G=g,B=b}end}
+ local V3={}
+ local Vector3
+ V3.__add=function(a,b)return Vector3.new(a.X+b.X,a.Y+b.Y,a.Z+b.Z)end
+ V3.__sub=function(a,b)return Vector3.new(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end
+ V3.__unm=function(a)return Vector3.new(-a.X,-a.Y,-a.Z)end
+ V3.__mul=function(a,b)
+  if type(a)=='number' then return Vector3.new(a*b.X,a*b.Y,a*b.Z)
+  elseif type(b)=='number' then return Vector3.new(a.X*b,a.Y*b,a.Z*b)
+  else return Vector3.new(a.X*b.X,a.Y*b.Y,a.Z*b.Z) end
+ end
+ Vector3={new=function(x,y,z)return setmetatable({X=x or 0,Y=y or 0,Z=z or 0},V3)end}
+ Vector3.zero=Vector3.new(0,0,0)
+ Vector3.yAxis=Vector3.new(0,1,0)
+ local Vector2={new=function(x,y)return {X=x,Y=y}end}
+ local Color3={fromRGB=function(r,g,b)return {R=r,G=g,B=b}end,new=function(r,g,b)return {R=(r or 0)*255,G=(g or 0)*255,B=(b or 0)*255}end}
+ local ColorSequence={new=function(a,b)return {colors=b and {a,b} or {a}}end}
+ local NumberSequenceKeypoint={new=function(t,v)return {Time=t,Value=v}end}
+ local NumberSequence={new=function(v)
+  if type(v)=='number' then return {Keypoints={{Time=0,Value=v},{Time=1,Value=v}},scalar=v}
+  else return {Keypoints=v} end
+ end}
  local UDim={new=function(s,o)return {Scale=s,Offset=o}end}
  local UDim2={fromOffset=function(x,y)return {X=x,Y=y}end,fromScale=function(x,y)return {X=x,Y=y}end}
- local CF={};local CFrame={}
- CF.__mul=function(a,b)return CFrame.new(a.X+b.X,a.Y+b.Y,a.Z+b.Z)end
- function CFrame.new(x,y,z)return setmetatable({X=x or 0,Y=y or 0,Z=z or 0},CF)end
+ local CF={};CF.__index=CF;local CFrame={}
+ CF.__mul=function(a,b)return CFrame.new((a.X or 0)+(b.X or 0),(a.Y or 0)+(b.Y or 0),(a.Z or 0)+(b.Z or 0))end
+ function CF:ToObjectSpace()return CFrame.new(0,0,0)end
+ function CFrame.new(x,y,z)
+  if type(x)=='table' then return setmetatable({X=x.X or 0,Y=x.Y or 0,Z=x.Z or 0},CF) end
+  return setmetatable({X=x or 0,Y=y or 0,Z=z or 0},CF)
+ end
  function CFrame.Angles()return CFrame.new(0,0,0)end
+ function CFrame.fromMatrix(pos)return CFrame.new(pos)end
  local Enum={
-  Material={SmoothPlastic='SmoothPlastic',Neon='Neon'},
+  Material={SmoothPlastic='SmoothPlastic',Neon='Neon',Limestone='Limestone',CeramicTiles='CeramicTiles',Glass='Glass'},
   PartType={Ball='Ball',Cylinder='Cylinder'},
   Font={GothamMedium='GothamMedium',GothamBold='GothamBold'},
   ApplyStrokeMode={Border='Border',Contextual='Contextual'},
+  KeyCode={F='F'},
+  ModelStreamingMode={Atomic='Atomic'},
+  NormalId={Front='Front'},
+  SurfaceGuiSizingMode={FixedSize='FixedSize'},
  }
+ local function signal()return {Connect=function()return {Disconnect=function()end}end}end
  local created={}
  local function makeInst(class)
   local raw={ClassName=class,attributes={},children={}}
+  if class=='ProximityPrompt' then raw.Triggered=signal() end
   local proxy={}
   local mt={
    __index=function(_,k)
@@ -151,6 +182,30 @@ do
      end
     elseif k=='GetChildren' then
      return function()return raw.children end
+    elseif k=='GetDescendants' then
+     return function()
+      local out={}
+      local function walk(list)for _,c in ipairs(list)do table.insert(out,c);walk(c._children) end end
+      walk(raw.children)
+      return out
+     end
+    elseif k=='IsA' then
+     return function(_,kind)return raw.ClassName==kind or (kind=='BasePart' and raw.ClassName=='Part')end
+    elseif k=='Clone' then
+     return function()
+      local copy=makeInst(raw.ClassName)
+      for prop,val in pairs(raw)do
+       if prop~='children' and prop~='Parent' and prop~='attributes' and prop~='ClassName' and prop~='Triggered' then copy[prop]=val end
+      end
+      for _,child in ipairs(raw.children)do child:Clone().Parent=copy end
+      return copy
+     end
+    elseif k=='ScaleTo' or k=='PivotTo' then
+     return function()end
+    elseif k=='GetBoundingBox' then
+     return function()return CFrame.new(0,0,0),Vector3.new(1,2,1)end
+    elseif k=='GetPivot' then
+     return function()return CFrame.new(0,0,0)end
     elseif k=='Destroy' then
      return function(self)
       raw.destroyed=true
@@ -250,9 +305,13 @@ do
  end
  testRig('RightHand',Vector3.new(1,1,1),CFrame.new(10,5,2))
  testRig('Right Arm',Vector3.new(1,2,1),CFrame.new(-4,6,3))
+ local tags={}
+ local workspace={ScreamSimulatorWorld=Instance.new('Folder')}
  local game={GetService=function(_,name)
-  if name=='RunService' then return {Heartbeat={Connect=function()return {Disconnect=function()end}end}}
+  if name=='RunService' then return {Heartbeat=signal()}
+  elseif name=='Players' then return {PlayerRemoving=signal()}
   elseif name=='ReplicatedStorage' then return {Shared={Config='Config'}}
+  elseif name=='CollectionService' then return {AddTag=function(_,inst,tag)tags[inst]=tags[inst] or {};tags[inst][tag]=true end}
   else error('Unexpected service '..tostring(name)) end
  end}
  local script={Parent={CombatRules='CombatRules'}}
@@ -281,6 +340,107 @@ do
  check(stroke.Thickness==1,'CourtReadout ReadoutStroke thickness wrong')
  check(approx(stroke.Transparency,.4),'CourtReadout ReadoutStroke transparency wrong')
  check(stroke.Parent==text,'CourtReadout ReadoutStroke parent wrong')
+ local Soccer=(function()
+'''+soccer+r'''
+ end)()
+ created={}
+ local soccerPlayer={UserId=101,DisplayName='Tester'}
+ Soccer.Start(soccerPlayer,function()end)
+ local soccerModel=workspace.ScreamSimulatorWorld:FindFirstChild('SoccerAttempt_101')
+ check(soccerModel~=nil,'SoccerAttempt model missing')
+ local function checkCaption(partName)
+  local p=soccerModel:FindFirstChild(partName)
+  check(p~=nil,'Soccer part missing '..partName)
+  local cgui=p:FindFirstChild('ChallengeCaption')
+  check(cgui and cgui.ClassName=='BillboardGui','Soccer ChallengeCaption missing on '..partName)
+  local clabel=cgui._children[1]
+  check(clabel and clabel.ClassName=='TextLabel','Soccer caption TextLabel missing on '..partName)
+  checkColor(clabel.BackgroundColor3,25,48,51,'Soccer caption bg color wrong on '..partName)
+  check(approx(clabel.BackgroundTransparency,.12),'Soccer caption bg transparency wrong on '..partName)
+  checkColor(clabel.TextColor3,255,239,205,'Soccer caption text color wrong on '..partName)
+  check(clabel.TextWrapped==true,'Soccer caption TextWrapped wrong on '..partName)
+  local cstroke=clabel:FindFirstChild('CaptionStroke')
+  check(cstroke and cstroke.ClassName=='UIStroke','SoccerChallenge CaptionStroke missing')
+  check(cstroke.ApplyStrokeMode==Enum.ApplyStrokeMode.Border,'SoccerChallenge CaptionStroke ApplyStrokeMode wrong')
+  checkColor(cstroke.Color,235,190,105,'SoccerChallenge CaptionStroke color wrong')
+  check(cstroke.Thickness==1,'SoccerChallenge CaptionStroke thickness wrong')
+  check(approx(cstroke.Transparency,.4),'SoccerChallenge CaptionStroke transparency wrong')
+  check(cstroke.Parent==clabel,'SoccerChallenge CaptionStroke parent wrong')
+ end
+ checkCaption('ChallengeBall')
+ for i=1,3 do checkCaption('LostTrainingBall'..i) end
+ Soccer.Cancel(soccerPlayer)
+ check(soccerModel.destroyed==true and workspace.ScreamSimulatorWorld:FindFirstChild('SoccerAttempt_101')==nil,'Soccer.Cancel did not destroy model')
+ local Fountain=(function()
+'''+fountain+r'''
+ end)()
+ created={}
+ local template=Instance.new('Model')
+ local meshPart=Instance.new('Part');meshPart.Name='Mesh';meshPart.Parent=template
+ local fountainParent=Instance.new('Folder')
+ local fountainModel=Fountain.create(template,fountainParent,Vector3.new(0,0,0))
+ check(fountainModel and fountainModel.Name=='MosaicFountain' and tags[fountainModel] and tags[fountainModel].OptionalLandmarkVisual,'Fountain model or tag missing')
+ local fallbackVisual=fountainModel:FindFirstChild('FallbackVisual')
+ check(fallbackVisual~=nil,'Fountain FallbackVisual missing')
+ local fallbackParts=0
+ for _,c in ipairs(fallbackVisual._children)do if c.ClassName=='Part' then fallbackParts+=1 end end
+ check(fallbackParts==28,'Fountain FallbackVisual part count wrong')
+ local colliderNames={'FountainCollision','ColumnCollision','BowlCollision'}
+ local colliderCount=0
+ for _,cname in ipairs(colliderNames)do
+  local col=fountainModel:FindFirstChild(cname)
+  if col and col.ClassName=='Part' and col.Shape==Enum.PartType.Cylinder and col.CanCollide==true then colliderCount+=1 end
+ end
+ check(colliderCount==3,'Fountain solid collision cylinder count wrong')
+ local fountainCollider=fountainModel:FindFirstChild('FountainCollision')
+ for i=0,3 do
+  local stream=fountainCollider:FindFirstChild('WaterStream'..i)
+  check(stream and stream.ClassName=='Beam','Fountain WaterStream missing '..i)
+  check(#stream.Color.colors==2,'Fountain WaterStream color wrong')
+  checkColor(stream.Color.colors[1],220,248,252,'Fountain WaterStream color1 wrong')
+  checkColor(stream.Color.colors[2],132,216,228,'Fountain WaterStream color2 wrong')
+  local kps=stream.Transparency.Keypoints
+  check(#kps==3,'Fountain WaterStream transparency keypoints wrong')
+  check(approx(kps[1].Time,0) and approx(kps[1].Value,.15),'Fountain WaterStream keypoint 1 wrong')
+  check(approx(kps[2].Time,.7) and approx(kps[2].Value,.28),'Fountain WaterStream keypoint 2 wrong')
+  check(approx(kps[3].Time,1) and approx(kps[3].Value,.55),'Fountain WaterStream keypoint 3 wrong')
+  local core=fountainCollider:FindFirstChild('WaterCore'..i)
+  check(core and core.ClassName=='Beam','Fountain WaterCore missing')
+  check(approx(core.Width0,.06) and approx(core.Width1,.1),'Fountain WaterCore width wrong')
+  check(#core.Color.colors==1,'Fountain WaterCore color count wrong')
+  checkColor(core.Color.colors[1],245,253,255,'Fountain WaterCore color wrong')
+  check(approx(core.Transparency.scalar,.2),'Fountain WaterCore transparency wrong')
+ end
+ local Art=(function()
+'''+art+r'''
+ end)()
+ local function checkArt(coastal,expectedTitle)
+  created={}
+  local artParent=Instance.new('Folder')
+  local wall=Art.create(artParent,CFrame.new(0,3,0),12,coastal)
+  check(wall and wall.Name=='CourtyardMural','StreetArt CourtyardMural missing')
+  check(wall.CanCollide==false and wall.CanTouch==false and wall.CanQuery==false and wall.CastShadow==false,'StreetArt CourtyardMural physics flags unsafe')
+  local canvas=wall:FindFirstChild('OriginalStreetArt')
+  check(canvas and canvas.ClassName=='SurfaceGui','StreetArt OriginalStreetArt SurfaceGui missing')
+  local paper=canvas:FindFirstChild('Paper')
+  check(paper~=nil,'StreetArt Paper missing')
+  local border=paper:FindFirstChild('MuralBorder')
+  check(border and border.ClassName=='UIStroke','StreetArt MuralBorder missing')
+  check(border.ApplyStrokeMode==Enum.ApplyStrokeMode.Border,'StreetArt MuralBorder ApplyStrokeMode wrong')
+  checkColor(border.Color,39,71,78,'StreetArt MuralBorder color wrong')
+  check(border.Thickness==3,'StreetArt MuralBorder thickness wrong')
+  check(approx(border.Transparency,.25),'StreetArt MuralBorder transparency wrong')
+  local title=canvas:FindFirstChild('MuralTitle')
+  check(title and title.ClassName=='TextLabel' and title.Text==expectedTitle,'StreetArt MuralTitle text wrong')
+  local accent=canvas:FindFirstChild('MuralAccent')
+  check(accent and accent.ClassName=='Frame','StreetArt MuralAccent missing')
+  check(accent.Position.X==335 and accent.Position.Y==92 and accent.Size.X==132 and accent.Size.Y==4,'StreetArt MuralAccent geometry wrong')
+  checkColor(accent.BackgroundColor3,242,166,75,'StreetArt MuralAccent color wrong')
+  local accentCorner=accent._children[1]
+  check(accentCorner and accentCorner.ClassName=='UICorner' and approx(accentCorner.CornerRadius.Scale,.5),'StreetArt MuralAccent corner missing')
+ end
+ checkArt(true,'SOL I MAR')
+ checkArt(false,'VIU EL BARRI')
 end
 print('PASS '..checks..' actual compact integration assertions; mocks/snippets, not native physics')
 '''
@@ -302,7 +462,7 @@ def run(body,error=None):
  else:assert r.returncode==0,out;print(out.strip())
 run(code)
 if args.negative_controls:
- for old,new,error in [('then padColor=spec.color;break end','then padColor=C.green;break end','Authoritative pad masks compact tier color'),('tier=table.clone(originalTier)','tier=originalTier','Trainer relocation did not clone tier'),('if layout.traffic~=false then','if true then','Legacy traffic created'),('resetMovement(p,s,h,r);running=false','running=false','Compact rescue retained own seat'),('if Config.ObjectDestruction==true then Destruction.Start','if true then Destruction.Start','Disabled destruction started'),('if Config.ObjectDestruction==true and obstruction then','if obstruction then','Disabled sustained destruction emitted target'),('Config.ObjectDestruction==true and Destruction.Damage','true and Destruction.Damage','Disabled legacy destruction damaged'),('nextPosition.X<minimum.X','nextPosition.X< -9999','Soccer outside accepted'),('position.X<minimum.X','position.X< -9999','Volley outside accepted'),('alpha<minimumCrossingHeight','alpha<10.2','Actual volley crossing height wrong'),('position.Y<=floorBallY','position.Y<=2.1','Volley landed above threshold'),('add("PommelCap",','add("PommelX",','Missing equipment part PommelCap'),('add("GuardCollar",','add("GuardX",','Missing equipment part GuardCollar'),('add("AcousticCone",','add("AcousticX",','Missing equipment part AcousticCone'),('add("TelemetrySpine",','add("TelemetryX",','Missing equipment part TelemetrySpine'),('add("AcousticCone",Vector3.new(.18,.18,.05),CFrame.new(0,.42,-.64),Color3.fromRGB(232,186,92),Enum.PartType.Ball)','add("AcousticCone",Vector3.new(.18,.18,.05),CFrame.new(0,.42,-.64),Color3.fromRGB(232,186,92))','AcousticCone shape wrong'),('local existing=character:FindFirstChild("MicroSpeakerAccessory")\n if not equipped then if existing then existing:Destroy() end;return end\n if existing then return end','local existing=character:FindFirstChild("MicroSpeakerAccessory")\n if not equipped then if existing then existing:Destroy() end;return end\n if false then return end','Equipment.Sync re-sync not idempotent'),('local existing=character:FindFirstChild("MicroSpeakerAccessory")\n if not equipped then if existing then existing:Destroy() end;return end','local existing=character:FindFirstChild("MicroSpeakerAccessory")\n if not equipped then return end','Equipment.Sync unequip did not destroy'),('part.CanQuery=false','part.CanQuery=true','Equipment part flags unsafe'),('weld.Part0=torso','weld.Part0=nil','Equipment weld missing hand'),('stroke.Name="ReadoutStroke"','stroke.Name="WrongStroke"','CourtReadout ReadoutStroke missing'),('stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border','stroke.ApplyStrokeMode=nil','CourtReadout ReadoutStroke ApplyStrokeMode wrong'),('stroke.Color=Color3.fromRGB(235,190,105)','stroke.Color=Color3.fromRGB(0,0,0)','CourtReadout ReadoutStroke color wrong'),('stroke.Thickness=1;stroke.Transparency=.4','stroke.Thickness=2;stroke.Transparency=.4','CourtReadout ReadoutStroke thickness wrong'),('stroke.Thickness=1;stroke.Transparency=.4','stroke.Thickness=1;stroke.Transparency=0','CourtReadout ReadoutStroke transparency wrong'),('stroke.Parent=text','stroke.Parent=gui','CourtReadout ReadoutStroke parent wrong')]:
+ for old,new,error in [('then padColor=spec.color;break end','then padColor=C.green;break end','Authoritative pad masks compact tier color'),('tier=table.clone(originalTier)','tier=originalTier','Trainer relocation did not clone tier'),('if layout.traffic~=false then','if true then','Legacy traffic created'),('resetMovement(p,s,h,r);running=false','running=false','Compact rescue retained own seat'),('if Config.ObjectDestruction==true then Destruction.Start','if true then Destruction.Start','Disabled destruction started'),('if Config.ObjectDestruction==true and obstruction then','if obstruction then','Disabled sustained destruction emitted target'),('Config.ObjectDestruction==true and Destruction.Damage','true and Destruction.Damage','Disabled legacy destruction damaged'),('nextPosition.X<minimum.X','nextPosition.X< -9999','Soccer outside accepted'),('position.X<minimum.X','position.X< -9999','Volley outside accepted'),('alpha<minimumCrossingHeight','alpha<10.2','Actual volley crossing height wrong'),('position.Y<=floorBallY','position.Y<=2.1','Volley landed above threshold'),('add("PommelCap",','add("PommelX",','Missing equipment part PommelCap'),('add("GuardCollar",','add("GuardX",','Missing equipment part GuardCollar'),('add("AcousticCone",','add("AcousticX",','Missing equipment part AcousticCone'),('add("TelemetrySpine",','add("TelemetryX",','Missing equipment part TelemetrySpine'),('add("AcousticCone",Vector3.new(.18,.18,.05),CFrame.new(0,.42,-.64),Color3.fromRGB(232,186,92),Enum.PartType.Ball)','add("AcousticCone",Vector3.new(.18,.18,.05),CFrame.new(0,.42,-.64),Color3.fromRGB(232,186,92))','AcousticCone shape wrong'),('local existing=character:FindFirstChild("MicroSpeakerAccessory")\n if not equipped then if existing then existing:Destroy() end;return end\n if existing then return end','local existing=character:FindFirstChild("MicroSpeakerAccessory")\n if not equipped then if existing then existing:Destroy() end;return end\n if false then return end','Equipment.Sync re-sync not idempotent'),('local existing=character:FindFirstChild("MicroSpeakerAccessory")\n if not equipped then if existing then existing:Destroy() end;return end','local existing=character:FindFirstChild("MicroSpeakerAccessory")\n if not equipped then return end','Equipment.Sync unequip did not destroy'),('part.CanQuery=false','part.CanQuery=true','Equipment part flags unsafe'),('weld.Part0=torso','weld.Part0=nil','Equipment weld missing hand'),('stroke.Name="ReadoutStroke"','stroke.Name="WrongStroke"','CourtReadout ReadoutStroke missing'),('stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border','stroke.ApplyStrokeMode=nil','CourtReadout ReadoutStroke ApplyStrokeMode wrong'),('stroke.Color=Color3.fromRGB(235,190,105)','stroke.Color=Color3.fromRGB(0,0,0)','CourtReadout ReadoutStroke color wrong'),('stroke.Thickness=1;stroke.Transparency=.4','stroke.Thickness=2;stroke.Transparency=.4','CourtReadout ReadoutStroke thickness wrong'),('stroke.Thickness=1;stroke.Transparency=.4','stroke.Thickness=1;stroke.Transparency=0','CourtReadout ReadoutStroke transparency wrong'),('stroke.Parent=text','stroke.Parent=gui','CourtReadout ReadoutStroke parent wrong'),('stroke.Name="CaptionStroke"','stroke.Name="WrongCaptionStroke"','SoccerChallenge CaptionStroke missing'),('stroke.Color=Color3.fromRGB(235,190,105);stroke.Thickness=1;stroke.Transparency=.4;stroke.Parent=label','stroke.Color=Color3.fromRGB(0,0,0);stroke.Thickness=1;stroke.Transparency=.4;stroke.Parent=label','SoccerChallenge CaptionStroke color wrong'),('stroke.Thickness=1;stroke.Transparency=.4;stroke.Parent=label','stroke.Thickness=2;stroke.Transparency=.4;stroke.Parent=label','SoccerChallenge CaptionStroke thickness wrong'),('stroke.Thickness=1;stroke.Transparency=.4;stroke.Parent=label','stroke.Thickness=1;stroke.Transparency=0;stroke.Parent=label','SoccerChallenge CaptionStroke transparency wrong'),('core.Name="WaterCore"..i','core.Name="WrongCore"..i','Fountain WaterCore missing'),('core.Width0=.06;core.Width1=.1','core.Width0=.2;core.Width1=.1','Fountain WaterCore width wrong'),('core.Color=ColorSequence.new(Color3.fromRGB(245,253,255))','core.Color=ColorSequence.new(Color3.fromRGB(0,0,0))','Fountain WaterCore color wrong'),('core.Transparency=NumberSequence.new(.2)','core.Transparency=NumberSequence.new(.9)','Fountain WaterCore transparency wrong'),('stream.Color=ColorSequence.new(Color3.fromRGB(220,248,252),Color3.fromRGB(132,216,228))','stream.Color=ColorSequence.new(Color3.fromRGB(156,225,234))','Fountain WaterStream color wrong'),('NumberSequenceKeypoint.new(0,.15),NumberSequenceKeypoint.new(.7,.28),NumberSequenceKeypoint.new(1,.55)','NumberSequenceKeypoint.new(0,.15),NumberSequenceKeypoint.new(1,.55)','Fountain WaterStream transparency keypoints wrong'),('NumberSequenceKeypoint.new(.7,.28)','NumberSequenceKeypoint.new(.7,.9)','Fountain WaterStream keypoint 2 wrong'),('border.Name="MuralBorder"','border.Name="WrongBorder"','StreetArt MuralBorder missing'),('border.Thickness=3;border.Transparency=.25','border.Thickness=1;border.Transparency=.25','StreetArt MuralBorder thickness wrong'),('border.Thickness=3;border.Transparency=.25','border.Thickness=3;border.Transparency=0','StreetArt MuralBorder transparency wrong'),('shape("MuralAccent",335,92,132,4,colors.sun,true)','shape("WrongAccent",335,92,132,4,colors.sun,true)','StreetArt MuralAccent missing'),('shape("MuralAccent",335,92,132,4,colors.sun,true)','shape("MuralAccent",335,92,100,4,colors.sun,true)','StreetArt MuralAccent geometry wrong'),('shape("MuralAccent",335,92,132,4,colors.sun,true)','shape("MuralAccent",335,92,132,4,colors.sun,false)','StreetArt MuralAccent corner missing')]:
   changed=code.replace(old,new);assert changed!=code,old;run(changed,error)
 client=read('src/StarterPlayer/StarterPlayerScripts/Client.client.luau')
 assert 'Next destruction tier:' not in client and 'All destruction tiers unlocked' not in client,'UI advertises disabled destruction tiers'

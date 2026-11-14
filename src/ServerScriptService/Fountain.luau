@@ -62,8 +62,14 @@ function Install.create(template,parent,origin)
   stream.Attachment0=start;stream.Attachment1=finish
   stream.Width0=.16;stream.Width1=.24;stream.CurveSize0=2;stream.CurveSize1=7
   stream.Segments=12;stream.FaceCamera=true
-  stream.Color=ColorSequence.new(Color3.fromRGB(156,225,234))
-  stream.Transparency=NumberSequence.new(.3);stream.LightInfluence=.7;stream.Parent=collider
+  stream.Color=ColorSequence.new(Color3.fromRGB(220,248,252),Color3.fromRGB(132,216,228))
+  stream.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,.15),NumberSequenceKeypoint.new(.7,.28),NumberSequenceKeypoint.new(1,.55)});stream.LightInfluence=.7;stream.Parent=collider
+  local core=Instance.new("Beam");core.Name="WaterCore"..i
+  core.Attachment0=start;core.Attachment1=finish
+  core.Width0=.06;core.Width1=.1;core.CurveSize0=2;core.CurveSize1=7
+  core.Segments=12;core.FaceCamera=true
+  core.Color=ColorSequence.new(Color3.fromRGB(245,253,255))
+  core.Transparency=NumberSequence.new(.2);core.LightInfluence=.4;core.Parent=collider
  end
  m.Parent=parent
  game:GetService("CollectionService"):AddTag(m,"OptionalLandmarkVisual")

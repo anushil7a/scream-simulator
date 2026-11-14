@@ -22,8 +22,10 @@ local function sphere(parent,name,size,color)
  local p=Instance.new("Part");p.Name=name;p.Shape=Enum.PartType.Ball;p.Size=V(size,size,size);p.Color=color;p.Material=Enum.Material.SmoothPlastic;p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.Parent=parent;return p
 end
 local function caption(part,text)
- local gui=Instance.new("BillboardGui");gui.Size=UDim2.fromOffset(190,38);gui.StudsOffset=V(0,3,0);gui.MaxDistance=35;gui.Parent=part
- local label=Instance.new("TextLabel");label.BackgroundTransparency=1;label.Size=UDim2.fromScale(1,1);label.Font=Enum.Font.GothamBold;label.TextSize=13;label.TextColor3=Color3.new(1,1,1);label.TextStrokeTransparency=.3;label.Text=text;label.Parent=gui
+ local gui=Instance.new("BillboardGui");gui.Name="ChallengeCaption";gui.Size=UDim2.fromOffset(190,38);gui.StudsOffset=V(0,3,0);gui.MaxDistance=35;gui.Parent=part
+ local label=Instance.new("TextLabel");label.BackgroundColor3=Color3.fromRGB(25,48,51);label.BackgroundTransparency=.12;label.Size=UDim2.fromScale(1,1);label.Font=Enum.Font.GothamBold;label.TextSize=13;label.TextColor3=Color3.fromRGB(255,239,205);label.TextStrokeTransparency=.3;label.TextWrapped=true;label.Text=text;label.Parent=gui
+ local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=label
+ local stroke=Instance.new("UIStroke");stroke.Name="CaptionStroke";stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;stroke.Color=Color3.fromRGB(235,190,105);stroke.Thickness=1;stroke.Transparency=.4;stroke.Parent=label
 end
 local function target(run,now)
  if run.phase=="Dribble" then return gates[run.stage] end

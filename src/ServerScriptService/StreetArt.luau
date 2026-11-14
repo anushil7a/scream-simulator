@@ -15,7 +15,8 @@ function Art.create(parent,cf,width,coastal)
   if round then local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(.5,0);corner.Parent=f end
   return f
  end
- shape("Paper",0,0,512,160,colors.sand)
+ local paper=shape("Paper",0,0,512,160,colors.sand)
+ local border=Instance.new("UIStroke");border.Name="MuralBorder";border.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;border.Color=colors.ink;border.Thickness=3;border.Transparency=.25;border.Parent=paper
  shape("Sun",34,22,94,94,colors.sun,true)
  if coastal then
   shape("Horizon",0,94,512,66,colors.teal)
@@ -40,6 +41,7 @@ function Art.create(parent,cf,width,coastal)
  title.Position=UDim2.fromOffset(335,24);title.Size=UDim2.fromOffset(157,64)
  title.Font=Enum.Font.GothamBold;title.TextColor3=colors.ink;title.TextSize=26;title.TextWrapped=true
  title.Text=coastal and "SOL I MAR" or "VIU EL BARRI";title.Parent=canvas
+ shape("MuralAccent",335,92,132,4,colors.sun,true)
  return wall
 end
 return Art
