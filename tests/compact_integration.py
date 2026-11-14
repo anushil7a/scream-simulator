@@ -302,6 +302,16 @@ do
   check(model.destroyed==true and character:FindFirstChild('MicroSpeakerAccessory')==nil,'Equipment.Sync unequip did not destroy')
   Equipment.Sync(player,false)
   check(character:FindFirstChild('MicroSpeakerAccessory')==nil,'Equipment.Sync double unequip failed')
+  Equipment.SyncMegaphone(player,true)
+  local mega=character:FindFirstChild('AcademyMegaphoneAccessory')
+  check(mega~=nil and #mega._children==13,'Equipment.SyncMegaphone did not build 13 parts for '..handName)
+  for _,p in ipairs(mega._children)do
+   check(p.CanCollide==false and p.CanTouch==false and p.CanQuery==false and p.Massless==true,'Megaphone part collision/massless invalid: '..p.Name)
+  end
+  Equipment.SyncMegaphone(player,true)
+  check(character:FindFirstChild('AcademyMegaphoneAccessory')==mega and #mega._children==13,'Equipment.SyncMegaphone re-sync not idempotent')
+  Equipment.SyncMegaphone(player,false)
+  check(mega.destroyed==true and character:FindFirstChild('AcademyMegaphoneAccessory')==nil,'Equipment.SyncMegaphone unequip did not destroy')
  end
  testRig('RightHand',Vector3.new(1,1,1),CFrame.new(10,5,2))
  testRig('Right Arm',Vector3.new(1,2,1),CFrame.new(-4,6,3))

@@ -24,7 +24,7 @@ Config.XPToNext=function()return 100 end;Config.GetDeliveryStop=function()end
 Config.HealthForLevel=function()return 100 end
 local function parts()end
 local Soccer={Status=function()end};local QuestGuide={Step=function()end}
-local Equipment={Sync=function()end};local TrainingRules={Recommended=function()return {name='Rookie'}end}
+local Equipment={Sync=function()end,SyncMegaphone=function()end};local TrainingRules={Recommended=function()return {name='Rookie'}end}
 local Entitlements={HasSpectrum=function()return false end,HasMovement=function()return false end}
 local Access={IsAuthorized=function()return false end};local game={}
 local RunService={IsStudio=function()return false end}

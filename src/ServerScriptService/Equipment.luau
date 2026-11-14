@@ -8,26 +8,51 @@ local function piece(model,torso,name,size,offset,color,shape)
  local weld=Instance.new("WeldConstraint");weld.Part0=torso;weld.Part1=part;weld.Parent=part
  return part
 end
-function Equipment.Sync(player,equipped)
+local function syncAccessory(player,equipped,modelName,build)
  local character=player.Character;if not character then return end
- local existing=character:FindFirstChild("MicroSpeakerAccessory")
+ local existing=character:FindFirstChild(modelName)
  if not equipped then if existing then existing:Destroy() end;return end
  if existing then return end
  local hand=character:FindFirstChild("RightHand") or character:FindFirstChild("Right Arm");if not hand then return end
- local model=Instance.new("Model");model.Name="MicroSpeakerAccessory"
+ local model=Instance.new("Model");model.Name=modelName
  -- R15 grips at the palm; R6 grips at the end of its full-length arm.
  local grip=CFrame.new(0,-hand.Size.Y/2+.15,-.25)
  local function add(name,size,offset,color,shape) return piece(model,hand,name,size,grip*offset,color,shape) end
- add("Grip",Vector3.new(.25,.6,.25),CFrame.new(0,0,0),Color3.fromRGB(46,57,64))
- add("Enclosure",Vector3.new(.72,.78,.5),CFrame.new(0,.42,-.28),Color3.fromRGB(38,56,62))
- add("GoldTrim",Vector3.new(.64,.7,.06),CFrame.new(0,.42,-.56),Color3.fromRGB(232,186,92))
- add("SpeakerGrille",Vector3.new(.54,.58,.06),CFrame.new(0,.42,-.6),Color3.fromRGB(36,42,47))
- for i=-2,2 do add("GrilleSlot",Vector3.new(.43,.025,.02),CFrame.new(0,.42+i*.1,-.64),Color3.fromRGB(98,117,120)) end
- add("StatusLight",Vector3.new(.08,.08,.04),CFrame.new(.23,.7,-.65),Color3.fromRGB(119,233,182),Enum.PartType.Ball).Material=Enum.Material.Neon
- add("PommelCap",Vector3.new(.29,.08,.29),CFrame.new(0,-.32,0),Color3.fromRGB(232,186,92))
- add("GuardCollar",Vector3.new(.34,.08,.32),CFrame.new(0,.22,-.08),Color3.fromRGB(238,230,207))
- add("AcousticCone",Vector3.new(.18,.18,.05),CFrame.new(0,.42,-.64),Color3.fromRGB(232,186,92),Enum.PartType.Ball)
- add("TelemetrySpine",Vector3.new(.22,.56,.06),CFrame.new(0,.42,-.02),Color3.fromRGB(238,230,207))
+ build(add)
  model.Parent=character
+end
+function Equipment.Sync(player,equipped)
+ syncAccessory(player,equipped,"MicroSpeakerAccessory",function(add)
+  add("Grip",Vector3.new(.25,.6,.25),CFrame.new(0,0,0),Color3.fromRGB(46,57,64))
+  add("Enclosure",Vector3.new(.72,.78,.5),CFrame.new(0,.42,-.28),Color3.fromRGB(38,56,62))
+  add("GoldTrim",Vector3.new(.64,.7,.06),CFrame.new(0,.42,-.56),Color3.fromRGB(232,186,92))
+  add("SpeakerGrille",Vector3.new(.54,.58,.06),CFrame.new(0,.42,-.6),Color3.fromRGB(36,42,47))
+  for i=-2,2 do add("GrilleSlot",Vector3.new(.43,.025,.02),CFrame.new(0,.42+i*.1,-.64),Color3.fromRGB(98,117,120)) end
+  add("StatusLight",Vector3.new(.08,.08,.04),CFrame.new(.23,.7,-.65),Color3.fromRGB(119,233,182),Enum.PartType.Ball).Material=Enum.Material.Neon
+  add("PommelCap",Vector3.new(.29,.08,.29),CFrame.new(0,-.32,0),Color3.fromRGB(232,186,92))
+  add("GuardCollar",Vector3.new(.34,.08,.32),CFrame.new(0,.22,-.08),Color3.fromRGB(238,230,207))
+  add("AcousticCone",Vector3.new(.18,.18,.05),CFrame.new(0,.42,-.64),Color3.fromRGB(232,186,92),Enum.PartType.Ball)
+  add("TelemetrySpine",Vector3.new(.22,.56,.06),CFrame.new(0,.42,-.02),Color3.fromRGB(238,230,207))
+ end)
+end
+function Equipment.SyncMegaphone(player,equipped)
+ syncAccessory(player,equipped,"AcademyMegaphoneAccessory",function(add)
+  local cream,gold,brass=Color3.fromRGB(242,232,206),Color3.fromRGB(224,180,86),Color3.fromRGB(196,148,64)
+  local leather,stitch,cavity=Color3.fromRGB(122,74,42),Color3.fromRGB(214,186,140),Color3.fromRGB(48,38,28)
+  local rot=CFrame.Angles(0,math.pi/2,0)
+  add("Grip",Vector3.new(.22,.56,.22),CFrame.new(0,0,0),leather)
+  add("GripStitch",Vector3.new(.23,.36,.04),CFrame.new(0,0,.09),stitch)
+  add("PommelCap",Vector3.new(.26,.08,.26),CFrame.new(0,-.3,0),gold)
+  add("WristLoop",Vector3.new(.06,.34,.18),CFrame.new(0,-.46,.04),leather)
+  add("MountBracket",Vector3.new(.16,.18,.24),CFrame.new(0,.24,-.04),gold)
+  add("MouthpieceCollar",Vector3.new(.14,.32,.32),CFrame.new(0,.38,.12)*rot,gold,Enum.PartType.Cylinder)
+  add("RearCone",Vector3.new(.22,.44,.44),CFrame.new(0,.38,-.04)*rot,cream,Enum.PartType.Cylinder)
+  add("MidBand",Vector3.new(.06,.58,.58),CFrame.new(0,.38,-.16)*rot,gold,Enum.PartType.Cylinder)
+  add("MidCone",Vector3.new(.26,.64,.64),CFrame.new(0,.38,-.3)*rot,cream,Enum.PartType.Cylinder)
+  add("FrontCone",Vector3.new(.28,.86,.86),CFrame.new(0,.38,-.54)*rot,cream,Enum.PartType.Cylinder)
+  add("BellRim",Vector3.new(.09,.96,.96),CFrame.new(0,.38,-.7)*rot,gold,Enum.PartType.Cylinder)
+  add("BellCavity",Vector3.new(.04,.76,.76),CFrame.new(0,.38,-.73)*rot,cavity,Enum.PartType.Cylinder)
+  add("AcousticNose",Vector3.new(.22,.22,.22),CFrame.new(0,.38,-.68),brass,Enum.PartType.Ball)
+ end)
 end
 return Equipment

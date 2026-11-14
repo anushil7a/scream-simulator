@@ -26,6 +26,7 @@ Config.SprintRegenDelay = 1 -- continuous time without granted sprint before par
 Config.SpawnProtection = 5
 Config.MovementPassId = 0 -- Configure only after the owner creates the pass.
 Config.MicroSpeakerPrice = 1500
+Config.MegaphonePrice = 500
 Config.DodgeCooldown = 4
 Config.DodgeDuration = 0.6
 Config.DodgeDistance = 14

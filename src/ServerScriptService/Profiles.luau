@@ -33,7 +33,7 @@ local function wholeNumber(value, fallback, minimum, maximum)
 end
 
 function Profiles.Default()
-    return {schemaVersion=4,amplifierOwned=false,amplifierEquipped=false,achievements={},availableQuests={},coins=0,level=1,xp=0,sound="TinyAah",aura="Gold",quests={},combatChallenges={},settings={volume=0.55,reducedShake=false}}
+    return {schemaVersion=4,amplifierOwned=false,amplifierEquipped=false,megaphoneOwned=false,megaphoneEquipped=false,achievements={},availableQuests={},coins=0,level=1,xp=0,sound="TinyAah",aura="Gold",quests={},combatChallenges={},settings={volume=0.55,reducedShake=false}}
 end
 function Profiles.Sanitize(raw)
     local data=Profiles.Default()
@@ -46,6 +46,8 @@ function Profiles.Sanitize(raw)
     end
     data.amplifierOwned=raw.amplifierOwned==true
     data.amplifierEquipped=data.amplifierOwned and raw.amplifierEquipped==true
+    data.megaphoneOwned=raw.megaphoneOwned==true
+    data.megaphoneEquipped=data.megaphoneOwned and raw.megaphoneEquipped==true
     if type(raw.achievements)=="table" then
         for _,id in ipairs({"FoundNick","NickChampion","FirstBeam"}) do if raw.achievements[id]==true then data.achievements[id]=true end end
     end

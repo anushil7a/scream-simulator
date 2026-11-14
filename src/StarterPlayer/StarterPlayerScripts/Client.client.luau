@@ -379,7 +379,7 @@ local function lockContext(power)
  local origin=root and root.Position+Vector3.new(0,1,0)
  if root and head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
  return {character=character,position=root and root.Position,origin=origin,camera=workspace.CurrentCamera,
-  range=Config.VoiceCombat.Stats(data.level,power or mic.power,data.amplifierEquipped).range,
+  range=Config.VoiceCombat.Stats(data.level,power or mic.power,data.amplifierEquipped,data.megaphoneEquipped).range,
   now=workspace:GetServerTimeNow(),allowed=not clientDestroyed and windowFocused and not beamBlocked()
    and (not sustainedControl or sustainedControl.armed==true)}
 end
@@ -637,9 +637,9 @@ local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)
 ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)
 local function menuKey()
  local fields
- if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped}
+ if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped,megaphone=data.megaphoneEquipped}
  elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,challenges=data.combatChallenges,level=data.level}
- elseif selected=="Style" then fields={aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped}
+ elseif selected=="Style" then fields={aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped}
  elseif selected=="Shop" then fields={spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  else fields={} end
@@ -683,7 +683,7 @@ render=function()
    progress..=string.format("\nAt level %d: %d HP · %.1f max DPS",nextStyle.level,nextStats.health,nextStats.maxDps)
   end
   info(progress..string.format("\nNow: %d HP · %.1f max DPS",stats.health,stats.maxDps))
-  local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
+  local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped)
   local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs",data.level,maximum.maxDps,maximum.maxRange)
    or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs",data.level,maximum.damage,maximum.maxRange)
   info(combatSummary,narrow and 112 or 82)
@@ -746,6 +746,10 @@ render=function()
  elseif selected=="Style" then
   title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your beam effects."
   shopUsed=true;ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
+  local megaphoneCard=card(narrow and 142 or 90)
+  label(megaphoneCard,"ACADEMY MEGAPHONE",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
+  label(megaphoneCard,"+6% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
+  button(megaphoneCard,"Megaphone",data.megaphoneEquipped and "UNEQUIP" or data.megaphoneOwned and "EQUIP" or tostring(Config.MegaphonePrice or 500).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,narrow and 90 or 24),function() action:FireServer("Megaphone") end)
   local equipment=card(narrow and 142 or 90)
   label(equipment,"MICRO-SPEAKER",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
   label(equipment,"+12% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
@@ -1090,7 +1094,7 @@ connectClient(Run.RenderStepped,function(dt)
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
  meter.Visible=gameplayVisible;reticle.Visible=UIS.TouchEnabled and gameplayVisible
  local power=captureSource and mic:CapturePower() or mic.power;meterFill.Size=UDim2.fromScale(power,1)
- local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
+ local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped).range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
  if sustainedControl then
@@ -1264,7 +1268,7 @@ connectClient(Run.RenderStepped,function(dt)
    local targetRoot=object:FindFirstChild("HumanoidRootPart");local humanoid=object:FindFirstChildOfClass("Humanoid")
    if root and targetRoot and humanoid then
     local canFight=Config.InArena(root.Position) and Config.InArena(targetRoot.Position)
-    local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
+    local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped).maxRange+2
     local currentFar=(targetRoot.Position-root.Position).Magnitude>range+2
     local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(root,targetRoot,object))
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
@@ -1274,14 +1278,14 @@ connectClient(Run.RenderStepped,function(dt)
    local npcRoot=object:FindFirstChild("HumanoidRootPart")
    if root and npcRoot then
     local distance=(npcRoot.Position-root.Position).Magnitude
-    local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
+    local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped).maxRange+2
     local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2,not far and targetCovered(root,npcRoot,object))
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then
    local required=object:GetAttribute("RequiredLevel");local hp=object:GetAttribute("ObjectHealth") or 0
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-   local rangeLimit=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange
+   local rangeLimit=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped).maxRange
    local far=root and (hit.Position-root.Position).Magnitude>rangeLimit+2
    local currentFar=root and (hit.Position-root.Position).Magnitude>range+2
    local kind=object:GetAttribute("ObjectName") or object:GetAttribute("DestructibleType") or object.Name

@@ -195,7 +195,7 @@ local title,subtitle={},{};local gold=accent;local infoTexts={};local narrow=fal
 local card,frame,label,button=ui.card,ui.frame,ui.label,ui.button
 local function info(text)table.insert(infoTexts,text)end
 local ShopUI={ColorMixer=function(data,ui,action)end}
-Config.MicroSpeakerPrice=100;Config.MovementPassId=0
+Config.MegaphonePrice=500;Config.MicroSpeakerPrice=100;Config.MovementPassId=0
 local function renderStyle(data)
  buttons={};actions={};labels={};infoTexts={}
 """
@@ -207,7 +207,7 @@ for _,small in ipairs({false,true})do
   for _,custom in ipairs({false,true})do
    local d={aura=aura,useCustomColor=custom,customColor='123456'};renderStyle(d)
    local count=0;for _ in pairs(buttons)do count+=1 end
-   check(count==2 and buttons.BaseColor and buttons.MicroSpeaker,'Free palette cards remain')
+   check(count==3 and buttons.BaseColor and buttons.Megaphone and buttons.MicroSpeaker,'Free palette cards remain')
    check(buttons.BaseColor.Text==((aura=='Gold' and not custom) and 'EQUIPPED' or 'USE YELLOW'),'Base selection status incorrect')
    check(d.aura==aura and d.customColor=='123456' and d.useCustomColor==custom,'Style render mutated saved selection')
    local legacy=false;for _,text in ipairs(infoTexts)do if string.find(text,'Your saved',1,true)then legacy=true end end

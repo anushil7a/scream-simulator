@@ -492,6 +492,7 @@ Config.SprintRegenDelay = 1 -- continuous time without granted sprint before par
 Config.SpawnProtection = 5
 Config.MovementPassId = 0 -- Configure only after the owner creates the pass.
 Config.MicroSpeakerPrice = 1500
+Config.MegaphonePrice = 500
 Config.DodgeCooldown = 4
 Config.DodgeDuration = 0.6
 Config.DodgeDistance = 14
@@ -1148,11 +1149,12 @@ local function progression(level)
   end
  end
 end
-function VoiceCombat.Stats(level, power, amplifier)
+function VoiceCombat.Stats(level, power, amplifier, megaphone)
  local l = VoiceCombat.Level(level)
  local health,maxDps = progression(l)
  local p = VoiceCombat.IsFinite(power) and math.clamp(power, 0, 1) or 0
  if amplifier then p = math.min(1, p * 1.12) end
+ if megaphone then p = math.min(1, p * 1.06) end
  local maximum = 30 + 0.25 * (l - 1)
  return {
   maxRange = maximum,
@@ -8355,10 +8357,11 @@ local function state(p,message,conversation,messageUrgent,messageKey)
  local deliveryStop=Config.GetDeliveryStop(s.deliveryStop)
  local step=QuestGuide.Step(quest,progress and progress.progress or 0,s.carrying,s.raceStart~=nil,soccer and soccer.detail,deliveryStop and deliveryStop.name)
  Equipment.Sync(p,s.data.amplifierEquipped)
+ Equipment.SyncMegaphone(p,s.data.megaphoneEquipped)
  stateRemote:FireClient(p,{coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
  shop=Commerce.Status(p),spectrumPass=Entitlements.HasSpectrum(p),customColor=s.data.customColor,useCustomColor=s.data.useCustomColor,
  combatChallenges=s.data.combatChallenges,training=TrainingRules.Recommended(s.data.level).name,milestone=s.milestone,
- amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
+ amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,megaphoneOwned=s.data.megaphoneOwned,megaphoneEquipped=s.data.megaphoneEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
  availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  voiceEligible=VoiceEligibility.Allowed(s.voiceEligibility,os.clock()),voiceStatus=VoiceEligibility.Status(s.voiceEligibility,os.clock()),
@@ -8576,7 +8579,7 @@ local function sustainedContext(p,s,now)
  local style=Config.GetSound(s.data.sound)
  if not style or style.level>s.data.level then return nil end
  return {player=p,character=c,origin=attackOrigin(c,r),position=r.Position,
-  level=s.data.level,amplifier=s.data.amplifierEquipped}
+  level=s.data.level,amplifier=s.data.amplifierEquipped,megaphone=s.data.megaphoneEquipped}
 end
 local function resolveSustained(ctx,direction,stats,now)
  local ids,details,dodged={},{},{}
@@ -8726,7 +8729,7 @@ local function cast(p,request)
  local delta=aim-origin
  if delta.Magnitude<.01 or delta.Magnitude>2048 then VoiceCombat.Cancel(s.voice);return end
  if not VoiceCombat.Release(s.voice,now,request.sequence,request.power,style~=nil and style.level<=s.data.level and canCapture(p,s,now)) then return end
- local sound=VoiceCombat.Stats(s.data.level,request.power,s.data.amplifierEquipped==true)
+ local sound=VoiceCombat.Stats(s.data.level,request.power,s.data.amplifierEquipped==true,s.data.megaphoneEquipped==true)
  local direction=delta.Unit
  s.nextCast=s.voice.nextCast;p:SetAttribute("ScreamReleased",workspace:GetServerTimeNow());p:SetAttribute("CaptureStarted",0)
  local obstruction=beamObstruction(c,origin,direction,sound.range,Players:GetPlayers())
@@ -8831,6 +8834,16 @@ local function closeConversation(p)
  if bot and bot.talkingTo==p then bot.talkingTo=nil;bot.socialUntil=0 end
  if s then s.conversationBot=nil end
 end
+local function megaphone(p,s,toggleOwned)
+ if s.data.megaphoneOwned then
+  if toggleOwned then s.data.megaphoneEquipped=not s.data.megaphoneEquipped
+  else state(p,"You already own the Academy megaphone. Equip it from Style.");return end
+ else
+  if s.data.coins<Config.MegaphonePrice then state(p,"Academy megaphone costs "..Config.MegaphonePrice.." coins. You need "..(Config.MegaphonePrice-s.data.coins).." more.",nil,true);return end
+  s.data.coins-=Config.MegaphonePrice;s.data.megaphoneOwned=true;s.data.megaphoneEquipped=true
+ end
+ state(p,s.data.megaphoneEquipped and "Academy megaphone equipped · +6% normalized power, capped at 100%" or "Academy megaphone unequipped")
+end
 local function microSpeaker(p,s,toggleOwned)
  if s.data.amplifierOwned then
   if toggleOwned then s.data.amplifierEquipped=not s.data.amplifierEquipped
@@ -8843,11 +8856,11 @@ local function microSpeaker(p,s,toggleOwned)
 end
 local function vendorPurchase(p,s,arg)
  local bot=s.conversationBot;local _,root=parts(p)
- if type(arg)~="table" or arg.product~="MicroSpeaker" or not bot or arg.npc~=bot.id or bot.role~="Vendor" or not bot.alive or not bot.root.Parent or bot.talkingTo~=p or (bot.socialUntil or 0)<=os.clock() or not root or not InteractionRules.CanReachNpc(p.Character,bot.model,14) then
+ if type(arg)~="table" or (arg.product~="MicroSpeaker" and arg.product~="Megaphone") or not bot or arg.npc~=bot.id or bot.role~="Vendor" or not bot.alive or not bot.root.Parent or bot.talkingTo~=p or (bot.socialUntil or 0)<=os.clock() or not root or not InteractionRules.CanReachNpc(p.Character,bot.model,14) then
   state(p,"Speak with the market vendor nearby before buying.",nil,true);return
  end
  -- No yielding between ownership check and debit: duplicate requests never charge twice.
- microSpeaker(p,s,false)
+ if arg.product=="Megaphone" then megaphone(p,s,false) else microSpeaker(p,s,false) end
 end
 local function talk(p,id)
  local s=sessions[p];local _,r=parts(p);if not s or not r or type(id)~="string" or os.clock()<(s.nextTalk or 0) then return end
@@ -8887,7 +8900,7 @@ local function talk(p,id)
    if q then table.insert(choices,{id=id,name=q.name,description=q.description,claimed=progress and progress.claimed==true,complete=progress and progress.progress>=q.goal}) end
   end
   local hints={Gardener="The raised flowerbeds in Rambla Gardens need water. Use the interaction prompt beside each bed after accepting my task.",Vendor="The café sends orders along the waterfront. Collect one, then check your objective for its destination.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker="Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
-  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices,products=b.role=="Vendor" and {{id="MicroSpeaker",name="Micro-speaker",price=Config.MicroSpeakerPrice,owned=s.data.amplifierOwned,description="Handheld amplifier · +12% normalized power, capped at 100%. Buy once with earned coins."}} or nil});return
+  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices,products=b.role=="Vendor" and {{id="Megaphone",name="Academy megaphone",price=Config.MegaphonePrice,owned=s.data.megaphoneOwned,description="Starter tin horn · +6% normalized power, capped at 100%. Buy once with earned coins."},{id="MicroSpeaker",name="Micro-speaker",price=Config.MicroSpeakerPrice,owned=s.data.amplifierOwned,description="Handheld amplifier · +12% normalized power, capped at 100%. Buy once with earned coins."}} or nil});return
  end end
 end
 local function dev(p,command)
@@ -9050,6 +9063,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="DevCommand" then dev(p,arg)
  elseif verb=="EquipSound" then local sound=type(arg)=="string" and Config.GetSound(arg);if sound and sound.level<=s.data.level then s.data.sound=sound.id;state(p,sound.name.." equipped") end
  elseif verb=="MicroSpeaker" then microSpeaker(p,s,true)
+ elseif verb=="Megaphone" then megaphone(p,s,true)
  elseif verb=="VendorPurchase" then vendorPurchase(p,s,arg)
  elseif verb=="ShopPurchase" then Commerce.Prompt(p,arg)
  elseif verb=="ActivateBoost" then Commerce.Activate(p,arg)
@@ -10840,27 +10854,52 @@ local function piece(model,torso,name,size,offset,color,shape)
  local weld=Instance.new("WeldConstraint");weld.Part0=torso;weld.Part1=part;weld.Parent=part
  return part
 end
-function Equipment.Sync(player,equipped)
+local function syncAccessory(player,equipped,modelName,build)
  local character=player.Character;if not character then return end
- local existing=character:FindFirstChild("MicroSpeakerAccessory")
+ local existing=character:FindFirstChild(modelName)
  if not equipped then if existing then existing:Destroy() end;return end
  if existing then return end
  local hand=character:FindFirstChild("RightHand") or character:FindFirstChild("Right Arm");if not hand then return end
- local model=Instance.new("Model");model.Name="MicroSpeakerAccessory"
+ local model=Instance.new("Model");model.Name=modelName
  -- R15 grips at the palm; R6 grips at the end of its full-length arm.
  local grip=CFrame.new(0,-hand.Size.Y/2+.15,-.25)
  local function add(name,size,offset,color,shape) return piece(model,hand,name,size,grip*offset,color,shape) end
- add("Grip",Vector3.new(.25,.6,.25),CFrame.new(0,0,0),Color3.fromRGB(46,57,64))
- add("Enclosure",Vector3.new(.72,.78,.5),CFrame.new(0,.42,-.28),Color3.fromRGB(38,56,62))
- add("GoldTrim",Vector3.new(.64,.7,.06),CFrame.new(0,.42,-.56),Color3.fromRGB(232,186,92))
- add("SpeakerGrille",Vector3.new(.54,.58,.06),CFrame.new(0,.42,-.6),Color3.fromRGB(36,42,47))
- for i=-2,2 do add("GrilleSlot",Vector3.new(.43,.025,.02),CFrame.new(0,.42+i*.1,-.64),Color3.fromRGB(98,117,120)) end
- add("StatusLight",Vector3.new(.08,.08,.04),CFrame.new(.23,.7,-.65),Color3.fromRGB(119,233,182),Enum.PartType.Ball).Material=Enum.Material.Neon
- add("PommelCap",Vector3.new(.29,.08,.29),CFrame.new(0,-.32,0),Color3.fromRGB(232,186,92))
- add("GuardCollar",Vector3.new(.34,.08,.32),CFrame.new(0,.22,-.08),Color3.fromRGB(238,230,207))
- add("AcousticCone",Vector3.new(.18,.18,.05),CFrame.new(0,.42,-.64),Color3.fromRGB(232,186,92),Enum.PartType.Ball)
- add("TelemetrySpine",Vector3.new(.22,.56,.06),CFrame.new(0,.42,-.02),Color3.fromRGB(238,230,207))
+ build(add)
  model.Parent=character
+end
+function Equipment.Sync(player,equipped)
+ syncAccessory(player,equipped,"MicroSpeakerAccessory",function(add)
+  add("Grip",Vector3.new(.25,.6,.25),CFrame.new(0,0,0),Color3.fromRGB(46,57,64))
+  add("Enclosure",Vector3.new(.72,.78,.5),CFrame.new(0,.42,-.28),Color3.fromRGB(38,56,62))
+  add("GoldTrim",Vector3.new(.64,.7,.06),CFrame.new(0,.42,-.56),Color3.fromRGB(232,186,92))
+  add("SpeakerGrille",Vector3.new(.54,.58,.06),CFrame.new(0,.42,-.6),Color3.fromRGB(36,42,47))
+  for i=-2,2 do add("GrilleSlot",Vector3.new(.43,.025,.02),CFrame.new(0,.42+i*.1,-.64),Color3.fromRGB(98,117,120)) end
+  add("StatusLight",Vector3.new(.08,.08,.04),CFrame.new(.23,.7,-.65),Color3.fromRGB(119,233,182),Enum.PartType.Ball).Material=Enum.Material.Neon
+  add("PommelCap",Vector3.new(.29,.08,.29),CFrame.new(0,-.32,0),Color3.fromRGB(232,186,92))
+  add("GuardCollar",Vector3.new(.34,.08,.32),CFrame.new(0,.22,-.08),Color3.fromRGB(238,230,207))
+  add("AcousticCone",Vector3.new(.18,.18,.05),CFrame.new(0,.42,-.64),Color3.fromRGB(232,186,92),Enum.PartType.Ball)
+  add("TelemetrySpine",Vector3.new(.22,.56,.06),CFrame.new(0,.42,-.02),Color3.fromRGB(238,230,207))
+ end)
+end
+function Equipment.SyncMegaphone(player,equipped)
+ syncAccessory(player,equipped,"AcademyMegaphoneAccessory",function(add)
+  local cream,gold,brass=Color3.fromRGB(242,232,206),Color3.fromRGB(224,180,86),Color3.fromRGB(196,148,64)
+  local leather,stitch,cavity=Color3.fromRGB(122,74,42),Color3.fromRGB(214,186,140),Color3.fromRGB(48,38,28)
+  local rot=CFrame.Angles(0,math.pi/2,0)
+  add("Grip",Vector3.new(.22,.56,.22),CFrame.new(0,0,0),leather)
+  add("GripStitch",Vector3.new(.23,.36,.04),CFrame.new(0,0,.09),stitch)
+  add("PommelCap",Vector3.new(.26,.08,.26),CFrame.new(0,-.3,0),gold)
+  add("WristLoop",Vector3.new(.06,.34,.18),CFrame.new(0,-.46,.04),leather)
+  add("MountBracket",Vector3.new(.16,.18,.24),CFrame.new(0,.24,-.04),gold)
+  add("MouthpieceCollar",Vector3.new(.14,.32,.32),CFrame.new(0,.38,.12)*rot,gold,Enum.PartType.Cylinder)
+  add("RearCone",Vector3.new(.22,.44,.44),CFrame.new(0,.38,-.04)*rot,cream,Enum.PartType.Cylinder)
+  add("MidBand",Vector3.new(.06,.58,.58),CFrame.new(0,.38,-.16)*rot,gold,Enum.PartType.Cylinder)
+  add("MidCone",Vector3.new(.26,.64,.64),CFrame.new(0,.38,-.3)*rot,cream,Enum.PartType.Cylinder)
+  add("FrontCone",Vector3.new(.28,.86,.86),CFrame.new(0,.38,-.54)*rot,cream,Enum.PartType.Cylinder)
+  add("BellRim",Vector3.new(.09,.96,.96),CFrame.new(0,.38,-.7)*rot,gold,Enum.PartType.Cylinder)
+  add("BellCavity",Vector3.new(.04,.76,.76),CFrame.new(0,.38,-.73)*rot,cavity,Enum.PartType.Cylinder)
+  add("AcousticNose",Vector3.new(.22,.22,.22),CFrame.new(0,.38,-.68),brass,Enum.PartType.Ball)
+ end)
 end
 return Equipment
 ]]></string>
@@ -10988,7 +11027,7 @@ local function wholeNumber(value, fallback, minimum, maximum)
 end
 
 function Profiles.Default()
-    return {schemaVersion=4,amplifierOwned=false,amplifierEquipped=false,achievements={},availableQuests={},coins=0,level=1,xp=0,sound="TinyAah",aura="Gold",quests={},combatChallenges={},settings={volume=0.55,reducedShake=false}}
+    return {schemaVersion=4,amplifierOwned=false,amplifierEquipped=false,megaphoneOwned=false,megaphoneEquipped=false,achievements={},availableQuests={},coins=0,level=1,xp=0,sound="TinyAah",aura="Gold",quests={},combatChallenges={},settings={volume=0.55,reducedShake=false}}
 end
 function Profiles.Sanitize(raw)
     local data=Profiles.Default()
@@ -11001,6 +11040,8 @@ function Profiles.Sanitize(raw)
     end
     data.amplifierOwned=raw.amplifierOwned==true
     data.amplifierEquipped=data.amplifierOwned and raw.amplifierEquipped==true
+    data.megaphoneOwned=raw.megaphoneOwned==true
+    data.megaphoneEquipped=data.megaphoneOwned and raw.megaphoneEquipped==true
     if type(raw.achievements)=="table" then
         for _,id in ipairs({"FoundNick","NickChampion","FirstBeam"}) do if raw.achievements[id]==true then data.achievements[id]=true end end
     end
@@ -11456,13 +11497,14 @@ function Adapter.new(Attack, Combat, directionFor)
   local power=validPower(request.power) and request.power or nil
   local level=context and Combat.Level(context.level) or 1
   local amplifier=context~=nil and context.amplifier==true
-  local stats=power and Combat.Stats(level,power,amplifier)
+  local megaphone=context~=nil and context.megaphone==true
+  local stats=power and Combat.Stats(level,power,amplifier,megaphone)
   local ok,reason,ended=Attack.Begin(s.protocol,now,request.sequence,
    Combat.Stats(level,1,false).maxDps,stats and stats.power,
    context~=nil and context.character~=nil and direction~=nil)
   if not s.protocol.active then clear(s) end
   if ok then
-   s.intent={character=context.character,level=level,amplifier=amplifier,aim=request.aim,sample=0}
+   s.intent={character=context.character,level=level,amplifier=amplifier,megaphone=megaphone,aim=request.aim,sample=0}
   end
   return ok,reason,ended
  end
@@ -11474,7 +11516,7 @@ function Adapter.new(Attack, Combat, directionFor)
   intent.sample=request.sample
   local allowed=context~=nil and context.character==intent.character
    and directionFor(context.origin,request.aim)~=nil
-  local power=validPower(request.power) and Combat.Stats(intent.level,request.power,intent.amplifier).power or nil
+  local power=validPower(request.power) and Combat.Stats(intent.level,request.power,intent.amplifier,intent.megaphone).power or nil
   local ok,reason,ended=Attack.Pulse(s.protocol,now,request.sequence,power,allowed)
   if ok then intent.aim=request.aim end
   if not s.protocol.active then clear(s) end
@@ -14187,7 +14229,7 @@ local function lockContext(power)
  local origin=root and root.Position+Vector3.new(0,1,0)
  if root and head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
  return {character=character,position=root and root.Position,origin=origin,camera=workspace.CurrentCamera,
-  range=Config.VoiceCombat.Stats(data.level,power or mic.power,data.amplifierEquipped).range,
+  range=Config.VoiceCombat.Stats(data.level,power or mic.power,data.amplifierEquipped,data.megaphoneEquipped).range,
   now=workspace:GetServerTimeNow(),allowed=not clientDestroyed and windowFocused and not beamBlocked()
    and (not sustainedControl or sustainedControl.armed==true)}
 end
@@ -14445,9 +14487,9 @@ local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)
 ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)
 local function menuKey()
  local fields
- if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped}
+ if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped,megaphone=data.megaphoneEquipped}
  elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,challenges=data.combatChallenges,level=data.level}
- elseif selected=="Style" then fields={aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped}
+ elseif selected=="Style" then fields={aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped}
  elseif selected=="Shop" then fields={spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  else fields={} end
@@ -14491,7 +14533,7 @@ render=function()
    progress..=string.format("\nAt level %d: %d HP · %.1f max DPS",nextStyle.level,nextStats.health,nextStats.maxDps)
   end
   info(progress..string.format("\nNow: %d HP · %.1f max DPS",stats.health,stats.maxDps))
-  local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
+  local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped)
   local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs",data.level,maximum.maxDps,maximum.maxRange)
    or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs",data.level,maximum.damage,maximum.maxRange)
   info(combatSummary,narrow and 112 or 82)
@@ -14554,6 +14596,10 @@ render=function()
  elseif selected=="Style" then
   title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your beam effects."
   shopUsed=true;ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
+  local megaphoneCard=card(narrow and 142 or 90)
+  label(megaphoneCard,"ACADEMY MEGAPHONE",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
+  label(megaphoneCard,"+6% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
+  button(megaphoneCard,"Megaphone",data.megaphoneEquipped and "UNEQUIP" or data.megaphoneOwned and "EQUIP" or tostring(Config.MegaphonePrice or 500).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,narrow and 90 or 24),function() action:FireServer("Megaphone") end)
   local equipment=card(narrow and 142 or 90)
   label(equipment,"MICRO-SPEAKER",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
   label(equipment,"+12% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
@@ -14898,7 +14944,7 @@ connectClient(Run.RenderStepped,function(dt)
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
  meter.Visible=gameplayVisible;reticle.Visible=UIS.TouchEnabled and gameplayVisible
  local power=captureSource and mic:CapturePower() or mic.power;meterFill.Size=UDim2.fromScale(power,1)
- local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
+ local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped).range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
  if sustainedControl then
@@ -15072,7 +15118,7 @@ connectClient(Run.RenderStepped,function(dt)
    local targetRoot=object:FindFirstChild("HumanoidRootPart");local humanoid=object:FindFirstChildOfClass("Humanoid")
    if root and targetRoot and humanoid then
     local canFight=Config.InArena(root.Position) and Config.InArena(targetRoot.Position)
-    local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
+    local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped).maxRange+2
     local currentFar=(targetRoot.Position-root.Position).Magnitude>range+2
     local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(root,targetRoot,object))
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
@@ -15082,14 +15128,14 @@ connectClient(Run.RenderStepped,function(dt)
    local npcRoot=object:FindFirstChild("HumanoidRootPart")
    if root and npcRoot then
     local distance=(npcRoot.Position-root.Position).Magnitude
-    local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
+    local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped).maxRange+2
     local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2,not far and targetCovered(root,npcRoot,object))
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then
    local required=object:GetAttribute("RequiredLevel");local hp=object:GetAttribute("ObjectHealth") or 0
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-   local rangeLimit=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange
+   local rangeLimit=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped).maxRange
    local far=root and (hit.Position-root.Position).Magnitude>rangeLimit+2
    local currentFar=root and (hit.Position-root.Position).Magnitude>range+2
    local kind=object:GetAttribute("ObjectName") or object:GetAttribute("DestructibleType") or object.Name
