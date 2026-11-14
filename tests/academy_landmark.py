@@ -30,9 +30,10 @@ end
 local function properties(node)
  local out={kind=node.ClassName};for k,v in pairs(node)do if k~='ClassName' and type(v)~='function'then out[k]=v end end;return serial(out)
 end
-local originals,added,byName={},{},{}
+local originals,added,foreground,byName={},{},{},{}
 for _,node in ipairs(current)do
  if node.Name and node.Name:match('^Academy')then table.insert(added,node);check(not byName[node.Name] or node.Name=='AcademyName','Duplicate landmark object');byName[node.Name]=node
+ elseif node.Name and node.Name:match('^Foreground')then table.insert(foreground,node);check(not byName[node.Name],'Duplicate foreground object');byName[node.Name]=node
  else table.insert(originals,node)end
 end
 check(#originals==#oldNodes,'Existing hierarchy count changed')
@@ -41,6 +42,12 @@ for i,node in ipairs(oldNodes)do
 end
 check(serial(oldResult)==serial(result),'City gameplay outputs changed')
 check(#added==22,'Expected only18parts/twosigns/twolabels')
+check(#foreground==38,'Expected38foreground dressing parts')
+for _,node in ipairs(foreground)do
+ check(next(node.attributes)==nil,'Foreground carries gameplay attributes')
+ check(node.ClassName=='Part' and node.Parent.Name=='CoastalAcademyArt' and node.Anchored==true and node.CanCollide==false and node.CanQuery==false and node.CanTouch==false and node.CastShadow==false,'Foreground changes physics/query/shadow')
+ check(node.Transparency==0 and node.Material==Enum.Material.SmoothPlastic,'Foreground hidden/emissive')
+end
 local parts,signs,texts=0,0,0;local faces={};local bars={[-1]=0,[1]=0}
 local nameplate=byName.AcademyNameplate
 for _,node in ipairs(added)do
@@ -69,8 +76,8 @@ for _,node in ipairs(added)do
 end
 check(parts==18 and signs==2 and texts==2 and bars[-1]==5 and bars[1]==5,'Landmark inventory/signals incomplete')
 local artCount=0;for _,node in ipairs(current)do if node.ClassName=='Part' and node.Parent.Name=='CoastalAcademyArt'then artCount+=1 end end
-check(artCount==309 and artCount<=350,'Art budget exceeded')
-print('PASS '..checks..' actual academy constructor/differential assertions;309parts, no native text-fit claim')
+check(artCount==347 and artCount<=348 and artCount<=350,'Art budget exceeded')
+print('PASS '..checks..' actual academy constructor/differential assertions;347parts, no native text-fit claim')
 '''
 
 def run(s):
@@ -89,6 +96,7 @@ if __name__=='__main__':
    ('text.Text="SCREAM ACADEMY"','text.Text="ACADEMY"','identity or text hierarchy'),
    ('V(-120,26,50),gold,Enum.PartType.Cylinder)','V(-120,26,50),gold,Enum.PartType.Ball)','round X-axis disk'),
    ('\n academyArt(parent,byId)\n','\n byId.ArenaGate30.CanCollide=false;academyArt(parent,byId)\n','Existing object changed'),
+   ('detail("ForegroundGatewayPillarN",V(2.4,8.5,2.4),V(-196,4.33,34),ivory)','local p=detail("ForegroundGatewayPillarN",V(2.4,8.5,2.4),V(-196,4.33,34),ivory);p.CanQuery=true','Foreground changes physics/query/shadow'),
   ]
   for old,new,reason in cases:
    assert source.count(old)==1,old

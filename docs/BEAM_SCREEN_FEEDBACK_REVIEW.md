@@ -1,5 +1,16 @@
 # Beam screen feedback
 
+## Visual clarity and cadence update (November 13)
+
+- **Diagonal X-hitmarker layout**: Replaced the four axis-aligned `6x2` hit ticks (`(-30,0)`, `(30,0)`, `(0,-30)`, `(0,30)`) — which aligned with the `+` crosshair arms and intersected the center of `ConfirmedDamage` and `aimInfo` — with four `±45°` diagonal `12x3` marks at `(±27, ±27)`. Every mark stays strictly outside the central 40px sightline across rest, onset, and animated decay.
+- **Impact pulse & launch taper**: Confirmed hits now snap in bright ivory (`Color3.fromRGB(255, 250, 224)`) at `0.6` transparency, kick radially outward from `27px` to `33px` offset while tapering from `12x3` to `8x3`, and warm to gold (`Color3.fromRGB(255, 214, 96)`) across the unchanged `0.25s` hit window (`0.35s` cooldown). Peripheral launch rays keep their `0.45s` `0.88 -> 1.0` alpha envelope while subtly retracting from `26x2` to `18x2`.
+- **Invariants preserved**: Same fixed 13-Frame pool (`root`, 8 `Launch` rays, 4 `Hit` marks), `Active=false`/`Selectable=false`/`Interactable=false`/`ZIndex=0`, `reduced`/hidden suppression, `Clear()`/`Destroy()` rest-state resets, and zero camera, aim, input, or transport modifications.
+- **Verification**:
+  - `luau-compile src/StarterPlayer/StarterPlayerScripts/BeamScreenFeedback.luau`: compiled cleanly.
+  - `python tests/beam_screen_feedback.py --negative-controls`: **121 module assertions + 14 negative controls + source contract** pass (mocked GUI/clock).
+  - `python tests/beam_screen_integration.py --negative-controls`: **88 actual Client integration assertions + 18 negative controls** pass (real `SustainedControls`/`HitFeedback`/`BeamScreenFeedback`, mocked GUI/world/audio).
+  - `python tests/build_beam_screen_review.py`: compiled and built disposable `build/BeamScreenReview.rbxl` (`nativeExecuted: false`; native Studio rendering/overlap remains unexecuted here).
+
 ## Native follow-up at b165525
 
 A later disposable Studio run passed **218 assertions / five cases** at 04:42:55.782 UTC. Actual feedback and reticle centers matched; native module alpha/expiry/geometry/cleanup checks passed using synthetic times and four synthetic sizes. The complete result summary and center row are retained; four detailed geometry rows were truncated by Studio logging and are **not** fully reconstructed. Independent review verified summaries and disk/source correspondence. This does not validate Client acknowledgement flow, real transport, animation quality, full gameplay HUD overlap, physical devices or performance. Earlier build-only statements below describe the initial checkpoint and are superseded only within this narrow native scope. [Native evidence](../tests/evidence/beam-minimap-native-2026-11-12.json).

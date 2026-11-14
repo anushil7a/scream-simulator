@@ -107,7 +107,7 @@ end
 check(equal(old.hud.Size,current.hud.Size) and current.hud.Size.X.Offset==242 and current.hud.Size.Y.Offset==94 and old.hud.BackgroundTransparency==current.hud.BackgroundTransparency,'HUD outer allocation changed')
 check(#current.nodes<=#old.nodes+8,'HUD decoration allocation grew unexpectedly')
 for _,node in ipairs(current.nodes)do
- check(node.ClassName=='Frame' or node.ClassName=='TextLabel' or node.ClassName=='UICorner' or node.ClassName=='UIStroke' or node.ClassName=='UIGradient','HUD added input/asset/independent object')
+ check(node.ClassName=='Frame' or node.ClassName=='TextLabel' or node.ClassName=='UICorner' or node.ClassName=='UIStroke' or node.ClassName=='UIGradient' or node.ClassName=='UITextSizeConstraint','HUD added input/asset/independent object')
  if node.ClassName=='Frame' or node.ClassName=='TextLabel'then
   check(not node.Active and not node.Selectable,'Passive HUD captures input')
   local r=rect(node);check(r.x>=0 and r.y>=0 and r.x+r.w<=242.001 and r.y+r.h<=94.001,'HUD descendant exceeds card bounds')
@@ -120,6 +120,12 @@ check(level.w==82 and level.h==24 and coin.w==128 and coin.h==24 and coin.x-(lev
 check(current.stats.TextXAlignment==2 and current.stats.TextColor3.R~=current.coins.TextColor3.R and current.coins.TextXAlignment==3 and not current.coins.TextWrapped,'Level/currency hierarchy changed')
 check(hp.w==204 and hp.h==18 and current.health.TextSize==14 and track.w==218 and track.h==8 and track.y>=hp.y+hp.h+1,'Health value/track lanes overlap or shrank')
 check(xp.w==204 and xp.h==19 and current.xp.TextSize==12 and xp.y>=track.y+track.h+2 and xpTrack.y>=xp.y+xp.h+2,'XP warning lane shrank or overlaps health')
+check(current.xp.TextScaled==true,'XP warning label does not scale to fit')
+local xpConstraint
+for _,node in ipairs(current.nodes)do
+ if node.ClassName=='UITextSizeConstraint' and node.Parent==current.xp then xpConstraint=node end
+end
+check(xpConstraint and xpConstraint.MaxTextSize==12 and xpConstraint.MinTextSize==9,'XP warning text size constraint missing or misbounded')
 check(equal(old.hf.BackgroundColor3,current.hf.BackgroundColor3) and equal(old.xf.BackgroundColor3,current.xf.BackgroundColor3),'Health/XP semantic colors changed')
 print('PASS',checks,'actual HUD/baseline/data/geometry/passive assertions; mocked replication/allocations, native fit separate')
 '''
@@ -186,6 +192,9 @@ def main():
             ('UDim2.fromOffset(218,8),UDim2.fromOffset(12,51)', 'UDim2.fromOffset(218,8),UDim2.fromOffset(12,45)', 'Health value/track lanes overlap or shrank'),
             ('UDim2.new(1,-38,0,19),UDim2.fromOffset(26,61)', 'UDim2.new(1,-38,0,14),UDim2.fromOffset(26,61)', 'XP warning lane shrank or overlaps health'),
             ('UDim2.fromOffset(128,24),UDim2.fromOffset(102,8)', 'UDim2.fromOffset(150,24),UDim2.fromOffset(102,8)', 'HUD descendant exceeds card bounds'),
+            ('xpText.TextScaled=true', 'xpText.TextScaled=false', 'XP warning label does not scale to fit'),
+            ('xpScale.MaxTextSize=12;xpScale.MinTextSize=9', 'xpScale.MaxTextSize=10;xpScale.MinTextSize=9', 'XP warning text size constraint missing or misbounded'),
+            ('xpScale.Parent=xpText', 'xpScale.Parent=hud', 'XP warning text size constraint missing or misbounded'),
         ]
         for old, new, expected in cases:
             assert source.count(old) == 1, old

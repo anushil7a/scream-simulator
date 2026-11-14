@@ -47,3 +47,22 @@ The next native practice view cleared the target but made the single-line header
 ## Final native inspection (November13)
 
 Coordinator inspected `visual-practice-approved.jpg` and `visual-arena-header.jpg`: headers are readable at the sampled approach distances; the practice target, coach and gate are unobscured. Both actual labels report TextFits=true. The farther arena capture was outside the unchanged65-stud sign distance; closer capture shows both lines without changing source. After moving the actual avatar near the arena, surrounding facades streamed in and the earlier camera-only floating-cornice appearance disappeared. No global streaming policy was changed. This remains an early coherent coastal art pass with broad open foreground, not a finished dense city or measured first-player navigation result. Original archive is untouched. See [evidence](../tests/evidence/visual-lock-checkpoint-2026-11-13.json).
+
+## Foreground & promenade dressing pass (November 13, 309 -> 347 parts)
+
+Starting from the 309-part `CoastalAcademyArt` baseline (which includes the 18 `Academy*` overhead landmark parts added after the initial 304-part pass and the retirement of the 13 `Practice*` / `StandLine` parts), `CompactCity.academyArt` adds 38 static cosmetic `Foreground*` Parts inside `CoastalAcademyArt`, bringing the total to **347** parts (strictly `<= 348` and under the 350-piece ceiling):
+
+- **Spawn-to-Arena & Training Lantern Bollards (16 parts):** `ForegroundBollardPost1..8` (`slate`) and `ForegroundBollardLantern1..8` (`gold`) flanking `RouteFromSpawn` (`X=-280/-260, Z=114/74`), the training approach (`X=-255/-235, Z=28`), and the arena avenue (`X=-156, Z=40/60`), staying outside all 8-stud route strips and below `Y=5.13`.
+- **Spawn Plaza & Promenade Curb Trim (10 parts):** Flush terracotta/ivory spawn plaza framing (`ForegroundPlazaTrimW/E/S`, `ForegroundPlazaAccentS`) outside `RouteFromSpawn`, plus four low promenade north-edge curbs (`ForegroundPromenadeCurb1..4`) and two threshold inlays (`ForegroundPromenadeInlay1..2`) leaving `WestWalk` and `EastWalk` unobstructed.
+- **Courtyard Planter Islands (8 parts):** Two low sculptural terracotta/ivory/olive planter islands (`ForegroundPlanterBase1..2`, `ForegroundPlanterRim1..2`, `ForegroundPlanterFoliage1..2`, `ForegroundPlanterAccent1..2`) centered at `X=-304` and `X=-230`, `Z=92` (`Y<=3.05`), giving midground mass without crossing routes or sightlines.
+- **Hub Gateway Pilasters (4 parts):** Paired ivory/terracotta gateway pillars (`ForegroundGatewayPillarN/S`, `ForegroundGatewayCapN/S`) at `X=-196, Z=34/66` (`Y<=9.48`), framing the `RouteToArena` approach without any overhead span or obstruction to the `Y>=12` `ArenaWayfinding` and `AcademyNameplate` headers.
+
+All 38 `Foreground*` parts are `Anchored=true`, `CanCollide=false`, `CanQuery=false`, `CanTouch=false`, `CastShadow=false`, `Transparency=0`, with zero gameplay attributes, zero lights/emitters, and zero per-frame updates. No physical geometry, spawn, training pads, NPC stations, shot corridors, or the 24,581-cell static reachability grid changed.
+
+### Post-edit verification (mocked constructors & compilation; not native Studio render)
+- `luau-compile src/ServerScriptService/CompactCity.luau`: compiled cleanly (exit 0).
+- `python tests/coastal_art.py --negative-controls --baseline`: 2,601 assertions pass, 347 static cosmetic parts (38 `Foreground*`), pinned `09e0996` / `EXPECTED` original-part inventory fingerprint matches, and all 9 negative controls rejected.
+- `python tests/academy_landmark.py --negative-controls`: 751 assertions pass (347 parts, 18 `Academy*` parts, 38 `Foreground*` parts, 1-for-1 `5622daa` hierarchy differential preserved), and all 8 negative controls rejected.
+- `python tests/compact_world.py --negative-controls`: 1,710 constructor assertions, 47 targets over 24,581 connected clearance cells, and all 16 negative controls pass.
+- `python tests/compact_integration.py --negative-controls`: 122 integration assertions and all 11 negative controls pass.
+- `python tests/compact_guidance.py --negative-controls`: 81 navigation-copy assertions and all 4 negative controls pass.

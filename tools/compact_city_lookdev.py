@@ -27,7 +27,7 @@ end end
  for line in result.stdout.splitlines():
   if line.startswith('GEOM|'):
    _,name,*values=line.split('|');v=list(map(float,values));parts.append({'name':name,'position':v[:3],'size':v[3:6],'color':[x/255 for x in v[6:9]],'transparency':v[9]})
- assert 0<len(parts)<400
+ assert 0<len(parts)<600
  assert all((R/f).read_bytes()==b for f,b in snapshots.items()),'Source changed during export; recapture required'
  out.mkdir(parents=True,exist_ok=True);(out/'geometry.json').write_text(json.dumps(parts,indent=2))
  manifest={'sources':{f:source_hashes[f] for f in FILES},'mockHarnessSha256':source_hashes['tests/compact_world.py'],'sourceSnapshotVerifiedUnchanged':True,'parts':len(parts),'export':'Actual CompactCity.Build and actual World trainer construction fragment with mocked Instances; no copied geometry coordinates','limits':['No NPCs, HUD, text labels, prompts or native lighting','Other World-added runtime geometry omitted','Axis-aligned cube geometry and proxy materials; not Roblox parity, physics, FPS or gameplay verification'],'nativeExecuted':False}
@@ -46,11 +46,12 @@ def worker(out):
   bpy.ops.mesh.primitive_cube_add(size=1,location=xyz(p['position']));obj=bpy.context.object;obj.name=p['name'];sz=p['size'];obj.dimensions=(sz[0],sz[2],sz[1])
   key=(*p['color'],p['transparency'])
   if key not in materials:
-   m=bpy.data.materials.new('SourceColor');m.use_nodes=True;shader=m.node_tree.nodes.get('Principled BSDF');shader.inputs['Base Color'].default_value=(*p['color'],1);shader.inputs['Alpha'].default_value=1-p['transparency'];shader.inputs['Roughness'].default_value=.85;materials[key]=m
+   srgb=lambda c:c/12.92 if c<=.04045 else ((c+.055)/1.055)**2.4
+   m=bpy.data.materials.new('SourceColor');m.use_nodes=True;shader=m.node_tree.nodes.get('Principled BSDF');shader.inputs['Base Color'].default_value=(*(srgb(c) for c in p['color']),1);shader.inputs['Alpha'].default_value=1-p['transparency'];shader.inputs['Roughness'].default_value=.85;materials[key]=m
   obj.data.materials.append(materials[key])
  bpy.ops.object.light_add(type='SUN',location=(0,0,300));sun=bpy.context.object;sun.rotation_euler=(.4,-.5,-.3);sun.data.energy=2
  bpy.ops.object.camera_add();cam=bpy.context.object;scene.camera=cam
- views=[('overview',(650,650,700),(0,0,0),True),('spawn',(-270,10,145),(-270,5,65),False),('practice',(-250,8,65),(-281,6,65),False),('arena',(-175,10,50),(-100,7,50),False)]
+ views=[('overview',(650,650,700),(0,0,0),True),('spawn',(-270,14,162),(-270,3,75),False),('practice',(-250,8,65),(-281,6,65),False),('arena',(-228,14,50),(-120,11,50),False)]
  for name,pos,target,ortho in views:
   cam.location=xyz(pos);cam.rotation_euler=(Vector(xyz(target))-cam.location).to_track_quat('-Z','Y').to_euler();cam.data.type='ORTHO' if ortho else 'PERSP';cam.data.ortho_scale=1400;cam.data.lens=28;cam.data.clip_end=5000
   scene.render.filepath=str(out/(name+'.png'));bpy.ops.render.render(write_still=True)

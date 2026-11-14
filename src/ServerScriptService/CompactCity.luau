@@ -145,6 +145,35 @@ local function academyArt(parent,byId)
   detail("CoverTop"..i,V(11.8,.06,11.8),V(pos.X,6.04,pos.Z),ivory)
   detail("CoverFront"..i,V(10,.5,.08),V(pos.X,4.8,pos.Z-6.02),gold)
  end
+ -- Foreground courtyard, spawn plaza, and promenade dressing (38 static cosmetic parts).
+ -- Positioned outside route strips, pads, NPC stations, and overhead sign sightlines.
+ for i,pos in ipairs({
+  V(-280,0,114),V(-260,0,114),V(-280,0,74),V(-260,0,74),
+  V(-255,0,28),V(-235,0,28),V(-156,0,40),V(-156,0,60),
+ }) do
+  detail("ForegroundBollardPost"..i,V(1.1,4.2,1.1),V(pos.X,2.18,pos.Z),slate)
+  detail("ForegroundBollardLantern"..i,V(1.5,.85,1.5),V(pos.X,4.705,pos.Z),gold)
+ end
+ detail("ForegroundPlazaTrimW",V(1.2,.015,26),V(-288,.088,135),terracotta)
+ detail("ForegroundPlazaTrimE",V(1.2,.015,26),V(-252,.088,135),terracotta)
+ detail("ForegroundPlazaTrimS",V(37.2,.015,1.2),V(-270,.088,148),terracotta)
+ detail("ForegroundPlazaAccentS",V(32,.016,.5),V(-270,.089,146.5),ivory)
+ detail("ForegroundPromenadeCurb1",V(68,.28,1),V(-270,.22,179.4),terracotta)
+ detail("ForegroundPromenadeCurb2",V(114,.28,1),V(-107,.22,179.4),terracotta)
+ detail("ForegroundPromenadeCurb3",V(160,.28,1),V(40,.22,179.4),terracotta)
+ detail("ForegroundPromenadeCurb4",V(80,.28,1),V(170,.22,179.4),terracotta)
+ detail("ForegroundPromenadeInlay1",V(68,.014,.5),V(-270,.089,178.4),ivory)
+ detail("ForegroundPromenadeInlay2",V(114,.014,.5),V(-107,.089,178.4),ivory)
+ for i,cx in ipairs({-304,-230}) do
+  detail("ForegroundPlanterBase"..i,V(13,1.4,7),V(cx,.78,92),terracotta)
+  detail("ForegroundPlanterRim"..i,V(13.8,.35,7.8),V(cx,1.655,92),ivory)
+  detail("ForegroundPlanterFoliage"..i,V(11.4,1.1,5.4),V(cx,2.0,92),Color3.fromRGB(77,116,92))
+  detail("ForegroundPlanterAccent"..i,V(7.6,.6,2.8),V(cx,2.75,92),i==1 and Color3.fromRGB(221,131,142) or gold)
+ end
+ detail("ForegroundGatewayPillarN",V(2.4,8.5,2.4),V(-196,4.33,34),ivory)
+ detail("ForegroundGatewayPillarS",V(2.4,8.5,2.4),V(-196,4.33,66),ivory)
+ detail("ForegroundGatewayCapN",V(3,.9,3),V(-196,9.03,34),terracotta)
+ detail("ForegroundGatewayCapS",V(3,.9,3),V(-196,9.03,66),terracotta)
  -- Clear value hierarchy without lighting/post-effect changes.
  byId.ArenaFloor.Color=Color3.fromRGB(126,147,145)
  byId.HubPaving.Color=Color3.fromRGB(224,214,188)

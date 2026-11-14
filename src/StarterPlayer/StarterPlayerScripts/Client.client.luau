@@ -303,6 +303,8 @@ local function refreshHealth()
  hf.Size=UDim2.fromScale(current/maximum,1)
 end
 local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-38,0,19),UDim2.fromOffset(26,61),12,muted)
+xpText.TextScaled=true
+do local xpScale=Instance.new("UITextSizeConstraint");xpScale.Name="XPTextScale";xpScale.MaxTextSize=12;xpScale.MinTextSize=9;xpScale.Parent=xpText end
 local xf=frame(frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,82),panel),"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
 local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
