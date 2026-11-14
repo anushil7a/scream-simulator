@@ -1,0 +1,985 @@
+<?xml version='1.0' encoding='utf-8'?>
+<roblox version="4">
+  <Item class="Folder" referent="RBX_ROOT">
+    <Properties>
+      <string name="Name">HollowPurpleBeam</string>
+    </Properties>
+    <Item class="Part" referent="RBX_8">
+      <Properties>
+        <string name="Name">Hollow Purple</string>
+        <bool name="Anchored">true</bool>
+        <bool name="AudioCanCollide">true</bool>
+        <float name="BackParamA">-0.5</float>
+        <float name="BackParamB">0.5</float>
+        <token name="BackSurface">0</token>
+        <token name="BackSurfaceInput">0</token>
+        <float name="BottomParamA">-0.5</float>
+        <float name="BottomParamB">0.5</float>
+        <token name="BottomSurface">0</token>
+        <token name="BottomSurfaceInput">0</token>
+        <CoordinateFrame name="CFrame"><X>76.0</X><Y>9.500000953674316</Y><Z>-32.0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">true</bool>
+        <bool name="CastShadow">true</bool>
+        <string name="CollisionGroup">Default</string>
+        <int name="CollisionGroupId">0</int>
+        <bool name="EnableFluidForces">true</bool>
+        <float name="FrontParamA">-0.5</float>
+        <float name="FrontParamB">0.5</float>
+        <token name="FrontSurface">0</token>
+        <token name="FrontSurfaceInput">0</token>
+        <float name="LeftParamA">-0.5</float>
+        <float name="LeftParamB">0.5</float>
+        <token name="LeftSurface">0</token>
+        <token name="LeftSurfaceInput">0</token>
+        <bool name="Locked">false</bool>
+        <bool name="Massless">false</bool>
+        <token name="Material">256</token>
+        <string name="MaterialVariantSerialized"></string>
+        <CoordinateFrame name="PivotOffset"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+        <float name="Reflectance">0</float>
+        <float name="RightParamA">-0.5</float>
+        <float name="RightParamB">0.5</float>
+        <token name="RightSurface">0</token>
+        <token name="RightSurfaceInput">0</token>
+        <int name="RootPriority">0</int>
+        <Vector3 name="RotVelocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+        <float name="TopParamA">-0.5</float>
+        <float name="TopParamB">0.5</float>
+        <token name="TopSurface">0</token>
+        <token name="TopSurfaceInput">0</token>
+        <float name="Transparency">0</float>
+        <Vector3 name="Velocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+        <token name="formFactorRaw">1</token>
+        <token name="shape">1</token>
+        <Vector3 name="size"><X>0.0010000000474974513</X><Y>0.0010000000474974513</Y><Z>0.0010000000474974513</Z></Vector3>
+      </Properties>
+      <Item class="Attachment" referent="RBX_9">
+        <Properties>
+          <string name="Name">Attachment</string>
+          <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+          <bool name="Visible">false</bool>
+        </Properties>
+        <Item class="Part" referent="RBX_3">
+          <Properties>
+            <string name="Name">Part</string>
+            <bool name="Anchored">true</bool>
+            <bool name="AudioCanCollide">true</bool>
+            <float name="BackParamA">-0.5</float>
+            <float name="BackParamB">0.5</float>
+            <token name="BackSurface">0</token>
+            <token name="BackSurfaceInput">0</token>
+            <float name="BottomParamA">-0.5</float>
+            <float name="BottomParamB">0.5</float>
+            <token name="BottomSurface">0</token>
+            <token name="BottomSurfaceInput">0</token>
+            <CoordinateFrame name="CFrame"><X>76.0</X><Y>9.500000953674316</Y><Z>-53.0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+            <bool name="CanCollide">true</bool>
+            <bool name="CanQuery">true</bool>
+            <bool name="CanTouch">true</bool>
+            <bool name="CastShadow">true</bool>
+            <string name="CollisionGroup">Default</string>
+            <int name="CollisionGroupId">0</int>
+            <bool name="EnableFluidForces">true</bool>
+            <float name="FrontParamA">-0.5</float>
+            <float name="FrontParamB">0.5</float>
+            <token name="FrontSurface">0</token>
+            <token name="FrontSurfaceInput">0</token>
+            <float name="LeftParamA">-0.5</float>
+            <float name="LeftParamB">0.5</float>
+            <token name="LeftSurface">0</token>
+            <token name="LeftSurfaceInput">0</token>
+            <bool name="Locked">false</bool>
+            <bool name="Massless">false</bool>
+            <token name="Material">256</token>
+            <string name="MaterialVariantSerialized"></string>
+            <CoordinateFrame name="PivotOffset"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+            <float name="Reflectance">0</float>
+            <float name="RightParamA">-0.5</float>
+            <float name="RightParamB">0.5</float>
+            <token name="RightSurface">0</token>
+            <token name="RightSurfaceInput">0</token>
+            <int name="RootPriority">0</int>
+            <Vector3 name="RotVelocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+            <float name="TopParamA">-0.5</float>
+            <float name="TopParamB">0.5</float>
+            <token name="TopSurface">0</token>
+            <token name="TopSurfaceInput">0</token>
+            <float name="Transparency">1.0</float>
+            <Vector3 name="Velocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+            <token name="formFactorRaw">1</token>
+            <token name="shape">1</token>
+            <Vector3 name="size"><X>2.0</X><Y>3.0</Y><Z>42.0</Z></Vector3>
+          </Properties>
+          <Item class="ParticleEmitter" referent="RBX_4">
+            <Properties>
+              <string name="Name">Images/473ffd38-503d-4950-84ce-04c8504e0687</string>
+              <Vector3 name="Acceleration"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+              <float name="Brightness">20.0</float>
+              <ColorSequence name="Color">0 0.6117647290229797 0.29411765933036804 1.0 0 1.0 0.6117647290229797 0.29411765933036804 1.0 0 </ColorSequence>
+              <float name="Drag">0</float>
+              <token name="EmissionDirection">5</token>
+              <bool name="Enabled">true</bool>
+              <bool name="FlipbookBlendFrames">true</bool>
+              <NumberRange name="FlipbookFramerate">1.0 1.0 </NumberRange>
+              <token name="FlipbookLayout">2</token>
+              <token name="FlipbookMode">1</token>
+              <int name="FlipbookSizeX">1</int>
+              <int name="FlipbookSizeY">1</int>
+              <bool name="FlipbookStartRandom">false</bool>
+              <NumberRange name="Lifetime">0.30000001192092896 0.30000001192092896 </NumberRange>
+              <float name="LightEmission">-5.0</float>
+              <float name="LightInfluence">0</float>
+              <bool name="LockedToPart">false</bool>
+              <token name="Orientation">0</token>
+              <float name="Rate">20.0</float>
+              <NumberRange name="RotSpeed">0 0 </NumberRange>
+              <NumberRange name="Rotation">90.0 90.0 </NumberRange>
+              <token name="Shape">0</token>
+              <token name="ShapeInOut">0</token>
+              <float name="ShapePartial">1.0</float>
+              <token name="ShapeStyle">0</token>
+              <NumberSequence name="Size">0 1.1346156597137451 0 1.0 1.1346156597137451 0 </NumberSequence>
+              <NumberRange name="Speed">22.692317962646484 22.692317962646484 </NumberRange>
+              <Vector2 name="SpreadAngle"><X>0</X><Y>0</Y></Vector2>
+              <NumberSequence name="Squash">0 0 0 1.0 0 0 </NumberSequence>
+              <Content name="Texture"><url>rbxassetid://94781084807364</url></Content>
+              <float name="TimeScale">1.0</float>
+              <NumberSequence name="Transparency">0 0 0 1.0 0 0 </NumberSequence>
+              <float name="VelocityInheritance">0</float>
+              <bool name="WindAffectsDrag">false</bool>
+              <float name="ZOffset">0</float>
+            </Properties>
+          </Item>
+          <Item class="ParticleEmitter" referent="RBX_5">
+            <Properties>
+              <string name="Name">Images/15011456461</string>
+              <Vector3 name="Acceleration"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+              <float name="Brightness">20.0</float>
+              <ColorSequence name="Color">0 0.6117647290229797 0.29411765933036804 1.0 0 1.0 0.6117647290229797 0.29411765933036804 1.0 0 </ColorSequence>
+              <float name="Drag">0</float>
+              <token name="EmissionDirection">5</token>
+              <bool name="Enabled">true</bool>
+              <bool name="FlipbookBlendFrames">true</bool>
+              <NumberRange name="FlipbookFramerate">1.0 1.0 </NumberRange>
+              <token name="FlipbookLayout">2</token>
+              <token name="FlipbookMode">1</token>
+              <int name="FlipbookSizeX">1</int>
+              <int name="FlipbookSizeY">1</int>
+              <bool name="FlipbookStartRandom">false</bool>
+              <NumberRange name="Lifetime">0.30000001192092896 0.30000001192092896 </NumberRange>
+              <float name="LightEmission">-5.0</float>
+              <float name="LightInfluence">0</float>
+              <bool name="LockedToPart">false</bool>
+              <token name="Orientation">0</token>
+              <float name="Rate">20.0</float>
+              <NumberRange name="RotSpeed">0 0 </NumberRange>
+              <NumberRange name="Rotation">90.0 90.0 </NumberRange>
+              <token name="Shape">0</token>
+              <token name="ShapeInOut">0</token>
+              <float name="ShapePartial">1.0</float>
+              <token name="ShapeStyle">0</token>
+              <NumberSequence name="Size">0 1.1346156597137451 0 1.0 1.1346156597137451 0 </NumberSequence>
+              <NumberRange name="Speed">22.692317962646484 22.692317962646484 </NumberRange>
+              <Vector2 name="SpreadAngle"><X>0</X><Y>0</Y></Vector2>
+              <NumberSequence name="Squash">0 0 0 1.0 0 0 </NumberSequence>
+              <Content name="Texture"><url>rbxassetid://79998832137235</url></Content>
+              <float name="TimeScale">1.0</float>
+              <NumberSequence name="Transparency">0 0 0 1.0 0 0 </NumberSequence>
+              <float name="VelocityInheritance">0</float>
+              <bool name="WindAffectsDrag">false</bool>
+              <float name="ZOffset">0</float>
+            </Properties>
+          </Item>
+          <Item class="ParticleEmitter" referent="RBX_6">
+            <Properties>
+              <string name="Name">Images/ElectricitySprite</string>
+              <Vector3 name="Acceleration"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+              <float name="Brightness">20.0</float>
+              <ColorSequence name="Color">0 0.6117647290229797 0.29411765933036804 1.0 0 1.0 0.6117647290229797 0.29411765933036804 1.0 0 </ColorSequence>
+              <float name="Drag">0</float>
+              <token name="EmissionDirection">5</token>
+              <bool name="Enabled">true</bool>
+              <bool name="FlipbookBlendFrames">true</bool>
+              <NumberRange name="FlipbookFramerate">1.0 1.0 </NumberRange>
+              <token name="FlipbookLayout">2</token>
+              <token name="FlipbookMode">1</token>
+              <int name="FlipbookSizeX">1</int>
+              <int name="FlipbookSizeY">1</int>
+              <bool name="FlipbookStartRandom">false</bool>
+              <NumberRange name="Lifetime">0.30000001192092896 0.30000001192092896 </NumberRange>
+              <float name="LightEmission">-5.0</float>
+              <float name="LightInfluence">0</float>
+              <bool name="LockedToPart">false</bool>
+              <token name="Orientation">0</token>
+              <float name="Rate">20.0</float>
+              <NumberRange name="RotSpeed">0 0 </NumberRange>
+              <NumberRange name="Rotation">90.0 90.0 </NumberRange>
+              <token name="Shape">0</token>
+              <token name="ShapeInOut">0</token>
+              <float name="ShapePartial">1.0</float>
+              <token name="ShapeStyle">0</token>
+              <NumberSequence name="Size">0 4.0 0 1.0 4.0 0 </NumberSequence>
+              <NumberRange name="Speed">0 0 </NumberRange>
+              <Vector2 name="SpreadAngle"><X>0</X><Y>0</Y></Vector2>
+              <NumberSequence name="Squash">0 0 0 1.0 0 0 </NumberSequence>
+              <Content name="Texture"><url>rbxassetid://127905207342396</url></Content>
+              <float name="TimeScale">1.0</float>
+              <NumberSequence name="Transparency">0 0 0 1.0 0 0 </NumberSequence>
+              <float name="VelocityInheritance">0</float>
+              <bool name="WindAffectsDrag">false</bool>
+              <float name="ZOffset">0</float>
+            </Properties>
+          </Item>
+          <Item class="ParticleEmitter" referent="RBX_7">
+            <Properties>
+              <string name="Name">Images/Imagestxa_plightning1</string>
+              <Vector3 name="Acceleration"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+              <float name="Brightness">20.0</float>
+              <ColorSequence name="Color">0 0.6117647290229797 0.29411765933036804 1.0 0 1.0 0.6117647290229797 0.29411765933036804 1.0 0 </ColorSequence>
+              <float name="Drag">0</float>
+              <token name="EmissionDirection">5</token>
+              <bool name="Enabled">true</bool>
+              <bool name="FlipbookBlendFrames">true</bool>
+              <NumberRange name="FlipbookFramerate">1.0 1.0 </NumberRange>
+              <token name="FlipbookLayout">2</token>
+              <token name="FlipbookMode">1</token>
+              <int name="FlipbookSizeX">1</int>
+              <int name="FlipbookSizeY">1</int>
+              <bool name="FlipbookStartRandom">false</bool>
+              <NumberRange name="Lifetime">0.30000001192092896 0.30000001192092896 </NumberRange>
+              <float name="LightEmission">-5.0</float>
+              <float name="LightInfluence">0</float>
+              <bool name="LockedToPart">false</bool>
+              <token name="Orientation">0</token>
+              <float name="Rate">20.0</float>
+              <NumberRange name="RotSpeed">0 0 </NumberRange>
+              <NumberRange name="Rotation">90.0 90.0 </NumberRange>
+              <token name="Shape">0</token>
+              <token name="ShapeInOut">0</token>
+              <float name="ShapePartial">1.0</float>
+              <token name="ShapeStyle">0</token>
+              <NumberSequence name="Size">0 4.0 0 1.0 4.0 0 </NumberSequence>
+              <NumberRange name="Speed">0 0 </NumberRange>
+              <Vector2 name="SpreadAngle"><X>0</X><Y>0</Y></Vector2>
+              <NumberSequence name="Squash">0 0 0 1.0 0 0 </NumberSequence>
+              <Content name="Texture"><url>rbxassetid://137634638920986</url></Content>
+              <float name="TimeScale">1.0</float>
+              <NumberSequence name="Transparency">0 0 0 1.0 0 0 </NumberSequence>
+              <float name="VelocityInheritance">0</float>
+              <bool name="WindAffectsDrag">false</bool>
+              <float name="ZOffset">0</float>
+            </Properties>
+          </Item>
+        </Item>
+        <Item class="Beam" referent="RBX_10">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_9</Ref>
+            <Ref name="Attachment1">RBX_15</Ref>
+            <float name="Brightness">10.0</float>
+            <ColorSequence name="Color">0 0.27450981736183167 0.18039216101169586 1.0 0 0.2987910211086273 0.2933952808380127 0.16800826787948608 1.0 0 0.5250431895256042 0.6431372761726379 0.0235294122248888 1.0 0 0.6649395227432251 0.2910374402999878 0.16955436766147614 1.0 0 1.0 0.27450981736183167 0.18039216101169586 1.0 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">0</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://107624017803706</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">1.600000023841858</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29195088148117065 0 0 0.7012278437614441 0 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">2.2692313194274902</float>
+            <float name="Width1">1.1346156597137451</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_11">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_9</Ref>
+            <Ref name="Attachment1">RBX_15</Ref>
+            <float name="Brightness">10.0</float>
+            <ColorSequence name="Color">0 0.27450981736183167 0.18039216101169586 1.0 0 0.2987910211086273 0.2933952808380127 0.16800826787948608 1.0 0 0.5250431895256042 0.6431372761726379 0.0235294122248888 1.0 0 0.6649395227432251 0.2910374402999878 0.16955436766147614 1.0 0 1.0 0.27450981736183167 0.18039216101169586 1.0 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">0</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://13135259077</url></Content>
+            <float name="TextureLength">3.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">4.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29195088148117065 0 0 0.7012278437614441 0 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">6.807690143585205</float>
+            <float name="Width1">2.2692313194274902</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_12">
+          <Properties>
+            <string name="Name">Beam1</string>
+            <Ref name="Attachment0">RBX_9</Ref>
+            <Ref name="Attachment1">RBX_15</Ref>
+            <float name="Brightness">3.0</float>
+            <ColorSequence name="Color">0 0.27450981736183167 0.18039216101169586 1.0 0 0.2987910211086273 0.2933952808380127 0.16800826787948608 1.0 0 0.5250431895256042 0.5137255191802979 0.0235294122248888 1.0 0 0.6649395227432251 0.2910374402999878 0.16955436766147614 1.0 0 1.0 0.27450981736183167 0.18039216101169586 1.0 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">0.4000000059604645</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">4</int>
+            <Content name="Texture"><url>rbxassetid://9988507605</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">2.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29604366421699524 0.5 0 0.7012278437614441 0.48750001192092896 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">6.807690143585205</float>
+            <float name="Width1">6.807690143585205</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_13">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_9</Ref>
+            <Ref name="Attachment1">RBX_15</Ref>
+            <float name="Brightness">10.0</float>
+            <ColorSequence name="Color">0 0.27450981736183167 0.18039216101169586 1.0 0 0.2987910211086273 0.2933952808380127 0.16800826787948608 1.0 0 0.5250431895256042 0.6431372761726379 0.0235294122248888 1.0 0 0.6649395227432251 0.2910374402999878 0.16955436766147614 1.0 0 1.0 0.27450981736183167 0.18039216101169586 1.0 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">0</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://10816141940</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">2.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29740792512893677 0 0 0.698499321937561 0 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">3.4038450717926025</float>
+            <float name="Width1">2.2692313194274902</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_14">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_9</Ref>
+            <Ref name="Attachment1">RBX_15</Ref>
+            <float name="Brightness">10.0</float>
+            <ColorSequence name="Color">0 0.27450981736183167 0.18039216101169586 1.0 0 0.2987910211086273 0.2933952808380127 0.16800826787948608 1.0 0 0.5250431895256042 0.6431372761726379 0.0235294122248888 1.0 0 0.6649395227432251 0.2910374402999878 0.16955436766147614 1.0 0 1.0 0.27450981736183167 0.18039216101169586 1.0 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">0</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://12781852245</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">2.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29604366421699524 0.5 0 0.7012278437614441 0.48750001192092896 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">13.61538028717041</float>
+            <float name="Width1">5.673079490661621</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Attachment" referent="RBX_15">
+        <Properties>
+          <string name="Name">Attachment</string>
+          <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>-44.0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+          <bool name="Visible">false</bool>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Part" referent="RBX_16">
+      <Properties>
+        <string name="Name">Amplified</string>
+        <bool name="Anchored">true</bool>
+        <bool name="AudioCanCollide">true</bool>
+        <float name="BackParamA">-0.5</float>
+        <float name="BackParamB">0.5</float>
+        <token name="BackSurface">0</token>
+        <token name="BackSurfaceInput">0</token>
+        <float name="BottomParamA">-0.5</float>
+        <float name="BottomParamB">0.5</float>
+        <token name="BottomSurface">0</token>
+        <token name="BottomSurfaceInput">0</token>
+        <CoordinateFrame name="CFrame"><X>64.0</X><Y>9.166369438171387</Y><Z>-32.0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">true</bool>
+        <bool name="CastShadow">true</bool>
+        <string name="CollisionGroup">Default</string>
+        <int name="CollisionGroupId">0</int>
+        <bool name="EnableFluidForces">true</bool>
+        <float name="FrontParamA">-0.5</float>
+        <float name="FrontParamB">0.5</float>
+        <token name="FrontSurface">0</token>
+        <token name="FrontSurfaceInput">0</token>
+        <float name="LeftParamA">-0.5</float>
+        <float name="LeftParamB">0.5</float>
+        <token name="LeftSurface">0</token>
+        <token name="LeftSurfaceInput">0</token>
+        <bool name="Locked">false</bool>
+        <bool name="Massless">false</bool>
+        <token name="Material">256</token>
+        <string name="MaterialVariantSerialized"></string>
+        <CoordinateFrame name="PivotOffset"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+        <float name="Reflectance">0</float>
+        <float name="RightParamA">-0.5</float>
+        <float name="RightParamB">0.5</float>
+        <token name="RightSurface">0</token>
+        <token name="RightSurfaceInput">0</token>
+        <int name="RootPriority">0</int>
+        <Vector3 name="RotVelocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+        <float name="TopParamA">-0.5</float>
+        <float name="TopParamB">0.5</float>
+        <token name="TopSurface">0</token>
+        <token name="TopSurfaceInput">0</token>
+        <float name="Transparency">0</float>
+        <Vector3 name="Velocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+        <token name="formFactorRaw">1</token>
+        <token name="shape">1</token>
+        <Vector3 name="size"><X>0.0010000000474974513</X><Y>0.0010000000474974513</Y><Z>0.0010000000474974513</Z></Vector3>
+      </Properties>
+      <Item class="Attachment" referent="RBX_17">
+        <Properties>
+          <string name="Name">Attachment</string>
+          <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+          <bool name="Visible">false</bool>
+        </Properties>
+        <Item class="Part" referent="RBX_0">
+          <Properties>
+            <string name="Name">Part</string>
+            <bool name="Anchored">true</bool>
+            <bool name="AudioCanCollide">true</bool>
+            <float name="BackParamA">-0.5</float>
+            <float name="BackParamB">0.5</float>
+            <token name="BackSurface">0</token>
+            <token name="BackSurfaceInput">0</token>
+            <float name="BottomParamA">-0.5</float>
+            <float name="BottomParamB">0.5</float>
+            <token name="BottomSurface">0</token>
+            <token name="BottomSurfaceInput">0</token>
+            <CoordinateFrame name="CFrame"><X>64.0</X><Y>9.166369438171387</Y><Z>-53.0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+            <bool name="CanCollide">true</bool>
+            <bool name="CanQuery">true</bool>
+            <bool name="CanTouch">true</bool>
+            <bool name="CastShadow">true</bool>
+            <string name="CollisionGroup">Default</string>
+            <int name="CollisionGroupId">0</int>
+            <bool name="EnableFluidForces">true</bool>
+            <float name="FrontParamA">-0.5</float>
+            <float name="FrontParamB">0.5</float>
+            <token name="FrontSurface">0</token>
+            <token name="FrontSurfaceInput">0</token>
+            <float name="LeftParamA">-0.5</float>
+            <float name="LeftParamB">0.5</float>
+            <token name="LeftSurface">0</token>
+            <token name="LeftSurfaceInput">0</token>
+            <bool name="Locked">false</bool>
+            <bool name="Massless">false</bool>
+            <token name="Material">256</token>
+            <string name="MaterialVariantSerialized"></string>
+            <CoordinateFrame name="PivotOffset"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+            <float name="Reflectance">0</float>
+            <float name="RightParamA">-0.5</float>
+            <float name="RightParamB">0.5</float>
+            <token name="RightSurface">0</token>
+            <token name="RightSurfaceInput">0</token>
+            <int name="RootPriority">0</int>
+            <Vector3 name="RotVelocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+            <float name="TopParamA">-0.5</float>
+            <float name="TopParamB">0.5</float>
+            <token name="TopSurface">0</token>
+            <token name="TopSurfaceInput">0</token>
+            <float name="Transparency">1.0</float>
+            <Vector3 name="Velocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+            <token name="formFactorRaw">1</token>
+            <token name="shape">1</token>
+            <Vector3 name="size"><X>2.0</X><Y>3.0</Y><Z>42.0</Z></Vector3>
+          </Properties>
+          <Item class="ParticleEmitter" referent="RBX_1">
+            <Properties>
+              <string name="Name">ParticleEmitter</string>
+              <Vector3 name="Acceleration"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+              <float name="Brightness">500.0</float>
+              <ColorSequence name="Color">0 0.2549019753932953 0.7176470756530762 0.7254902124404907 0 1.0 0.2549019753932953 0.7176470756530762 0.7254902124404907 0 </ColorSequence>
+              <float name="Drag">0</float>
+              <token name="EmissionDirection">5</token>
+              <bool name="Enabled">true</bool>
+              <bool name="FlipbookBlendFrames">true</bool>
+              <NumberRange name="FlipbookFramerate">1.0 1.0 </NumberRange>
+              <token name="FlipbookLayout">0</token>
+              <token name="FlipbookMode">0</token>
+              <int name="FlipbookSizeX">1</int>
+              <int name="FlipbookSizeY">1</int>
+              <bool name="FlipbookStartRandom">false</bool>
+              <NumberRange name="Lifetime">0.20000000298023224 0.20000000298023224 </NumberRange>
+              <float name="LightEmission">-5.0</float>
+              <float name="LightInfluence">0</float>
+              <bool name="LockedToPart">false</bool>
+              <token name="Orientation">0</token>
+              <float name="Rate">20.0</float>
+              <NumberRange name="RotSpeed">0 0 </NumberRange>
+              <NumberRange name="Rotation">0 0 </NumberRange>
+              <token name="Shape">0</token>
+              <token name="ShapeInOut">0</token>
+              <float name="ShapePartial">1.0</float>
+              <token name="ShapeStyle">0</token>
+              <NumberSequence name="Size">0 0.5615382790565491 0 1.0 0.5615382790565491 0 </NumberSequence>
+              <NumberRange name="Speed">28.076927185058594 28.076927185058594 </NumberRange>
+              <Vector2 name="SpreadAngle"><X>0</X><Y>0</Y></Vector2>
+              <NumberSequence name="Squash">0 0 0 1.0 1.3606557846069336 0 </NumberSequence>
+              <Content name="Texture"><url>rbxassetid://2450830110</url></Content>
+              <float name="TimeScale">1.0</float>
+              <NumberSequence name="Transparency">0 0 0 1.0 0 0 </NumberSequence>
+              <float name="VelocityInheritance">0</float>
+              <bool name="WindAffectsDrag">false</bool>
+              <float name="ZOffset">0</float>
+            </Properties>
+          </Item>
+          <Item class="Attachment" referent="RBX_2">
+            <Properties>
+              <string name="Name">Attachment</string>
+              <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>11.0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+              <bool name="Visible">false</bool>
+            </Properties>
+          </Item>
+        </Item>
+        <Item class="Beam" referent="RBX_18">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_17</Ref>
+            <Ref name="Attachment1">RBX_22</Ref>
+            <float name="Brightness">35.0</float>
+            <ColorSequence name="Color">0 0.12941177189350128 0.4000000059604645 0.7254902124404907 0 0.1727115660905838 0.12814845144748688 0.42416107654571533 0.7365443110466003 0 0.5146805047988892 0.09803921729326248 1.0 1.0 0 0.787564754486084 0.12773707509040833 0.43202847242355347 0.7401437759399414 0 1.0 0.12941177189350128 0.4000000059604645 0.7254902124404907 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">0.4000000059604645</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://107624017803706</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">1.600000023841858</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29195088148117065 0 0 0.7012278437614441 0 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">2.807691812515259</float>
+            <float name="Width1">1.4038459062576294</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_19">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_17</Ref>
+            <Ref name="Attachment1">RBX_22</Ref>
+            <float name="Brightness">10.0</float>
+            <ColorSequence name="Color">0 0.12941177189350128 0.4000000059604645 0.7254902124404907 0 0.1727115660905838 0.12814845144748688 0.42416107654571533 0.7365443110466003 0 0.5146805047988892 0.09803921729326248 1.0 1.0 0 0.787564754486084 0.12773707509040833 0.43202847242355347 0.7401437759399414 0 1.0 0.12941177189350128 0.4000000059604645 0.7254902124404907 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">0.4000000059604645</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://10816141940</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">2.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29740792512893677 0 0 0.698499321937561 0 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">4.211538791656494</float>
+            <float name="Width1">2.807691812515259</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_20">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_17</Ref>
+            <Ref name="Attachment1">RBX_22</Ref>
+            <float name="Brightness">10.0</float>
+            <ColorSequence name="Color">0 0.12941177189350128 0.4000000059604645 0.7254902124404907 0 0.1727115660905838 0.12814845144748688 0.42416107654571533 0.7365443110466003 0 0.5146805047988892 0.09803921729326248 1.0 1.0 0 0.787564754486084 0.12773707509040833 0.43202847242355347 0.7401437759399414 0 1.0 0.12941177189350128 0.4000000059604645 0.7254902124404907 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">0.4000000059604645</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://13135259077</url></Content>
+            <float name="TextureLength">3.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">4.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29195088148117065 0 0 0.7012278437614441 0 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">8.423077583312988</float>
+            <float name="Width1">2.807691812515259</float>
+            <float name="ZOffset">0.699999988079071</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_21">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_17</Ref>
+            <Ref name="Attachment1">RBX_22</Ref>
+            <float name="Brightness">10.0</float>
+            <ColorSequence name="Color">0 0.12941177189350128 0.4000000059604645 0.7254902124404907 0 0.1727115660905838 0.12814845144748688 0.42416107654571533 0.7365443110466003 0 0.5146805047988892 0.09803921729326248 1.0 1.0 0 0.787564754486084 0.12773707509040833 0.43202847242355347 0.7401437759399414 0 1.0 0.12941177189350128 0.4000000059604645 0.7254902124404907 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">0.4000000059604645</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://12781852245</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">2.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29604366421699524 0.5 0 0.7012278437614441 0.48750001192092896 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">16.846155166625977</float>
+            <float name="Width1">7.019231796264648</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Attachment" referent="RBX_22">
+        <Properties>
+          <string name="Name">Attachment</string>
+          <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>-43.0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+          <bool name="Visible">false</bool>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Part" referent="RBX_26">
+      <Properties>
+        <string name="Name">Reversal</string>
+        <bool name="Anchored">true</bool>
+        <bool name="AudioCanCollide">true</bool>
+        <float name="BackParamA">-0.5</float>
+        <float name="BackParamB">0.5</float>
+        <token name="BackSurface">0</token>
+        <token name="BackSurfaceInput">0</token>
+        <float name="BottomParamA">-0.5</float>
+        <float name="BottomParamB">0.5</float>
+        <token name="BottomSurface">0</token>
+        <token name="BottomSurfaceInput">0</token>
+        <CoordinateFrame name="CFrame"><X>87.0</X><Y>9.500000953674316</Y><Z>-32.0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+        <bool name="CanCollide">true</bool>
+        <bool name="CanQuery">true</bool>
+        <bool name="CanTouch">true</bool>
+        <bool name="CastShadow">true</bool>
+        <string name="CollisionGroup">Default</string>
+        <int name="CollisionGroupId">0</int>
+        <bool name="EnableFluidForces">true</bool>
+        <float name="FrontParamA">-0.5</float>
+        <float name="FrontParamB">0.5</float>
+        <token name="FrontSurface">0</token>
+        <token name="FrontSurfaceInput">0</token>
+        <float name="LeftParamA">-0.5</float>
+        <float name="LeftParamB">0.5</float>
+        <token name="LeftSurface">0</token>
+        <token name="LeftSurfaceInput">0</token>
+        <bool name="Locked">false</bool>
+        <bool name="Massless">false</bool>
+        <token name="Material">256</token>
+        <string name="MaterialVariantSerialized"></string>
+        <CoordinateFrame name="PivotOffset"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+        <float name="Reflectance">0</float>
+        <float name="RightParamA">-0.5</float>
+        <float name="RightParamB">0.5</float>
+        <token name="RightSurface">0</token>
+        <token name="RightSurfaceInput">0</token>
+        <int name="RootPriority">0</int>
+        <Vector3 name="RotVelocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+        <float name="TopParamA">-0.5</float>
+        <float name="TopParamB">0.5</float>
+        <token name="TopSurface">0</token>
+        <token name="TopSurfaceInput">0</token>
+        <float name="Transparency">0</float>
+        <Vector3 name="Velocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+        <token name="formFactorRaw">1</token>
+        <token name="shape">1</token>
+        <Vector3 name="size"><X>0.0010000000474974513</X><Y>0.0010000000474974513</Y><Z>0.0010000000474974513</Z></Vector3>
+      </Properties>
+      <Item class="Attachment" referent="RBX_27">
+        <Properties>
+          <string name="Name">Attachment</string>
+          <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+          <bool name="Visible">false</bool>
+        </Properties>
+        <Item class="Part" referent="RBX_23">
+          <Properties>
+            <string name="Name">Part</string>
+            <bool name="Anchored">true</bool>
+            <bool name="AudioCanCollide">true</bool>
+            <float name="BackParamA">-0.5</float>
+            <float name="BackParamB">0.5</float>
+            <token name="BackSurface">0</token>
+            <token name="BackSurfaceInput">0</token>
+            <float name="BottomParamA">-0.5</float>
+            <float name="BottomParamB">0.5</float>
+            <token name="BottomSurface">0</token>
+            <token name="BottomSurfaceInput">0</token>
+            <CoordinateFrame name="CFrame"><X>87.0</X><Y>9.500000953674316</Y><Z>-53.0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+            <bool name="CanCollide">true</bool>
+            <bool name="CanQuery">true</bool>
+            <bool name="CanTouch">true</bool>
+            <bool name="CastShadow">true</bool>
+            <string name="CollisionGroup">Default</string>
+            <int name="CollisionGroupId">0</int>
+            <bool name="EnableFluidForces">true</bool>
+            <float name="FrontParamA">-0.5</float>
+            <float name="FrontParamB">0.5</float>
+            <token name="FrontSurface">0</token>
+            <token name="FrontSurfaceInput">0</token>
+            <float name="LeftParamA">-0.5</float>
+            <float name="LeftParamB">0.5</float>
+            <token name="LeftSurface">0</token>
+            <token name="LeftSurfaceInput">0</token>
+            <bool name="Locked">false</bool>
+            <bool name="Massless">false</bool>
+            <token name="Material">256</token>
+            <string name="MaterialVariantSerialized"></string>
+            <CoordinateFrame name="PivotOffset"><X>0</X><Y>0</Y><Z>0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+            <float name="Reflectance">0</float>
+            <float name="RightParamA">-0.5</float>
+            <float name="RightParamB">0.5</float>
+            <token name="RightSurface">0</token>
+            <token name="RightSurfaceInput">0</token>
+            <int name="RootPriority">0</int>
+            <Vector3 name="RotVelocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+            <float name="TopParamA">-0.5</float>
+            <float name="TopParamB">0.5</float>
+            <token name="TopSurface">0</token>
+            <token name="TopSurfaceInput">0</token>
+            <float name="Transparency">1.0</float>
+            <Vector3 name="Velocity"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+            <token name="formFactorRaw">1</token>
+            <token name="shape">1</token>
+            <Vector3 name="size"><X>2.0</X><Y>3.0</Y><Z>42.0</Z></Vector3>
+          </Properties>
+          <Item class="ParticleEmitter" referent="RBX_24">
+            <Properties>
+              <string name="Name">Images/473ffd38-503d-4950-84ce-04c8504e0687</string>
+              <Vector3 name="Acceleration"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+              <float name="Brightness">20.0</float>
+              <ColorSequence name="Color">0 1.0 0.14901961386203766 0.16470588743686676 0 1.0 1.0 0.14901961386203766 0.16470588743686676 0 </ColorSequence>
+              <float name="Drag">0</float>
+              <token name="EmissionDirection">5</token>
+              <bool name="Enabled">true</bool>
+              <bool name="FlipbookBlendFrames">true</bool>
+              <NumberRange name="FlipbookFramerate">1.0 1.0 </NumberRange>
+              <token name="FlipbookLayout">2</token>
+              <token name="FlipbookMode">1</token>
+              <int name="FlipbookSizeX">1</int>
+              <int name="FlipbookSizeY">1</int>
+              <bool name="FlipbookStartRandom">false</bool>
+              <NumberRange name="Lifetime">0.30000001192092896 0.30000001192092896 </NumberRange>
+              <float name="LightEmission">0</float>
+              <float name="LightInfluence">0</float>
+              <bool name="LockedToPart">false</bool>
+              <token name="Orientation">0</token>
+              <float name="Rate">20.0</float>
+              <NumberRange name="RotSpeed">0 0 </NumberRange>
+              <NumberRange name="Rotation">90.0 90.0 </NumberRange>
+              <token name="Shape">0</token>
+              <token name="ShapeInOut">0</token>
+              <float name="ShapePartial">1.0</float>
+              <token name="ShapeStyle">0</token>
+              <NumberSequence name="Size">0 0.5 0 1.0 0.5 0 </NumberSequence>
+              <NumberRange name="Speed">20.0 20.0 </NumberRange>
+              <Vector2 name="SpreadAngle"><X>0</X><Y>0</Y></Vector2>
+              <NumberSequence name="Squash">0 0 0 1.0 0 0 </NumberSequence>
+              <Content name="Texture"><url>http://www.roblox.com/asset/?id=12156297119</url></Content>
+              <float name="TimeScale">1.0</float>
+              <NumberSequence name="Transparency">0 0 0 1.0 0 0 </NumberSequence>
+              <float name="VelocityInheritance">0</float>
+              <bool name="WindAffectsDrag">false</bool>
+              <float name="ZOffset">0</float>
+            </Properties>
+          </Item>
+          <Item class="ParticleEmitter" referent="RBX_25">
+            <Properties>
+              <string name="Name">Images/15011456461</string>
+              <Vector3 name="Acceleration"><X>0</X><Y>0</Y><Z>0</Z></Vector3>
+              <float name="Brightness">20.0</float>
+              <ColorSequence name="Color">0 1.0 0.14901961386203766 0.16470588743686676 0 1.0 1.0 0.14901961386203766 0.16470588743686676 0 </ColorSequence>
+              <float name="Drag">0</float>
+              <token name="EmissionDirection">5</token>
+              <bool name="Enabled">true</bool>
+              <bool name="FlipbookBlendFrames">true</bool>
+              <NumberRange name="FlipbookFramerate">1.0 1.0 </NumberRange>
+              <token name="FlipbookLayout">2</token>
+              <token name="FlipbookMode">1</token>
+              <int name="FlipbookSizeX">1</int>
+              <int name="FlipbookSizeY">1</int>
+              <bool name="FlipbookStartRandom">false</bool>
+              <NumberRange name="Lifetime">0.30000001192092896 0.30000001192092896 </NumberRange>
+              <float name="LightEmission">0</float>
+              <float name="LightInfluence">0</float>
+              <bool name="LockedToPart">false</bool>
+              <token name="Orientation">0</token>
+              <float name="Rate">20.0</float>
+              <NumberRange name="RotSpeed">0 0 </NumberRange>
+              <NumberRange name="Rotation">90.0 90.0 </NumberRange>
+              <token name="Shape">0</token>
+              <token name="ShapeInOut">0</token>
+              <float name="ShapePartial">1.0</float>
+              <token name="ShapeStyle">0</token>
+              <NumberSequence name="Size">0 0.5 0 1.0 0.5 0 </NumberSequence>
+              <NumberRange name="Speed">20.0 20.0 </NumberRange>
+              <Vector2 name="SpreadAngle"><X>0</X><Y>0</Y></Vector2>
+              <NumberSequence name="Squash">0 0 0 1.0 0 0 </NumberSequence>
+              <Content name="Texture"><url>http://www.roblox.com/asset/?id=12156297119</url></Content>
+              <float name="TimeScale">1.0</float>
+              <NumberSequence name="Transparency">0 0 0 1.0 0 0 </NumberSequence>
+              <float name="VelocityInheritance">0</float>
+              <bool name="WindAffectsDrag">false</bool>
+              <float name="ZOffset">0</float>
+            </Properties>
+          </Item>
+        </Item>
+        <Item class="Beam" referent="RBX_28">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_27</Ref>
+            <Ref name="Attachment1">RBX_33</Ref>
+            <float name="Brightness">5.0</float>
+            <ColorSequence name="Color">0 1.0 0 0.01568627543747425 0 0.5405872464179993 1.0 0.09803921729326248 0.4117647111415863 0 1.0 1.0 0.027450980618596077 0.04313725605607033 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">1.0</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://13135259077</url></Content>
+            <float name="TextureLength">3.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">4.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29195088148117065 0 0 0.7012278437614441 0 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">6.0</float>
+            <float name="Width1">2.0</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_29">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_27</Ref>
+            <Ref name="Attachment1">RBX_33</Ref>
+            <float name="Brightness">5.0</float>
+            <ColorSequence name="Color">0 1.0 0 0.01568627543747425 0 0.5405872464179993 1.0 0.09803921729326248 0.4117647111415863 0 1.0 1.0 0.027450980618596077 0.04313725605607033 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">1.0</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://84577820022939</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">2.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29604366421699524 0.5 0 0.7012278437614441 0.48750001192092896 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">12.0</float>
+            <float name="Width1">5.0</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_30">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_27</Ref>
+            <Ref name="Attachment1">RBX_33</Ref>
+            <float name="Brightness">5.0</float>
+            <ColorSequence name="Color">0 1.0 0 0.01568627543747425 0 0.5405872464179993 1.0 0.09803921729326248 0.4117647111415863 0 1.0 1.0 0.027450980618596077 0.04313725605607033 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">1.0</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>rbxassetid://107624017803706</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">1.600000023841858</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29195088148117065 0 0 0.7012278437614441 0 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">2.0</float>
+            <float name="Width1">1.0</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_31">
+          <Properties>
+            <string name="Name">Beam</string>
+            <Ref name="Attachment0">RBX_27</Ref>
+            <Ref name="Attachment1">RBX_33</Ref>
+            <float name="Brightness">5.0</float>
+            <ColorSequence name="Color">0 1.0 0 0.01568627543747425 0 0.5405872464179993 1.0 0.09803921729326248 0.4117647111415863 0 1.0 1.0 0.027450980618596077 0.04313725605607033 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">1.0</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">10</int>
+            <Content name="Texture"><url>http://www.roblox.com/asset/?id=2382169232</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">2.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29740792512893677 0 0 0.698499321937561 0 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">3.0</float>
+            <float name="Width1">2.0</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+        <Item class="Beam" referent="RBX_32">
+          <Properties>
+            <string name="Name">Beam1</string>
+            <Ref name="Attachment0">RBX_27</Ref>
+            <Ref name="Attachment1">RBX_33</Ref>
+            <float name="Brightness">5.0</float>
+            <ColorSequence name="Color">0 1.0 0 0.01568627543747425 0 0.5405872464179993 1.0 0.09803921729326248 0.4117647111415863 0 1.0 1.0 0.027450980618596077 0.04313725605607033 0 </ColorSequence>
+            <float name="CurveSize0">0</float>
+            <float name="CurveSize1">0</float>
+            <bool name="Enabled">true</bool>
+            <bool name="FaceCamera">true</bool>
+            <float name="LightEmission">1.0</float>
+            <float name="LightInfluence">0</float>
+            <int name="Segments">4</int>
+            <Content name="Texture"><url>rbxassetid://9988507605</url></Content>
+            <float name="TextureLength">1.0</float>
+            <token name="TextureMode">0</token>
+            <float name="TextureSpeed">2.0</float>
+            <NumberSequence name="Transparency">0 1.0 0 0.29604366421699524 0.5 0 0.7012278437614441 0.48750001192092896 0 1.0 1.0 0 </NumberSequence>
+            <float name="Width0">6.0</float>
+            <float name="Width1">6.0</float>
+            <float name="ZOffset">0</float>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Attachment" referent="RBX_33">
+        <Properties>
+          <string name="Name">Attachment</string>
+          <CoordinateFrame name="CFrame"><X>0</X><Y>0</Y><Z>-44.0</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
+          <bool name="Visible">false</bool>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+</roblox>

@@ -1080,8 +1080,8 @@ connectClient(Run.RenderStepped,function(dt)
   cancelCapture();notify("Capture expired. Hold attack again and use a fresh live voice input.",true,"capture")
  end
  if sprinting then setSprint(true) end
- local gameplayVisible=not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
- local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
+ local gameplayVisible=not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
+ local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
  local eligibilityHint=voiceEligibilityHint(true)
  tracked.Text=trackedQuestText
@@ -1122,7 +1122,6 @@ connectClient(Run.RenderStepped,function(dt)
  menuScale.Scale=1
  local width=math.min(720,viewport.X-24)
  modal.Size=UDim2.fromOffset(width,math.min(620,viewport.Y-76));modal.Position=UDim2.new(.5,0,0,64)
- devPanel.Size=UDim2.fromOffset(230,math.min(330,viewport.Y-76));devPanel.Position=UDim2.new(1,-244,0,64)
  title.TextSize=width<620 and 20 or 23
  subtitle.Visible=not short;subtitle.Size=UDim2.new(1,-44,0,width<620 and 42 or 25)
  local tabY=short and 54 or width<620 and 102 or 88
@@ -1150,6 +1149,19 @@ connectClient(Run.RenderStepped,function(dt)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
  tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64)
  sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
+ local testTop=miniLayout.available and 14+miniLayout.height+8 or 14
+ local testBottom=testTop+44
+ local bottomReserve=(touch and 189 or 96)+14
+ local belowHeight=viewport.Y-(testBottom+8)-bottomReserve
+ local panelWidth=viewport.X<432 and 212 or 230
+ if belowHeight>=240 then
+  devPanel.Position=UDim2.new(1,viewport.X<432 and -226 or -244,0,testBottom+8)
+  devPanel.Size=UDim2.fromOffset(panelWidth,math.min(330,belowHeight))
+ else
+  local rightColWidth=miniLayout.available and math.max(miniLayout.width,viewport.X<432 and 86 or 112) or (viewport.X<432 and 86 or 112)
+  devPanel.Position=UDim2.new(1,-(rightColWidth+22+panelWidth),0,14)
+  devPanel.Size=UDim2.fromOffset(panelWidth,math.min(330,math.max(120,viewport.Y-14-bottomReserve)))
+ end
  end
  hud.Visible=gameplayVisible;controls.Visible=gameplayVisible
  -- Keep the fight readable without hiding a running quest deadline.
