@@ -617,7 +617,7 @@ do
  end
  testContent.XP.Modal=true
 end
-local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then closeMenu() end end);testButton.Visible=false;academy.surface(testButton)
+local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then closeMenu() end end);testButton.Visible=false;testButton.ZIndex=11;academy.surface(testButton)
 -- Everyone sees the same navigation; authorized test controls sit below it.
 -- Keep a separate view: modal renders replace mapDot but never this HUD map.
 local miniMapButton=button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end)

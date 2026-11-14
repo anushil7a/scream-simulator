@@ -50,9 +50,9 @@ end
 check(Layout.Practice==nil,'Retired layout practice metadata remains')
 for _,n in ipairs(nodes)do check(not n.Name or not n.Name:match('^Practice') and n.Name~='StandLine' and n.Name~='SpawnWayfinding','Retired mic area was recreated') end
 table.sort(originals);for _,line in ipairs(originals)do print('ORIGINAL|'..line)end
-check(fgCount==38,'Unexpected foreground dressing budget')
-check(count==347 and count<=348,'Unexpected cosmetic budget')
-for _,name in ipairs({'CanopyCrown0','MarketCornice0','OldTownCornice0','TowerLantern256','ArenaFascia','CourtyardJoint0','PromenadeJoint0','CoverTop0','ForegroundBollardPost1','ForegroundBollardLantern8','ForegroundPlazaTrimW','ForegroundPlazaAccentS','ForegroundPromenadeCurb1','ForegroundPromenadeInlay2','ForegroundPlanterBase1','ForegroundPlanterAccent2','ForegroundGatewayPillarN','ForegroundGatewayCapS'})do check(names[name],'Missing art family '..name)end
+check(fgCount==41,'Unexpected foreground dressing budget')
+check(count==350 and count<=350,'Unexpected cosmetic budget')
+for _,name in ipairs({'CanopyCrown0','MarketCornice0','OldTownCornice0','TowerLantern256','ArenaFascia','CourtyardJoint0','PromenadeJoint0','CoverTop0','ForegroundBollardPost1','ForegroundBollardLantern8','ForegroundPlazaTrimW','ForegroundPlazaAccentS','ForegroundPromenadeCurb1','ForegroundPromenadeInlay2','ForegroundPlanterBase1','ForegroundPlanterAccent2','ForegroundGatewayPillarN','ForegroundGatewayCapS','ForegroundCoastalRock1','ForegroundCoastalRock3'})do check(names[name],'Missing art family '..name)end
 print('PASS '..checks..' coastal art assertions; '..count..' static cosmetic parts ('..fgCount..' foreground)')
 '''
 def run(source,tail=TAIL):
@@ -84,7 +84,7 @@ if __name__=='__main__':
    ('V(pos.X,6.04,pos.Z)','V(pos.X+8,6.04,pos.Z)','Cosmetic creates false arena cover'),
    ('detail("ForegroundGatewayPillarN",V(2.4,8.5,2.4),V(-196,4.33,34),ivory)','detail("ForegroundGatewayPillarN",V(2.4,8.5,2.4),V(-196,8.5,34),ivory)','Foreground dressing obstructs overhead header sightline'),
    ('V(-280,0,114),V(-260,0,114)','V(-270,0,114),V(-260,0,114)','Foreground dressing overlaps guidance route'),
-   ('detail("ForegroundGatewayCapS",V(3,.9,3),V(-196,9.03,66),terracotta)','detail("ForegroundGatewayCapS",V(3,.9,3),V(-196,9.03,66),terracotta);detail("ForegroundExtra",V(1,1,1),V(-280,1,110),ivory)','Unexpected foreground dressing budget')]
+   ('for i,x in ipairs({-325,-165,165}) do','for i,x in ipairs({-325,-165}) do','Unexpected foreground dressing budget')]
   for old,new,message in cases:
    assert source.count(old)==1,old
    try:
