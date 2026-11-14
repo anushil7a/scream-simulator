@@ -1,0 +1,151 @@
+{
+  "schema": 1,
+  "dateUtc": "2026-11-12T16:05:00.442853+00:00",
+  "baseCommit": "232b89285640fe601ca68d3626b85df142bda3c9",
+  "scope": "Compact first-minute readability and training pad colors; no gameplay physics/authority changes",
+  "sourceHashes": {
+    "src/ReplicatedStorage/Shared/CompactLayout.luau": "57c6c236945e7e26eb231f12907627a86042265055c65317704ba8b06615abf8",
+    "src/ServerScriptService/CompactCity.luau": "e2339d6ff572b8979ef94f20baee09b8b4b36ae2fe72a5ceabcde28806f69ad8",
+    "src/ServerScriptService/World.luau": "246564b9b4cb9507df5bf5a26d5cf71b7f32c995d238655a03ea1e08258ad517",
+    "tests/compact_world.py": "29ac4550331d3fc6e8f0c6b5234bf83605d42af3d703553beb0c1583f68621b3",
+    "tests/compact_integration.py": "ddf20b4bce1ef1925f8dc892f81deabab83cd23492ab5625c786d19732f9d3b0",
+    "tests/StudioCompactCity.server.luau": "47fb05d9f755f9808ab1d78bc8248a7cadfedd12c008a14dd83811573d7b02e5",
+    "tools/compact_city_lookdev.py": "ec226eb7f30c4075d9accfeb868e11d9876d8732ee8ceeca3863d0bb53629d2f"
+  },
+  "checks": [
+    {
+      "command": "python tests/compact_world.py --negative-controls",
+      "constructionAssertions": 544,
+      "staticReachabilityTargets": 48,
+      "negativeControls": 19,
+      "native": false
+    },
+    {
+      "command": "python tests/compact_world.py --negative-controls --baseline",
+      "result": "Expected missing-guidance failure at232b892; baseline flag exits before normal/control run"
+    },
+    {
+      "command": "python tests/compact_integration.py --negative-controls",
+      "assertions": 122,
+      "negativeControls": 11,
+      "sourceContracts": 1,
+      "native": false
+    },
+    {
+      "command": "python tests/verify_local.py --build",
+      "pureSyntheticSuites": 25,
+      "mockedSuites": 105,
+      "compiledProductionScripts": 63,
+      "builds": "all configured local candidate/disposable builds passed",
+      "native": false
+    }
+  ],
+  "logs": {
+    "build/compact-guidance-full.log": "2f0422464c2ee7345dd9d10447d128e8e40130e3e5de9b222b518e0234d7334d",
+    "build/compact-guidance-focused.log": "16c24bbf410295d2d120141f0ff65f7f3d6030361e35a9d1b2c046f79c877348",
+    "build/compact-guidance-baseline.log": "3025ff8e2d315cefb67d516982ed59afd1f04b72e7a6f688950768b46c2dcbd1",
+    "build/compact-guidance-integration.log": "15749b2e555c1c29fc34754c24cf514bee63faaa9c7a35223e5c4f0f00442f68",
+    "build/compact-guidance-production.diff": "9aa753f74e131ec186aeec00cae012b89bbf06a9bec8c20426af01599a2d6027"
+  },
+  "independentReview": {
+    "result": "No code blocker; Astra reran544/48/19 and122/11 plus geometry checks and verified exactdiff using Gitblob hashes",
+    "native": false,
+    "blenderPixelsReviewedByAstra": false
+  },
+  "blender": {
+    "before": {
+      "sources": {
+        "src/ReplicatedStorage/Shared/CompactLayout.luau": "037d419a11b022de8e3af14556cd55afc492edcf8a2aa80d07f1eb027634fe7c",
+        "src/ServerScriptService/CompactCity.luau": "c145c46b7d9bfd69d55ae361f9126db01f23c022c4fa25bdbab224849733df17",
+        "src/ServerScriptService/World.luau": "246564b9b4cb9507df5bf5a26d5cf71b7f32c995d238655a03ea1e08258ad517",
+        "src/ReplicatedStorage/Shared/TrainingRules.luau": "bda84380107e7df39eaf0ea91f60d2f81fde0908a8489d664ac18d1292b8388e"
+      },
+      "parts": 157,
+      "export": "Actual CompactCity.Build and actual World trainer construction fragment with mocked Instances; no copied geometry coordinates",
+      "limits": [
+        "No NPCs, HUD, text labels, prompts or native lighting",
+        "Other World-added runtime geometry omitted",
+        "Axis-aligned cube geometry and proxy materials; not Roblox parity, physics, FPS or gameplay verification"
+      ],
+      "nativeExecuted": false,
+      "outputs": {
+        "arena.png": "f2dba9aa42118a007c96694a47fa5379eb94b6bdcef8157115f4f8d5d5046126",
+        "overview.png": "647403aad48647d68bda37dbe1226b89ed763c5e7a015c48e0e6a190ead3a502",
+        "practice.png": "6c57d45d235de66f317b7e4a6afdabcd9351f10d11c433d236e5dc0f80dccd07",
+        "spawn.png": "bf61cb6f76d6331479981883c9b5fa874dc74b51eb32ab3acfd0faa9edc7d1ba"
+      },
+      "geometrySha256": "86c9a6756d7c552f7fdeb9e032bc0c37674bbf2711ddcca27842aa749dd6072a",
+      "render": {
+        "samples": 8,
+        "threads": 4,
+        "resolution": [
+          800,
+          450
+        ],
+        "timeoutSeconds": 240,
+        "blender": "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe"
+      },
+      "toolSha256": "d974410c214f6021be76d75187e171429d29895b343df9609a4d86b2934dfd5b"
+    },
+    "after": {
+      "sources": {
+        "src/ReplicatedStorage/Shared/CompactLayout.luau": "57c6c236945e7e26eb231f12907627a86042265055c65317704ba8b06615abf8",
+        "src/ServerScriptService/CompactCity.luau": "e2339d6ff572b8979ef94f20baee09b8b4b36ae2fe72a5ceabcde28806f69ad8",
+        "src/ServerScriptService/World.luau": "246564b9b4cb9507df5bf5a26d5cf71b7f32c995d238655a03ea1e08258ad517",
+        "src/ReplicatedStorage/Shared/TrainingRules.luau": "bda84380107e7df39eaf0ea91f60d2f81fde0908a8489d664ac18d1292b8388e"
+      },
+      "mockHarnessSha256": "29ac4550331d3fc6e8f0c6b5234bf83605d42af3d703553beb0c1583f68621b3",
+      "sourceSnapshotVerifiedUnchanged": true,
+      "parts": 164,
+      "export": "Actual CompactCity.Build and actual World trainer construction fragment with mocked Instances; no copied geometry coordinates",
+      "limits": [
+        "No NPCs, HUD, text labels, prompts or native lighting",
+        "Other World-added runtime geometry omitted",
+        "Axis-aligned cube geometry and proxy materials; not Roblox parity, physics, FPS or gameplay verification"
+      ],
+      "nativeExecuted": false,
+      "outputs": {
+        "arena.png": "9d5f9c5df492c33ebe37a42e363e204e2d6ef761d4152499a8833be8f22dd7b1",
+        "overview.png": "86c0470b800bde66277def26efec4e738e7cab480adab81132c060330a1480f6",
+        "practice.png": "181c59c8ad48efe2329c2ad76c81076db00e1051270adaa91c0777c5c822d2cb",
+        "spawn.png": "703ee314975124901f9864f0943a7ff60ed65c276a21fb92ed840e2b7383ab7b"
+      },
+      "toolSha256": "ec226eb7f30c4075d9accfeb868e11d9876d8732ee8ceeca3863d0bb53629d2f",
+      "geometrySha256": "f6723b9de0f8b3083a5d48f2f494d1106b36f8a4b6ed2de9b6203fbb2370472f",
+      "render": {
+        "samples": 8,
+        "threads": 4,
+        "resolution": [
+          800,
+          450
+        ],
+        "timeoutSeconds": 240,
+        "blender": "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe"
+      }
+    },
+    "comparison": "157 before including pad fix;164 after;156 existing other exported Parts unchanged;StandLine elevation intentional",
+    "limits": "Proxy composition only; native scene, text/NPCs/input/performance absent. Initial route overlap removed after inspecting proxy artifacts; remaining preexisting artifacts do not establish native defects."
+  },
+  "preservation": {
+    "commit": "72c886cb6f8a60ab26dff962e28da77e4b2d4609",
+    "zipSha256": "a67c1e1af4f1cf4387a1bd0cb61a8ce84986290f10913e164fc8719c8877b19a",
+    "all59ManifestFilesVerified": true
+  },
+  "nativeFixture": {
+    "path": "build/CompactCityReview.rbxl",
+    "sha256": "0bf0500baee227d270447ce7496990b56ce9ecc98ba570acde7ee3c6719dc29b",
+    "newAssertions": 20,
+    "builtAndCompiled": true,
+    "executed": false
+  },
+  "noLiveDataOrPublication": true,
+  "push": "Held awaiting direct user confirmation",
+  "limits": [
+    "Native first-player route understanding and camera/walking/input remain unverified",
+    "Static reachability is not safe-zone-only routing or pathfinding",
+    "No physical phone/grayscale/no-shadow/multiplayer/performance claim",
+    "Existing mixed-version writer fleet and real voice/commerce release gates remain"
+  ],
+  "reviewDocument": "docs/COMPACT_FIRST_MINUTE_REVIEW.md",
+  "postSuiteChange": "Removed one trailing space from generated-test string; no executable semantics or production changes. Proxy recaptured with final harness hash."
+}

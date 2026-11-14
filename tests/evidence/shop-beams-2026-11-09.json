@@ -1,0 +1,219 @@
+{
+  "dateLocal": "2026-11-09",
+  "timezone": "America/New_York",
+  "scope": "Local Studio and mocked/synthetic checks; no Roblox publication",
+  "automated": {
+    "command": "python tests/verify_local.py --build",
+    "passed": true,
+    "pureSyntheticSuites": 22,
+    "mockedServiceSuites": 50,
+    "productionScriptsCompiled": 52,
+    "followup": "Commerce prompt duplicate-SKU/cap guard passed tests/commerce.py; candidate and native fixtures rebuilt afterward."
+  },
+  "nativeBeamAudit": {
+    "passed": true,
+    "checks": 587,
+    "studioLog": "0.746.0.7461269_20261110T021002Z_Studio_31CD8_last.log",
+    "timestampUTC": "2026-11-10T02:11:29.096Z",
+    "scenarios": [
+      "24 concurrent rigs",
+      "512-part allocation cap",
+      "core reservation",
+      "collision/query/shadow disabled",
+      "reduced effects",
+      "distance culling",
+      "pool cleanup"
+    ],
+    "visualReview": "Six levels 1/10/30/50/80/100 inspected in Studio. Showcase camera fixture subsequently locked each frame; production VFX unchanged."
+  },
+  "nativeIntegration": {
+    "studioLog": "0.746.0.7461269_20261110T022411Z_Studio_B78C2_last.log",
+    "timestampUTC": "2026-11-10T02:25:13.718Z",
+    "progression": {
+      "passed": true,
+      "checks": 18
+    },
+    "sourceSha256": "b3d6bf955cba32d18f79ccc4aef3f4a235bf6086e51ae8ca45a87f1ef5882c32",
+    "destruction": {
+      "passed": true,
+      "checks": 11
+    },
+    "damage": {
+      "passed": true,
+      "checks": 6
+    },
+    "artifactSha256": "423481aa39abf7251a9d6fccb7539a3abe0f9142b56d5ead30fb95625beac5c8"
+  },
+  "nativeUILayout": {
+    "passed": true,
+    "cases": [
+      {
+        "tab": "Shop",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Screams",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Quests",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Style",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Map",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Settings",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Shop",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Screams",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Quests",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Style",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Map",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Settings",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Shop",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Screams",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Quests",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Style",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Map",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Settings",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Conversation",
+        "menuSize": "366, 340",
+        "clipped": []
+      },
+      {
+        "tab": "Mic setup",
+        "menuSize": "366, 320",
+        "clipped": []
+      },
+      {
+        "tab": "Long notification",
+        "clipped": false,
+        "size": "358, 52"
+      }
+    ],
+    "visualReview": "Shop and HSV mixer inspected; hue dragging changed preview and hex. Simulated viewport dimensions, not physical phones."
+  },
+  "limits": [
+    "No real purchases, pass ownership, regional prices or live DataStore execution tested. Product IDs remain zero/Coming soon.",
+    "Synthetic attack input; no human microphone or proximity voice verification.",
+    "No representative multiplayer, physical-phone test or FPS improvement claim.",
+    "Studio reported unavailable avatar image/mesh assets and local Rojo connection warnings; these are not a clean asset-delivery result.",
+    "No Roblox publication, live products, release merge or schedule."
+  ]
+}

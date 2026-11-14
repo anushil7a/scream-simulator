@@ -1,0 +1,61 @@
+{
+  "recordedAtUtc": "2026-11-11T23:02:35.560185+00:00",
+  "baseCommit": "edc9442587553351f6dfb7d07dfb2795459449eb",
+  "hashSemantics": "Exact working-tree bytes; candidate normalized-source, raw project/reference/binary hashes separately verified",
+  "checks": {
+    "panelAssertions": 38,
+    "negativeControls": 6,
+    "baseline": "Four conditional consequences independently reproduced against edc9442: newer quest reset from menu/NPC, 1500 earned coins spent, legacy Blue replaced by Gold",
+    "dialogueAssertions": 97,
+    "dialogueControls": 4,
+    "independentRetained": "Modal120/12 actual X/B/same-tab wiring; microphone notice402/4/3 source contracts",
+    "independentReview": "Test author independently cleared production; source author independently reran/reviewed final38/6 and historical cases plus builder. No blocker. Main reviewed diff and reran checkpoint.",
+    "initialIntegration": "25 pure/synthetic +97 mocked suites and60 compiles passed; onboarding builder rejected ambiguous constructor anchor before full build completion",
+    "finalIntegration": {
+      "pureSynthetic": 25,
+      "mockedSuites": 97,
+      "productionCompiles": 60,
+      "allBuilds": true,
+      "native": false
+    },
+    "candidate": "All60 source, project, referenced-file and binary hashes verified"
+  },
+  "commands": [
+    "python tests/panel_action_lifecycle.py --negative-controls",
+    "python tests/panel_action_lifecycle.py --baseline",
+    "python tests/quest_dialogue_restart.py --negative-controls",
+    "python tests/verify_local.py --build (initial failed builder, final pass)",
+    "Independent retained: python tests/shop_modal_lifecycle.py --negative-controls; python tests/microphone_notice.py --negative-controls; python tests/build_onboarding_review.py"
+  ],
+  "limits": [
+    "Actual registered card/choice callbacks and close helpers; synthetic GUI/menu key/snapshots/session, not complete dispatcher/network/native queue",
+    "Settings effect counters are not microphone/controller integration",
+    "No proof native queue can reproduce or actual player progress/coins were affected",
+    "Commands already sent to server, arbitrary malicious clients and permanent HUD callbacks outside scope",
+    "No apps, maps, live APIs/stores, purchases, publication or configuration; unattributed file preserved",
+    "Writer-fleet release gate remains unresolved; ordinary unsavable play unchanged"
+  ],
+  "sources": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "dbdc4e808d384487c3432daeea7e511d1fd4b650287af3b85c3720415d209b50",
+    "src/ServerScriptService/Bootstrap.server.luau": "ad2447053bba5b14aa888e7e9f0e2bf6e07022e41c36e8065a8cdc15830a54c2",
+    "src/ReplicatedStorage/Shared/QuestLifecycle.luau": "5cbfc1aebcab22677b021a7aa8e4555dba4b6892ac5086a5b944c3b8fa5d3af5",
+    "tests/panel_action_lifecycle.py": "90c6e565ebf1a457b0a5fe61f3c431fb8dec555d9630da733246ed660e6842e6",
+    "tests/quest_dialogue_restart.py": "6dacd05badcd828a65519330637c547a4c244e6e158e7a02e19d8ae8bb201292",
+    "tests/build_onboarding_review.py": "93a4ef76c3ba814fbf9ba1843e47704066e447637dd9acdc063b2ed56560b4de",
+    "tests/verify_local.py": "70e2a08af6440fd5970223f0e0c95332c2286fac3ece1a0d026fffbdc2cf6977",
+    "docs/PANEL_ACTION_LIFECYCLE_REVIEW.md": "ee56aaaf9a1e7f2e81f9cbd3eac81919586810c122f2ced0de900931ad9b1736",
+    "docs/ROADMAP.md": "9f98c288de859506ad1a014621d69d3cb12d146a79370f81c010623d47231b2f",
+    "docs/PLAYTEST_BACKLOG.md": "afe285d8f9c356f81eeb3ca0e58f43543cf3d742cf8c3a3a5ebb40d18af14ef3"
+  },
+  "artifacts": {
+    "build/panel-action-controls.log": "e6c3d6e5677939394fceb6c22d20b165bd12543d798aa448943a8ef8d8e213ca",
+    "build/panel-action-baseline.log": "27436d0ce7e4c8a46eb6fff116edd944d0737211196f0ed0ce9e02119e81fdd7",
+    "build/panel-action-dialogue.log": "64be57e2eba9606dd5f993bdfdc66bfffbbf569af306555119836c109dfc2027",
+    "build/panel-action-full.log": "fcf4b6ff79b330470b578d03344521374eaaafdad226dca1e1e5b6288f498b09",
+    "build/panel-action-full-final.log": "8e75325b86e175e9fb4e9ea425388487daa6ad00e3d07024a557b8c8bb5fc3ff",
+    "build/AutomaticVoiceCandidate.rbxl": "e25cf772eae7aeb2ba89555a098e1d5536f478a9790e7ed830ee4d548c1a47d3",
+    "build/AutomaticVoiceCandidate.provenance.json": "d974b7939f6bb3906c46162e9300e925c29706eb55ee7dd4f694a72350efe363",
+    "build/OnboardingReview.client.luau": "90acae35e9d33d5a4752313cdc5eedd031ff06ebf08518b3396be01c83cd7a05",
+    "build/OnboardingReview.rbxl": "51581d7c271931620ff2a1349bcd50c76df79418285c1aeb4e11fed0996dd527"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-11",
+  "base": "f0dc1e7664a6786cd9586db43e7d12a7576b882c",
+  "remoteHead": "93bca5be876fbf421640c39f81c016089035f344",
+  "branch": "feature/microphone-city-redesign",
+  "reproduction": {
+    "source": "HEAD collection renderer executed with stub UI and three representative sound styles, level100",
+    "oldRepeatedText": "UP TO 68.0 DPS · 54.8 STUDS",
+    "authoritativeFullPowerDps": 68,
+    "authoritativeNominalRange": 54.75,
+    "interpretation": "Valid level100 caps; repeated current-level stats misleading as sound-specific properties. Rounded range clarified; no damage/range formula change."
+  },
+  "checks": {
+    "rendererAdapterDeadline": 1179,
+    "negativeControls": 4,
+    "sustainedProtocol": 9094,
+    "adapter": 104,
+    "controls": 39,
+    "balance": 53,
+    "pureSyntheticSuites": 25,
+    "mockedServiceSuites": 61,
+    "productionCompiles": 57,
+    "fullBuild": "pass",
+    "independentReview": "review_beam_batch; focused checks independently rerun, no blocking defect"
+  },
+  "native": {
+    "fixture": "OnboardingReview.rbxl",
+    "studio": "0.747.0.7471481",
+    "log": "0.747.0.7471481_20261111T144833Z_Studio_ED195_last.log",
+    "placeId": 0,
+    "persistedToCloud": false,
+    "rows": [
+      {
+        "viewport": "390, 844",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      },
+      {
+        "viewport": "844, 390",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      },
+      {
+        "viewport": "1280, 720",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      }
+    ],
+    "visual": "Desktop current-level summary/explanation inspected in screenshot",
+    "limits": "Synthetic microphone, remotes, level and layout. UI-only fixture has no Bootstrap/DataStore source. No native automatic-voice transport or physical-device test this batch."
+  },
+  "delivery": {
+    "gitPush": "failed: Cannot prompt because user interactivity has been disabled; unable to get password from user",
+    "connector": "PR metadata read succeeds. Exact f0dc1e7 Git object returns404. Available commit creation cannot preserve local author/committer timestamps/SHA.",
+    "status": "local commits retained; no remote delivery claimed"
+  },
+  "cleanup": "Disposable Studio stopped, saved locally, closed. No browser tabs. Pre-existing Codex preserved. Task-created minimized Pick an app remains: supported CUA binding fails."
+}

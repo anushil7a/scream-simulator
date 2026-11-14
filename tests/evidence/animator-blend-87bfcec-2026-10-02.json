@@ -1,0 +1,60 @@
+{
+  "sourceCommit": "87bfcec",
+  "studio": "MicrophoneCity.rbxl",
+  "context": "One Studio client, current R15 avatar, default Animate enabled, synthetic local attributes. No physical mic/input or multiplayer claims.",
+  "result": {
+    "checks": 43,
+    "samples": [
+      {
+        "residualPosition": 0,
+        "cycle": 1,
+        "tracks": 2,
+        "residualAngle": 0
+      },
+      {
+        "residualPosition": 0,
+        "cycle": 2,
+        "tracks": 2,
+        "residualAngle": 0
+      },
+      {
+        "residualPosition": 0,
+        "cycle": 3,
+        "tracks": 2,
+        "residualAngle": 0
+      },
+      {
+        "residualPosition": 0,
+        "cycle": 4,
+        "tracks": 2,
+        "residualAngle": 0
+      },
+      {
+        "residualPosition": 0,
+        "cycle": 5,
+        "tracks": 2,
+        "residualAngle": 0
+      },
+      {
+        "residualPosition": 0,
+        "cycle": 6,
+        "tracks": 2,
+        "residualAngle": 0
+      },
+      {
+        "residualPosition": 0,
+        "cycle": 7,
+        "tracks": 2,
+        "residualAngle": 0
+      },
+      {
+        "residualPosition": 0,
+        "cycle": 8,
+        "tracks": 2,
+        "residualAngle": 0
+      }
+    ],
+    "passed": true,
+    "rig": "R15"
+  }
+}

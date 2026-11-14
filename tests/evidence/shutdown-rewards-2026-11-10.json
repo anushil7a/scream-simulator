@@ -1,0 +1,90 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "375c8160215e3b4584e937d3ca7dd0643371310d",
+  "change": "Detach gameplay before final shutdown snapshots and track pending profile acquisitions through release.",
+  "inspection": [
+    "Sustained combat validation, target resolution and KO credit",
+    "Progression XP/coins, quest claims and challenge rewards",
+    "Atomic profile lease/load/save and autosave/departure/shutdown callers"
+  ],
+  "reproduction": {
+    "beforeBehaviorEdit": true,
+    "method": "Executed actual baseline Bootstrap shutdown, complete Action handler and coins/XP helpers. Simulated final-save yield after its snapshot and invoked ClaimQuest for a completed garden quest.",
+    "before": {
+      "acceptedRuntime": {
+        "coins": 50,
+        "xp": 100,
+        "claimed": true,
+        "rewardNotices": 1
+      },
+      "persistedSnapshot": {
+        "coins": 10,
+        "xp": 0,
+        "claimed": false
+      },
+      "assertion": "Shutdown accepted quest reward after final save snapshot; reward and claimed state lost",
+      "exitCode": 1
+    },
+    "after": "Regression uses actual Profiles and ProfileLease, actual remote/reward/join/shutdown code, in-memory UpdateAsync and controlled coroutines. Late claims and reward callbacks cannot mutate data. Pre-close rewards persist; a rejected quest remains claimable after reload."
+  },
+  "checks": {
+    "command": "python tests/verify_local.py --build",
+    "passed": true,
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 53,
+    "productionCompiles": 56,
+    "candidateAndDisposableBuilds": "passed",
+    "focused": {
+      "shutdown_race.py": 15,
+      "shutdown_saves.py": 11
+    },
+    "negativeControls": [
+      {
+        "mutation": "Remove shutdown session detachment in temporary source",
+        "result": "expected failure",
+        "assertion": "Shutdown retained gameplay/attack ownership"
+      },
+      {
+        "mutation": "Remove joinsInFlight from shutdown wait condition in temporary source",
+        "result": "expected failure",
+        "assertion": "Shutdown returned before the in-flight profile acquisition released"
+      }
+    ],
+    "gitDiffCheck": "passed"
+  },
+  "review": {
+    "method": "Separate source/diff review by implementing agent; independent review pending.",
+    "areas": [
+      "No-yield detachment before every final snapshot",
+      "Remote/delayed reward session ownership",
+      "Pre-close rewards, temporary profiles and developer baselines",
+      "Closing admission, in-flight acquisition/release and bounded waits",
+      "Save exceptions and returned failures"
+    ],
+    "finding": "Tightened regression to invoke the late claim after that same profile's actual snapshot and assert join waiting after all active-player saves finish. Both omission controls fail."
+  },
+  "builds": {
+    "candidate": {
+      "builtAtUtc": "2026-11-10T19:36:33.997164+00:00",
+      "sourceCount": 56,
+      "bootstrapNormalizedSha256": "2ba6250fe6c96ff68bc51c17e43686be9cc761b25e9a37a51a73e6f2fb5807d5",
+      "artifactSha256": "157c29390198fa50c6fb0f2c7d233a5a58f0acb08b2d6a6cbf2d35ab494d9ac7",
+      "status": "built, not executed in Studio or published"
+    },
+    "transport": {
+      "build": "VoiceTransportReview",
+      "sourceSha256": "6160bdd5dd4fd647b6cb81715860291991059f4406878baf80744fcd2091c965",
+      "mutation": null,
+      "artifactSha256": "419b19fa95ba27ffb5cb636f5b0af79bab747b621546b6a2de2c1f6e60320777",
+      "scope": "Compiled disposable local fixture; not executed or published"
+    }
+  },
+  "limitations": [
+    "In-memory store, mocked services and controlled scheduler; no live Roblox DataStore, competing servers or native shutdown tested.",
+    "Transport fixture rebuilt but not executed; earlier native results apply only to recorded builds.",
+    "Store outages beyond existing retries or the engine shutdown deadline can still lose unsaved progress.",
+    "Real microphone, phone, multiplayer/network and live save/rejoin remain unverified.",
+    "No publication or audio/product configuration."
+  ],
+  "strongestRemainingSaveGate": "Isolated real DataStore shutdown/leave/rejoin and competing-server lease test, including throttling/outages; backups and old-server drain before release."
+}

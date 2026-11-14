@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "dateUtc": "2026-11-12T16:50:26.972288+00:00",
+  "baseCommit": "435aeba7eed36924708df3bc2c2584fc85f10763",
+  "scope": "Compact ambience positions and teardown-safe Config loading; legacy mix configuration and gameplay unchanged",
+  "sourceHashes": {
+    "src/ReplicatedStorage/Shared/CompactLayout.luau": "2fc1fb9fd1fe735f45eb2debcd32cd09d401590d2a01372a0616e20134735d36",
+    "src/ServerScriptService/CompactCity.luau": "643edfdf07b0887d9e53896a60f76e54c0b938572a0e75b0bd2f3238ceb6ef4b",
+    "src/StarterPlayer/StarterPlayerScripts/Ambience.client.luau": "ec14a312a6bfe978e89bec06a707e2d4de758e75c3307d7a2ac92d6843bd8681",
+    "tests/compact_ambience.py": "fe4c169a97c820ca869a3fa3b3facd7eb8f86fa5cec9e15c900b55d7a81c0242",
+    "tests/verify_local.py": "d5e1dd88b8ab9df08de23f1b7fb95e95e53911cbc8854e8aac8b891c5bdc3c95"
+  },
+  "checks": [
+    {
+      "command": "python tests/compact_ambience.py --negative-controls",
+      "assertions": 199,
+      "negativeControls": 8,
+      "mode": "Actual Ambience script, mocked services/configuration/sounds/coroutine scheduling; geometric samples"
+    },
+    {
+      "command": "python tests/compact_ambience.py --baseline",
+      "result": "Pinned actual constructor and Heartbeat reproduce out-of-range surf and busker gate mismatch"
+    },
+    {
+      "command": "python tests/verify_local.py --build",
+      "pureSyntheticSuites": 25,
+      "mockedSuites": 108,
+      "productionCompiles": 63,
+      "builds": "All configured candidate/disposable builds passed"
+    }
+  ],
+  "independentReview": "No blocker; exact diff/blob identities,199 assertions/eight controls, reverse historical mismatch and actual CompactCity busker station/facing/quest independently verified",
+  "logs": {
+    "build/compact-ambience-focused.log": "0001aeaec984bccb1e50517174b860550bd515c827c1792b7ac9a1015a40a1e6",
+    "build/compact-ambience-baseline.log": "69fc93a341eb777d68ac47b0f1eefd76c15d5d853205b2891cb517f835fabc4c",
+    "build/compact-ambience-full.log": "10e66aabcce3850532ae4203da9cbe754b0f8486f9e012f39d7954b390d264fd",
+    "build/compact-ambience-production.diff": "ab95df3bbbfa4c60f05fd3370a6acb616a0528ff1d5b170317faf43c1ac623d5"
+  },
+  "nativeExecuted": false,
+  "liveDataOrPurchases": false,
+  "published": false,
+  "push": "Held pending direct user confirmation",
+  "limits": [
+    "In-bounds listener geometry is not every possible camera position or native audibility",
+    "Existing IDs/gains/counts preserved, but overlap and perceived mix change with positions and need real listening",
+    "Asset availability, listener/attenuation, microphone feedback, phone/headphone audio and performance untested",
+    "Startup/preload interruption is mocked coroutine scheduling, not native teardown proof",
+    "Other native/multiplayer and mixed-version writer gates remain",
+    "Compact spacing180 vs360 permits up to three surf range overlaps and configured courtyard coverage; mix approval/headroom assessment deferred to native listening",
+    "Hung PreloadAsync is fenced on return, not cancelled"
+  ]
+}

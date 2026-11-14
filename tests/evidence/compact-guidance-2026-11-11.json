@@ -1,0 +1,39 @@
+{
+  "base": "2978fc2c48c562a765c38d754cce40f51b82692e",
+  "status": "copy-only compact quest directions; unpublished",
+  "baseline": "Before production edits, actual Config/CompactCity test failed Compact giver label wrong:sprint. Restored old race string also fails targeted mutation control.",
+  "sourceSha256": {
+    "src/ReplicatedStorage/Shared/Config.luau": "f67aa2b675c4337bc6876dc4f74c782c81a9da522c10fb47a9b933db83ea7570",
+    "src/ServerScriptService/Bootstrap.server.luau": "07a941f531c49c245c23491fa50806d559f10597b5510c2d9b2a651c3981d885",
+    "tests/compact_guidance.py": "75dc5b132384e6fb3ed8177774e7a8d3c8373e1abe49c73cfc79b06bfb56fc7e",
+    "tests/verify_local.py": "c4d078e8e7dcc50c6010e089bc0f2c42bde99a02ec3d66042f782739882e1237"
+  },
+  "focused": {
+    "guidanceAssertions": 69,
+    "guidanceControls": 4,
+    "questRendererAssertions": 361,
+    "questRendererControls": 6,
+    "profileMigrationAssertions": 374
+  },
+  "fullSuites": {
+    "pureSynthetic": 25,
+    "mocked": 78,
+    "productionCompiles": 59,
+    "builds": "all candidate/disposable builders and source audits passed"
+  },
+  "independentReview": "No blocker. Reviewer inspected exact production diff and independently reran guidance/controls, quest renderer/controls and migration. IDs, rewards, progress/state and timing unchanged.",
+  "nativeFixture": {
+    "executed": false,
+    "fingerprint": "1c71e3ddbf1e298cd3c2a971b6a72c6d5a7fad9e0826ce7ebb308be6456b1485",
+    "sourceCount": 58,
+    "artifacts": {
+      "CompactCityReview.rbxlx": "74e98186e105c8515bd05030c18d9468034e29f771d682a4f5793028f9c93961",
+      "CompactCityReview.rbxl": "c09b2e6c150a72a7b872caccef3cca92ed33248552e4ab19bd3eb11fe37b6f1c"
+    }
+  },
+  "limits": [
+    "actual module/snippet tests use mocks, not native navigation or visible text fit",
+    "game rating/settings still unverified; policy notice proposal not implemented",
+    "no publication/live stores/apps opened; original archive unchanged"
+  ]
+}

@@ -1,0 +1,12 @@
+local Healing=require('../src/ReplicatedStorage/Shared/Healing')
+local n=0;local function check(v,msg)assert(v,msg);n+=1 end
+check(Healing.QuietSeconds==12,'Approved combat recovery delay changed')
+local hp,due=Healing.Step(50,100,12,11.99);check(hp==50 and due==12,'Healed before quiet deadline')
+hp,due=Healing.Step(50,100,12,12);check(hp==70 and due==24,'Deadline heal incorrect')
+hp,due=Healing.Step(70,100,due,12.1);check(hp==70 and due==24,'Repeated observation healed twice')
+hp,due=Healing.Step(1,450,12,40);check(hp==91 and due==52,'Lag caught up multiple heals or scaling incorrect')
+hp,due=Healing.Step(90,100,12,12);check(hp==100,'Healing exceeded maximum')
+hp,due=Healing.Step(0,100,12,20);check(hp==0 and due==12,'Healing resurrected dead character')
+hp,due=Healing.Step(100,100,12,20);check(hp==100 and due==12,'Full health changed deadline')
+hp,due=Healing.Step(50,100,25,20);check(hp==50 and due==25,'Recent combat deadline ignored')
+print('PASS '..n..' shared healing checks with synthetic health/time')

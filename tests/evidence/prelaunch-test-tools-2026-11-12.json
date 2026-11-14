@@ -1,0 +1,48 @@
+{
+  "dateUtc": "2026-11-12",
+  "scope": "game-specific prelaunch tester code; simulated persistence only",
+  "baseCommit": "34a7f3ede1e8f7fbc93f212f04684a9aef26073a",
+  "placeId": 90337242377543,
+  "universeId": 10769005350,
+  "identityEvidence": [
+    "tests/evidence/city-preview-version14-2026-11-06.json",
+    "docs/RELEASE_HANDOFF.md"
+  ],
+  "freshApiVerified": false,
+  "focused": {
+    "developerAssertions": 94,
+    "developerControls": 4,
+    "rewardAssertions": 56,
+    "rewardControls": 11,
+    "isolationAssertions": 40,
+    "isolationControls": 4,
+    "releaseGateAssertions": 14
+  },
+  "aggregate": {
+    "pureSyntheticSuites": 25,
+    "mockedSuites": 110,
+    "productionCompiles": 63,
+    "disposableBuildsPassed": true
+  },
+  "nativeTesterCandidateRun": false,
+  "publicReleaseGate": "BLOCKED",
+  "independentReview": {
+    "result": "CLEARED_SCOPED_DRAFT",
+    "authorizationMatrixCases": 20736,
+    "integratedIsolationAssertions": 40,
+    "integratedIsolationNegativeControls": 4,
+    "developerAssertions": 94,
+    "developerControls": 4,
+    "releaseGateAssertions": 14,
+    "historyBound": 4096,
+    "limits": "Read-only source/mocked review; historical identity only, not fresh cloud settings, native candidate execution or publication clearance."
+  },
+  "rawFileSha256": {
+    "src/ServerScriptService/DeveloperAccess.luau": "9daaf19752837dc72957051281d8d522b54e7709caa76f556e1bd46da54e4eac",
+    "src/ServerScriptService/Bootstrap.server.luau": "c1c2d65325f617f8b2022ee7cf95bc45f5e868567c9af12a2c985f33751a63ab",
+    "tools/developer_access_preflight.py": "66d1a6ce89227007f080d8a74f117e4be9f5db2c32fc3fdf3335541dc0a22af3",
+    "tests/prelaunch_test_isolation.py": "fef5437bb5b90c79e10affc1b8ad2310f195237fa8aa0f4961be8b0a6ac74e02",
+    "tests/developer_tools.py": "0f3a9cd5318c6e1b41edf3f54fd24019813d1bb84dcb1e4b015766de7bcd99b5",
+    "tests/prelaunch_release_gate.py": "e387411234da40cac4193ecfc2c31885ae0a4e0c0a5d2b27e126c42fed112d34"
+  }
+}

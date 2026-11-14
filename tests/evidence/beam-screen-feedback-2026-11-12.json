@@ -1,0 +1,149 @@
+{
+  "date": "2026-11-12T04:37:58.842638+00:00",
+  "baseCommit": "e5501ed661a781870956746858ed29e374e20cb8",
+  "scope": "Original local presentation only; no camera, server combat, world/map, persistence or purchase changes",
+  "sourceSha256": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "6ecf871b8179a7de708832b1af9d85bc4e148349bfec863890e353bc75ffaa06",
+    "src/StarterPlayer/StarterPlayerScripts/BeamScreenFeedback.luau": "c8e4a795c1e0e8d4ecf08769e8cc49d022020415764260918561d3b787deeb71",
+    "tests/beam_screen_feedback.py": "70278159215ade793daf7e3e284bb505c07e45966444a853446096f0e271ac50",
+    "tests/beam_screen_integration.py": "995d95a4f323623a4ccae6363ec1c1763ec79e2f59ee9e1fdc494eee53ae75e8",
+    "tests/build_beam_screen_review.py": "7e03e08669995b8deb59ab21589d65dbff7e75a11947486d85e69d72a52b94a3",
+    "tests/dodge_effect.py": "4cf6e8264add3c55445a2054e2df8e706c10b7e9fffb5e009e1c8d45c579646f",
+    "tests/gameplay_audio.py": "be92ca98f2ace84ee12b724d7ef9d233e07e247ee26dcf702ac394b4a6ce7223",
+    "tests/voice_notice_lifecycle.py": "08fbaa89fad61a03ae80f55ff11c9a7c039666ee148779d6fcc75a8c7744ac3b",
+    "tests/verify_local.py": "b47f9bd0f1e2709cbb6310a40d38baff5a78176f273c6719226f0213b7b405aa"
+  },
+  "checks": {
+    "module": {
+      "command": "python tests/beam_screen_feedback.py --negative-controls",
+      "assertions": 94,
+      "negativeControls": 9,
+      "sourceContracts": 1
+    },
+    "integration": {
+      "command": "python tests/beam_screen_integration.py --negative-controls",
+      "assertions": 91,
+      "negativeControls": 18,
+      "realModules": [
+        "SustainedControls",
+        "HitFeedback",
+        "BeamScreenFeedback"
+      ],
+      "limits": "Actual Client slices and synthetic events/time; mocked geometry/audio/GUI, not native transport"
+    },
+    "retainedVoiceNotice": {
+      "command": "python tests/voice_notice_lifecycle.py --negative-controls",
+      "assertions": 1217,
+      "negativeControls": 2
+    },
+    "retainedDodge": {
+      "command": "python tests/dodge_effect.py --negative-controls",
+      "assertions": 127,
+      "negativeControls": 4
+    },
+    "full": {
+      "command": "python tests/verify_local.py --build",
+      "passed": true,
+      "pureSyntheticSuites": 25,
+      "mockedSuites": 102,
+      "productionCompiles": 61,
+      "buildsPassed": true,
+      "negativeControlsIncludedByDefault": false
+    }
+  },
+  "independentReview": {
+    "reviewer": "Astra independent read-only reviewer",
+    "finalClientSha256": "6ecf871b8179a7de708832b1af9d85bc4e148349bfec863890e353bc75ffaa06",
+    "moduleAssertions": 94,
+    "moduleControls": 9,
+    "integrationAssertions": 91,
+    "integrationControls": 18,
+    "result": "No remaining code blocker in reviewed production; native visual/device evidence pending",
+    "corrections": [
+      "Visual-packet/attribute order replaced by current matched local acknowledgement",
+      "Feedback inset policy matches aim coordinates; own GUI below HUD",
+      "Owner End consumes current attempt before clearing"
+    ]
+  },
+  "native": {
+    "nativeExecuted": false,
+    "scope": "Isolated module only; native checks pending",
+    "sourceSha256": "c8e4a795c1e0e8d4ecf08769e8cc49d022020415764260918561d3b787deeb71",
+    "fixtureSha256": "01897c1551d2c17abfab2bb75ee53b07f660ada2cf05faedcbf75b462888c9e1",
+    "artifactSha256": "4960364ad94c85307dc9efa466f41a02f76b45ce731bb33e6841014880a891ee",
+    "viewports": [
+      [
+        320,
+        568
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        1280,
+        720
+      ]
+    ]
+  },
+  "referenceReview": {
+    "sampling": "Eight timestamped visual samples per clip, 32 total; not full motion/audio transcript",
+    "clips": [
+      "IMG_1397.mov",
+      "IMG_1399.mov",
+      "v15044gf0000dbo19lnog65vnfi98ekg.mov",
+      "IMG_1400.mov"
+    ],
+    "exactBeamOverlayReferenceEstablished": false,
+    "thirdPartyAssetsImported": false
+  },
+  "initialFailures": [
+    {
+      "log": "build/beam-screen-full.log",
+      "reason": "Old exact accepted-hit audio source-contract line omitted new visual request"
+    },
+    {
+      "log": "build/beam-screen-final-full.log",
+      "reason": "Voice lifecycle fixture end anchor searched before its start due new focus callback"
+    },
+    {
+      "log": "build/beam-screen-complete.log",
+      "reason": "Retained Dodge handler fixture lacked decorative callback dependency"
+    }
+  ],
+  "logSha256": {
+    "build/beam-screen-module.log": "0e98686598f1763a5d707f5dd5ee4915b08470df34c9ba7bacb751533fba0555",
+    "build/beam-screen-integration.log": "23a939f6c53fc3b30fce3bda4cf8b0c0e65dd23e08bb1b810ba868d3f006fd8e",
+    "build/beam-screen-voice-notice.log": "3536ebb2ddfa30868bf6b639e81f8901da56f7187c0a7c12f0b5a8db09e92905",
+    "build/beam-screen-dodge.log": "0b0e6dfc7813f637206fa018738571ee0865ec549ab36d43e41f1e74911c8c92",
+    "build/beam-screen-fixture-sweep.log": "0c4e7da030cde67151a1b43e69e6285a51631ceaca08ee318add742f48057b97",
+    "build/beam-screen-verified-full.log": "8c87ebe5d7c48b125f3087d0fafb8d91caf6a5590a09ac8a27b5ab2f245913f8",
+    "build/beam-screen-full.log": "9a488d8751cb40c692eed48df150ed32eabdfcbf4b76dfe3a347d6801a593889",
+    "build/beam-screen-final-full.log": "94eb4c21bee0d40aafd615ae326a2e298bc9220a5b2f7eabd4a23ff48f247e96",
+    "build/beam-screen-complete.log": "be0725b0a00c9cfac958298339a97b8b1e8ad9eaaa5859de1081ac252f881390"
+  },
+  "limitations": [
+    "Native fixture built/compiled only; no Studio execution or screenshot claim",
+    "Physical-device/comfort/platform preference access/GPU performance and native transport ordering unverified",
+    "End has no sequence payload; overlapping old End can suppress new decorative cue",
+    "No exact reference-fidelity claim",
+    "All-test-player access held pending verified intended test identity",
+    "Map remains paused; existing short-screen long-notice overlap and final minimap native check remain",
+    "Writer-fleet release gate and real microphone/services gates unchanged"
+  ],
+  "cleanup": {
+    "appsOpened": false,
+    "priorMinimizedPickerLimitationUnchanged": true,
+    "unattributedFilesPreserved": [
+      "AGENTS.md",
+      "tests/tmpgk_bi6e8.luau",
+      "tests/tmp800k9e3f.luau"
+    ]
+  },
+  "liveServicesUsed": false,
+  "published": false
+}

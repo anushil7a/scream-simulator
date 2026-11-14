@@ -1,0 +1,142 @@
+{
+  "checkpoint": "b165525408b08083e9569943a72cdf2df32ed842",
+  "productionChanged": false,
+  "fixturesChanged": false,
+  "fullSuiteRerun": false,
+  "retainedFullSuite": "b165525:25 pure/synthetic,102 mocked,61 production compiles and builds passed before native follow-up",
+  "beam": {
+    "result": {
+      "checks": 218,
+      "scope": "Actual module/native viewport inset-center comparison and synthetic-size geometry; synthetic time, no full gameplay HUD overlap/input/device validation",
+      "rowCount": 5,
+      "passed": true,
+      "synthetic": true
+    },
+    "completeInsetRow": {
+      "physicalReachabilityTested": false,
+      "aimCenter": "671.200012, 309.200012",
+      "synthetic": false,
+      "rootSize": "1342.40002, 734.400024",
+      "defaultHudPosition": "0, 0",
+      "rootCenter": "671.200012, 309.200012",
+      "defaultHudSize": "1342.40002, 676.400024",
+      "defaultHudInset": "Enum.ScreenInsets.CoreUISafeInsets",
+      "stage": "actual-viewport-centers",
+      "rootPosition": "0, -58"
+    },
+    "emittedRows": 5,
+    "truncatedGeometryRows": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "logLimit": "Rows 2-5 are truncated at 1022-character log lines, not reconstructed geometry JSON. Summary and center row are complete.",
+    "logTimestampUTC": "2026-11-12T04:42:55.782Z",
+    "logFileName": "0.747.0.7471481_20261112T044131Z_Studio_75A6A_last.log",
+    "logSha256": "d0245dde9856dec90ddede6a3d6f67678761a366734a58e72cf2a32c03e036b6"
+  },
+  "minimap": {
+    "result": {
+      "rows": [
+        {
+          "viewport": "320, 568",
+          "position": "226, 24",
+          "expanded": false,
+          "size": "90, 44"
+        },
+        {
+          "viewport": "360, 800",
+          "position": "266, 24",
+          "expanded": false,
+          "size": "90, 44"
+        },
+        {
+          "viewport": "390, 844",
+          "position": "274, 24",
+          "expanded": true,
+          "size": "112, 132"
+        },
+        {
+          "viewport": "430, 844",
+          "position": "307, 24",
+          "expanded": true,
+          "size": "119, 137"
+        },
+        {
+          "viewport": "460, 844",
+          "position": "324, 24",
+          "expanded": true,
+          "size": "132, 148"
+        },
+        {
+          "viewport": "640, 360",
+          "position": "546, 24",
+          "expanded": false,
+          "size": "90, 44"
+        },
+        {
+          "viewport": "844, 390",
+          "position": "750, 24",
+          "expanded": false,
+          "size": "90, 44"
+        },
+        {
+          "viewport": "820, 720",
+          "position": "656, 24",
+          "expanded": true,
+          "size": "160, 172"
+        },
+        {
+          "viewport": "1280, 720",
+          "position": "1116, 24",
+          "expanded": true,
+          "size": "160, 172"
+        }
+      ],
+      "limits": "Synthetic viewport/state/mic/remotes. No physical controls, actual phone or live services.",
+      "checks": 195
+    },
+    "logTimestampUTC": "2026-11-12T04:45:10.823Z",
+    "logFileName": "0.747.0.7471481_20261112T044427Z_Studio_27A3E_last.log",
+    "logSha256": "6d0d90fc9754ac9e25104e0d1bc852d4f41100aef5fb9028aba6e17144fb97c7",
+    "noticeExercised": "Saving is unavailable. Progress is temporary.",
+    "fullLengthProductionWarningTested": false
+  },
+  "diskSha256": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "6ecf871b8179a7de708832b1af9d85bc4e148349bfec863890e353bc75ffaa06",
+    "src/StarterPlayer/StarterPlayerScripts/BeamScreenFeedback.luau": "c8e4a795c1e0e8d4ecf08769e8cc49d022020415764260918561d3b787deeb71",
+    "src/StarterPlayer/StarterPlayerScripts/CityMap.luau": "6468dd2bfddd0f634da7ab3777dc5e057de845096afefb78919cd659474befec",
+    "tests/build_beam_screen_review.py": "7e03e08669995b8deb59ab21589d65dbff7e75a11947486d85e69d72a52b94a3",
+    "tests/build_minimap_review.py": "8da7e8769dac0345436de08a9db3f6e1a7b03a17936e417bc6dacdec23baaad3",
+    "build/BeamScreenReview.module.luau": "c8e4a795c1e0e8d4ecf08769e8cc49d022020415764260918561d3b787deeb71",
+    "build/BeamScreenReview.client.luau": "01897c1551d2c17abfab2bb75ee53b07f660ada2cf05faedcbf75b462888c9e1",
+    "build/BeamScreenReview.rbxl": "4960364ad94c85307dc9efa466f41a02f76b45ce731bb33e6841014880a891ee",
+    "build/MiniMapReview.client.luau": "1b7ffe5d80bec69955f8fef8c155ae0ffb8299db500bc099be5d987d2d7e5d6c",
+    "build/MiniMapReview.rbxl": "8d070d84092e60b81183589f8301aaa42e01c32ce797caf7964b1a58ecaa8954"
+  },
+  "identityLimits": "Logs identify artifact paths, not runtime byte hashes. Disk artifacts and source/builder correspondence were separately verified; no cryptographic runtime byte attestation. MiniMap has no standalone provenance sidecar.",
+  "review": "Independent read-only reviewer verified both result summaries, current source/fixture correspondence and Beam artifact provenance; no fixture assertion failure found. Four truncated geometry rows explicitly excluded from reconstructed-data claims.",
+  "warnings": [
+    "Asset type mismatch 203785492 appears in both sessions; source unknown",
+    "Studio background mesh-fetch warnings and save-close SaveDialogPending warnings/errors remain; no warning-free claim"
+  ],
+  "cleanup": {
+    "bothStudioPlaySessionsStopped": true,
+    "bothStudioWindowsClosedWithoutSaving": true,
+    "closureVerifiedBySupportedInventory": true,
+    "priorUserAppsPreserved": true,
+    "minimizedTaskPickersRemaining": 4,
+    "pickerLimit": "getApp cannot bind minimized windows and requests restore methods absent from documented API; no shell UI/process-kill workaround used"
+  },
+  "limits": [
+    "No current-map traversal or gameplay map review",
+    "Beam checks use actual native GUI/module with synthetic times/sizes, not Client acknowledgement/transport or animation-quality assessment",
+    "Minimap actual Client UI with synthetic mic/state/remotes/viewports; not real device/voice/input",
+    "Long full-length notices can still overlap collapsed navigation controls on short screens",
+    "No GPU/multiplayer/real-service/persistence validation",
+    "Map work paused; all-player test access held pending verified intended test identity"
+  ],
+  "published": false,
+  "liveServicesUsed": false
+}

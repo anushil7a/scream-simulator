@@ -1,0 +1,21 @@
+{
+  "commit": "7a0b044276a368c506a08ee2ce2c13b41067cb5c",
+  "files": {
+    "Profiles.luau": {
+      "source": "src/ServerScriptService/Profiles.luau",
+      "source_sha256": "9449db9520e4a468d7bd2d75741a08e0ec1c77b8777974b39e843aac5730f1ac",
+      "sha256": "9449db9520e4a468d7bd2d75741a08e0ec1c77b8777974b39e843aac5730f1ac"
+    },
+    "ProfileLease.luau": {
+      "source": "src/ReplicatedStorage/Shared/ProfileLease.luau",
+      "source_sha256": "c257a4b4a3cbe5c4c0712bde457993405d2ed6c31ec2a22714b2fe3254ebc258",
+      "sha256": "c257a4b4a3cbe5c4c0712bde457993405d2ed6c31ec2a22714b2fe3254ebc258"
+    },
+    "QuestCatalog.luau": {
+      "source": "src/ReplicatedStorage/Shared/Config.luau",
+      "source_sha256": "f67aa2b675c4337bc6876dc4f74c782c81a9da522c10fb47a9b933db83ea7570",
+      "slice": "Config.Quests={ through before local questGivers=",
+      "sha256": "ad280386d986ebcd08bb24ad1171fc0c400a52c3075d73893c2f057636a5a281"
+    }
+  }
+}

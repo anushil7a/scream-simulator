@@ -1,0 +1,117 @@
+{
+  "state": "complete",
+  "samples": [
+    {
+      "seated": 0,
+      "elapsed": 0,
+      "luaKB": 7959,
+      "worldInstances": 53463,
+      "alive": 46,
+      "above20Studs": 0,
+      "movedSinceLast": 0,
+      "strandedSeats": 0,
+      "working": 0
+    },
+    {
+      "seated": 1,
+      "elapsed": 30,
+      "luaKB": 3412,
+      "worldInstances": 53464,
+      "alive": 46,
+      "above20Studs": 0,
+      "movedSinceLast": 41,
+      "strandedSeats": 0,
+      "working": 7
+    },
+    {
+      "seated": 3,
+      "elapsed": 60,
+      "luaKB": 3434,
+      "worldInstances": 53470,
+      "alive": 46,
+      "above20Studs": 0,
+      "movedSinceLast": 41,
+      "strandedSeats": 1,
+      "working": 7
+    },
+    {
+      "seated": 1,
+      "elapsed": 90,
+      "luaKB": 2695,
+      "worldInstances": 53464,
+      "alive": 46,
+      "above20Studs": 0,
+      "movedSinceLast": 42,
+      "strandedSeats": 0,
+      "working": 6
+    },
+    {
+      "seated": 2,
+      "elapsed": 120,
+      "luaKB": 3400,
+      "worldInstances": 53465,
+      "alive": 46,
+      "above20Studs": 0,
+      "movedSinceLast": 41,
+      "strandedSeats": 1,
+      "working": 5
+    },
+    {
+      "seated": 1,
+      "elapsed": 150,
+      "luaKB": 2717,
+      "worldInstances": 53464,
+      "alive": 46,
+      "above20Studs": 0,
+      "movedSinceLast": 42,
+      "strandedSeats": 0,
+      "working": 5
+    },
+    {
+      "seated": 4,
+      "elapsed": 180,
+      "luaKB": 3500,
+      "worldInstances": 53469,
+      "alive": 46,
+      "above20Studs": 0,
+      "movedSinceLast": 40,
+      "strandedSeats": 2,
+      "working": 5
+    },
+    {
+      "seated": 2,
+      "elapsed": 210,
+      "luaKB": 2480,
+      "worldInstances": 53465,
+      "alive": 46,
+      "above20Studs": 0,
+      "movedSinceLast": 41,
+      "strandedSeats": 0,
+      "working": 5
+    },
+    {
+      "seated": 3,
+      "elapsed": 240,
+      "luaKB": 2480,
+      "worldInstances": 53470,
+      "alive": 46,
+      "above20Studs": 0,
+      "movedSinceLast": 42,
+      "strandedSeats": 0,
+      "working": 6
+    },
+    {
+      "seated": 0,
+      "elapsed": 270,
+      "luaKB": 2463,
+      "worldInstances": 53463,
+      "alive": 46,
+      "above20Studs": 0,
+      "movedSinceLast": 40,
+      "strandedSeats": 0,
+      "working": 6
+    }
+  ],
+  "error": "",
+  "runId": "CityNpcSoak-20261002-seat-release-fix"
+}

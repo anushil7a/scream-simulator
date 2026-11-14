@@ -1,0 +1,42 @@
+{
+  "recordedAtUtc": "2026-11-11T21:24:24.447016+00:00",
+  "baseCommit": "2daa39efaae184a3fea98691724c9a2b9b094566",
+  "scope": "Test/documentation-only correction; no production data-loss defect claimed",
+  "hashSemantics": "Exact final working-tree bytes, including newline encoding",
+  "checks": {
+    "replayAssertions": 47,
+    "compatibilityNegativeControls": 11,
+    "writerProbes": "Every current ID in partial, completed-unclaimed, claimed, discovered-only states; immutable expected copy; no fabricated entry for discovery-only; current passes and historical rejects",
+    "preflightAssertions": 36,
+    "preflightNegativeControls": 4,
+    "syntheticCLI": "Compatible declared2daa39e exit0, historical rollback exit2; both still report release BLOCKED. Not operational evidence.",
+    "independentReview": "Focused suite/probes and all11 controls independently rerun",
+    "aggregate": "No new aggregate/native/build run; unchanged runtime last fully verified at2daa39e with25 pure/synthetic,92 mocked,60 compiles/all builds"
+  },
+  "commands": [
+    "python tests/quest_writer_compatibility.py --negative-controls",
+    "python tests/quest_writer_preflight.py --negative-controls",
+    "python tools/quest_writer_preflight.py --inventory build/quest-writer-states-SYNTHETIC.json (two cases; transient inventory removed)"
+  ],
+  "limits": [
+    "Finite four-state coverage, not exhaustive absent/false/malformed-state or arbitrary-writer proof",
+    "Runtime mixed-version gate unresolved; no fleet verification or publication authority",
+    "No source/map/live-service/product/audio changes or apps opened"
+  ],
+  "sources": {
+    "tests/quest_writer_compatibility.py": "3f5ad645460058278ebd4c24c1b01df2cad955aed1a2768522c5e4b1efac817a",
+    "tests/quest_writer_preflight.py": "14aadcae608f8eb1cc70fbfccb61fcc69ab83ad0c2ce856dc0f521afdfb41fbd",
+    "tools/quest_writer_preflight.py": "34a3d065938ed48ff2861833baa1f14b3ed70b10f1a85a2f1179855416f15184",
+    "src/ServerScriptService/Profiles.luau": "d1101ab834275507aed9a50536c5db98ae0df3323261421370fbf7d06bdaad43",
+    "src/ReplicatedStorage/Shared/Config.luau": "47bb409b104c8f3f89647dc9808fb3c434a1f42bdc5bd81637e8b55b968dca7b",
+    "src/ReplicatedStorage/Shared/ProfileLease.luau": "19fdfeeafedb584b2eec830a825758c6d515cda573b20a9e0dd928e493893d9f",
+    "docs/QUEST_WRITER_ROLLOUT_REVIEW.md": "1a366c201f72d3edf0861e2e019c18878ef65c290119a6cb1bc82dabf3b36a85",
+    "docs/ROADMAP.md": "905b349a15a6b4863d151150c026bc849808e9ae78a18a05bdd0587559c3b064"
+  },
+  "artifacts": {
+    "build/quest-writer-state-controls.log": "6f683b879a426ee441a5a91f7d94fdfa7ac80b97b9ab2b7ae22bd5650fb69957",
+    "build/quest-writer-state-preflight.log": "a859f696512605c80964aa23ded91c4a5fd8f84e58ff7fabe5c36810ebfb0242",
+    "build/quest-writer-state-compatible-SYNTHETIC.log": "eca39ebbbea75c9c213d523015e591cd4a59d578f874e9e0037a8bf8dffb6b33",
+    "build/quest-writer-state-incompatible-SYNTHETIC.log": "9c2356ab4aff277a6fc1d030624c07833e5dc85350e21810280886d47c667f22"
+  }
+}

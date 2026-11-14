@@ -1,16 +1,145 @@
+-- This owner covers only this Client's resources; terminal cleanup is reentrant.
+local clientConnections={}
+local clientCleanups={}
+local clientDestroyed=false
+local function attemptClientCleanup(callback)
+ local ok=pcall(callback)
+ if not ok then warn("ScreamSimulator Client cleanup failed") end
+end
+local function retireClient()
+ if clientDestroyed then return end
+ clientDestroyed=true
+ for _,connection in ipairs(clientConnections) do attemptClientCleanup(function() connection:Disconnect() end) end
+ table.clear(clientConnections)
+ for i=#clientCleanups,1,-1 do attemptClientCleanup(clientCleanups[i]) end
+ table.clear(clientCleanups)
+end
+local function ownClient(cleanup)
+ if clientDestroyed then attemptClientCleanup(cleanup) else table.insert(clientCleanups,cleanup) end
+end
+local function clientCheckpoint()
+ if not clientDestroyed and not script:IsDescendantOf(game) then retireClient() end
+ return not clientDestroyed
+end
+table.insert(clientConnections,script.Destroying:Connect(retireClient))
+local function loadClientDependency(parent,name,direct)
+ if not clientCheckpoint() then return end
+ local dependency
+ if direct then dependency=parent[name] else dependency=parent:WaitForChild(name) end
+ if not clientCheckpoint() then return end
+ local value=require(dependency)
+ if not clientCheckpoint() then return end
+ return value
+end
+if not clientCheckpoint() then return end
+local CityMap=loadClientDependency(script.Parent,"CityMap");if not clientCheckpoint() then return end
 local Players=game:GetService("Players")
 local RS=game:GetService("ReplicatedStorage")
 local UIS=game:GetService("UserInputService")
 local Run=game:GetService("RunService")
 local Tween=game:GetService("TweenService")
 local Debris=game:GetService("Debris")
+local TextService=game:GetService("TextService")
+local GuiService=game:GetService("GuiService")
+local function connectClient(signal,callback)
+ if clientDestroyed then return end
+ local connection=signal:Connect(function(...)
+  if not clientDestroyed then callback(...) end
+ end)
+ table.insert(clientConnections,connection)
+ return connection
+end
+local originalTouchControls=GuiService.TouchControlsEnabled
+local lastTouchControls
+ownClient(function()
+ if lastTouchControls~=nil and GuiService.TouchControlsEnabled==lastTouchControls then GuiService.TouchControlsEnabled=originalTouchControls end
+end)
 local p=Players.LocalPlayer
-local Config=require(RS:WaitForChild("Shared"):WaitForChild("Config"))
-local remotes=RS:WaitForChild("ScreamRemotes")
-local action=remotes:WaitForChild("Action")
-local gui=Instance.new("ScreenGui");gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=p:WaitForChild("PlayerGui")
-local dark=Color3.fromRGB(19,32,40);local panel=Color3.fromRGB(29,47,55);local gold=Color3.fromRGB(255,205,111);local white=Color3.fromRGB(239,244,240);local muted=Color3.fromRGB(165,188,193)
-local data={level=1,xp=0,xpNext=103,coins=0,health=100,sound="TinyAah",aura="Gold",quests={},settings={volume=.55,reducedShake=false}}
+local originalCameraMode=p.CameraMode
+local originalMinZoom,originalMaxZoom=p.CameraMinZoomDistance,p.CameraMaxZoomDistance
+local lastCameraMode,lastMinZoom,lastMaxZoom
+ownClient(function()
+ if lastCameraMode~=nil and p.CameraMode==lastCameraMode then p.CameraMode=originalCameraMode end
+ if lastMinZoom~=nil and p.CameraMinZoomDistance==lastMinZoom then p.CameraMinZoomDistance=originalMinZoom end
+ if lastMaxZoom~=nil and p.CameraMaxZoomDistance==lastMaxZoom then p.CameraMaxZoomDistance=originalMaxZoom end
+end)
+-- Keep wheel/pinch zoom outside first person on desktop and touch.
+local function applyThirdPerson()
+ if clientDestroyed then return end
+ lastMaxZoom=math.max(originalMaxZoom,6);p.CameraMaxZoomDistance=lastMaxZoom
+ lastMinZoom=math.max(originalMinZoom,6);p.CameraMinZoomDistance=lastMinZoom
+ lastCameraMode=Enum.CameraMode.Classic;p.CameraMode=lastCameraMode
+end
+applyThirdPerson()
+connectClient(p.CharacterAdded,applyThirdPerson)
+local shared=RS:WaitForChild("Shared");if not clientCheckpoint() then return end
+local Config=loadClientDependency(shared,"Config");if not clientCheckpoint() then return end
+local InteractionRules=loadClientDependency(RS.Shared,"InteractionRules");if not clientCheckpoint() then return end
+local mic=loadClientDependency(script.Parent,"Microphone");if not clientCheckpoint() then return end
+mic=mic.new()
+ownClient(function() mic:Destroy() end);if not clientCheckpoint() then return end
+local attackAudio=loadClientDependency(script.Parent,"AttackAudio");if not clientCheckpoint() then return end
+attackAudio=attackAudio.new()
+ownClient(function() attackAudio:Destroy() end);if not clientCheckpoint() then return end
+local attackAudioSettings=loadClientDependency(RS.Shared,"AttackAudioConfig",true);if not clientCheckpoint() then return end
+local gameplayAudio=loadClientDependency(script.Parent,"GameplayAudio");if not clientCheckpoint() then return end
+gameplayAudio=gameplayAudio.new()
+ownClient(function() gameplayAudio:Destroy() end);if not clientCheckpoint() then return end
+local gameplayAudioSettings=loadClientDependency(RS.Shared,"GameplayAudioConfig",true);if not clientCheckpoint() then return end
+
+connectClient(p.CharacterRemoving,function() gameplayAudio:Clear() end)
+local function cueContext()
+ gameplayAudio:SetContext(mic.ready and mic.power>.12,mic.phase~=nil or not mic.ready)
+end
+local function playGameplayCue(kind,position)
+ cueContext()
+ if position then
+  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+  if not root or (root.Position-position).Magnitude>gameplayAudioSettings.Range then return end
+ end
+ gameplayAudio:Play(kind,os.clock(),position)
+end
+
+
+local ShopUI=loadClientDependency(script.Parent,"ShopUI");if not clientCheckpoint() then return end
+local shopUsed=false
+local function clearShop()
+ if shopUsed then ShopUI.Clear() end
+end
+ownClient(clearShop)
+local ScreamEffects=loadClientDependency(script.Parent,"ScreamEffects");if not clientCheckpoint() then return end
+local screamEffectsUsed=false
+ownClient(function() if screamEffectsUsed then ScreamEffects.Clear() end end)
+local remotes=RS:WaitForChild("ScreamRemotes");if not clientCheckpoint() then return end
+local action=remotes:WaitForChild("Action");if not clientCheckpoint() then return end
+local playerGui=p:WaitForChild("PlayerGui");if not clientCheckpoint() then return end
+local gui=Instance.new("ScreenGui");ownClient(function() gui:Destroy() end);if not clientCheckpoint() then return end
+gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=playerGui
+local dark=Color3.fromRGB(17,25,29);local panel=Color3.fromRGB(35,47,52);local gold=Color3.fromRGB(235,190,105);local white=Color3.fromRGB(246,241,226);local muted=Color3.fromRGB(177,192,193)
+local data={level=1,xp=0,xpNext=Config.XPToNext(1),coins=0,health=100,sound="TinyAah",aura="Gold",quests={},settings={volume=.55,reducedShake=false}}
+-- Match the aim GUI's viewport coordinates without moving the camera or covering HUD.
+local beamFeedbackGui=Instance.new("ScreenGui");ownClient(function() beamFeedbackGui:Destroy() end);if not clientCheckpoint() then return end
+beamFeedbackGui.Name="BeamFeedback";beamFeedbackGui.ResetOnSpawn=false
+beamFeedbackGui.ScreenInsets=Enum.ScreenInsets.None;beamFeedbackGui.DisplayOrder=-1;beamFeedbackGui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;beamFeedbackGui.Parent=p.PlayerGui
+local beamScreenFeedback=loadClientDependency(script.Parent,"BeamScreenFeedback");if not clientCheckpoint() then return end
+beamScreenFeedback=beamScreenFeedback.new(beamFeedbackGui)
+ownClient(function() beamScreenFeedback:Destroy() end);if not clientCheckpoint() then return end
+
+connectClient(p.CharacterRemoving,function() beamScreenFeedback:Clear() end)
+connectClient(UIS.WindowFocusReleased,function() beamScreenFeedback:Clear() end)
+connectClient(GuiService.MenuOpened,function() beamScreenFeedback:Clear() end)
+-- Fail quiet if the platform comfort preference cannot be read.
+local platformReducedMotion=true
+local function refreshScreenComfort()
+ local ok,value=pcall(function() return GuiService.ReducedMotionEnabled end)
+ platformReducedMotion=not ok or value==true
+ if platformReducedMotion then beamScreenFeedback:Clear() end
+end
+refreshScreenComfort()
+do
+ local comfortOk,comfortSignal=pcall(function() return GuiService:GetPropertyChangedSignal("ReducedMotionEnabled") end)
+ if comfortOk then connectClient(comfortSignal,refreshScreenComfort) end
+end
 local function frame(parent,name,size,pos,color)
  local f=Instance.new("Frame");f.Name=name;f.Size=size;f.Position=pos;f.BackgroundColor3=color or dark;f.BorderSizePixel=0;f.Parent=parent
  local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,10);c.Parent=f;return f
@@ -20,186 +149,1156 @@ local function label(parent,text,size,pos,fontSize,color)
 end
 local function button(parent,name,text,size,pos,callback,color)
  local b=Instance.new("TextButton");b.Name=name;b.Size=size;b.Position=pos;b.BackgroundColor3=color or panel;b.TextColor3=white;b.Text=text;b.TextSize=14;b.Font=Enum.Font.GothamBold;b.AutoButtonColor=true;b.BorderSizePixel=0;b.Parent=parent
- local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,8);c.Parent=b;b.Activated:Connect(callback);return b
+ local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,8);c.Parent=b;b.Activated:Connect(function(...) if not clientDestroyed then callback(...) end end);return b
+end
+-- Presentation only: no subscriptions, assets, input handlers or independent lifetime.
+local academy={}
+academy.lockLostUntil=0
+function academy.surface(object,accent)
+ local stroke=Instance.new("UIStroke");stroke.Name="AcademyEdge";stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;stroke.Color=accent or Color3.fromRGB(89,110,114);stroke.Transparency=.45;stroke.Thickness=1;stroke.Parent=object
+ local shade=Instance.new("UIGradient");shade.Name="AcademyDepth";shade.Color=ColorSequence.new(Color3.new(1,1,1),Color3.fromRGB(183,196,201));shade.Rotation=90;shade.Parent=object
+end
+function academy.mark(parent,kind,pos,size,color)
+ local icon=Instance.new("Frame");icon.Name="AcademyIcon_"..kind;icon.BackgroundTransparency=1;icon.Position=pos;icon.Size=UDim2.fromOffset(size,size);icon.Active=false;icon.Selectable=false;icon.Interactable=false;icon.Parent=parent
+ local function bar(x,y,w,h)
+  local f=Instance.new("Frame");f.Name="Glyph";f.BorderSizePixel=0;f.BackgroundColor3=color;f.Position=UDim2.fromScale(x,y);f.Size=UDim2.fromScale(w,h);f.Active=false;f.Selectable=false;f.Interactable=false;f.Parent=icon
+  local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,2);corner.Parent=f
+ end
+ if kind=="voice" then
+  bar(.08,.36,.12,.28);bar(.30,.18,.12,.64);bar(.52,.06,.12,.88);bar(.74,.26,.12,.48)
+ elseif kind=="health" then bar(.36,.1,.28,.8);bar(.1,.36,.8,.28)
+ elseif kind=="progress" then bar(.10,.65,.18,.25);bar(.40,.4,.18,.5);bar(.70,.1,.18,.8)
+ end
+ return icon
+end
+-- Original, static menu glyphs. Labels remain the accessible action identity.
+academy.tabIcons={}
+function academy.tabIcon(parent,kind)
+ local icon=Instance.new("Frame");icon.Name="MenuIcon_"..kind;icon.Size=UDim2.fromOffset(20,20)
+ icon.ZIndex=parent.ZIndex+1;icon.BackgroundTransparency=1;icon.Visible=false;icon.Active=false;icon.Selectable=false;icon.Interactable=false;icon.Parent=parent
+ local ink=Color3.fromRGB(28,36,64);local light=Color3.fromRGB(255,242,199)
+ local warm=Color3.fromRGB(240,190,91);local cool=Color3.fromRGB(143,191,202)
+ local function shape(name,x,y,w,h,color,rotation,round)
+  local f=Instance.new("Frame");f.Name=name;f.Position=UDim2.fromOffset(x,y);f.Size=UDim2.fromOffset(w,h)
+  f.ZIndex=icon.ZIndex;f.BorderSizePixel=0;f.BackgroundColor3=color;f.Rotation=rotation or 0
+  f.Active=false;f.Selectable=false;f.Interactable=false;f.Parent=icon
+  if round then local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,round);c.Parent=f end
+  return f
+ end
+ if kind=="Shop" then
+  shape("StackInk",2,8,16,10,ink,0,4);shape("StackShade",4,10,12,6,warm,0,3)
+  shape("CoinInk",2,2,16,11,ink,0,5);shape("CoinFace",4,4,12,7,light,0,4);shape("CoinFacet",5,8,10,2,warm,0,1)
+ elseif kind=="Screams" then
+  shape("BeamInk",2,7,16,7,ink,-18,2);shape("BeamFace",3,8,14,4,warm,-18,1)
+  shape("EmitterInk",2,5,6,11,ink,-18,2);shape("EmitterFace",3,6,3,8,cool,-18,1)
+  shape("Core",7,8,10,2,light,-18,1)
+ elseif kind=="Quests" then
+  shape("PageInk",3,1,14,18,ink,0,3);shape("PageFace",5,3,10,14,light,0,2)
+  shape("CheckShort",6,7,3,2,cool,40);shape("CheckLong",8,6,6,2,cool,-42)
+  shape("LineOne",7,12,6,2,warm);shape("LineTwo",7,15,4,1,warm)
+ elseif kind=="Style" then
+  shape("BackInk",2,3,12,14,ink,-18,3);shape("BackFace",4,5,8,10,cool,-18,2)
+  shape("FrontInk",6,3,12,14,ink,15,3);shape("FrontFace",8,5,8,10,warm,15,2);shape("Shine",9,6,5,2,light,15,1)
+ elseif kind=="Map" then
+  shape("MapInk",1,3,18,15,ink,0,2);shape("WestFold",3,5,4,10,light)
+  shape("MiddleFold",7,4,6,12,cool);shape("EastFold",13,5,4,10,light)
+  shape("Route",5,9,10,2,warm,-18);shape("Destination",13,7,3,3,ink,0,1)
+ elseif kind=="Settings" then
+  for i=0,2 do
+   shape("Rail"..i,2,3+i*6,16,3,ink,0,1)
+   local x=({5,11,7})[i+1]
+   shape("KnobInk"..i,x,1+i*6,5,7,ink,0,2)
+   shape("KnobFace"..i,x+1,2+i*6,3,4,i==1 and cool or light,0,1)
+  end
+ end
+ local padding=Instance.new("UIPadding");padding.Name="MenuTextInset";padding.Parent=parent
+ return icon,padding
+end
+function academy.layoutTab(button,icon,padding,width)
+ local measured=TextService:GetTextSize(button.Text,button.TextSize,button.Font,Vector2.new(1000,1000)).X
+ local total=20+6+math.ceil(measured)
+ local fits=width>=total+16
+ icon.Visible=fits
+ padding.PaddingRight=UDim.new(0,fits and (width-total)/2 or 0)
+ button.TextXAlignment=fits and Enum.TextXAlignment.Right or Enum.TextXAlignment.Center
+ icon.Position=UDim2.new(0,(width-total)/2,0.5,-10)
 end
 local top=frame(gui,"Navigation",UDim2.fromOffset(250,40),UDim2.fromOffset(14,12));top.BackgroundTransparency=1
-local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,.5);modal.Visible=false
+local modal=frame(gui,"Menu",UDim2.fromOffset(720,520),UDim2.fromScale(.5,.5));modal.AnchorPoint=Vector2.new(.5,0);modal.ZIndex=10;modal.Visible=false
+do
+ local menuEdge=Instance.new("UIStroke");menuEdge.Color=gold;menuEdge.Transparency=.5;menuEdge.Parent=modal
+ modal.BackgroundColor3=Color3.new(1,1,1)
+ local menuGlow=Instance.new("UIGradient");menuGlow.Color=ColorSequence.new(Color3.fromRGB(46,61,65),dark);menuGlow.Rotation=80;menuGlow.Parent=modal
+ frame(modal,"SignalStripe",UDim2.new(1,-44,0,2),UDim2.fromOffset(22,8),gold)
+end
 local menuScale=Instance.new("UIScale");menuScale.Parent=modal
-local title=label(modal,"SCREAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
-local subtitle=label(modal,"Train for XP. Unlock a new scream every five levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
-button(modal,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-52,0,16),function() modal.Visible=false end)
+local title=label(modal,"BEAM COLLECTION",UDim2.new(1,-85,0,36),UDim2.fromOffset(22,15),23,gold)
+local subtitle=label(modal,"Train for XP. Unlock a new beam style every ten levels.",UDim2.new(1,-44,0,25),UDim2.fromOffset(22,52),14,muted)
+local renderedMenuKey,renderedTab
+local renderRevision=0
+local function closeMenu()
+ modal.Visible=false
+ clearShop()
+ -- Retain the previous tab/scroll position, but rebuild its subscriptions on reopen.
+ renderedMenuKey=nil;renderRevision+=1
+end
+button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function() closeMenu() end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
-local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content
-local selected="Screams";local render;local tabs={};local mapDot
-local function toggle() modal.Visible=not modal.Visible;if modal.Visible then render() end end
-local shop=button(top,"ShopToggle","SCREAMS  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),toggle,gold);shop.TextColor3=dark
-button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() selected="Quests";modal.Visible=not(modal.Visible and title.Text=="CITY QUESTS");render() end)
-local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.08
-local stats=label(hud,"LEVEL 1     •     0 coins",UDim2.new(1,-24,0,22),UDim2.fromOffset(12,7),14,gold)
-local health=label(hud,"100 HP",UDim2.fromOffset(65,20),UDim2.fromOffset(12,31),12)
-local hb=frame(hud,"HealthTrack",UDim2.fromOffset(142,6),UDim2.fromOffset(83,38),panel)
-local hf=frame(hb,"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
-local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-24,0,19),UDim2.fromOffset(12,52),12,muted)
-local xb=frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,79),panel)
-local xf=frame(xb,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
+do local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content end
+local selected="Shop";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
+local conversationPanel,showConversation,closeConversation
+local observedMicInterruption=0
+local lockController
+local function toggleTab(name)
+ if lockController then lockController:Clear();academy.lockLostUntil=0 end
+ local opening=not modal.Visible or selected~=name
+ selected=name;if not opening then closeMenu();return end;modal.Visible=true
+ if opening then
+  if name=="Shop" then action:FireServer("ShopRefresh") end
+  if closeConversation then closeConversation() end
+  if devPanel then devPanel.Visible=false end
+  render()
+ end
+end
+local function toggle()
+ if modal.Visible then closeMenu() else toggleTab(selected) end
+end
+local shop=button(top,"ShopToggle","SHOP  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),function() toggleTab("Shop") end,gold);shop.TextColor3=dark
+local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests") end)
+academy.surface(shop);academy.surface(questsToggle)
+local function questLauncherText()
+ local count=0
+ for _,quest in ipairs(Config.Quests)do
+  local progress=data.quests and data.quests[quest.id]
+  if progress and not progress.claimed and progress.progress>=quest.goal then count+=1 end
+ end
+ return count>0 and ("QUESTS "..count) or "QUESTS"
+end
+local hud=frame(gui,"CompactHUD",UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108));hud.BackgroundTransparency=.04
+academy.surface(hud,gold)
+frame(hud,"EnergyAccent",UDim2.new(1,-24,0,1),UDim2.fromOffset(12,2),gold)
+local levelBadge=frame(hud,"LevelBadge",UDim2.fromOffset(82,24),UDim2.fromOffset(12,8),gold)
+levelBadge.Active=false;levelBadge.Selectable=false;levelBadge.Interactable=false
+local stats=label(levelBadge,"LEVEL 1",UDim2.fromScale(1,1),UDim2.new(),12,dark)
+stats.Name="LevelValue";stats.Font=Enum.Font.GothamBold;stats.TextXAlignment=Enum.TextXAlignment.Center;stats.TextWrapped=false
+local coins=label(hud,"0 coins",UDim2.fromOffset(128,24),UDim2.fromOffset(102,8),13,white)
+coins.Name="CoinValue";coins.Font=Enum.Font.GothamBold;coins.TextXAlignment=Enum.TextXAlignment.Right;coins.TextWrapped=false
+coins.Active=false;coins.Selectable=false;coins.Interactable=false
+academy.mark(hud,"health",UDim2.fromOffset(12,36),10,Color3.fromRGB(130,211,174))
+local health=label(hud,"100 HP",UDim2.fromOffset(204,18),UDim2.fromOffset(26,32),14)
+health.Name="HealthValue";health.Font=Enum.Font.GothamBold;health.TextWrapped=false
+local hf=frame(frame(hud,"HealthTrack",UDim2.fromOffset(218,8),UDim2.fromOffset(12,51),panel),"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
+local displayedHealth,displayedMaximum
+local function refreshHealth()
+ local character=p.Character
+ local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ -- Keep the last observed value between characters; a generic server snapshot
+ -- must not briefly show full health over a dead or missing character.
+ if not humanoid and displayedHealth~=nil then return end
+ local maximum=math.max(1,humanoid and humanoid.MaxHealth or data.maxHealth or 100)
+ local current=math.clamp(humanoid and humanoid.Health or data.health or maximum,0,maximum)
+ if current==displayedHealth and maximum==displayedMaximum then return end
+ displayedHealth,displayedMaximum=current,maximum
+ health.Text=string.format("%d/%d",math.ceil(current),math.ceil(maximum))
+ hf.Size=UDim2.fromScale(current/maximum,1)
+end
+local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-38,0,19),UDim2.fromOffset(26,61),12,muted)
+xpText.TextScaled=true
+do local xpScale=Instance.new("UITextSizeConstraint");xpScale.Name="XPTextScale";xpScale.MaxTextSize=12;xpScale.MinTextSize=9;xpScale.Parent=xpText end
+local xf=frame(frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,82),panel),"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
+academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
 local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
-local tracked=label(gui,"",UDim2.fromOffset(250,66),UDim2.fromOffset(16,56),13);tracked.TextYAlignment=Enum.TextYAlignment.Top
-local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center
-local toastUntil=0
-local function notify(t) toast.Text=t;toastUntil=os.clock()+4 end
-local nextCast=0
-local function cast()
- if modal.Visible or (p:GetAttribute("ProtectionEnds") or 0)>workspace:GetServerTimeNow() or os.clock()<nextCast then return end
- local sound=Config.GetSound(data.sound);nextCast=os.clock()+sound.cooldown;action:FireServer("Cast")
+zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08
+do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=zone end
+academy.surface(zone)
+local tracked=label(gui,"",UDim2.fromOffset(290,50),UDim2.fromOffset(16,56),13);tracked.Name="QuestTracker";tracked.TextYAlignment=Enum.TextYAlignment.Top
+tracked.BackgroundColor3=dark;tracked.BackgroundTransparency=.06
+academy.surface(tracked)
+do
+ local trackerCorner=Instance.new("UICorner");trackerCorner.CornerRadius=UDim.new(0,8);trackerCorner.Parent=tracked
+ local trackerPadding=Instance.new("UIPadding");trackerPadding.PaddingLeft=UDim.new(0,6);trackerPadding.PaddingRight=UDim.new(0,6);trackerPadding.PaddingTop=UDim.new(0,4);trackerPadding.PaddingBottom=UDim.new(0,4);trackerPadding.Parent=tracked
 end
-local function dodge() if not modal.Visible then action:FireServer("Dodge") end end
+local toast=label(gui,"",UDim2.new(.7,0,0,48),UDim2.new(.15,0,.72,0),16,gold);toast.TextXAlignment=Enum.TextXAlignment.Center;toast.AnchorPoint=Vector2.new(.5,1);toast.Position=UDim2.fromScale(.5,.72)
+toast.Name="Notification";toast.ZIndex=30;toast.BackgroundColor3=dark;toast.BackgroundTransparency=.08;toast.Visible=false
+local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
+saveNotice.BackgroundColor3=dark;saveNotice.BackgroundTransparency=.08
+do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=saveNotice end
+academy.surface(saveNotice,gold)
+local notifications=loadClientDependency(script.Parent,"NotificationQueue");if not clientCheckpoint() then return end
+notifications=notifications.new();if not clientCheckpoint() then return end
+local toastWidth=0
+local NoticeLayout=loadClientDependency(script.Parent,"NoticeLayout");if not clientCheckpoint() then return end
+local noticeView=loadClientDependency(script.Parent,"NoticeView");if not clientCheckpoint() then return end
+noticeView=noticeView.new(gui,toast)
+ownClient(function() noticeView:Destroy() end);if not clientCheckpoint() then return end
+
+local function notify(t,urgent,key) notifications:Push(t,urgent,key) end
+local nextCast=0;local sequence=0;local captureSource=nil
+local sustainedControl,sustainedRules
+local voiceAccessInterrupted=false
+local windowFocused=true
+local function cancelCapture()
+ if lockController then lockController:Clear();academy.lockLostUntil=0 end
+ if sustainedControl then sustainedControl:Cancel();return end
+ captureSource=nil;mic:Cancel();action:FireServer("CancelCast")
+end
+local function blocked()
+ local character=p.Character
+ local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ if not humanoid or humanoid.Health<=0 or humanoid.PlatformStand then return true end
+ local now=workspace:GetServerTimeNow()
+ return GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil or (conversationPanel and conversationPanel.Visible) or modal.Visible or (devPanel and devPanel.Visible) or now<(p:GetAttribute("ProtectionEnds") or 0) or now<(p:GetAttribute("DodgeEnds") or 0) or now<(p:GetAttribute("KnockdownEnds") or 0)
+end
+local function beamBlocked()
+ return not mic.ready or data.voiceEligible~=true or blocked()
+end
+local function screenFeedbackAllowed()
+ return not clientDestroyed and windowFocused and sustainedControl~=nil and sustainedControl.armed
+  and not data.settings.reducedShake and not platformReducedMotion and not beamBlocked()
+end
+local function beginCapture(source)
+ if sustainedControl or captureSource or beamBlocked() or os.clock()<nextCast then return end
+ if mic:Begin() then sequence+=1;captureSource=source;action:FireServer("BeginCast",sequence) end
+end
+do
+ local LockOn=loadClientDependency(script.Parent,"LockOn");if not clientCheckpoint() then return end
+ local TrainingRules=loadClientDependency(RS.Shared,"TrainingRules");if not clientCheckpoint() then return end
+ local lockHomes={}
+ for index,tier in ipairs(TrainingRules.Tiers) do
+  local home=Config.CompactCity and Config.CityLayout.TrainingHomes[index]
+  lockHomes[tier.id]=Vector3.new(home and home.x or tier.x,Config.CompactCity and 3.2 or 4.2,home and home.z or tier.z)
+ end
+ lockController=LockOn.new({world=workspace,players=Players,collection=game:GetService("CollectionService"),
+  localPlayer=p,trainingHomes=lockHomes,trainingRadius=TrainingRules.Radius,inArena=Config.InArena})
+end
+ownClient(function() lockController:Destroy() end);if not clientCheckpoint() then return end
+connectClient(p.CharacterRemoving,function() lockController:Clear();academy.lockLostUntil=0 end)
+local function lockContext(power)
+ local character=p.Character;local root=character and character:FindFirstChild("HumanoidRootPart")
+ local head=character and character:FindFirstChild("Head")
+ local origin=root and root.Position+Vector3.new(0,1,0)
+ if root and head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
+ return {character=character,position=root and root.Position,origin=origin,camera=workspace.CurrentCamera,
+  range=Config.VoiceCombat.Stats(data.level,power or mic.power,data.amplifierEquipped).range,
+  now=workspace:GetServerTimeNow(),allowed=not clientDestroyed and windowFocused and not beamBlocked()
+   and (not sustainedControl or sustainedControl.armed==true)}
+end
+-- Presentation only: both aim sampling and marker updates can consume a lost lock.
+function academy.resolveLock(context)
+ local hadTarget=lockController.target~=nil
+ local point,target=lockController:Resolve(context)
+ if point or not context.allowed then academy.lockLostUntil=0
+ elseif hadTarget then academy.lockLostUntil=os.clock()+.8 end
+ return point,target
+end
+local nextLockAcquire=0
+local function toggleLock()
+ if clientDestroyed then return end
+ if not lockController.target then
+  local now=os.clock();if now<nextLockAcquire then return end;nextLockAcquire=now+.2
+ end
+ lockController:Toggle(lockContext())
+ academy.lockLostUntil=0
+end
+local function aimRay(power)
+ local locked,target=academy.resolveLock(lockContext(power))
+ if locked then
+  local origin=lockContext(power).origin
+  return {Origin=origin,Direction=(locked-origin).Unit},{Position=locked,Instance=target}
+ end
+ local camera=workspace.CurrentCamera
+ if not camera or camera.ViewportSize.X<2 or camera.ViewportSize.Y<2 then return nil end
+ local location=UIS.TouchEnabled and camera.ViewportSize/2 or UIS:GetMouseLocation()
+ local ray=camera:ViewportPointToRay(location.X,location.Y)
+ local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
+ return ray,workspace:Raycast(ray.Origin,ray.Direction*1000,params)
+end
+if remotes:GetAttribute("AutomaticVoice")==true then
+ sustainedRules=loadClientDependency(RS.Shared,"SustainedAttack");if not clientCheckpoint() then return end
+ local VoiceActivation=loadClientDependency(RS.Shared,"VoiceActivation");if not clientCheckpoint() then return end
+ sustainedControl=loadClientDependency(script.Parent,"SustainedControls");if not clientCheckpoint() then return end
+ sustainedControl=sustainedControl.new(VoiceActivation.new(),
+  function(verb,arg) if verb=="SustainedStop" or not clientDestroyed then action:FireServer(verb,arg) end end,
+  function()
+   if not workspace.CurrentCamera then return nil end
+   local ray,hit=aimRay()
+   if not ray then return nil end
+   return hit and hit.Position or ray.Origin+ray.Direction*1000
+  end,function() notifications:Remove("voice") end)
+ ownClient(function() sustainedControl:Destroy() end);if not clientCheckpoint() then return end
+end
+local function voiceEligibilityHint(compact)
+ if data.voiceEligible==true then return nil end
+ if data.voiceStatus=="denied" then
+  return compact and "VOICE ACCESS REQUIRED\nCheck Roblox voice settings" or "Beams OFF: Roblox voice access is not enabled. Check Roblox voice settings; server checks repeat. Voice chat is unchanged."
+ end
+ if data.voiceStatus=="unavailable" then
+  return compact and "VOICE CHECK DELAYED\nWaiting to retry" or "Beams OFF: Voice verification is delayed. The server retries when a check can run. Voice chat is unchanged."
+ end
+ return compact and "CHECKING ROBLOX VOICE\nBeams are OFF" or "Beams OFF: Checking Roblox voice access. Voice chat is unchanged."
+end
+-- Process every server transition, not only the last state visible next frame.
+local function observeVoiceEligibility(nextData)
+ if nextData.voiceEligible==true then return end
+ lockController:Clear();academy.lockLostUntil=0
+ if nextData.voiceStatus=="denied" or nextData.voiceStatus=="unavailable" then voiceAccessInterrupted=true end
+ if sustainedControl then sustainedControl:SetArmed(false)
+ elseif captureSource then cancelCapture() end
+end
+local function toggleVoice()
+ if not sustainedControl then return end
+ -- Pausing is always allowed; arming must be an available gameplay action.
+ if not sustainedControl.armed and (not windowFocused or beamBlocked()) then
+  notify(voiceEligibilityHint() or "Beams stay OFF. Wait for live microphone input and gameplay to be ready, then turn them on.",true,"voice");return
+ end
+ sustainedControl:SetArmed(not sustainedControl.armed)
+ if not sustainedControl.armed then lockController:Clear();academy.lockLostUntil=0 end
+ notify(sustainedControl.armed and "Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
+  or "Beams OFF. Talk freely without attacking. Voice chat is unchanged.",false,"voice")
+end
+local function screamToggleLabel(armed,touch)
+ return (armed and "BEAMS: ON" or "BEAMS: OFF").."\n"..(touch and "Tap" or "[E]")..(armed and " to turn off" or " to turn on")
+end
+local function releaseCapture(source)
+ if captureSource~=source then return end
+ captureSource=nil
+ if beamBlocked() then cancelCapture();return end
+ local power,reason=mic:Release();if power<.08 then action:FireServer("CancelCast");notify(reason or "Use your voice while holding attack.",true,"capture");return end
+ local ray,hit=aimRay(power)
+ if not ray then action:FireServer("CancelCast");return end
+ action:FireServer("Cast",{sequence=sequence,power=power,aim=hit and hit.Position or ray.Origin+ray.Direction*1000})
+ nextCast=os.clock()+4
+end
+local function dodge()
+ cancelCapture()
+ if not blocked() then action:FireServer("Dodge") end
+end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
-local castButton=button(controls,"Cast","SCREAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),cast,gold);castButton.TextColor3=dark
-local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge)
-local sprinting=false
-local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() sprinting=not sprinting;action:FireServer("Sprint",sprinting) end)
-local talkTarget
-local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-52),function() if talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end end);talkButton.Visible=false
-local devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false
-label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
-label(devPanel,"Test commands disable saving this session.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
-for i,item in ipairs({{"XP","+500 XP"},{"Coins","+1,000 coins"},{"MaxLevel","Level 30"},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"},{"ResetBots","Reset bots"}}) do
- button(devPanel,item[1],item[2],UDim2.fromOffset(100,39),UDim2.fromOffset(10+((i-1)%2)*110,80+math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
+local castButton=button(controls,"Cast","BEAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),toggleVoice,gold);castButton.TextColor3=dark
+castButton.TextWrapped=true;castButton.Selectable=true
+academy.surface(castButton)
+local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-12,0,3),UDim2.new(0,6,1,-6),panel)
+local voiceTimeFill=frame(voiceTimeTrack,"RemainingOrRecovery",UDim2.fromScale(0,1),UDim2.new(),muted)
+voiceTimeTrack.Visible=false
+castButton.InputBegan:Connect(function(input)
+ if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then beginCapture(input) end
+end)
+
+local meter=frame(gui,"MicPower",UDim2.fromOffset(230,62),UDim2.new(.5,-115,1,-74))
+academy.surface(meter)
+local meterText=label(meter,"LIVE MIC 0%\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,white)
+local meterFill
+do
+ local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,49),panel)
+ meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
+ if sustainedControl then
+  local threshold=frame(meterTrack,"VoiceStartThreshold",UDim2.fromOffset(2,11),UDim2.new(sustainedControl.gate.OnPower,0,.5,0),white)
+  threshold.AnchorPoint=Vector2.new(.5,.5);threshold.ZIndex=meterFill.ZIndex+1
+ end
 end
-local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible end);testButton.Visible=false
-local function card(height) return frame(content,"Card",UDim2.new(1,-8,0,height),UDim2.new(),panel) end
-local function info(text,height) local c=card(height or 70);label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
+local aimGui=Instance.new("ScreenGui");aimGui.Name="ScreamAim";aimGui.ResetOnSpawn=false;aimGui.ScreenInsets=Enum.ScreenInsets.None;aimGui.Parent=p.PlayerGui
+ownClient(function() aimGui:Destroy() end);if not clientCheckpoint() then return end
+local reticle=label(aimGui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.Name="Crosshair";reticle.TextXAlignment=Enum.TextXAlignment.Center
+local hitFeedback=loadClientDependency(script.Parent,"HitFeedback");if not clientCheckpoint() then return end
+hitFeedback=hitFeedback.new();if not clientCheckpoint() then return end
+local hitText=label(aimGui,"",UDim2.fromOffset(210,26),UDim2.new(.5,-105,.5,-48),16,gold);hitText.Name="ConfirmedDamage";hitText.TextXAlignment=Enum.TextXAlignment.Center;hitText.Visible=false
+local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
+local reportedReady=nil;local readyReportAt=0
+local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge);academy.surface(dodgeButton)
+local sprinting=false
+local nextSprintSend=0
+local function setSprint(requested)
+ local character=p.Character;local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ if requested and (not windowFocused or GuiService.MenuIsOpen or UIS:GetFocusedTextBox()~=nil
+  or modal.Visible or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible)
+  or not humanoid or humanoid.Health<=0 or humanoid.PlatformStand or humanoid.Sit or humanoid.SeatPart
+  or workspace:GetServerTimeNow()<(p:GetAttribute("KnockdownEnds") or 0)) then requested=false end
+ -- Reconcile a held request after a transient quota rejection; never retry OFF.
+ local now=os.clock()
+ if sprinting==requested and (not requested or now<nextSprintSend) then return end
+ sprinting=requested;nextSprintSend=now+.5;action:FireServer("Sprint",requested)
+end
+local function targetCovered(root,targetRoot,targetModel)
+ local character=p.Character;local head=character and character:FindFirstChild("Head")
+ local origin=root.Position+Vector3.new(0,1,0)
+ if head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
+ local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
+ params.FilterDescendantsInstances={character,targetModel};params.RespectCanCollide=true
+ return workspace:Raycast(origin,targetRoot.Position-origin,params)~=nil
+end
+local function playerTargetInfo(target,humanoid,canFight,far,now,currentFar,covered)
+ if humanoid.Health<=0 then return nil,false end
+ local protection=math.max(0,(target:GetAttribute("ProtectionEnds") or 0)-now)
+ local rolling=now<(target:GetAttribute("DodgeEnds") or 0)
+ local status=not canFight and "SAFE · PvP OFF"
+  or protection>0 and string.format("PROTECTED · %.1fs",protection)
+  or rolling and "DODGING" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "ARENA OPPONENT"
+ local level=target:GetAttribute("ScreamLevel")
+ local name=target.DisplayName..(type(level)=="number" and string.format(" · LV %d",level) or "")
+ return string.format("%s\n%d / %d HP\n%s",name,math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),
+  canFight and protection<=0 and not rolling and not far and not currentFar and not covered
+end
+local function residentTargetInfo(model,humanoid,far,currentFar,covered)
+ if model:GetAttribute("ResidentActive")==false then return nil,false end
+ if not humanoid or humanoid.Health<=0 then return nil,false end
+ local status=far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "TRAINING RESIDENT"
+ return string.format("%s\n%d / %d HP\n%s",model:GetAttribute("DisplayName") or model.Name,
+  math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),not far and not currentFar and not covered
+end
+local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
+local lockButton=button(controls,"LockTarget","LOCK [R]",UDim2.fromOffset(88,44),UDim2.fromOffset(0,52),toggleLock)
+lockButton.TextSize=12;lockButton.TextWrapped=true;lockButton.Selectable=true;academy.surface(lockButton)
+local lockMarker=label(aimGui,"",UDim2.fromOffset(108,28),UDim2.new(),13,gold)
+lockMarker.Name="LockedTarget";lockMarker.AnchorPoint=Vector2.new(.5,1);lockMarker.Visible=false
+lockMarker.TextXAlignment=Enum.TextXAlignment.Center
+lockMarker.BackgroundColor3=dark;lockMarker.BackgroundTransparency=0;lockMarker.Font=Enum.Font.GothamBold
+do
+ local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,5);corner.Parent=lockMarker
+ local edge=Instance.new("UIStroke");edge.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;edge.Color=gold;edge.Thickness=1;edge.Parent=lockMarker
+ local words=label(lockMarker,"LOCKED",UDim2.new(1,-32,1,0),UDim2.fromOffset(28,0),13,gold)
+ words.Name="LockText";words.Font=Enum.Font.GothamBold;words.TextXAlignment=Enum.TextXAlignment.Center
+ local symbol=Instance.new("Frame");symbol.Name="LockSymbol";symbol.BackgroundTransparency=1;symbol.BorderSizePixel=0
+ symbol.Position=UDim2.fromOffset(10,8);symbol.Size=UDim2.fromOffset(12,12);symbol.Parent=lockMarker
+ local outline=Instance.new("UIStroke");outline.Color=gold;outline.Thickness=1;outline.Parent=symbol
+ local dot=Instance.new("Frame");dot.Name="Center";dot.BackgroundColor3=gold;dot.BorderSizePixel=0;dot.Position=UDim2.fromOffset(5,5);dot.Size=UDim2.fromOffset(2,2);dot.Parent=symbol
+end
+
+local talkTarget
+local nextResidentUi=0
+local function refreshResidentLabels(root,camera,residents)
+ local nearest,best=nil,13
+ local speaker,speechDistance=nil,24
+ local damaged,damageDistance=nil,18
+ local visible={}
+ for _,bot in ipairs(residents) do
+  local r=bot:FindFirstChild("HumanoidRootPart");local head=bot:FindFirstChild("Head");local h=bot:FindFirstChildOfClass("Humanoid")
+  if not head then continue end
+  local nameplate=head:FindFirstChild("Nameplate");local speech=head:FindFirstChild("SpeechBubble")
+  if nameplate then nameplate.Enabled=false end
+  if speech then speech.Enabled=false end
+  if not r or not root or not camera or not h or h.Health<=0 or bot:GetAttribute("ResidentActive")==false then continue end
+  local distance=(r.Position-root.Position).Magnitude
+  local _,onScreen=camera:WorldToViewportPoint(head.Position)
+  if not onScreen then continue end
+  visible[bot]={nameplate=nameplate,speech=speech}
+  if distance<best and InteractionRules.CanReachNpc(root.Parent,bot,13) then nearest=bot;best=distance end
+  if h.Health<h.MaxHealth and distance<damageDistance then damaged=bot;damageDistance=distance end
+  local words=speech and speech:FindFirstChildOfClass("TextLabel")
+  if words and words.Visible and distance<speechDistance then speaker=bot;speechDistance=distance end
+ end
+ -- A single interaction name, at most one additional hurt resident, and one
+ -- speech bubble keep crowds readable. Occlusion still uses native billboards.
+ for _,bot in pairs({nearest,damaged}) do local item=visible[bot];if item and item.nameplate then item.nameplate.Enabled=true end end
+ if speaker and visible[speaker].speech then visible[speaker].speech.Enabled=true end
+ return nearest
+end
+local function requestTalk()
+ if not windowFocused or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() or modal.Visible
+  or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible) then return end
+ local target=talkTarget
+ if not target or not target.Parent or target:GetAttribute("ResidentActive")==false
+  or not InteractionRules.CanReachNpc(p.Character,target,13) then return end
+ cancelCapture()
+ action:FireServer("Talk",target:GetAttribute("NpcId") or target.Name)
+end
+local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),requestTalk);talkButton.Visible=false;academy.surface(talkButton,gold)
+devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false;devPanel.ZIndex=10;academy.surface(devPanel)
+do
+ local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
+ label(devPanel,"TEST SESSION",UDim2.fromOffset(210,25),UDim2.fromOffset(10,8),17,gold)
+ label(devPanel,"Temporary progress. Shared combat is isolated.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
+ do
+  local testCommands={{"XP","+500 XP"},{"AddLevels","+10 levels"},{"Coins","+1,000 coins"},{"MaxLevel","Level "..Config.MaxLevel},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"}}
+  if Run:IsStudio() then table.insert(testCommands,{"ResetBots","Reset bots"});table.insert(testCommands,{"StudioMovement","Test movement"}) end
+  testContent.CanvasSize=UDim2.fromOffset(0,math.ceil(#testCommands/2)*47)
+  for i,item in ipairs(testCommands) do
+   button(testContent,item[1],item[2],UDim2.fromOffset(98,44),UDim2.fromOffset(((i-1)%2)*108,math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
+  end
+ end
+ testContent.XP.Modal=true
+end
+local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then closeMenu() end end);testButton.Visible=false;academy.surface(testButton)
+-- Everyone sees the same navigation; authorized test controls sit below it.
+-- Keep a separate view: modal renders replace mapDot but never this HUD map.
+local miniMapButton=button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end)
+miniMapButton.TextSize=12;miniMapButton.TextYAlignment=Enum.TextYAlignment.Top;miniMapButton.Visible=false
+do
+ local miniMapPadding=Instance.new("UIPadding");miniMapPadding.PaddingTop=UDim.new(0,10);miniMapPadding.Parent=miniMapButton
+end
+local miniMapHolder=frame(miniMapButton,"MiniMapHolder",UDim2.new(1,-16,1,-42),UDim2.fromOffset(8,34));miniMapHolder.BackgroundTransparency=1
+local miniMapView=CityMap.create(miniMapHolder,true)
+local miniMapAvailable=false
+local function card(height)
+ local c=frame(content,"Card",UDim2.new(1,-8,0,height),UDim2.new(),panel)
+ local edge=Instance.new("UIStroke");edge.Color=Color3.fromRGB(64,91,125);edge.Transparency=.65;edge.Parent=c
+ return c
+end
+local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
+ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)
+local function menuKey()
+ local fields
+ if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped}
+ elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,challenges=data.combatChallenges,level=data.level}
+ elseif selected=="Style" then fields={aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped}
+ elseif selected=="Shop" then fields={spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
+ elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
+ else fields={} end
+ return selected..":"..gui.AbsoluteSize.X..":"..game:GetService("HttpService"):JSONEncode(fields)
+end
 render=function()
+ if selected=="Screams" then
+  subtitle.Text=data.level>=Config.MaxLevel and ("Level "..Config.MaxLevel.." • MAX LEVEL") or ("Level "..data.level.." • "..data.xp.." / "..data.xpNext.." XP")
+ end
+ local key=menuKey()
+ if key==renderedMenuKey then return end
+ local scroll=renderedTab==selected and content.CanvasPosition or Vector2.zero
+ renderedMenuKey=key;renderedTab=selected;renderRevision+=1
+ local revision=renderRevision
+ -- Card callbacks belong to this visible render, not a later reopened panel.
+ local makeButton=button
+ local function button(parent,name,text,size,pos,callback,color)
+  return makeButton(parent,name,text,size,pos,function(...)
+   if clientDestroyed or not modal.Visible or revision~=renderRevision then return end
+   return callback(...)
+  end,color)
+ end
+ clearShop()
+ mapDot=nil
+ narrow=gui.AbsoluteSize.X-24<620
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
- if selected=="Screams" then
-  title.Text="SCREAM COLLECTION";subtitle.Text="Level "..data.level.."  •  "..data.xp.." / "..data.xpNext.." XP  •  New unlocks at 5, 10, 15, 20, 25"
+ if selected=="Shop" then
+  title.Text="THE AMPLIFIER";subtitle.Text="SIGNATURE COLORS / POWER YOUR PROGRESS"
+  shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow},action)
+ elseif selected=="Screams" then
+  title.Text="BEAM COLLECTION"
+  local nextStyle
+  for _,style in ipairs(Config.Sounds) do
+   if style.level>data.level and (not nextStyle or style.level<nextStyle.level) then nextStyle=style end
+  end
+  local progress=nextStyle and string.format("Next style: %s · level %d",nextStyle.name,nextStyle.level) or "All beam styles unlocked"
+  local stats=Config.VoiceCombat.Stats(data.level,1,false)
+  if nextStyle then
+   local nextStats=Config.VoiceCombat.Stats(nextStyle.level,1,false)
+   progress..=string.format("\nAt level %d: %d HP · %.1f max DPS",nextStyle.level,nextStats.health,nextStats.maxDps)
+  end
+  info(progress..string.format("\nNow: %d HP · %.1f max DPS",stats.health,stats.maxDps))
+  local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped)
+  local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs",data.level,maximum.maxDps,maximum.maxRange)
+   or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs",data.level,maximum.damage,maximum.maxRange)
+  info(combatSummary,narrow and 112 or 82)
+  info("Sound styles change audio, not damage or range. These limits use your current level for the next attack. Lower voice power and cover shorten reach. DPS requires full power and continuous contact.",narrow and 150 or 96)
   for _,s in ipairs(Config.Sounds) do
-   local c=card(101);label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,-156,0,26),UDim2.fromOffset(14,8),17,gold)
-   label(c,s.description,UDim2.new(1,-158,0,25),UDim2.fromOffset(14,36),13)
-   label(c,s.damage.." DAMAGE    "..s.range.." RANGE / "..s.width.." WIDTH    "..s.cooldown.."s COOLDOWN",UDim2.new(1,-28,0,23),UDim2.fromOffset(14,69),12,muted)
+   local c=card(sustainedRules and (narrow and 108 or 64) or (narrow and 150 or 76));label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,(narrow or sustainedRules) and 44 or 26),UDim2.fromOffset(14,8),17,gold)
+   if not sustainedRules then
+   label(c,s.description,UDim2.new(1,narrow and -28 or -158,0,narrow and 40 or 25),UDim2.fromOffset(14,narrow and 54 or 36),13)
+   end
    local unlocked=data.level>=s.level
-   local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,21),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
+   local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,sustainedRules and (narrow and 60 or 14) or (narrow and 102 or 21)),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
    if not unlocked then b.TextColor3=muted end
   end
  elseif selected=="Quests" then
-  title.Text="CITY QUESTS";subtitle.Text="Choose an activity. Complete it, then claim your XP and coins."
-  for _,q in ipairs(Config.Quests) do
-   local v=data.quests[q.id] or {progress=0};local c=card(123)
-   label(c,q.name,UDim2.new(1,-150,0,25),UDim2.fromOffset(14,8),17,gold)
-   label(c,q.description,UDim2.new(1,-158,0,49),UDim2.fromOffset(14,36),13)
-   label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,23),UDim2.fromOffset(14,93),12,muted)
-   button(c,q.id,v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "TRACKING" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,32),function()
-    if not v.claimed then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
+  title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
+  info("COURTYARD TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads in the west courtyard. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
+  for _,spec in ipairs(Config.Progression.Challenges) do
+   local rewardText=data.level>=Config.MaxLevel and "MAX LEVEL · no XP awarded" or ("+"..Config.Progression.ChallengeXP(data.level).." XP on completion")
+   info(spec.name.." · "..((data.combatChallenges or {})[spec.id] or 0).."/"..spec.goal.."\n"..rewardText.." · renews automatically",68)
+  end
+  info("Training: contribute at least 10% damage. You must be no more than 20 levels above the fighter's reward band (Rookie 1-24, Brawler 25-59, Elite 60-100). Each qualifying KO or assist counts once. Environment cover is static. PvP XP is shared by damage; weak and repeated opponents pay less.")
+  if data.activeQuest and not (Config.GetQuest(data.activeQuest) and Config.GetQuest(data.activeQuest).retired==true) then
+   local current=Config.GetQuest(data.activeQuest);local c=card(96)
+   local progress=current and data.quests[current.id]
+   local rewardReady=progress and not progress.claimed and progress.progress>=current.goal
+   label(c,(rewardReady and "COMPLETE: " or "CURRENT: ")..(current and current.name or data.activeQuest),UDim2.new(1,-28,0,38),UDim2.fromOffset(14,6),14,gold)
+   button(c,"ActiveQuestAction",rewardReady and "CLAIM" or "ABANDON",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,50),function()
+    if rewardReady then action:FireServer("ClaimQuest",current.id) else action:FireServer("AbandonQuest") end
    end)
   end
+  local combatEvents={Crowd=true,Evade=true,Underdog=true,PracticeBeam=true,ArenaAssist=true}
+  local questGroups={{title="BEAM COMBAT TASKS",combat=true},{title="OPTIONAL CITY ACTIVITIES",combat=false}}
+  for _,group in ipairs(questGroups) do
+   local headingShown=false
+   for _,q in ipairs(Config.Quests) do
+    if (combatEvents[q.event]==true)~=group.combat then continue end
+    local v=data.quests[q.id] or {progress=0}
+    if q.retired==true and (v.claimed or v.progress<q.goal) then continue end
+    local available=q.retired==true or q.menuAvailable==true or (data.availableQuests and data.availableQuests[q.id])
+    if q.hidden and not available then continue end
+    if not headingShown then info(group.title,50);headingShown=true end
+    local restarting=available and not v.claimed and v.progress>0 and v.progress<q.goal and data.activeQuest~=q.id
+    local description=q.retired==true and "Earned reward available." or q.description
+    if restarting then description..="\n\nRestarting resets this unfinished progress." end
+    if not available then description..="\n\nTo unlock: meet "..(q.giver or "a resident").." and use Talk." end
+    local textWidth=math.min(720,gui.AbsoluteSize.X-24)-48-(narrow and 28 or 158)
+    local nameHeight=math.max(26,TextService:GetTextSize(q.name,17,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+4)
+    local descriptionHeight=math.max(49,TextService:GetTextSize(description,13,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+8)
+    local descriptionY=12+nameHeight;local rewardY=descriptionY+descriptionHeight+5
+    local actionY=narrow and rewardY+34 or 32
+    local c=card(narrow and actionY+48 or math.max(150,rewardY+35))
+    label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
+    label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
+    label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
+    button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "TRACKING" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
+     if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
+    end)
+   end
+  end
  elseif selected=="Style" then
-  title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your scream effects."
-  for name,color in pairs(Config.Auras) do
-   local c=card(56);label(c,name,UDim2.fromOffset(240,36),UDim2.fromOffset(15,10),17,color)
-   button(c,name,data.aura==name and "EQUIPPED" or "USE COLOR",UDim2.fromOffset(126,36),UDim2.new(1,-140,0,10),function() action:FireServer("SetAura",name) end)
+  title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your beam effects."
+  shopUsed=true;ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
+  local equipment=card(narrow and 142 or 90)
+  label(equipment,"MICRO-SPEAKER",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
+  label(equipment,"+12% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
+  button(equipment,"MicroSpeaker",data.amplifierEquipped and "UNEQUIP" or data.amplifierOwned and "EQUIP" or tostring(Config.MicroSpeakerPrice).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,narrow and 90 or 24),function() action:FireServer("MicroSpeaker") end)
+  info("Movement pass: repeated jumps (24-stud height limit) and consecutive rolls only in safe areas. Arena cooldowns always apply."..(Config.MovementPassId==0 and " Purchase setup is not available yet." or ""),70)
+  local base=card(76)
+  label(base,"YELLOW BASE",UDim2.new(1,-158,0,48),UDim2.fromOffset(15,10),17,Config.Auras.Gold)
+  button(base,"BaseColor",data.aura=="Gold" and not data.useCustomColor and "EQUIPPED" or "USE YELLOW",UDim2.fromOffset(126,44),UDim2.new(1,-140,0,16),function() action:FireServer("SetAura","Gold") end)
+  if data.aura~="Gold" and not data.useCustomColor then
+   info("Your saved "..data.aura.." color is still equipped. Choosing yellow replaces this legacy selection; the old free palette is no longer selectable.")
   end
  elseif selected=="Map" then
-  title.Text="CITY & COAST";subtitle.Text="Arena District: 40% PvP. Outer neighborhoods and beach: 60% safe."
-  local c=card(250)
-  local map=frame(c,"Map",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13),Color3.fromRGB(45,66,72))
-  local function area(t,x,y,w,h,col) local f=frame(map,t,UDim2.fromScale(w,h),UDim2.fromScale(x,y),col);local l=label(f,t,UDim2.fromScale(1,1),UDim2.new(),13);l.TextXAlignment=Enum.TextXAlignment.Center;return f end
-  area("SAFE NORTH",0,0,1,.2,Color3.fromRGB(50,93,82));area("SAFE\nWEST",0,.2,.166,.6,Color3.fromRGB(50,93,82));area("SAFE\nEAST",.833,.2,.167,.6,Color3.fromRGB(50,93,82))
-  area("ARENA DISTRICT • PvP\n40% of playable land",.166,.2,.667,.6,Color3.fromRGB(136,65,70));area("BARCELONETA • SAFE BEACH",0,.8,1,.2,Color3.fromRGB(159,137,91))
-  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root then local pos=root.Position;mapDot=area("YOU",math.clamp((pos.X+720)/1440,0,.94),math.clamp((pos.Z+600)/1200,0,.94),.06,.06,gold) end
-  info("Spawn: Plaça del Sol, southwest. Beach: south. Coffee: west promenade café → music stage. Race: lifeguard start → east promenade finish. PvP ends at the marked district boundary.",86)
+  title.Text="CITY & COAST";subtitle.Text=string.format("Arena District: %d%% PvP. Rest of the map: %d%% safe.",CityMap.arenaPercent,100-CityMap.arenaPercent)
+  local c=card(300)
+  local holder=frame(c,"MapHolder",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13));holder.BackgroundTransparency=1
+  mapDot=CityMap.create(holder)
+  CityMap.update(mapDot,p.Character and p.Character:FindFirstChild("HumanoidRootPart"))
+  info(CityMap.mapHelp,64)
+  info(CityMap.legend,CityMap.legendHeight)
+  info(CityMap.activityHelp,86)
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
-  info("E / tap SCREAM: fire a beam straight ahead\nQ / tap DODGE: roll with a 4-second cooldown\nShift / tap SPRINT: 10 seconds of sprint, then a 5-second rest\nT: talk to nearby residents • F: quest interactions • B: toggle menu",125)
-  local c=card(58);button(c,"Volume","AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.fromOffset(260,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
-  local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.fromOffset(260,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
+  local touch=UIS.TouchEnabled
+  local attackHelp
+  if sustainedControl then
+   attackHelp=string.format("Beams start OFF. BEAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each beam.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap BEAMS" or "E / BEAMS")
+  else attackHelp=touch and "Hold BEAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / BEAM, speak into your mic, then release to fire toward your aim." end
+  info(attackHelp,touch and 130 or 100)
+  info("VOICE SAFETY\nAvoid profanity. Roblox's profanity rules depend on the game's rating and settings; harassment, threats and hate speech are not allowed. Rule violations may restrict voice or your account.\nRoblox records voice for moderation. The beam mechanic reads volume, not words. Stopping attacks does not mute voice. Use Roblox's mic control to mute, or Report Abuse for violations.",100)
+  info(string.format("Third-person camera\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
+  info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
+  info("MICROPHONE\n"..mic.status,60)
+  if not mic.eligible and not mic.checkPending then
+   local accessCard=card(64)
+   button(accessCard,"RetryVoiceAccess","RETRY VOICE ACCESS",UDim2.new(1,-24,0,44),UDim2.fromOffset(12,10),function()
+    if not mic.eligible and not mic.checkPending then mic:Check() end
+   end)
+  end
+  local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
+  local audioCard=card(58);local audioButton
+  local function audioLabel()return "BEAM SFX: "..attackAudio.level end
+  audioButton=button(audioCard,"AttackAudio",audioLabel(),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
+   attackAudio:SetLevel(attackAudio.level=="NORMAL" and "LOW" or attackAudio.level=="LOW" and "OFF" or "NORMAL");audioButton.Text=audioLabel()
+  end)
+  info("NORMAL boosts effects; LOW keeps the old mix; OFF mutes them. Starter beam has no SFX. Session only; mic and voice chat unchanged.",narrow and 100 or 68)
+  local cueCard=card(58);local cueButton
+  local function cueLabel()return "GAMEPLAY SFX: "..(not gameplayAudio.enabled and "OFF" or gameplayAudioSettings.Ready() and "LOW" or "LOW (PENDING)") end
+  cueButton=button(cueCard,"GameplayAudio",cueLabel(),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
+   gameplayAudio:SetEnabled(not gameplayAudio.enabled);cueButton.Text=cueLabel()
+  end)
+  info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
+  local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
+ end
+ -- Restore only after AutomaticCanvasSize has measured the replacement cards.
+ task.spawn(function()
+  Run.Heartbeat:Wait()
+  if revision~=renderRevision then return end
+  content.CanvasPosition=Vector2.new(0,math.clamp(scroll.Y,0,math.max(0,content.AbsoluteCanvasSize.Y-content.AbsoluteWindowSize.Y)))
+ end)
+end
+for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name=="Screams" and "BEAMS" or name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() if clientDestroyed or not modal.Visible then return end;selected=name;render() end)
+ local icon,padding=academy.tabIcon(tabs[name],name);academy.tabIcons[name]={icon=icon,padding=padding}
+end
+local conversationNPC,conversationUntil
+local conversationRevision=0
+conversationPanel=frame(gui,"Conversation",UDim2.fromOffset(460,300),UDim2.fromScale(.5,.5));conversationPanel.AnchorPoint=Vector2.new(.5,.5);conversationPanel.Visible=false;conversationPanel.ZIndex=10
+academy.surface(conversationPanel,gold)
+local conversationName=label(conversationPanel,"",UDim2.new(1,-80,0,36),UDim2.fromOffset(18,12),19,gold)
+local conversationList=Instance.new("ScrollingFrame");conversationList.Size=UDim2.new(1,-36,1,-66);conversationList.Position=UDim2.fromOffset(18,54);conversationList.BackgroundTransparency=1;conversationList.BorderSizePixel=0;conversationList.ScrollBarThickness=4;conversationList.AutomaticCanvasSize=Enum.AutomaticSize.Y;conversationList.CanvasSize=UDim2.new();conversationList.Parent=conversationPanel
+do local conversationLayout=Instance.new("UIListLayout");conversationLayout.Padding=UDim.new(0,10);conversationLayout.SortOrder=Enum.SortOrder.LayoutOrder;conversationLayout.Parent=conversationList end
+closeConversation=function()
+ conversationRevision+=1
+ if conversationPanel.Visible then action:FireServer("EndConversation") end
+ conversationPanel.Visible=false;conversationNPC=nil
+end
+local function refreshConversation()
+ if not conversationPanel.Visible then return end
+ local character=p.Character
+ local root=character and character:FindFirstChild("HumanoidRootPart")
+ local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ local npc=conversationNPC and conversationNPC.Parent and conversationNPC
+ local npcRoot=npc and npc:FindFirstChild("HumanoidRootPart")
+ local npcHumanoid=npc and npc:FindFirstChildOfClass("Humanoid")
+ if modal.Visible or not root or not humanoid or humanoid.Health<=0 or humanoid.PlatformStand or not npcRoot or not npcHumanoid or npcHumanoid.Health<=0 or npcHumanoid.PlatformStand or npc:GetAttribute("ResidentActive")==false
+  or (root.Position-npcRoot.Position).Magnitude>18 or os.clock()>=conversationUntil then closeConversation() end
+end
+button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
+showConversation=function(info)
+ cancelCapture();closeMenu();if devPanel then devPanel.Visible=false end
+ conversationRevision+=1;local revision=conversationRevision
+ conversationNPC=info.npc;conversationUntil=os.clock()+20;conversationName.Text=info.name
+ for _,child in ipairs(conversationList:GetChildren()) do if child:IsA("GuiObject") then child:Destroy() end end
+ local order=0
+ local function words(text,color)
+  order+=1;local l=label(conversationList,text,UDim2.new(1,-10,0,0),UDim2.new(),14,color);l.AutomaticSize=Enum.AutomaticSize.Y;l.LayoutOrder=order;return l
+ end
+ local line=words(info.line,white)
+ local function choice(text,callback)
+  order+=1;local b=button(conversationList,"Choice",text,UDim2.new(1,-10,0,48),UDim2.new(),function(...)
+   if clientDestroyed or not conversationPanel.Visible or revision~=conversationRevision then return end
+   return callback(...)
+  end);b.TextWrapped=true;b.LayoutOrder=order;return b
+ end
+ choice("Tell me about this neighborhood",function() line.Text=info.hint end)
+ for _,product in ipairs(info.products or {}) do
+  words(product.description,muted)
+  local b=choice(product.owned and (product.name.." · owned") or ("Buy "..product.name.." · "..product.price.." coins"),function()
+   if not product.owned and conversationNPC then
+    action:FireServer("VendorPurchase",{npc=conversationNPC:GetAttribute("NpcId"),product=product.id});closeConversation()
+   end
+  end)
+  b.Active=not product.owned;b.AutoButtonColor=not product.owned
+ end
+ if data.activeQuest then words("Starting another task resets unfinished progress on your current task.",muted) end
+ for _,q in ipairs(info.quests or {}) do
+  local spec=Config.GetQuest(q.id);local progress=data.quests[q.id]
+  local restarting=not q.claimed and not q.complete and spec and progress and progress.progress>0 and progress.progress<spec.goal and data.activeQuest~=q.id
+  words(q.description..(restarting and "\n\nRestarting resets this unfinished progress." or ""),muted)
+  local b=choice(q.claimed and (q.name.." · completed") or ((q.complete and "Claim: " or restarting and "Restart: " or "Accept: ")..q.name),function()
+   if not q.claimed then action:FireServer(q.complete and "ClaimQuest" or "AcceptQuest",q.id);closeConversation() end
+  end)
+  b.Active=not q.claimed;b.AutoButtonColor=not q.claimed
+ end
+ choice("See you later",closeConversation)
+ conversationList.CanvasPosition=Vector2.zero;conversationPanel.Visible=true
+end
+local function refreshQuestObjects()
+ local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+ local objects=world and world:FindFirstChild("QuestObjects")
+ if not objects then return end
+ for _,object in objects:GetChildren() do
+  if object:IsA("BasePart") and object:GetAttribute("QuestAction")=="Litter" then
+   local hidden=data.collected and data.collected[object.Name]==true
+   object.LocalTransparencyModifier=hidden and 1 or 0
+   local prompt=object:FindFirstChildOfClass("ProximityPrompt")
+   if prompt then prompt.Enabled=not hidden end
+  end
  end
 end
-for i,name in ipairs({"Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() selected=name;render() end) end
-local lastMenuKey=""
-remotes.State.OnClientEvent:Connect(function(nextData)
- data=nextData;stats.Text="LEVEL "..data.level.."    •    "..data.coins.." coins";health.Text=data.health.."/"..(data.maxHealth or 100);hf.Size=UDim2.fromScale(data.health/(data.maxHealth or 100),1)
- xpText.Text=data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP";xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
+local function saveStatus()
+ if data.testSession then return "TEST SESSION · progress is temporary" end
+ if data.recoveryWarning then
+  return (data.savingAvailable==false and "TEMPORARY · recovered save" or data.savingDelayed and "Save delayed · retrying" or "Recovered save").."\nRecent progress may be missing"
+ end
+ return data.savingDelayed and "Save delayed · retrying automatically" or data.savingAvailable==false and "Temporary progress · saving unavailable" or ""
+end
+local function progressLabel(compact)
+ if compact then
+  if data.recoveryWarning and not data.testSession then
+   return (data.savingAvailable==false and "UNSAVED" or data.savingDelayed and "DELAYED" or "RECOVERED").." · progress may be missing"
+  end
+  if data.testSession or data.savingAvailable==false then return "TEMPORARY PROGRESS • not saved" end
+  if data.savingDelayed then return "SAVE DELAYED • retrying" end
+ end
+ return data.level>=Config.MaxLevel and "MAX LEVEL" or data.xp.." / "..data.xpNext.." XP"
+end
+local trackedQuestText=""
+local lastMilestone=nil
+connectClient(remotes.State.OnClientEvent,function(nextData)
+ observeVoiceEligibility(nextData)
+ cueContext();gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())
+ data=nextData
+ local unclaimed=0
+ for _,quest in ipairs(Config.Quests) do
+  local progress=data.quests[quest.id]
+  if progress and not progress.claimed and progress.progress>=quest.goal then unclaimed+=1 end
+ end
+ questsToggle.Text=unclaimed>0 and ("QUESTS "..unclaimed) or "QUESTS"
+ questsToggle.TextColor3=unclaimed>0 and gold or white
+ refreshQuestObjects();stats.Text="LEVEL "..data.level;coins.Text=data.coins.." coins";refreshHealth()
+ xpText.Text=progressLabel(gui.AbsoluteSize.X<820);xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
  zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
  testButton.Visible=data.devAccess==true
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
- tracked.Text=q and (q.name.."  "..v.progress.."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s" or "")) or ""
- if data.message then notify(data.message) end
- local key=game:GetService("HttpService"):JSONEncode({data.level,data.xp,data.sound,data.aura,data.quests,data.activeQuest,data.settings})
- if modal.Visible and key~=lastMenuKey then render() end;lastMenuKey=key
+ tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west courtyard\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
+ trackedQuestText=tracked.Text
+ if data.savingAvailable==true and not data.savingDelayed then notifications:Remove("save") end
+ local newMilestone=data.milestone and data.milestone~=lastMilestone
+ if newMilestone then
+  lastMilestone=data.milestone;notify(data.milestone)
+ end
+ if data.message and (not newMilestone or data.messageUrgent) then notify(data.message,data.messageUrgent,data.messageKey=="save" and "save" or nil) end
+ if data.conversation then showConversation(data.conversation) end
+ if modal.Visible then render() end
 end)
-UIS.InputBegan:Connect(function(input,processed)
- if processed then return end
+connectClient(UIS.InputBegan,function(input,processed)
+ if processed or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() then return end
  local k=input.KeyCode
- if k==Enum.KeyCode.E then cast() elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
- elseif k==Enum.KeyCode.M then selected="Map";modal.Visible=not modal.Visible;render()
- elseif k==Enum.KeyCode.LeftShift then action:FireServer("Sprint",true)
- elseif k==Enum.KeyCode.T and talkTarget then action:FireServer("Talk",talkTarget:GetAttribute("NpcId") or talkTarget.Name) end
+ if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
+ elseif k==Enum.KeyCode.R or k==Enum.KeyCode.ButtonR3 then toggleLock()
+ elseif k==Enum.KeyCode.M then toggleTab("Map")
+ elseif k==Enum.KeyCode.LeftShift then setSprint(true)
+ elseif k==Enum.KeyCode.T then requestTalk() end
 end)
-UIS.InputEnded:Connect(function(input) if input.KeyCode==Enum.KeyCode.LeftShift then action:FireServer("Sprint",false) end end)
-UIS.WindowFocusReleased:Connect(function() sprinting=false;action:FireServer("Sprint",false) end)
+connectClient(UIS.InputEnded,function(input)
+ if input.KeyCode==Enum.KeyCode.E then releaseCapture("keyboard")
+ elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
+ if input.KeyCode==Enum.KeyCode.LeftShift then setSprint(false) end
+end)
+connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
+connectClient(UIS.WindowFocused,function() windowFocused=true end)
+local function suspendGameplay()
+ if sustainedControl then sustainedControl:SetArmed(false) end
+ setSprint(false);cancelCapture()
+end
+connectClient(UIS.WindowFocusReleased,function() windowFocused=false;suspendGameplay() end)
+connectClient(GuiService.MenuOpened,suspendGameplay)
+connectClient(p:GetAttributeChangedSignal("ProtectionEnds"),function() setSprint(false) end)
+;(function()
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
 end
-remotes.Effect.OnClientEvent:Connect(function(kind,pos,id,aura,direction,length)
- if kind=="ResetCollected" then for _,o in ipairs(workspace.ScreamSimulatorWorld.QuestObjects:GetChildren()) do o.LocalTransparencyModifier=0;local prompt=o:FindFirstChildOfClass("ProximityPrompt");if prompt then prompt.Enabled=true end end;return end
- if kind=="Collected" then if pos and pos.Parent then pos.LocalTransparencyModifier=1;local prompt=pos:FindFirstChildOfClass("ProximityPrompt");if prompt then prompt.Enabled=false end end;return end
- local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if root and (root.Position-pos).Magnitude>180 then return end
- local color=Config.Auras[kind=="Dodge" and id or aura] or gold
- if kind=="Dodge" then local f=fxPart(pos,color,Vector3.new(2,3,2));Tween:Create(f,TweenInfo.new(.35),{Transparency=1,Size=Vector3.new(5,1,5)}):Play();return end
- local s=Config.GetSound(id);if not s then return end
- do
-  local carrier=Instance.new("Part");carrier.Anchored=true;carrier.CanCollide=false;carrier.CanQuery=false;carrier.Transparency=1;carrier.Position=pos;carrier.Parent=workspace
-  local audio=Instance.new("Sound");audio.SoundId=s.assetId~="" and s.assetId or "rbxasset://sounds/oof.ogg";audio.PlaybackSpeed=({Pulse=1.4,Echo=1.1,Feathers=1.9,Quake=.65,Storm=.85,Nova=.5})[s.effect] or 1
-  audio.Volume=data.settings.volume;audio.RollOffMaxDistance=s.range*1.5;audio.Parent=carrier
-  if s.effect=="Echo" then local echo=Instance.new("EchoSoundEffect");echo.Delay=.15;echo.Feedback=.4;echo.Parent=audio end
-  audio:Play();Debris:AddItem(carrier,5)
- end
- direction=direction or Vector3.new(0,0,-1);length=length or s.range
- local width=s.width;local center=pos+direction*length/2
- local beam=fxPart(center,color,Vector3.new(width,width,length));beam.Name="ScreamBeam";beam.CFrame=CFrame.lookAt(center,center+direction);beam.Transparency=.55
- local core=fxPart(center,Color3.fromRGB(255,245,206),Vector3.new(width*.22,width*.22,length));core.CFrame=beam.CFrame
- Tween:Create(beam,TweenInfo.new(.38),{Transparency=1,Size=Vector3.new(width*.5,width*.5,length)}):Play()
- Tween:Create(core,TweenInfo.new(.25),{Transparency=1}):Play()
- if not data.settings.reducedShake then
-  local count=s.effect=="Pulse" and 4 or 9
-  for i=1,count do
-   local side=Vector3.new(-direction.Z,0,direction.X);local phase=i*math.pi*2/count
-   local offset=(side*math.cos(phase)+Vector3.yAxis*math.sin(phase))*width*.35
-   local shard=fxPart(pos+offset,color,s.effect=="Feathers" and Vector3.new(.3,1.6,.7) or Vector3.new(.3,.3,2))
-   shard.CFrame=CFrame.lookAt(pos+offset,pos+offset+direction)
-   Tween:Create(shard,TweenInfo.new(.18+length/300),{Position=pos+direction*length+offset,Transparency=1}):Play()
+local BeamVisuals=loadClientDependency(script.Parent,"BeamVisuals");if not clientCheckpoint() then return end
+local beamVisualsUsed=false
+-- Registered before the manager so reverse cleanup destroys owned rigs first.
+ownClient(function() if beamVisualsUsed then BeamVisuals.Clear() end end)
+local function createOwnedBeam(...)
+ if clientDestroyed then return end
+ beamVisualsUsed=true;return BeamVisuals.Create(...)
+end
+local beamFrame=0
+local sustainedBeams
+if sustainedControl then
+ sustainedBeams=loadClientDependency(script.Parent,"SustainedBeams");if not clientCheckpoint() then return end
+ sustainedBeams=sustainedBeams.new(createOwnedBeam,BeamVisuals.Update,BeamVisuals.Destroy)
+ ownClient(function() sustainedBeams:Destroy() end);if not clientCheckpoint() then return end
+ connectClient(p.CharacterRemoving,function() sustainedBeams:Clear() end)
+ connectClient(p.CharacterRemoving,function() attackAudio:Clear() end)
+ connectClient(Players.PlayerRemoving,function(leaving) sustainedBeams:Remove(leaving.UserId) end)
+ connectClient(Players.PlayerRemoving,function(leaving) attackAudio:Remove(leaving.UserId) end)
+
+end
+connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth,audioStyleId,attackLevel)
+ if kind=="SustainedHit" then
+  if hitFeedback:Accept(id,aura,os.clock()) then
+   playGameplayCue("Hit");beamScreenFeedback:Hit(os.clock(),screenFeedbackAllowed())
+   if sustainedBeams and typeof(pos)=="Vector3" then
+    local attack=sustainedControl and sustainedControl.attack
+    local entry=sustainedBeams.entries[p.UserId];local now=os.clock()
+    if attack and attack.acknowledged and attack.sequence==id and p:GetAttribute("SustainedActive")==true
+     and p:GetAttribute("SustainedSequence")==id and entry and now<entry.expires and windowFocused and not beamBlocked() then
+     BeamVisuals.Contact(entry.visual,pos,now,id)
+    end
+   end
   end
+  return
  end
+ if kind=="SustainedBeamEnd" then
+  if id==p.UserId then
+   -- End has no sequence payload. Consume the current local attempt, failing quiet
+   -- if an old End overlaps a new attempt, rather than launch after a known stop.
+   local ended=sustainedControl and sustainedControl.attack
+   if ended then beamScreenFeedback:Begin(ended.sequence,os.clock(),nil,false) end
+   beamScreenFeedback:Clear()
+  end
+  attackAudio:Stop(id,os.clock())
+  if sustainedBeams then sustainedBeams:Remove(id) end
+  return
+ end
+ if kind=="SustainedBeam" then
+  if not sustainedBeams then return end
+  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+  if not Players:GetPlayerByUserId(id) or not root or (root.Position-pos).Magnitude>180 or length<.05 then
+   sustainedBeams:Remove(id);attackAudio:Remove(id);return
+  end
+  sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,(typeof(aura)=="Color3" and aura or Config.Auras[aura] or gold),attackLevel or 1,data.settings.reducedShake)
+  if (root.Position-pos).Magnitude<=attackAudioSettings.Range then
+   local style=type(audioStyleId)=="string" and Config.GetSound(audioStyleId)
+   attackAudio:Pulse(id,os.clock(),pos,id==p.UserId,style and style.level)
+  else attackAudio:Remove(id) end
+  return
+ end
+ local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if not root or (root.Position-pos).Magnitude>180 then return end
+ if kind=="Break" then
+  playGameplayCue("Break",pos)
+  for i=1,6 do local chip=fxPart(pos,(typeof(id)=="Color3" and id or Config.Auras[id] or gold),Vector3.new(.5,.5,.5));Tween:Create(chip,TweenInfo.new(.45),{Position=pos+Vector3.new(math.cos(i)*3,2,math.sin(i)*3),Transparency=1}):Play() end;return
+ end
+ local chosenColor=kind=="Dodge" and id or aura
+ local color=typeof(chosenColor)=="Color3" and chosenColor or Config.Auras[chosenColor] or gold
+ if kind=="Dodge" then playGameplayCue("Dodge",pos);return end
+ local s=Config.GetSound(id);if not s then return end
+ -- Actual voice stays on Roblox proximity audio. Owner-selected SFX are separate.
+ direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range
+ screamEffectsUsed=true;ScreamEffects.Render(s.effect,pos,direction,length,beamWidth or 4,color,data.settings.reducedShake,s.variant)
 end)
 local elapsed=0
-Run.RenderStepped:Connect(function(dt)
- local viewport=workspace.CurrentCamera.ViewportSize
- local short=viewport.Y<550
- menuScale.Scale=math.min(1,(viewport.X-32)/720)
- local menuHeight=short and math.max(230,(viewport.Y-125)/menuScale.Scale) or 520
- modal.Size=UDim2.fromOffset(720,menuHeight);modal.Position=UDim2.new(.5,0,.5,short and 18 or 0)
- subtitle.Visible=not short
- for _,b in pairs(tabs) do b.Position=UDim2.fromOffset(b.Position.X.Offset,short and 54 or 88) end
- content.Position=UDim2.fromOffset(20,short and 96 or 132);content.Size=UDim2.new(1,-40,1,short and -108 or -148)
- -- Keep desktop controls compact; smaller displays retain readable button text.
+local lastViewport,lastTouch,lastDevAccess
+-- Visible modal buttons keep the pointer available while interacting with panels.
+modal.Close.Modal=true;conversationPanel.Close.Modal=true
+connectClient(Run.RenderStepped,function(dt)
+ local notice=notifications:Step(0,false)
+ if notice~=toast.Text then toast.Text=notice;toastWidth=0 end
+ -- NoticeView owns full-text visibility and readable dwell.
+ ShopUI.Tick()
+ refreshHealth()
+ local viewport=gui.AbsoluteSize
  local touch=UIS.TouchEnabled
- hud.Position=touch and UDim2.fromOffset(14,56) or UDim2.new(0,14,1,-108)
+ local layoutChanged=viewport~=lastViewport or touch~=lastTouch or data.devAccess~=lastDevAccess
+ if layoutChanged then lastViewport=viewport;lastTouch=touch;lastDevAccess=data.devAccess end
+ if layoutChanged then conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-36)) end
+ refreshConversation()
+ saveNotice.Text=saveStatus()
+ saveNotice.Visible=not modal.Visible and viewport.X>=820
+ local progress=progressLabel(viewport.X<820)
+ if xpText.Text~=progress then xpText.Text=progress end
+ -- Consume every observed input interruption before availability can recover.
+ local micInterruption=mic.interruptionEpoch or 0
+ if micInterruption~=observedMicInterruption then
+  observedMicInterruption=micInterruption
+  if sustainedControl then sustainedControl:SetArmed(false) end
+  cancelCapture()
+ end
+ if reportedReady~=mic.ready or (data.micReady~=mic.ready and os.clock()>readyReportAt) then reportedReady=mic.ready;readyReportAt=os.clock()+1;action:FireServer("MicReady",mic.ready) end
+ local serverNow=workspace:GetServerTimeNow()
+ local protectionRemaining=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-serverNow)
+ local rolling=serverNow<(p:GetAttribute("DodgeEnds") or 0)
+ local knocked=serverNow<(p:GetAttribute("KnockdownEnds") or 0)
+ local voiceCooldown,voiceActive
+ local character=p.Character
+ local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+ local alive=humanoid~=nil and humanoid.Health>0
+ if sustainedControl then
+  if data.voiceStatus=="denied" or data.voiceStatus=="unavailable" then voiceAccessInterrupted=true end
+  sustainedControl:ObserveAvailability(alive and mic.ready and data.voiceEligible==true,false)
+  voiceCooldown=math.max(0,(p:GetAttribute("SustainedReadyAt") or 0)-workspace:GetServerTimeNow())
+  voiceActive=p:GetAttribute("SustainedActive")==true
+  sustainedControl:Step(dt,os.clock(),mic.power,alive and windowFocused and not beamBlocked(),
+   voiceCooldown<=0 and data.micReady==true,voiceActive,p:GetAttribute("SustainedSequence"))
+ end
+ if captureSource and beamBlocked() then cancelCapture() end
+ if captureSource and mic.captureStarted and os.clock()-mic.captureStarted>Config.VoiceCombat.CaptureExpiry then
+  cancelCapture();notify("Capture expired. Hold attack again and use a fresh live voice input.",true,"capture")
+ end
+ if sprinting then setSprint(true) end
+ local gameplayVisible=not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
+ local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not devPanel.Visible and not conversationPanel.Visible
+ if GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
+ local eligibilityHint=voiceEligibilityHint(true)
+ tracked.Text=trackedQuestText
+ local confirmed=hitFeedback:Read(os.clock())
+ hitText.Visible=gameplayVisible and confirmed~=nil
+ if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
+ meter.Visible=gameplayVisible;reticle.Visible=UIS.TouchEnabled and gameplayVisible
+ local power=captureSource and mic:CapturePower() or mic.power;meterFill.Size=UDim2.fromScale(power,1)
+ local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped).range
+ local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
+ local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
+ if sustainedControl then
+  captureHint=not alive and "Respawning • beams OFF"
+   or not windowFocused and "Window inactive • attack paused"
+   or protectionRemaining>0 and string.format("Spawn protection • %.1fs",protectionRemaining)
+   or (knocked or humanoid.PlatformStand) and "Recovering • attack unavailable"
+   or rolling and "Rolling • attack cancelled"
+   or UIS:GetFocusedTextBox()~=nil and "Typing • attack paused"
+   or data.micReady~=true and "Connecting microphone…"
+   or not sustainedControl.armed and (touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
+   or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
+   or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
+   or os.clock()<(sustainedControl.unconfirmedUntil or 0) and "Not confirmed • quiet, then retry"
+   or sustainedControl.gate.needsQuiet and "Armed • quiet before speaking"
+   or sustainedControl.gate.onset>0 and "Voice detected • keep speaking"
+   or "ON · normal speech can attack"
+  meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
+   or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
+ end
+ meterText.Text=string.format("%s %d%% • up to %.0f studs\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),range,captureHint)
+ if eligibilityHint then
+  meterText.Text=eligibilityHint
+ elseif sustainedControl and not sustainedControl.armed then
+  meterText.Text="BEAMS OFF · TALK FREELY\nVoice chat is unchanged"
+ end
+ if layoutChanged then
+ local short=viewport.Y<550
+ menuScale.Scale=1
+ local width=math.min(720,viewport.X-24)
+ modal.Size=UDim2.fromOffset(width,math.min(620,viewport.Y-76));modal.Position=UDim2.new(.5,0,0,64)
+ devPanel.Size=UDim2.fromOffset(230,math.min(330,viewport.Y-76));devPanel.Position=UDim2.new(1,-244,0,64)
+ title.TextSize=width<620 and 20 or 23
+ subtitle.Visible=not short;subtitle.Size=UDim2.new(1,-44,0,width<620 and 42 or 25)
+ local tabY=short and 54 or width<620 and 102 or 88
+ local columns=width<620 and 3 or 6;local rows=math.ceil(6/columns)
+ local tabWidth=(width-40-(columns-1)*6)/columns
+ for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do
+  local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(20+((i-1)%columns)*(tabWidth+6),tabY+math.floor((i-1)/columns)*50);b.TextSize=width<620 and 12 or 14
+  local decoration=academy.tabIcons[name];academy.layoutTab(b,decoration.icon,decoration.padding,tabWidth)
+ end
+ content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
+ if width~=lastLayoutWidth then lastLayoutWidth=width;if modal.Visible then render() end end
+ -- Keep desktop controls compact; smaller displays retain readable button text.
+ local tight=viewport.X<380
+ shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "SHOP" or "SHOP [B]"
+ questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
+ testButton.Size=UDim2.fromOffset(viewport.X<432 and 86 or 112,44)
+ local miniLayout=CityMap.MiniLayout(viewport,touch,data.devAccess==true)
+ miniMapButton.Size=UDim2.fromOffset(miniLayout.width,miniLayout.height);miniMapButton.Position=UDim2.new(1,-miniLayout.width-14,0,14)
+ miniMapHolder.Visible=miniLayout.expanded;miniMapAvailable=miniLayout.available
+ testButton.Position=UDim2.new(1,viewport.X<432 and -100 or -126,0,miniLayout.available and 14+miniLayout.height+8 or 14)
+ hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,data.devAccess==true and viewport.X<356 and miniLayout.height+74 or 64) or UDim2.new(0,14,1,-108)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
- hud.Visible=not modal.Visible;controls.Visible=not modal.Visible
- tracked.Position=UDim2.fromOffset(16,touch and 158 or 56)
- if touch then sprintButton.TextSize=12 end
- tracked.Visible=not modal.Visible;zone.Visible=viewport.X>740
+ talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
+ talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
+ controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
+ tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64)
+ sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
+ end
+ hud.Visible=gameplayVisible;controls.Visible=gameplayVisible
+ -- Keep the fight readable without hiding a running quest deadline.
+ local combatQuest=data.activeQuest=="arena" or data.activeQuest=="dodge" or data.activeQuest=="crowd" or data.activeQuest=="practice_beams" or data.activeQuest=="arena_assist"
+ local showQuest=not data.inWarZone or combatQuest or (data.questTime or 0)>0
+ tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=viewport.X>740 and gameplayVisible
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
- castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("SCREAM %.1fs",nextCast-os.clock()) or "SCREAM [E]"
- castButton.BackgroundColor3=protected>0 and muted or gold
- local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or "DODGE [Q]"
- local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs [SHIFT]",p:GetAttribute("SprintCharge") or 10)
- if os.clock()>toastUntil then toast.Text="" end
- elapsed+=dt;if elapsed<.25 then return end;elapsed=0
- talkTarget=nil;local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");local world=workspace:FindFirstChild("ScreamSimulatorWorld");local best=13
- if root and world then for _,bot in ipairs(world:GetChildren()) do local r=bot:IsA("Model") and bot:FindFirstChild("HumanoidRootPart");if r then local distance=(r.Position-root.Position).Magnitude;if distance<best then best=distance;talkTarget=bot end end end end
- if root and mapDot and mapDot.Parent then mapDot.Position=UDim2.fromScale(math.clamp((root.Position.X+720)/1440,0,.94),math.clamp((root.Position.Z+600)/1200,0,.94)) end
- talkButton.Visible=talkTarget~=nil and not modal.Visible
+ castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
+ if sustainedControl then
+  -- Keep the toggle state visible even during protection/cooldown; those gates
+  -- still control attacks, but never disguise an OFF choice as a mic mute.
+  castButton.Text=screamToggleLabel(sustainedControl.armed,touch)
+  castButton.TextSize=12
+ end
+ -- Keep attack duration/cooldown distinct from live microphone loudness.
+ voiceTimeTrack.Visible=sustainedControl~=nil and alive and protected<=0 and (voiceActive or (voiceCooldown or 0)>0)
+ if voiceTimeTrack.Visible then
+  local fraction
+  if voiceActive then
+   fraction=math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)/sustainedRules.MaxDuration
+   voiceTimeFill.BackgroundColor3=Color3.fromRGB(104,222,157)
+  else
+   fraction=1-voiceCooldown/sustainedRules.Cooldown
+   voiceTimeFill.BackgroundColor3=muted
+  end
+  voiceTimeFill.Size=UDim2.fromScale(math.clamp(fraction,0,1),1)
+ end
+ castButton.BackgroundColor3=(sustainedControl and not sustainedControl.armed or protected>0) and muted or gold
+ local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or (touch and "DODGE" or "DODGE [Q]")
+ local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",p:GetAttribute("SprintCharge") or 10)..(touch and "" or " [SHIFT]")
+ aimInfo.Visible=gameplayVisible
+ if sustainedBeams then
+  local now=os.clock();sustainedBeams:Expire(now)
+  beamFrame+=dt
+  if beamFrame>=1/30 then
+   beamFrame=0
+   local camera=workspace.CurrentCamera
+   if camera then
+    local attack=sustainedControl.attack
+    local contactAllowed=windowFocused and not beamBlocked() and attack and attack.acknowledged and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==attack.sequence
+    for _,entry in pairs(sustainedBeams.entries) do
+     BeamVisuals.Animate(entry.visual,now,camera.CFrame.Position,data.settings.reducedShake,(contactAllowed and entry.visual.contactSequence==attack.sequence)==true,platformReducedMotion)
+    end
+   end
+  end
+ end
+ -- A current local acknowledgement, not visual-packet arrival order, owns launch feedback.
+ local screenAttack=sustainedControl and sustainedControl.attack
+ if screenAttack and screenAttack.acknowledged and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==screenAttack.sequence then
+  beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),Config.Auras.Gold,screenFeedbackAllowed())
+ end
+ local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+ if os.clock()>=nextResidentUi then
+  nextResidentUi=os.clock()+.1
+  talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
+ end
+ -- Pause queue time while covered, too small, interacting, or overflow remains unseen.
+ local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,CityMap.MiniLayout(viewport,touch,data.devAccess==true),data.devAccess==true,talkTarget~=nil)
+ if modal.Visible then noticeLayout=NoticeLayout.Modal(viewport.X,viewport.Y) end
+ local noticeVisible=(gameplayVisible or modal.Visible) and windowFocused and not GuiService.MenuIsOpen
+ local noticeNow=os.clock()
+ noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active)
+ local nextNotice=notifications:Step(dt,noticeView:CanAdvance())
+ if nextNotice~=notice then notice=nextNotice;noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active) end
+ shop.Visible=not (modal.Visible and noticeView.visible);questsToggle.Visible=shop.Visible
+ questsToggle.Text=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
+ talkButton.Visible=talkTarget~=nil and gameplayVisible
+ talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
+ if noticeView.visible and noticeLayout.moveTalk then talkButton.Position=UDim2.fromOffset(noticeLayout.talkX,noticeLayout.talkY) end
+ for _,passive in ipairs({hud,tracked,zone,saveNotice})do
+  if noticeView:Overlaps(passive,gui) or noticeView:Overlaps(passive,gui,talkButton) then passive.Visible=false end
+ end
+ local lockedPoint=academy.resolveLock(lockContext())
+ lockMarker.Visible=lockedPoint~=nil and gameplayVisible
+ if lockedPoint then
+  -- Nudge only the caption inward at screen edges; aim still uses the exact target.
+  local view=workspace.CurrentCamera.ViewportSize
+  local insetX,insetY=lockMarker.Size.X.Offset/2+8,lockMarker.Size.Y.Offset+8
+  lockMarker.Visible=lockMarker.Visible and view.X>=insetX*2 and view.Y>=insetY+8
+  if lockMarker.Visible then
+   local screen=workspace.CurrentCamera:WorldToViewportPoint(lockedPoint)
+   lockMarker.Position=UDim2.fromOffset(math.clamp(screen.X,insetX,view.X-insetX),math.clamp(screen.Y-24,insetY,view.Y-8))
+  end
+ end
+ lockButton.Text=lockedPoint and "UNLOCK" or (os.clock()<academy.lockLostUntil and "LOCK LOST\n" or "AIM CENTER\n")..(touch and "LOCK" or UIS.GamepadEnabled and "LOCK [R3]" or "LOCK [R]")
+ lockButton.BackgroundColor3=lockedPoint and gold or panel;lockButton.TextColor3=lockedPoint and dark or white
+ beamScreenFeedback:Step(os.clock(),screenFeedbackAllowed(),data.settings.reducedShake or platformReducedMotion)
+ cueContext();gameplayAudio:Step(os.clock(),dt)
+ -- Audio consumes frame dt; keep ducking/calibration/fades outside the slow HUD gate.
+ attackAudio:Step(os.clock(),dt,mic.ready and mic.power>.12,mic.phase~=nil)
+ elapsed+=dt;if elapsed<.15 then return end;elapsed=0
+ aimInfo.Text=""
+ if aimInfo.Visible then
+  local _,hit=aimRay();local object=hit and hit.Instance
+  while object and object~=workspace and not object:GetAttribute("RequiredLevel")
+   and not (object:IsA("Model") and (Players:GetPlayerFromCharacter(object) or object:GetAttribute("NpcId"))) do object=object.Parent end
+  local targetPlayer=object and object~=workspace and object:IsA("Model") and Players:GetPlayerFromCharacter(object)
+  if targetPlayer and targetPlayer~=p then
+   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+   local targetRoot=object:FindFirstChild("HumanoidRootPart");local humanoid=object:FindFirstChildOfClass("Humanoid")
+   if root and targetRoot and humanoid then
+    local canFight=Config.InArena(root.Position) and Config.InArena(targetRoot.Position)
+    local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
+    local currentFar=(targetRoot.Position-root.Position).Magnitude>range+2
+    local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(root,targetRoot,object))
+    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
+   end
+  elseif object and object~=workspace and object:IsA("Model") and object:GetAttribute("NpcId") then
+   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+   local npcRoot=object:FindFirstChild("HumanoidRootPart")
+   if root and npcRoot then
+    local distance=(npcRoot.Position-root.Position).Magnitude
+    local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange+2
+    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2,not far and targetCovered(root,npcRoot,object))
+    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
+   end
+  elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then
+   local required=object:GetAttribute("RequiredLevel");local hp=object:GetAttribute("ObjectHealth") or 0
+   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+   local rangeLimit=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped).maxRange
+   local far=root and (hit.Position-root.Position).Magnitude>rangeLimit+2
+   local currentFar=root and (hit.Position-root.Position).Magnitude>range+2
+   local kind=object:GetAttribute("ObjectName") or object:GetAttribute("DestructibleType") or object.Name
+   aimInfo.Text=string.format("%s · LEVEL %d\n%s",kind,required,data.level<required and "LOCKED" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or string.format("%d / %d durability",hp,object:GetAttribute("ObjectMaxHealth") or hp))
+   local repairSeconds=math.max(0,math.ceil((object:GetAttribute("RepairAt") or 0)-workspace:GetServerTimeNow()))
+   if hp<(object:GetAttribute("ObjectMaxHealth") or hp) then
+    if object:GetAttribute("RepairBlocked")==true then
+     aimInfo.Text..="\nRepair waiting · clear the area"
+    elseif repairSeconds>0 then
+     aimInfo.Text..=string.format("\nRepair in %d:%02d",math.floor(repairSeconds/60),repairSeconds%60)
+    end
+   end
+   aimInfo.TextColor3=(data.level<required or far or currentFar) and muted or gold
+  end
+ end
+ if mapDot then CityMap.update(mapDot,root) end
+ local miniVisible=miniMapAvailable and gameplayVisible and windowFocused
+ miniMapButton.Visible=miniVisible
+ testButton.Visible=data.devAccess==true and not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
+ CityMap.MiniUpdate(miniMapView,root,os.clock(),miniVisible and miniMapHolder.Visible)
+ talkButton.Text=touch and "TALK" or "TALK [T]"
+ talkButton.Visible=talkTarget~=nil and gameplayVisible
 end)
+end)()
+if not clientCheckpoint() then return end
 action:FireServer("Sync")
+
+-- JumpRequest supports the built-in keyboard, controller and touch jump controls.
+connectClient(UIS.JumpRequest,function()
+ local character=p.Character;local h=character and character:FindFirstChildOfClass("Humanoid")
+ if h and h.FloorMaterial==Enum.Material.Air and data.movementPass and not data.inWarZone and not blocked() then action:FireServer("ExtraJump") end
+end)

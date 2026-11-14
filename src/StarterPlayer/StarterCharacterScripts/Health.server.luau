@@ -1,2 +1,2 @@
--- This script intentionally replaces Roblox's default Health regeneration script.
--- Scream Simulator handles its 10-second, 20-health healing rule on the server.
+-- This script intentionally replaces Roblox default health regeneration.
+-- The server uses Shared.Healing: 20% after twelve seconds without dealing/taking damage.

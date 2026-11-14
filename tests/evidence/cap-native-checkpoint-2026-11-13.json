@@ -1,0 +1,42 @@
+{
+  "baseCommit": "b402c3fa22d291f5534b6ff02ec33ea77d07dce7",
+  "scope": [
+    "Cap-only challenge UI copy; server rewards unchanged",
+    "Test-only initial viewport settling; actual renderer unchanged"
+  ],
+  "aggregate": {
+    "execution": "local-not-CI",
+    "status": "PASSED",
+    "suiteCounts": {
+      "pureSynthetic": 25,
+      "mocked": 116,
+      "productionCompiles": 63,
+      "buildsRequested": true
+    },
+    "elapsedSeconds": 36.565156099997694,
+    "inputsUnchanged": true
+  },
+  "commands": 226,
+  "inputCount": 312,
+  "postRunInputsRechecked": true,
+  "reportSha256": "6f64a2a7a9b4a4bea18a6188401b8751cde11844223df717bab7f01bd493bd1e",
+  "focused": [
+    "challenge cap23 assertions/4 controls plus pinned baseline",
+    "retained quest479/9",
+    "beam cleanup264+readiness54 assertions/10 controls"
+  ],
+  "nativeEvidence": "beam-native-2026-11-13.json",
+  "sourceHashes": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "af4abeaaa544ac07d57481c0d8dbe11c931c60a8ca2194e4080af3eda3cbb4b9",
+    "tests/challenge_cap_copy.py": "1a8533c032f0cea0e7298bfd513ea786e15feb4ee716b2cecc120c1b28258449",
+    "tests/verify_local.py": "6494553d6975e0efdca235e58c45956d6cf970605da09eb912e478cf768f3d93",
+    "tests/StudioBeamPerformance.client.luau": "3c99322825162e74d25b9d77bd6c62e4e114912964db3489ada667662be1add2",
+    "tests/beam_performance_cleanup.py": "c1daabc29cf8625533c9a01efad26fe12d486e875a450a41d025ae627ad07841"
+  },
+  "releaseGates": "BLOCKED: temporary tester access and old quest-writer fleet compatibility",
+  "limits": [
+    "Local aggregate is not CI; optional controls separately run",
+    "Cap copy has no new native fit test; below-cap wording remains nominal",
+    "Native beam sample is not production/phone/GPU/network performance proof"
+  ]
+}

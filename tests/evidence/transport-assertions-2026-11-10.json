@@ -1,0 +1,636 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "161590f133bfc3567a189c004c95f24d7dddf0d9",
+  "change": "Test-only correction of quiet-stop and replay masking risks. No confirmed production failure or gameplay change.",
+  "review": {
+    "method": "Separate source/diff review by implementing agent; no independent reviewer claimed.",
+    "areas": [
+      "No-yield wrapper forwards all adapter arguments and return values",
+      "Immutable state captured inside actual handler calls",
+      "Explicit matching stop reason before both deadlines",
+      "Mutations isolated in temporary generated sources",
+      "Studio guards and saving-disabled cleanup",
+      "Complete chunked evidence survives Studio log truncation"
+    ],
+    "finding": "Initial native baseline passed 42 checks but long JSON was truncated in Studio logs. Added bounded evidence chunks, rebuilt all artifacts and repeated the baseline before final mutation runs."
+  },
+  "checks": {
+    "command": "python tests/verify_local.py --build",
+    "passed": true,
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 52,
+    "productionCompiles": 56,
+    "candidateAndDisposableBuilds": "passed",
+    "mutationBuilds": "both compiled",
+    "gitDiffCheck": "passed",
+    "productionSources": "unchanged"
+  },
+  "native": {
+    "studioVersion": "0.747.0.7471481",
+    "baselineAssertions": 40,
+    "stopBeforeInputTimeoutSeconds": 0.2507900000000518,
+    "stopBeforeMaxDurationSeconds": 3.483514600000035,
+    "runs": [
+      {
+        "identity": {
+          "build": "VoiceTransportReview",
+          "sourceSha256": "f24ce8061ee99f012ffe5bb8a91983f0dbbe2dd60825db092d2600e1dd731b73",
+          "mutation": null,
+          "artifactSha256": "ec256cce1da5c01477856c3e3a935104f4455639d28a45edf77827afdebd1208",
+          "scope": "Executed in disposable local Studio; never published"
+        },
+        "log": "0.747.0.7471481_20261110T192041Z_Studio_E0C07_last.log",
+        "expectedFailure": null,
+        "serverReport": {
+          "serverCounts": {
+            "SustainedBegin": 11,
+            "MicReady": 3,
+            "SustainedPulse": 12,
+            "SustainedStop": 6,
+            "nonstring": 1
+          },
+          "checks": 40,
+          "elapsed": 30.868718299999955,
+          "passed": true,
+          "sourceSha256": "f24ce8061ee99f012ffe5bb8a91983f0dbbe2dd60825db092d2600e1dd731b73",
+          "replayEvidence": [
+            {
+              "sequence": 2,
+              "id": 12,
+              "requestKind": "table",
+              "accepted": false,
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 36.41228160000003,
+                "nextStart": 0,
+                "lastPulse": 36.9455332
+              },
+              "now": 36.96255970000004,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 36.41228160000003,
+                "nextStart": 0,
+                "lastPulse": 36.9455332
+              },
+              "reason": "replay",
+              "operation": "Begin"
+            },
+            {
+              "sequence": 2,
+              "id": 13,
+              "requestKind": "table",
+              "accepted": false,
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 36.41228160000003,
+                "nextStart": 0,
+                "lastPulse": 36.9455332
+              },
+              "now": 36.96259640000005,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 36.41228160000003,
+                "nextStart": 0,
+                "lastPulse": 36.9455332
+              },
+              "reason": "sample",
+              "sample": 1,
+              "operation": "Pulse"
+            },
+            {
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 36.41228160000003,
+                "nextStart": 0,
+                "lastPulse": 36.9455332
+              },
+              "id": 14,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 36.41228160000003,
+                "nextStart": 0,
+                "lastPulse": 36.9455332
+              },
+              "accepted": false,
+              "operation": "Pulse",
+              "requestKind": "string",
+              "now": 36.96261089999996,
+              "reason": "sequence"
+            },
+            {
+              "sequence": 2,
+              "id": 15,
+              "requestKind": "table",
+              "accepted": false,
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 36.41228160000003,
+                "nextStart": 0,
+                "lastPulse": 36.9455332
+              },
+              "now": 36.962624300000016,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 36.41228160000003,
+                "nextStart": 0,
+                "lastPulse": 36.9455332
+              },
+              "reason": "sample",
+              "sample": "nonfinite",
+              "operation": "Pulse"
+            },
+            {
+              "sequence": 1,
+              "id": 16,
+              "requestKind": "number",
+              "accepted": false,
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 36.41228160000003,
+                "nextStart": 0,
+                "lastPulse": 36.9455332
+              },
+              "now": 36.9626346,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 36.41228160000003,
+                "nextStart": 0,
+                "lastPulse": 36.9455332
+              },
+              "reason": "sequence",
+              "operation": "Stop"
+            }
+          ],
+          "stages": [
+            {
+              "name": "malformed",
+              "elapsed": 2.9038752999999815
+            },
+            {
+              "name": "scheduled attack",
+              "elapsed": 4.320026900000016
+            },
+            {
+              "name": "cooldown rejection",
+              "elapsed": 5.653901399999995
+            },
+            {
+              "name": "availability interruption",
+              "elapsed": 18.236730499999908
+            },
+            {
+              "name": "complete",
+              "elapsed": 30.868714299999965
+            }
+          ],
+          "savingDisabled": true,
+          "quietStopEvidence": {
+            "sequence": 5,
+            "id": 29,
+            "requestKind": "number",
+            "accepted": true,
+            "before": {
+              "aimY": 5.099999904632568,
+              "sequence": 5,
+              "active": true,
+              "aimZ": 222,
+              "aimX": -683,
+              "sample": 2,
+              "lastSequence": 5,
+              "power": 0.5,
+              "started": 61.177910999999995,
+              "nextStart": 59.69465330000003,
+              "lastPulse": 61.44518640000001
+            },
+            "now": 61.69439639999996,
+            "after": {
+              "lastSequence": 5,
+              "nextStart": 71.69439639999996,
+              "active": false
+            },
+            "ended": {
+              "endedAt": 61.69439639999996,
+              "nextStart": 71.69439639999996,
+              "sequence": 5,
+              "reason": "stop"
+            },
+            "operation": "Stop"
+          },
+          "scheduledMessages": 18
+        }
+      },
+      {
+        "identity": {
+          "build": "VoiceTransportDropStop",
+          "sourceSha256": "aac2b73877055e363322dc74401fd13958213b1d4c3b3b0e49c7c0204613634d",
+          "mutation": "drop-stop",
+          "artifactSha256": "0d004259ae1b549dc991dd40bcf1229cd029f4add187675c0dc2956e9111fc70",
+          "scope": "Executed in disposable local Studio; never published"
+        },
+        "log": "0.747.0.7471481_20261110T192217Z_Studio_49B47_last.log",
+        "expectedFailure": "No explicit quiet SustainedStop reached the server",
+        "serverReport": {
+          "serverCounts": {
+            "SustainedBegin": 11,
+            "MicReady": 3,
+            "SustainedPulse": 14,
+            "SustainedStop": 5,
+            "nonstring": 1
+          },
+          "checks": 37,
+          "elapsed": 31.35367880000001,
+          "passed": false,
+          "sourceSha256": "aac2b73877055e363322dc74401fd13958213b1d4c3b3b0e49c7c0204613634d",
+          "replayEvidence": [
+            {
+              "sequence": 2,
+              "id": 12,
+              "requestKind": "table",
+              "accepted": false,
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 24.238179899999977,
+                "nextStart": 0,
+                "lastPulse": 24.77181840000003
+              },
+              "now": 24.82165090000001,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 24.238179899999977,
+                "nextStart": 0,
+                "lastPulse": 24.77181840000003
+              },
+              "reason": "replay",
+              "operation": "Begin"
+            },
+            {
+              "sequence": 2,
+              "id": 13,
+              "requestKind": "table",
+              "accepted": false,
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 24.238179899999977,
+                "nextStart": 0,
+                "lastPulse": 24.77181840000003
+              },
+              "now": 24.821678200000065,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 24.238179899999977,
+                "nextStart": 0,
+                "lastPulse": 24.77181840000003
+              },
+              "reason": "sample",
+              "sample": 1,
+              "operation": "Pulse"
+            },
+            {
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 24.238179899999977,
+                "nextStart": 0,
+                "lastPulse": 24.77181840000003
+              },
+              "id": 14,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 24.238179899999977,
+                "nextStart": 0,
+                "lastPulse": 24.77181840000003
+              },
+              "accepted": false,
+              "operation": "Pulse",
+              "requestKind": "string",
+              "now": 24.821689900000024,
+              "reason": "sequence"
+            },
+            {
+              "sequence": 2,
+              "id": 15,
+              "requestKind": "table",
+              "accepted": false,
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 24.238179899999977,
+                "nextStart": 0,
+                "lastPulse": 24.77181840000003
+              },
+              "now": 24.821708400000034,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 24.238179899999977,
+                "nextStart": 0,
+                "lastPulse": 24.77181840000003
+              },
+              "reason": "sample",
+              "sample": "nonfinite",
+              "operation": "Pulse"
+            },
+            {
+              "sequence": 1,
+              "id": 16,
+              "requestKind": "number",
+              "accepted": false,
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 24.238179899999977,
+                "nextStart": 0,
+                "lastPulse": 24.77181840000003
+              },
+              "now": 24.821732399999973,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 24.238179899999977,
+                "nextStart": 0,
+                "lastPulse": 24.77181840000003
+              },
+              "reason": "sequence",
+              "operation": "Stop"
+            }
+          ],
+          "stages": [
+            {
+              "name": "malformed",
+              "elapsed": 2.5713188000000855
+            },
+            {
+              "name": "scheduled attack",
+              "elapsed": 3.9383629000000155
+            },
+            {
+              "name": "cooldown rejection",
+              "elapsed": 5.304280700000049
+            },
+            {
+              "name": "availability interruption",
+              "elapsed": 17.870015800000033
+            }
+          ],
+          "savingDisabled": true,
+          "error": "Players.InfernalBeast21.PlayerScripts.Client:908: No explicit quiet SustainedStop reached the server\nPlayers.InfernalBeast21.PlayerScripts.Client:908 function waitFor\nPlayers.InfernalBeast21.PlayerScripts.Client:1028\nPlayers.InfernalBeast21.PlayerScripts.Client:922\n",
+          "scheduledMessages": 20
+        }
+      },
+      {
+        "identity": {
+          "build": "VoiceTransportCorruptReplay",
+          "sourceSha256": "c4693de1951a867e93431b9642dabbd517b0d6642628ecb60c5d78a8d116bdf7",
+          "mutation": "corrupt-replay",
+          "artifactSha256": "a67bf37e6f349d937abb3111ed1dbd9821bcc0d57244941786f0616ad497ed34",
+          "scope": "Executed in disposable local Studio; never published"
+        },
+        "log": "0.747.0.7471481_20261110T192336Z_Studio_5B05F_last.log",
+        "expectedFailure": "Replay mutated immediate server state: power",
+        "serverReport": {
+          "serverCounts": {
+            "SustainedBegin": 7,
+            "MicReady": 1,
+            "SustainedPulse": 7,
+            "SustainedStop": 3,
+            "nonstring": 1
+          },
+          "checks": 21,
+          "elapsed": 5.190958799999976,
+          "passed": false,
+          "sourceSha256": "c4693de1951a867e93431b9642dabbd517b0d6642628ecb60c5d78a8d116bdf7",
+          "replayEvidence": [
+            {
+              "sequence": 2,
+              "id": 12,
+              "requestKind": "table",
+              "accepted": false,
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 22.87629389999995,
+                "nextStart": 0,
+                "lastPulse": 23.410359599999992
+              },
+              "now": 23.459898199999998,
+              "after": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 22.87629389999995,
+                "nextStart": 0,
+                "lastPulse": 23.410359599999992
+              },
+              "reason": "replay",
+              "operation": "Begin"
+            },
+            {
+              "sequence": 2,
+              "id": 13,
+              "requestKind": "table",
+              "accepted": false,
+              "before": {
+                "aimY": 5.099999904632568,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 222,
+                "aimX": -683,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 0.5,
+                "started": 22.87629389999995,
+                "nextStart": 0,
+                "lastPulse": 23.410359599999992
+              },
+              "now": 23.459932799999933,
+              "after": {
+                "aimY": 0,
+                "sequence": 2,
+                "active": true,
+                "aimZ": 0,
+                "aimX": 0,
+                "sample": 4,
+                "lastSequence": 2,
+                "power": 1,
+                "started": 22.87629389999995,
+                "nextStart": 0,
+                "lastPulse": 23.410359599999992
+              },
+              "reason": "sample",
+              "sample": 1,
+              "operation": "Pulse"
+            }
+          ],
+          "stages": [
+            {
+              "name": "malformed",
+              "elapsed": 2.540512100000001
+            },
+            {
+              "name": "scheduled attack",
+              "elapsed": 3.9065994000000046
+            }
+          ],
+          "savingDisabled": true,
+          "error": "Players.InfernalBeast21.PlayerScripts.Client:918: Replay mutated immediate server state: power\nPlayers.InfernalBeast21.PlayerScripts.Client:918 function unchangedRejection\nPlayers.InfernalBeast21.PlayerScripts.Client:986\nPlayers.InfernalBeast21.PlayerScripts.Client:922\n",
+          "scheduledMessages": 8
+        }
+      }
+    ],
+    "evidenceExtraction": "Concatenated all ordered 700-character VOICE_TRANSPORT_EVIDENCE chunks; parsed complete JSON; source hashes match provenance and artifact hashes verified."
+  },
+  "limitations": [
+    "Microphone readiness/power, aim, initial focus and avatar setup are synthetic.",
+    "One local Studio client/server; no real microphone calibration, proximity voice, physical phone/input, internet latency/loss, multi-client contention or live save validation.",
+    "Auditing and probe traffic add test-only work; no performance claim.",
+    "Native assertion count varies with observed pulse cadence.",
+    "Asset permission and disconnected Rojo localhost warnings remain outside this test scope.",
+    "Audio owner-configured later; no audio/product configuration or publication."
+  ]
+}

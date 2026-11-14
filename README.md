@@ -1,91 +1,109 @@
-# Scream Simulator
+# Scream Simulator — microphone city redesign
 
-Experience: **Scream Simulator** · Place `122465114514497` · Universe `10767534975`.
+**Combat progression:** health / full-power DPS at levels 1, 25, 50, 75 and 100 are **100/15, 150/23, 225/34, 325/49 and 450/68**, interpolated between levels. Large level gaps intentionally favor the stronger player; equal-level perfect-aim simulations take two attacks. Healing restores 20% after 12 seconds without dealing or taking damage, then every 12 quiet seconds. [Balance evidence](tests/evidence/level-progression-2026-11-09.json).
 
-[Play Scream Simulator](https://www.roblox.com/games/122465114514497/Scream-Simulator)
+**Attack audio:** [owner-selected tier effects](assets/audio/README.md) now map levels 10 through 100 to the ten supplied Roblox IDs, with original pitch, selectable NORMAL/LOW/OFF mixing and local-mic ducking. NORMAL raises the non-speaking mix budget; LOW preserves the old quiet mix, and detected local voice retains the old ceiling. All ten loaded in a silent local Studio check; gameplay listening and City Preview access remain unverified. Level 1 stays voice-only. Attack duration stays four seconds.
 
-**Published version 32**, confirmed by Roblox Studio on September 23, 2026 (02:59:54 UTC September 24), then verified by reopening the cloud place.
+**Current direction (November 13):** see [the prioritized roadmap](docs/ROADMAP.md). City Preview version 19 has level cap 100 and still uses hold/release. The next unpublished local candidate defaults to automatic live-mic attacks (4 seconds maximum, 5 seconds cooldown), preserving normal profiles. Beams start OFF. Deliberately turn them ON with E/BEAMS, stay quiet briefly, then aim and speak; normal speech may trigger attacks while ON. There is no calibration requirement or mic-testing panel/area. OFF stops attacks without muting voice chat. Reconnecting a mic or respawning requires explicit resume. Real-voice playtesting remains pending. GitHub development pushes are authorized; Roblox publication requires approval. Continue authorized work until the owner asks to stop or a real blocker needs help.
 
-## Get started / help develop
+[GitHub repository](https://github.com/anushil7a/scream-simulator) · [City Preview](https://www.roblox.com/games/90337242377543/Scream-Simulator-City-Preview) · [Separate original experience](https://www.roblox.com/games/122465114514497/Scream-Simulator)
 
-**Next redesign brief:** [Microphone combat and professional city development prompt](docs/PROFESSIONAL_REDESIGN_PROMPT.md). This is planned work, not a description of features already shipped.
+[Draft redesign review and developer handoff](https://github.com/anushil7a/scream-simulator/pull/1) — includes build instructions, scoped test evidence and remaining release gates.
 
-**Repository:** https://github.com/anushil7a/scream-simulator
+**Active development, not a completed release.** Current work is on `feature/microphone-city-redesign`. The last recorded City Preview release is version 19; subsequent automatic-voice changes are unpublished. Original-experience version numbers are separate. [Historical release notes](docs/RELEASE_32_NOTES.md) describe that older build.
+
+**Voice safety notice:** Settings explains that Roblox records/moderates voice, advises avoiding profanity, and distinguishes the beam volume meter from speech recognition. Stopping attacks does not mute voice; Roblox microphone/report controls remain separate. Current game rating/settings and native notice readability remain unverified. [Policy sources and scope](docs/MICROPHONE_POLICY_REVIEW.md).
+
+**Server voice checks:** beam eligibility is checked independently with bounded automatic recovery and globally paced calls. Account voice access is not authentic microphone-power proof. Movement and ordinary proximity voice remain separate; native API/device validation is still pending. [Current scope and limits](docs/VOICE_ELIGIBILITY_RECOVERY_REVIEW.md).
+
+## Integrated smaller-map candidate
+
+The current unpublished candidate now uses the **720 x 600 compact city**, 75% less footprint than the original. Spawn, training pads, arena boundaries, quest interactions, sports and both map views use matching coordinates. Environment cover is static: object destruction is excluded. The original repository-generated city remains preserved as an exact source archive plus guarded local place files.
+
+Use `python tests/verify_local.py --build` and the guarded `build/SustainedLocalPlay.rbxl` for local review, not the normal-profile candidate. Native geometry/gameplay validation is still pending; do not publish. [Integration evidence and remaining gates](docs/COMPACT_CITY_INTEGRATION_REVIEW.md). The separate `compact-city-draft.project.json` remains a historical geometry-only design preview, not the integrated game.
+
+**Combat tasks:** Team Effort remains menu-accessible. Controlled Beams is retired: its original ID/progress/claims are preserved, incomplete records stay inactive, and previously completed-unclaimed rewards remain claimable without a new objective. The eight earlier quest IDs, saved progress and claims remain; mixed-version rollout/rollback safety is still a release gate. [Quest review](docs/COMBAT_QUESTS_REVIEW.md).
+
+## Build the current source
 
 ```sh
-git clone https://github.com/anushil7a/scream-simulator.git
+git clone --branch feature/microphone-city-redesign https://github.com/anushil7a/scream-simulator.git
 cd scream-simulator
+mkdir -p build
+rojo build default.project.json -o build/MicrophoneCity.rbxl
+rojo build default.project.json -o build/MicrophoneCity.rbxlx
 ```
 
-Open `ScreamSimulator.rbxl` in Roblox Studio and press **Play**. The local place generates its city on startup. To modify the project, edit `src/` and rebuild with Rojo; see [Contributing](CONTRIBUTING.md) for the file guide, build commands, testing, and pull request workflow.
+The normal-profile `build/MicrophoneCity.rbxl` is not a save sandbox. For local Play, use the guarded `build/SustainedLocalPlay.rbxl` described below. The city is generated on startup; an empty Edit viewport is expected. Build from `src/` rather than assuming older root-level place files contain this redesign. Rojo 7.7 was used. Generated `build/` outputs are ignored by Git.
 
-Report bugs and ideas in [Issues](https://github.com/anushil7a/scream-simulator/issues). Developers can fork the repository and submit pull requests. Roblox edit/publish access is managed separately by the experience owner.
+For isolated local gameplay review, run `python3 tests/verify_local.py --build` and open `build/SustainedLocalPlay.rbxl`. It uses temporary profiles and must never be published. `build/SustainedNativeFixture.rbxl` adds synthetic checks; `build/PerformanceReview.rbxl` adds the manual performance collector. The same command builds `build/AutomaticVoiceCandidate.rbxl` with normal profile handling and a provenance sidecar; it is not a disposable save sandbox and is not approved for upload. See the [manual test plan](docs/AUTOMATIC_VOICE_PLAYTEST.md).
 
-## XP and combat redesign — September 23, 2026
+Read the [current QA report and release gates](docs/QA_REPORT.md), [development brief](docs/PROFESSIONAL_REDESIGN_PROMPT.md), [implementation evidence and remaining work](docs/IMPLEMENTATION_STATUS.md), [asset inventory](docs/ASSET_INVENTORY.md), and [contributor guide](CONTRIBUTING.md).
 
-- Compact health/XP HUD. The **SCREAMS** button or **B** opens and closes the collection menu. Scrollable tabs: Screams, Quests, Style, Map, Settings. Landscape phone layout keeps text readable and gameplay controls away from the joystick and jump button.
-- XP levels rise incrementally through level 30. Starter scream at level 1; unlocks at 5, 10, 15, 20 and 25. Each tier has more damage, forward beam range and width, with visual effects. Five effect colors are available.
-- Only the **960 × 720 stud central district** (40% of the 1440 × 1200 playable land rectangle) permits PvP. Both attacker and target must be inside it, within range, and have clear line of sight. The remainder of the city and coast is safe.
-- Five seconds of protection after spawn or arena knockout. Protected players cannot attack or receive scream damage. Knockouts return players to the safe hub.
-- Player knockouts award `50 + 12 × victim level` XP and 20 coins. The same victim has a 30-second reward cooldown. NPC hits/knockouts give smaller rewards, with distance, line-of-sight and reward cooldown checks.
-- **Q** rolls for 0.6 seconds, with a 4-second cooldown. Collision checks limit the dash distance. Dodging avoids an incoming scream during its active window.
-- Shields, purchased upgrade tracks, discovery points and City Passport boxes are removed. Existing coins and level are retained when older profiles load; obsolete fields are dropped.
-- Health restores 20% of maximum health after 10 seconds without a damaging scream, repeating every 10 quiet seconds.
+The [release handoff](docs/RELEASE_HANDOFF.md) records the latest local build, last verified playable preview, publishing recovery steps and human test requirements.
 
-## City and coast
+## Implemented in this branch
 
-An original Barcelona-inspired city: chamfered Eixample blocks, courtyard gardens, warm plaster/stone facades, terracotta roofs, shutters and iron balconies; narrow Born lanes with café courts and festival pennants; lower maritime homes; a covered produce market; fountains and a shaded rambla. A basilica-inspired landmark and tapered glass tower give each side a recognizable skyline. The southern beach includes a promenade, palms, parasols, loungers, volleyball, lifeguard cabin, café and music stage. This is a stylized original layout, not a scale recreation.
+- Automatic live-mic attacks: start OFF, deliberately turn ON, allow a brief quiet interval, then aim and speak. No calibration is required; normal speech may trigger attacks while ON. Sustained beams follow aim for up to four seconds, followed by five seconds cooldown from attack end. E/BEAMS turns attacks on/off; real microphone/proximity-voice validation remains outstanding.
+- Levels 1–100, bounded power/level scaling, visual style unlocks every ten levels, compact menus, mouse aim and touch controls. City Preview version 19 already has the 100-level cap but retains hold/release combat.
+- Central PvP district, safe city surroundings, spawn protection, separate dodge, sprint stamina, level-scaled health and quiet-time healing.
+- Compact Barcelona-inspired draft with west courtyard/training, central arena, north market/gardens, east landmark blocks and a south promenade/sports area. It is pedestrian-only with static cover and bounded rescue; art, native route/collision checks and balance remain under review. The larger original city is preserved separately.
+- Eleven city residents/quest workers plus three training enemies in the compact layout, retaining grounded navigation, conversations and reactions. Nick retains his multi-stage optional soccer quest in a relocated full-sized court. Three training enemies now stroll within their own pads, pause for telegraphed strikes and resume after recovery; original home-based combat eligibility remains. [Roaming behavior and checks](docs/TRAINING_ROAM_REVIEW.md).
+- Selected NPC quest givers, vendor equipment purchases, earnable micro-speaker and unconfigured premium entitlement hooks. No object destruction or repair runs in the compact candidate.
+- Versioned profiles, session leases and temporary test progress separated from legitimate saved progress.
 
-42 seeded residents replace the previous 114. They use grounded humanoid movement, animated walking, local destinations, conversations and reactions. Resident collision groups prevent crowd stacking; ground checks recover stuck/airborne residents without jump spam.
+These are source/integration milestones, not blanket verification of every device, multiplayer case or saved-data path. The detailed status log distinguishes observed behavior from untested requirements.
 
-Six moving cars and four parked cars have solid collision hulls. Moving impacts deal 15–35 damage based on speed, knock the player sideways, and recover after 1.3 seconds. Impacts have a 4-second damage cooldown and respect spawn protection.
+## Controls
 
-Player health scales by 8 per level: 100 at level 1, 332 at level 30. Beams travel 30/42/56/72/90/112 studs and widen from 4 to 10 studs. Walls stop beams; characters behind or outside the beam receive no damage. Rolling uses a full-body joint animation while the collider stays upright and sweeps for obstacles.
+- Current local candidate: beams start OFF. Deliberately turn ON, then aim and speak after a brief quiet interval. No calibration is required. **Normal speech can trigger attacks while beams are ON.** **E** / **BEAMS ON/OFF** toggles attack activation; it is not required for each beam. **OFF** stops an active attack and lets you talk without attacking, leaving microphone/proximity voice unchanged. After respawn or microphone/focus loss, deliberately turn beams back on; cooldown and fresh-quiet requirements still apply. The choice lasts for this session. City Preview version 19 still uses hold/use mic/release.
+- **Q** / **DODGE**: roll with cooldown; dodge cancels the active voice attack.
+- Hold **Shift** / tap **SPRINT**: up to ten seconds of sprint, then five seconds of recovery.
+- **T** / **TALK**: nearby NPC dialogue. Use world interaction prompts (**F** on keyboard; on-screen prompts on touch).
+- **B** / **SHOP**: toggle the menu; **BEAMS** opens the collection tab. **M**: map. Quests, Style and Settings are menu tabs.
+- **Camera**: third person only, with a six-stud minimum wheel/pinch zoom. Desktop aims at the mouse; touch aims at the centered reticle. There is no V/view toggle.
 
-## Quests
+A usable microphone and Roblox voice eligibility are required for microphone-driven attacks, not for movement or ordinary menus. There is no blocking microphone setup panel. Actual microphone sensitivity and comfortable-speech behavior remain unverified. Synthetic fixtures in `tests/` can exercise selected mechanics, but are not a substitute for live voice validation and must never be appended to production source.
 
-Accept one quest at a time in **Quests**, complete it, and claim its reward there. Progress and claimed rewards are saved. Timed delivery/race attempts restart each session. Each quest pays once per profile.
+## Boost delivery (unpublished local candidate)
 
-- **Leave Only Footprints:** collect six beach bottles with F; 100 XP / 50 coins.
-- **Coffee Before the Encore:** collect an order at Coastal Coffee and deliver to the beach stage within 90 seconds; 120 XP / 60 coins.
-- **Three's a Crowd:** hit three different NPCs in one scream; 100 XP / 40 coins.
-- **Boardwalk Dash:** start beside the lifeguard tower and reach the east promenade marker within 25 seconds; 120 XP / 50 coins.
-- **Can't Touch This:** evade three enemy player screams with a dodge in the arena; 160 XP / 70 coins.
-- **Underdog:** knock out a player of equal or higher level; 180 XP / 80 coins.
+Configured boost purchases activate on confirmed server receipt delivery, extending the current expiry by 30 minutes once per receipt. They stack time at 2x; time continues offline. Old saved boosts remain separately usable. Product IDs are not configured, and real receipt delivery is unverified. See [behavior, simulated evidence and limitations](docs/BOOST_PURCHASE_REVIEW.md).
 
-## Controls and test tools
+**Combat objectives:** one repeating challenge for three eligible training KOs/assists. The destruction and overlapping Elite challenges are retired; their partial saved counters are preserved but inactive. Eight existing city quests and previously earned rewards are unchanged. Quest cards show their distinct objectives before discovery, then explain whom to meet; beam-combat tasks appear before optional city activities. See [quest cleanup and pacing impact](docs/QUEST_CLEANUP_REVIEW.md) and [discovery presentation](docs/QUEST_DISCOVERY_REVIEW.md).
 
-- E / SCREAM: fire a beam in the direction your character faces.
-- Q / DODGE: roll.
-- Hold Shift / tap SPRINT: up to 10 seconds of running, then a 5-second rest. Releasing early allows recharge.
-- T / TALK: speak to a nearby resident.
-- F: quest interactions.
-- B / SCREAMS: toggle menu. M: map.
+## Friend testing and release limits
 
-**TEST TOOLS remains available to everyone for friend testing**, as requested. `DeveloperAccess.PublicTestingEnabled = true` controls this. Commands add XP/coins, change level, heal, teleport to hub/arena/beach, or reset quests/NPCs. Any test command disables saving for the session, preventing test changes from replacing normal progress. Set the flag to false to restore owner-only authorization.
+The unpublished candidate restricts TEST TOOLS to local Studio players or the verified owner in that owner's user-owned experience. Ordinary live players are rejected on the server even if they submit the command directly. This supersedes the candidate's earlier public friend-test flag; the published preview is unchanged. **+10 levels** adds ten test levels up to100, keeps XP below the cap and clears XP at100. It does not equip another style or grant paid entitlements. The first test mutation freezes legitimate progress; test changes use a temporary copy and are not saved. See [test-tool review](docs/DEVELOPER_TOOLS_REVIEW.md). Owner/product configuration is still needed for real pass and badge IDs.
 
-## Verification and limits
+Outstanding release gates include real microphones and eligible accounts, physical device/multiplayer input and performance tests, live save contention/migration checks, completed city art review and a production backup/old-server drain. **Do not publish this branch as a finished release based on compilation or synthetic tests.** See the status log for active test runs and their exact source versions.
 
-- All 10 Luau files compile; both Rojo builds pass.
-- Live Studio beam test: front target 60→48 HP; rear and side targets stayed at 60. A wall stopped the beam at 9.5 studs and prevented damage. Supernova reached 112 studs and damaged a target 100 studs away, 60→12 HP.
-- Moving car impact: 100→75 HP, visible physics knockdown, automatic recovery; no second immediate hit after sideways knockback fix.
-- Roll joint animation inspected on the actual player rig; rolling toward a parked car stopped at its hull and set the four-second cooldown.
-- NPC grounding sample: 672 samples, zero gaps above five studs; maximum root-to-ground gap 3.12 studs, 507 moving samples.
-- Level 30 health and HUD verified at 332/332. PvP rectangle area verified as exactly 0.4 of playable land.
-- City reviewed at street height and from above; desktop HUD visually reviewed. Relocated beach pickup and café-to-stage delivery tested through actual F prompts.
-- No runtime errors observed other than expected Studio DataStore access warnings. Studio API access is disabled; these tests use temporary profiles. Full multiplayer and live persistence still need a friend session.
-- Original audio still uses Roblox's built-in oof fallback with tier-dependent processing; approved custom audio IDs can be set in Config.
-- Public access previously enabled for Roblox audience reach ages 16+ and trusted friends. Wider reach requires owner eligibility steps.
+### Still unfinished
 
-GitHub research and download review: [Barcelona plan](research/BARCELONA_PLAN.md). Rojo (1,747 stars) is reused. BlenderGIS (9,407 stars) was reviewed as plain-text source only and rejected for installation because its entry point disables default HTTPS certificate verification. No third-party runtime code or GIS imagery was imported.
+- Real paid game passes and published Roblox badges: product/badge IDs and ownership/award verification are not configured. Cosmetic options, entitlement hooks, Studio movement testing and in-game Nick achievements exist.
+- Two-account live voice listening, permission/reconnect behavior and comfortable-volume sensitivity across actual microphones.
+- Physical phone/touch and multiplayer combat, roll/attack cancellation, quests and static-cover interactions. Traffic and object destruction/repair are excluded from the compact candidate.
+- Live test-universe save/rejoin, migration and concurrent-session verification.
+- Final city art/game-feel acceptance and measured desktop/phone performance at the intended player count, including a representative 30-minute multiplayer soak.
+- Final production rollout/rollback and old-server drain. City Preview is a test publication; the original experience remains separate.
 
-## Source and builds
-
-`City.luau` generates the city; `World.luau` generates residents and traffic. `Bootstrap.server.luau` handles progression, combat, quests, protection and test tools. `CombatRules.luau` contains shared server targeting/cast checks. `Client.client.luau` builds the HUD/menu and effects. `Profiles.luau` loads/saves sanitized profiles in `ScreamSimulator_v1`; failed loads never overwrite existing saves.
-
-Local `.rbxl` and `.rbxlx` files contain scripts that build the world on Play. The published place also contains the generated map for Edit mode. Pre-redesign source is retained in `backups/pre-barcelona-redesign/src`.
+## Quick source checks
 
 ```sh
-rojo build default.project.json -o ScreamSimulator.rbxl
-rojo build default.project.json -o ScreamSimulator.rbxlx
+python3 tests/verify_local.py
+# Also generate and compile disposable Studio review fixtures:
+python3 tests/verify_local.py --build
 ```
+
+Requires local `luau` and `luau-compile`, plus `rojo` for `--build`. This runs pure/synthetic and mocked-service suites and compiles production scripts; it does not execute Studio, access real saves, upload, or publish. Follow it with the relevant native Studio regression and [manual microphone/device checks](docs/AUTOMATIC_VOICE_PLAYTEST.md). Document failures and untested cases. [Report an issue](https://github.com/anushil7a/scream-simulator/issues) with reproduction steps, build/commit, device and expected behavior.
+
+### Studio movement-pass testing
+
+In local Studio Play, open **TEST TOOLS**, scroll to **Test movement**, and toggle it on. Movement does not require microphone setup; microphone-driven attacks still require usable voice input and eligibility. This grants a temporary movement entitlement only in Studio; safe-area movement limits and arena cooldowns remain enforced. Toggle again to remove it. The server rejects this command outside Studio, including for the owner. No purchase is prompted, and legitimate save progress is frozen before the test mutation. Real pass IDs remain unconfigured.
+
+### Standalone microphone feasibility lab
+
+Build the five-script isolated place with `rojo build mic-prototype.project.json -o build/MicrophoneFeasibility.rbxl`. It shares the production microphone/rule modules but contains no city, saves, rewards or purchases. See [the lab test procedure](prototypes/microphone/README.md). A privately published, two-account real-mic pass remains required; local compile/build results do not prove voice transport.
+
+Beams/style update: [hue-only controls, preserved saved colors and native/synthetic evidence](docs/BEAMS_STYLE_REVIEW.md).
+
+Regular-player [minimap behavior and validation limits](docs/MINIMAP_REVIEW.md): compact north-up navigation in the upper-right corner; MAP opens the full map. Authorized testers retain their test-tools button.

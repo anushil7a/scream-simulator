@@ -1,0 +1,21 @@
+{
+  "state": "complete",
+  "observations": {
+    "ApartmentFacadePartial": 300,
+    "ApartmentFacadeDestroyed": 300,
+    "BenchDestroyed": 125,
+    "HouseFacadeDestroyed": 300,
+    "SmallTreePartial": 180,
+    "BenchPartial": 130,
+    "HouseFacadePartial": 300,
+    "BikePartial": 180,
+    "BikeDestroyed": 180,
+    "BinPartial": 120,
+    "TowerFacadePartial": 300,
+    "SmallTreeDestroyed": 180,
+    "BinDestroyed": 120,
+    "TowerFacadeDestroyed": 300
+  },
+  "checks": 72,
+  "elapsed": 300
+}

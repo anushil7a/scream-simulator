@@ -1,0 +1,78 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "2ce082b5636fdab25183e89a0cd6ab89b37d55f0",
+  "change": "Check late-load release results and consistently warn with player ID and returned reason or exception; retain synchronous tracked release attempt.",
+  "reproduction": {
+    "beforeProductionEdit": true,
+    "method": "Extended the actual Bootstrap/Profiles/ProfileLease coroutine harness with in-memory UpdateAsync release failures. Three failed writes make actual Profiles.Save return false/retry while the acquired lease remains present.",
+    "failure": "Late release false/retry was not logged with player and reason",
+    "exitCode": 1,
+    "limitation": "Profiles already logs individual write-attempt failures. The missing behavior was final late-release caller handling, not absence of all store warnings."
+  },
+  "checks": {
+    "command": "python tests/verify_local.py --build",
+    "passed": true,
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 53,
+    "productionCompiles": 56,
+    "builds": "all candidate/disposable builds pass",
+    "focused": {
+      "shutdown_race.py": 34,
+      "shutdown_saves.py": 11,
+      "profile_race.py": 13
+    },
+    "coverage": [
+      "Release write suspended after profile acquisition; joinsInFlight remains 1 and shutdown waits with no premature warning",
+      "Successful delayed release removes lease only after write resumes",
+      "Closing and departed players each exhaust three real Profiles retry attempts; lease remains and one final warning includes player ID and retry reason",
+      "Retry sleep retains tracked work and does not emit final warning early",
+      "Unexpected Save exception uses same late-release warning; tracking completes with no gameplay session and lease still present",
+      "Existing pre-close reward, post-close rejection, baseline preservation and bounded shutdown/concurrency coverage"
+    ],
+    "gitDiffCheck": "passed",
+    "negativeControls": [
+      {
+        "mutation": "ignore-returned-failure",
+        "expectedFailure": "Late release false/retry was not logged with player and reason",
+        "exitCode": 1,
+        "detected": true
+      },
+      {
+        "mutation": "lose-failure-reason",
+        "expectedFailure": "Late release false/retry was not logged with player and reason",
+        "exitCode": 1,
+        "detected": true
+      },
+      {
+        "mutation": "untracked-release",
+        "expectedFailure": "Late release did not reach delayed UpdateAsync",
+        "exitCode": 1,
+        "detected": true
+      }
+    ]
+  },
+  "review": {
+    "method": "Separate post-implementation self-review of production diff and test paths; no external agent or human review claimed.",
+    "findings": [
+      "pcall status is checked separately from returned Save success",
+      "False result and exception retain correct diagnostic value",
+      "No success or lease-release claim is emitted on failure",
+      "No extra asynchronous release, retry loop, session recreation or lease mutation introduced",
+      "Delayed test observes pending write before completion; failed-write tests check retained lease and final warning after retries"
+    ]
+  },
+  "build": {
+    "builtAtUtc": "2026-11-10T19:46:09.903019+00:00",
+    "sourceCount": 56,
+    "bootstrapNormalizedSha256": "6bf74d26a500ec5c8fe08b922eab9e9eabd9905db484e64b0a1cd2760eadc0cc",
+    "artifactSha256": "27f66cfed2e187aef6b647da2db323a65753aa130832f92d1141df49acbdcacf",
+    "status": "built only; not executed in Studio or published"
+  },
+  "limitations": [
+    "All persistence/scheduling evidence is synthetic with in-memory UpdateAsync, actual Profiles/ProfileLease and extracted actual Bootstrap paths.",
+    "No live DataStore writes or native Studio/shutdown execution this checkpoint.",
+    "Logging a failed release does not recover it; the lease may remain held. Existing retry policy and 25-second shutdown budget are unchanged.",
+    "Live DataStore contention, outage/rejoin, competing-server lease and engine deadline behavior remain release gates.",
+    "No publication or audio/product configuration."
+  ]
+}

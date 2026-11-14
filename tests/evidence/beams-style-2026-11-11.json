@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-11",
+  "base": "d4cf66804f2a409dda39ac78c254aedb68b05a06",
+  "source_sha256": {
+    "src/ReplicatedStorage/Shared/Config.luau": "00ab8e063ff906394ed5c9ef6a9900b43f5fedf9bee4a2d1ebdfde59faf51eb5",
+    "src/ReplicatedStorage/Shared/FirstBeamGuide.luau": "e66accd46485f3a31b5a61fbdde6ca746a10621c6171e2ed7b70d9fb5ab9b78e",
+    "src/ReplicatedStorage/Shared/ShopCatalog.luau": "53860a7c662529027105a6c39bd154b15056e782ca44613fea5bbf2ee37e260c",
+    "src/ServerScriptService/BeachVolley.luau": "613ec54f9b31249a41980be1bd623a0222b7d48807757304dd9adc844d46081e",
+    "src/ServerScriptService/Bootstrap.server.luau": "f87d799e8e7119066ab7dedaa9969bdc177676cc9ff5090d7f1721828384d827",
+    "src/ServerScriptService/World.luau": "3bd1e3e5c22a0a738e4dad0a20fa27035d6ed288ef754d6f858d4331d5c30fdd",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "cc0ec6ca74ebb38bb6f56dc1667b762461e15cfdac4bc3b9a1e9df6bc15bd8ea",
+    "src/StarterPlayer/StarterPlayerScripts/ShopUI.luau": "1456670d582c202954b28863fccd57b55bbe8136ae1886055d0d8c7537c5b320",
+    "src/ServerScriptService/Profiles.luau": "d1101ab834275507aed9a50536c5db98ae0df3323261421370fbf7d06bdaad43",
+    "src/ServerScriptService/Entitlements.luau": "7ae850bf3edfb04dea0cdf03660b4edb6db2a9252803986b92475a006d2a96a2",
+    "tests/style_controls.py": "edde3428d1a2aaa989f7520a14a554fa1cf159bcafef4d909c925dff5690e58e",
+    "tests/build_style_review.py": "81d0fb84c270b827c88430816832934b02f8ef7bd2c7d03f9eebfd59505ade84"
+  },
+  "focused": {
+    "assertions": 336,
+    "negative_controls": 11,
+    "baseline": "extra sliders reproduced"
+  },
+  "aggregate": {
+    "status": "passed",
+    "pure_synthetic_suites": 25,
+    "mocked_suites": 68,
+    "production_compiles": 57,
+    "candidate_and_disposable_builds": "passed",
+    "log_sha256": "14c1ca7feee8fc3c2ce5438a1019bf000bd571dfa3c43aa171c77efc1cb42ade"
+  },
+  "native": {
+    "observed_output_time": "11:46:39",
+    "checks": 687,
+    "cases": 15,
+    "viewports": [
+      "390x844",
+      "844x390",
+      "1280x720"
+    ],
+    "scenarios": [
+      "new-locked",
+      "legacy-free",
+      "saved-custom",
+      "inactive-custom",
+      "new-owner"
+    ],
+    "per_label_TextFits_failures": 0,
+    "physical_input_tested": false,
+    "real_services_tested": false,
+    "rbxl_sha256": "42E55C7032E7669774FA4F50C9F0ADC41F5AD9E5403BFA11DEAD70D7DA9F2DFE",
+    "fixture_client_sha256": "B8537BFA743100FC36F83B0B977C40EE4CAADB89CD084D0FF2C9B5754DB2AAD5",
+    "independent_native_rerun": false,
+    "limits": "Synthetic layout state. No ancestor clipping, scroll reachability, physical-device, real ownership or persistence validation. Existing unrelated asset warning source unestablished.",
+    "final_rebuild_matches_executed_hashes": true
+  },
+  "cleanup": {
+    "studio_closed": true,
+    "inaccessible_minimized_app_picker_dialogs": 2,
+    "approval_pending": false
+  },
+  "publication": false
+}

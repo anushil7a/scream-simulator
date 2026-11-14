@@ -1,0 +1,60 @@
+{
+  "recordedAtUtc": "2026-11-11T22:12:47.735622+00:00",
+  "baseCommit": "fd794f31a6591f1f448d5dd098e1dfbd999ca77b",
+  "hashSemantics": "Exact working-tree bytes here; candidate manifest normalized read_text source hashes verified with matching semantics",
+  "checks": {
+    "focusedAssertions": 49,
+    "negativeControls": 7,
+    "sourceContracts": 1,
+    "baseline": "0619103 actual module and Retry callback:121 simultaneous mocked calls/jobs and121 timeout callbacks",
+    "lifecycleAssertions": 111,
+    "inactiveAssertions": 33,
+    "inactiveControls": 7,
+    "aggregate": {
+      "pureSynthetic": 25,
+      "mockedSuites": 96,
+      "productionCompiles": 60,
+      "allBuilds": true,
+      "native": false
+    },
+    "candidateMatch": "All60 normalized sources, project/referenced files and binary hash match"
+  },
+  "commands": [
+    "python tests/microphone_check_requests.py --negative-controls",
+    "python tests/microphone_check_requests.py --baseline",
+    "python tests/microphone_lifecycle.py",
+    "python tests/microphone_active.py --negative-controls",
+    "python tests/verify_local.py --build"
+  ],
+  "limits": [
+    "One actual call per controller, not global cross-instance cancellation",
+    "Ten-second threshold is a pending notice, not result expiry; same-live-instance late responses remain accepted",
+    "Permanent hang retains slot until actual completion/session restart; no native API cancellation/memory proof",
+    "Two-second cooldown begins at completion and uses existing monotonic clock",
+    "Mocked API/clock/audio/Retry callback only; no real network counts, accounts, hardware or authentic audio",
+    "Server voice gate, device routing, normal unsavable play and map unchanged; no apps, live stores or publication",
+    "Unattributed empty temporary fixture preserved; writer-fleet release gate remains BLOCKED"
+  ],
+  "sources": {
+    "src/StarterPlayer/StarterPlayerScripts/Microphone.luau": "532f742ac4a7862f90e38e293f695179eecf5d528c557b288957ab014e23e9b1",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "8ba462b77313af4583064e9860cbcdd26a5343c55137ce6cff44bde2e054021e",
+    "tests/microphone_check_requests.py": "4d968f16de5de348a450b1d3f0610483b08b60bc5c6c13e4e77125178228598c",
+    "tests/microphone_lifecycle.py": "69afcc5c6a2a6fc0f0c6ff4d749f8aa704645a474e1db1c63ab0e7f57314477b",
+    "tests/microphone_active.py": "afb55ca8ea4e0ea3758eb1a60c86be6a4cb2d4b4fbf7a8731b5b82e3abbd8e4a",
+    "tests/verify_local.py": "65dc53106dccc036a02005b938ba344ffc8c89ca8bdc7b00a3bcb51b5f14980e",
+    "docs/MICROPHONE_CHECK_REQUESTS_REVIEW.md": "af41e4038dcc98fa98d9a75e492fc851c939fb890d99a54de0ad57cd72b3fb78",
+    "docs/ROADMAP.md": "b7dc2cd2d8acd0501a0ab1d207581af5dc59a8652ea861b35e9116d82aa0cb21",
+    "docs/PLAYTEST_BACKLOG.md": "f87ba3536ed0da0825576f3e62430cf14c898cc80415d7c12e63d7fa5565ea27"
+  },
+  "artifacts": {
+    "build/mic-check-controls.log": "6e4c91c9af20a3156872dbff1ccaad52aee36c9df58166acc0c6829942c0db4e",
+    "build/mic-check-baseline.log": "a0d9da05af7712394c5903fa8542e2eb664f4dfd9c5a098100caf95aad51727a",
+    "build/mic-check-lifecycle.log": "f92f97b553da163b3c71ff3310b2ddda5a708989911895f8b4d2369157ba0188",
+    "build/mic-check-active.log": "2a588547a5f8fb7249d6c12ac9f596ba62c49632f207a0d56b403e05d23a72c6",
+    "build/mic-check-full.log": "d3c3d10b49dd349f3efc8041858b1fa7637f0c1995f1bb2da2feaa21a1e3d877",
+    "build/AutomaticVoiceCandidate.rbxl": "252d61fc8abd33a07a4a11af0ab7599a12b4f5783e1053fddae52d6e6e6dd5e9",
+    "build/AutomaticVoiceCandidate.provenance.json": "a07650c9c757636421c4e9da140f30027cc69bd18dc985fae4f0483a5bcc6a54",
+    "build/OnboardingReview.rbxl": "92dad8b41db2c1dedb12cc47f393acf93d0d7a0e7c6a8340732c767a153f72da"
+  },
+  "independentReview": "Separate worker source/doc review and exact49/7/1, baseline121, lifecycle111, inactive33/7 rerun; no blocker. Main independently reran focused and full suite."
+}

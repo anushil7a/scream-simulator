@@ -1,0 +1,59 @@
+{
+  "date": "2026-11-11",
+  "base": "47f3d460d93d510cdae8c952ceeaf843c4680e8f",
+  "sources": {
+    "src/ReplicatedStorage/Shared/AttackAudioConfig.luau": "8b3513402fab8bcff9aa00d71ee538a27f24d4dde27394770eaecafbd1ba521e",
+    "src/StarterPlayer/StarterPlayerScripts/BeamAudioMix.luau": "27b7cda9a17108117f37ace0dfdf925a85c04e619aacfe63c2e2c62c7161b682",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "d004f6423a73128bcce84b0db7d247345657a6548b911f96264f6d89342076a4"
+  },
+  "behavior": {
+    "default": "NORMAL",
+    "cycle": [
+      "NORMAL",
+      "LOW",
+      "OFF"
+    ],
+    "normalSharedBudget": 0.4,
+    "lowSharedBudget": 0.24,
+    "voiceActiveBudgetCeiling": 0.24,
+    "soundGroupGain": 0.65,
+    "localMultiplier": 0.7,
+    "voiceDuckTarget": 0.4,
+    "simultaneousLimit": 4,
+    "sessionOnly": true,
+    "assetIdsChanged": false
+  },
+  "validation": {
+    "focusedAssertions": 481,
+    "baselineLowSequenceAssertions": 2148,
+    "totalAssertions": 2629,
+    "negativeControls": 9,
+    "baselineReproducesMissingNormal": true,
+    "existingMixerAssertions": 31,
+    "existingMappingAssertions": 12,
+    "existingAdapterAssertions": 15,
+    "fullPureSuites": 25,
+    "fullMockedSuites": 71,
+    "productionCompiles": 57,
+    "allBuildsPassed": true,
+    "independentReview": "cleared; focused assertions/controls independently rerun",
+    "nativeExecuted": false,
+    "windowsAutocrlfCheckout": "Both vendored Luau blobs preserve exact SHA256/no CRLF under git checkout-index with core.autocrlf=true and explicit eol=lf attributes; temporary output cleaned."
+  },
+  "limitations": [
+    "Synthetic handles/settings/callbacks, no asset loading or listening in this batch",
+    "Original approximately .15-second Step scheduling and frame-dt duck interpolation remain; only OFF is synchronous",
+    "Voice detection/attenuation lag means no feedback prevention claim",
+    "Normal-mode increase is outside detected local voice; old voice-active ceiling intentionally retained",
+    "Starter tier remains without an audio asset; unavailable assets cannot be fixed by gain",
+    "No real microphone, physical phone, multiplayer playback/soak or native UI input/text-fit run"
+  ],
+  "cleanup": {
+    "appsOpened": 0,
+    "preexistingInaccessibleMinimizedAppPickerDialogs": 3,
+    "preexistingWorkPreserved": true
+  },
+  "mapChanged": false,
+  "liveDataStoreWrites": false,
+  "publication": false
+}

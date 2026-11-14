@@ -1,0 +1,22 @@
+{
+  "sampleRate": 44100,
+  "channels": 1,
+  "origin": "Original deterministic oscillator synthesis; no recordings or external samples",
+  "loopBoundaryDelta": 0.06936345015765606,
+  "assets": [
+    {
+      "file": "energy-beam-loop.wav",
+      "seconds": 2.0,
+      "peakDbFS": -9.0,
+      "rmsDbFS": -16.727524428878127,
+      "sha256": "556b8068135c684ae96d0e5b17362ba08794b6e738a66ef2d30d8e42c6f33b95"
+    },
+    {
+      "file": "energy-beam-preview.wav",
+      "seconds": 4.16,
+      "peakDbFS": -12.181735425649723,
+      "rmsDbFS": -20.416823132786366,
+      "sha256": "6380d29473278319e4e5e60e028b0a5fcbb2c7c259064eab63a924d2c12820a5"
+    }
+  ]
+}

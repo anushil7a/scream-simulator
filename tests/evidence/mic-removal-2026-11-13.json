@@ -1,0 +1,932 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-13",
+  "baseCommit": "58f921ff6dcbb1b075cf49730c7c4c8a751f7e1e",
+  "task": "Remove mandatory mic test and runtime practice area/objectives; preserve historical quest rewards",
+  "sourceHashes": {
+    "src/ReplicatedStorage/Shared/CompactLayout.luau": "7d2cbe4da9de8b4556d4b3aafa639e10b538fce847a004d9e4d27ba246d6823f",
+    "src/ReplicatedStorage/Shared/Config.luau": "66432b2561fab94390a7f7545737766bfb130e71f0d3cebd5c8f66057b3aaa73",
+    "src/ReplicatedStorage/Shared/QuestGuide.luau": "d94b09bde6e3c11c6d00d8acc5074395bbd5407c3143fcc86b1d2a64feeb7bc0",
+    "src/ServerScriptService/Bootstrap.server.luau": "b9a53c81dd2e6f1ea9add5f9bcb0b5ab4b735cf8810366cabb8cbc4ba54e63be",
+    "src/ServerScriptService/City.luau": "751376c08fef67492ad2248c29fcd87bd8e7f63654304283d85ee65e3ff79f2c",
+    "src/ServerScriptService/CompactCity.luau": "eb1a2fe8f72dd16a92dac242eb1b914fd8c40c75ba5d95e8f72e7b43f24f7a38",
+    "src/StarterPlayer/StarterPlayerScripts/CityMap.luau": "09b2721bca7c4262f394f952cb2e1444f0d1238b0d2160b22f2fb4a144b58986",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "65eed4e7d21057482d658796d33364822a79297019bbcb8582723def949d88f4",
+    "src/StarterPlayer/StarterPlayerScripts/Microphone.luau": "c2fe404358c15666032b4812b7e769cc65d673f1fd26dc9fa6bdcdeffded75c6"
+  },
+  "aggregate": {
+    "execution": "local-not-CI",
+    "status": "PASSED",
+    "suiteCounts": {
+      "pureSynthetic": 25,
+      "mocked": 127,
+      "productionCompiles": 64,
+      "buildsRequested": true
+    },
+    "commands": 238,
+    "inputCount": 324,
+    "inputsUnchanged": true,
+    "postRunSnapshotRechecked": true,
+    "elapsedSeconds": 38.360012400000414,
+    "reportSha256": "280cdcdc618268d5baa603be3eeca1b30e0d09f524bbbcdcd72b7f54f282a01e",
+    "log": {
+      "path": "build/mic-removal-final.d8cc6aa317874afa868b19c512fd5a07.log",
+      "sha256": "beee4ca5d5690d67e5ffb7b577063e5fbab08edc07ad0b7f817d2e569c3f2a9c",
+      "scope": "Combined child stdout/stderr, unredacted, including quiet compiler output; runner summary is in JSON."
+    }
+  },
+  "review": "Independent Astra exact source/diff, actual-module tests, native source identities, positive transport and both intended native negative controls cleared. All 324 final aggregate hashes and 68 control-manifest hashes independently matched.",
+  "nativeSmoke": {
+    "sourceLoad": {
+      "mode": "source-injected local place, not binary execution",
+      "placeId": 0,
+      "gameId": 0,
+      "builderProvenanceAtCopy": {
+        "build": "SustainedLocalPlay",
+        "sourceSha256": "057e1a4ceb56a675cc8e8aab07e9cb1806829dcc4d91abf899b010f6ed998415",
+        "mutation": null,
+        "artifactSha256": "94a158ef5ef2b4aec3e7c5bb4b0842339e2872315794378f1d251f4fff6932e8",
+        "scope": "Compiled disposable local fixture; not executed or published"
+      },
+      "scriptCount": 64,
+      "sourceHashes": {
+        "src/ReplicatedStorage/Shared/AttackAudioConfig.luau": "1772face2043afc8aba8feb5c8380321a63f0146d9ed368daaf338f5d8c8ebfc",
+        "src/ReplicatedStorage/Shared/BeamStyle.luau": "4cdf52b61d7172693c05f0df32376568a1661e59a468b9790662dbe6f35423b8",
+        "src/ReplicatedStorage/Shared/BoostLedger.luau": "07347b54930e73bbc2004e3356365015f7182b5ffeb9ae7447a3e6dca0b41fbd",
+        "src/ReplicatedStorage/Shared/CombatCredit.luau": "77e0749e619c6bfbf4b6dbbeedd5e4a8d16f2aab612448a015bcaa8370ca72a1",
+        "src/ReplicatedStorage/Shared/CompactLayout.luau": "41006f19abc5004b956f701e40404adeee4c9f877a7364652233a16f92bc4e2d",
+        "src/ReplicatedStorage/Shared/Config.luau": "b6b8eff4e4009efd72c99af788ac1ad8dbd064a0bc4eb55e87fc1c299896d605",
+        "src/ReplicatedStorage/Shared/DestructionRules.luau": "154c2d7e4ebf30d879d16c9e718f9665ea467e1ba5c1a37a643c937c155828b5",
+        "src/ReplicatedStorage/Shared/FirstBeamGuide.luau": "ec14aa712fcb73d78c03bc9a40de0f1ef9e94f868576ef46f9a6552013120c8f",
+        "src/ReplicatedStorage/Shared/GameplayAudioConfig.luau": "134cc21fe3964b71ab5c3df9cfebb0b08299bdbec5535e6f5a5962c6aa94430a",
+        "src/ReplicatedStorage/Shared/Healing.luau": "d6d9e6fb0f7b41d41ef01c8dd0d1b185bf9e8b16bde3eb045c18fb7905cbb3b8",
+        "src/ReplicatedStorage/Shared/InteractionRules.luau": "2a96ff1d444125e43dca7012196010be53301d9c1bb2a07787e8c76509a3a151",
+        "src/ReplicatedStorage/Shared/MicPower.luau": "7eda3a7a218829b9e8639d7bfc024f36224fe015e77addff76cc5aceff4e71d9",
+        "src/ReplicatedStorage/Shared/ProfileLease.luau": "c257a4b4a3cbe5c4c0712bde457993405d2ed6c31ec2a22714b2fe3254ebc258",
+        "src/ReplicatedStorage/Shared/Progression.luau": "9de0f113ab81e683943941093397873791b6c630be9f00880db6355f52c23da7",
+        "src/ReplicatedStorage/Shared/QuestGuide.luau": "70ad6249e62a24a20ac84e5204e1fbfd8a6652bc220cb7ed1ef43da8d1ecd45d",
+        "src/ReplicatedStorage/Shared/QuestLifecycle.luau": "90e843799b46afec9a022b0fabd66460023571d35382f697cdf76348675859c4",
+        "src/ReplicatedStorage/Shared/ShopCatalog.luau": "a2b7e75f5f2cfb62d0c2c5cb26e3f8ec1c9ab10feeeb9a60f400a99b6ae76244",
+        "src/ReplicatedStorage/Shared/SustainedAttack.luau": "2a5d04f0ae6eda37883cb312d891e085a8a884f96bcffe0a4f8337518aec6895",
+        "src/ReplicatedStorage/Shared/SustainedRewards.luau": "8a176a149542f59c423eaad01d788d50b5a4a786f15041c9c0065b6f77185db6",
+        "src/ReplicatedStorage/Shared/TrainingRules.luau": "eaa5fff9ca8c39a349fa8fc5299d20e7da958f5758e24ae5c9ca501263264446",
+        "src/ReplicatedStorage/Shared/VoiceActivation.luau": "c2448344b91e2b5c141edc41520a308b8f8205eb71af9da4a521f3d5f81b9764",
+        "src/ReplicatedStorage/Shared/VoiceCombat.luau": "4ba03de8533b07598d5a22b28d90000b1a1f3e2289fc7601968e439890d29327",
+        "src/ServerScriptService/BeachVolley.luau": "318c19bfd59bb147adf93cc1241792b7aa67d08f6a574bd1fce5cf5a80a890fe",
+        "src/ServerScriptService/Bootstrap.server.luau": "63995e5ea37b53429307e2c222ded62f6d35ff3f311e31212992a2c19fc4e04c",
+        "src/ServerScriptService/City.luau": "a608f3fc16631281b758be410ca963d666081892af13ab3d804111f08d1ea3d8",
+        "src/ServerScriptService/CombatRules.luau": "d278027a51283269ace97d043bf8aba4a4cb20a236c90df1cac85ac2fed61cfe",
+        "src/ServerScriptService/Commerce.luau": "8e8a6eede15c9a1ff3e9c2595aad502d6b2cfa252048617ad7bdd5ccae7b3ab2",
+        "src/ServerScriptService/CompactCity.luau": "89c6e9d7869111ff2dd8776ae4c3924d8e0967a230bbaadadeda77df0a1e65f5",
+        "src/ServerScriptService/Destruction.luau": "89097ca8866be9d6a9b5f5e2e1d8b8883c54bbe2af865da8d70ae77e68a49321",
+        "src/ServerScriptService/DeveloperAccess.luau": "c8421f48023de5ff8788ecd243d44caca32b72fd2f76e644f470b19c156eaa62",
+        "src/ServerScriptService/Entitlements.luau": "cb39fc38f316705fb52cda2c12db8f300c4f30de19760db6d52122a33c73bb0f",
+        "src/ServerScriptService/Equipment.luau": "1792b2f8021c18ccaf62febf684e2ecf159b86d43182752c1341a7796d6427ca",
+        "src/ServerScriptService/Fountain.luau": "07398244d6a7f028f442e40fb8d0e99672ac5ff0cd710ea07de9374416e4cf54",
+        "src/ServerScriptService/Profiles.luau": "9449db9520e4a468d7bd2d75741a08e0ec1c77b8777974b39e843aac5730f1ac",
+        "src/ServerScriptService/RepairTimer.luau": "26ed3fd0f7ad59614a11b289d0c1dd4f268e13323634402b6f5c9c3fd2ec0b47",
+        "src/ServerScriptService/SoccerChallenge.luau": "2b14e6c2e6f80b300082e9fe9bec74e494638d34d860a5a7b253bad02e982d48",
+        "src/ServerScriptService/StreetArt.luau": "20294497dc3c9c1b5a80aa1b43c5d0c3bb32026c69894e8cb26e545fdeedcfce",
+        "src/ServerScriptService/SustainedAim.luau": "b4287a01c9d310211b55266a93b1013b437c7acb3c4cc711bcae4feb9db48664",
+        "src/ServerScriptService/SustainedAttackAdapter.luau": "6ff952270bd381bcc96aad4d222b156ac75e9e3f1d0d8d98e99985809f356c51",
+        "src/ServerScriptService/VoiceEligibility.luau": "c65b5c12175357405412f25896e4b0db1c2e9f7621993e185a570273b7c553f6",
+        "src/ServerScriptService/World.luau": "246564b9b4cb9507df5bf5a26d5cf71b7f32c995d238655a03ea1e08258ad517",
+        "src/StarterPlayer/StarterCharacterScripts/Health.server.luau": "45502b2484c27276486500faf9ec16ffcca4be739a96fe40d76e03bc0295a3d6",
+        "src/StarterPlayer/StarterPlayerScripts/Ambience.client.luau": "ec14a312a6bfe978e89bec06a707e2d4de758e75c3307d7a2ac92d6843bd8681",
+        "src/StarterPlayer/StarterPlayerScripts/AttackAudio.luau": "a7558cab309a6d69c6704f172d90081ed2f57914a75e61f24de79aa7c89b698d",
+        "src/StarterPlayer/StarterPlayerScripts/BeamAudioMix.luau": "e4e34f5b8535d486ad92617837f6bbe106648d7e85978859be3807aabbada30b",
+        "src/StarterPlayer/StarterPlayerScripts/BeamScreenFeedback.luau": "b4b7baac7b60ac8f81b2aa8c4893a52d9e3642ad28798819763b72fca7579ac1",
+        "src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau": "c34c5e31fb1c6f327dc6a53a3e3df97cdc1d0abe81bf8a34be59eea96f850f0a",
+        "src/StarterPlayer/StarterPlayerScripts/CityMap.luau": "b8aa83c4f70da9207cd0654f1614b44f335df32c58783c15dc4afc7f4ac3e63d",
+        "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "604730be1e9089fadca4dcc1a128ce8ebcff6f8ed775e0419cd282ac4e708ce9",
+        "src/StarterPlayer/StarterPlayerScripts/CueAudioMix.luau": "5dab1d0f101e10e3340bfe5ca78698ddc73c89f994f668dc06933eb479b61570",
+        "src/StarterPlayer/StarterPlayerScripts/GameplayAudio.luau": "a0f71ecd669b82e3b4c9d9b25e2fe560bea78ac6ac69d50eaccaa88d59a83649",
+        "src/StarterPlayer/StarterPlayerScripts/HitFeedback.luau": "75f3c907cf0639b5b77ba67c436937890a35e69ee76e012755342c5a5e134a9d",
+        "src/StarterPlayer/StarterPlayerScripts/LandmarkVisuals.client.luau": "c9a0d1d33454f2433d8d1f6c2856c52fc870eb981a723a4d6ee4be0e6114adff",
+        "src/StarterPlayer/StarterPlayerScripts/LockOn.luau": "77c67b1e6d25329ed06f58d887c0a4b5a264c30b804ef54e6ec905a8b393b14d",
+        "src/StarterPlayer/StarterPlayerScripts/Microphone.luau": "4ca621b381770118cd49ee751026cf628971c413ea5e76a9273dc37e6966e516",
+        "src/StarterPlayer/StarterPlayerScripts/NoticeLayout.luau": "157a8235be23f6929fff8ba64e6a9d216eeb424cd245dbaddd2ce1a3248421fb",
+        "src/StarterPlayer/StarterPlayerScripts/NoticeView.luau": "c0342d3fb59b1f4cc33daa956edf7c63cfda426000c6e4d21f173f9568365ed3",
+        "src/StarterPlayer/StarterPlayerScripts/NotificationQueue.luau": "7050c1d15437eb47541d659ed0e9af34945a212f97f439dc548e322a18542de3",
+        "src/StarterPlayer/StarterPlayerScripts/Residents.client.luau": "44b804d8e5da7d3435d8a8ec1d64dde7dac898b5e5d91615bed92dd71ed12ba8",
+        "src/StarterPlayer/StarterPlayerScripts/RunAnimation.client.luau": "9bb08f063d8d9971212eac41cea07b6e67641bc43c6e57c67545bea4034b4e83",
+        "src/StarterPlayer/StarterPlayerScripts/ScreamEffects.luau": "32026671ba5e09d81af88b7a6b879799dddfe7a1b7b79badf7182c1f95d0d624",
+        "src/StarterPlayer/StarterPlayerScripts/ShopUI.luau": "a67d9d6706a3b5e50c1be5e2d5c1c7a53f879fbeb166ab36f51460a9cd44372e",
+        "src/StarterPlayer/StarterPlayerScripts/SustainedBeams.luau": "96ac23756cbd7a6f5eaab19b140c3ec69939f07a012b6cd5d335bc363d914505",
+        "src/StarterPlayer/StarterPlayerScripts/SustainedControls.luau": "d41d35845ccdbb30b00fab4e51926a0b6ecee37117bfbac346abaed8b720cf66"
+      },
+      "snapshotBeforeSha256": "2823722605c5e34badaedf662d90379ec06e570a2808b0d18fe0661cd7d35a50",
+      "snapshotAfterSha256": "b847648da766caba0d4db4cb186e99bf60d4bf552020ce37b44491d17f9ef785",
+      "bootstrapDifference": "Equivalent local-only guard strengthened with gameId0; explicit source-injected review label. No fixture appendix."
+    },
+    "state": {
+      "jumpHeight": 7.199999809265137,
+      "practiceTargets": 0,
+      "placeId": 0,
+      "active": false,
+      "gameId": 0,
+      "texts": [
+        {
+          "name": "Screams",
+          "text": "BEAMS"
+        },
+        {
+          "name": "Cast",
+          "text": "BEAMS: OFF\n[E] to turn on"
+        },
+        {
+          "name": "TextLabel",
+          "text": "BEAMS OFF \u00b7 TALK FREELY\nVoice chat is unchanged"
+        }
+      ],
+      "micPanelExists": false,
+      "walkSpeed": 16,
+      "build": "MicRemovalSourceInjectedReview"
+    },
+    "image": {
+      "path": "docs/images/mic-removal-2026-11-13/startup.jpg",
+      "sha256": "c91f6b4f1cf220ea4262b69d14cba3698231d28c68ee48e131854fdd3b716430"
+    },
+    "stopped": "Game Stopped"
+  },
+  "nativeTransport": {
+    "sourceLoad": {
+      "mode": "Source-injected local place0/game0; binary not opened",
+      "builderProvenance": {
+        "build": "VoiceTransportReview",
+        "sourceSha256": "057e1a4ceb56a675cc8e8aab07e9cb1806829dcc4d91abf899b010f6ed998415",
+        "mutation": null,
+        "artifactSha256": "0254dc730a62eeb6627fcb9b6cff307b2ed0e33bbf9fce46a5fe5df8e6dd33ec",
+        "scope": "Compiled disposable local fixture; not executed or published"
+      },
+      "sources": {
+        "build/transport-injected-server.luau": "19c11b0d334fe06f68055ad3dd14178c7294769fd83ea1a37551f059d78869a1",
+        "build/transport-injected-client.luau": "b34161cb89e87bf3337e4975a7c30510d71197d6bbfee2b7a89533d7e15788e2",
+        "tests/StudioVoiceTransport.server.luau": "cbc5e4194e1b166825849d7f3bf3a6aad1ecdacec31ca763c7b09da2d4c8b9bd",
+        "tests/StudioVoiceTransport.client.luau": "b4bd0ff988415536f4bb18d9b68f724c5fcabbb6c67d8b78b64f6a513f731b9c"
+      },
+      "verified": [
+        {
+          "path": "ServerScriptService.Bootstrap",
+          "length": 70173,
+          "equal": true
+        },
+        {
+          "path": "StarterPlayer.StarterPlayerScripts.Client",
+          "length": 97871,
+          "equal": true
+        }
+      ],
+      "priorAttempt": "Source readback exceeded response length; Play started but was immediately stopped. No result accepted. Exact-source equality verified before this fresh run.",
+      "scope": "Synthetic readiness/power/aim; actual native frame scheduler, remotes, protocol and loop. No live data."
+    },
+    "result": {
+      "serverCounts": {
+        "SustainedBegin": 12,
+        "MicReady": 4,
+        "SustainedPulse": 15,
+        "SustainedStop": 7,
+        "nonstring": 1
+      },
+      "checks": 51,
+      "elapsed": 31.86637139999948,
+      "passed": true,
+      "sourceSha256": "057e1a4ceb56a675cc8e8aab07e9cb1806829dcc4d91abf899b010f6ed998415",
+      "toggleStopEvidence": {
+        "sequence": 6,
+        "id": 34,
+        "requestKind": "number",
+        "accepted": true,
+        "before": {
+          "aimY": 505,
+          "sequence": 6,
+          "active": true,
+          "aimZ": -5,
+          "aimX": 0,
+          "sample": 1,
+          "lastSequence": 6,
+          "power": 0.5,
+          "started": 1720.3700171000019,
+          "nextStart": 1719.6376784999957,
+          "lastPulse": 1720.5040968999965
+        },
+        "now": 1720.6035694999955,
+        "after": {
+          "lastSequence": 6,
+          "nextStart": 1725.6035694999955,
+          "active": false
+        },
+        "ended": {
+          "endedAt": 1720.6035694999955,
+          "nextStart": 1725.6035694999955,
+          "sequence": 6,
+          "reason": "stop"
+        },
+        "operation": "Stop"
+      },
+      "stages": [
+        {
+          "name": "malformed",
+          "elapsed": 2.3013414000015473
+        },
+        {
+          "name": "scheduled attack",
+          "elapsed": 3.7505973000006634
+        },
+        {
+          "name": "cooldown rejection",
+          "elapsed": 5.234298299998045
+        },
+        {
+          "name": "availability interruption",
+          "elapsed": 12.734260199998971
+        },
+        {
+          "name": "screams toggle",
+          "elapsed": 20.55058199999621
+        },
+        {
+          "name": "complete",
+          "elapsed": 31.86636909999652
+        }
+      ],
+      "scheduledMessages": 23,
+      "savingDisabled": true,
+      "replayEvidence": [
+        {
+          "sequence": 2,
+          "id": 12,
+          "requestKind": "table",
+          "accepted": false,
+          "before": {
+            "aimY": 505,
+            "sequence": 2,
+            "active": true,
+            "aimZ": -5,
+            "aimX": 0,
+            "sample": 4,
+            "lastSequence": 2,
+            "power": 0.5,
+            "started": 1699.1045049999957,
+            "nextStart": 0,
+            "lastPulse": 1699.6379104000007
+          },
+          "now": 1699.7214936999953,
+          "after": {
+            "aimY": 505,
+            "sequence": 2,
+            "active": true,
+            "aimZ": -5,
+            "aimX": 0,
+            "sample": 4,
+            "lastSequence": 2,
+            "power": 0.5,
+            "started": 1699.1045049999957,
+            "nextStart": 0,
+            "lastPulse": 1699.6379104000007
+          },
+          "reason": "replay",
+          "operation": "Begin"
+        },
+        {
+          "sequence": 2,
+          "id": 13,
+          "requestKind": "table",
+          "accepted": false,
+          "before": {
+            "aimY": 505,
+            "sequence": 2,
+            "active": true,
+            "aimZ": -5,
+            "aimX": 0,
+            "sample": 4,
+            "lastSequence": 2,
+            "power": 0.5,
+            "started": 1699.1045049999957,
+            "nextStart": 0,
+            "lastPulse": 1699.6379104000007
+          },
+          "now": 1699.7215238999997,
+          "after": {
+            "aimY": 505,
+            "sequence": 2,
+            "active": true,
+            "aimZ": -5,
+            "aimX": 0,
+            "sample": 4,
+            "lastSequence": 2,
+            "power": 0.5,
+            "started": 1699.1045049999957,
+            "nextStart": 0,
+            "lastPulse": 1699.6379104000007
+          },
+          "reason": "sample",
+          "sample": 1,
+          "operation": "Pulse"
+        },
+        {
+          "before": {
+            "aimY": 505,
+            "sequence": 2,
+            "active": true,
+            "aimZ": -5,
+            "aimX": 0,
+            "sample": 4,
+            "lastSequence": 2,
+            "power": 0.5,
+            "started": 1699.1045049999957,
+            "nextStart": 0,
+            "lastPulse": 1699.6379104000007
+          },
+          "id": 14,
+          "after": {
+            "aimY": 505,
+            "sequence": 2,
+            "active": true,
+            "aimZ": -5,
+            "aimX": 0,
+            "sample": 4,
+            "lastSequence": 2,
+            "power": 0.5,
+            "started": 1699.1045049999957,
+            "nextStart": 0,
+            "lastPulse": 1699.6379104000007
+          },
+          "accepted": false,
+          "operation": "Pulse",
+          "requestKind": "string",
+          "now": 1699.7215381999995,
+          "reason": "sequence"
+        },
+        {
+          "sequence": 2,
+          "id": 15,
+          "requestKind": "table",
+          "accepted": false,
+          "before": {
+            "aimY": 505,
+            "sequence": 2,
+            "active": true,
+            "aimZ": -5,
+            "aimX": 0,
+            "sample": 4,
+            "lastSequence": 2,
+            "power": 0.5,
+            "started": 1699.1045049999957,
+            "nextStart": 0,
+            "lastPulse": 1699.6379104000007
+          },
+          "now": 1699.7215504999986,
+          "after": {
+            "aimY": 505,
+            "sequence": 2,
+            "active": true,
+            "aimZ": -5,
+            "aimX": 0,
+            "sample": 4,
+            "lastSequence": 2,
+            "power": 0.5,
+            "started": 1699.1045049999957,
+            "nextStart": 0,
+            "lastPulse": 1699.6379104000007
+          },
+          "reason": "sample",
+          "sample": "nonfinite",
+          "operation": "Pulse"
+        },
+        {
+          "sequence": 1,
+          "id": 16,
+          "requestKind": "number",
+          "accepted": false,
+          "before": {
+            "aimY": 505,
+            "sequence": 2,
+            "active": true,
+            "aimZ": -5,
+            "aimX": 0,
+            "sample": 4,
+            "lastSequence": 2,
+            "power": 0.5,
+            "started": 1699.1045049999957,
+            "nextStart": 0,
+            "lastPulse": 1699.6379104000007
+          },
+          "now": 1699.7215606999962,
+          "after": {
+            "aimY": 505,
+            "sequence": 2,
+            "active": true,
+            "aimZ": -5,
+            "aimX": 0,
+            "sample": 4,
+            "lastSequence": 2,
+            "power": 0.5,
+            "started": 1699.1045049999957,
+            "nextStart": 0,
+            "lastPulse": 1699.6379104000007
+          },
+          "reason": "sequence",
+          "operation": "Stop"
+        }
+      ],
+      "quietStopEvidence": {
+        "sequence": 5,
+        "id": 31,
+        "requestKind": "number",
+        "accepted": true,
+        "before": {
+          "aimY": 505,
+          "sequence": 5,
+          "active": true,
+          "aimZ": -5,
+          "aimX": 0,
+          "sample": 3,
+          "lastSequence": 5,
+          "power": 0.5,
+          "started": 1713.9714682999984,
+          "nextStart": 1712.4382651999986,
+          "lastPulse": 1714.370659100001
+        },
+        "now": 1714.6376784999957,
+        "after": {
+          "lastSequence": 5,
+          "nextStart": 1719.6376784999957,
+          "active": false
+        },
+        "ended": {
+          "endedAt": 1714.6376784999957,
+          "nextStart": 1719.6376784999957,
+          "sequence": 5,
+          "reason": "stop"
+        },
+        "operation": "Stop"
+      }
+    },
+    "cleanup": {
+      "rootAnchored": false,
+      "resultPresent": true,
+      "coverGone": true,
+      "placeId": 0,
+      "active": false,
+      "gameId": 0
+    },
+    "stopped": "Game Stopped",
+    "files": {
+      "build/transport-native-result.json": "dbda7e651cc1fc5fcd7f46dfe9bda36f3062357456ba803bf0d42040fe1d6c93",
+      "build/transport-native-console.json": "c6ec4aa14b5369d4a54a3aea0e44e52cc20a9246baad87e8ba6611e8a02f97fe",
+      "build/transport-native-cleanup.json": "28d494604e6b0e447cdd9211d582de1226ef9cc8ecea0505343a2b81e7d9bcaa",
+      "build/transport-native-stop.json": "600974a7cffcd0a4c6029c715664cb75e39ce589dac53e2f4376f29fca66d63f"
+    }
+  },
+  "limitations": [
+    "Native transport uses synthetic readiness/power/aim and local Studio remotes, not real audio, internet latency or two real players.",
+    "No physical keyboard/touch/gamepad input validation. Movement settings observed, not physical locomotion tested.",
+    "Native startup/transport source-injected into place0/game0; rebuilt .rbxl itself not opened.",
+    "Native fixture setup-error cleanup is not comprehensive; stopped after initial readback-verification uncertainty and accepted only fresh exact-source-verified run.",
+    "Fixed default normalization does not guarantee microphone sensitivity or noise performance.",
+    "Retired quest saves preserved in current writer; older mixed-version writer release gate remains blocked.",
+    "No Roblox publication, live DataStore writes, purchases or audio configuration."
+  ],
+  "nativeNegativeControls": {
+    "results": {
+      "drop-stop": {
+        "serverCounts": {
+          "SustainedBegin": 11,
+          "MicReady": 4,
+          "SustainedPulse": 15,
+          "SustainedStop": 5,
+          "nonstring": 1
+        },
+        "checks": 39,
+        "elapsed": 21.239988799999992,
+        "passed": false,
+        "sourceSha256": "4a40d0dc19148c232035f80e28c0d425f270113c753081878bd06805c387fb95",
+        "replayEvidence": [
+          {
+            "sequence": 2,
+            "id": 12,
+            "requestKind": "table",
+            "accepted": false,
+            "before": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2043.025023000002,
+              "nextStart": 0,
+              "lastPulse": 2043.5579807999966
+            },
+            "now": 2043.640980199998,
+            "after": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2043.025023000002,
+              "nextStart": 0,
+              "lastPulse": 2043.5579807999966
+            },
+            "reason": "replay",
+            "operation": "Begin"
+          },
+          {
+            "sequence": 2,
+            "id": 13,
+            "requestKind": "table",
+            "accepted": false,
+            "before": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2043.025023000002,
+              "nextStart": 0,
+              "lastPulse": 2043.5579807999966
+            },
+            "now": 2043.6410266999956,
+            "after": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2043.025023000002,
+              "nextStart": 0,
+              "lastPulse": 2043.5579807999966
+            },
+            "reason": "sample",
+            "sample": 1,
+            "operation": "Pulse"
+          },
+          {
+            "before": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2043.025023000002,
+              "nextStart": 0,
+              "lastPulse": 2043.5579807999966
+            },
+            "id": 14,
+            "after": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2043.025023000002,
+              "nextStart": 0,
+              "lastPulse": 2043.5579807999966
+            },
+            "accepted": false,
+            "operation": "Pulse",
+            "requestKind": "string",
+            "now": 2043.6410523000013,
+            "reason": "sequence"
+          },
+          {
+            "sequence": 2,
+            "id": 15,
+            "requestKind": "table",
+            "accepted": false,
+            "before": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2043.025023000002,
+              "nextStart": 0,
+              "lastPulse": 2043.5579807999966
+            },
+            "now": 2043.6410726999966,
+            "after": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2043.025023000002,
+              "nextStart": 0,
+              "lastPulse": 2043.5579807999966
+            },
+            "reason": "sample",
+            "sample": "nonfinite",
+            "operation": "Pulse"
+          },
+          {
+            "sequence": 1,
+            "id": 16,
+            "requestKind": "number",
+            "accepted": false,
+            "before": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2043.025023000002,
+              "nextStart": 0,
+              "lastPulse": 2043.5579807999966
+            },
+            "now": 2043.6410892999993,
+            "after": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2043.025023000002,
+              "nextStart": 0,
+              "lastPulse": 2043.5579807999966
+            },
+            "reason": "sequence",
+            "operation": "Stop"
+          }
+        ],
+        "stages": [
+          {
+            "name": "malformed",
+            "elapsed": 2.257101999995939
+          },
+          {
+            "name": "scheduled attack",
+            "elapsed": 3.706785599999421
+          },
+          {
+            "name": "cooldown rejection",
+            "elapsed": 5.206675399997039
+          },
+          {
+            "name": "availability interruption",
+            "elapsed": 12.722671700001229
+          }
+        ],
+        "savingDisabled": true,
+        "error": "Players.<test-player>.PlayerScripts.Client:1210: No explicit quiet SustainedStop reached the server\nPlayers.<test-player>.PlayerScripts.Client:1210 function waitFor\nPlayers.<test-player>.PlayerScripts.Client:1332\nPlayers.<test-player>.PlayerScripts.Client:1224\n",
+        "scheduledMessages": 21
+      },
+      "corrupt-replay": {
+        "serverCounts": {
+          "SustainedBegin": 7,
+          "MicReady": 2,
+          "SustainedPulse": 8,
+          "SustainedStop": 3,
+          "nonstring": 1
+        },
+        "checks": 23,
+        "elapsed": 5.141017299996747,
+        "passed": false,
+        "sourceSha256": "2bac023ccf597f536d9b7e24fa9e7de4ce163a7948578cb86d514a2483d30faa",
+        "replayEvidence": [
+          {
+            "sequence": 2,
+            "id": 12,
+            "requestKind": "table",
+            "accepted": false,
+            "before": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2067.373457499998,
+              "nextStart": 0,
+              "lastPulse": 2067.9070193000007
+            },
+            "now": 2068.006228099999,
+            "after": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2067.373457499998,
+              "nextStart": 0,
+              "lastPulse": 2067.9070193000007
+            },
+            "reason": "replay",
+            "operation": "Begin"
+          },
+          {
+            "sequence": 2,
+            "id": 13,
+            "requestKind": "table",
+            "accepted": false,
+            "before": {
+              "aimY": 505,
+              "sequence": 2,
+              "active": true,
+              "aimZ": -5,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 0.5,
+              "started": 2067.373457499998,
+              "nextStart": 0,
+              "lastPulse": 2067.9070193000007
+            },
+            "now": 2068.0062629999957,
+            "after": {
+              "aimY": 0,
+              "sequence": 2,
+              "active": true,
+              "aimZ": 0,
+              "aimX": 0,
+              "sample": 4,
+              "lastSequence": 2,
+              "power": 1,
+              "started": 2067.373457499998,
+              "nextStart": 0,
+              "lastPulse": 2067.9070193000007
+            },
+            "reason": "sample",
+            "sample": 1,
+            "operation": "Pulse"
+          }
+        ],
+        "stages": [
+          {
+            "name": "malformed",
+            "elapsed": 2.3417723000020487
+          },
+          {
+            "name": "scheduled attack",
+            "elapsed": 3.8410539999968023
+          }
+        ],
+        "savingDisabled": true,
+        "error": "Players.<test-player>.PlayerScripts.Client:1220: Replay mutated immediate server state: power\nPlayers.<test-player>.PlayerScripts.Client:1220 function unchangedRejection\nPlayers.<test-player>.PlayerScripts.Client:1290\nPlayers.<test-player>.PlayerScripts.Client:1224\n",
+        "scheduledMessages": 9
+      }
+    },
+    "manifestCases": {
+      "drop-stop": {
+        "build": "VoiceTransportDropStop",
+        "sourceSha256": "4a40d0dc19148c232035f80e28c0d425f270113c753081878bd06805c387fb95",
+        "mutation": "drop-stop",
+        "artifactSha256": "c8550005be8ba7904422f5472342194a83afdecac476093147888a949b430c6e",
+        "scope": "Compiled disposable local fixture; not executed or published",
+        "loadedSourceHashes": {
+          "Bootstrap": "939de3d065ce7712293b6bd8b2f5d867dc48c3aa51c02a91826b87f28226abcd",
+          "Client": "8a45fc71bdb0edefe7d31a2c1dc34cf15b97e8afe1b624f6df1da2102836e307",
+          "Adapter": "6ff952270bd381bcc96aad4d222b156ac75e9e3f1d0d8d98e99985809f356c51"
+        },
+        "inject": "drop-stop-inject.luau",
+        "verify": "drop-stop-verify.luau"
+      },
+      "corrupt-replay": {
+        "build": "VoiceTransportCorruptReplay",
+        "sourceSha256": "2bac023ccf597f536d9b7e24fa9e7de4ce163a7948578cb86d514a2483d30faa",
+        "mutation": "corrupt-replay",
+        "artifactSha256": "31e57bb15d44f0e9ba8fafb6c9c071ae41e240fd846176e54cca7811c94f8eb0",
+        "scope": "Compiled disposable local fixture; not executed or published",
+        "loadedSourceHashes": {
+          "Bootstrap": "f0ea60317e9c92b9bd0a44f3e2dc79a4261f9d0a00d65d67cdfe752adce111c7",
+          "Client": "64d7c85f131e1e21624d34389782c377a91e9b38de26a55b5339234950a0dfaa",
+          "Adapter": "6d17b8d8af1068c9a9b9d658b4e7b82a116c728781ed2ba657bfbd7071655b58"
+        },
+        "inject": "corrupt-replay-inject.luau",
+        "verify": "corrupt-replay-verify.luau"
+      },
+      "restore": {
+        "scope": "Exact production Client/Adapter and guarded production Bootstrap, no fixture appended",
+        "loadedSourceHashes": {
+          "Bootstrap": "9af707ea3a20b0f75270706ac86860c050d655bbb1a3b5c35daebb265293a734",
+          "Client": "604730be1e9089fadca4dcc1a128ce8ebcff6f8ed775e0419cd282ac4e708ce9",
+          "Adapter": "6ff952270bd381bcc96aad4d222b156ac75e9e3f1d0d8d98e99985809f356c51"
+        },
+        "inject": "restore-inject.luau",
+        "verify": "restore-verify.luau"
+      }
+    },
+    "sourceHashes": {
+      "src\\ReplicatedStorage\\Shared\\AttackAudioConfig.luau": "8b3513402fab8bcff9aa00d71ee538a27f24d4dde27394770eaecafbd1ba521e",
+      "src\\ReplicatedStorage\\Shared\\BeamStyle.luau": "4cdf52b61d7172693c05f0df32376568a1661e59a468b9790662dbe6f35423b8",
+      "src\\ReplicatedStorage\\Shared\\BoostLedger.luau": "701a5e1d3600723b73768c20d8c75d66f3a62b55d235bbf43d93a37dc6da08c0",
+      "src\\ReplicatedStorage\\Shared\\CombatCredit.luau": "fed829c9d716af2d51de7c532f35ded3b9ae6d8091967914ce65d9d3625de07f",
+      "src\\ReplicatedStorage\\Shared\\CompactLayout.luau": "7d2cbe4da9de8b4556d4b3aafa639e10b538fce847a004d9e4d27ba246d6823f",
+      "src\\ReplicatedStorage\\Shared\\Config.luau": "66432b2561fab94390a7f7545737766bfb130e71f0d3cebd5c8f66057b3aaa73",
+      "src\\ReplicatedStorage\\Shared\\DestructionRules.luau": "ccffe9b9f248c650cdc9e341668895c7dac3c48a18d4f8dc57ebe3de0332a861",
+      "src\\ReplicatedStorage\\Shared\\FirstBeamGuide.luau": "e66accd46485f3a31b5a61fbdde6ca746a10621c6171e2ed7b70d9fb5ab9b78e",
+      "src\\ReplicatedStorage\\Shared\\GameplayAudioConfig.luau": "55c88d606bcd1238bcee1d055bf4d5eeb445eaa17f8967c72fab75f251c81590",
+      "src\\ReplicatedStorage\\Shared\\Healing.luau": "71ff8c429ea016c5f99a6711b294a5cad2602495e5019e1a93924d63198c852e",
+      "src\\ReplicatedStorage\\Shared\\InteractionRules.luau": "111a1bb04c4c071df0d3499d1274d1c90d9b4f834f04d0835d24e888f30c963b",
+      "src\\ReplicatedStorage\\Shared\\MicPower.luau": "9c11ff7caf22d4ca89f47aa0f07d167034de455879e5d8bf5c351e40f530b96a",
+      "src\\ReplicatedStorage\\Shared\\ProfileLease.luau": "19fdfeeafedb584b2eec830a825758c6d515cda573b20a9e0dd928e493893d9f",
+      "src\\ReplicatedStorage\\Shared\\Progression.luau": "e4fb07aa44cd0ce1729710aa27a04ce8a9886b75d910328a070e720e5dc70ef6",
+      "src\\ReplicatedStorage\\Shared\\QuestGuide.luau": "d94b09bde6e3c11c6d00d8acc5074395bbd5407c3143fcc86b1d2a64feeb7bc0",
+      "src\\ReplicatedStorage\\Shared\\QuestLifecycle.luau": "5cbfc1aebcab22677b021a7aa8e4555dba4b6892ac5086a5b944c3b8fa5d3af5",
+      "src\\ReplicatedStorage\\Shared\\ShopCatalog.luau": "53860a7c662529027105a6c39bd154b15056e782ca44613fea5bbf2ee37e260c",
+      "src\\ReplicatedStorage\\Shared\\SustainedAttack.luau": "2337713a3f25b8767e64478c88bda9bbde70ab1f975deb94a5edd491ffd1746c",
+      "src\\ReplicatedStorage\\Shared\\SustainedRewards.luau": "b9bb57c2f49e3044083917be6204e77c23484fb5d4a09f7aa5f06c61efd716e0",
+      "src\\ReplicatedStorage\\Shared\\TrainingRules.luau": "bda84380107e7df39eaf0ea91f60d2f81fde0908a8489d664ac18d1292b8388e",
+      "src\\ReplicatedStorage\\Shared\\VoiceActivation.luau": "e636e5a113d1535161afba542a1ca2eaca71b094c781b8f85d26de645cc3719d",
+      "src\\ReplicatedStorage\\Shared\\VoiceCombat.luau": "af969c4a8116b1d5a6aff3579015d0d1eb28e1b8c8466282685a12ed5a9637d7",
+      "src\\ServerScriptService\\BeachVolley.luau": "f20434e0faa548831c059ecd7c966eefbaa410e3ddaaf72544c550d87e74b929",
+      "src\\ServerScriptService\\Bootstrap.server.luau": "b9a53c81dd2e6f1ea9add5f9bcb0b5ab4b735cf8810366cabb8cbc4ba54e63be",
+      "src\\ServerScriptService\\City.luau": "751376c08fef67492ad2248c29fcd87bd8e7f63654304283d85ee65e3ff79f2c",
+      "src\\ServerScriptService\\CombatRules.luau": "5545400700598302ecc972ce2283daf027bb0a469d638cdd0bc45dd5166a00d9",
+      "src\\ServerScriptService\\Commerce.luau": "ea01b7a359915eb4dbab98eada8570b6d15d2e550d1975fbb18d27e6595f0679",
+      "src\\ServerScriptService\\CompactCity.luau": "eb1a2fe8f72dd16a92dac242eb1b914fd8c40c75ba5d95e8f72e7b43f24f7a38",
+      "src\\ServerScriptService\\Destruction.luau": "636469aef77a6822c856135623c348b7fc09ecd7c764aade6e8ec757cbed8291",
+      "src\\ServerScriptService\\DeveloperAccess.luau": "9daaf19752837dc72957051281d8d522b54e7709caa76f556e1bd46da54e4eac",
+      "src\\ServerScriptService\\Entitlements.luau": "0616a35d7aec98be4f2324beba213cdf1bd225c070dd1859366756742c369be4",
+      "src\\ServerScriptService\\Equipment.luau": "aa73ded4811cf59f1426101cf2d50c8b1185e764e3da9efa2764f73895fbc80a",
+      "src\\ServerScriptService\\Fountain.luau": "cc37d30eb6bb876f52a2cd3a9a9980077c1d5a4114d8291c01473f2c813ac50d",
+      "src\\ServerScriptService\\Profiles.luau": "d1101ab834275507aed9a50536c5db98ae0df3323261421370fbf7d06bdaad43",
+      "src\\ServerScriptService\\RepairTimer.luau": "9f973e209a7c002d88522c8972d927695583d0adb44223d07dc1841a8ae8db0d",
+      "src\\ServerScriptService\\SoccerChallenge.luau": "fdd356c2056fa4dc2487048e3ce6c69e6627e69cf7682a428fa9b2611e07024d",
+      "src\\ServerScriptService\\StreetArt.luau": "6826adb3ad639b64ef72f2caa400de915c34aaeccb04a8726b88a49ce146a431",
+      "src\\ServerScriptService\\SustainedAim.luau": "04e3296bc4448ef274cd58179cb66e57fea3f964308087661a9ffb7b76cdb4a5",
+      "src\\ServerScriptService\\SustainedAttackAdapter.luau": "0bba25ac45f5662516251775cb3e2c81fa42c4970a61b9e676ad82ad8e93b64d",
+      "src\\ServerScriptService\\VoiceEligibility.luau": "a8fa8d00b1f262d259936035cb15a8c220a0a61e886e41fbc7f7f041dc807728",
+      "src\\ServerScriptService\\World.luau": "548903e43eaf75d122e7a22632f1c1ca348925edf0f43ff3003ae62637821208",
+      "src\\StarterPlayer\\StarterCharacterScripts\\Health.server.luau": "d300f676697a808ee625780ef8f3230050f5d93dccdb7e38173b961411a4db30",
+      "src\\StarterPlayer\\StarterPlayerScripts\\Ambience.client.luau": "e089e6e8a8d979fe61a3c0968c54d362ba34bb561ccf0d816e10410c17d49455",
+      "src\\StarterPlayer\\StarterPlayerScripts\\AttackAudio.luau": "c426253e70ad458a62aeb2d5f1cfe8baf82e0270a799d01fdb116daab7b1bfd8",
+      "src\\StarterPlayer\\StarterPlayerScripts\\BeamAudioMix.luau": "27b7cda9a17108117f37ace0dfdf925a85c04e619aacfe63c2e2c62c7161b682",
+      "src\\StarterPlayer\\StarterPlayerScripts\\BeamScreenFeedback.luau": "5e1c5cb8df515e416d1ef94e26600a5b2035ef81ebd375afdd101e4a51a45711",
+      "src\\StarterPlayer\\StarterPlayerScripts\\BeamVisuals.luau": "64f8419c630fcb74a78fefcbf761f86abc4f0f27096c734d7bb89bc56da1901b",
+      "src\\StarterPlayer\\StarterPlayerScripts\\CityMap.luau": "09b2721bca7c4262f394f952cb2e1444f0d1238b0d2160b22f2fb4a144b58986",
+      "src\\StarterPlayer\\StarterPlayerScripts\\Client.client.luau": "65eed4e7d21057482d658796d33364822a79297019bbcb8582723def949d88f4",
+      "src\\StarterPlayer\\StarterPlayerScripts\\CueAudioMix.luau": "053a9cd1c1e6ab8300af734aa25e33bc762b2a1206ebb9d3abbee62a171c25d7",
+      "src\\StarterPlayer\\StarterPlayerScripts\\GameplayAudio.luau": "e94481b16df273b501ac406c4a36d591c20076145a52339789ef6ce30f458a15",
+      "src\\StarterPlayer\\StarterPlayerScripts\\HitFeedback.luau": "49cd8fad950a7b0a6dbab841f231cec401ee8e78a5d83db9f4421f9e175d2b20",
+      "src\\StarterPlayer\\StarterPlayerScripts\\LandmarkVisuals.client.luau": "d031c1e7b626aa8a32f7cecbfe71bf8f29d24f1946cbb6bbbf7486f9cf86cb44",
+      "src\\StarterPlayer\\StarterPlayerScripts\\LockOn.luau": "ab0b7fc7cc6e7f7275bc4b706c76517b2dfdc9b6d8f19a6c2cbef09a6ed16254",
+      "src\\StarterPlayer\\StarterPlayerScripts\\Microphone.luau": "c2fe404358c15666032b4812b7e769cc65d673f1fd26dc9fa6bdcdeffded75c6",
+      "src\\StarterPlayer\\StarterPlayerScripts\\NoticeLayout.luau": "5333a47e561a85a4f67187c9fb1430ffc7f6af6bc82acae540ae29f31d86576b",
+      "src\\StarterPlayer\\StarterPlayerScripts\\NoticeView.luau": "f373b8babd96ed2801fe413f4aedea9007735ef7cc32306f9e3c9266e8a9c7d6",
+      "src\\StarterPlayer\\StarterPlayerScripts\\NotificationQueue.luau": "558b5fe44bd30a6f1d514e9b8a16423607c5426ee64a8d2a930f7a5e919372bd",
+      "src\\StarterPlayer\\StarterPlayerScripts\\Residents.client.luau": "0818fd9af4d3541ac7c3f70e7d5d43987442c66eddadd2be9dcbf0335f7b4faf",
+      "src\\StarterPlayer\\StarterPlayerScripts\\RunAnimation.client.luau": "8cdf9e4338ede64d3eb440b0c665fc08ee08a0715c47c6c1928e860214208b8c",
+      "src\\StarterPlayer\\StarterPlayerScripts\\ScreamEffects.luau": "6bbfd046073500834aac58802d48c76bee027d8e022703898acde011ff4b7598",
+      "src\\StarterPlayer\\StarterPlayerScripts\\ShopUI.luau": "dac405a47942ab616910a32583b12ed6c894cbabb4a648ca00ffecd7e8dff432",
+      "src\\StarterPlayer\\StarterPlayerScripts\\SustainedBeams.luau": "f540efde768105a226c89e556a0231829e1314e71e6688928e2bfe01df8ced40",
+      "src\\StarterPlayer\\StarterPlayerScripts\\SustainedControls.luau": "7b31bec11d8684b501ab218c466f04897a0c35a77b65c7b621d6d234ef3680e6",
+      "tests\\StudioVoiceTransport.client.luau": "b4bd0ff988415536f4bb18d9b68f724c5fcabbb6c67d8b78b64f6a513f731b9c",
+      "tests\\StudioVoiceTransport.server.luau": "cbc5e4194e1b166825849d7f3bf3a6aad1ecdacec31ca763c7b09da2d4c8b9bd",
+      "tests\\build_sustained_review.py": "3a22f5e6a9d777122e98c616a07460e1dfee4b9ec2c6ef78aca0776d180f70ab",
+      "default.project.json": "db0bf2bed748bbf995ab52a9c1cd50cb5d59de2d8b098d3b27ca23511eefef60"
+    },
+    "helperSha256": "8c592d66c311907f5ae11fe227165a46688104264e16d60cebba125048dfefea",
+    "rawEvidence": {
+      "drop-stop-inject-response.json": "a20aa53847c19db9924dee355e73fbd9bf457052156ac3321332a2a444cd0a5a",
+      "drop-stop-verify-response.json": "a20aa53847c19db9924dee355e73fbd9bf457052156ac3321332a2a444cd0a5a",
+      "drop-stop-result.json": "91a0a60aeb4d7acc7ca2a1e1f55eb8d75c812afd5ffd9fbfc8b2d7566f2fd724",
+      "drop-stop-stop.json": "600974a7cffcd0a4c6029c715664cb75e39ce589dac53e2f4376f29fca66d63f",
+      "corrupt-replay-inject-response.json": "1774adf5f5335a3fb4f332cbbf78a502c4ced76defe31b8c5b7464d92a2f8e0d",
+      "corrupt-replay-verify-response.json": "1774adf5f5335a3fb4f332cbbf78a502c4ced76defe31b8c5b7464d92a2f8e0d",
+      "corrupt-replay-result.json": "48a6b1869cddf0910cd6aabe532f6793b79dd458c11b31a29872b459845beaa5",
+      "corrupt-replay-stop.json": "600974a7cffcd0a4c6029c715664cb75e39ce589dac53e2f4376f29fca66d63f",
+      "restore-inject-response.json": "e75bf2d1edcf85987ca636c32c4d9136dddffa789103049915b0db974ba087df",
+      "restore-verify-response.json": "e75bf2d1edcf85987ca636c32c4d9136dddffa789103049915b0db974ba087df"
+    },
+    "interpretation": "Both deliberately broken fixtures fail at their intended oracle; not production failures. Original production Client/Adapter and plain local-only guarded Bootstrap restored exactly after stopping Play.",
+    "redaction": "Local test account name replaced in committed error strings; raw originals retained locally."
+  },
+  "cleanup": "Both native control sessions stopped; exact candidate restoration verified. Only task-created hidden Studio process closed after command-line identity check. All local files/evidence preserved; PC left on."
+}

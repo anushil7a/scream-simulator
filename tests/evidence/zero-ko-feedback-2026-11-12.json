@@ -1,0 +1,70 @@
+{
+  "date": "2026-11-12",
+  "baseCommit": "befa611616a62eb5cf11fbdf1fa66705fd827896",
+  "status": "PASSED_LOCAL_ZERO_KO_NOTICE",
+  "productionScope": "One string in awardCombatKO nominal-zero finisher branch;no amount,grant,history,quest,cap or security changes",
+  "filesSha256": {
+    "src/ServerScriptService/Bootstrap.server.luau": "0f0546289be00cbf566eec023e987a04d7122f4a2cb3d22cb3077127b3272bcb",
+    "tests/reward_credit_feedback.py": "165438d1fd9608cdd932ee68510b2dd4c97a76320f1fb1200e61d7dd2e6f956f"
+  },
+  "focused": {
+    "assertions": 45,
+    "negativeControls": 6,
+    "zeroBaseline": "befa611 actual tiny first trainer KO falsely reports repeat limiting",
+    "retainedBaseline": "b0099a0 capped claim credited10coins/0XP but displayed50coins/120XP",
+    "cases": [
+      "Actual trainer hit clamps damage to remaining1;share1/80,pool48,repeated-factor bypassed;zero payout",
+      "Actual first-player hit clamps damage to remaining1;share1/100,pool96,repeatFactor1;zero payout",
+      "Actual repeated-opponent cooldown,history and zero grant unchanged",
+      "Full4096pair history,new pair rejected with0factor;neutral notice",
+      "Positive first trainer/player payouts unchanged",
+      "Prior capped-positive nominal,boost-expiry,claim,Keep Playing and baseline helper assertions retained"
+    ],
+    "retainedPvpAssertions": 19
+  },
+  "independentReview": "Astra verified exact single-string production diff and reverse-base blobs;45 assertions/6 controls;separate first-PvP and full-history old-text probes;production compile. No logic/security blocker.",
+  "aggregate": {
+    "command": "python tests/verify_local.py --build --report build/zero-ko-feedback-final-2026-11-12.json",
+    "status": "PASSED",
+    "suiteCounts": {
+      "pureSynthetic": 25,
+      "mocked": 115,
+      "productionCompiles": 63,
+      "buildsRequested": true
+    },
+    "commands": 225,
+    "elapsedSeconds": 37.043469399999594,
+    "scopedInputs": 311,
+    "beforeAfterUnchanged": true,
+    "postRunHashesRechecked": true,
+    "localReportSha256": "0d5c5c99cb8d8a70e052374961638177f3f37264c0dd72334599e1a860ffbafb",
+    "localLogSha256": "1c66d996b41884166f6920dc2045ce502ed2bfd9e288701dac4bf0d4ad6dc077",
+    "logShared": false
+  },
+  "releaseGates": {
+    "questWriters": {
+      "status": "BLOCKED_UNVERIFIED_WRITER_FLEET",
+      "reason": "Older quest catalogs erase additive progress/claims during profile acquisition, while retaining rewards.",
+      "requiredEvidence": [
+        "Complete serving-writer and rollback inventory, matched to exact source commits.",
+        "Offline preservation checks for every declared writer; incompatible writers excluded.",
+        "Verified cutover/drain with no old-server joins remaining; publishing or scheduling a restart is not proof.",
+        "Reviewed rollback floor; saved-version history is not an automatic reward-replay undo."
+      ],
+      "offlineCommand": "python tools/quest_writer_preflight.py --inventory <reviewed-local-inventory.json>",
+      "limits": "Local declarations/tests cannot verify Roblox fleet state, native persistence, or publication permission."
+    },
+    "prelaunchTestTools": {
+      "status": "BLOCKED",
+      "reason": "Temporary all-tester tools enabled; disable and review before public release",
+      "sourceSha256": "c8421f48023de5ff8788ecd243d44caca32b72fd2f76e644f470b19c156eaa62",
+      "limits": "Draft/disposable builds remain allowed. This does not prevent manual publication or verify any serving fleet."
+    }
+  },
+  "limits": [
+    "Actual selected hit branches/helpers/modules with mocked players,geometry-admission boundary,health/state/commerce services;not full dispatcher or network.",
+    "No reward balance or data-integrity defect asserted;only incorrect causal wording.",
+    "No native UI/physics,real microphone,multiplayer,persistence,purchase,Studio login or Roblox publication.",
+    "Local fingerprints are before/after snapshots,not CI or transient-change proof."
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "date": "2026-11-12",
+  "baseCommit": "76ded0bc082532859e551c1f9d3ed17ca67be917",
+  "status": "PASSED_LOCAL_CONDITIONAL_STARTUP_OWNERSHIP",
+  "filesSha256": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "ee9a112bfaac541c24e5d71fe6acb931013f6113675f226aa52ffb2518c69d44",
+    "tests/client_startup_lifecycle.py": "27cee1d44fd2d0c9b5d6881ac5f60527b9192946c90e2a2c3645c4ac95dc946a",
+    "tests/client_startup_builder.py": "d5d832f9c998f93edc11ea6df55aa7aa27a7ffbf8f5b3602f28699eb992111e9",
+    "tests/build_studio_harness.py": "045bea4528615f5b901124c398bbad96f4c7f8c873f4bcdd14b82331ef44e2de",
+    "tests/build_ui_preview.py": "c1ee5664e294e9e41d9b8a8c58a506052f147da32e770c9c57c8349d6aab7c11",
+    "tests/build_onboarding_review.py": "c0d55f10d1f6513dc43e140dc27252b9b77a463763b3f10e2df22c95881b3853",
+    "tests/beam_screen_integration.py": "5a72fc990c9a580c6ead6a92f951599be10f0da4a57f7d4b09bdd26b2a6b6775",
+    "tests/voice_notice_lifecycle.py": "4eea3e815a7800375cbd33bf570d275447554656b48be24c8824c5c1336313ed",
+    "tests/client_connections.py": "e17b65ca1fb2f92aadcb5599a137942e6d9011026c9178e28e1bcfa87ec01f79",
+    "tests/third_person.py": "e4453860feb45a77ce3a69ebe5fb7c8a895d1c9c0174fd995ae53614de774679",
+    "tests/shop_modal_lifecycle.py": "6a49f7e6ddc039f52476213cf97ea3b2eb4e89df4550a62cfd54ce2bb8c3aedd",
+    "tests/panel_action_lifecycle.py": "52c24a4d154baf9cc31df936c63d5e58c0f628a908b934436d292949eb0d83ec",
+    "tests/menu_cleanup.py": "ccedb9d68acb0d768629233aaae2eb427ea6b0b3c162cb1e8e1bea89229da157",
+    "tests/microphone_notice.py": "129b08286fb244287c7ba79c1552463f133b554cba99b31440c15bd5ec7fb260",
+    "tests/verify_local.py": "c37936427d81a895d6182439d2ff444ade97b5cd9c72fe7e36fd88c73e4826db"
+  },
+  "focused": {
+    "startupBoundaries": {
+      "legacy": 36,
+      "automatic": 44,
+      "identitiesPinned": true
+    },
+    "boundaryScenarios": 320,
+    "additionalOwnershipScenarios": 18,
+    "negativeControls": 12,
+    "historicalBaseline": "76ded0b: 240 conditional continuation/error cases;80 valid in-DataModel reparent controls",
+    "builderContracts": 17,
+    "builderRejections": {
+      "dependencyMutations": 8,
+      "changedOnboardingHook": 1
+    },
+    "retained": {
+      "beamIntegration": [
+        91,
+        18
+      ],
+      "voiceNotices": [
+        1217,
+        2
+      ],
+      "modal": [
+        120,
+        12
+      ],
+      "panel": [
+        38,
+        6
+      ],
+      "camera": [
+        6,
+        2
+      ],
+      "menu": 5,
+      "connections": 6,
+      "microphoneNotice": [
+        402,
+        4,
+        3
+      ]
+    }
+  },
+  "independentReview": "Astra exact source/builder diff and whole-script rerun320+18/12;historical320;builder17 and extra guard mutant;generated correspondence/compilation. Missing effect-use marker, duplicate Shop cleanup and touch-test coverage corrected before final integration.",
+  "aggregate": {
+    "command": "python tests/verify_local.py --build --report build/client-startup-final-3-2026-11-12.json",
+    "status": "PASSED",
+    "suiteCounts": {
+      "pureSynthetic": 25,
+      "mocked": 115,
+      "productionCompiles": 63,
+      "buildsRequested": true
+    },
+    "commands": 225,
+    "elapsedSeconds": 37.0839176999998,
+    "scopedInputs": 311,
+    "beforeAfterUnchanged": true,
+    "postRunHashesRechecked": true,
+    "localReportSha256": "a7b0b8960c751b717d953902b424f2cb318b3f4a39d31e28228cbd85bcdaa375",
+    "localLogSha256": "873a46426d814ffab983c70406886fc3bade33f9460c642be5781fe11240495f",
+    "logShared": false
+  },
+  "releaseGates": {
+    "questWriters": {
+      "status": "BLOCKED_UNVERIFIED_WRITER_FLEET",
+      "reason": "Older quest catalogs erase additive progress/claims during profile acquisition, while retaining rewards.",
+      "requiredEvidence": [
+        "Complete serving-writer and rollback inventory, matched to exact source commits.",
+        "Offline preservation checks for every declared writer; incompatible writers excluded.",
+        "Verified cutover/drain with no old-server joins remaining; publishing or scheduling a restart is not proof.",
+        "Reviewed rollback floor; saved-version history is not an automatic reward-replay undo."
+      ],
+      "offlineCommand": "python tools/quest_writer_preflight.py --inventory <reviewed-local-inventory.json>",
+      "limits": "Local declarations/tests cannot verify Roblox fleet state, native persistence, or publication permission."
+    },
+    "prelaunchTestTools": {
+      "status": "BLOCKED",
+      "reason": "Temporary all-tester tools enabled; disable and review before public release",
+      "sourceSha256": "c8421f48023de5ff8788ecd243d44caca32b72fd2f76e644f470b19c156eaa62",
+      "limits": "Draft/disposable builds remain allowed. This does not prevent manual publication or verify any serving fleet."
+    }
+  },
+  "limits": [
+    "Actual whole Client source uses mocked engine, dependencies and constructor scheduling;actual Controls cancellation is included but normal frame loop is not simulated.",
+    "Conditional resumed startup only;no terminated-thread, arbitrary init-exception, native Deferred/unparent/GC guarantee.",
+    "Ancestry is checked at startup checkpoints, not every runtime callback;detach and reattach between checks is not detected.",
+    "Differing camera/touch replacement values protected;same-valued overlapping clients/shared pools after first use remain outside scope.",
+    "Standalone bundles resolve dependencies synchronously;real in-DataModel LocalScript remains required.",
+    "No native launch, login, live DataStore, Roblox publication, gameplay tuning or new dependency.",
+    "Local snapshots do not prove absence of transient changes;local logs are unredacted and unshared;no CI result implied."
+  ]
+}

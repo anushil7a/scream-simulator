@@ -1,0 +1,78 @@
+{
+  "base": "899b0b8521bf31005658b3806f4875a572a41176",
+  "status": "unpublished microphone-policy notice; no native execution",
+  "sourceHashDefinition": "exact verified working-tree bytes; no cross-EOL checkout guarantee",
+  "sourceSha256": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "78f6abcaf6b31767a483a7d674f264c1beb30b538d7b1f4e0093d3112600a5bb",
+    "tests/microphone_notice.py": "f6869a213e963921549615dfab248b5de4af276f6907831566b2e58ae6b40559",
+    "tests/build_onboarding_review.py": "89bd4d183e4d8a7982dc501baa8a5f77992ae8956a6dca10ab3fe17b1e7c3211",
+    "tests/verify_local.py": "648a9c353a6b562c63d94f4f2c1271e3f61c8da1111bb7663073999fafc8e970"
+  },
+  "scope": "Only two setup strings and one Settings info card changed in production. No microphone routing, attack state, recording/detection/enforcement, save, game rating or map change.",
+  "baseline": "Prior899b0b8 actual setup fails Setup profanity warning missing.",
+  "focused": {
+    "noticeAssertions": 402,
+    "sourceContracts": 3,
+    "negativeControls": 4,
+    "voiceToggleAssertions": 29,
+    "voiceToggleControls": 2,
+    "microphoneLifecycleAssertions": 111,
+    "beamAudioAssertions": 2629,
+    "beamAudioControls": 9
+  },
+  "fullSuites": {
+    "pureSynthetic": 25,
+    "mocked": 79,
+    "productionCompiles": 59,
+    "builds": "all candidate/disposable builders passed"
+  },
+  "review": "Independent source/policy review found no blocker and independently reran402 notice assertions,3contracts,4controls. Test-only setup TextFits hardening reviewed separately by implementing agent; built/compiled, not executed.",
+  "nativeFixture": {
+    "executed": false,
+    "artifacts": {
+      "OnboardingReview.rbxl": "1d73a7647ee52afee20ff254f196dbbfac42d3d38eb88c1273a9056edbb265be",
+      "OnboardingReview.client.luau": "780d281f3ea1b679082be5d3d224018d4056586feebce57e9fad284fbb2c74ba"
+    },
+    "plannedViews": [
+      [
+        320,
+        568,
+        true
+      ],
+      [
+        390,
+        844,
+        true
+      ],
+      [
+        844,
+        390,
+        true
+      ],
+      [
+        1280,
+        720,
+        false
+      ]
+    ],
+    "claims": "Allocated TextLabel.TextFits assertions when executed, not proof of viewport scroll visibility or human accessibility."
+  },
+  "sourcesChecked": "2026-11-11",
+  "policySources": [
+    "https://about.roblox.com/community-standards",
+    "https://en.help.roblox.com/hc/en-us/articles/15869919570708-Age-Restricted-Content-on-Roblox",
+    "https://en.help.roblox.com/hc/en-us/articles/4405807645972-Voice-FAQ",
+    "https://en.help.roblox.com/hc/en-us/articles/34506487801364-How-do-I-turn-on-Voice-Chat",
+    "https://create.roblox.com/docs/production/promotion/content-ratings"
+  ],
+  "limitations": [
+    "City Preview rating/strong-language setting unverified; copy is rating-neutral",
+    "Avoid profanity is advice, not an invented automatic ban guarantee or newly enforced experience rule",
+    "Text metrics in tests are synthetic; native font fit/readability, physical input and assistive access untested",
+    "No real microphone/moderation, live-save or publication validation",
+    "Map work paused pending owner approval; no map files changed"
+  ],
+  "cleanup": "No programs/tabs opened; earlier minimized app-picker access limitation remains",
+  "publication": false,
+  "liveDataStoreUse": false
+}

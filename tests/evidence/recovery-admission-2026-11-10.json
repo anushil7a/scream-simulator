@@ -1,0 +1,92 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "10489aa486f32e1d18131725c46d34066151c3ed",
+  "reproduction": {
+    "admission": {
+      "base": "10489aa486f32e1d18131725c46d34066151c3ed",
+      "exitCode": 1,
+      "assertion": "Terminal admission token forgotten after outage"
+    },
+    "notice": {
+      "base": "10489aa486f32e1d18131725c46d34066151c3ed",
+      "exitCode": 1,
+      "assertion": "Recovery warning masks autosave failure"
+    }
+  },
+  "behavior": [
+    "After terminal recovery ends, retain only exact terminal/attempt tokens and confirmed checkpoint across acquisition errors",
+    "Later rejoin retries acquisition, not the retired final snapshot",
+    "Same exact acquired token is acknowledged without restamping its lease after lost responses",
+    "Newer active same-job/foreign lease cannot be replaced, extended or overwritten",
+    "Temporary/stale profile handles cannot save; no new saved-progress claim",
+    "Autosave delay and rollback warning coexist; success clears delay; ownership loss retains temporary status"
+  ],
+  "focused": {
+    "protocol": {
+      "command": "python tests/profile_recovery.py --negative-controls",
+      "stdout": "PASS 83 bounded recovery/ownership/replay checks; cloned simulated persistence only\nPASS negative control caught: Old recovery overwrote or stole newer owner save\nPASS negative control caught: Old same-acquisition revision could overwrite newer save\nPASS negative control caught: Old handle overwrote newer acquisition\nPASS negative control caught: Recovery continued issuing requests past deadline\nPASS negative control caught: Lost release response was not reconciled idempotently\nPASS negative control caught: Same-job distinct acquisition stole active lease\nPASS negative control caught: Retained snapshot recovery failed or used mutated caller data\nPASS negative control caught: Terminal admission token forgotten after outage\nPASS negative control caught: Terminal admission stole newer same-job acquisition\nPASS negative control caught: Old recovery overwrote or stole newer owner save\nPASS negative control caught: Ambiguous acquisition identity was lost or lease extended\n"
+    },
+    "notice": {
+      "command": "python tests/recovery_notice.py --negative-controls",
+      "stdout": "PASS 16 actual recovery notice formatter checks\nPASS negative control caught: Recovery warning masks autosave failure\nPASS negative control caught: Compact recovery warning masks autosave failure\nPASS 4 recovery notice source wiring contracts; not remote/native execution\n"
+    },
+    "progress": {
+      "command": "python tests/progress_label.py",
+      "stdout": "PASS 13 actual progress label checks with mocked state\n"
+    }
+  },
+  "checks": {
+    "protocol": 83,
+    "protocolNegativeControls": 11,
+    "noticeAndAutosaveTransitions": 16,
+    "noticeNegativeControls": 2,
+    "sourceContracts": 4,
+    "progressLabels": 13
+  },
+  "full": {
+    "command": "python tests/verify_local.py --build",
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 55,
+    "productionCompiles": 56,
+    "allBuildsPassed": true
+  },
+  "review": {
+    "kind": "Separate implementing-agent self-review; no external review claimed",
+    "result": "No blocking issue found",
+    "examined": [
+      "exact-token admission and immutable checkpoint fallback",
+      "no retained final-snapshot replay after recovery exhaustion",
+      "foreign/same-job ownership and lease expiry",
+      "callback reinvocation and lost-response idempotency",
+      "cache lifecycle, serialized duplicate joins and stale handles",
+      "autosave failure/recovery/ownership status priority"
+    ]
+  },
+  "native": {
+    "executed": false,
+    "uiFixtureCasesBuilt": 36,
+    "note": "Prior 33 native UI results belong to 10489aa, not this changed fixture."
+  },
+  "limitations": [
+    "Cloned in-memory stores, controlled time/coroutines and Luau CLI only; no real DataStore/network/Roblox server timing",
+    "Notice helper executes actual autosave with simulated save/state delivery, not native remotes",
+    "No new native layout/device/microphone/multiplayer validation",
+    "Admission record is memory-only, one per unresolved user; no durable recovery across process loss",
+    "Recovery deadline bounds starting new requests, not in-flight calls or earlier lock waits; acquisition has separate attempts",
+    "Different servers still obey existing active-lease/expiry rules; incompatible old writers must be drained before release",
+    "No live DataStore access, publication or audio configuration"
+  ],
+  "normalizedSourceSHA256": {
+    "src/ServerScriptService/Profiles.luau": "73e47514e4a9927c2a816fbd7f6347131564c760f629582deea6eab49b926d0d",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "c1f67793c9c3b8bb81eed6f602657da567c358e43a03e978a8e245c87757260a",
+    "tests/profile_recovery_policy.py": "bd2fce8c93be7da71c6deeb47eaccc9accbdaab6d0471640c4a9f44ef9bf9468",
+    "tests/recovery_notice.py": "61073698763a04ffe18481cdcc7438d3fbbf694be0a5c94726c96072429343b6",
+    "tests/progress_label.py": "1fca7df058ea977985037414c97ac328bfd08778964daa22d9ddca7d1acd8055",
+    "tests/build_ui_preview.py": "bf0dcbb7c7f8cf9a22b4e98d3d67b893311f7accb8410d46bb61f71065ac2851"
+  },
+  "buildSHA256": {
+    "build/AutomaticVoiceCandidate.rbxl": "042bb9245a325be2bfe0c2c2b7db421bf447dac0c43f7ba289003ff57aab01a6",
+    "build/ShopReviewVerified.rbxl": "1329cb06d748b1e8628bb9e8eea6989c93d322ba19b2147d6ef460404cdda958",
+    "build/ShopReview.client.luau": "c307a5ac82709a3f3e67028060083600eaf980fcec956707290c32a3665d0286"
+  }
+}

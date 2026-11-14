@@ -1,0 +1,305 @@
+{
+  "recordedAtUtc": "2026-11-11T23:32:34.144790+00:00",
+  "testedCommit": "6b859a3c0fac1771cab9b08ba660a9a5b6d3e67a",
+  "scope": "Native Studio actual Client UI, synthetic microphone/remotes/focus/eligibility/server state. Evidence-only follow-up; no source or fixture changes.",
+  "hashSemantics": "Exact working-tree bytes. Full raw Studio log remains local; only relevant test markers copied into ignored build log.",
+  "native": {
+    "result": {
+      "checks": 161,
+      "scope": "Actual client UI with synthetic callbacks, mic power, focus and server state; no real transport/audio/eligibility service",
+      "passed": true,
+      "synthetic": true
+    },
+    "scriptedRows": 31,
+    "manualObservationRows": 1,
+    "chunkLines": 206,
+    "details": [
+      {
+        "stage": "setup",
+        "viewport": "320, 568",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "setup",
+        "viewport": "390, 844",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "setup",
+        "viewport": "844, 390",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "setup",
+        "viewport": "1280, 720",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "eligibility-checking",
+        "viewport": "390, 844",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "first-ready",
+        "viewport": "390, 844",
+        "armed": true,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "on",
+        "viewport": "320, 568",
+        "armed": true,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "320, 568",
+        "armed": true,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "off",
+        "viewport": "320, 568",
+        "armed": false,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "settings",
+        "viewport": "320, 568",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "320, 568",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "on",
+        "viewport": "390, 844",
+        "armed": true,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "390, 844",
+        "armed": true,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "off",
+        "viewport": "390, 844",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "settings",
+        "viewport": "390, 844",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "390, 844",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "on",
+        "viewport": "844, 390",
+        "armed": true,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "844, 390",
+        "armed": true,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "off",
+        "viewport": "844, 390",
+        "armed": false,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "settings",
+        "viewport": "844, 390",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "844, 390",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "on",
+        "viewport": "1280, 720",
+        "armed": true,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "synthetic-active",
+        "viewport": "1280, 720",
+        "armed": true,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "off",
+        "viewport": "1280, 720",
+        "armed": false,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "settings",
+        "viewport": "1280, 720",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "settings-audio-cycle",
+        "viewport": "1280, 720",
+        "armed": false,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "eligibility-denied",
+        "viewport": "1280, 720",
+        "armed": false,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "manual-resume-denied",
+        "viewport": "1280, 720",
+        "armed": false,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "eligibility-unavailable",
+        "viewport": "1280, 720",
+        "armed": false,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "manual-resume-unavailable",
+        "viewport": "1280, 720",
+        "armed": false,
+        "clipped": [],
+        "reachable": true
+      },
+      {
+        "stage": "manual-ready",
+        "viewport": "390, 844",
+        "armed": true,
+        "clipped": [],
+        "reachable": false
+      },
+      {
+        "stage": "manual-click",
+        "viewport": "1280, 720",
+        "armed": false,
+        "clipped": [],
+        "reachable": true
+      }
+    ],
+    "beamReadouts": [
+      {
+        "viewport": "390, 844",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      },
+      {
+        "viewport": "844, 390",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      },
+      {
+        "viewport": "1280, 720",
+        "found": 2,
+        "cooldown": 5,
+        "clipped": []
+      }
+    ],
+    "manualDesktopInput": "CUA mouse turned BEAMS ON to OFF with expected talk-freely/voice-unchanged text; mouse opened SHOP and X closed it; keyboard B reopened and closed the modal. Screenshots inspected. This is desktop automation, not human touch or a native deferred-event test.",
+    "warning": "Two ContentId rbxassetid://203785492 asset-type mismatch warnings. ID absent from current src, generated fixture and artifact literal scan; responsible object/origin not established. No audio success claim."
+  },
+  "independentReview": "Separate reviewer reconstructed all32 rows/206 chunk lines, verified161 result/three readouts/no allocated-text clipping and artifact/source hashes. No warranted source defect; native input provenance comes from CUA observations rather than log alone.",
+  "previousFullCheckpoint": {
+    "commit": "6b859a3c0fac1771cab9b08ba660a9a5b6d3e67a",
+    "pureSyntheticSuites": 25,
+    "mockedSuites": 98,
+    "productionCompiles": 60,
+    "allBuilds": true,
+    "rerunDuringEvidenceFollowup": false
+  },
+  "cleanup": {
+    "studioStoppedAndClosedWithoutSaving": true,
+    "preexistingAppsPreserved": true,
+    "launchCreatedMinimizedPickerRemains": true,
+    "pickerLimitation": "Supported binding reports minimized window and suggests restore APIs that are not exposed. No guessed activation, process kill or repeated launches."
+  },
+  "limits": [
+    "No real microphone, voice transport, Roblox eligibility API, persistence, purchase or multiplayer validation",
+    "Native TextFits is allocated-label fit, not physical phone/touch reachability; synthetic frames can extend beyond the Studio viewport",
+    "No native proof of deferred-event reachability or cache/concurrency lifetime guarantees",
+    "No acoustic loudness, permissions or feedback-safety claim; four new cue IDs remain empty",
+    "Map paused, writer-fleet release gate unresolved, no publication or configuration",
+    "Unattributed tests/tmpgk_bi6e8.luau preserved"
+  ],
+  "sources": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "dbdc4e808d384487c3432daeea7e511d1fd4b650287af3b85c3720415d209b50",
+    "src/StarterPlayer/StarterPlayerScripts/Microphone.luau": "532f742ac4a7862f90e38e293f695179eecf5d528c557b288957ab014e23e9b1",
+    "src/StarterPlayer/StarterPlayerScripts/ShopUI.luau": "dac405a47942ab616910a32583b12ed6c894cbabb4a648ca00ffecd7e8dff432",
+    "tests/build_onboarding_review.py": "93a4ef76c3ba814fbf9ba1843e47704066e447637dd9acdc063b2ed56560b4de",
+    "tests/build_ui_preview.py": "2ae7ada752606e797b9808c2c0e6806b46b16ac9cfb79c1c779d0129cddea1ec",
+    "tests/build_studio_harness.py": "15ae7d9d83b94f7bf8101bd7696ad6cdda207e2eea735e01940af40cf896639d"
+  },
+  "artifacts": {
+    "build/OnboardingReview.rbxl": "51581d7c271931620ff2a1349bcd50c76df79418285c1aeb4e11fed0996dd527",
+    "build/OnboardingReview.client.luau": "90acae35e9d33d5a4752313cdc5eedd031ff06ebf08518b3396be01c83cd7a05",
+    "build/native-current-ui-2026-11-11.log": "2bb8057da777fa1f38f6f055e82fe84650df0d40a17329bc47fcab2113adecfa",
+    "build/native-current-ui-2026-11-11.json": "c539e3072b52de1975d12122ba97fba482484e36eee91dd42fb978e888134a98",
+    "build/commerce-life-full.log": "5af7e0e78e614e8a0edc9873d2954d0ed92ade481a697e980689fe7457d7cd59"
+  },
+  "localRawStudioLogSha256": "b1d2fc3b1c82002b6600a0feab9aea385b5d77947f85c7dc407dd49a2a9fd926",
+  "ownerDirection": "Pause after completing this native evidence/review draft checkpoint. No next task or scheduled continuation."
+}

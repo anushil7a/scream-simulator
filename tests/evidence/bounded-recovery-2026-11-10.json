@@ -1,0 +1,328 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "a13abf7eefdefccf81d7a2948e891d4347b2b4cf",
+  "policy": {
+    "trigger": "Same-server rejoin after terminal failed release",
+    "extraRecoveryAttempts": 3,
+    "recoveryAttemptDeadlineSeconds": 12,
+    "recoveryBackoffSeconds": [
+      1,
+      2
+    ],
+    "fallback": "Latest authoritative stored checkpoint; confirmed cached/observed data is unsavable if ownership or storage unavailable. Unknown defaults never become writable after errors.",
+    "warning": "Loaded the last confirmed save. Recent progress may be missing. Persistent desktop/compact status for that session.",
+    "unchanged": "Initial save retry schedule and shutdown deadline; no background recovery writer"
+  },
+  "safety": [
+    "Unique acquisition token and in-memory profile handle binding",
+    "Monotonic per-acquisition save revision",
+    "Identical committed operation returns current record without restamping or releasing a newer lease",
+    "Callback reinvocation checks current ownership/revision",
+    "Retained final snapshot is detached from caller mutation",
+    "No active foreign lease takeover; fallback defaults/cached snapshots are unsavable"
+  ],
+  "focused": {
+    "command": "python tests/profile_recovery.py --negative-controls",
+    "checks": 53,
+    "negativeControls": 7,
+    "output": "PASS 53 bounded recovery/ownership/replay checks; cloned simulated persistence only\nPASS negative control caught: Old recovery overwrote or stole newer owner save\nPASS negative control caught: Old same-acquisition revision could overwrite newer save\nPASS negative control caught: Old handle overwrote newer acquisition\nPASS negative control caught: Recovery continued issuing requests past deadline\nPASS negative control caught: Lost release response was not reconciled idempotently\nPASS negative control caught: Same-job distinct acquisition stole active lease\nPASS negative control caught: Retained snapshot recovery failed or used mutated caller data\n"
+  },
+  "full": {
+    "command": "python tests/verify_local.py --build",
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 55,
+    "productionCompiles": 56,
+    "allBuildsPassed": true,
+    "noticeFormatterChecks": 7,
+    "progressLabelChecks": 11,
+    "noticeSourceContracts": 4
+  },
+  "nativeUI": {
+    "artifact": "RecoveryUIReview.rbxl (byte-identical copy of ShopReviewVerified.rbxl)",
+    "log": "0.747.0.7471481_20261110T210530Z_Studio_85E24_last.log",
+    "cases": [
+      {
+        "tab": "Shop",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Screams",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Quests",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Style",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Map",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "Settings",
+        "horizontalOverflow": [],
+        "viewport": "390, 844",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "366, 620"
+      },
+      {
+        "tab": "SCREAMS: OFF",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": "SCREAMS: OFF\nTap to turn on",
+        "size": "144, 44"
+      },
+      {
+        "tab": "SCREAMS: ON",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": "SCREAMS: ON\nTap to turn off",
+        "size": "144, 44"
+      },
+      {
+        "tab": "Temporary recovered save",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": "UNSAVED \u00b7 progress may be missing",
+        "size": "218, 19"
+      },
+      {
+        "tab": "Recovered save",
+        "viewport": "390, 844",
+        "clipped": [],
+        "text": "RECOVERED \u00b7 progress may be missing",
+        "size": "218, 19"
+      },
+      {
+        "tab": "Shop",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Screams",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Quests",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Style",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Map",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "Settings",
+        "horizontalOverflow": [],
+        "viewport": "844, 390",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 314"
+      },
+      {
+        "tab": "SCREAMS: OFF",
+        "viewport": "844, 390",
+        "clipped": [],
+        "text": "SCREAMS: OFF\nTap to turn on",
+        "size": "144, 44"
+      },
+      {
+        "tab": "SCREAMS: ON",
+        "viewport": "844, 390",
+        "clipped": [],
+        "text": "SCREAMS: ON\nTap to turn off",
+        "size": "144, 44"
+      },
+      {
+        "tab": "Temporary recovered save",
+        "viewport": "844, 390",
+        "clipped": [],
+        "text": "TEMPORARY \u00b7 recovered save\nRecent progress may be missing",
+        "size": "250, 28"
+      },
+      {
+        "tab": "Recovered save",
+        "viewport": "844, 390",
+        "clipped": [],
+        "text": "Recovered save\nRecent progress may be missing",
+        "size": "250, 28"
+      },
+      {
+        "tab": "Shop",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Screams",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Quests",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Style",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Map",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "Settings",
+        "horizontalOverflow": [],
+        "viewport": "1280, 720",
+        "clipped": [],
+        "undersized": [],
+        "menuSize": "720, 620"
+      },
+      {
+        "tab": "SCREAMS: OFF",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "text": "SCREAMS: OFF\n[E] to turn on",
+        "size": "144, 44"
+      },
+      {
+        "tab": "SCREAMS: ON",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "text": "SCREAMS: ON\n[E] to turn off",
+        "size": "144, 44"
+      },
+      {
+        "tab": "Temporary recovered save",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "text": "TEMPORARY \u00b7 recovered save\nRecent progress may be missing",
+        "size": "250, 28"
+      },
+      {
+        "tab": "Recovered save",
+        "viewport": "1280, 720",
+        "clipped": [],
+        "text": "Recovered save\nRecent progress may be missing",
+        "size": "250, 28"
+      },
+      {
+        "tab": "Conversation",
+        "menuSize": "366, 340",
+        "clipped": []
+      },
+      {
+        "tab": "Mic setup",
+        "menuSize": "366, 320",
+        "clipped": []
+      },
+      {
+        "tab": "Long notification",
+        "clipped": false,
+        "size": "358, 52"
+      }
+    ],
+    "passed": true,
+    "scope": "Actual client UI with mocked profiles/remotes; no persistence services or real microphone"
+  },
+  "selfReview": {
+    "reviewer": "Implementing agent in a separate post-implementation review; no external review claimed",
+    "result": "No blocking issue found",
+    "corrections": [
+      "Keep callback-observed confirmed checkpoint after acquisition response errors",
+      "Show persistent recovery warning on compact/mobile HUD"
+    ],
+    "examined": [
+      "Lease expiry and exact-token takeover",
+      "Lost release/autosave/acquisition responses",
+      "Newer same-session revision and new-owner writes",
+      "Callback replay/reinvocation after contention",
+      "Queued/concurrent loads and stale profile handles",
+      "Developer baselines, shutdown tracking and temporary-data write denial",
+      "Warning propagation and rendered text fit"
+    ]
+  },
+  "limitations": [
+    "Attempt deadline does not cancel in-flight storage requests or bound waits behind existing locks",
+    "Pending snapshots are memory-only until rejoin/server exit; no durable journal",
+    "Failed acquisition responses can leave an unconfirmed lease until expiry; fallback stays read-only",
+    "Persistence uses cloned in-memory records, controlled time and coroutines, not real Roblox concurrency/throttling/network/shutdown",
+    "UI-only Studio test does not validate native persistence, phone hardware or multiplayer",
+    "No live DataStores, game publication or audio configuration; isolated real-store test and mixed-version drain remain release gates"
+  ],
+  "reference": "https://create.roblox.com/docs/reference/engine/classes/GlobalDataStore",
+  "sha256": {
+    "src/ServerScriptService/Profiles.luau": "849accb98435ed5928e3caa3e6e2a2e79c878693dc581305c1508f431342ca8f",
+    "src/ReplicatedStorage/Shared/ProfileLease.luau": "19fdfeeafedb584b2eec830a825758c6d515cda573b20a9e0dd928e493893d9f",
+    "src/ServerScriptService/Bootstrap.server.luau": "5d842c5e028c5fc1db93fa9a601b7c08354927b7f8eb7b46461fdcb28d5af0d3",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "a84974edc4e6411f392b9bb67f47d1d859f5406e6e8a2ec7f2a52d3b1a4102d2",
+    "tests/profile_recovery_policy.py": "8e41dadc5d68e47282add23a8ff9e4d8303ace72e0e917c977f1fa2430ffb6da",
+    "tests/recovery_notice.py": "c55e6216d7a1fb8b80522bf17a31b8985b385d78c39415c86cbefe5da298cb27",
+    "build/RecoveryUIReview.rbxl": "4ffc21a3f5d5600a86089ba4e8710e4d2e9dc8c2595d46bf4dbd19c46be58621",
+    "build/ShopReview.client.luau": "dbca13b08b2c0b2327b10cee6426c0858b4592a2ea7479e3f8daea0e647e8162",
+    "build/AutomaticVoiceCandidate.rbxl": "ff789c388a594b44d224238c14d2b07a601466b9fb0e78038267fb0fcf37e6e4"
+  }
+}

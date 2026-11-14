@@ -1,0 +1,35 @@
+{
+  "checked_at_utc": "2026-11-11T16:38:18.433519+00:00",
+  "base_commit": "078dbb1ddac9e4e07a05d3c643a5994334fc7e96",
+  "source_sha256": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "48145542f418e7cccd680fa76b6f988f429fc7d9fa65c1c27eee30663e7764ae",
+    "tests/dodge_effect.py": "8560254abcb9af02e76438d5f97a816ce41fb8c0e4dc449937705e11f24b8177"
+  },
+  "production_change": "single Client Dodge line removes cosmetic Part/tween, preserves cue/return",
+  "checks": {
+    "pure_suites": 25,
+    "mocked_suites": 67,
+    "production_compiles": 57,
+    "builds": "all passed",
+    "behavioral_assertions": 127,
+    "negative_controls": 4,
+    "opt_in_protected_source_equalities": 25,
+    "roll_cleanup": 10,
+    "animation_lifecycle": [
+      32,
+      14
+    ],
+    "gameplay_audio": 26,
+    "audio_source_hooks": 6,
+    "pooled_effect_cleanup": 9
+  },
+  "independent_review": "clear; final127 behavior/4 controls/25 opt-in scope checks independently passed",
+  "native_executed": false,
+  "audio_playback_verified": false,
+  "cue_asset_configured": false,
+  "live_datastore": false,
+  "published": false,
+  "map_changed": false,
+  "apps_opened_this_batch": false,
+  "existing_cleanup_limit": "previous minimized Pick an app dialog remains inaccessible to supported restore/close controls; Studio closed"
+}

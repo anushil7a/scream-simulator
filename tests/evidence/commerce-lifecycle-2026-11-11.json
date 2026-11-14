@@ -1,0 +1,54 @@
+{
+  "recordedAtUtc": "2026-11-11T23:13:34.545564+00:00",
+  "baseCommit": "03efe2857dbe177778d30fa0d84e636538a84d72",
+  "hashSemantics": "Exact working-tree bytes; candidate normalized-source/raw project/reference/binary hashes separately verified",
+  "checks": {
+    "lifecycleAssertions": 60,
+    "negativeControls": 12,
+    "baseline": "Actual03efe28 Commerce reproduces private cache/changed resurrection and100 invalid waiter polls with only owner write begun",
+    "retainedCommerceAssertions": 46,
+    "retainedCommerceControls": 5,
+    "independentReview": "Separate test author reviewed production; source author independently reviewed/reran final60/12 and both baselines; main reviewed original Busy semantics and full checkpoint. No blocker.",
+    "aggregate": {
+      "pureSynthetic": 25,
+      "mockedSuites": 98,
+      "productionCompiles": 60,
+      "allBuilds": true,
+      "native": false
+    },
+    "candidate": "All60 sources, project, referenced files and binary verified"
+  },
+  "commands": [
+    "python tests/commerce_lifecycle.py --negative-controls",
+    "python tests/commerce_lifecycle.py --baseline",
+    "python tests/commerce.py --negative-controls",
+    "python tests/verify_local.py --build"
+  ],
+  "limits": [
+    "Actual Commerce and BoostLedger with synthetic players/store/coroutines and private read-only cache observer, not native lifetime/GC/live persistence",
+    "Bootstrap already drops departed state notices; no delivered notice, economic corruption or native memory incident established",
+    "Already-started write calls/retries/receipt acknowledgement unchanged; hung owner may retain arguments and lock indefinitely",
+    "Invalid waiter exits on next existing polling resume, not native cancellation",
+    "No apps/maps/live APIs/stores/purchases/configuration/publication; unattributed temporary file preserved",
+    "Ordinary unsavable play unchanged; mixed-writer fleet release gate unresolved"
+  ],
+  "sources": {
+    "src/ServerScriptService/Commerce.luau": "ea01b7a359915eb4dbab98eada8570b6d15d2e550d1975fbb18d27e6595f0679",
+    "src/ReplicatedStorage/Shared/BoostLedger.luau": "701a5e1d3600723b73768c20d8c75d66f3a62b55d235bbf43d93a37dc6da08c0",
+    "src/ServerScriptService/Bootstrap.server.luau": "ad2447053bba5b14aa888e7e9f0e2bf6e07022e41c36e8065a8cdc15830a54c2",
+    "tests/commerce_lifecycle.py": "dbf71c8973ee32e88d64c76de23f759526db200bc5ae36c1a34612adbe578d68",
+    "tests/commerce.py": "3ea0a0e294762c2ee3ef529e5b8e7f58a54012dfd8c47708cfa109c8a24a04fc",
+    "tests/verify_local.py": "3c336e9c543ca1cd286b067725330bed730a9692b6eee26c2ff66bdfb58ef2fc",
+    "docs/COMMERCE_LIFECYCLE_REVIEW.md": "b0b91231605a62884e3a32a4c4b2c59d7a6f322db967cd35caf0e9c9d9e715e7",
+    "docs/ROADMAP.md": "980f17fd708b4634509ca72542a77c2a2db82cab3e82fc80166ee75761116eea",
+    "docs/PLAYTEST_BACKLOG.md": "e414cc62eef239aee1deffd82d1e9d7158c3e8a7d3af005a4298c6f7980fd218"
+  },
+  "artifacts": {
+    "build/commerce-life-controls.log": "e6ac44afe473f28d7e7313cae47dc1d48a16950e99cd46baa567f8b71c17cc5e",
+    "build/commerce-life-baseline.log": "f49b86e9c537c7fa6aa5efda4060cdbf4e5d628c40111b53cca0f252a4a8b771",
+    "build/commerce-life-retained.log": "329f693b5e027a88da608e89f373a26dda9d914977c580a0277a15249064dcaa",
+    "build/commerce-life-full.log": "5af7e0e78e614e8a0edc9873d2954d0ed92ade481a697e980689fe7457d7cd59",
+    "build/AutomaticVoiceCandidate.rbxl": "464ec4e6ff0bf8ab034d9b0e7cce0b95f91cef0faba217699ec1da086ba19441",
+    "build/AutomaticVoiceCandidate.provenance.json": "98d95aa902ef6296cd5001770de806a9dff04632bde79d601b2ca6d91a6482b7"
+  }
+}

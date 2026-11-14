@@ -1,0 +1,67 @@
+{
+  "base": "909dcebc356f8207b4b27cee21c80c5ebe16f50c",
+  "status": "unpublished validated-stop priority correction",
+  "sourceHashDefinition": "exact verified working-tree bytes",
+  "sourceSha256": {
+    "src/ServerScriptService/Bootstrap.server.luau": "957d4ae0c74f5198cca6a35e33e962a58185db4fcfa251f2e1ff0f1b2cb7d073",
+    "src/ServerScriptService/SustainedAttackAdapter.luau": "0bba25ac45f5662516251775cb3e2c81fa42c4970a61b9e676ad82ad8e93b64d",
+    "src/ReplicatedStorage/Shared/SustainedAttack.luau": "c9e6aea123490761ffcef7527bb5a88f9f5741dc23d2744683efea1170e58de1",
+    "src/StarterPlayer/StarterPlayerScripts/SustainedControls.luau": "7b31bec11d8684b501ab218c466f04897a0c35a77b65c7b621d6d234ef3680e6",
+    "tests/voice_stop_rate_limit.py": "2a8c34bba8d149e08fc68e96ec828b489868f100f30ed77149d781df8a971b3c",
+    "tests/verify_local.py": "035ef09fa406e1a96f6685cc2d7bd9fbd71b2e781c466953e6dffafa476ec236"
+  },
+  "baseline": {
+    "scenarios": [
+      "OFF",
+      "focus loss",
+      "microphone availability loss",
+      "MicReady(false)"
+    ],
+    "quotaCount": 30,
+    "stopTime": 0.01,
+    "resolutionTimes": [
+      0.2,
+      0.4
+    ],
+    "timeoutObserved": 0.501,
+    "postStopResolutionsEach": 2,
+    "protocolDamageEach": 5,
+    "scope": "synchronous actual dispatcher/helpers/protocol/adapter/controller simulation; mocked context/scalar geometry, no full health pipeline"
+  },
+  "fixed": {
+    "postStopResolutionsEach": 0,
+    "protocolDamageEach": 0,
+    "endBroadcastsEach": 1
+  },
+  "focused": {
+    "dispatcherAssertions": 89,
+    "negativeControls": 4,
+    "sprintAssertions": 184,
+    "sprintControls": 4,
+    "voiceToggleAssertions": 29,
+    "voiceToggleControls": 2
+  },
+  "fullSuites": {
+    "pureSynthetic": 25,
+    "mocked": 80,
+    "productionCompiles": 59,
+    "builds": "all candidate/disposable builders and candidate source audit passed"
+  },
+  "independentReview": "Exact diff cleared; reviewer independently reran baseline and corrected89 assertions/all4controls, inspected extraction and expired-stop/two-session cases. No scoped blocker found.",
+  "buildArtifacts": {
+    "AutomaticVoiceCandidate.rbxl": "15839141ba8cb8cf862f40c699553f9dfc13b77ff51bc844324cfbea78e380ab",
+    "SustainedLocalPlay.rbxl": "9536ed366ce037f9318d681c19ced3454f313fa7ef3d13031310cddc5142288c",
+    "SustainedNativeFixture.rbxl": "4b3f11fd918a6281858bea773e530d8683e8a95137f3b7fb7c9e76b37ee1f5b9"
+  },
+  "nativeExecution": false,
+  "limitations": [
+    "Packet delivery is synchronous; no native RemoteEvent/network/microphone verification",
+    "Legacy Cancel is a counted equivalent; target context/scalar geometry mocked",
+    "Full health application pipeline not exercised by focused suite",
+    "Stop cannot undo damage preceding server processing or guarantee delivery of in-flight/lost packets",
+    "Map development paused; no map production files changed"
+  ],
+  "cleanup": "No apps opened; previous minimized-picker native-access limitation remains",
+  "publication": false,
+  "liveDataStoreUse": false
+}

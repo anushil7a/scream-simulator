@@ -1,0 +1,233 @@
+-- Compact runtime city; source draft and preserved original remain separate.
+local Layout=require(game:GetService("ReplicatedStorage").Shared.CompactLayout)
+local City={}
+local V=Vector3.new
+local function part(parent,name,size,position,color,collidable)
+ local p=Instance.new("Part");p.Name=name;p.Size=size;p.Position=position;p.Color=color
+ p.Material=Enum.Material.SmoothPlastic;p.Anchored=true;p.CanCollide=collidable;p.CanTouch=false;p.CanQuery=true;p.Parent=parent
+ return p
+end
+local function prompt(p,kind,text,object)
+ p:SetAttribute("QuestAction",kind)
+ local pr=Instance.new("ProximityPrompt");pr.ActionText=text;pr.ObjectText=object or p.Name;pr.KeyboardKeyCode=Enum.KeyCode.F
+ pr.MaxActivationDistance=10;pr.HoldDuration=kind=="Garden" and 1.5 or .25;pr.RequiresLineOfSight=false;pr.Parent=p
+end
+local function wayfinding(parent,name,position,text)
+ local anchor=part(parent,name,V(.2,.2,.2),position,Color3.fromRGB(255,203,99),false)
+ anchor.Transparency=1;anchor.CanQuery=false
+ -- Only the arena's meaningful PvP boundary label remains; no mic tutorial signs.
+ anchor.Size=V(.2,3,39)
+ local gui=Instance.new("SurfaceGui");gui.Face=Enum.NormalId.Left
+ gui.SizingMode=Enum.SurfaceGuiSizingMode.FixedSize;gui.CanvasSize=Vector2.new(600,100)
+ gui.LightInfluence=0;gui.MaxDistance=65;gui.AlwaysOnTop=false
+ gui.Name="Wayfinding";gui.Parent=anchor
+ local label=Instance.new("TextLabel");label.Name="Text";label.Size=UDim2.fromScale(1,1)
+ label.BackgroundColor3=Color3.fromRGB(30,48,54);label.BackgroundTransparency=1;label.TextColor3=Color3.fromRGB(255,243,214)
+ label.TextSize=36;label.TextWrapped=true;label.Font=Enum.Font.GothamBold;label.Text=text;label.Parent=gui
+end
+-- Original, static coastal-academy art. None of these pieces participate in hits,
+-- navigation, touch events or quest state. Existing solid silhouettes remain opaque.
+local function academyArt(parent,byId)
+ local art=Instance.new("Folder");art.Name="CoastalAcademyArt";art.Parent=parent
+ local ivory=Color3.fromRGB(239,224,190)
+ local slate=Color3.fromRGB(42,65,72)
+ local gold=Color3.fromRGB(244,188,75)
+ local terracotta=Color3.fromRGB(166,91,69)
+ local seam=Color3.fromRGB(197,187,159)
+ local count=0
+ local function detail(name,size,position,color,shape)
+  count+=1
+  local p=part(art,name,size,position,color,false)
+  p.CanQuery=false
+  p.CastShadow=false
+  if shape then p.Shape=shape end
+  return p
+ end
+ -- The original full solid tree crowns remain: rounded lobes dress, not replace,
+ -- their collision silhouette. All canopy additions are above walking/head height.
+ for i=0,7 do
+  local crown=byId["TreeCrown"..i];local pos=crown.Position
+  crown.Color=Color3.fromRGB(77,116,92)
+  detail("CanopyCrown"..i,V(18,12,18),V(pos.X,pos.Y+1,pos.Z),Color3.fromRGB(91,133,101),Enum.PartType.Ball)
+  detail("CanopyLight"..i,V(12,10,12),V(pos.X-4,pos.Y+4,pos.Z-2),Color3.fromRGB(120,151,109),Enum.PartType.Ball)
+  detail("CanopyShade"..i,V(13,10,13),V(pos.X+4,pos.Y,pos.Z+3),Color3.fromRGB(66,104,85),Enum.PartType.Ball)
+  local base=byId["Planter"..i].Position
+  detail("PlanterRimN"..i,V(10.5,.45,.5),V(base.X,3.1,base.Z-5),ivory)
+  detail("PlanterRimS"..i,V(10.5,.45,.5),V(base.X,3.1,base.Z+5),ivory)
+  detail("PlanterRimW"..i,V(.5,.45,9.5),V(base.X-5,3.1,base.Z),ivory)
+  detail("PlanterRimE"..i,V(.5,.45,9.5),V(base.X+5,3.1,base.Z),ivory)
+ end
+ -- Architecture is dressed within its existing footprint: deeper cornices,
+ -- recessed-looking dark windows, warm sills and facade pilasters.
+ for i=0,4 do
+  local x=-90+i*60
+  detail("MarketCornice"..i,V(44,.8,1),V(x,21,-250.8),ivory)
+  detail("MarketBase"..i,V(44,2,.35),V(x,1,-250.7),ivory)
+  for _,dx in ipairs({-20,20})do
+   detail("MarketPilaster"..i.."_"..dx,V(1.4,20,.4),V(x+dx,11,-250.6),ivory)
+  end
+  for j=0,2 do
+   local wx=x-12+j*12
+   detail("MarketSill"..i.."_"..j,V(7,.6,.8),V(wx,10.8,-250.3),ivory)
+   detail("MarketLintel"..i.."_"..j,V(7,.6,.55),V(wx,17.3,-250.4),ivory)
+   detail("MarketMullion"..i.."_"..j,V(.3,6,.4),V(wx,14,-250.5),ivory)
+  end
+  -- Awning stripes sit on its top, leaving the existing underside/headroom alone.
+  for j=0,5 do
+   detail("AwningStripe"..i.."_"..j,V(3,.035,8),V(x-15+j*6,8.52,-247),ivory)
+  end
+  detail("MarketRoofLip"..i,V(47,.5,.45),V(x,23.15,-249.1),terracotta)
+ end
+ for i=0,3 do
+  local z=-135+i*70
+  detail("OldTownCornice"..i,V(.7,1,44),V(257.8,24.5,z),ivory)
+  detail("OldTownBase"..i,V(.4,2,44),V(257.7,1,z),ivory)
+  for _,dz in ipairs({-20,20})do
+   detail("OldTownPilaster"..i.."_"..dz,V(.4,23,1.4),V(257.6,13,z+dz),ivory)
+  end
+  for j=0,2 do
+   local wz=z-12+j*12
+   detail("OldTownSill"..i.."_"..j,V(.8,.6,8),V(257.3,12.2,wz),ivory)
+   detail("OldTownLintel"..i.."_"..j,V(.6,.6,8),V(257.4,19.8,wz),ivory)
+   detail("OldTownMullion"..i.."_"..j,V(.4,7,.3),V(257.5,16,wz),ivory)
+  end
+ end
+ -- A distinctive twin-spire skyline on the existing basilica mass, never in a lane.
+ for _,x in ipairs({256,294})do
+  detail("TowerBelt"..x,V(10.6,1.5,12.6),V(x,48,-262),ivory)
+  detail("TowerCrown"..x,V(9,5,11),V(x,62.5,-262),ivory)
+  detail("TowerCap"..x,V(6,5,8),V(x,67.5,-262),terracotta)
+  detail("TowerLantern"..x,V(3,3,3),V(x,71.5,-262),gold,Enum.PartType.Ball)
+ end
+ detail("BasilicaFacadeBand",V(48,1,.4),V(275,27,-237.7),ivory)
+ -- Portal dressing follows existing gate posts/beam, retaining the 36-stud opening.
+ for _,z in ipairs({30,70})do
+  detail("ArenaPostFace"..z,V(.35,11,3.5),V(-122.2,6,z),slate)
+  detail("ArenaPostAccent"..z,V(.4,7,.6),V(-122.4,7,z),gold)
+  detail("ArenaPostCrown"..z,V(4.8,2,4.8),V(-120,15,z),ivory)
+ end
+ detail("ArenaFascia",V(.35,3,39),V(-122.2,13.5,50),slate)
+ detail("ArenaFasciaBand",V(.4,.5,39),V(-122.4,15.3,50),gold)
+ -- An overhead voice crest gives the entrance an identity without false cover.
+ for _,z in ipairs({34,66})do
+  detail("AcademySignSupport"..z,V(.7,3,1),V(-120,15.5,z),slate)
+ end
+ local academySign=detail("AcademyNameplate",V(.8,4,37),V(-120,19,50),slate)
+ detail("AcademySignTop",V(.95,.35,37.5),V(-120,21.15,50),gold)
+ detail("AcademySignBottom",V(.95,.35,37.5),V(-120,16.85,50),gold)
+ detail("AcademyCrestRim",V(.6,10,10),V(-120,26,50),gold,Enum.PartType.Cylinder)
+ for _,side in ipairs({-1,1})do
+  detail("AcademyCrestFace"..side,V(.1,8.5,8.5),V(-120+side*.36,26,50),slate,Enum.PartType.Cylinder)
+  for i,height in ipairs({2.4,4.5,6.4,4.5,2.4})do
+   detail("AcademyVoiceBar"..side.."_"..i,V(.16,height,.85),V(-120+side*.49,26,50+(i-3)*1.5),i==3 and gold or ivory)
+  end
+  local gui=Instance.new("SurfaceGui");gui.Name="AcademySign"..side
+  gui.Face=side<0 and Enum.NormalId.Left or Enum.NormalId.Right
+  gui.SizingMode=Enum.SurfaceGuiSizingMode.FixedSize;gui.CanvasSize=Vector2.new(600,72)
+  gui.LightInfluence=0;gui.MaxDistance=140;gui.AlwaysOnTop=false;gui.Parent=academySign
+  local text=Instance.new("TextLabel");text.Name="AcademyName";text.Size=UDim2.fromScale(1,1)
+  text.BackgroundTransparency=1;text.Text="SCREAM ACADEMY";text.TextColor3=ivory
+  text.Font=Enum.Font.GothamBold;text.TextSize=50;text.TextWrapped=false;text.Parent=gui
+ end
+ -- Calm ground articulation: small cross-joints, never new borders resembling
+ -- a damage or collision boundary. Route strips remain above.
+ for z=-140,140,20 do
+  detail("CourtyardJoint"..z,V(178,.012,.18),V(-260,.087,z),seam)
+ end
+ for x=-340,340,20 do
+  detail("PromenadeJoint"..x,V(.18,.012,39),V(x,.097,200),seam)
+ end
+ -- Existing cover gets a clearly solid plinth/top and restrained paneling, wholly
+ -- within 0.08 studs of its solid silhouette, without widening useful cover.
+ for i=0,7 do
+  local c=byId["CoverCore"..i];local pos=c.Position
+  c.Color=slate
+  detail("CoverTop"..i,V(11.8,.06,11.8),V(pos.X,6.04,pos.Z),ivory)
+  detail("CoverFront"..i,V(10,.5,.08),V(pos.X,4.8,pos.Z-6.02),gold)
+ end
+ -- Foreground courtyard, spawn plaza, and promenade dressing (38 static cosmetic parts).
+ -- Positioned outside route strips, pads, NPC stations, and overhead sign sightlines.
+ for i,pos in ipairs({
+  V(-280,0,114),V(-260,0,114),V(-280,0,74),V(-260,0,74),
+  V(-255,0,28),V(-235,0,28),V(-156,0,40),V(-156,0,60),
+ }) do
+  detail("ForegroundBollardPost"..i,V(1.1,4.2,1.1),V(pos.X,2.18,pos.Z),slate)
+  detail("ForegroundBollardLantern"..i,V(1.5,.85,1.5),V(pos.X,4.705,pos.Z),gold)
+ end
+ detail("ForegroundPlazaTrimW",V(1.2,.015,26),V(-288,.088,135),terracotta)
+ detail("ForegroundPlazaTrimE",V(1.2,.015,26),V(-252,.088,135),terracotta)
+ detail("ForegroundPlazaTrimS",V(37.2,.015,1.2),V(-270,.088,148),terracotta)
+ detail("ForegroundPlazaAccentS",V(32,.016,.5),V(-270,.089,146.5),ivory)
+ detail("ForegroundPromenadeCurb1",V(68,.28,1),V(-270,.22,179.4),terracotta)
+ detail("ForegroundPromenadeCurb2",V(114,.28,1),V(-107,.22,179.4),terracotta)
+ detail("ForegroundPromenadeCurb3",V(160,.28,1),V(40,.22,179.4),terracotta)
+ detail("ForegroundPromenadeCurb4",V(80,.28,1),V(170,.22,179.4),terracotta)
+ detail("ForegroundPromenadeInlay1",V(68,.014,.5),V(-270,.089,178.4),ivory)
+ detail("ForegroundPromenadeInlay2",V(114,.014,.5),V(-107,.089,178.4),ivory)
+ for i,cx in ipairs({-304,-230}) do
+  detail("ForegroundPlanterBase"..i,V(13,1.4,7),V(cx,.78,92),terracotta)
+  detail("ForegroundPlanterRim"..i,V(13.8,.35,7.8),V(cx,1.655,92),ivory)
+  detail("ForegroundPlanterFoliage"..i,V(11.4,1.1,5.4),V(cx,2.0,92),Color3.fromRGB(77,116,92))
+  detail("ForegroundPlanterAccent"..i,V(7.6,.6,2.8),V(cx,2.75,92),i==1 and Color3.fromRGB(221,131,142) or gold)
+ end
+ detail("ForegroundGatewayPillarN",V(2.4,8.5,2.4),V(-196,4.33,34),ivory)
+ detail("ForegroundGatewayPillarS",V(2.4,8.5,2.4),V(-196,4.33,66),ivory)
+ detail("ForegroundGatewayCapN",V(3,.9,3),V(-196,9.03,34),terracotta)
+ detail("ForegroundGatewayCapS",V(3,.9,3),V(-196,9.03,66),terracotta)
+ -- Clear value hierarchy without lighting/post-effect changes.
+ byId.ArenaFloor.Color=Color3.fromRGB(126,147,145)
+ byId.HubPaving.Color=Color3.fromRGB(224,214,188)
+ byId.Promenade.Color=Color3.fromRGB(220,204,174)
+ assert(count<=350,"Coastal art budget exceeded")
+end
+function City.Build(parent)
+ local byId={}
+ for _,spec in ipairs(Layout.PartSpecs) do
+  local p=part(parent,spec.id,spec.size,spec.position,spec.color,spec.collidable);byId[spec.id]=p
+  if spec.id=="Ground" then p:SetAttribute("GroundSurface",true) end
+ end
+ local guidance=Instance.new("Folder");guidance.Name="FirstMinuteGuidance";guidance.Parent=parent
+ for _,spec in ipairs(Layout.GuidanceSpecs) do
+  local p=part(guidance,spec.id,spec.size,spec.position,spec.color,false)
+  p.CanQuery=false;p.CastShadow=false;p.Transparency=0
+ end
+ wayfinding(parent,"ArenaWayfinding",V(-122.6,13.5,50),"BEAM ARENA\nPVP INSIDE RED LINES")
+ local quests=Instance.new("Folder");quests.Name="QuestObjects";quests.Parent=parent
+ for _,spec in ipairs(Layout.QuestMarkers) do
+  local p=part(quests,spec.id,V(1,1.6,1),spec.position,Color3.fromRGB(226,181,83),false)
+  prompt(p,spec.action,spec.text,spec.action=="Garden" and "Community garden" or nil)
+ end
+ for _,stop in ipairs(Layout.DeliveryStops) do
+  local p=part(quests,stop.id,V(1,1.6,1),stop.position,Color3.fromRGB(226,181,83),false)
+  p:SetAttribute("DeliveryStop",stop.id);prompt(p,"Dropoff","Deliver coffee",stop.name)
+ end
+ -- Net is cosmetic and non-colliding; authoritative ball rules live in BeachVolley.
+ local net=part(parent,"VolleyNet",V(40,4,.2),V(-20,6,250),Color3.fromRGB(235,235,220),false);net.Transparency=.6
+ for _,x in ipairs({-41,1}) do part(parent,"VolleyPost",V(.5,9,.5),V(x,4.5,250),Color3.fromRGB(235,235,220),true) end
+ -- Decorative practice goal only; local resident animation never scores or collides.
+ local practiceGoal=Layout.Soccer.practiceGoal
+ for _,spec in ipairs({
+  {name="NickPracticeGoalLeft",size=V(.35,7,.35),position=V(practiceGoal.X-8,3.5,practiceGoal.Z-1)},
+  {name="NickPracticeGoalRight",size=V(.35,7,.35),position=V(practiceGoal.X+8,3.5,practiceGoal.Z-1)},
+  {name="NickPracticeGoalCrossbar",size=V(16,.35,.35),position=V(practiceGoal.X,7,practiceGoal.Z-1)},
+ }) do
+  local goal=part(parent,spec.name,spec.size,spec.position,Color3.fromRGB(235,235,220),false)
+  goal.CanQuery=false;goal.CanTouch=false;goal.CastShadow=false
+ end
+ academyArt(parent,byId)
+ local walk,activities={},{}
+ for _,point in ipairs(Layout.Walk) do table.insert(walk,point);table.insert(activities,{position=point,kind="Stroll"}) end
+ local function station(x,z,lookX,lookZ,action)return {position=V(x,3,z),lookAt=V(lookX or x,3,lookZ or z-5),action=action} end
+ local jobs={
+  {role="Gardener",name="Mar Soler",quests={"garden","beach"},stations={station(-325,-250,-325,-270,"Watering flowers"),station(-295,-250,-295,-270,"Watering flowers"),station(-265,-250,-265,-270,"Watering flowers")}},
+  {role="Vendor",name="Pau Vidal",quests={"delivery"},stations={station(30,-225,30,-247,"Arranging produce")}},
+  {role="CafeWorker",name="Julia Ferrer",stations={station(42,-225,30,-225,"Preparing coffee")}},
+  {role="Soccer",name="Nick Booty",quests={"nick"},stations={station(239,281,practiceGoal.X,practiceGoal.Z-1,"Practicing missed kicks")}},
+  {role="Busker",name="Eric Sol",quests={"crowd"},stations={station(Layout.Ambience.buskerPosition.X,Layout.Ambience.buskerPosition.Z,-310,140,"Playing for the courtyard")}},
+  {role="Commuter",name="Boardwalk runner",quests={"sprint"},stations={station(-220,190,-220,200,"Waiting by the promenade")}},
+  {role="Fighter",name="Arena coach",quests={"dodge","arena"},stations={station(-137,40,-100,50,"Watching the arena")}},
+ }
+ return {walk=walk,activities=activities,spawn=CFrame.new(Layout.Spawn),jobs=jobs,
+  seeds={{-310,130,role="Local"},{-310,140,role="Local"},{-310,150,role="Local"},{110,-225,role="Tourist"}},traffic=false,compact=true}
+end
+return City

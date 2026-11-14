@@ -1,0 +1,90 @@
+{
+  "recordedAtUtc": "2026-11-11T21:48:47.209328+00:00",
+  "baseCommit": "15df6837f082459ad387b387e3b9a70ada7c78ff",
+  "hashSemantics": "This evidence hashes exact working-tree bytes; candidate manifest hashes newline-normalized read_text().encode() sources, verified using its own semantics",
+  "checks": {
+    "microphone": {
+      "assertions": 33,
+      "negativeControls": 7,
+      "legacyAssertions": 111,
+      "baseline": "15df683 expected inactive-calibration failure"
+    },
+    "shop": {
+      "assertions": 51,
+      "negativeControls": 7,
+      "sourceContracts": 1,
+      "baseline": "15df683 reproduces120 simultaneous pending requests for120 renders",
+      "fullRender": "Actual Render/Clear smoke at narrow/wide dimensions with GUI mocks, not native layout"
+    },
+    "retainedUI": {
+      "boostAssertions": 26,
+      "boostControls": 5,
+      "styleAssertions": 336,
+      "styleControls": 11
+    },
+    "aggregate": {
+      "pureSyntheticSuites": 25,
+      "mockedServiceSuites": 94,
+      "productionCompiles": 60,
+      "allBuilds": true,
+      "nativeExecuted": false,
+      "includesFinalShop51": true
+    },
+    "sourceArtifactMatch": "All60 candidate manifest normalized-source hashes and binary hash match final state"
+  },
+  "commands": [
+    "python tests/microphone_active.py --baseline",
+    "python tests/microphone_active.py --negative-controls",
+    "python tests/microphone_lifecycle.py",
+    "python tests/shop_price_requests.py --baseline",
+    "python tests/shop_price_requests.py --negative-controls",
+    "python tests/boost_purchase_ui.py --negative-controls",
+    "python tests/style_controls.py --negative-controls",
+    "python tests/verify_local.py --build"
+  ],
+  "limits": [
+    "Reported Active transitions mocked, not actual hardware disconnect/recording/voice transport",
+    "Only public Active reads; no restricted IsReady access or device-state writes",
+    "Shop IDs remain zero; no real API/prices/purchases/native collection proof",
+    "Four permanently hung price calls occupy capacity until real return or client session ends; no backend cancellation",
+    "Candidate remains BLOCKED_UNVERIFIED_WRITER_FLEET, no release authorization",
+    "Owner chose ordinary unsavable play; no runtime combat/reward policy change; developer-test isolation and paid gates preserved",
+    "No apps opened, map edits, live stores, product/audio configuration or publication"
+  ],
+  "sources": {
+    "src/StarterPlayer/StarterPlayerScripts/Microphone.luau": "91384aaf3004031e8e43577d60e99603ce2e40e8209aa7e81cd93d705a3f0ff9",
+    "src/StarterPlayer/StarterPlayerScripts/ShopUI.luau": "3d72138bee1f6a22f6f022b407b6cffc5f478ce594e7627fc56c06abbb3cc3e5",
+    "src/ReplicatedStorage/Shared/ShopCatalog.luau": "53860a7c662529027105a6c39bd154b15056e782ca44613fea5bbf2ee37e260c",
+    "tests/microphone_active.py": "afb55ca8ea4e0ea3758eb1a60c86be6a4cb2d4b4fbf7a8731b5b82e3abbd8e4a",
+    "tests/microphone_lifecycle.py": "f3d59bfc08df7c36d1e1ea62d8ecc323c0963b2e47971605419d919084774080",
+    "tests/shop_price_requests.py": "319f205d25775bc3e83b1d9f1026b70980bb0566d19e87f0991b2b7a53e07ef9",
+    "tests/boost_purchase_ui.py": "58d8bf5c86381623c14240606c85e1d596abd1bd8e82dd3612b94ad0d8f4d65f",
+    "tests/style_controls.py": "8564a45bc6ef9bbf02b2ede48234c7712ec44c89ebdd0985360c6a7d55a38f74",
+    "tests/verify_local.py": "625af84cb15d730f8e3ef72290b23ccda0098b80eef33293cce7a47d3ebafc16",
+    "docs/MICROPHONE_ACTIVE_REVIEW.md": "d85967580eeb34e454ec6749d815539a42b6f863a1adf095794dd689f98cc487",
+    "docs/SHOP_PRICE_REQUESTS_REVIEW.md": "b911223535e0f5c09df0a8a2378f500f8c64f00968b4dc6ab3bf5195b70d85c5",
+    "docs/SAVE_AVAILABILITY_POLICY.md": "ce5c21ef4ab875a4e9540ce9523797d416adbd2853d1be31da5523a12828fab7",
+    "docs/ROADMAP.md": "855fb2ed5f43dff62e97a305af732d26ee36a2baec675d4c7f1559a148075e06",
+    "docs/PLAYTEST_BACKLOG.md": "b69e2fad2c1f1eb79a316a54ddc033a109f6893dfceb1c53436c608aa16587c9"
+  },
+  "artifacts": {
+    "build/microphone-active-controls.log": "2a588547a5f8fb7249d6c12ac9f596ba62c49632f207a0d56b403e05d23a72c6",
+    "build/microphone-active-baseline.log": "6f30300090f7c74d65dfa4372c981dbf334a67bc623862906fef1a733450b52a",
+    "build/microphone-active-legacy.log": "f92f97b553da163b3c71ff3310b2ddda5a708989911895f8b4d2369157ba0188",
+    "build/shop-price-controls.log": "d71c7ef8a38f48681afa17b26b4d37397c934b660c40d9280586c0f65f6b6e06",
+    "build/shop-price-baseline.log": "42cb8f46d6c1a3a29f207448fc731d8730d1ad6a9c7268fe75cbbb573e9df4fc",
+    "build/shop-price-boost-regression.log": "12b9d34ae2fd73dfffecf40051c9869a9e832c5d6c06eec899f51e8475230f13",
+    "build/shop-price-style-regression.log": "fe9324a1c8765151971cec99a1d293ad7718dd8cdbda66856c7f61c8aaba0503",
+    "build/client-availability-full-checks.log": "3cb601e29cf04596cc40c3af668977f1c78fe3f98c9580d127950f31493a3662",
+    "build/AutomaticVoiceCandidate.rbxl": "fb1e043cd080cfc97c5e68b9cd012c8c2df23d56d5f090d57cb3326b7cda5d8f",
+    "build/AutomaticVoiceCandidate.provenance.json": "255eec9eea3acf84f3ab01e18f3971e36d57036239d022d1f04782b9d55443ae",
+    "build/OnboardingReview.rbxl": "01939dd77b6ff41cd06a32acd5671b1b3181e895329e117d674e42b37d8be5e6",
+    "build/ShopReviewVerified.rbxl": "46596fc58d1221cc8e432c19e92f7512379f04284eeca26ca9fb41ec0bbcf261"
+  },
+  "independentReview": {
+    "microphone": "Separate worker source review and rerun33/7+111; main independently reran",
+    "shop": "Separate worker final51/7+source contract and baseline, plus full-Render120 rerenders/four calls/four views/two timers, Clear/late completion/cache reopen/synchronous response smoke",
+    "policy": "Separate review confirmed ordinary play vs test isolation/paid gate distinction and limited simulated audit claim",
+    "result": "No blocking issue found; native/API/device/GC/fleet gates remain"
+  }
+}

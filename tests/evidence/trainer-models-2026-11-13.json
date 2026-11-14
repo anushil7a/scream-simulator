@@ -1,0 +1,539 @@
+{
+  "date": "2026-11-13",
+  "baseCommit": "d05f431fc1fa47b4d76670694c46883b2f5f2bf7",
+  "scope": "Original trainer-only cosmetic kit; no gameplay/authority or player-display changes",
+  "sources": {
+    "src/ServerScriptService/World.luau": "fd59ad5b6c9886848ed5c217c4e5e966a0fcb1f66e540f40267a6fbb9bad2b35",
+    "tests/trainer_models.py": "9a679cb8bbb53378aa5f3cb713047ac983d2ce3cfad1b963e739f32086a6cbe5",
+    "tests/verify_local.py": "a6283db2c12bacc6989b3536d5faac66c0fd683710f1e9dfa51797198b9eaa90"
+  },
+  "checks": {
+    "focusedPropertyAssertions": 701178,
+    "sourceContracts": 1,
+    "negativeControls": 7,
+    "aggregate": {
+      "status": "PASSED",
+      "commands": 242,
+      "suiteCounts": {
+        "pureSynthetic": 25,
+        "mocked": 131,
+        "productionCompiles": 64,
+        "buildsRequested": true
+      },
+      "inputHashesRechecked": 328,
+      "localNotCI": true
+    }
+  },
+  "native": {
+    "placeId": 0,
+    "gameId": 0,
+    "sourceEquality": true,
+    "gallery": "Matched fixed-camera static clones with controllers removed; current pose captured, not identical animation phase",
+    "actualTrainers": "Two snapshots each,8 safe SmoothPlastic accessories and changed motors. Rookie/Brawler moved about4studs;Elite moved .019stud,notproof of roaming.",
+    "cleanup": {
+      "remaining": false,
+      "pid": 23624,
+      "normalCloseAccepted": false,
+      "scope": "Stopped restored disposable fixture only; no user window",
+      "earlierObservationCorrection": "Ordinary sandbox Get-Process gave no process output but hid host processes; escalated CIM found23624 still running. Final scoped close and escalated CIM verify absence."
+    },
+    "records": {
+      "build/trainer-model-before/back-state.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":[{\"academy\":0,\"tier\":\"rookie\",\"parts\":17,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"scripts\":0,\"unsafe\":5},{\"academy\":0,\"tier\":\"brawler\",\"parts\":16,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"scripts\":0,\"unsafe\":5},{\"academy\":0,\"tier\":\"elite\",\"parts\":19,\"text\":[{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"scripts\":0,\"unsafe\":5}],\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before/front-state.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":[{\"academy\":0,\"tier\":\"rookie\",\"parts\":17,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"scripts\":0,\"unsafe\":5},{\"academy\":0,\"tier\":\"brawler\",\"parts\":16,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"scripts\":0,\"unsafe\":5},{\"academy\":0,\"tier\":\"elite\",\"parts\":19,\"text\":[{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"scripts\":0,\"unsafe\":5}],\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before/gallery-cleanup.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"closed\":true,\"errors\":[]}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before/gallery-start.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":{\"1\":{\"unsafe\":1,\"academy\":0,\"scripts\":0,\"text\":{\"1\":{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},\"3\":{\"text\":\"\",\"name\":\"Health\",\"fits\":true},\"2\":{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true}},\"tier\":\"rookie\",\"parts\":17},\"3\":{\"unsafe\":1,\"academy\":0,\"scripts\":0,\"text\":{\"1\":{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},\"3\":{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},\"2\":{\"text\":\"\",\"name\":\"Health\",\"fits\":true}},\"tier\":\"elite\",\"parts\":19},\"2\":{\"unsafe\":1,\"academy\":0,\"scripts\":0,\"text\":{\"1\":{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},\"3\":{\"text\":\"\",\"name\":\"Health\",\"fits\":true},\"2\":{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true}},\"tier\":\"brawler\",\"parts\":16}},\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before/identity.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"universe\":0,\"bootstrapPrefix\":\"-- DISPOSABLE LOCAL REVIEW ONLY: NEVER PUBLISH THIS BUILD.\\nassert(game:GetService(\\\"RunService\\\"):IsStudio() and game.PlaceId == 0,\\n \\\"Open this disposable review as a local file in Studio; never publish it\\\")\\nworkspace:SetAttribute(\\\"LocalSustainedPrototype\\\", true)\\nworkspace:SetAttribute(\\\"ReviewBuildName\\\", \\\"SustainedLocalPlay\\\")\\nworkspace:SetAttribute(\\\"ReviewSourceSha256\\\", \\\"187f98fba609c6a3329e9742aa69d881af096ab5628ed0804d96d8c9b537cdb0\\\")\\nlocal Credit=require(game:GetService(\\\"ReplicatedStorage\\\").Shared.CombatCredit)\\nlocal TrainingRules=require(game:GetService(\\\"ReplicatedStorage\\\").Shared.TrainingRules)\\nlocal Healing=require(game:GetService(\\\"ReplicatedStorage\\\").Shared.Healing)\\nlocal SustainedRewards=require(game:GetService(\\\"ReplicatedStorage\\\").Shared.SustainedRewards)\\nlocal InteractionRules=require(game:GetService(\\\"ReplicatedStorage\\\").Shared.InteractionRules)\\nlocal Players=game:GetService(\\\"Pla\",\"place\":0,\"worldEquals\":true,\"clientEquals\":true}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before/residents.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "[{\"attrs\":{\"NpcId\":\"Bot14\",\"AnimationSeed\":14,\"TrainingTier\":\"elite\",\"OutfitVariant\":3,\"DisplayName\":\"Elite · Lv 60\",\"Role\":\"Fighter\",\"Gesturing\":false,\"WorkUniform\":false,\"ResidentActive\":true,\"Working\":false},\"name\":\"Elite · Lv 60_TrainingNPC\",\"position\":[-238.17160034179688,3.199267625808716,-192.71778869628907]},{\"attrs\":{\"NpcId\":\"Bot13\",\"AnimationSeed\":13,\"TrainingTier\":\"brawler\",\"OutfitVariant\":4,\"DisplayName\":\"Brawler · Lv 25\",\"Role\":\"Fighter\",\"Gesturing\":false,\"WorkUniform\":false,\"ResidentActive\":true,\"Working\":false},\"name\":\"Brawler · Lv 25_TrainingNPC\",\"position\":[-257.3089599609375,3.203173875808716,-97.65702819824219]},{\"attrs\":{\"NpcId\":\"Bot12\",\"AnimationSeed\":12,\"TrainingTier\":\"rookie\",\"OutfitVariant\":1,\"DisplayName\":\"Rookie · Lv 1\",\"Role\":\"Fighter\",\"Gesturing\":false,\"WorkUniform\":false,\"ResidentActive\":true,\"Working\":false},\"name\":\"Rookie · Lv 1_TrainingNPC\",\"position\":[-235.36668395996095,3.199267625808716,-7.94132661819458]}]"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before/roam-state.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"time\":505.21172970000046,\"models\":[{\"position\":[-248.19139099121095,3.199267625808716,-189.36195373535157],\"health\":420,\"tier\":\"elite\",\"rootAnchored\":false,\"velocity\":[6.843184947967529,0,-1.4811919927597047],\"maxHealth\":420,\"motors\":{\"Left Shoulder\":[0,0,0,1,0,0,0,0.9344882965087891,-0.35599392652511599,0,0.35599392652511599,0.9344882965087891],\"Right Shoulder\":[0,0,0,1,-0,0,0,0.9344882965087891,0.35599392652511599,-0,-0.35599392652511599,0.9344882965087891],\"Neck\":[0,0,0,1,0,0,0,1,0,0,0,1],\"Left Hip\":[0,0,0,1,-0,0,0,0.9344882965087891,0.35599392652511599,-0,-0.35599392652511599,0.9344882965087891],\"Right Hip\":[0,0,0,1,0,0,0,0.9344882965087891,-0.35599392652511599,0,0.35599392652511599,0.9344882965087891],\"RootJoint\":[0,0.017962926998734475,0,1,-0,0,0,0.9987502694129944,0.049979161471128467,-0,-0.049979161471128467,0.9987502694129944]}},{\"position\":[-253.8443145751953,3.199267625808716,-97.918212890625],\"health\":220,\"tier\":\"brawler\",\"rootAnchored\":false,\"velocity\":[-6.471909999847412,0,-2.6692721843719484],\"maxHealth\":220,\"motors\":{\"Left Shoulder\":[0,0,0,1,0,0,0,0.9246208667755127,-0.3808888792991638,0,0.3808888792991638,0.9246208667755127],\"Right Shoulder\":[0,0,0,1,-0,0,0,0.9246208667755127,0.3808888792991638,-0,-0.3808888792991638,0.9246208667755127],\"Neck\":[0,0,0,1,0,0,0,1,0,0,0,1],\"Left Hip\":[0,0,0,1,-0,0,0,0.9246208667755127,0.3808888792991638,-0,-0.3808888792991638,0.9246208667755127],\"Right Hip\":[0,0,0,1,0,0,0,0.9246208667755127,-0.3808888792991638,0,0.3808888792991638,0.9246208667755127],\"RootJoint\":[0,-0.006845919881016016,0,1,-0,0,0,0.9987502694129944,0.049979161471128467,-0,-0.049979161471128467,0.9987502694129944]}},{\"position\":[-238.46722412109376,3.199267625808716,-11.055203437805176],\"health\":80,\"tier\":\"rookie\",\"rootAnchored\":false,\"velocity\":[3.071812391281128,0,6.292134761810303],\"maxHealth\":80,\"motors\":{\"Left Shoulder\":[0,0,0,1,-0,0,0,0.980191171169281,0.19805370271205903,-0,-0.19805370271205903,0.980191171169281],\"Right Shoulder\":[0,0,0,1,0,0,0,0.980191171169281,-0.19805370271205903,0,0.19805370271205903,0.980191171169281],\"Neck\":[0,0,0,1,0,0,0,1,0,0,0,1],\"Right Hip\":[0,0,0,1,-0,0,0,0.980191171169281,0.19805370271205903,-0,-0.19805370271205903,0.980191171169281],\"Left Hip\":[0,0,0,1,0,0,0,0.980191171169281,-0.19805370271205903,0,0.19805370271205903,0.980191171169281],\"RootJoint\":[0,-0.0192955881357193,0,1,-0,0,0,0.9987502694129944,0.049979161471128467,-0,-0.049979161471128467,0.9987502694129944]}}]}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before/start.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Game Started"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before/threequarter-state.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":[{\"academy\":0,\"tier\":\"rookie\",\"parts\":17,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"scripts\":0,\"unsafe\":5},{\"academy\":0,\"tier\":\"brawler\",\"parts\":16,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"scripts\":0,\"unsafe\":5},{\"academy\":0,\"tier\":\"elite\",\"parts\":19,\"text\":[{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"scripts\":0,\"unsafe\":5}],\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before2/back-state.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":[{\"academy\":0,\"unsafeParts\":[],\"scripts\":0,\"parts\":17,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"tier\":\"rookie\",\"unsafe\":0},{\"academy\":0,\"unsafeParts\":[],\"scripts\":0,\"parts\":16,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"tier\":\"brawler\",\"unsafe\":0},{\"academy\":0,\"unsafeParts\":[],\"scripts\":0,\"parts\":19,\"text\":[{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"tier\":\"elite\",\"unsafe\":0}],\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before2/front-state.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":[{\"academy\":0,\"unsafeParts\":[],\"scripts\":0,\"parts\":17,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"tier\":\"rookie\",\"unsafe\":0},{\"academy\":0,\"unsafeParts\":[],\"scripts\":0,\"parts\":16,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"tier\":\"brawler\",\"unsafe\":0},{\"academy\":0,\"unsafeParts\":[],\"scripts\":0,\"parts\":19,\"text\":[{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"tier\":\"elite\",\"unsafe\":0}],\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before2/gallery-cleanup.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"closed\":true,\"errors\":[]}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before2/gallery-start.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":{\"1\":{\"unsafe\":0,\"unsafeParts\":[],\"academy\":0,\"tier\":\"rookie\",\"text\":{\"1\":{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},\"3\":{\"text\":\"\",\"name\":\"Health\",\"fits\":true},\"2\":{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true}},\"scripts\":0,\"parts\":17},\"3\":{\"unsafe\":0,\"unsafeParts\":[],\"academy\":0,\"tier\":\"elite\",\"text\":{\"1\":{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},\"3\":{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},\"2\":{\"text\":\"\",\"name\":\"Health\",\"fits\":true}},\"scripts\":0,\"parts\":19},\"2\":{\"unsafe\":0,\"unsafeParts\":[],\"academy\":0,\"tier\":\"brawler\",\"text\":{\"1\":{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},\"3\":{\"text\":\"\",\"name\":\"Health\",\"fits\":true},\"2\":{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true}},\"scripts\":0,\"parts\":16}},\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-before2/threequarter-state.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":[{\"academy\":0,\"unsafeParts\":[],\"scripts\":0,\"parts\":17,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"tier\":\"rookie\",\"unsafe\":0},{\"academy\":0,\"unsafeParts\":[],\"scripts\":0,\"parts\":16,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"tier\":\"brawler\",\"unsafe\":0},{\"academy\":0,\"unsafeParts\":[],\"scripts\":0,\"parts\":19,\"text\":[{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"tier\":\"elite\",\"unsafe\":0}],\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/back-state.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":[{\"academy\":8,\"unsafeParts\":[],\"scripts\":0,\"parts\":25,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"tier\":\"rookie\",\"unsafe\":0},{\"academy\":8,\"unsafeParts\":[],\"scripts\":0,\"parts\":24,\"text\":[{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"tier\":\"brawler\",\"unsafe\":0},{\"academy\":8,\"unsafeParts\":[],\"scripts\":0,\"parts\":27,\"text\":[{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"tier\":\"elite\",\"unsafe\":0}],\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/cleanup-observation.json": {
+        "remaining": false,
+        "pid": 23624,
+        "normalCloseAccepted": false,
+        "scope": "Stopped restored disposable fixture only; no user window",
+        "earlierObservationCorrection": "Ordinary sandbox Get-Process gave no process output but hid host processes; escalated CIM found23624 still running. Final scoped close and escalated CIM verify absence."
+      },
+      "build/trainer-model-after3/console.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "ScreamSimulator save data unavailable; using temporary test profiles.\nContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type\nContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type\nContentId: rbxassetid://203785492 failed due to: Asset type does not match requested type\n[Roblox][sabuiltin_Assistant.rbxm.Assistant.Packages._Index.AssistantUI.AssistantUI.Actions.ExecuteLuauActions] The execute_luau changed camera type. Resetting from Enum.CameraType.Scriptable back to Enum.CameraType.Custom\n[Roblox][sabuiltin_Assistant.rbxm.Assistant.Packages._Index.AssistantUI.AssistantUI.Actions.ExecuteLuauActions] The execute_luau changed camera type. Resetting from Enum.CameraType.Scriptable back to Enum.CameraType.Custom\n[Roblox][sabuiltin_Assistant.rbxm.Assistant.Packages._Index.AssistantUI.AssistantUI.Actions.ExecuteLuauActions] The execute_luau changed camera type. Resetting from Enum.CameraType.Scriptable back to Enum.CameraType.Custom\n[Roblox][sabuiltin_Assistant.rbxm.Assistant.Packages._Index.AssistantUI.AssistantUI.Actions.ExecuteLuauActions] The execute_luau changed camera type. Resetting from Enum.CameraType.Scriptable back to Enum.CameraType.Custom"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/front-state.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":[{\"academy\":8,\"unsafeParts\":[],\"scripts\":0,\"parts\":25,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"tier\":\"rookie\",\"unsafe\":0},{\"academy\":8,\"unsafeParts\":[],\"scripts\":0,\"parts\":24,\"text\":[{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"tier\":\"brawler\",\"unsafe\":0},{\"academy\":8,\"unsafeParts\":[],\"scripts\":0,\"parts\":27,\"text\":[{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"tier\":\"elite\",\"unsafe\":0}],\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/gallery-cleanup.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"closed\":true,\"errors\":[]}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/gallery-start.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":{\"1\":{\"unsafe\":0,\"unsafeParts\":[],\"academy\":8,\"tier\":\"rookie\",\"text\":{\"1\":{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},\"3\":{\"text\":\"\",\"name\":\"Health\",\"fits\":true},\"2\":{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true}},\"scripts\":0,\"parts\":25},\"3\":{\"unsafe\":0,\"unsafeParts\":[],\"academy\":8,\"tier\":\"elite\",\"text\":{\"1\":{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},\"3\":{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},\"2\":{\"text\":\"\",\"name\":\"Health\",\"fits\":true}},\"scripts\":0,\"parts\":27},\"2\":{\"unsafe\":0,\"unsafeParts\":[],\"academy\":8,\"tier\":\"brawler\",\"text\":{\"1\":{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true},\"3\":{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},\"2\":{\"text\":\"\",\"name\":\"Health\",\"fits\":true}},\"scripts\":0,\"parts\":24}},\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/live-brawler-1.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"motors\":{\"Left Shoulder\":[0,0,0,1,0,0,0,0.9379427433013916,-0.34679022431373598,0,0.34679022431373598,0.9379427433013916],\"Right Shoulder\":[0,0,0,1,-0,0,0,0.9379427433013916,0.34679022431373598,-0,-0.34679022431373598,0.9379427433013916],\"Neck\":[0,0,0,1,0,0,0,1,0,0,0,1],\"Right Hip\":[0,0,0,1,0,0,0,0.9379427433013916,-0.34679022431373598,0,0.34679022431373598,0.9379427433013916],\"Left Hip\":[0,0,0,1,-0,0,0,0.9379427433013916,0.34679022431373598,-0,-0.34679022431373598,0.9379427433013916],\"RootJoint\":[0,0.006238508969545364,0,1,-0,0,0,0.9987502694129944,0.049979161471128467,-0,-0.049979161471128467,0.9987502694129944]},\"camera\":[-261.5815734863281,5.199267387390137,-110.9336929321289],\"time\":1102.0888732000022,\"tier\":\"brawler\",\"position\":[-254.63629150390626,3.199267625808716,-101.51227569580078],\"health\":220,\"rootAnchored\":false,\"parts\":[{\"name\":\"AcademyChestRight\",\"parent\":\"Torso\",\"relative\":[0.48000335693359377,0.12000083923339844,-0.58001708984375,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristLeft\",\"parent\":\"Left Arm\",\"relative\":[0.00000762939453125,-0.6599960327148438,0.000030517578125,0.9999999403953552,0,-2.9802322387695315e-8,0,0.9999999403953552,-1.4901161193847657e-8,-2.9802322387695315e-8,-1.4901161193847657e-8,1],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyCenter\",\"parent\":\"Torso\",\"relative\":[0,0.15999984741210938,-0.589996337890625,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristRight\",\"parent\":\"Right Arm\",\"relative\":[-0.00000762939453125,-0.660003662109375,0,0.9999999403953552,0,0,0,1.0000001192092896,4.470348358154297e-8,0,4.470348358154297e-8,1],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBack\",\"parent\":\"Torso\",\"relative\":[-0.0000152587890625,0.10000038146972656,0.569976806640625,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyCollar\",\"parent\":\"Torso\",\"relative\":[0,0.8500003814697266,0,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyChestLeft\",\"parent\":\"Torso\",\"relative\":[-0.48000335693359377,0.12000083923339844,-0.58001708984375,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBelt\",\"parent\":\"Torso\",\"relative\":[-0.0000152587890625,-0.7699995040893555,-0.000030517578125,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true}]}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/live-brawler-2.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"motors\":{\"Left Shoulder\":[0,0,0,1,-0,0,0,0.9999240636825562,0.012324868701398373,-0,-0.012324868701398373,0.9999240636825562],\"Right Shoulder\":[0,0,0,1,0,0,0,0.9999240636825562,-0.012324868701398373,0,0.012324868701398373,0.9999240636825562],\"Neck\":[0,0,0,1,0,0,0,1,0,0,0,1],\"Right Hip\":[0,0,0,1,-0,0,0,0.9999240636825562,0.012324868701398373,-0,-0.012324868701398373,0.9999240636825562],\"Left Hip\":[0,0,0,1,0,0,0,0.9999240636825562,-0.012324868701398373,0,0.012324868701398373,0.9999240636825562],\"RootJoint\":[0,0.002990975044667721,0,1,-0,0,0,0.9987502694129944,0.04997913911938667,-0,-0.04997913911938667,0.9987502694129944]},\"camera\":[-265.0467834472656,5.203173637390137,-113.2397689819336],\"time\":1102.6880833000033,\"tier\":\"brawler\",\"position\":[-258.10150146484377,3.2031736373901369,-103.81835174560547],\"health\":220,\"rootAnchored\":false,\"parts\":[{\"name\":\"AcademyChestRight\",\"parent\":\"Torso\",\"relative\":[0.47998809814453127,0.12000083923339844,-0.580047607421875,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristLeft\",\"parent\":\"Left Arm\",\"relative\":[0,-0.6599998474121094,0,0.9999999403953552,0,0,0,1,3.725290298461914e-9,0,3.725290298461914e-9,0.9999998211860657],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyCenter\",\"parent\":\"Torso\",\"relative\":[0,0.1600017547607422,-0.589996337890625,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristRight\",\"parent\":\"Right Arm\",\"relative\":[-0.0000152587890625,-0.6599998474121094,0,0.9999999403953552,-1.862645149230957e-9,0,-1.862645149230957e-9,1.0000001192092896,2.7939677238464357e-9,0,2.7939677238464357e-9,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBack\",\"parent\":\"Torso\",\"relative\":[0,0.10000038146972656,0.569976806640625,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyCollar\",\"parent\":\"Torso\",\"relative\":[0,0.8500003814697266,-0.000030517578125,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyChestLeft\",\"parent\":\"Torso\",\"relative\":[-0.48000335693359377,0.12000083923339844,-0.58001708984375,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBelt\",\"parent\":\"Torso\",\"relative\":[-0.00000762939453125,-0.7699985504150391,-0.000030517578125,0.9999999403953552,0,0,0,1,9.313225746154786e-10,0,9.313225746154786e-10,0.9999998807907105],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true}]}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/live-elite-1.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"motors\":{\"Left Shoulder\":[0,0,0,1,-0,0,0,1,0.000004807408913620748,-0,-0.000004807408913620748,1],\"Right Shoulder\":[0,0,0,1,0,0,0,1,-0.000004807408913620748,0,0.000004807408913620748,1],\"Neck\":[0,0,0,0.9999886751174927,0,0.004759510047733784,0,1,0,-0.004759510047733784,0,0.9999886751174927],\"Left Hip\":[0,0,0,1,0,0,0,1,-0.000004807408913620748,0,0.000004807408913620748,1],\"Right Hip\":[0,0,0,1,-0,0,0,1,0.000004807408913620748,-0,-0.000004807408913620748,1],\"RootJoint\":[0,-0.010965477675199509,0,1,-0,0,0,1,0.0000010902920166699915,-0,-0.0000010902920166699915,1]},\"camera\":[-218.03089904785157,5.199267387390137,-190.00018310546876],\"time\":1103.2880798000043,\"tier\":\"elite\",\"position\":[-229.4800567626953,3.199267625808716,-192.4326171875],\"health\":420,\"rootAnchored\":false,\"parts\":[{\"name\":\"AcademyChestLeft\",\"parent\":\"Torso\",\"relative\":[-0.4799957275390625,0.11999988555908203,-0.579986572265625,0.9999999403953552,1.4210854715202005e-14,0,1.4210854715202005e-14,1,9.769962616701378e-14,0,9.769962616701378e-14,0.9999999403953552],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBelt\",\"parent\":\"Torso\",\"relative\":[0,-0.7699999809265137,0,0.9999999403953552,1.4210854715202005e-14,0,1.4210854715202005e-14,1,9.769962616701378e-14,0,9.769962616701378e-14,0.9999999403953552],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyCollar\",\"parent\":\"Torso\",\"relative\":[0,0.8500001430511475,0,0.9999999403953552,1.4210854715202005e-14,0,1.4210854715202005e-14,1,9.769962616701378e-14,0,9.769962616701378e-14,0.9999999403953552],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBack\",\"parent\":\"Torso\",\"relative\":[0,0.09999990463256836,0.57000732421875,0.9999999403953552,1.4210854715202005e-14,0,1.4210854715202005e-14,1,9.769962616701378e-14,0,9.769962616701378e-14,0.9999999403953552],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyCenter\",\"parent\":\"Torso\",\"relative\":[0,0.15999984741210938,-0.589996337890625,0.9999999403953552,1.4210854715202005e-14,0,1.4210854715202005e-14,1,9.769962616701378e-14,0,9.769962616701378e-14,0.9999999403953552],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristRight\",\"parent\":\"Right Arm\",\"relative\":[0,-0.6600000858306885,0,0.9999999403953552,-5.684341886080802e-14,0,-5.684341886080802e-14,1,-2.1316282072803006e-13,0,-2.1316282072803006e-13,0.9999999403953552],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyChestRight\",\"parent\":\"Torso\",\"relative\":[0.4799957275390625,0.11999988555908203,-0.5800018310546875,0.9999999403953552,1.4210854715202005e-14,0,1.4210854715202005e-14,1,9.769962616701378e-14,0,9.769962616701378e-14,0.9999999403953552],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristLeft\",\"parent\":\"Left Arm\",\"relative\":[0,-0.6600000858306885,0,0.9999999403953552,0,0,0,1,8.597567102697212e-13,0,8.597567102697212e-13,0.9999999403953552],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true}]}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/live-elite-2.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"motors\":{\"Left Shoulder\":[0,0,0,1,-0,0,0,1,1.4077536469869756e-8,-0,-1.4077536469869756e-8,1],\"Right Shoulder\":[0,0,0,1,0,0,0,1,-1.4077536469869756e-8,0,1.4077536469869756e-8,1],\"Neck\":[0,0,0,0.9941993355751038,0,0.10755304247140885,0,1,0,-0.10755304247140885,0,0.9941993355751038],\"Left Hip\":[0,0,0,1,0,0,0,1,-1.4077536469869756e-8,0,1.4077536469869756e-8,1],\"Right Hip\":[0,0,0,1,-0,0,0,1,1.4077536469869756e-8,-0,-1.4077536469869756e-8,1],\"RootJoint\":[0,-0.006076794117689133,0,1,-0,0,0,1,3.192702768828326e-9,-0,-3.192702768828326e-9,1]},\"camera\":[-218.67164611816407,5.199267387390137,-187.9650115966797],\"time\":1103.8711666000018,\"tier\":\"elite\",\"position\":[-229.4951629638672,3.199267625808716,-192.42051696777345],\"health\":420,\"rootAnchored\":false,\"parts\":[{\"name\":\"AcademyChestLeft\",\"parent\":\"Torso\",\"relative\":[-0.4799957275390625,0.11999988555908203,-0.5800018310546875,1.0000001192092896,-1.3877787807814458e-17,0,-1.3877787807814458e-17,1,-2.47198095326695e-16,0,-2.47198095326695e-16,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBelt\",\"parent\":\"Torso\",\"relative\":[0,-0.7699999809265137,0,1.0000001192092896,-1.3877787807814458e-17,0,-1.3877787807814458e-17,1,-2.47198095326695e-16,0,-2.47198095326695e-16,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyCollar\",\"parent\":\"Torso\",\"relative\":[0,0.8499999046325684,0,1.0000001192092896,-1.3877787807814458e-17,0,-1.3877787807814458e-17,1,-2.47198095326695e-16,0,-2.47198095326695e-16,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBack\",\"parent\":\"Torso\",\"relative\":[0.0000152587890625,0.09999990463256836,0.5699920654296875,1.0000001192092896,-1.3877787807814458e-17,0,-1.3877787807814458e-17,1,-2.47198095326695e-16,0,-2.47198095326695e-16,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyCenter\",\"parent\":\"Torso\",\"relative\":[0.0000152587890625,0.16000008583068849,-0.589996337890625,1.0000001192092896,-1.3877787807814458e-17,0,-1.3877787807814458e-17,1,-2.47198095326695e-16,0,-2.47198095326695e-16,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristRight\",\"parent\":\"Right Arm\",\"relative\":[0,-0.6600000858306885,0,1.0000001192092896,0,0,0,1,9.870576578308033e-16,0,9.870576578308033e-16,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyChestRight\",\"parent\":\"Torso\",\"relative\":[0.480010986328125,0.11999988555908203,-0.5800018310546875,1.0000001192092896,-1.3877787807814458e-17,0,-1.3877787807814458e-17,1,-2.47198095326695e-16,0,-2.47198095326695e-16,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristLeft\",\"parent\":\"Left Arm\",\"relative\":[0,-0.6600000858306885,0,1.0000001192092896,0,0,0,1,-1.925543058334256e-15,0,-1.925543058334256e-15,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true}]}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/live-rookie-1.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"motors\":{\"Left Shoulder\":[0,0,0,1,-0,0,0,0.9244859218597412,0.3812161087989807,-0,-0.3812161087989807,0.9244859218597412],\"Right Shoulder\":[0,0,0,1,0,0,0,0.9244859218597412,-0.3812161087989807,0,0.3812161087989807,0.9244859218597412],\"Neck\":[0,0,0,1,0,0,0,1,0,0,0,1],\"Left Hip\":[0,0,0,1,0,0,0,0.9244859218597412,-0.3812161087989807,0,0.3812161087989807,0.9244859218597412],\"Right Hip\":[0,0,0,1,-0,0,0,0.9244859218597412,0.3812161087989807,-0,-0.3812161087989807,0.9244859218597412],\"RootJoint\":[0,-0.005035120062530041,0,1,-0,0,0,0.9987502694129944,0.049979161471128467,-0,-0.049979161471128467,0.9987502694129944]},\"camera\":[-243.50527954101563,5.199267387390137,-7.826964855194092],\"time\":1100.9216334000012,\"tier\":\"rookie\",\"position\":[-240.63619995117188,3.199267625808716,-19.174583435058595],\"health\":80,\"rootAnchored\":false,\"parts\":[{\"name\":\"AcademyCollar\",\"parent\":\"Torso\",\"relative\":[-0.0000152587890625,0.8500001430511475,0,1.0000001192092896,-4.656612873077393e-10,7.450580596923828e-9,-4.656612873077393e-10,1,-7.450580596923828e-9,7.450580596923828e-9,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristRight\",\"parent\":\"Right Arm\",\"relative\":[-0.0000152587890625,-0.6600017547607422,0,1.0000001192092896,7.450580596923828e-9,7.450580596923828e-9,7.450580596923828e-9,0.9999999403953552,2.9802322387695315e-8,7.450580596923828e-9,2.9802322387695315e-8,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBack\",\"parent\":\"Torso\",\"relative\":[-0.0000152587890625,0.10000014305114746,0.5699996948242188,1.0000001192092896,-4.656612873077393e-10,7.450580596923828e-9,-4.656612873077393e-10,1,-7.450580596923828e-9,7.450580596923828e-9,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyChestLeft\",\"parent\":\"Torso\",\"relative\":[-0.4799957275390625,0.11999964714050293,-0.5800018310546875,1.0000001192092896,-4.656612873077393e-10,7.450580596923828e-9,-4.656612873077393e-10,1,-7.450580596923828e-9,7.450580596923828e-9,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBelt\",\"parent\":\"Torso\",\"relative\":[0,-0.7700000405311585,0,1.0000001192092896,-4.656612873077393e-10,7.450580596923828e-9,-4.656612873077393e-10,1,-7.450580596923828e-9,7.450580596923828e-9,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristLeft\",\"parent\":\"Left Arm\",\"relative\":[0,-0.659998893737793,0,1.0000001192092896,-3.725290298461914e-9,7.450580596923828e-9,-3.725290298461914e-9,0.9999999403953552,-2.9802322387695315e-8,7.450580596923828e-9,-2.9802322387695315e-8,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyChestRight\",\"parent\":\"Torso\",\"relative\":[0.4799957275390625,0.11999976634979248,-0.5799980163574219,1.0000001192092896,-4.656612873077393e-10,7.450580596923828e-9,-4.656612873077393e-10,1,-7.450580596923828e-9,7.450580596923828e-9,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyCenter\",\"parent\":\"Torso\",\"relative\":[-0.0000152587890625,0.16000020503997804,-0.5900001525878906,1.0000001192092896,-4.656612873077393e-10,7.450580596923828e-9,-4.656612873077393e-10,1,-7.450580596923828e-9,7.450580596923828e-9,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true}]}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/live-rookie-2.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"motors\":{\"Left Shoulder\":[0,0,0,1,0,0,0,0.9764430522918701,-0.21577535569667817,0,0.21577535569667817,0.9764430522918701],\"Right Shoulder\":[0,0,0,1,-0,0,0,0.9764430522918701,0.21577535569667817,-0,-0.21577535569667817,0.9764430522918701],\"Neck\":[0,0,0,1,0,0,0,1,0,0,0,1],\"Left Hip\":[0,0,0,1,-0,0,0,0.9764430522918701,0.21577535569667817,-0,-0.21577535569667817,0.9764430522918701],\"Right Hip\":[0,0,0,1,0,0,0,0.9764430522918701,-0.21577535569667817,0,0.21577535569667817,0.9764430522918701],\"RootJoint\":[0,-0.01984557695686817,0,1,-0,0,0,0.9987502694129944,0.04997913911938667,-0,-0.04997913911938667,0.9987502694129944]},\"camera\":[-243.10247802734376,5.199267387390137,-3.8416857719421388],\"time\":1101.4883558000002,\"tier\":\"rookie\",\"position\":[-240.232421875,3.199267625808716,-15.189055442810059],\"health\":80,\"rootAnchored\":false,\"parts\":[{\"name\":\"AcademyCollar\",\"parent\":\"Torso\",\"relative\":[0,0.8499999046325684,0,1,0,0,0,1,-7.450580596923828e-9,0,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristRight\",\"parent\":\"Right Arm\",\"relative\":[0,-0.6600008010864258,0,1,-1.862645149230957e-9,0,-1.862645149230957e-9,1.0000001192092896,-2.9802322387695315e-8,0,-2.9802322387695315e-8,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBack\",\"parent\":\"Torso\",\"relative\":[0,0.09999990463256836,0.5699996948242188,1,0,0,0,1,-7.450580596923828e-9,0,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyChestLeft\",\"parent\":\"Torso\",\"relative\":[-0.47998046875,0.11999988555908203,-0.5799980163574219,1,0,0,0,1,-7.450580596923828e-9,0,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyBelt\",\"parent\":\"Torso\",\"relative\":[0,-0.7700001001358032,0,1,0,0,0,1,-7.450580596923828e-9,0,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyWristLeft\",\"parent\":\"Left Arm\",\"relative\":[0,-0.6599998474121094,0,1,-1.862645149230957e-9,-7.450580596923828e-9,-1.862645149230957e-9,1.0000001192092896,2.9802322387695315e-8,-7.450580596923828e-9,2.9802322387695315e-8,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyChestRight\",\"parent\":\"Torso\",\"relative\":[0.4799957275390625,0.11999988555908203,-0.5799980163574219,1,0,0,0,1,-7.450580596923828e-9,0,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true},{\"name\":\"AcademyCenter\",\"parent\":\"Torso\",\"relative\":[0,0.15999996662139893,-0.589996337890625,1,0,0,0,1,-7.450580596923828e-9,0,-7.450580596923828e-9,1.0000001192092896],\"material\":\"Enum.Material.SmoothPlastic\",\"safe\":true}]}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/restore.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"clientUnchanged\":true,\"worldRestored\":true,\"place\":0,\"gameId\":0}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/source-equality.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"place\":0,\"gameId\":0,\"equal\":true}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/start-after.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Game Started"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/stop-before.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Game Stopped"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/stop.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "Game Stopped"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/threequarter-state.json": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "result": {
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"localPlace\":0,\"appearanceOnly\":true,\"localGame\":0,\"tiers\":[{\"academy\":8,\"unsafeParts\":[],\"scripts\":0,\"parts\":25,\"text\":[{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false},{\"text\":\"Rookie · Lv 1\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true}],\"tier\":\"rookie\",\"unsafe\":0},{\"academy\":8,\"unsafeParts\":[],\"scripts\":0,\"parts\":24,\"text\":[{\"text\":\"Brawler · Lv 25\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"tier\":\"brawler\",\"unsafe\":0},{\"academy\":8,\"unsafeParts\":[],\"scripts\":0,\"parts\":27,\"text\":[{\"text\":\"Elite · Lv 60\",\"name\":\"Identity\",\"fits\":true},{\"text\":\"\",\"name\":\"Health\",\"fits\":true},{\"text\":\"\",\"name\":\"TextLabel\",\"fits\":false}],\"tier\":\"elite\",\"unsafe\":0}],\"hudChanged\":false}"
+            }
+          ],
+          "isError": false
+        }
+      },
+      "build/trainer-model-after3/process-close.json": {
+        "remaining": false,
+        "pid": 23624,
+        "normalCloseAccepted": false,
+        "scope": "Stopped restored disposable fixture only; no user window"
+      }
+    }
+  },
+  "artifactSha256": {
+    "build/trainer-model-before/back-capture.json": "e132c17174e24ac45af0b4ea1b88873cfdf919689e2897ee333f62180392e36d",
+    "build/trainer-model-before/back-state.json": "2364d2c01b88d283f6620e7b6193281fdd42b50e32eccd84241c57b1a9a118e7",
+    "build/trainer-model-before/front-capture.json": "0bc1bc5fb9ce4f5baa6eb9e7a2d685488b99281bb108fc3b1af0472064435a16",
+    "build/trainer-model-before/front-state.json": "2364d2c01b88d283f6620e7b6193281fdd42b50e32eccd84241c57b1a9a118e7",
+    "build/trainer-model-before/gallery-cleanup.json": "ddd56e40ee1c1cf7b23bbd877818c4c1d4fd6387c2fa28f07d72005bb618d7c5",
+    "build/trainer-model-before/gallery-start.json": "3469ff2bb4f01db10c58c28d937270f5a7d5712f1ec4434bb17b59a3ff79f529",
+    "build/trainer-model-before/hashes.json": "459a2b08500955b47761687bf5cb982bb6539b62701bd6280ebedb18a2e4c66f",
+    "build/trainer-model-before/identity.json": "b959038c81d37173dbcd4972c0fca657898feaefdbdba0b0f829446cd4e3a2fb",
+    "build/trainer-model-before/launch.json": "626b5ff20f9eb6d4e11c906a9e60e02e1db2e74d1d90bc7740cc5a7c058fbfb8",
+    "build/trainer-model-before/player-display-snapshot.json": "8ea968a4761ff0232b6fde836cd3575999b4cdec29fe7e1aead5002cc1f462e6",
+    "build/trainer-model-before/residents.json": "2d19ba79e827e2e86f32fc51526a5ec2be6ae5d1f4031e2b6a0c7aa813bc7dca",
+    "build/trainer-model-before/roam-state.json": "7561161a684fb231ddfbe348f38c241a6926a75b657399cf3df73b825535183f",
+    "build/trainer-model-before/start.json": "c090da2df80255070e9fe44a781a794cb969f052fd57f35534f62d60360a6ab1",
+    "build/trainer-model-before/studios.json": "7fda28e6b793ed98ca8e3782e3bef911997b468df323d81fdf688627767ac8c8",
+    "build/trainer-model-before/threequarter-capture.json": "5eef1c6f3f68cc4fb6e8c9facb9eef923c60f676548dcad2c793907b4449d82e",
+    "build/trainer-model-before/threequarter-state.json": "2364d2c01b88d283f6620e7b6193281fdd42b50e32eccd84241c57b1a9a118e7",
+    "build/trainer-model-before2/back-capture.json": "68e487d9e7a8314e9b843bb027e68ceb438ad7191f1f3e82829813a4a948f283",
+    "build/trainer-model-before2/back-state.json": "3b690e4b941ae267916c2612724aa71bc286c2fe0360600b849a8439e639b927",
+    "build/trainer-model-before2/front-capture.json": "3cdf8c5d561218c9642da1049a733fbd4f325e8e0d379b0e4a795d5af4f50d44",
+    "build/trainer-model-before2/front-state.json": "3b690e4b941ae267916c2612724aa71bc286c2fe0360600b849a8439e639b927",
+    "build/trainer-model-before2/gallery-cleanup.json": "ddd56e40ee1c1cf7b23bbd877818c4c1d4fd6387c2fa28f07d72005bb618d7c5",
+    "build/trainer-model-before2/gallery-start.json": "00e3491bd7051c6cc6fb3398d3ebf6bdf9043c5615b75c8e374de37542974b40",
+    "build/trainer-model-before2/threequarter-capture.json": "17e02195effeb8d37a380122234f6ef9baa1854f56deab1ee4a0959fefde5a02",
+    "build/trainer-model-before2/threequarter-state.json": "3b690e4b941ae267916c2612724aa71bc286c2fe0360600b849a8439e639b927",
+    "build/trainer-model-after3/back-capture.json": "30639da2494155beda484dbcaa573bc1ce737e94ec3477ddb7e2b163428f7216",
+    "build/trainer-model-after3/back-state.json": "a87f4dcc576fd1e60f5952e455febe19c7a2761a6c95f1c6399b34aa4b54a216",
+    "build/trainer-model-after3/cleanup-observation.json": "33d62b25232d0df18eb2161e9c6dc11f5e049891d35dbb8a2f71d7e8deb0fc7d",
+    "build/trainer-model-after3/console.json": "32b353de852e800fc21a10d8d88efd537520552ac60150cb77437e03248c9244",
+    "build/trainer-model-after3/front-capture.json": "5471eb8d9665397ec3a3b8f1263b29a3901d92b669e68f0094c8e0395818d7ad",
+    "build/trainer-model-after3/front-state.json": "a87f4dcc576fd1e60f5952e455febe19c7a2761a6c95f1c6399b34aa4b54a216",
+    "build/trainer-model-after3/gallery-cleanup.json": "ddd56e40ee1c1cf7b23bbd877818c4c1d4fd6387c2fa28f07d72005bb618d7c5",
+    "build/trainer-model-after3/gallery-start.json": "9b507f389c6e407fd7f28cd662054010932fe58f951a01912fa25afa98581f01",
+    "build/trainer-model-after3/live-brawler-1-capture.json": "c33794823a2570c786726e4bb13dc2c565998d100d1c0e6b294c2c885f1cbb84",
+    "build/trainer-model-after3/live-brawler-1.json": "5da8326ea9b36270d95fe7d861e236420e684d5d888c7f966e71749e0138aa3d",
+    "build/trainer-model-after3/live-brawler-2-capture.json": "ea86ace0f63eecfcf09116867aacda7cdc5a46523da0453145806ae8b813635b",
+    "build/trainer-model-after3/live-brawler-2.json": "f2031d4d96d989955ae113e5db55d56fb9ec47a5bd92db3e658b3ce34717300e",
+    "build/trainer-model-after3/live-elite-1-capture.json": "a8236578c0093550798438b331d8292b47575a06b158b5e4f0a8cea6bc162225",
+    "build/trainer-model-after3/live-elite-1.json": "72ee254f6c892d7088e228e381c22b62f9acf952c0fae070aa33bc352a6d9f8e",
+    "build/trainer-model-after3/live-elite-2-capture.json": "6683a182e1076d95a8efb0b4d0b53ea25e3fe4eb091d03df715a625b2e28361c",
+    "build/trainer-model-after3/live-elite-2.json": "fc608d477742853a2be0304f7e7a12b88af895853951de555e5d6e8975f10e80",
+    "build/trainer-model-after3/live-rookie-1-capture.json": "0c3479ec06b9d97f331e95202f4c5ef05ca316f06fb3c4a30683b68e93d4f380",
+    "build/trainer-model-after3/live-rookie-1.json": "9b1d2e484fbf930eaf6bc7d32408e573f49807cb821450a7d177f38dac1dd08f",
+    "build/trainer-model-after3/live-rookie-2-capture.json": "f11def0c80cd7a1110c2008a89d6d99f181878b075f75c923946dbe11f2c14f7",
+    "build/trainer-model-after3/live-rookie-2.json": "66dba274f691b6491efb01a85b413dd83e3d9e7db8dc28933c8e5d0c03328172",
+    "build/trainer-model-after3/process-before-close.json": "8991e87340b256e701155e267cc17ba078dc487ff871c431683e096d12df5226",
+    "build/trainer-model-after3/restore.json": "8be1a0e2d7f40e5c842d71d86727bd2844fea3982e7450910dac0ccae3af30a3",
+    "build/trainer-model-after3/source-equality.json": "33b382253d3ca487b152452e4d51fd04eef970ac2ffcd46f2e928236781e2bc9",
+    "build/trainer-model-after3/start-after.json": "c090da2df80255070e9fe44a781a794cb969f052fd57f35534f62d60360a6ab1",
+    "build/trainer-model-after3/stop-before.json": "600974a7cffcd0a4c6029c715664cb75e39ce589dac53e2f4376f29fca66d63f",
+    "build/trainer-model-after3/stop.json": "600974a7cffcd0a4c6029c715664cb75e39ce589dac53e2f4376f29fca66d63f",
+    "build/trainer-model-after3/threequarter-capture.json": "8e1c1457d8ee2921b5ae611d39c9c68febb9c1228d69bcfefbd4b10ee3152a6d",
+    "build/trainer-model-after3/threequarter-state.json": "a87f4dcc576fd1e60f5952e455febe19c7a2761a6c95f1c6399b34aa4b54a216",
+    "docs/images/trainer-models-2026-11-13/after3-back.jpg": "6572bf5d44d5e2496d792cc7c0aa48cbc1e552462d07044ee7241b83577193e1",
+    "docs/images/trainer-models-2026-11-13/after3-front.jpg": "86f600c90d1bd566293033bc71c5ff3cd465a8493e760f5894cbecb4388bd13c",
+    "docs/images/trainer-models-2026-11-13/after3-threequarter.jpg": "c2e9f5c7e614666006655bf874dde485d4c4249e44297f6f7f11aa6d455378b6",
+    "docs/images/trainer-models-2026-11-13/before2-back.jpg": "fdb91ed2e6fd8b32ba1a5f8e602d493031f078761beb588a73b38f06ff6c15d2",
+    "docs/images/trainer-models-2026-11-13/before2-front.jpg": "6da1936058c9e95696adc51a58c9dbe30a1619204a0036f5d9c4817bb1f0e5b2",
+    "docs/images/trainer-models-2026-11-13/before2-threequarter.jpg": "3026cf2b9d17494e8e19b2bcfbaf42e64eae1b8364a83af417c88b4dac87b252",
+    "docs/images/trainer-models-2026-11-13/live-brawler.jpg": "2683730049bf8d1d17bb51a0c40460c88c634974800a152eaa9b0a2beab1ef24",
+    "docs/images/trainer-models-2026-11-13/live-elite.jpg": "20c04c113cc97150d68edf13ab43097aa95115969efd8029f357241d3978cacb",
+    "docs/images/trainer-models-2026-11-13/live-rookie.jpg": "aae7d35a2e085066e3e156eb67a50386ad77a3e2437c56e716c865d155444fa7",
+    "build/trainer-model-preview.luau": "e77a976f43a9cc41edcd2d649753085e4c99dd6c03d1cac390a6a12b6e51bdf9",
+    "build/trainer_gallery_capture.py": "af0d5be1c431d577f68c1916f13abc37dbd282541c7cc85ce9409b2c4788b9f6",
+    "build/trainer_live_capture.py": "484fe160967b81a351df91fc4fc98a03119603e5bbf6307a83b4c0abbb4cffca",
+    "build/trainer-model-review.diff": "b202b00f9e9624a1f65ecf64bfd1123419b0146d83479a4e5206eaabd402e1dc",
+    "build/trainer-models-final2.json": "ff710ca3860580ebe3733084d0583ab2d70adc59e3390821ae17c37dc0e716f8",
+    "build/trainer-models-final2.cbec1eac545347fb8fa8de519b787d11.log": "7f4fa689dddaf131d67953869c9746b26ffdcc86fbed89f90919e8c8edd82880",
+    "build/trainer-model-after3/process-close.json": "ea8a087bca74d01d10b284d2c3bd8be0ba4f90c7b76361f01c01e143a0fc52fa"
+  },
+  "limits": [
+    "No multiplayer/combat/device/FPS proof",
+    "No real microphone or live DataStore/publication",
+    "Eight added Parts and eight welds per trainer; no zero-cost claim",
+    "Pre-existing hair/headphone geometry unchanged",
+    "Initial Fabric look rejected; final SmoothPlastic only",
+    "Initial clone Humanoids changed collision flags; corrected display clones remove controllers and all final records show zero unsafe parts",
+    "Studio MCP resets camera after execute_luau; explicit supported screenshot camera used",
+    "Player custom-tag prototype is separate and production player name/health displays unchanged"
+  ]
+}

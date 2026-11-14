@@ -1,0 +1,63 @@
+{
+  "base_commit": "e977040ed6656948f2cff920ab102f1009ec705c",
+  "recorded_at_utc": "2026-11-11T19:48:13.635306+00:00",
+  "scope": "server account voice eligibility; not authentic microphone or power",
+  "source_hash_semantics": "exact tested working-tree bytes; repository checkout line endings may differ",
+  "source_sha256": {
+    "src/ServerScriptService/VoiceEligibility.luau": "1b96357004321e966e6497f61e676653c2719cae9aca49f8c34b9a1a80cedbe5",
+    "src/ServerScriptService/Bootstrap.server.luau": "3ce9f67b8718d9618aa26cc5e2ab3862508fe8dba63161679116213f2e9a13cf",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "ee87cda335306051facede0313ebcbeaf9849655c0d4b5d8e242ad23a6448904",
+    "tests/voice_eligibility.py": "61f64fa42737f3a276a55068c9a85250f9cfe160c9fcbe8e0844ad9fc6373a3c",
+    "tests/verify_local.py": "22a036bd071d6fec5bd99c8d6dc23a6ae8629a211d40f9ac2ebd02c6e5cc7860",
+    "tests/combat_availability.py": "91f472752f42df268805a33229fb061b24817dd97690c290445fecfe47e0f1ea",
+    "tests/voice_toggle.py": "1ba7ee5f18336c4c6c555d7f4399c10644e00984338d2733b1a9ce65969e4333",
+    "tests/action_feedback.py": "53d3d52b27538e95ea3edd6d7da82c4cb8b9aaa9af8ec2b1115b4a0b502522aa",
+    "tests/save_notification_priority.py": "a001ee383dba17413e143111b8ab9c90d29df40ad708b6a1e0c0d95c4eee7571",
+    "tests/voice_notice_lifecycle.py": "16eacc5e5c058c6de51abd710b1f3e1f451aa03531732ff57b05231162603245"
+  },
+  "artifact_sha256": {
+    "build/AutomaticVoiceCandidate.rbxl": "bdc5e780467cf63c5bfbc720dd1cd4fb485326925edca086b130d131ba51a537",
+    "build/AutomaticVoiceCandidate.provenance.json": "7bfc1a84a0b79ab207342616b1e4097a4b63829272a38203ce26b75e616f8b40",
+    "build/SustainedLocalPlay.rbxl": "1b10ad5913afbaa58e3f7340440bf2d177bfd1f8045880128db3aa847e3fb338",
+    "build/voice-eligibility-final.log": "c6bd3681dc46c0ee8c0e2ca03bd037c5878b2bdc1462ae65524596391c461e45",
+    "build/voice-eligibility-baseline.log": "53f7a3c3d7536e4a3064f232fa5dfbb65005cf73b1f40a69bb8d7ec765079866"
+  },
+  "focused": {
+    "assertions": 117,
+    "negative_controls": 13,
+    "source_contracts": 4,
+    "independently_rerun": true
+  },
+  "aggregate": {
+    "pure_synthetic_suites": 25,
+    "mocked_suites": 83,
+    "production_compiles": 60,
+    "all_builds_pass": true
+  },
+  "commands": [
+    "python tests/voice_eligibility.py --baseline",
+    "python tests/voice_eligibility.py",
+    "python tests/verify_local.py --build"
+  ],
+  "baseline": "actual dispatcher/canCapture accepted spoofed MicReady true, automatic3 synthetic damage and legacy release; no eligibility evidence",
+  "review_corrections": [
+    "separate beam gate from movement",
+    "process every State loss before assignment",
+    "execute callback invocation in test; remove-invocation control",
+    "actual cache-expiry cancellation and separate post-yield mutation"
+  ],
+  "limitations": [
+    "synthetic transport/API/clock and mocked geometry",
+    "no native service call, real microphone, network, physical input or UI fit",
+    "client power remains spoofable by eligible clients",
+    "positive status cached120s; refresh60s; not continuous verification",
+    "8s acceptance timeout does not cancel underlying call; no overlap per session",
+    "denied/exhausted failures require rejoin",
+    "strict disposable fixture bypass cannot validate real service",
+    "map paused; no publication/live stores/apps"
+  ],
+  "prior_failed_runs": [
+    "parallel temporary file discovery race; fixed reserved tmp prefix filtering",
+    "old notification fixture dependency missing before adaptation; final aggregate passed"
+  ]
+}

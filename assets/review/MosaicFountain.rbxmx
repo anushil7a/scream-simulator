@@ -1,0 +1,140 @@
+<?xml version='1.0' encoding='utf-8'?>
+<roblox version="4">
+  <Item class="Model" referent="Fountain">
+    <Properties>
+      <string name="Name">MosaicFountainReview</string>
+    </Properties>
+    <Item class="MeshPart" referent="Mesh0">
+      <Properties>
+        <string name="Name">basin_geom</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <Content name="MeshId">
+          <url>rbxassetid://103166964215779</url>
+        </Content>
+        <Content name="TextureID">
+          <url>rbxassetid://82765873112510</url>
+        </Content>
+        <Vector3 name="Size">
+          <X>14.113134384155273</X>
+          <Y>2.7753939628601074</Y>
+          <Z>14.124679565429688</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>14.113134384155273</X>
+          <Y>2.7753939628601074</Y>
+          <Z>14.124679565429688</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0</X>
+          <Y>1.3876965045928955</Y>
+          <Z>0</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <Color3 name="Color">
+          <R>0.6392157077789307</R>
+          <G>0.6352941393852234</G>
+          <B>0.6470588445663452</B>
+        </Color3>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="Mesh1">
+      <Properties>
+        <string name="Name">pedestal_geom</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <Content name="MeshId">
+          <url>rbxassetid://107051600752930</url>
+        </Content>
+        <Content name="TextureID">
+          <url>rbxassetid://139740124241106</url>
+        </Content>
+        <Vector3 name="Size">
+          <X>3.41549015045166</X>
+          <Y>7.268184661865234</Y>
+          <Z>3.407114028930664</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>3.41549015045166</X>
+          <Y>7.268184661865234</Y>
+          <Z>3.407114028930664</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>0.0022333860397338867</X>
+          <Y>4.513917922973633</Y>
+          <Z>0.008107185363769531</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <Color3 name="Color">
+          <R>0.6392157077789307</R>
+          <G>0.6352941393852234</G>
+          <B>0.6470588445663452</B>
+        </Color3>
+      </Properties>
+    </Item>
+    <Item class="MeshPart" referent="Mesh2">
+      <Properties>
+        <string name="Name">bowl_geom</string>
+        <bool name="Anchored">true</bool>
+        <bool name="CanCollide">false</bool>
+        <bool name="CanTouch">false</bool>
+        <bool name="CanQuery">false</bool>
+        <Content name="MeshId">
+          <url>rbxassetid://95455806342406</url>
+        </Content>
+        <Content name="TextureID">
+          <url>rbxassetid://110660724238333</url>
+        </Content>
+        <Vector3 name="Size">
+          <X>6.684657573699951</X>
+          <Y>2.076415777206421</Y>
+          <Z>6.618218421936035</Z>
+        </Vector3>
+        <Vector3 name="InitialSize">
+          <X>6.684657573699951</X>
+          <Y>2.076415777206421</Y>
+          <Z>6.618218421936035</Z>
+        </Vector3>
+        <CoordinateFrame name="CFrame">
+          <X>-0.010014772415161133</X>
+          <Y>8.9617919921875</Y>
+          <Z>0.0019526481628417969</Z>
+          <R00>1</R00>
+          <R01>0</R01>
+          <R02>0</R02>
+          <R10>0</R10>
+          <R11>1</R11>
+          <R12>0</R12>
+          <R20>0</R20>
+          <R21>0</R21>
+          <R22>1</R22>
+        </CoordinateFrame>
+        <Color3 name="Color">
+          <R>0.6392157077789307</R>
+          <G>0.6352941393852234</G>
+          <B>0.6470588445663452</B>
+        </Color3>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>

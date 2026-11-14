@@ -1,0 +1,74 @@
+{
+  "base": "72c886cb6f8a60ab26dff962e28da77e4b2d4609",
+  "status": "separate geometry draft; original gameplay/default unchanged; not published",
+  "preservation": {
+    "files": 59,
+    "productionCompiles": 57,
+    "zipSha256": "a67c1e1af4f1cf4387a1bd0cb61a8ce84986290f10913e164fc8719c8877b19a",
+    "guardedArtifacts": {
+      "productionScriptCount": 57,
+      "normalSourceAudit": "passed; audit build not retained",
+      "guardedSourceAudit": "passed",
+      "guardPrefixSha256": "68d65b4052155710832e30edf29b5f11d98da694013bceb61e1033512d6229ea",
+      "nativeExecution": false,
+      "artifacts": {
+        "OriginalCity-LOCAL-ONLY.rbxlx": "17e461e8d6c70a5a7d9ec285d344a5a28f7a75c0ea837d699855de89a18a184c",
+        "OriginalCity-LOCAL-ONLY.rbxl": "f55e4329ec58309170b9eb3b57b929d5c3ed04e32f32d48e6429047f189f8917"
+      }
+    },
+    "verified": "exact archive extraction plus Git blobs and source audits, independently reviewed",
+    "windowsAutocrlfRoundTrip": {
+      "hashSensitiveFiles": 5,
+      "passed": true
+    },
+    "scope": "repository-generated city, not live/unsaved Studio or external assets"
+  },
+  "geometry": {
+    "width": 720,
+    "depth": 600,
+    "originalWidth": 1440,
+    "originalDepth": 1200,
+    "footprintReduction": 0.75,
+    "parts": 146,
+    "anchors": 17,
+    "routes": 10,
+    "practiceTargetCenterDistance": 11.208925015361643,
+    "minimumNominalStarterRange": 12
+  },
+  "tests": {
+    "staticAndGenerated": 2747,
+    "builtArtifact": 993,
+    "negativeControls": 9,
+    "protectedSourceFiles": 59,
+    "fullPureSynthetic": 25,
+    "fullMocked": 73,
+    "productionCompiles": 57,
+    "builds": "all candidate/disposable and compact draft passed"
+  },
+  "independentReview": "cleared final range correction, artifacts/source isolation and preservation; no blocker",
+  "compactBuild": {
+    "status": "built/compiled only; native geometry/input untested; never publish",
+    "preservedCommit": "72c886cb6f8a60ab26dff962e28da77e4b2d4609",
+    "preservedZipSha256": "a67c1e1af4f1cf4387a1bd0cb61a8ce84986290f10913e164fc8719c8877b19a",
+    "sourceHashes": {
+      "compact-city-draft.project.json": "2895214e4ece64fc3d6c2e480be656896e166d2efa973ede8091a706663e7a79",
+      "prototypes\\compact-city\\layout.json": "f637f72310c319351915c2734a574ce38adaf3dbc57de2fae4b3d842ee505a40",
+      "prototypes\\compact-city\\CompactCity.rbxmx": "d2b79bf338130332e14508214644cd6bb22ee6205e3b33888f2d9876b87d1cf0",
+      "prototypes\\compact-city\\DraftNotice.rbxmx": "58a93a0f908b03e1bde7d510aab15f31f05205e91f1872e5b928fc2ced84784e",
+      "prototypes\\compact-city\\DraftGuard.server.luau": "d4c58ebdd6f0fcbacd6221510af5f1d2c4132b94a91684d8e01117e22a807037",
+      "tools\\build_compact_city_draft.py": "5fea0f73689d7cb11880c6f027a1702e765b84bf26f9d316e14007d6d0a5c918"
+    },
+    "artifacts": {
+      "CompactCityDraft.rbxl": "7ef4da7890172e55da0d9fa4d1559b2588377f9da22e3d7c5e5c51bae78f5f9d",
+      "CompactCityDraft.rbxlx": "41bf7bd7fc77cc6553f807668957291070e0604cfc5ce3cca08447c8eb1f4f9e"
+    }
+  },
+  "limitations": [
+    "no native Studio execution or collision/pathfinding proof",
+    "no beam/trainer/quest/minimap/save/commerce integration in compact draft",
+    "timed quest difficulty and sports dimensions require design/integration checks",
+    "old map remains current default",
+    "draft is not a live/unsaved Studio backup"
+  ],
+  "cleanup": "no apps opened; three prior inaccessible minimized dialogs unchanged"
+}

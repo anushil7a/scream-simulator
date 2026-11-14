@@ -1,0 +1,37 @@
+{
+  "nativeExecuted": false,
+  "sourceHashes": {
+    "Fixture": "b58a7c09d0ad91b61c3c1c9a7f5605c241cdf2ce35c7feb4b1b565f819b2fe9a",
+    "BeamVisuals": "89ff773cebcb2d3a5876a6d70e3bc561d3a7573c12119232a5cce950a08eccda",
+    "SustainedBeams": "f540efde768105a226c89e556a0231829e1314e71e6688928e2bfe01df8ced40",
+    "ClientCadence": "e7e1d91415227fb5bc29d80ff726b84059611b87bc4672476ffc9157b38d20b8",
+    "BeamStyle": "7d04942802ed56fb09d18002e7a11dc02275783021fc06285433d61599ad58d2"
+  },
+  "artifactSha256": "bcd58b2b7f0f6b6ae8f31cc4627cb9517db4833c60cfbfeef34a03b13624b44a",
+  "scope": "Studio-only client visuals; frame intervals/script durations, not GPU, phone or network measurements",
+  "dateUtc": "2026-11-12",
+  "baseCommit": "4c23fce57968e0538871d0f8863f43ec779d4426",
+  "cleanupMockAssertions": 264,
+  "independentReview": {
+    "result": "CLEARED_TEST_ONLY",
+    "cleanupAssertions": 264,
+    "rejectionControls": 5,
+    "allManifestHashesRecomputed": true,
+    "nativeRerun": false
+  },
+  "nativeBlocker": "Studio presents native Roblox sign-in before a place is opened",
+  "commands": [
+    "python tests/beam_performance_cleanup.py",
+    "python tests/build_beam_performance_review.py"
+  ],
+  "limits": [
+    "No native measurements yet",
+    "Studio timing is not GPU timing, device or multiplayer validation",
+    "Saved quality preference is not controlled renderer quality",
+    "No production, server combat, audio or persistence changes"
+  ],
+  "buildIdentity": "4a9e9b5d43e3efb29746857f9b33e021ff49a8e89831da330c930817dbf2bd7a",
+  "builderSha256": "0dd5a545fc4cc284c8be7a07455ce8acbeaa75239b0289ca226111a727f4535f",
+  "generatedFixtureSha256": "91fa31cc75cce274f6d2c758690ac56c1c9e49765e228ceced55952815eebae8",
+  "rejectionControls": 5
+}

@@ -1,0 +1,55 @@
+{
+  "name": "CompactCityDraft_DO_NOT_PUBLISH",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "CompactCity": {
+        "$path": "prototypes/compact-city/CompactCity.rbxmx"
+      },
+      "$properties": {
+        "Gravity": 196.2
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "DraftGuard": {
+        "$path": "prototypes/compact-city/DraftGuard.server.luau"
+      }
+    },
+    "StarterGui": {
+      "$className": "StarterGui",
+      "DraftNotice": {
+        "$path": "prototypes/compact-city/DraftNotice.rbxmx"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "$properties": {
+        "CameraMode": "Classic",
+        "CameraMinZoomDistance": 6
+      }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "ClockTime": 14,
+        "Brightness": 2,
+        "Ambient": {
+          "Color3": [
+            0.45,
+            0.45,
+            0.45
+          ]
+        },
+        "OutdoorAmbient": {
+          "Color3": [
+            0.6,
+            0.6,
+            0.6
+          ]
+        }
+      }
+    }
+  }
+}

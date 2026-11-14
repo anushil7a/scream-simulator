@@ -1,0 +1,46 @@
+{
+  "checked_at_utc": "2026-11-11T16:05:36.610797+00:00",
+  "base_commit": "4e37a4480c7bffd79884b31369fe4cd6a9900df8",
+  "source_sha256": {
+    "src/ServerScriptService/DeveloperAccess.luau": "10f98faa55fdf0ee709e65dea43c48560b013242cc23d5e9c3c3202657b82dc7",
+    "src/ServerScriptService/Bootstrap.server.luau": "89bf1414c13f5133db5e0852dbd646ceefe2e26086f7d7ff519ab5e7177861de",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "6062dafb64221dd901a0c05c8a00c469cdb103293db9bde70517da3d2c1c5d75",
+    "tests/developer_tools.py": "a1680c422449d2fe3f74d240d482cae92fda56020d9a49bec2563dd121c53368",
+    "tests/developer_tools_ui.py": "50abefd7848b4ee160019131fc800b7d994858b4241b29541dd10d41c7d67a35"
+  },
+  "native_executed": false,
+  "live_datastore_or_purchase": false,
+  "published": false,
+  "map_changed": false,
+  "checks": {
+    "pure_suites": 25,
+    "mocked_suites": 64,
+    "production_compiles": 57,
+    "builds": "all passed",
+    "developer_assertions": 94,
+    "ui_assertions": 61,
+    "negative_controls": 7,
+    "source_contracts": "three session baseline selections, separate late-load release, server visibility context"
+  },
+  "independent_review": {
+    "status": "clear",
+    "independently_rerun": [
+      "94 developer assertions and4 controls",
+      "61 UI assertions and3 controls",
+      "git diff --check"
+    ],
+    "limits": "no native RemoteEvent/device or live-save validation"
+  },
+  "limits": [
+    "synthetic engine/UI/store only",
+    "native button input and touch readability not rerun",
+    "live persistence not tested",
+    "minimap not implemented",
+    "dodge reference not visually inspected"
+  ],
+  "baseline_failures": [
+    "Missing +10 command",
+    "Public live tools exposed",
+    "Missing +10 test-level control"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "ScreamMicLab",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Shared": {
+        "$className": "Folder",
+        "MicPower": {
+          "$path": "src/ReplicatedStorage/Shared/MicPower.luau"
+        },
+        "VoiceCombat": {
+          "$path": "src/ReplicatedStorage/Shared/VoiceCombat.luau"
+        }
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "MicLab": {
+        "$path": "prototypes/microphone/Server.server.luau"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "MicLab": {
+          "$path": "prototypes/microphone/Client.client.luau"
+        },
+        "Microphone": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/Microphone.luau"
+        }
+      }
+    },
+    "VoiceChatService": {
+      "$className": "VoiceChatService",
+      "$properties": {
+        "UseAudioApi": "Enabled",
+        "EnableDefaultVoice": true
+      }
+    }
+  }
+}

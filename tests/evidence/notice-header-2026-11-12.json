@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-12",
+  "baseCommit": "ffb53a50815a924dec986f380b0db7e953555737",
+  "productionChanged": [
+    "src/StarterPlayer/StarterPlayerScripts/NoticeView.luau"
+  ],
+  "focused": {
+    "command": "python tests/notice_view.py --negative-controls",
+    "assertions": 615,
+    "negativeControls": 19,
+    "sourceContracts": 3,
+    "independentlyRerun": true
+  },
+  "historicalBaseline": "Actual previous module fails new header-parent assertion; mocked metrics, not native incident",
+  "full": {
+    "command": "python tests/verify_local.py --build",
+    "pureSynthetic": 25,
+    "mocked": 104,
+    "productionCompiles": 63,
+    "builds": "passed"
+  },
+  "sha256": {
+    "src/StarterPlayer/StarterPlayerScripts/NoticeView.luau": "0bb66505dd2ebf90ed2d40f09679c60eac372f271abf8ac3bba6c5eb2bd58417",
+    "tests/notice_view.py": "ece330d883a1d3489bf64bcae8d1dac67968bac2ae955629547d1f2ee6568376",
+    "tests/build_notice_layout_review.py": "4d648087d2f6b7155fbe1262d113ed0182ecd228c8622b762af5f4aae396b57c",
+    "build/NoticeLayoutReview.rbxl": "b71b3d8e3352572c9195ef8606277d871694acecc35317a0f24eefaba23aeeb3",
+    "build/NoticeLayoutReview.client.luau": "f159ce4559f9b93c5e1344045748f5aa543736d95e07f061d9416db422f40886",
+    "build/notice-header-focused.log": "80387863a232faf213fe0d8e0b1cd6371581cdfbf1fb6758050d6440955dd0cc",
+    "build/notice-header-full.log": "3607c74e1d64d6a35206d8d877aa16d4bb9b07e297edc4560514dbc545e786e7"
+  },
+  "nativeExecuted": false,
+  "limitations": [
+    "Conservative metric shrink is source-reviewed, not explicitly exercised",
+    "Preferred text rendering and physical input not validated",
+    "Keyboard/gamepad selection and scroll completion unverified",
+    "Programmatic scroll is not physical touch",
+    "No live services, purchases or publication"
+  ],
+  "delivery": "Local checkpoint; push blocked, last verified remote0004c77"
+}

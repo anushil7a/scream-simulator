@@ -1,0 +1,384 @@
+{
+  "task": "requested-upper-level-sustained-damage-tuning",
+  "baseCommit": "09e099698441b5f66edfc06d26468839e80e3f9d",
+  "review": "Independent Astra exact-diff and actual-path rerun cleared; tuning, not live symptom diagnosis",
+  "measurement": {
+    "scope": "Actual server context/resolver/step and real adapter/protocol/geometry rules; synthetic .1s server observations and .125s pulse delivery, no latency, fixed target. Config arena bounds and InArena extracted; sound unlock and eligibility service mocked. Credit/rewards and eject side effects stubbed; no live/native/microphone claim. Repeated-cast rows include five-second cooldown, exclude human quiet/rearm delay. Healing12s quiet exceeds5s cooldown, so omitted healing loop cannot affect these continuously-hit rows. Pulse-before-step at exact4s expires before final damage tick; other engine event ordering can affect repeated-cast totals, not primary primary result.",
+    "stdout": "ROW 1 1 1.00 clear 12.000 2 0.0 1 0.2:3,0.4:3,0.6:3,0.8:3,1.0:3,1.2:3,1.4:3,1.6:3,1.8:3,2.0:3,2.2:3,2.4:3,2.6:3,2.8:3,3.0:3,3.2:3,3.4:3,3.6:3,3.8:3,9.2:3,9.4:3,9.6:3,9.8:3,10.0:3,10.2:3,10.4:3,10.6:3,10.8:3,11.0:3,11.2:3,11.4:3,11.6:3,11.8:3,12.0:1\nROW 1 1 0.50 clear 19.800 3 0.0 1 0.2:2,0.4:2,0.6:2,0.8:2,1.0:2,1.2:3,1.4:2,1.6:2,1.8:2,2.0:2,2.2:2,2.4:3,2.6:2,2.8:2,3.0:2,3.2:2,3.4:2,3.6:3,3.8:2,9.2:2,9.4:2,9.6:2,9.8:2,10.0:2,10.2:3,10.4:2,10.6:2,10.8:2,11.0:2,11.2:2,11.4:3,11.6:2,11.8:2,12.0:2,12.2:2,12.4:2,12.6:3,12.8:2,18.2:2,18.4:2,18.6:2,18.8:2,19.0:2,19.2:3,19.4:2,19.6:2,19.8:1\nROW 1 1 0.08 clear 29.200 4 0.0 1 0.2:1,0.4:1,0.6:2,0.8:1,1.0:2,1.2:1,1.4:2,1.6:1,1.8:2,2.0:1,2.2:2,2.4:1,2.6:2,2.8:1,3.0:2,3.2:1,3.4:2,3.6:1,3.8:2,9.2:1,9.4:1,9.6:2,9.8:1,10.0:2,10.2:1,10.4:2,10.6:1,10.8:2,11.0:1,11.2:2,11.4:1,11.6:2,11.8:1,12.0:2,12.2:1,12.4:2,12.6:1,12.8:2,18.2:1,18.4:1,18.6:2,18.8:1,19.0:2,19.2:1,19.4:2,19.6:1,19.8:2,20.0:1,20.2:2,20.4:1,20.6:2,20.8:1,21.0:2,21.2:1,21.4:2,21.6:1,21.8:2,27.2:1,27.4:1,27.6:2,27.8:1,28.0:2,28.2:1,28.4:2,28.6:1,28.8:2,29.0:1,29.2:2\nROW 25 1 1.00 clear 9.600 2 0.0 1 0.2:4,0.4:5,0.6:4,0.8:5,1.0:5,1.2:4,1.4:5,1.6:4,1.8:5,2.0:5,2.2:4,2.4:5,2.6:4,2.8:5,3.0:5,3.2:4,3.4:5,3.6:4,3.8:5,9.2:4,9.4:5,9.6:4\nROW 25 1 0.50 clear 11.400 2 0.0 1 0.2:3,0.4:3,0.6:4,0.8:3,1.0:3,1.2:4,1.4:3,1.6:3,1.8:4,2.0:3,2.2:3,2.4:4,2.6:3,2.8:3,3.0:4,3.2:3,3.4:3,3.6:4,3.8:3,9.2:3,9.4:3,9.6:4,9.8:3,10.0:3,10.2:4,10.4:3,10.6:3,10.8:4,11.0:3,11.2:3,11.4:1\nROW 25 1 0.08 clear 19.400 3 0.0 1 0.2:2,0.4:2,0.6:2,0.8:3,1.0:2,1.2:2,1.4:2,1.6:3,1.8:2,2.0:2,2.2:2,2.4:3,2.6:2,2.8:2,3.0:3,3.2:2,3.4:2,3.6:2,3.8:3,9.2:2,9.4:2,9.6:2,9.8:3,10.0:2,10.2:2,10.4:2,10.6:3,10.8:2,11.0:2,11.2:2,11.4:3,11.6:2,11.8:2,12.0:3,12.2:2,12.4:2,12.6:2,12.8:3,18.2:2,18.4:2,18.6:2,18.8:3,19.0:2,19.2:2,19.4:1\nROW 50 1 1.00 clear 3.000 1 0.0 1 0.2:6,0.4:7,0.6:7,0.8:7,1.0:7,1.2:6,1.4:7,1.6:7,1.8:7,2.0:7,2.2:6,2.4:7,2.6:7,2.8:7,3.0:5\nROW 50 1 0.50 clear 9.400 2 0.0 1 0.2:4,0.4:5,0.6:5,0.8:5,1.0:5,1.2:5,1.4:5,1.6:5,1.8:5,2.0:5,2.2:5,2.4:5,2.6:5,2.8:5,3.0:4,3.2:5,3.4:5,3.6:5,3.8:5,9.2:4,9.4:3\nROW 50 1 0.08 clear 11.400 2 0.0 1 0.2:3,0.4:3,0.6:4,0.8:3,1.0:3,1.2:4,1.4:3,1.6:3,1.8:4,2.0:3,2.2:3,2.4:4,2.6:3,2.8:4,3.0:3,3.2:3,3.4:4,3.6:3,3.8:3,9.2:3,9.4:3,9.6:4,9.8:3,10.0:3,10.2:4,10.4:3,10.6:3,10.8:4,11.0:3,11.2:3,11.4:1\nROW 75 1 1.00 clear 2.200 1 0.0 1 0.2:9,0.4:10,0.6:10,0.8:10,1.0:10,1.2:9,1.4:10,1.6:10,1.8:10,2.0:10,2.2:2\nROW 75 1 0.50 clear 3.000 1 0.0 1 0.2:7,0.4:7,0.6:7,0.8:7,1.0:7,1.2:7,1.4:7,1.6:7,1.8:7,2.0:8,2.2:7,2.4:7,2.6:7,2.8:7,3.0:1\nROW 75 1 0.08 clear 9.400 2 0.0 1 0.2:4,0.4:5,0.6:5,0.8:5,1.0:5,1.2:5,1.4:4,1.6:5,1.8:5,2.0:5,2.2:5,2.4:5,2.6:4,2.8:5,3.0:5,3.2:5,3.4:5,3.6:5,3.8:4,9.2:4,9.4:5\nROW 100 1 1.00 clear 1.000 1 0.0 1 0.2:22,0.4:22,0.6:22,0.8:22,1.0:12\nROW 100 1 0.50 clear 1.400 1 0.0 1 0.2:15,0.4:16,0.6:16,0.8:16,1.0:16,1.2:16,1.4:5\nROW 100 1 0.08 clear 2.000 1 0.0 1 0.2:10,0.4:11,0.6:11,0.8:11,1.0:11,1.2:11,1.4:11,1.6:10,1.8:11,2.0:3\nROW 100 1 1.00 clear 1.000 1 0.0 1 0.2:22,0.4:22,0.6:22,0.8:22,1.0:12\nROW 100 25 1.00 clear 1.400 1 0.0 1 0.2:22,0.4:22,0.6:22,0.8:22,1.0:22,1.2:22,1.4:18\nROW 100 50 1.00 clear 2.200 1 0.0 1 0.2:22,0.4:22,0.6:22,0.8:22,1.0:22,1.2:22,1.4:22,1.6:22,1.8:22,2.0:22,2.2:5\nROW 100 75 1.00 clear 3.000 1 0.0 1 0.2:22,0.4:22,0.6:22,0.8:22,1.0:22,1.2:22,1.4:22,1.6:22,1.8:22,2.0:22,2.2:22,2.4:22,2.6:22,2.8:22,3.0:17\nROW 100 100 1.00 clear 9.400 2 0.0 1 0.2:22,0.4:22,0.6:22,0.8:22,1.0:22,1.2:22,1.4:22,1.6:22,1.8:22,2.0:22,2.2:22,2.4:22,2.6:22,2.8:22,3.0:22,3.2:22,3.4:22,3.6:22,3.8:22,9.2:22,9.4:10\nROW 100 1 1.00 cover -1.000 1 100.0 0 \nROW 100 1 1.00 range -1.000 1 100.0 0 \nROW 100 1 1.00 safe -1.000 1 100.0 0 \nROW 100 1 1.00 protected -1.000 1 100.0 0 \nROW 100 1 1.00 dodge -1.000 1 100.0 0 \nROW 100 1 1.00 attackerProtected -1.000 0 100.0 0 \nROW 100 1 1.00 notEligible -1.000 0 100.0 0 \nROW 100 1 1.00 timeout -1.000 1 56.0 0 0.2:22,0.4:22\nROW 100 1 1.00 mixedMode -1.000 1 100.0 0 \nROW 100 1 1.00 bothTest 1.000 1 0.0 1 0.2:22,0.4:22,0.6:22,0.8:22,1.0:12\nROW 100 1 1.00 capturedLevel 1.000 1 0.0 1 0.2:22,0.4:22,0.6:22,0.8:22,1.0:12\nTRAINER rookie 1 0.8 1\nTRAINER rookie 0.5 1.2000000000000002 1\nTRAINER rookie 0.08 1.6 1\nTRAINER brawler 1 2 1\nTRAINER brawler 0.5 2.8000000000000003 1\nTRAINER brawler 0.08 9.4 2\nTRAINER elite 1 9.200000000000001 2\nTRAINER elite 0.5 10.600000000000001 2\nTRAINER elite 0.08 18.2 3\nSWEEP 921 powers x4 phases worst 2.025\nOFFGRID .0375 phase 2.0375\nFINE minimum-power100 phases .001 spacing worst 2.04 phase 0.04\nPASS 7618 actual authority-path TTK/guard assertions; synthetic scheduling, geometry and humanoid endpoint\n",
+    "rows": [
+      {
+        "attackerLevel": 1,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "clear",
+        "koSeconds": 12.0,
+        "casts": 2,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:3,0.4:3,0.6:3,0.8:3,1.0:3,1.2:3,1.4:3,1.6:3,1.8:3,2.0:3,2.2:3,2.4:3,2.6:3,2.8:3,3.0:3,3.2:3,3.4:3,3.6:3,3.8:3,9.2:3,9.4:3,9.6:3,9.8:3,10.0:3,10.2:3,10.4:3,10.6:3,10.8:3,11.0:3,11.2:3,11.4:3,11.6:3,11.8:3,12.0:1"
+      },
+      {
+        "attackerLevel": 1,
+        "victimLevel": 1,
+        "power": 0.5,
+        "condition": "clear",
+        "koSeconds": 19.8,
+        "casts": 3,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:2,0.4:2,0.6:2,0.8:2,1.0:2,1.2:3,1.4:2,1.6:2,1.8:2,2.0:2,2.2:2,2.4:3,2.6:2,2.8:2,3.0:2,3.2:2,3.4:2,3.6:3,3.8:2,9.2:2,9.4:2,9.6:2,9.8:2,10.0:2,10.2:3,10.4:2,10.6:2,10.8:2,11.0:2,11.2:2,11.4:3,11.6:2,11.8:2,12.0:2,12.2:2,12.4:2,12.6:3,12.8:2,18.2:2,18.4:2,18.6:2,18.8:2,19.0:2,19.2:3,19.4:2,19.6:2,19.8:1"
+      },
+      {
+        "attackerLevel": 1,
+        "victimLevel": 1,
+        "power": 0.08,
+        "condition": "clear",
+        "koSeconds": 29.2,
+        "casts": 4,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:1,0.4:1,0.6:2,0.8:1,1.0:2,1.2:1,1.4:2,1.6:1,1.8:2,2.0:1,2.2:2,2.4:1,2.6:2,2.8:1,3.0:2,3.2:1,3.4:2,3.6:1,3.8:2,9.2:1,9.4:1,9.6:2,9.8:1,10.0:2,10.2:1,10.4:2,10.6:1,10.8:2,11.0:1,11.2:2,11.4:1,11.6:2,11.8:1,12.0:2,12.2:1,12.4:2,12.6:1,12.8:2,18.2:1,18.4:1,18.6:2,18.8:1,19.0:2,19.2:1,19.4:2,19.6:1,19.8:2,20.0:1,20.2:2,20.4:1,20.6:2,20.8:1,21.0:2,21.2:1,21.4:2,21.6:1,21.8:2,27.2:1,27.4:1,27.6:2,27.8:1,28.0:2,28.2:1,28.4:2,28.6:1,28.8:2,29.0:1,29.2:2"
+      },
+      {
+        "attackerLevel": 25,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "clear",
+        "koSeconds": 9.6,
+        "casts": 2,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:4,0.4:5,0.6:4,0.8:5,1.0:5,1.2:4,1.4:5,1.6:4,1.8:5,2.0:5,2.2:4,2.4:5,2.6:4,2.8:5,3.0:5,3.2:4,3.4:5,3.6:4,3.8:5,9.2:4,9.4:5,9.6:4"
+      },
+      {
+        "attackerLevel": 25,
+        "victimLevel": 1,
+        "power": 0.5,
+        "condition": "clear",
+        "koSeconds": 11.4,
+        "casts": 2,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:3,0.4:3,0.6:4,0.8:3,1.0:3,1.2:4,1.4:3,1.6:3,1.8:4,2.0:3,2.2:3,2.4:4,2.6:3,2.8:3,3.0:4,3.2:3,3.4:3,3.6:4,3.8:3,9.2:3,9.4:3,9.6:4,9.8:3,10.0:3,10.2:4,10.4:3,10.6:3,10.8:4,11.0:3,11.2:3,11.4:1"
+      },
+      {
+        "attackerLevel": 25,
+        "victimLevel": 1,
+        "power": 0.08,
+        "condition": "clear",
+        "koSeconds": 19.4,
+        "casts": 3,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:2,0.4:2,0.6:2,0.8:3,1.0:2,1.2:2,1.4:2,1.6:3,1.8:2,2.0:2,2.2:2,2.4:3,2.6:2,2.8:2,3.0:3,3.2:2,3.4:2,3.6:2,3.8:3,9.2:2,9.4:2,9.6:2,9.8:3,10.0:2,10.2:2,10.4:2,10.6:3,10.8:2,11.0:2,11.2:2,11.4:3,11.6:2,11.8:2,12.0:3,12.2:2,12.4:2,12.6:2,12.8:3,18.2:2,18.4:2,18.6:2,18.8:3,19.0:2,19.2:2,19.4:1"
+      },
+      {
+        "attackerLevel": 50,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "clear",
+        "koSeconds": 3.0,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:6,0.4:7,0.6:7,0.8:7,1.0:7,1.2:6,1.4:7,1.6:7,1.8:7,2.0:7,2.2:6,2.4:7,2.6:7,2.8:7,3.0:5"
+      },
+      {
+        "attackerLevel": 50,
+        "victimLevel": 1,
+        "power": 0.5,
+        "condition": "clear",
+        "koSeconds": 9.4,
+        "casts": 2,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:4,0.4:5,0.6:5,0.8:5,1.0:5,1.2:5,1.4:5,1.6:5,1.8:5,2.0:5,2.2:5,2.4:5,2.6:5,2.8:5,3.0:4,3.2:5,3.4:5,3.6:5,3.8:5,9.2:4,9.4:3"
+      },
+      {
+        "attackerLevel": 50,
+        "victimLevel": 1,
+        "power": 0.08,
+        "condition": "clear",
+        "koSeconds": 11.4,
+        "casts": 2,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:3,0.4:3,0.6:4,0.8:3,1.0:3,1.2:4,1.4:3,1.6:3,1.8:4,2.0:3,2.2:3,2.4:4,2.6:3,2.8:4,3.0:3,3.2:3,3.4:4,3.6:3,3.8:3,9.2:3,9.4:3,9.6:4,9.8:3,10.0:3,10.2:4,10.4:3,10.6:3,10.8:4,11.0:3,11.2:3,11.4:1"
+      },
+      {
+        "attackerLevel": 75,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "clear",
+        "koSeconds": 2.2,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:9,0.4:10,0.6:10,0.8:10,1.0:10,1.2:9,1.4:10,1.6:10,1.8:10,2.0:10,2.2:2"
+      },
+      {
+        "attackerLevel": 75,
+        "victimLevel": 1,
+        "power": 0.5,
+        "condition": "clear",
+        "koSeconds": 3.0,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:7,0.4:7,0.6:7,0.8:7,1.0:7,1.2:7,1.4:7,1.6:7,1.8:7,2.0:8,2.2:7,2.4:7,2.6:7,2.8:7,3.0:1"
+      },
+      {
+        "attackerLevel": 75,
+        "victimLevel": 1,
+        "power": 0.08,
+        "condition": "clear",
+        "koSeconds": 9.4,
+        "casts": 2,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:4,0.4:5,0.6:5,0.8:5,1.0:5,1.2:5,1.4:4,1.6:5,1.8:5,2.0:5,2.2:5,2.4:5,2.6:4,2.8:5,3.0:5,3.2:5,3.4:5,3.6:5,3.8:4,9.2:4,9.4:5"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "clear",
+        "koSeconds": 1.0,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:22,0.4:22,0.6:22,0.8:22,1.0:12"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 0.5,
+        "condition": "clear",
+        "koSeconds": 1.4,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:15,0.4:16,0.6:16,0.8:16,1.0:16,1.2:16,1.4:5"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 0.08,
+        "condition": "clear",
+        "koSeconds": 2.0,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:10,0.4:11,0.6:11,0.8:11,1.0:11,1.2:11,1.4:11,1.6:10,1.8:11,2.0:3"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "clear",
+        "koSeconds": 1.0,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:22,0.4:22,0.6:22,0.8:22,1.0:12"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 25,
+        "power": 1.0,
+        "condition": "clear",
+        "koSeconds": 1.4,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:22,0.4:22,0.6:22,0.8:22,1.0:22,1.2:22,1.4:18"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 50,
+        "power": 1.0,
+        "condition": "clear",
+        "koSeconds": 2.2,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:22,0.4:22,0.6:22,0.8:22,1.0:22,1.2:22,1.4:22,1.6:22,1.8:22,2.0:22,2.2:5"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 75,
+        "power": 1.0,
+        "condition": "clear",
+        "koSeconds": 3.0,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:22,0.4:22,0.6:22,0.8:22,1.0:22,1.2:22,1.4:22,1.6:22,1.8:22,2.0:22,2.2:22,2.4:22,2.6:22,2.8:22,3.0:17"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 100,
+        "power": 1.0,
+        "condition": "clear",
+        "koSeconds": 9.4,
+        "casts": 2,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:22,0.4:22,0.6:22,0.8:22,1.0:22,1.2:22,1.4:22,1.6:22,1.8:22,2.0:22,2.2:22,2.4:22,2.6:22,2.8:22,3.0:22,3.2:22,3.4:22,3.6:22,3.8:22,9.2:22,9.4:10"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "cover",
+        "koSeconds": null,
+        "casts": 1,
+        "remainingHealth": 100.0,
+        "koEndpointCalls": 0,
+        "damageTimeline": ""
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "range",
+        "koSeconds": null,
+        "casts": 1,
+        "remainingHealth": 100.0,
+        "koEndpointCalls": 0,
+        "damageTimeline": ""
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "safe",
+        "koSeconds": null,
+        "casts": 1,
+        "remainingHealth": 100.0,
+        "koEndpointCalls": 0,
+        "damageTimeline": ""
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "protected",
+        "koSeconds": null,
+        "casts": 1,
+        "remainingHealth": 100.0,
+        "koEndpointCalls": 0,
+        "damageTimeline": ""
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "dodge",
+        "koSeconds": null,
+        "casts": 1,
+        "remainingHealth": 100.0,
+        "koEndpointCalls": 0,
+        "damageTimeline": ""
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "attackerProtected",
+        "koSeconds": null,
+        "casts": 0,
+        "remainingHealth": 100.0,
+        "koEndpointCalls": 0,
+        "damageTimeline": ""
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "notEligible",
+        "koSeconds": null,
+        "casts": 0,
+        "remainingHealth": 100.0,
+        "koEndpointCalls": 0,
+        "damageTimeline": ""
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "timeout",
+        "koSeconds": null,
+        "casts": 1,
+        "remainingHealth": 56.0,
+        "koEndpointCalls": 0,
+        "damageTimeline": "0.2:22,0.4:22"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "mixedMode",
+        "koSeconds": null,
+        "casts": 1,
+        "remainingHealth": 100.0,
+        "koEndpointCalls": 0,
+        "damageTimeline": ""
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "bothTest",
+        "koSeconds": 1.0,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:22,0.4:22,0.6:22,0.8:22,1.0:12"
+      },
+      {
+        "attackerLevel": 100,
+        "victimLevel": 1,
+        "power": 1.0,
+        "condition": "capturedLevel",
+        "koSeconds": 1.0,
+        "casts": 1,
+        "remainingHealth": 0.0,
+        "koEndpointCalls": 1,
+        "damageTimeline": "0.2:22,0.4:22,0.6:22,0.8:22,1.0:12"
+      }
+    ],
+    "sourceHashes": {
+      "src/ServerScriptService/Bootstrap.server.luau": "c9194f043aaad0de2d37c92277a77f8398086ab606b0506acee1a0b6596ef39a",
+      "src/ServerScriptService/SustainedAttackAdapter.luau": "0bba25ac45f5662516251775cb3e2c81fa42c4970a61b9e676ad82ad8e93b64d",
+      "src/ServerScriptService/CombatRules.luau": "5545400700598302ecc972ce2283daf027bb0a469d638cdd0bc45dd5166a00d9",
+      "src/ReplicatedStorage/Shared/SustainedAttack.luau": "2337713a3f25b8767e64478c88bda9bbde70ab1f975deb94a5edd491ffd1746c",
+      "src/ReplicatedStorage/Shared/VoiceCombat.luau": "af969c4a8116b1d5a6aff3579015d0d1eb28e1b8c8466282685a12ed5a9637d7",
+      "src/ReplicatedStorage/Shared/Healing.luau": "71ff8c429ea016c5f99a6711b294a5cad2602495e5019e1a93924d63198c852e",
+      "src/ReplicatedStorage/Shared/TrainingRules.luau": "bda84380107e7df39eaf0ea91f60d2f81fde0908a8489d664ac18d1292b8388e",
+      "src/ReplicatedStorage/Shared/Config.luau": "fa604d97a6a47357da183e4bcbd99fff01f929f167d8c9832a6f365dbb228df2",
+      "src/ReplicatedStorage/Shared/CompactLayout.luau": "fafae501cb72380cefdd12023d9adaaad4057db36025b9c459cead07b7aed879",
+      "tests/sustained_ttk.py": "6434d279c76954bf3ad0277eefd01abc6dedab286aaa5c8d702bd1c3c4b3969a"
+    }
+  },
+  "composedLocalIntegration": {
+    "status": "PASSED",
+    "inputsUnchanged": true,
+    "suiteCounts": {
+      "pureSynthetic": 25,
+      "mocked": 124,
+      "productionCompiles": 64,
+      "buildsRequested": true
+    },
+    "commands": 235,
+    "elapsedSeconds": 39.33084960000269,
+    "reportSha256": "1222ddbbd72f62de2507c1bf22a2649d21facf98daa5dc83ad8f04157d625aaa",
+    "scope": "Includes separately uncommitted initial beam-tier candidate. Not CI or a damage-only commit run."
+  },
+  "limitations": [
+    "Synthetic power, raycasts, timing and player eligibility; not real microphone/network/players.",
+    "NPC health/resolver path actual; knockout scheduling and rewards stubbed.",
+    "2.040 seconds is sampled worst, not universal bound.",
+    "No live publication or live DataStore writes."
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-12",
+  "baseCommit": "c1a0673f188c831d2c7110794e0ebf243a11bd1c",
+  "productionChanged": [
+    "src/ServerScriptService/Bootstrap.server.luau"
+  ],
+  "focused": {
+    "command": "python tests/conversation_stop_rate_limit.py --negative-controls",
+    "assertions": 18,
+    "negativeControls": 5,
+    "independentlyRerun": true
+  },
+  "baseline": {
+    "command": "python tests/conversation_stop_rate_limit.py --baseline",
+    "result": "Expected Saturated close retained conversation assertion on pinned base"
+  },
+  "full": {
+    "command": "python tests/verify_local.py --build",
+    "pureSynthetic": 25,
+    "mocked": 105,
+    "productionCompiles": 63,
+    "builds": "passed"
+  },
+  "sha256": {
+    "src/ServerScriptService/Bootstrap.server.luau": "aebf50ed49a1fae66720e1ebab1dc3921992ed8dbe64086549493d3ee874e7ab",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "e7e1d91415227fb5bc29d80ff726b84059611b87bc4672476ffc9157b38d20b8",
+    "tests/conversation_stop_rate_limit.py": "1e12c3ac0cd1dc2f48999111e85087ea3c8140babe7ab5cac65c04bbc8994be2",
+    "tests/verify_local.py": "346d51cb4b3d0287629fa7d3707256f5acf1ca6f529f2b5e27ef0facdb3a73fc",
+    "build/conversation-close-focused.log": "3d622cad35cbf850f474f39f6a95290aeb8e39b66f361e5cf74c1a0af27371ee",
+    "build/conversation-close-full.log": "fbad693e541b52db1f7beaff54b21066a3bed09605fd0374618c435f092878c4"
+  },
+  "nativeExecuted": false,
+  "limitations": [
+    "Synchronous mocked transport and character geometry",
+    "Talk/Begin/vendor bodies mocked; admission only",
+    "Ordinary traffic saturation not demonstrated",
+    "Existing current-conversation nil protocol unchanged",
+    "No live stores, map changes, apps, publication or push"
+  ],
+  "delivery": "Local checkpoint pending explicit push confirmation; remote0004c77"
+}

@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-12",
+  "scope": "test-only actual module composition; production unchanged",
+  "command": "python tests/beam_pool_composition.py --negative-controls",
+  "author_result": {
+    "assertions": 117904,
+    "negative_controls": 7,
+    "peak_parts": 512,
+    "created_parts": 512,
+    "destroyed_parts": 512
+  },
+  "independent_review": {
+    "rerun": true,
+    "result": "passed",
+    "blocking_findings": []
+  },
+  "sha256": {
+    "tests/beam_pool_composition.py": "810ae55123cb44de6b7fbb92ea6cd7c8609e1cdf6cf8f7c6e4597baa7bc9f87e",
+    "src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau": "89ff773cebcb2d3a5876a6d70e3bc561d3a7573c12119232a5cce950a08eccda",
+    "src/StarterPlayer/StarterPlayerScripts/SustainedBeams.luau": "f540efde768105a226c89e556a0231829e1314e71e6688928e2bfe01df8ced40",
+    "src/ReplicatedStorage/Shared/BeamStyle.luau": "7d04942802ed56fb09d18002e7a11dc02275783021fc06285433d61599ad58d2"
+  },
+  "mocks": [
+    "table-backed Parts",
+    "stubbed CFrame orientation",
+    "shared placeholder Color3/Lerp"
+  ],
+  "limitations": [
+    "Repeated per-Part assertions are not distinct scenarios",
+    "No native Instance/rendering or scheduling validation",
+    "No FPS, GPU or transparency-overdraw measurements",
+    "Direct 25th rig tests renderer cap, not production manager admission"
+  ],
+  "native_executed": false,
+  "retained_aggregate": {
+    "commit": "d5cc5d5",
+    "pure_synthetic": 25,
+    "mocked": 103,
+    "production_compiles": 63,
+    "builds": "passed previously",
+    "fresh_run": false
+  },
+  "new_suite_registered_once": true,
+  "fresh_full_104_claimed": false
+}

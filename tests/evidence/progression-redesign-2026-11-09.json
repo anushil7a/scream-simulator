@@ -1,0 +1,45 @@
+{
+  "observedAtUTC": "2026-11-09T23:08:23.764Z",
+  "scope": "One-client local Roblox Studio, synthetic input, temporary profiles; no publication",
+  "nativeBuild": "SustainedNativeFixture",
+  "sourceSha256": "0f3dacd7715bb1056e26ec858ee89dc5307d6d76c0b6ccfb38a8593dd0f69fb2",
+  "artifactSha256": "d9b8048962cbfd7df6fb96806b91f459da66731918a9aea94e6fcb1ad787bbd9",
+  "native": {
+    "sustainedDamage": {
+      "passed": true,
+      "checks": 6
+    },
+    "sustainedDestruction": {
+      "passed": true,
+      "checks": 11
+    },
+    "progression": {
+      "passed": true,
+      "checks": 18
+    }
+  },
+  "automated": {
+    "pureOrSyntheticSuites": 20,
+    "mockedServiceSuites": 48,
+    "productionSourcesCompiled": 46,
+    "candidateSourceAudit": true,
+    "disposableBuilds": true
+  },
+  "regressions": [
+    "One-damage finisher receiving a full pool when credit expires: failed before denominator fix; passes after",
+    "Two completed combat challenges retain all XP and use one combined reward state message rather than three; level-up sends excluded"
+  ],
+  "visualReview": [
+    "Desktop Studio challenge menu readable",
+    "West-beach training pads visible; native fixture verifies all three rigs"
+  ],
+  "pacing": "Deterministic solo model, not measured player behavior; see tests/ProgressionPacing.luau and docs/PROGRESSION_BALANCE.md",
+  "unverified": [
+    "real microphones",
+    "two-player native PvP/assist playtest",
+    "physical phone layout",
+    "live DataStore behavior",
+    "representative server load",
+    "actual progression pacing"
+  ]
+}

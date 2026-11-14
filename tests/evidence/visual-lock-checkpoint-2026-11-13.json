@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-13",
+  "checkpoint": "coastal visual presentation and opt-in lock-on",
+  "baseCommit": "dda67e3943b85398616fed487340dca60ccc0741",
+  "publication": "Not published. Existing GitHub draft branch only. No live DataStore, purchases, uploads or cloud place edits.",
+  "sources": {
+    "src/ServerScriptService/CompactCity.luau": "fe5ea5adfb6cd83c82d5c5db85cb0ceb9dac574cca0b8acc806e2288ba188023",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "0943b307f7c7a9943c47f3eb2bb3a4604c2fb64df8eafdd71426a8d2d9def278",
+    "src/StarterPlayer/StarterPlayerScripts/CityMap.luau": "7e8b224d2e0edb30107a7fe4abfd78f59dd4e857c8d77c0fd5a5432a00798b03",
+    "src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau": "e558aa5980dd24ae4e8b70180f876c54ce30cbf4cdee9c7dda6081bc75f4780b",
+    "src/StarterPlayer/StarterPlayerScripts/LockOn.luau": "77c67b1e6d25329ed06f58d887c0a4b5a264c30b804ef54e6ec905a8b393b14d"
+  },
+  "sourceNormalization": "Raw checkout SHA256 above. Studio source was loaded with LF normalization; CompactCity LF SHA256 is fc42010816c7f767f00e176373351bd22ce522424e2e23a0b01f506334a480dc",
+  "aggregate": {
+    "status": "PASSED",
+    "execution": "local-not-CI",
+    "command": [
+      "C:\\Python315\\python.exe",
+      "tests/verify_local.py",
+      "--build",
+      "--report",
+      "build/visual-lock-final2-2026-11-13.json"
+    ],
+    "report": "build/visual-lock-final2-2026-11-13.json",
+    "reportSha256": "ffb7a1caced21fe4c7126f2e6479e020d873171b2ea5a8a01929e88f00c11bf0",
+    "log": {
+      "path": "build/visual-lock-final2-2026-11-13.7e5d824425a04cc68d81aec04b4c9b67.log",
+      "sha256": "185c2c1c8b079e1a79cd09a458b346e5d19e3aa4918973ab6a4759b0ff71795b",
+      "scope": "Combined child stdout/stderr, unredacted, including quiet compiler output; runner summary is in JSON."
+    },
+    "suiteCounts": {
+      "pureSynthetic": 25,
+      "mocked": 122,
+      "productionCompiles": 64,
+      "buildsRequested": true
+    },
+    "commands": 233,
+    "elapsedSeconds": 40.539219900005264,
+    "inputCount": 319,
+    "inputsUnchanged": true,
+    "postRunSnapshotRechecked": true
+  },
+  "focused": {
+    "hud": "69 assertions, 8 source contracts, 4 negative controls",
+    "map": "1854 constructor assertions, 8 controls, original physical inventory fingerprint; retained 1159 construction, 48 reachability, 19 controls",
+    "mapIntegration": "122 assertions, 11 controls; guidance81,4",
+    "minimap": "651 assertions, 4 controls; retained layout and geometry suite",
+    "beam": "695 silhouette assertions, 7 controls;117904 composed pool/lifecycle assertions,7 controls",
+    "lock": "558 module assertions,6 controls;65 Client fragment checks, marker inset contract,6 controls",
+    "startup": "352 boundary scenarios,19 ownership cases,12 controls"
+  },
+  "native": {
+    "environment": "Disposable SustainedLocalPlay local Studio place0/game0, temporary profiles",
+    "notFullGameAcceptance": true,
+    "map": "Desktop practice/arena views inspected. Corrected inherited billboard target/coach obstruction with attached headers. Both labels fit600x100 at36px; target and gate remain clear. Farther arena view outside65-stud MaxDistance intentionally lacks text. Actual-avatar arena walk streams surrounding buildings; earlier camera-only missing facades were streaming state, not missing source geometry.",
+    "hud": "Actual desktop controls/status inspected. Cloned actual label with LEVEL100 and1000000000 coins fits188x12 within194x22. This is a font/layout check, not an actual wealthy profile or phone test.",
+    "beam": "Cosmetic renderer-only side/end/custom-blue/reduced native captures. Refined tinted body is distinct from narrow Neon spine. No attack remote, damage or performance conclusion. Owned probe cleaned, pool0/0.",
+    "lock": "Actual R while beams OFF rejected selection safely; marker parent ScreamAim uses None insets. Separate actual-engine controller probe passed7 checks with synthetic allowed context: rookie acquire/resolve, cover clear, reacquire, destroy, target health and player attack unchanged. This does NOT prove armed full-Client or microphone/player/PvP operation.",
+    "console": "Temporary-save notice plus three asset-type warnings were present. No claim about warning origin.",
+    "cleanup": "Official MCP reported Game Stopped. Task-created Studio closed through its normal UI; only disposable unsaved preview copy discarded, rebuilt local fixture and sources preserved. PC left on; existing inaccessible picker left alone."
+  },
+  "artifacts": {
+    "build/visual-practice-approved.jpg": "99ca4889b712777959cb8069ef2806b41d1aab3c108d24cc07c54e168a4e7baa",
+    "build/visual-arena-header.jpg": "e4eac4482279128f67c96f3716d7d7d778c1d9c3e799bcfedd84c196ca18c9dc",
+    "build/visual-spawn-before.jpg": "37f3e6edf8a2fdfe5a46b623222129671ecd26397020b47b61cdefa755b1081c",
+    "build/visual-spawn-after.jpg": "5f329bf2bba35b214538ec0477ee4db701658c1983bdf51e19dcf4067c9e47bd",
+    "build/beam-art-before.jpg": "9d8d6c787c7384f6e145e511b2cfb5e61c12d6bcc94201df6cf96fdd52e486e0",
+    "build/beam-art-refined.jpg": "ba50d3b663fab1a8060d17687d1583f6e434c10e1f9e3d1b39dfc2ec55630385",
+    "build/beam-art-end.jpg": "18472021beae0f011609d6a65b9b1de1b47fa62a7514e121fc5b1705cf4a8e4b",
+    "build/beam-art-blue.jpg": "1febdabbd0a6be299590069d3c071fc4afdb9bef181134ff679e8bf7fe478d85",
+    "build/beam-art-reduced.jpg": "3dd35c38aed31c0f6b20e3dcb01895552fc24c634b17ed5deaaef0790145a84b",
+    "build/beam-art-cleanup.json": "528d538c4ddfe2a01bc30d933171e5daecadf527a26992c3238bd8ea124a1213",
+    "build/visual-hud-max-text-fit.json": "6cf340f337d5505f6864b3c46826e5ab9557619dae1b0abc358d10a5316251ef",
+    "build/visual-sign-native-metrics.json": "612da96a6cd3fbe17f2ae6d4a27a2ff03d4c07639bc9a060c278633bf1ee6da1",
+    "build/lock-native-off-key.json": "da424b0eefc4e1ed386ee2304e44eb85eeb4768a730ac5bbd4f0d071aa78733d",
+    "build/lock-native-off-state.json": "874a02e845a128b4dd7043a3c86634c48925acaeab6c5d0a8d3e76b4561ee5d1",
+    "build/lock-native-controller-final.json": "37e823b9596d64ab6263bd3d268c720073b0e83a32b4b2106993fed3abdadeb3",
+    "build/lock-native-probe.luau": "3a749309774834059fcb8b02663d6576c6d9780049a8df9c32c26221f7820c66",
+    "build/visual-arena-walk-state.json": "22d9493578f01faed0e0c8c291883e8e3d4d5b7cb8c282d0d4894dc6f6c291d7",
+    "build/visual-streaming-and-bloom.json": "56a86c8ffce10fb0e661183e0b39134f75941e57ab38660beaa421a3b49aefb9",
+    "build/visual-server-buildings.json": "052bba4300edd7401a8cf8a1c2e87ef993f0d62d37706b96cd07eb58ac0f8f04",
+    "build/visual-legibility-swap.json": "c201455ab4cf1e11fcd486d392b1f562b2a034908b3d6e9f99f31dfbdedc62f2",
+    "build/visual-final-console.json": "8cd175e19d997558d2cf8ec19fc976174271ab5202f54780f301176438aa420e",
+    "build/visual-final-stop.json": "600974a7cffcd0a4c6029c715664cb75e39ce589dac53e2f4376f29fca66d63f"
+  },
+  "artifactRetention": "Raw captures and console/build logs retained locally, not embedded here. Hashes bind evidence but do not make unavailable local files downloadable from GitHub.",
+  "limits": [
+    "Physical touch/gamepad ergonomics and real microphone unverified.",
+    "No live multiplayer/PvP lock validation, native armed-marker alignment or aim-fairness playtest.",
+    "No new-look GPU/phone/24-attacker performance measurement; historical benchmark predates new material treatment.",
+    "Map remains a coherent first art pass, not a completed dense city or player-navigation study.",
+    "304 cosmetic Parts add real rendering/replication cost.",
+    "Minimap legacy geometry/behavior preserved, shared palette intentionally changed.",
+    "No new SFX, name-tag redesign or Blender models in this checkpoint.",
+    "Mixed-version quest-writer and temporary test-tools release gates remain BLOCKED."
+  ],
+  "pause": "Owner requested pause after this existing checkpoint. No new task is being started.",
+  "independentReview": {
+    "status": "CLEARED for this local draft checkpoint",
+    "reviewer": "Astra",
+    "verified": [
+      "Exact production source diffs and focused regression/negative controls",
+      "Final map1854 assertions/8 controls and original geometry fingerprint",
+      "Exact three-builder IIFE diffs and independent generated Luau compilation",
+      "All319 final input hashes and aggregate log match",
+      "Final native practice/arena images and bounded beam visual samples",
+      "Native isolated LockOn probe claim is synthetic-context, not armed full-Client or multiplayer proof"
+    ],
+    "remainingLimits": [
+      "Physical touch/gamepad ergonomics and real microphone unverified.",
+      "No live multiplayer/PvP lock validation, native armed-marker alignment or aim-fairness playtest.",
+      "No new-look GPU/phone/24-attacker performance measurement; historical benchmark predates new material treatment.",
+      "Map remains a coherent first art pass, not a completed dense city or player-navigation study.",
+      "304 cosmetic Parts add real rendering/replication cost.",
+      "Minimap legacy geometry/behavior preserved, shared palette intentionally changed.",
+      "No new SFX, name-tag redesign or Blender models in this checkpoint.",
+      "Mixed-version quest-writer and temporary test-tools release gates remain BLOCKED."
+    ]
+  }
+}

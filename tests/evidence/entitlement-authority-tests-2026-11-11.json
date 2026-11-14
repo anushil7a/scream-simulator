@@ -1,0 +1,39 @@
+{
+  "recordedAtUtc": "2026-11-11T21:28:02.957207+00:00",
+  "baseCommit": "701a52ec7928862888465d4e2a0985f0f0c4a71b",
+  "scope": "Test-only follow-up; production correction2daa39e unchanged, no new defect claimed",
+  "hashSemantics": "Exact final working-tree bytes including local newline encoding",
+  "checks": {
+    "entitlementAssertions": 55,
+    "negativeControls": 9,
+    "historicalBaseline": "670948d expected stale response failure",
+    "legacyChecks": 9,
+    "newCoverage": "Confirmed paid-cache removal while Parent present; both pass-ID purchase events do not grant pending/false/error; missing-cleanup/direct-grant controls fail at intended checks",
+    "independentReview": "Exact final focused controls and baseline independently rerun",
+    "aggregate": "No new full/native/build run; unchanged production last fully verified2daa39e25 pure/synthetic+92 mocked,60 compiles/all builds"
+  },
+  "commands": [
+    "python tests/entitlement_refresh.py --negative-controls",
+    "python tests/entitlement_refresh.py --baseline",
+    "python tests/entitlements.py"
+  ],
+  "limits": [
+    "Mock services/coroutines; no real Roblox ownership/purchase/replication/GC evidence",
+    "No API retry/cancellation redesign; production IDs remain zero",
+    "No apps, map edits, live stores or publication; writer-fleet gate unresolved"
+  ],
+  "sources": {
+    "src/ServerScriptService/Entitlements.luau": "0616a35d7aec98be4f2324beba213cdf1bd225c070dd1859366756742c369be4",
+    "src/ReplicatedStorage/Shared/Config.luau": "47bb409b104c8f3f89647dc9808fb3c434a1f42bdc5bd81637e8b55b968dca7b",
+    "src/ReplicatedStorage/Shared/ShopCatalog.luau": "53860a7c662529027105a6c39bd154b15056e782ca44613fea5bbf2ee37e260c",
+    "tests/entitlement_refresh.py": "ed0df05e40dfe2e34c6b669a5e1befc027f65aa8599d7630e1c33d1f21f4c451",
+    "docs/ENTITLEMENT_REFRESH_REVIEW.md": "ac155a7a7eb72ed42ec023df5d231a9ccc915bf35c2506f5f8715681603860f4",
+    "docs/ROADMAP.md": "a4147a14cf74f82f116f92bc3d54b252b9dd078e402864f473152eb44b04e06c",
+    "docs/PLAYTEST_BACKLOG.md": "846c6cfae8a4d5afe0942e390d4163e04e4c5fd0ef9dfec85870ecc548bbddae"
+  },
+  "artifacts": {
+    "build/entitlement-authority-controls.log": "7de65eba1949a0f826a10f79683ab54807c97913b1ccbfd6690108d0487be493",
+    "build/entitlement-authority-baseline.log": "b348ab00010aadce14cb02e772b5c1b5251538b5442e9e73b261b0ce3a2e1e5e",
+    "build/entitlement-authority-legacy.log": "39e153846ac12f6008ed9bfef9b170ca7f4b6e7677de57b6da181c9c2f8d9990"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "e5beed6809025aafa8da544d66a91ac98220aab4",
+  "baseStatus": "Rejected: blocking expired/near-expiry writable admission defect; not release-ready",
+  "reproduction": {
+    "engine": "Actual base Profiles source via git show, current unchanged ProfileLease, cloned simulated store and Luau CLI",
+    "trace": "BASELINE expired A_writable=true remaining=-1 B_writable=true A_save=false reason=ownership durable=100 attempted=150\nBASELINE near A_writable=true remaining=1 B_writable=true A_save=false reason=ownership durable=100 attempted=150\n",
+    "beforeFixFailures": {
+      "expired": "Expired acquisition did not obtain usable lease lifetime",
+      "near": "Near-expiry acquisition did not obtain usable lease lifetime",
+      "response_expired": "Expired response granted writable admission",
+      "response_near": "Short-lifetime response granted writable admission",
+      "foreign_during_response": "Stale acquisition response admitted after foreign takeover"
+    }
+  },
+  "policy": {
+    "minimumLeaseSecondsAtWritableAdmission": 120,
+    "normalAutosaveIntervalSeconds": 60,
+    "ordinaryLeaseSeconds": 180,
+    "acquisitionAttempts": 3,
+    "renewal": "Atomically refresh only the exact unconfirmed acquisition token if remaining lifetime is below 120 seconds; preserve current stored checkpoint and metadata",
+    "response": "Check exact token and remaining lifetime again after UpdateAsync returns; insufficient lifetime consumes a bounded retry without creating a writable handle",
+    "exhaustion": "Confirmed progress stays temporary/read-only; retained acquisition identity permits a later retry",
+    "unchanged": "Normal save/release idempotency, old-token/revision fencing, recovery attempt cutoff and active foreign-lease exclusion"
+  },
+  "focused": {
+    "lifetime": {
+      "command": "python tests/acquisition_lifetime.py --negative-controls",
+      "stdout": "PASS 7 acquisition lifetime checks: expired\nPASS 7 acquisition lifetime checks: near\nPASS 5 acquisition lifetime checks: response_expired\nPASS 5 acquisition lifetime checks: response_near\nPASS 8 acquisition lifetime checks: renewal_outage\nPASS 8 acquisition lifetime checks: renewal_lost\nPASS 4 acquisition lifetime checks: foreign_race\nPASS 4 acquisition lifetime checks: same_job_race\nPASS 4 acquisition lifetime checks: foreign_during_response\nPASS 7 acquisition lifetime checks: slow_exhaustion\nPASS 6 acquisition lifetime checks: boundary\nPASS 6 acquisition lifetime checks: checkpoint_metadata\nPASS 4 acquisition lifetime checks: renewal_lost_foreign\nPASS negative control caught: Expired acquisition did not obtain usable lease lifetime\nPASS negative control caught: Near-expiry acquisition did not obtain usable lease lifetime\nPASS negative control caught: Expired response granted writable admission\nPASS negative control caught: Renewal callback overwrote or adopted foreign ownership\nPASS negative control caught: Renewal callback adopted newer same-job token\n"
+    },
+    "protocol": {
+      "command": "python tests/profile_recovery.py --negative-controls",
+      "stdout": "PASS 83 bounded recovery/ownership/replay checks; cloned simulated persistence only\nPASS negative control caught: Old recovery overwrote or stole newer owner save\nPASS negative control caught: Old same-acquisition revision could overwrite newer save\nPASS negative control caught: Old handle overwrote newer acquisition\nPASS negative control caught: Recovery continued issuing requests past deadline\nPASS negative control caught: Lost release response was not reconciled idempotently\nPASS negative control caught: Same-job distinct acquisition stole active lease\nPASS negative control caught: Retained snapshot recovery failed or used mutated caller data\nPASS negative control caught: Terminal admission token forgotten after outage\nPASS negative control caught: Terminal admission stole newer same-job acquisition\nPASS negative control caught: Old recovery overwrote or stole newer owner save\nPASS negative control caught: Sufficient-lifetime acknowledgement changed identity or expiry\n"
+    },
+    "notice": {
+      "command": "python tests/recovery_notice.py --negative-controls",
+      "stdout": "PASS 16 actual recovery notice formatter checks\nPASS negative control caught: Recovery warning masks autosave failure\nPASS negative control caught: Compact recovery warning masks autosave failure\nPASS 4 recovery notice source wiring contracts; not remote/native execution\n"
+    },
+    "progress": {
+      "command": "python tests/progress_label.py",
+      "stdout": "PASS 13 actual progress label checks with mocked state\n"
+    }
+  },
+  "checks": {
+    "newLifetimeAssertions": 75,
+    "newScenarios": 13,
+    "newNegativeControls": 5,
+    "existingProtocolAssertions": 83,
+    "existingProtocolNegativeControls": 11,
+    "noticeAssertions": 16,
+    "noticeNegativeControls": 2,
+    "noticeSourceContracts": 4,
+    "progressLabelAssertions": 13
+  },
+  "full": {
+    "command": "python tests/verify_local.py --build",
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 56,
+    "productionCompiles": 56,
+    "allBuildsPassed": true
+  },
+  "review": {
+    "kind": "Separate implementing-agent self-review; no separate reviewer claimed",
+    "result": "No remaining blocker found in this scope",
+    "examined": [
+      "Remaining lease margin at callback and after response",
+      "Expiry and one-second remaining vs normal 60-second autosave cycle",
+      "Atomic exact-token renewal preserves stored data and operation markers",
+      "Foreign and same-job acquisition races re-evaluate current record",
+      "Response delay/response loss after renewed lease and newer foreign save",
+      "Slow responses exhaust existing attempt budget without writable bindings",
+      "Existing save-operation acknowledgement does not restamp foreign lease",
+      "Prior no-restamp regression now scoped to sufficient remaining lifetime"
+    ]
+  },
+  "limitations": [
+    "Simulated cloned persistence with controlled wall clock, callback retries and fault injection; not native Roblox DataStore or network evidence",
+    "120-second admission margin is not a guarantee against arbitrary later process pauses, scheduling delays, clock issues or outages",
+    "In-flight requests and lock waits cannot be cancelled by recovery deadline; acquisition retains separate attempt budget",
+    "Memory-only recovery/admission metadata cannot survive process loss",
+    "No new native Studio/device/microphone/multiplayer validation; mixed-version drain and isolated real persistence tests remain release gates",
+    "No live DataStore access, publication or audio configuration"
+  ],
+  "normalizedSourceSHA256": {
+    "src/ServerScriptService/Profiles.luau": "c6e626922c20f73343381690bec068b66168dca6d80d0bdb3fb894311b0a8760",
+    "src/ReplicatedStorage/Shared/ProfileLease.luau": "c257a4b4a3cbe5c4c0712bde457993405d2ed6c31ec2a22714b2fe3254ebc258",
+    "tests/acquisition_lifetime.py": "71594c93721f6b50996f0069063b5db02342368d6164ff30b98012c37e97ed8c",
+    "tests/profile_recovery_policy.py": "b11f6e709e01884e205ae6b58e3aaed61e37fb00fc7ff9dde26368f2cb4766e6",
+    "tests/verify_local.py": "2134e90b94ef78ec6e3d1247e75db8942d0a65ade141fd05a464f0e4ed0fb5d9"
+  },
+  "buildSHA256": {
+    "build/AutomaticVoiceCandidate.rbxl": "0fd674af1dc73e7de96c34b07eb33f3dfca6d448f628078364991c2525675be9",
+    "build/ShopReviewVerified.rbxl": "1329cb06d748b1e8628bb9e8eea6989c93d322ba19b2147d6ef460404cdda958"
+  }
+}

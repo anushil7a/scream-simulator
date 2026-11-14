@@ -21,6 +21,41 @@
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
         "$path": "src/StarterPlayer/StarterPlayerScripts"
+      },
+      "$properties": {
+        "CameraMode": "Classic",
+        "CameraMinZoomDistance": 6
+      }
+    },
+    "TextChatService": {
+      "$className": "TextChatService",
+      "$properties": {
+        "ChatVersion": "TextChatService",
+        "CreateDefaultTextChannels": true,
+        "CreateDefaultCommands": true
+      }
+    },
+    "VoiceChatService": {
+      "$className": "VoiceChatService",
+      "$properties": {
+        "UseAudioApi": "Enabled",
+        "EnableDefaultVoice": true
+      }
+    },
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "StreamingEnabled": true,
+        "StreamingMinRadius": 64,
+        "StreamingTargetRadius": 512,
+        "StreamOutBehavior": "Opportunistic",
+        "StreamingIntegrityMode": "PauseOutsideLoadedArea"
+      }
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "MosaicFountainTemplate": {
+        "$path": "assets/review/MosaicFountain.rbxmx"
       }
     }
   }

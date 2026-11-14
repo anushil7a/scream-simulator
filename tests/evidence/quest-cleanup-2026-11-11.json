@@ -1,0 +1,42 @@
+{
+  "checked_at_utc": "2026-11-11T16:16:23.899506+00:00",
+  "base_commit": "36cfb69def30db533e480b78adcb223c239df6f7",
+  "source_sha256": {
+    "src/ReplicatedStorage/Shared/Progression.luau": "e4fb07aa44cd0ce1729710aa27a04ce8a9886b75d910328a070e720e5dc70ef6",
+    "src/ServerScriptService/Profiles.luau": "d1101ab834275507aed9a50536c5db98ae0df3323261421370fbf7d06bdaad43",
+    "src/ServerScriptService/Bootstrap.server.luau": "d7a65c4a38db44307db34a48e9bfda7ce36c36546b85b86a4db2d00be104cec2",
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "9a2db89bf0d721d5ae5d1c9033c5cc096ac82d2b2011b9deb4deef50c8a0b908",
+    "tests/challenge_retirement.py": "93060615d8f3182addc3225800f7fe5111ba39fc863e30bdc2f337b0be5d0a96",
+    "tests/quest_catalog_ui.py": "930751094835bad9bf23196b8d74723baa08bbad427f349b37293af15d6e21e9",
+    "tests/pvp_rewards.py": "68ab122221f2a0d00b03c0df5c879b31a343362fce73e64c015fb658ef5bbe54"
+  },
+  "native_executed": false,
+  "live_datastore_or_purchase": false,
+  "published": false,
+  "map_changed": false,
+  "checks": {
+    "pure_suites": 25,
+    "mocked_suites": 66,
+    "production_compiles": 57,
+    "builds": "all passed after final wording correction",
+    "retirement_assertions": 135,
+    "renderer_assertions": 50,
+    "payout_assertions": 19,
+    "existing_migration_assertions": 374,
+    "negative_controls": 5
+  },
+  "independent_review": "clear; focused tests independently rerun, help wording corrected",
+  "remaining_limits": [
+    "native quest layout/input and transport",
+    "live isolated persistence",
+    "older versions can resume retired objectives",
+    "broader city-quest relevance and roaming trainers remain"
+  ],
+  "pacing_model": {
+    "steady_level100_minutes_before": 666.0,
+    "after": 745.1,
+    "kos_before": 1095,
+    "kos_after": 1220,
+    "measured_playtime": false
+  }
+}

@@ -1,0 +1,23 @@
+-- Append to Bootstrap in disposable Play; mocked Save outcomes, no datastore writes.
+task.spawn(function()
+ assert(game.PlaceId==0 and game:GetService("RunService"):IsStudio())
+ local p;repeat task.wait(.1);p=game.Players:GetPlayers()[1] until p and sessions[p] and parts(p)
+ local s=sessions[p];assert(not s.canSave,"Temporary profile required")
+ local original=Profiles.Save;local checks=0
+ local function check(v,msg) assert(v,msg);checks+=1 end
+ local ok,err=xpcall(function()
+  s.canSave=true;Profiles.Save=function() return false,"retry" end;autosave(p,s)
+  check(s.canSave and s.saveDelayed,"Retry failure disabled future saves or hid warning")
+  Profiles.Save=function() return true end;autosave(p,s)
+  check(s.canSave and not s.saveDelayed,"Successful retry did not clear warning")
+  Profiles.Save=function() return false,"ownership" end;autosave(p,s)
+  check(not s.canSave and not s.saveDelayed,"Lost ownership left saving enabled")
+  s.canSave=true;Profiles.Save=function() return false,"unavailable" end;autosave(p,s)
+  check(not s.canSave,"Unavailable store left saving enabled")
+  s.canSave=true;sessions[p]=nil;Profiles.Save=function() return false,"ownership" end;autosave(p,s)
+  check(s.canSave,"Stale callback changed a departed session")
+ end,debug.traceback)
+ Profiles.Save=original;sessions[p]=s;s.canSave=false;s.saveDelayed=false;state(p)
+ workspace:SetAttribute("SaveStatusResult",game:GetService("HttpService"):JSONEncode({passed=ok,checks=checks,error=not ok and tostring(err) or nil}))
+ print("Save status regression",ok,checks,err)
+end)

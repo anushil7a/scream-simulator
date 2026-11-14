@@ -1,0 +1,68 @@
+{
+  "base_commit": "44f1f605f9409781676770a71e7a529c23f97a73",
+  "recorded_at_utc": "2026-11-11T20:55:10.483461+00:00",
+  "scope": "quest restart disclosure and bounded held-sprint reassertion; client only",
+  "source_hash_semantics": "exact tested working-tree bytes; checkout line endings may differ",
+  "source_sha256": {
+    "src/StarterPlayer/StarterPlayerScripts/Client.client.luau": "c96a3540bc7e4653c42f2adf0133917986a890febf776ce23f3d3b424b36e19d",
+    "src/ServerScriptService/Bootstrap.server.luau": "ad2447053bba5b14aa888e7e9f0e2bf6e07022e41c36e8065a8cdc15830a54c2",
+    "src/ReplicatedStorage/Shared/QuestLifecycle.luau": "5cbfc1aebcab22677b021a7aa8e4555dba4b6892ac5086a5b944c3b8fa5d3af5",
+    "tests/quest_catalog_ui.py": "8aa6554e7687a4aec4794c1a580fc61a29f128a85364698f3e32873267830e26",
+    "tests/combat_quests.py": "2685e335d934a0c10a9342a07c44f70f70209816a00e0b1c9f3d079e3340ea7a",
+    "tests/sprint_recovery.py": "b6a2bef46985f2b565f62c3e6feefd28550f9aa120836a26ccd2809f3558ad6c",
+    "tests/verify_local.py": "c2a184c3ef058ef69d92b65d0c204ba91909ab998aa2c8eabfb4a7bcbea57f6e"
+  },
+  "artifact_sha256": {
+    "build/AutomaticVoiceCandidate.rbxl": "902ea1c564a7b80afc4c4144497a5e7befee870a79e233bf5d73483a2b2c6f1d",
+    "build/AutomaticVoiceCandidate.provenance.json": "1a8dfde1806b9ef5bcba7678f211b68a3b2257fd7a1dc1001c6641fc5b6105a1",
+    "build/intent-recovery-final.log": "310565cc1fd41895dffcff242ada31879871ef1cbbb2d05b1b065d21179cc957",
+    "build/intent-sprint-baseline.log": "cff8094e15ce9a010a7d36d9b25f73ee1ee8606c2016f3676d03f83cf567a7b8",
+    "build/intent-sprint-controls.log": "2a4f01c69fd16bffa0dd8b8f84acf47c1f512ad04cbdf6bceb615b018eda90e3",
+    "build/intent-quest-ui-controls.log": "386d89dd944d6b6046bfc53497eaa05cd7d74719ce39cc3e5308207d396ee956",
+    "build/intent-quest-lifecycle-controls.log": "f01649721a99cd68f3dfed86e4af20d13290105fed73ab41d4b04b3c9427db2b"
+  },
+  "focused": {
+    "quest_renderer_assertions": 479,
+    "quest_renderer_controls": 9,
+    "quest_lifecycle_assertions": 189,
+    "quest_lifecycle_controls": 6,
+    "quest_contracts": 1,
+    "sprint_assertions": 53,
+    "sprint_controls": 5,
+    "independently_rerun": true
+  },
+  "aggregate": {
+    "pure_synthetic_suites": 25,
+    "mocked_suites": 88,
+    "production_compiles": 60,
+    "all_builds_pass": true,
+    "new_mutations_run_by_default": false
+  },
+  "commands": [
+    "python tests/quest_catalog_ui.py --negative-controls",
+    "python tests/combat_quests.py --negative-controls",
+    "python tests/sprint_recovery.py --baseline",
+    "python tests/sprint_recovery.py --negative-controls",
+    "python tests/sprint_input.py",
+    "python tests/sprint_state.py",
+    "python tests/voice_toggle.py --negative-controls",
+    "python tests/quest_accept.py",
+    "python tests/quest_claim.py",
+    "python tests/verify_local.py --build"
+  ],
+  "limitations": [
+    "quest UI text metrics mocked, not native fit or human comprehension",
+    "actual fake-store Profiles reload plus mocked inactive session, not full joined execution/live save",
+    "sprint synchronous synthetic transport/time; normal saturation incidence unknown",
+    "continuous quota saturation can still delay recovery",
+    "no new native run or application launch",
+    "map paused; no publishing, live stores or audio/product configuration"
+  ],
+  "preserved": [
+    "quest reset/switch/abandon/reward/claim semantics",
+    "server request quota and immediate false handling",
+    "server sprint speed, charging, refill and lockout",
+    "all map source and original archive",
+    "user work and existing app windows"
+  ]
+}

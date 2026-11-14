@@ -1,0 +1,163 @@
+{
+  "source": "48bf91e",
+  "context": "Disposable local Studio Play, one client; native pathfinding/static overlap audits. Not physical traversal or multiplayer load.",
+  "results": {
+    "cityAudit": {
+      "solid": 3489,
+      "blockedAisles": [],
+      "roadObstructions": [],
+      "blockedDoorways": [],
+      "interiors": 31,
+      "passed": true,
+      "parts": 50390
+    },
+    "shops": {
+      "failures": [],
+      "passed": true,
+      "shops": 31
+    },
+    "courtyards": {
+      "routes": 26,
+      "failures": [],
+      "passed": true,
+      "themes": {
+        "PergolaCourt": 2,
+        "SculptureCourt": 3,
+        "OrangeCourt": 3,
+        "ReadingGarden": 5
+      }
+    },
+    "coast": {
+      "beachSeats": 18,
+      "routes": {
+        "1": {
+          "status": "Success",
+          "passed": true,
+          "name": "lookout balcony",
+          "waypoints": 8
+        },
+        "2": {
+          "status": "Success",
+          "passed": true,
+          "name": "lookout cabin",
+          "waypoints": 10
+        },
+        "3": {
+          "status": "Success",
+          "passed": true,
+          "name": "pier",
+          "waypoints": 46
+        },
+        "4": {
+          "status": "Success",
+          "passed": true,
+          "name": "moved court-side lounger",
+          "waypoints": 14
+        },
+        "5": {
+          "status": "Success",
+          "passed": true,
+          "name": "volley north half",
+          "waypoints": 23
+        },
+        "6": {
+          "status": "Success",
+          "passed": true,
+          "name": "volley south half",
+          "waypoints": 12
+        },
+        "7": {
+          "status": "Success",
+          "passed": true,
+          "name": "beach rest 1",
+          "waypoints": 26
+        },
+        "8": {
+          "status": "Success",
+          "passed": true,
+          "name": "beach rest 4",
+          "waypoints": 24
+        },
+        "9": {
+          "status": "Success",
+          "passed": true,
+          "name": "beach rest 7",
+          "waypoints": 24
+        },
+        "10": {
+          "status": "Success",
+          "passed": true,
+          "name": "beach rest 10",
+          "waypoints": 24
+        },
+        "11": {
+          "status": "Success",
+          "passed": true,
+          "name": "beach rest 13",
+          "waypoints": 24
+        },
+        "12": {
+          "status": "Success",
+          "passed": true,
+          "name": "beach rest 16",
+          "waypoints": 26
+        }
+      }
+    },
+    "audience": {
+      "1": {
+        "status": "Success",
+        "x": 140,
+        "waypoints": 18
+      },
+      "2": {
+        "status": "Success",
+        "x": 150,
+        "waypoints": 20
+      },
+      "3": {
+        "status": "Success",
+        "x": 160,
+        "waypoints": 13
+      }
+    },
+    "arrival": {
+      "1": {
+        "status": "Success",
+        "x": -664,
+        "waypoints": 24,
+        "z": 167
+      },
+      "2": {
+        "status": "Success",
+        "x": -664,
+        "waypoints": 20,
+        "z": 183
+      },
+      "3": {
+        "status": "Success",
+        "x": -536,
+        "waypoints": 21,
+        "z": 175
+      },
+      "4": {
+        "status": "Success",
+        "x": -600,
+        "waypoints": 22,
+        "z": 145
+      },
+      "5": {
+        "status": "Success",
+        "x": -497,
+        "waypoints": 29,
+        "z": 240
+      },
+      "6": {
+        "status": "Success",
+        "x": -600,
+        "waypoints": 36,
+        "z": 333
+      }
+    }
+  }
+}

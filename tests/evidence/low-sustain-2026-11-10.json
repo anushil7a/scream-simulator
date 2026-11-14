@@ -1,0 +1,70 @@
+{
+  "dateLocal": "2026-11-10",
+  "baseCommit": "482981e46809ddc7d8b3b9783c1bd28e2ab60e65",
+  "scope": "Test-only closure of native low-sustain practice reach gap. No production code, audio or product configuration changes.",
+  "review": {
+    "method": "Separate source/diff review by implementing agent; checked exact-cutoff quiet semantics, accepted server power before first hit, second sequence/cooldown state and fixture cleanup. No separate reviewer claimed for this commit.",
+    "result": "No blocking finding in this scoped change. Existing independent review of base commit was reported by the user."
+  },
+  "cases": [
+    "Original seven onset, completion, duplicate prevention and interruption checks retained.",
+    "Distinct second attack uses sequence 2 after existing protocol nextStart, with simulated fresh quiet/onset.",
+    "Accepted power is asserted equal to 0.18 before the second attack first native raycast/tick; fresh completion and exactly one new practice pulse are required.",
+    "Power 0.181 resets local quiet accumulation and sustains the attack without duplicate practice feedback.",
+    "Returning to exact cutoff for two 0.1-second gate steps emits stop; forwarding stop to the real server adapter ends the attack and prevents further practice feedback.",
+    "Cleanup uses a nondecreasing protocol time, restores displayed activity/cooldown attributes and sends restored profile state."
+  ],
+  "checks": {
+    "command": "python tests/verify_local.py --build",
+    "passed": true,
+    "pureSyntheticSuites": 24,
+    "mockedServiceSuites": 52,
+    "productionCompiles": 56,
+    "microphoneLifecycleChecks": 109,
+    "firstBeamGuidanceChecks": 8,
+    "candidateAndDisposableBuilds": "passed",
+    "gitDiffCheck": "passed"
+  },
+  "native": {
+    "studioVersion": "0.747.0.7471481",
+    "identity": {
+      "build": "SustainedNativeFixture",
+      "sourceSha256": "e1ef3d190062f10921517f0ea4f65a5be880a2e17354e2d154ae9af9450d9663",
+      "artifactSha256": "8f2b58144e5cb5c2eca10167ec9c99532854901edda027e6a7f269ca5bd66cf1",
+      "scope": "Executed in disposable PlaceId=0 Studio with one local avatar and synthetic input/time; no live saves"
+    },
+    "results": {
+      "firstBeam": {
+        "lowSustainPower": 0.181,
+        "checks": 19,
+        "boundaryPower": 0.18,
+        "passed": true,
+        "sourceSha256": "e1ef3d190062f10921517f0ea4f65a5be880a2e17354e2d154ae9af9450d9663"
+      },
+      "damage": {
+        "passed": true,
+        "checks": 6
+      },
+      "destruction": {
+        "passed": true,
+        "checks": 11
+      },
+      "progression": {
+        "passed": true,
+        "checks": 18
+      }
+    },
+    "totalChecks": 54,
+    "newFirstBeamChecks": 12,
+    "timing": "Gate dt, cooldown advance, readiness and server times are injected. Exact cutoff is tested within quiet grace; 0.18 is not claimed as indefinitely sustainable voice.",
+    "visibleState": "Client still showed waiting for Roblox microphone input."
+  },
+  "remainingGates": [
+    "Eligible real-microphone calibration, automatic onset, quiet-stop, interruption/recovery and proximity audio.",
+    "Physical-phone touch/layout and speaker feedback.",
+    "Representative multiplayer latency/performance and live save/rejoin validation.",
+    "Owner audio configuration followed by native playback/mixing tests; four IDs remain empty."
+  ],
+  "publication": "No Roblox publication or audio/product configuration.",
+  "nextStep": "Real-device first-minute playtest from calibration through practice and training, then second eligible player and physical phone."
+}
