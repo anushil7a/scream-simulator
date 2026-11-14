@@ -41,3 +41,21 @@ All 12 images are raw unedited native JPEGs. Core/tier counts remain 15/41/77 at
 Astra independently cleared source, tests, final fixture and all 12 images; it verified the 247 command states, 335 current input hashes, fixture/loaded-source/image hashes and cleanup. [Portable integration evidence](NOVEMBER13_INTEGRATION_REVIEW.md). High-tier clutter, multi-attacker overlap, actual phones, real voice/server transport, wider avatar sizes, motion comfort and GPU/FPS remain unverified. The pre-existing asset-type warning `203785492` remains unresolved.
 
 Native Play stopped and owned scene/control/GUI objects were removed. Genuine device, animated comfort and multiplayer acceptance remain separate.
+
+## Wave 2 contact burst cadence refinement
+
+In `src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau` (SHA256 `d0afeb914318a16dc210647d8a4d49c6153a47735b5c58fbb86ffd48b57bf3e0`), the regular confirmed-damage contact burst (`rig.contactPosition`, 16 optional pooled Parts over the `0.28s` lifetime) now uses a nonlinear onset/decay envelope while keeping the `512`-Part pool, `24*5` core reservation, open center, target front-plane clearance (`0.7` / `0.82` studs), `rig.parts` core/tier silhouette geometry, and static `quietContact` (Reduced Effects / OS reduced motion / far view, 8 Parts) behavior unchanged:
+
+- **Radial snap & taper:** cubic ease-out `ease = 1 - (1 - progress)^3` expands `extent` from `1.65` to `2.40` (capped at `width * 0.48`) and shifts `inner` from `0.52` to `0.76 * extent`, sharpening the stroke span as it travels outward.
+- **Hot-core onset flash:** `heat = (1 - progress)^2` flashes the Neon core from `color:Lerp(white, 0.75)` at onset down toward `color:Lerp(white, 0.20)` at tail, framed by dark `SmoothPlastic` backing (`color:Lerp(black, 0.8)`).
+- **Thickness taper & quadratic decay:** backing/core thicknesses taper linearly (`0.20 -> 0.12` and `0.12 -> 0.05`) while transparency accelerates along `fade = progress^2` (`0.10 -> 0.92` backing, `0.05 -> 0.95` Neon core).
+
+### Wave 2 verification (mocked Parts/vectors & Blender look-dev proxy)
+
+- `tests/beam_contact_visuals.py --negative-controls`: `PASS 102715` checks + 20 negative controls.
+- `tests/beam_contact_integration.py --negative-controls`: `PASS 261` checks + 15 controls.
+- `tests/high_tier_clarity.py --negative-controls`: `PASS 131673` checks + 14 controls.
+- `tests/beam_pool_composition.py --negative-controls`: `PASS 117904` checks + 7 controls (peak `512`).
+- `tests/beam_performance_cleanup.py --negative-controls`: `PASS 264` + `54` checks + 10 controls.
+- `tests/beam_silhouette.py --negative-controls` (`824` checks / 7 controls) and `tests/beam_tier_silhouettes.py --negative-controls` (`4487` checks / 8 controls): `PASS`.
+- `tools/beam_lookdev.py` (re-pinned `BeamVisuals.luau` SHA256, Blender 5.2 CPU Cycles): `PASS` (6 previews + `build/beam-lookdev/comparison.png`, `15/4/41/4/77/4` parts unchanged). Native Studio captures from November 13 predate this Wave 2 contact-cadence edit.

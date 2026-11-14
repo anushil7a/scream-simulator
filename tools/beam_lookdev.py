@@ -6,7 +6,7 @@ import hashlib,json,math,sys
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'build/beam-lookdev'
 SOURCES=['src/ReplicatedStorage/Shared/BeamStyle.luau','src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau']
-PINNED={'src/ReplicatedStorage/Shared/BeamStyle.luau':'59bccd0163fb94883be138ab22fa62890004fb220799dbe915941ecb32757bc6','src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau':'cd708090ff3a504afee6e7cd99208cb7df13a0a566900d69cd07271f02ddf2e9'}
+PINNED={'src/ReplicatedStorage/Shared/BeamStyle.luau':'59bccd0163fb94883be138ab22fa62890004fb220799dbe915941ecb32757bc6','src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau':'d0afeb914318a16dc210647d8a4d49c6153a47735b5c58fbb86ffd48b57bf3e0'}
 def hashes():return {p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in SOURCES}
 
 def geometry(level,reduced,age=.6,length=24,width=3):

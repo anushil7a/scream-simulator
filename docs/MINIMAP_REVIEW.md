@@ -28,3 +28,21 @@ No native minimap appearance/readability, actual click/touch propagation over ch
 No programs, browser tabs or dialogs were opened this batch. The two previously inaccessible minimized Windows app-picker dialogs were not touched; their cleanup remains blocked by the exposed controls. Pre-existing work is preserved.
 
 Current shop documentation is corrected to hue-only/Spectrum gating and automatic receipt activation with legacy saved-token support. PR #1's summary is to be refreshed from the verified draft checkpoint; historical detail remains in the repository roadmap and scoped evidence, not presented as current behavior.
+
+## Visual hierarchy and contrast polish (November 13)
+
+- Added static, zero-runtime-loop visual framing inside `CityMap.create` when `CompactLayout` is active (`src/StarterPlayer/StarterPlayerScripts/CityMap.luau`), keeping legacy `CompactCity = false` construction, landmark pin positions, training tier badges, player marker geometry, and projection/update math unchanged:
+  - `UICorner` (`CornerRadius = 4`) and `MapBorder` `UIStroke` (`Color3.fromRGB(115, 148, 148)`, `Thickness = 1`, `Transparency = 0.35`) on `CityMap` to frame both the compact minimap and full map against dark panel containers.
+  - World-derived `Courtyard` tone (`Color3.fromRGB(61, 86, 85)`) from `CompactLayout.PartSpecs` (`HubPaving`), drawn beneath `Beach`, roads, footprints, and guidance routes to separate the safe west spawn/training hub.
+  - Coastal `Shoreline` water accent (`Color3.fromRGB(64, 134, 152)`, `9` studs along `Config.MapMax.Z - 9` aligned to `Beach` width and clear of `Footprint_Court`).
+  - `UIStroke` rim (`Color3.fromRGB(168, 186, 184)`, `Thickness = 1`, `Transparency = 0.35`) on full-map `Landmark` pins for contrast over dark terrain and arena fills.
+- Updated `tests/minimap_visuals.py` with positive assertions and 6 new negative controls (10 total).
+- Post-edit mocked/compiled checks (`git` via VS2019 BuildTools on `PATH`):
+  - `luau-compile --null src/StarterPlayer/StarterPlayerScripts/CityMap.luau`: exit=0 (11 KB bytecode)
+  - `python tests/minimap_visuals.py --negative-controls`: `PASS 684 world-derived map art assertions; mocked only`, 10/10 negative controls PASS
+  - `python tests/minimap.py --negative-controls`: `PASS 138 actual CityMap construction/projection/controller assertions; mocked only`, `PASS 987779 actual minimap module/client assertions; synthetic layout/input only`, 16/16 negative controls PASS
+  - `python tests/training_map.py --negative-controls`: `PASS 2 unchanged projection/layout/update source contracts`, `PASS 754 actual training-map/legacy assertions; mock UI only`, `PASS 11 training-map negative controls`
+  - `python tests/compact_city_map.py --negative-controls`: `PASS 102 compact CityMap projection/render/lifecycle assertions; mocked GUI only`, 10/10 negative controls PASS
+  - `python tests/city_map_marker.py`: `PASS 9 actual map marker checks with mocked GUI`
+  - `python tests/notice_view.py`: `PASS 629 notice module/Client assertions; mock text metrics/GUI, no native access claim`, `PASS source contracts: neutral peek, render cadence, teardown`
+  - Note: `tests/small_screen_map.py` is not present in the repository; live Studio visual appearance remains unexecuted in this environment.

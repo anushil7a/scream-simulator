@@ -52,6 +52,39 @@ check(full.dot.Size.X.Offset==18 and full.arrow and not mini.arrow,'Modal/mini a
 check(not find(mini.map,'North') and not find(mini.map,'Landmark1'),'Compact decoration clutter')
 local outline;for _,o in ipairs(objects)do if o.ClassName=='UIStroke' and o.Parent==mini.dot then outline=o end end
 check(outline and outline.Thickness==2,'Marker contrast outline missing')
+local function indexOf(obj)for idx,o in ipairs(objects)do if o==obj then return idx end end end
+local hubSpec,courtSpec
+for _,spec in ipairs(Layout.PartSpecs)do
+ if spec.id=='HubPaving' then hubSpec=spec elseif spec.id=='Court' then courtSpec=spec end
+end
+check(hubSpec~=nil and courtSpec~=nil,'Required courtyard/court specs missing')
+for _,view in ipairs({full,mini})do
+ local corner,border
+ for _,o in ipairs(objects)do
+  if o.Parent==view.map and o.ClassName=='UICorner' then corner=o end
+  if o.Parent==view.map and o.ClassName=='UIStroke' and o.Name=='MapBorder' then border=o end
+ end
+ check(corner and corner.CornerRadius.Offset==4,'Map frame corner radius missing')
+ check(border and border.Thickness==1 and near(border.Transparency,.35),'Map border stroke missing')
+ local courtyard=find(view.map,'Courtyard')
+ check(courtyard~=nil,'Courtyard plaza zone missing')
+ local hubPos=CityMap.Project(hubSpec.position.X-hubSpec.size.X/2,hubSpec.position.Z-hubSpec.size.Z/2)
+ check(near(courtyard.Position.X.Scale,hubPos.X.Scale) and near(courtyard.Position.Y.Scale,hubPos.Y.Scale),'Courtyard position drift')
+ check(near(courtyard.Size.X.Scale,hubSpec.size.X/720) and near(courtyard.Size.Y.Scale,hubSpec.size.Z/600),'Courtyard dimensions drift')
+ local beach=find(view.map,'Beach');local shore=find(view.map,'Shoreline');local court=find(view.map,'Footprint_Court')
+ check(beach~=nil and shore~=nil and court~=nil,'Shoreline surf accent missing')
+ check(indexOf(courtyard)<indexOf(beach),'Courtyard rendered above beach')
+ check(near(shore.Position.X.Scale,beach.Position.X.Scale) and near(shore.Size.X.Scale,beach.Size.X.Scale),'Shoreline width drift')
+ check(shore.Position.Y.Scale>court.Position.Y.Scale+court.Size.Y.Scale,'Shoreline overlaps coastal court')
+ check(near(shore.Size.Y.Scale,9/600) and near(shore.Position.Y.Scale+shore.Size.Y.Scale,1),'Shoreline not flush with south coast')
+end
+for i,v in ipairs(Layout.MapLandmarks)do
+ if v.name~='2 Training' then
+  local pin=find(full.map,'Landmark'..i)
+  local rim;for _,o in ipairs(objects)do if o.Parent==pin and o.ClassName=='UIStroke' then rim=o end end
+  check(rim and rim.Thickness==1 and near(rim.Transparency,.35),'Landmark pin rim missing')
+ end
+end
 local count=#objects
 for i=1,100 do CityMap.MiniUpdate(mini,{Parent={},Position={X=-270,Z=130},CFrame={LookVector={X=0,Z=-1}}},i,true)end
 check(#objects==count,'Map art rebuilt during updates')
@@ -72,5 +105,11 @@ if args.negative_controls:
   ("part.size.X/width,part.size.Z/depth,color","part.size.X/depth,part.size.Z/width,color","Footprint dimensions drift"),
   ("if route.id:match('^Route') then","if false then","Route missing or target-frame added"),
   ("compact and 8 or 18","18","Mini marker hides map"),
+  ("local mapBorder=Instance.new('UIStroke');mapBorder.Name='MapBorder';mapBorder.Color=Color3.fromRGB(115,148,148);mapBorder.Thickness=1;mapBorder.Transparency=.35;mapBorder.Parent=map","","Map border stroke missing"),
+  ("if part.id==\"HubPaving\" or part.id==\"Beach\" then","if part.id==\"Beach\" then","Courtyard plaza zone missing"),
+  ("box(map,'Shoreline',shore.X.Scale,shore.Y.Scale,part.size.X/width,9/depth,Color3.fromRGB(64,134,152))","","Shoreline surf accent missing"),
+  ("Config.MapMax.Z-9","Config.MapMax.Z-8","Shoreline not flush with south coast"),
+  ("shore.X.Scale,shore.Y.Scale,part.size.X/width,9/depth","shore.X.Scale,shore.Y.Scale-6/depth,part.size.X/width,15/depth","Shoreline overlaps coastal court"),
+  ("local pinStroke=Instance.new('UIStroke');pinStroke.Color=Color3.fromRGB(168,186,184);pinStroke.Thickness=1;pinStroke.Transparency=.35;pinStroke.Parent=pin","","Landmark pin rim missing"),
  ]:
   assert a in source;run(source.replace(a,b),e)

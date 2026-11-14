@@ -1,13 +1,18 @@
 -- Full text stays in one scroll viewport; no copied queue or per-message jobs.
 local Layout=require(script.Parent.NoticeLayout)
 local TextService=game:GetService("TextService")
+local GOLD=Color3.fromRGB(235,190,105)
 local View={};View.__index=View
 function View.new(parent,text)
  local root=Instance.new("Frame");root.Name="NoticeViewport";root.BackgroundColor3=text.BackgroundColor3;root.BackgroundTransparency=.08;root.BorderSizePixel=0;root.ZIndex=30;root.Visible=false;root.Parent=parent
+ local corner=Instance.new("UICorner");corner.Name="NoticeCorner";corner.CornerRadius=UDim.new(0,6);corner.Parent=root
+ local stroke=Instance.new("UIStroke");stroke.Name="NoticeStroke";stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;stroke.Color=GOLD;stroke.Thickness=1;stroke.Transparency=.55;stroke.Parent=root
  local scroll=Instance.new("ScrollingFrame");scroll.Name="FullNotice";scroll.BackgroundTransparency=1;scroll.BorderSizePixel=0;scroll.ScrollBarThickness=4;scroll.ScrollingDirection=Enum.ScrollingDirection.Y;scroll.Active=true;scroll.ZIndex=31;scroll.Parent=root
  text.Parent=scroll;text.AnchorPoint=Vector2.zero;text.Position=UDim2.fromOffset(6,4);text.BackgroundTransparency=1;text.ZIndex=31;text.TextWrapped=true;text.TextYAlignment=Enum.TextYAlignment.Top
- local hint=Instance.new("TextLabel");hint.Name="NoticeScrollHint";hint.BackgroundColor3=root.BackgroundColor3;hint.BackgroundTransparency=.08;hint.Active=false;hint.Selectable=false;hint.Interactable=false;hint.TextColor3=text.TextColor3;hint.Font=text.Font;hint.TextSize=12;hint.ZIndex=32;hint.TextWrapped=true;hint.TextYAlignment=Enum.TextYAlignment.Top;hint.Text="Scroll for full notice";hint.Parent=scroll
- local self=setmetatable({root=root,scroll=scroll,text=text,hint=hint,message="",connections={},hover=false,pauseUntil=0,atBottom=false,destroyed=false},View)
+ local hint=Instance.new("TextLabel");hint.Name="NoticeScrollHint";hint.BackgroundColor3=Color3.fromRGB(48,42,28);hint.BackgroundTransparency=.15;hint.BorderSizePixel=0;hint.Active=false;hint.Selectable=false;hint.Interactable=false;hint.TextColor3=Color3.fromRGB(255,214,128);hint.Font=text.Font;hint.TextSize=12;hint.ZIndex=32;hint.TextWrapped=true;hint.TextYAlignment=Enum.TextYAlignment.Top;hint.Text="Scroll for full notice";hint.Parent=scroll
+ local hintCorner=Instance.new("UICorner");hintCorner.Name="NoticeScrollHintCorner";hintCorner.CornerRadius=UDim.new(0,4);hintCorner.Parent=hint
+ local hintStroke=Instance.new("UIStroke");hintStroke.Name="NoticeScrollHintStroke";hintStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;hintStroke.Color=GOLD;hintStroke.Thickness=1;hintStroke.Transparency=.65;hintStroke.Parent=hint
+ local self=setmetatable({root=root,corner=corner,stroke=stroke,scroll=scroll,text=text,hint=hint,hintCorner=hintCorner,hintStroke=hintStroke,message="",connections={},hover=false,pauseUntil=0,atBottom=false,destroyed=false},View)
  local function connect(signal,fn)table.insert(self.connections,signal:Connect(fn))end
  connect(scroll.MouseEnter,function()self.hover=true end);connect(scroll.MouseLeave,function()self.hover=false end)
  connect(scroll.InputBegan,function()self.pauseUntil=os.clock()+1 end)

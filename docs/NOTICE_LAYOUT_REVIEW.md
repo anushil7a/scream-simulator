@@ -95,3 +95,17 @@ NoticeView now ceilings body/header metrics and detects rendered subpixel growth
 The corrected exact generated fixture ran natively with 82px body, 110px canvas and 46px viewport. Keyboard navigation selected FullNotice without forced SelectedObject; PageDown reached 64px maximum. A temporary 24px-body variant fit 216px text and wheel-scrolled to 198px maximum, with the last text bottom 117.6 below viewport bottom 122. The variant was restored to the exact normal generated source and Play stopped. Native mouse-wheel and keyboard checks are not physical touch or controller evidence. No controller was attached. Phone safe areas, real thumbstick reachability and OS preferred-font settings remain untested; arbitrary tiny-frame HUD overlaps are not resolved by this scoped fix.
 
 See [native input evidence](../tests/evidence/native-input-2026-11-12.json) for exact hashes, observations and limitations. The same pass also checked mic dismissal, movement with no mic and safe unready toggle/minimap behavior in the earlier full-game local source; it did not validate the new tester-access candidate or real voice. No live persistence or publication.
+
+
+## Coastal Academy slate/gold viewport styling (November 13)
+
+`NoticeView.luau` now aligns `NoticeViewport` and `NoticeScrollHint` with the Coastal Academy slate/gold UI hierarchy without changing layout measurements (`measuredHeight`, `measuredHintHeight`, `headerHeight`, `panelHeight`, 44px minimum height, `layout.width - 16` text width), scroll/hover/input pause connections, `CanAdvance()`, `Overlaps()`, or `Destroy()`:
+
+- `NoticeViewport` (`root`) adds `NoticeCorner` (`UICorner`, `CornerRadius = UDim.new(0, 6)`) and `NoticeStroke` (`UIStroke`, `Thickness = 1`, `ApplyStrokeMode = Enum.ApplyStrokeMode.Border`, `Color = Color3.fromRGB(235, 190, 105)`, `Transparency = 0.55`).
+- `NoticeScrollHint` (`hint`) uses a passive amber/gold cue treatment (`BackgroundColor3 = Color3.fromRGB(48, 42, 28)`, `BackgroundTransparency = 0.15`, `BorderSizePixel = 0`, `TextColor3 = Color3.fromRGB(255, 214, 128)`) with `NoticeScrollHintCorner` (`UICorner`, `CornerRadius = UDim.new(0, 4)`) and `NoticeScrollHintStroke` (`UIStroke`, `Thickness = 1`, `ApplyStrokeMode = Enum.ApplyStrokeMode.Border`, `Color = Color3.fromRGB(235, 190, 105)`, `Transparency = 0.65`) while remaining non-interactive (`Active = false`, `Selectable = false`, `Interactable = false`).
+
+Verification (mocked GUI/text metrics and `luau-compile` only; no Studio execution in this pass):
+
+- `C:\Python315\python.exe tests/notice_view.py --negative-controls`: `PASS 629 notice module/Client assertions; mock text metrics/GUI, no native access claim`, 27 negative controls passed, 3 source contracts passed.
+- `luau-compile src/StarterPlayer/StarterPlayerScripts/NoticeView.luau`: exit 0.
+- `C:\Python315\python.exe tests/minimap.py --negative-controls`, `tests/save_notification_priority.py`, and `tests/voice_notice_lifecycle.py --negative-controls`: all exited 0.

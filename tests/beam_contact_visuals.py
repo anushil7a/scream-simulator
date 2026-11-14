@@ -55,13 +55,14 @@ end
 local function create(level,reduced,width)
  local r=Visuals.Create();Visuals.Update(r,Vector3.zero,Vector3.zAxis,40,width or 7,color,level or 100,reduced or false);return r
 end
-local function spokes(parts,anchor,count,extent,inner)
+local function spokes(parts,anchor,count,extent,inner,backingThickness,coreThickness)
  check(#parts==count*2,'Contact stroke count changed')
  for i=1,count do
   local angle=(i-.5)*math.pi*2/count;local x,y=math.cos(angle),math.sin(angle)
   for layer=1,2 do
    local p=parts[(i-1)*2+layer];local finish=p.CFrame.Target;local start=p.CFrame.Position*2-finish
-   local depth=layer==1 and .7 or .82;local thickness=layer==1 and .18 or .1
+   local depth=layer==1 and .7 or .82;local thickness=layer==1 and (backingThickness or .18) or (coreThickness or .1)
+   check(near(p.Size.Y,thickness) and near(p.Size.Z,thickness),'Contact stroke thickness mismatch')
    check(near(start.X-anchor.X,x*inner) and near(start.Y-anchor.Y,y*inner),'Contact stroke lost open center')
    check(near(finish.X-anchor.X,x*extent) and near(finish.Y-anchor.Y,y*extent),'Contact stroke not radial/outward')
    check(inner>0 and extent>inner and near(p.Size.X,extent-inner),'Contact stroke collapsed or crossed center')
@@ -102,18 +103,26 @@ check(not r.contactPosition and not r.nextContact and #r.contact.parts==0,'Rejec
 check(Visuals.Contact(r,anchor,clock,7),'Initial contact rejected')
 Visuals.Animate(r,clock,Vector3.zero,false)
 check(#r.contact.parts==16 and r.contactPosition==anchor,'Regular contact missing')
+local function sameColor(a,b)return a and b and near(a.R,b.R) and near(a.G,b.G) and near(a.B,b.B) end
+local white=Color3.fromRGB(245,252,255)
 local backing,core=r.contact.parts[1],r.contact.parts[2]
-check(backing.Material==Enum.Material.SmoothPlastic and core.Material==Enum.Material.Neon and near(backing.Size.Y,.18) and near(core.Size.Y,.1),'Contact hierarchy changed')
-spokes(r.contact.parts,anchor,8,1.65,1.65*.58)
-check(backing.Transparency==.15 and core.Transparency==.1,'Contact initial alpha changed')
+check(backing.Material==Enum.Material.SmoothPlastic and core.Material==Enum.Material.Neon and near(backing.Size.Y,.2) and near(core.Size.Y,.12),'Contact hierarchy changed')
+spokes(r.contact.parts,anchor,8,1.65,1.65*.52,.2,.12)
+check(near(backing.Transparency,.1) and near(core.Transparency,.05),'Contact initial alpha changed')
+check(sameColor(core.Color,color:Lerp(white,.75)),'Contact onset hot core missing')
 for _,p in ipairs(r.contact.parts)do check(p.Anchored and not p.CanCollide and not p.CanQuery and not p.CanTouch and not p.CastShadow,'Contact gained physics')end
 local ending=clock+.28;local nextContact=clock+.4
 for _,offset in ipairs({-.1,.01,.15,.279})do
  check(not Visuals.Contact(r,vec(4,3,30),clock+offset,8),'Rate limit accepted repeated/backward contact')
  check(r.contactBorn==clock and r.nextContact==nextContact and r.contactPosition==anchor,'Repeated contact extended/replaced pulse')
 end
-Visuals.Animate(r,clock+.14,Vector3.zero,false);spokes(r.contact.parts,anchor,8,2.025,2.025*.64)
+Visuals.Animate(r,clock+.14,Vector3.zero,false)
+local midEase=1-.5^3;local midExtent=1.65+midEase*.75;local midInner=midExtent*(.52+midEase*.24)
+spokes(r.contact.parts,anchor,8,midExtent,midInner,.16,.085)
+check(near(r.contact.parts[1].Transparency,.1+.25*.82) and near(r.contact.parts[2].Transparency,.05+.25*.9),'Contact decay alpha mismatch')
+check(sameColor(r.contact.parts[2].Color,color:Lerp(white,.2+.55*.25)),'Contact core failed to cool toward beam tint')
 Visuals.Animate(r,ending-.000001,Vector3.zero,false);check(#r.contact.parts==16,'Contact expired early')
+check(r.contact.parts[1].Size.Y<.13 and r.contact.parts[2].Size.Y<.06 and r.contact.parts[1].Transparency>.9 and r.contact.parts[2].Transparency>.94,'Contact tail did not taper/fade')
 Visuals.Animate(r,ending,Vector3.zero,false);check(#r.contact.parts==0 and not r.contactPosition,'Contact TTL boundary retained pulse')
 check(not Visuals.Contact(r,anchor,nextContact-.000001),'Contact cooldown ended early')
 check(Visuals.Contact(r,anchor,nextContact,9),'Contact cooldown boundary rejected')
@@ -125,7 +134,7 @@ for _,mode in ipairs({{true,0,false,false},{false,111,false,false},{false,0,true
  r=create(100,mode[4]);check(Visuals.Contact(r,anchor,clock,11),'Quiet contact rejected')
  local viewer=vec(0,0,mode[2]);Visuals.Animate(r,clock,viewer,mode[1],true,mode[3])
  check(#r.contact.parts==8,'Quiet/far contact budget changed')
- spokes(r.contact.parts,anchor,4,1.8,1.8*.72)
+ spokes(r.contact.parts,anchor,4,1.8,1.8*.72,.18,.1)
  local before={};for i,p in ipairs(r.contact.parts)do before[i]={Size=p.Size,CFrame=p.CFrame,Transparency=p.Transparency,Color=p.Color}end
  Visuals.Update(r,vec(2,3,4),Vector3.yAxis,20,7,color,100,mode[4])
  if mode[2]>0 then viewer=vec(2,3,mode[2]+4) end
@@ -225,6 +234,12 @@ def main():
             ('local from=center+radial*inner;local to=center+radial*extent', 'local from=center;local to=center+radial*extent', 'Contact stroke lost open center'),
             ('local to=center+radial*extent', 'local to=center-radial*extent', 'Contact stroke not radial/outward'),
             ('rig.contactPosition-contactDir*.7', 'rig.contactPosition-contactDir*.4', 'Contact stroke left target front plane'),
+            ('local ease=1-(1-progress)^3', 'local ease=progress', 'Contact stroke lost open center'),
+            ('color:Lerp(white,quietContact and .3 or .2+.55*heat)', 'color:Lerp(white,.3)', 'Contact onset hot core missing'),
+            ('quietContact and .18 or .2-.08*progress', '.18', 'Contact hierarchy changed'),
+            ('quietContact and .1 or .12-.07*progress', '.1', 'Contact hierarchy changed'),
+            ('local fade=progress*progress', 'local fade=progress', 'Contact decay alpha mismatch'),
+            ('quietContact and .15 or .1+fade*.82', '.1+fade*.82', 'Quiet contact moved/flashed after aim update'),
         ]
         for old, new, expected in cases:
             assert source.count(old) == 1, old

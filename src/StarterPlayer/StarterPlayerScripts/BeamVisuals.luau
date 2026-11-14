@@ -131,20 +131,26 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
   if rig.contactPosition then
    local quietContact=quiet or contactReduced or distance>Style.FarDistance
    local progress=math.clamp((now-rig.contactBorn)/.28,0,1)
-   local extent=math.min(width*.48,quietContact and 1.8 or 1.65+progress*.75)
-   local inner=extent*(quietContact and .72 or .58+progress*.12)
+   local ease=1-(1-progress)^3
+   local heat=(1-progress)^2
+   local fade=progress*progress
+   local extent=math.min(width*.48,quietContact and 1.8 or 1.65+ease*.75)
+   local inner=extent*(quietContact and .72 or .52+ease*.24)
    local count=quietContact and 4 or 8
    local contactDir=rig.contactDirection
    local contactRight,contactUp=rig.contactBasis.RightVector,rig.contactBasis.UpVector
    local center=rig.contactPosition-contactDir*.7
+   local backThickness=quietContact and .18 or .2-.08*progress
+   local coreThickness=quietContact and .1 or .12-.07*progress
+   local coreColor=color:Lerp(white,quietContact and .3 or .2+.55*heat)
    -- Short outward strokes differ from traveling collars. Offset them from the
    -- root's body depth; quiet strokes stay still without screen/camera effects.
    for i=1,count do
     local angle=(i-.5)*math.pi*2/count
     local radial=contactRight*math.cos(angle)+contactUp*math.sin(angle)
     local from=center+radial*inner;local to=center+radial*extent
-    line(rig.contact,from,to,.18,color:Lerp(Color3.fromRGB(0,0,0),.8),quietContact and .15 or .15+progress*.75,Enum.Material.SmoothPlastic,true)
-    line(rig.contact,from-contactDir*.12,to-contactDir*.12,.1,color:Lerp(white,.3),quietContact and .3 or .1+progress*.85,Enum.Material.Neon,true)
+    line(rig.contact,from,to,backThickness,color:Lerp(Color3.fromRGB(0,0,0),.8),quietContact and .15 or .1+fade*.82,Enum.Material.SmoothPlastic,true)
+    line(rig.contact,from-contactDir*.12,to-contactDir*.12,coreThickness,coreColor,quietContact and .3 or .05+fade*.9,Enum.Material.Neon,true)
    end
   end
  end

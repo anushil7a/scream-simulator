@@ -45,14 +45,23 @@ local trainingBadges={
 function CityMap.create(parent,compact)
  local map=box(parent,'CityMap',.5,.5,1,1,Color3.fromRGB(47,69,69));map.AnchorPoint=Vector2.new(.5,.5)
  local ratio=Instance.new('UIAspectRatioConstraint');ratio.AspectRatio=CityMap.aspectRatio;ratio.AspectType=Enum.AspectType.FitWithinMaxSize;ratio.Parent=map
+ if CompactLayout then
+  local mapCorner=Instance.new('UICorner');mapCorner.CornerRadius=UDim.new(0,4);mapCorner.Parent=map
+  local mapBorder=Instance.new('UIStroke');mapBorder.Name='MapBorder';mapBorder.Color=Color3.fromRGB(115,148,148);mapBorder.Thickness=1;mapBorder.Transparency=.35;mapBorder.Parent=map
+ end
  box(map,'Arena',arenaX,arenaZ,arenaWidth,arenaHeight,Color3.fromRGB(111,66,69))
  if CompactLayout then
   local width=Config.MapMax.X-Config.MapMin.X;local depth=Config.MapMax.Z-Config.MapMin.Z
-  -- Match the actual shared beach footprint instead of the legacy shoreline.
+  -- Match the actual shared beach/courtyard footprints and frame the southern surf edge.
   for _,part in ipairs(CompactLayout.PartSpecs) do
-   if part.id=="Beach" then
+   if part.id=="HubPaving" or part.id=="Beach" then
     local start=position(part.position.X-part.size.X/2,part.position.Z-part.size.Z/2)
-    box(map,'Beach',start.X.Scale,start.Y.Scale,part.size.X/width,part.size.Z/depth,Color3.fromRGB(179,153,104))
+    local isBeach=part.id=="Beach"
+    box(map,isBeach and 'Beach' or 'Courtyard',start.X.Scale,start.Y.Scale,part.size.X/width,part.size.Z/depth,isBeach and Color3.fromRGB(179,153,104) or Color3.fromRGB(61,86,85))
+    if isBeach then
+     local shore=position(part.position.X-part.size.X/2,Config.MapMax.Z-9)
+     box(map,'Shoreline',shore.X.Scale,shore.Y.Scale,part.size.X/width,9/depth,Color3.fromRGB(64,134,152))
+    end
    end
   end
   -- Static footprints share the world's source dimensions; no replicated enemy markers.
@@ -108,6 +117,7 @@ function CityMap.create(parent,compact)
    -- Give nearby pins breathing room on narrow maps without shrinking their text.
    pin.Size=UDim2.fromScale(.08,.08*CityMap.aspectRatio)
    local size=Instance.new('UISizeConstraint');size.MinSize=Vector2.new(18,18);size.MaxSize=Vector2.new(23,23);size.Parent=pin
+   local pinStroke=Instance.new('UIStroke');pinStroke.Color=Color3.fromRGB(168,186,184);pinStroke.Thickness=1;pinStroke.Transparency=.35;pinStroke.Parent=pin
   end
   local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=pin;text(pin,tostring(i),13)
  end

@@ -32,3 +32,8 @@ A pre-existing Studio asset warning for `203785492` appeared before/at play: "As
 Studio was stopped and closed without saving disposable runtime changes. Pre-existing ChatGPT was preserved. One new minimized Windows app-picker dialog appeared during launch, alongside the earlier one. Both cannot currently be restored/closed through the exposed supported controls (`window is minimized`; suggested restore APIs are not exposed). No approval is pending; no process-kill workaround was used. No browser tabs were opened.
 
 Next: verify draft-branch delivery, then continue the requested minimap/audio or other bounded gameplay batch. Real voice/touch/purchase/persistence and release authorization gates remain. Do not publish this candidate.
+
+## Wave 2 style-customization polish
+
+- `Shop.ColorMixer` (`ShopUI.luau`) now renders a passive `24x24` `ColorSwatch` chip at `(16, 186)` with `Active = false`, `Selectable = false`, `Interactable = false`, and an `ink` `UIStroke` border, updating `swatch.BackgroundColor3 = color` live inside `update()` alongside `SelectedColor` (nudged to X offset `48`, width `UDim2.new(1, -64, 0, 24)`). Saved custom shades remain preserved on open without HSV normalization, and no editable hex or extra sliders were added.
+- `tests/style_controls.py --negative-controls` now passes **317** actual mixer/server branch checks (plus 35 Profiles checks and 40 Style renderer assertions) and **12** negative controls (10 mixer/server/swatch + 2 Style renderer), verifying `ColorSwatch` sizing, passive input flags, border stroke, non-overlap with `SelectedColor`, saved-shade preservation, and live hue/touch/locked-preview tracking. Native Studio `TextFits` re-measurement for the updated `ColorMixer` layout was not rerun in this pass.

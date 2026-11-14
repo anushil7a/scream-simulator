@@ -141,7 +141,10 @@ function Shop.Render(data,ui,action)
    end,ink);b.TextSize=13;b.TextColor3=tint;b.AutoButtonColor=shop.ready==true
   end
  end
- local movement=ui.card(narrow and 202 or 170);stroke(movement,accent)
+ local movement=ui.card(narrow and 202 or 170);movement.Name="MovementFeature"
+ movement.BackgroundColor3=Color3.new(1,1,1)
+ gradient(movement,{ColorSequenceKeypoint.new(0,Color3.fromRGB(22,44,68)),ColorSequenceKeypoint.new(1,Color3.fromRGB(16,26,44))},25)
+ stroke(movement,accent)
  ui.label(movement,"04 / FREERUNNER",UDim2.new(1,-32,0,28),UDim2.fromOffset(16,12),20,accent)
  ui.label(movement,"Chain jumps and rolls through the safe city. Standard movement rules apply inside the PvP arena.",UDim2.new(1,-32,0,narrow and 70 or 48),UDim2.fromOffset(16,48),14,soft)
  purchaseButton(Catalog.Get("Movement"),movement,data.movementPass,data,ui,action,UDim2.new(1,-32,0,44),UDim2.fromOffset(16,narrow and 142 or 110))
@@ -161,9 +164,12 @@ function Shop.ColorMixer(data,ui,action)
  local colors={};for j=0,6 do table.insert(colors,ColorSequenceKeypoint.new(j/6,Color3.fromHSV(j/6,1,1))) end
  gradient(bar,colors)
  local knob=ui.frame(bar,"Thumb",UDim2.fromOffset(10,44),UDim2.new(),Color3.new(1,1,1));stroke(knob,ink)
- local code=ui.label(c,"",UDim2.new(1,-32,0,24),UDim2.fromOffset(16,186),13,soft);code.Name="SelectedColor"
+ local swatch=ui.frame(c,"ColorSwatch",UDim2.fromOffset(24,24),UDim2.fromOffset(16,186),color)
+ swatch.Active=false;swatch.Selectable=false;swatch.Interactable=false;stroke(swatch,ink)
+ local code=ui.label(c,"",UDim2.new(1,-64,0,24),UDim2.fromOffset(48,186),13,soft);code.Name="SelectedColor"
  local function update()
   code.Text="Selected color #"..color:ToHex():upper()
+  swatch.BackgroundColor3=color
   knob.Position=UDim2.new(hue,-10*hue,.5,-22)
  end
  local dragInput

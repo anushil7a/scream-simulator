@@ -20,11 +20,13 @@ local n=0;local function check(v,m)assert(v,m);n+=1 end
 local now=0;local os={clock=function()return now end};local measured=0
 local V={};V.__index=V;function V.__sub(a,b)return setmetatable({X=a.X-b.X,Y=a.Y-b.Y},V)end
 local Vector2={new=function(x,y)return setmetatable({X=x,Y=y},V)end};Vector2.zero=Vector2.new(0,0)
+local UDim={new=function(s,o)return {Scale=s or 0,Offset=o or 0}end}
+local Color3={fromRGB=function(r,g,b)return {R=r,G=g,B=b}end}
 local UDim2={new=function(xs,x,ys,y)return {X={Scale=xs,Offset=x},Y={Scale=ys,Offset=y}}end}
 function UDim2.fromOffset(x,y)return UDim2.new(0,x,0,y)end
-local Enum={ScrollingDirection={Y=1},TextYAlignment={Top=1}}
+local Enum={ScrollingDirection={Y=1},TextYAlignment={Top=1},ApplyStrokeMode={Border=1,Contextual=2}}
 local function signal()local s={};function s:Connect(fn)local c={fn=fn,on=true};function c:Disconnect()self.on=false end;table.insert(self,c);return c end;function s:Fire()for _,c in ipairs(self)do if c.on then c.fn()end end end;return s end
-local instances=0;local Instance={new=function(kind)instances+=1;local x={Visible=true,CanvasPosition=Vector2.zero,AbsolutePosition=Vector2.zero,AbsoluteSize=Vector2.zero,MouseEnter=signal(),MouseLeave=signal(),InputBegan=signal(),changed=signal()};function x:GetPropertyChangedSignal()return self.changed end;function x:Destroy()self.dead=true;self.Parent=nil end;return x end}
+local instances=0;local Instance={new=function(kind)instances+=1;local x={ClassName=kind,Visible=true,CanvasPosition=Vector2.zero,AbsolutePosition=Vector2.zero,AbsoluteSize=Vector2.zero,MouseEnter=signal(),MouseLeave=signal(),InputBegan=signal(),changed=signal()};function x:GetPropertyChangedSignal()return self.changed end;function x:Destroy()self.dead=true;self.Parent=nil end;return x end}
 local TextService={GetTextSize=function(_,text,size,font,bounds)measured+=1;return {Y=math.ceil(#text*size*.55/bounds.X)*18}end}
 local game={GetService=function()return TextService end};local script={Parent={NoticeLayout='layout'}}
 local function loadLayout()
@@ -33,6 +35,17 @@ checks=r'''
 local Queue=require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue')
 local function make()
  local text=Instance.new('TextLabel');text.Text='';text.Font='Gotham';local v=View.new({},text);return v
+end
+do
+ local styled=make()
+ check(styled.corner.ClassName=='UICorner' and styled.corner.Name=='NoticeCorner' and styled.corner.Parent==styled.root and styled.corner.CornerRadius.Scale==0 and styled.corner.CornerRadius.Offset==6,'NoticeCorner missing 6px radius')
+ check(styled.stroke.ClassName=='UIStroke' and styled.stroke.Name=='NoticeStroke' and styled.stroke.Parent==styled.root and styled.stroke.ApplyStrokeMode==Enum.ApplyStrokeMode.Border and styled.stroke.Thickness==1,'NoticeStroke not border-scoped')
+ check(styled.stroke.Transparency==.55 and styled.stroke.Color.R==235 and styled.stroke.Color.G==190 and styled.stroke.Color.B==105,'NoticeStroke transparency or gold color wrong')
+ check(styled.hint.BorderSizePixel==0 and styled.hint.BackgroundColor3.R==48 and styled.hint.BackgroundColor3.G==42 and styled.hint.BackgroundColor3.B==28 and styled.hint.BackgroundTransparency==.15,'Scroll hint background treatment missing')
+ check(styled.hint.TextColor3 and styled.hint.TextColor3.R==255 and styled.hint.TextColor3.G==214 and styled.hint.TextColor3.B==128,'Scroll hint lost accent color')
+ check(styled.hintCorner.ClassName=='UICorner' and styled.hintCorner.Name=='NoticeScrollHintCorner' and styled.hintCorner.Parent==styled.hint and styled.hintCorner.CornerRadius.Offset==4,'Scroll hint corner missing')
+ check(styled.hintStroke.ClassName=='UIStroke' and styled.hintStroke.Name=='NoticeScrollHintStroke' and styled.hintStroke.Parent==styled.hint and styled.hintStroke.ApplyStrokeMode==Enum.ApplyStrokeMode.Border and styled.hintStroke.Thickness==1 and styled.hintStroke.Transparency==.65,'Scroll hint stroke wrong')
+ styled:Destroy()
 end
 local CityMap={aspectRatio=1.2}
 MINI
@@ -192,7 +205,7 @@ def run(layout,view,body=checks,error=None):
  else:assert r.returncode==0,out;print(out.strip())
 run(sources['NoticeLayout'],sources['NoticeView'])
 if a.negative_controls:
- for old,new,error in [('math.ceil(math.max(measured,self.renderedHeight or 0))','math.max(measured,self.renderedHeight or 0)','Fractional body allocation truncates text'),('math.ceil(math.max(hintHeight,self.renderedHintHeight or 0))','math.max(hintHeight,self.renderedHintHeight or 0)','Fractional header allocation truncates text'),('rendered.Y>self.measuredHeight','rendered.Y>self.measuredHeight+1','Subpixel rendered growth ignored'),('hintBounds.Y>self.measuredHintHeight','hintBounds.Y>self.measuredHintHeight+1','Subpixel rendered growth ignored'),('hint.Parent=scroll','hint.Parent=root','Cue remains outside scroll content'),('self.measuredHintHeight=math.ceil(math.max(hintHeight,self.renderedHintHeight or 0))','self.measuredHintHeight=16','Cue measurement omitted'),('self.renderedHintHeight=hintBounds.Y;self.key=nil','self.renderedHintHeight=nil','Enlarged cue clipped'),('self.visibleHeight=self.panelHeight;','self.visibleHeight=self.panelHeight-16;','Actual scrolling target below44px'),('self.textHeight+self.headerHeight','self.textHeight','Last text line remains under cue'),('hint.Interactable=false','hint.Interactable=true','Cue intercepts scroll input'),('self.atBottom and not self.hover','true and not self.hover','Unseen overflow expires'),('and not self.hover','and true','Hovered notice expires'),('entry~=self.entry','false','Same-text replacement keeps stale exposure'),('and now>=self.pauseUntil','and true','Scrolling charges dwell'),('not fresh and self.atBottom','self.atBottom','New message immediately charged dwell'),('self.visible==true and','true and','Covered notice expires'),('self.root.Position=UDim2.fromOffset(layout.x,layout.y)\n local rendered','local rendered','Same-size reposition used stale drawn bounds')]:
+ for old,new,error in [('corner.CornerRadius=UDim.new(0,6)','corner.CornerRadius=UDim.new(0,0)','NoticeCorner missing 6px radius'),('stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border','stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Contextual','NoticeStroke not border-scoped'),('stroke.Transparency=.55','stroke.Transparency=0','NoticeStroke transparency or gold color wrong'),('hint.TextColor3=Color3.fromRGB(255,214,128)','hint.TextColor3=text.TextColor3','Scroll hint lost accent color'),('math.ceil(math.max(measured,self.renderedHeight or 0))','math.max(measured,self.renderedHeight or 0)','Fractional body allocation truncates text'),('math.ceil(math.max(hintHeight,self.renderedHintHeight or 0))','math.max(hintHeight,self.renderedHintHeight or 0)','Fractional header allocation truncates text'),('rendered.Y>self.measuredHeight','rendered.Y>self.measuredHeight+1','Subpixel rendered growth ignored'),('hintBounds.Y>self.measuredHintHeight','hintBounds.Y>self.measuredHintHeight+1','Subpixel rendered growth ignored'),('hint.Parent=scroll','hint.Parent=root','Cue remains outside scroll content'),('self.measuredHintHeight=math.ceil(math.max(hintHeight,self.renderedHintHeight or 0))','self.measuredHintHeight=16','Cue measurement omitted'),('self.renderedHintHeight=hintBounds.Y;self.key=nil','self.renderedHintHeight=nil','Enlarged cue clipped'),('self.visibleHeight=self.panelHeight;','self.visibleHeight=self.panelHeight-16;','Actual scrolling target below44px'),('self.textHeight+self.headerHeight','self.textHeight','Last text line remains under cue'),('hint.Interactable=false','hint.Interactable=true','Cue intercepts scroll input'),('self.atBottom and not self.hover','true and not self.hover','Unseen overflow expires'),('and not self.hover','and true','Hovered notice expires'),('entry~=self.entry','false','Same-text replacement keeps stale exposure'),('and now>=self.pauseUntil','and true','Scrolling charges dwell'),('not fresh and self.atBottom','self.atBottom','New message immediately charged dwell'),('self.visible==true and','true and','Covered notice expires'),('self.root.Position=UDim2.fromOffset(layout.x,layout.y)\n local rendered','local rendered','Same-size reposition used stale drawn bounds')]:
   assert old in sources['NoticeView'];run(sources['NoticeLayout'],sources['NoticeView'].replace(old,new),error=error)
  bad=checks.replace('notifications:Step(dt,noticeView:CanAdvance())','notifications:Step(dt,true)');run(sources['NoticeLayout'],sources['NoticeView'],bad,'Unseen Client overflow expired')
 if a.negative_controls:

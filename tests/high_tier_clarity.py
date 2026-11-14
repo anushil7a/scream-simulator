@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BASE = 'b76c94fafd65be4cec85f1c5f2caa4355262e43b'
 CHECKS = r'''
 local white=Color3.fromRGB(245,252,255);local black=Color3.fromRGB(0,0,0)
+local function sameColor(a,b)return a and b and near(a.R,b.R) and near(a.G,b.G) and near(a.B,b.B) end
 local function hierarchy(rig,spec,tint,age)
  local collarEnd=5+spec.rings*10;local ribbonEnd=collarEnd+spec.strands*12
  for i,p in ipairs(rig.parts)do
@@ -54,7 +55,19 @@ for _,level in ipairs({79,80,89,90,99,100})do
     Baseline.Update(old,Vector3.zero,Vector3.zAxis,40,7,tint,level,mode[4] or false)
     Visuals.Animate(current,time+.07,viewer,mode[1],true,mode[3]);Baseline.Animate(old,time+.07,viewer,mode[1],true,mode[3])
     local highSpec=level>=80 and not mode[1] and not mode[4] and mode[2]==0 and spec or nil
-    unchanged(old.parts,current.parts,highSpec);unchanged(old.contact.parts,current.contact.parts)
+    unchanged(old.parts,current.parts,highSpec)
+    if mode[1] or mode[3] or mode[4] or mode[2]>110 then
+     unchanged(old.contact.parts,current.contact.parts)
+    else
+     local progress=.25;local ease=1-(1-progress)^3;local heat=(1-progress)^2;local fade=progress*progress
+     local extent=1.65+ease*.75;local inner=extent*(.52+ease*.24)
+     spokes(current.contact.parts,vec(2,1,24),8,extent,inner,.2-.08*progress,.12-.07*progress)
+     local backing,core=current.contact.parts[1],current.contact.parts[2]
+     check(backing.Material==Enum.Material.SmoothPlastic and core.Material==Enum.Material.Neon,'High-tier contact material hierarchy changed')
+     check(near(backing.Transparency,.1+fade*.82) and near(core.Transparency,.05+fade*.9),'High-tier regular contact alpha changed')
+     check(sameColor(backing.Color,tint:Lerp(black,.8)),'High-tier regular contact backing color changed')
+     check(sameColor(core.Color,tint:Lerp(white,.2+.55*heat)),'High-tier regular contact core color changed')
+    end
    end
    Visuals.Destroy(current);Baseline.Destroy(old)
   end
@@ -104,9 +117,12 @@ def main():
             ('color:Lerp(white,high and .12 or .4)', 'color:Lerp(white,.4)', 'High-tier ribbon stayed a white emissive net'),
             ('high and .55 or .3', 'high and .3 or .3', 'High-tier corona competed with contact'),
             ('radius*(detailed and .10 or .28)', 'radius*(detailed and .11 or .28)', 'Original beam property changed'),
-            ('rig.contactPosition-contactDir*.7', 'rig.contactPosition-contactDir*.6', 'Original beam property changed'),
+            ('rig.contactPosition-contactDir*.7', 'rig.contactPosition-contactDir*.6', 'Contact stroke left target front plane'),
             ('high and .7 or .18', '.18', 'High-tier body transparency stayed opaque'),
             ('high and .78 or .55', '.55', 'High-tier outer shell transparency stayed opaque'),
+            ('local ease=1-(1-progress)^3', 'local ease=progress', 'Contact stroke lost open center'),
+            ('color:Lerp(white,quietContact and .3 or .2+.55*heat)', 'color:Lerp(white,.3)', 'High-tier regular contact core color changed'),
+            ('quietContact and .1 or .12-.07*progress', '.1', 'Contact stroke thickness mismatch'),
         ]
         for old, new, expected in cases:
             assert source.count(old) == 1, old

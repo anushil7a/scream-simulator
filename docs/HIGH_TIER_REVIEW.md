@@ -37,3 +37,10 @@ The accepted final source and images are retained here. Earlier diagnostic proto
 Frozen timestamps, fake microphone/remotes/level state, an opaque scripted target and contrast wall do not establish real hits, human voice, actual phone behavior, animation comfort, multiplayer or performance. Logical HUD allocation was 1280×640 with a native viewport about 1626×734. Dense effects, other avatar shapes and every camera angle remain untested. The pre-existing asset-type warning `203785492` remains; the official execute wrapper resets cleanup camera type to Scriptable, so persistent camera restoration is not claimed.
 
 Native cleanup removed owned fixture/probe objects, unanchored the avatar and stopped Play. Genuine animated/device acceptance remains separate.
+
+## Wave 2 contact cadence update
+
+`src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau` (SHA256 `d0afeb914318a16dc210647d8a4d49c6153a47735b5c58fbb86ffd48b57bf3e0`) refines the regular confirmed-damage `rig.contact` burst (`ease = 1 - (1 - progress)^3`, hot-core onset `color:Lerp(white, 0.2 + 0.55 * (1 - progress)^2)`, thickness taper `0.20 -> 0.12` backing / `0.12 -> 0.05` core, and quadratic alpha decay `progress^2`) to improve separation against high-tier (`L80-L100`) beam bodies without modifying `rig.parts` (lines 79-129), part counts (`67/77/77` core/tier, `16/8/0` contact), or quiet/reduced/far behavior.
+
+- `tests/high_tier_clarity.py --negative-controls` verifies `unchanged(old.parts, current.parts, highSpec)` and quiet/reduced/far `unchanged(old.contact.parts, current.contact.parts)` against `nov13-contact-baseline`, plus the refined regular contact curve at `0.07s` (`PASS 131673` assertions + 14 negative controls).
+- `tools/beam_lookdev.py` (pinned to `d0afeb914318a16dc210647d8a4d49c6153a47735b5c58fbb86ffd48b57bf3e0`) verified `build/beam-lookdev/comparison.png` (`15/4/41/4/77/4` parts). Native Studio high-tier captures above predate this Wave 2 contact edit.

@@ -62,6 +62,15 @@ for _,hex in ipairs({'123456','808080','000000','FFFFFF','a1b2c3'})do
  check(frames.HUE and not frames.SATURATION and not frames.BRIGHTNESS,'Extra color sliders remain')
  check(not frames.Preview and not frames.Core,'Color preview strip remains')
  check(frames.HUE.Size.Y.Offset==44,'Hue touch target is not 44px')
+ check(frames.ColorSwatch and frames.ColorSwatch.Size.X.Offset==24 and frames.ColorSwatch.Size.Y.Offset==24,'Color swatch size incorrect')
+ check(frames.ColorSwatch.Position.X.Offset==16 and frames.ColorSwatch.Position.Y.Offset==186,'Color swatch position incorrect')
+ check(frames.ColorSwatch.Active==false and frames.ColorSwatch.Selectable==false and frames.ColorSwatch.Interactable==false,'Passive color swatch captured input')
+ check(frames.ColorSwatch.BackgroundColor3:ToHex():upper()==hex:upper(),'Color swatch lost saved shade')
+ local swatchStroke;for _,n in ipairs(nodes)do if n.ClassName=='UIStroke' and n.Parent==frames.ColorSwatch then swatchStroke=n;break end end
+ check(swatchStroke~=nil,'Color swatch missing border stroke')
+ local code;for _,l in ipairs(labels)do if l.Name=='SelectedColor'then code=l;break end end
+ check(code and code.Text=='Selected color #'..hex:upper(),'SelectedColor label lost saved hex')
+ check(code.Position.X.Offset>=frames.ColorSwatch.Position.X.Offset+frames.ColorSwatch.Size.X.Offset+8 and code.Position.Y.Offset==frames.ColorSwatch.Position.Y.Offset,'SelectedColor overlaps ColorSwatch')
  for _,n in ipairs(nodes)do check(n.ClassName~='TextBox','Editable hex remains')end
  check(#actions==0,'Opening mixer submitted color')
  check(equip()==hex:upper(),'Opening mixer changed saved shade')
@@ -69,9 +78,11 @@ for _,hex in ipairs({'123456','808080','000000','FFFFFF','a1b2c3'})do
  local m=input(Enum.UserInputType.MouseButton1,35);frames.HUE.InputBegan:Fire(m)
  check(full(equip()),'Hue edit retained saturation or brightness')
  UIS.InputChanged:Fire(input(Enum.UserInputType.MouseMovement,60));check(equip()=='00FFFF','Mouse drag incorrect')
+ check(frames.ColorSwatch.BackgroundColor3:ToHex():upper()=='00FFFF','Color swatch did not track hue drag')
  UIS.InputEnded:Fire(m);UIS.InputChanged:Fire(input(Enum.UserInputType.MouseMovement,80));check(equip()=='00FFFF','Mouse drag continued after release')
  local t=input(Enum.UserInputType.Touch,10);frames.HUE.InputBegan:Fire(t)
  check(equip()=='FF0000','Touch start incorrect')
+ check(frames.ColorSwatch.BackgroundColor3:ToHex():upper()=='FF0000','Color swatch did not track touch start')
  frames.HUE.InputBegan:Fire(input(Enum.UserInputType.Touch,90));check(equip()=='FF0000','Second pointer hijacked drag')
  UIS.InputChanged:Fire(input(Enum.UserInputType.Touch,60));check(equip()=='FF0000','Unrelated touch hijacked drag')
  t.Position.X=60;UIS.InputChanged:Fire(t);check(equip()=='00FFFF','Touch drag incorrect')
@@ -86,7 +97,7 @@ for _,hex in ipairs({'123456','808080','000000','FFFFFF','a1b2c3'})do
  UIS.InputChanged:Fire(input(Enum.UserInputType.MouseMovement,60));check(equip()=='FF0000','Cleared mixer still handles drag')
 end
 draw(false,'123456');check(buttons.EquipCustom.Text=='PASS REQUIRED','Locked equip wording changed');buttons.EquipCustom.call();check(#actions==0,'Locked mixer submitted equip')
-frames.HUE.InputBegan:Fire(input(Enum.UserInputType.Touch,60));buttons.EquipCustom.call();check(#actions==0,'Locked preview submitted equip')
+frames.HUE.InputBegan:Fire(input(Enum.UserInputType.Touch,60));check(frames.ColorSwatch.BackgroundColor3:ToHex():upper()=='00FFFF','Locked preview swatch did not update');buttons.EquipCustom.call();check(#actions==0,'Locked preview submitted equip')
 draw(true,'123456');local stale=buttons.EquipCustom.call;local old=frames.HUE;local down=input(Enum.UserInputType.Touch,30);old.InputBegan:Fire(down)
 draw(true,'654321');stale();down.Position.X=90;UIS.InputChanged:Fire(down);check(#actions==0 and equip()=='654321','Reopened mixer inherited stale drag')
 draw(true,'123456');frames.HUE.InputBegan:Fire(input(Enum.UserInputType.Keyboard,60));check(equip()=='123456','Keyboard input edited hue')
@@ -138,6 +149,9 @@ else:
   run(code.replace('Color3.fromHSV(hue,1,1)','Color3.fromHSV(hue,.5,.5)'),'Hue edit retained saturation or brightness')
   run(code.replace('if revision==generation and data.spectrumPass then','if data.spectrumPass then'),'Stale equip survived Clear')
   run(code.replace('or dragInput then return end','then return end'),'Second pointer hijacked drag')
+  run(code.replace('swatch.BackgroundColor3=color','-- swatch.BackgroundColor3=color\n'),'Color swatch did not track hue drag')
+  run(code.replace('swatch.Interactable=false','swatch.Interactable=true'),'Passive color swatch captured input')
+  run(code.replace('UDim2.fromOffset(48,186)','UDim2.fromOffset(16,186)'),'SelectedColor overlaps ColorSwatch')
 
 # Isolated real Profiles module, fake atomic store only.
 profile_preamble="\nlocal Healing=require('../src/ReplicatedStorage/Shared/Healing')\nlocal Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat')\nlocal Lease=require('../src/ReplicatedStorage/Shared/ProfileLease')\nlocal Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}\nlocal Color3={fromRGB=function(r,g,b)return {r,g,b}end}\nlocal Progression=(function()\n"

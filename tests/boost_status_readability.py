@@ -73,6 +73,19 @@ local function graph(old,current,a,b,oldTimer,newTimer,boost)
  check(#aa==#bb,'Unrelated UI nodes changed')
  for i,p in ipairs(aa)do graph(old,current,p,bb[i],oldTimer,newTimer,boost)end
 end
+local function movementCard(old,current,oldCard,currentCard)
+ check(currentCard.Name=='MovementFeature','Movement card semantic name missing')
+ check(equal(currentCard.BackgroundColor3,{R=1,G=1,B=1}),'Movement card gradient base color missing')
+ local grads={};for _,p in ipairs(children(current,currentCard))do if p.ClassName=='UIGradient'then table.insert(grads,p)end end
+ check(#grads==1,'Movement card gradient count wrong')
+ local g=grads[1];check(g.Rotation==25 and type(g.Color)=='table' and #g.Color==2,'Movement card gradient stops/rotation wrong')
+ for _,key in ipairs(properties)do
+  if key~='Name' and key~='BackgroundColor3'then check(equal(oldCard[key],currentCard[key]),'Movement card property changed: '..key)end
+ end
+ local aa=children(old,oldCard);local bb=children(current,currentCard,g)
+ check(#aa==#bb,'Movement card child count changed')
+ for i,p in ipairs(aa)do graph(old,current,p,bb[i],nil,nil,false)end
+end
 local ink={R=9/255,G=14/255,B=28/255};local soft={R=160/255,G=178/255,B=208/255}
 local green={R=112/255,G=230/255,B=174/255};local activeBand={R=18/255,G=42/255,B=40/255}
 local function paint(f)
@@ -124,7 +137,7 @@ for _,narrow in ipairs({false,true})do
     local data={savingAvailable=saving,shop={ready=ready,inventory={xp=saved and 3 or 0,coins=saved and 1 or 0},ends={xp=200,coins=100.001},serverNow=100}}
     local old=baseline();local current=fixture();old.render(data,narrow);current.render(data,narrow)
     trace(old,current);paint(current);layout(current,narrow)
-    graph(old,current,old.cards[1],current.cards[1],nil,nil,false);graph(old,current,old.cards[4],current.cards[4],nil,nil,false)
+    graph(old,current,old.cards[1],current.cards[1],nil,nil,false);movementCard(old,current,old.cards[4],current.cards[4])
     for i=1,2 do graph(old,current,old.cards[i+1],current.cards[i+1],old.stats().timers[i],current.stats().timers[i],true)end
     for _,now in ipairs({.001,.999,1,59.1,100,100.001})do old.now=now;current.now=now;old.shop.Tick();current.shop.Tick();trace(old,current);paint(current)end
     for _,f in ipairs({old,current})do for _,p in ipairs(f.buttons)do p.Activated:Fire()end end;trace(old,current)
@@ -211,6 +224,10 @@ def main():
             ('revision==generation and b and b.Parent and available', 'b and b.Parent and available', 'Stale available callback still sends after clear'),
             ('table.clear(timers);table.clear(priceViews)', 'table.clear(priceViews)', 'Clear retained status/price views'),
             ('One pass. Choose your beam hue.', 'Changed unrelated header', 'Protected UI property changed'),
+            ('movement.Name="MovementFeature"', 'movement.Name="Card"', 'Movement card semantic name missing'),
+            ('gradient(movement,{ColorSequenceKeypoint.new(0,Color3.fromRGB(22,44,68)),ColorSequenceKeypoint.new(1,Color3.fromRGB(16,26,44))},25)', '-- omitted movement gradient', 'Movement card gradient count wrong'),
+            ('narrow and 202 or 170', 'narrow and 220 or 188', 'Movement card property changed: Size'),
+            ('narrow and 142 or 110', 'narrow and 152 or 120', 'Protected UI property changed: BuyMovement Position'),
         ]
         for old, new, expected in cases:
             assert source.count(old) == 1, old
