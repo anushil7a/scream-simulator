@@ -44,6 +44,7 @@ function Volley.Start(parent)
  local gui=Instance.new("BillboardGui");gui.Size=UDim2.fromOffset(230,66);gui.MaxDistance=48;gui.AlwaysOnTop=false;gui.Parent=board
  local text=Instance.new("TextLabel");text.Size=UDim2.fromScale(1,1);text.BackgroundColor3=Color3.fromRGB(25,48,51);text.BackgroundTransparency=.12;text.TextColor3=Color3.fromRGB(255,239,205);text.TextSize=13;text.Font=Enum.Font.GothamMedium;text.TextWrapped=true;text.Parent=gui
  local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=text
+ local stroke=Instance.new("UIStroke");stroke.Name="ReadoutStroke";stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;stroke.Color=Color3.fromRGB(235,190,105);stroke.Thickness=1;stroke.Transparency=.4;stroke.Parent=text
  local state={model=model,ball=ball,label=text,best=0};gameState=state;reset(state)
  state.connection=Run.Heartbeat:Connect(function(dt)
   if not model.Parent then state.connection:Disconnect();return end

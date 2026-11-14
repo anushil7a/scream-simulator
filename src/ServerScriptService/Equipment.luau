@@ -24,6 +24,10 @@ function Equipment.Sync(player,equipped)
  add("SpeakerGrille",Vector3.new(.54,.58,.06),CFrame.new(0,.42,-.6),Color3.fromRGB(36,42,47))
  for i=-2,2 do add("GrilleSlot",Vector3.new(.43,.025,.02),CFrame.new(0,.42+i*.1,-.64),Color3.fromRGB(98,117,120)) end
  add("StatusLight",Vector3.new(.08,.08,.04),CFrame.new(.23,.7,-.65),Color3.fromRGB(119,233,182),Enum.PartType.Ball).Material=Enum.Material.Neon
+ add("PommelCap",Vector3.new(.29,.08,.29),CFrame.new(0,-.32,0),Color3.fromRGB(232,186,92))
+ add("GuardCollar",Vector3.new(.34,.08,.32),CFrame.new(0,.22,-.08),Color3.fromRGB(238,230,207))
+ add("AcousticCone",Vector3.new(.18,.18,.05),CFrame.new(0,.42,-.64),Color3.fromRGB(232,186,92),Enum.PartType.Ball)
+ add("TelemetrySpine",Vector3.new(.22,.56,.06),CFrame.new(0,.42,-.02),Color3.fromRGB(238,230,207))
  model.Parent=character
 end
 return Equipment

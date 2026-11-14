@@ -16,7 +16,7 @@ local function particle(kind,cf,size,color,shape,lifetime,goal)
  p.Material=Enum.Material.Neon;p.Color=color;p.Shape=shape or Enum.PartType.Block
  p.Size=size;p.CFrame=cf;p.Transparency=kind=="core" and .55 or .25;p.Parent=workspace
  active[kind]+=1
- local target=goal or {};target.Transparency=1
+ local target={Transparency=1};if goal then for k,v in pairs(goal) do target[k]=v end end
  local tween=Tween:Create(p,TweenInfo.new(lifetime,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),target)
  live[p]=tween;tween:Play()
  task.delay(lifetime+.05,function()
@@ -26,7 +26,7 @@ local function particle(kind,cf,size,color,shape,lifetime,goal)
 end
 local function line(kind,a,b,thickness,color,lifetime)
  local distance=(b-a).Magnitude;if distance<.01 then return end
- particle(kind,facing((a+b)/2,b),Vector3.new(thickness,thickness,distance),color,nil,lifetime)
+ particle(kind,facing((a+b)/2,b),Vector3.new(thickness,thickness,distance),color,nil,lifetime,{Size=Vector3.new(thickness*.45,thickness*.45,distance)})
 end
 function Effects.Render(family,origin,direction,length,width,color,reduced,variant)
  if length<=.01 or direction.Magnitude<.01 then return end
@@ -35,8 +35,8 @@ function Effects.Render(family,origin,direction,length,width,color,reduced,varia
  local right,up=basis.RightVector,basis.UpVector
  local center=origin+direction*length/2
  -- Separate budgets reserve a readable core even when decoration is saturated.
- particle("core",facing(center,center+direction),Vector3.new(width*.42,width*.42,length),color,nil,.32)
- particle("core",facing(center,center+direction),Vector3.new(.18,.18,length),Color3.fromRGB(255,240,203),nil,.24)
+ particle("core",facing(center,center+direction),Vector3.new(width*.42,width*.42,length),color,nil,.32,{Size=Vector3.new(width*.56,width*.56,length)})
+ particle("core",facing(center,center+direction),Vector3.new(.18,.18,length),Color3.fromRGB(255,240,203),nil,.24,{Size=Vector3.new(.08,.08,length)})
  if reduced then return end
  local rank=math.clamp(tonumber(variant) or 1,1,10)
  local function ring(distance,radius,life)

@@ -49,17 +49,26 @@ def run(source):
  with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',suffix='.luau',prefix='tmp_hud_',dir=ROOT/'tests',delete=False)as f:p=Path(f.name);f.write(build(source))
  try:return subprocess.run(['luau',str(p)],cwd=ROOT,capture_output=True,text=True)
  finally:p.unlink()
+RETAINED_CONTRACTS=['zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08', 'saveNotice.BackgroundColor3=dark;saveNotice.BackgroundTransparency=.08', 'UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108)', 'local meterText=label(meter,"LIVE MIC 0%\\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,white)']
+SURFACE_CONTRACTS=['academy.surface(zone)', 'academy.surface(saveNotice,gold)', 'academy.surface(sprintButton)', 'academy.surface(talkButton,gold)', 'academy.surface(conversationPanel,gold)']
+def check_contracts(source):
+ for c in RETAINED_CONTRACTS+SURFACE_CONTRACTS:assert c in source,c
 def main():
  p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');args=p.parse_args();source=CLIENT.read_text(encoding='utf-8')
  r=run(source);assert r.returncode==0,r.stdout+r.stderr;print(r.stdout.strip())
- contracts=['zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08', 'saveNotice.BackgroundColor3=dark;saveNotice.BackgroundTransparency=.08', 'UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108)', 'local meterText=label(meter,"LIVE MIC 0%\\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,white)']
- for c in contracts:assert c in source,c
- print(f'PASS {len(contracts)} retained authored-rectangle/status contracts')
+ check_contracts(source)
+ print(f'PASS {len(RETAINED_CONTRACTS)} retained authored-rectangle/status contracts')
+ print(f'PASS {len(SURFACE_CONTRACTS)} HUD/dialogue surface contracts')
  if args.negative_controls:
   cases=[('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),('f.Active=false','f.Active=true','Glyph intercepts input'),('bar(.74,.26,.12,.48)','bar(.94,.26,.12,.48)','Glyph exceeds local bounds'),('stroke.Thickness=1','stroke.Thickness=5','Border affects text readability')]
   start=source.index('local academy={}')
   end=source.index('-- Original, static menu glyphs.',start);helpers=source[start:end]
   for old,new,diagnostic in cases:
    assert helpers.count(old)==1;result=run(source[:start]+helpers.replace(old,new)+source[end:]);assert result.returncode and diagnostic in result.stderr,result.stdout+result.stderr
-  print('PASS 4 targeted negative controls')
+  for c in SURFACE_CONTRACTS:
+   assert source.count(c)==1
+   try:check_contracts(source.replace(c,''))
+   except AssertionError as exc:assert c in str(exc),str(exc)
+   else:raise AssertionError(f'Negative control did not fail for {c}')
+  print(f'PASS {len(cases)+len(SURFACE_CONTRACTS)} targeted negative controls')
 if __name__=='__main__':main()

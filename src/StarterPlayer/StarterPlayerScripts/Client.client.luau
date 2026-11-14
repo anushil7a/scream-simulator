@@ -310,6 +310,7 @@ academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
 local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
 zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08
 do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=zone end
+academy.surface(zone)
 local tracked=label(gui,"",UDim2.fromOffset(290,50),UDim2.fromOffset(16,56),13);tracked.Name="QuestTracker";tracked.TextYAlignment=Enum.TextYAlignment.Top
 tracked.BackgroundColor3=dark;tracked.BackgroundTransparency=.06
 academy.surface(tracked)
@@ -322,6 +323,7 @@ toast.Name="Notification";toast.ZIndex=30;toast.BackgroundColor3=dark;toast.Back
 local saveNotice=label(gui,"",UDim2.fromOffset(250,28),UDim2.new(.5,-125,0,40),12,gold);saveNotice.TextXAlignment=Enum.TextXAlignment.Center
 saveNotice.BackgroundColor3=dark;saveNotice.BackgroundTransparency=.08
 do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=saveNotice end
+academy.surface(saveNotice,gold)
 local notifications=loadClientDependency(script.Parent,"NotificationQueue");if not clientCheckpoint() then return end
 notifications=notifications.new();if not clientCheckpoint() then return end
 local toastWidth=0
@@ -543,7 +545,7 @@ local function residentTargetInfo(model,humanoid,far,currentFar,covered)
  return string.format("%s\n%d / %d HP\n%s",model:GetAttribute("DisplayName") or model.Name,
   math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),not far and not currentFar and not covered
 end
-local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end)
+local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
 local lockButton=button(controls,"LockTarget","LOCK [R]",UDim2.fromOffset(88,44),UDim2.fromOffset(0,52),toggleLock)
 lockButton.TextSize=12;lockButton.TextWrapped=true;lockButton.Selectable=true;academy.surface(lockButton)
 local lockMarker=label(aimGui,"",UDim2.fromOffset(108,28),UDim2.new(),13,gold)
@@ -599,7 +601,7 @@ local function requestTalk()
  cancelCapture()
  action:FireServer("Talk",target:GetAttribute("NpcId") or target.Name)
 end
-local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),requestTalk);talkButton.Visible=false
+local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),requestTalk);talkButton.Visible=false;academy.surface(talkButton,gold)
 devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false;devPanel.ZIndex=10
 do
  local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
@@ -810,6 +812,7 @@ end
 local conversationNPC,conversationUntil
 local conversationRevision=0
 conversationPanel=frame(gui,"Conversation",UDim2.fromOffset(460,300),UDim2.fromScale(.5,.5));conversationPanel.AnchorPoint=Vector2.new(.5,.5);conversationPanel.Visible=false;conversationPanel.ZIndex=10
+academy.surface(conversationPanel,gold)
 local conversationName=label(conversationPanel,"",UDim2.new(1,-80,0,36),UDim2.fromOffset(18,12),19,gold)
 local conversationList=Instance.new("ScrollingFrame");conversationList.Size=UDim2.new(1,-36,1,-66);conversationList.Position=UDim2.fromOffset(18,54);conversationList.BackgroundTransparency=1;conversationList.BorderSizePixel=0;conversationList.ScrollBarThickness=4;conversationList.AutomaticCanvasSize=Enum.AutomaticSize.Y;conversationList.CanvasSize=UDim2.new();conversationList.Parent=conversationPanel
 do local conversationLayout=Instance.new("UIListLayout");conversationLayout.Padding=UDim.new(0,10);conversationLayout.SortOrder=Enum.SortOrder.LayoutOrder;conversationLayout.Parent=conversationList end
