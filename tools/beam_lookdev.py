@@ -6,7 +6,7 @@ import hashlib,json,math,struct,sys,zlib
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'build/beam-lookdev'
 SOURCES=['src/ReplicatedStorage/Shared/BeamStyle.luau','src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau']
-PINNED={'src/ReplicatedStorage/Shared/BeamStyle.luau':'59bccd0163fb94883be138ab22fa62890004fb220799dbe915941ecb32757bc6','src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau':'d0afeb914318a16dc210647d8a4d49c6153a47735b5c58fbb86ffd48b57bf3e0'}
+PINNED={'src/ReplicatedStorage/Shared/BeamStyle.luau':'fcbdb42ae523c3fbe7e367156c8a3c2eb0472ccd04c63ce8ec0d87bb0b2a8939','src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau':'d0afeb914318a16dc210647d8a4d49c6153a47735b5c58fbb86ffd48b57bf3e0'}
 def hashes():return {p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in SOURCES}
 
 def geometry(level,reduced,age=.6,length=24,width=3):
@@ -19,7 +19,13 @@ def geometry(level,reduced,age=.6,length=24,width=3):
  launch=1 if reduced else .55+.45*(1-(1-min(1,max(0,age/.12)))**3)
  radius=width*(.24+tier*.012)*launch;pulse=1 if reduced else 1+.035*math.sin(age*9)
  detailed=not reduced;high=tier>=8
- gold=(1,220/255,90/255);white=(245/255,252/255,1);black=(0,0,0);parts=[]
+ black=(0,0,0);parts=[]
+ if tier>=8:
+  gold=(164/255,6/255,1.0);white=(225/255,195/255,1.0);warm=(156/255,75/255,1.0);amber=(70/255,46/255,1.0);sky=(33/255,102/255,185/255);hot=(1.0,38/255,42/255)
+ elif tier>=4:
+  gold=(93/255,171/255,1.0);white=(245/255,252/255,1.0);warm=(130/255,195/255,1.0);amber=(59/255,163/255,1.0);sky=(78/255,134/255,1.0);hot=(69/255,112/255,1.0)
+ else:
+  gold=(1,220/255,90/255);white=(245/255,252/255,1);warm=gold;amber=gold;sky=gold;hot=gold
  lerp=lambda c1,c2,t:tuple(a+(b-a)*t for a,b in zip(c1,c2))
  def line(a,b,thickness,color,alpha,material='neon'):parts.append(dict(shape='cylinder',a=a,b=b,diameter=thickness,color=color,transparency=alpha,material=material))
  def ball(center,size,color,alpha,material='neon'):parts.append(dict(shape='sphere',center=center,diameter=size,color=color,transparency=alpha,material=material))
@@ -28,27 +34,30 @@ def geometry(level,reduced,age=.6,length=24,width=3):
   if collar=='diamond':r/=abs(math.cos(angle))+abs(math.sin(angle))
   elif collar=='star':r*=.72+.28*(.5+.5*math.cos(angle*5))
   return offset(x+(math.cos(angle)*r*.75 if collar=='diamond' else 0),angle,r)
- line((0,0,0),(length,0,0),radius*(1.35 if detailed else 1.65)*pulse,lerp(gold,black,.35) if detailed else gold,.72 if reduced else (.78 if high else .55),'smooth' if detailed else 'neon')
+ sheath_color=lerp(amber if tier>=4 else gold,black,.35) if detailed else (amber if tier>=4 else gold)
+ line((0,0,0),(length,0,0),radius*(1.35 if detailed else 1.65)*pulse,sheath_color,.72 if reduced else (.78 if high else .55),'smooth' if detailed else 'neon')
  line((0,0,0),(length,0,0),radius*.85,gold,.32 if reduced else (.7 if high else .18),'smooth' if detailed else 'neon')
  line((0,0,0),(length,0,0),radius*(.10 if detailed else .28),lerp(gold,white,.72) if detailed else white,.45 if reduced else .08,'neon')
  if reduced:ball((length,0,0),min(length,radius*1.5),gold,.3,'neon')
  else:
-  depth=min(length,radius*.22);line((length-depth,0,0),(length,0,0),radius*1.25,gold,.18,'smooth')
-  ball((0,0,0),radius*.72,gold,.18,'smooth')
+  depth=min(length,radius*.22);line((length-depth,0,0),(length,0,0),radius*1.25,hot if tier>=8 else (sky if tier>=4 else gold),.18,'smooth')
+  ball((0,0,0),radius*.72,sky if tier>=8 else (warm if tier>=4 else gold),.18,'smooth')
   for ring in range(1,rings+1):
    travel=(age*(.6+tier*.025)+ring/rings)%1;r=radius*(.85+.2*math.sin(travel*math.pi))*(1.25 if tier>=1 else 1);phase=age*.9+ring*.6;support=high and ring>1
-   for i in range(1,11):line(collarOffset(travel*length,(i-1)*math.pi/5+phase,r),collarOffset(travel*length,(i-.28)*math.pi/5+phase,r),.1 if support else .16+tier*.012,lerp(gold,black,.2) if support else gold,.6+travel*.25 if support else .26+travel*.32,'smooth' if support else 'neon')
+   ring_color=(lerp(amber,black,.2) if support else warm) if tier>=8 else (warm if tier>=4 else (lerp(gold,black,.2) if support else gold))
+   for i in range(1,11):line(collarOffset(travel*length,(i-1)*math.pi/5+phase,r),collarOffset(travel*length,(i-.28)*math.pi/5+phase,r),.1 if support else .16+tier*.012,ring_color,.6+travel*.25 if support else .26+travel*.32,'smooth' if support else 'neon')
   for strand in range(1,strands+1):
    previous=(0,0,0);winding=(-1 if strand==2 else 1) if ribbon=='braid' else 1
+   strand_color=(sky if strand==1 else hot) if tier>=8 else (warm if tier>=4 else lerp(gold,white,.12 if high else .4))
    for i in range(1,13):
     t=i/12;phase=t*math.pi*2*turns*winding-age*5+strand*math.pi;radial=radius*.95*math.sin(t*math.pi)
     if ribbon=='zigzag':phase=age*.35+strand*math.pi;radial*=1 if i%2==0 else -1
     point=offset(length*t,phase,radial)
-    line(previous,point,.065+tier*.006,lerp(gold,white,.12 if high else .4),.42 if high else .25,'smooth' if high else 'neon');previous=point
+    line(previous,point,.065+tier*.006,strand_color,.42 if high else .25,'smooth' if high else 'neon');previous=point
   back=min(length*.15,radius*.8)
   for i in range(1,sparks+1):
    phase=i*math.pi*2/sparks+age*(.6 if i%2==0 else -.6)
-   line(offset(length,phase,radius*.25),offset(length-back,phase,width*.42),.08+tier*.006,gold,.55 if high else .3,'smooth' if high else 'neon')
+   line(offset(length,phase,radius*.25),offset(length-back,phase,width*.42),.08+tier*.006,warm if tier>=8 else (hot if tier>=4 else gold),.55 if high else .3,'smooth' if high else 'neon')
  return parts
 
 def worker():

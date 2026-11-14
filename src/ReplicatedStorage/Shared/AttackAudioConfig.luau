@@ -19,9 +19,31 @@ local Settings = {
  FadeIn = .12,
  FadeOut = .16,
  MaxLifetime = 4.5, -- independent cleanup if an end packet is lost
+ StarterFallback = {
+  Name = "se_battle_90",
+  SourceFile = "vault/Audio/SFX/SciFi_Magic_Abilities/se_battle_90.ogg",
+  AssetId = "",
+  MinLevel = 1,
+  MaxLevel = 9,
+  Duration = 3.154,
+ },
 }
 function Settings.AssetForLevel(level)
+ if type(level)~="number" or level%1~=0 then return nil end
  local id=Settings.AssetsByLevel[level]
- return id and "rbxassetid://"..id or nil
+ if id~=nil then return "rbxassetid://"..id end
+ local fb=Settings.StarterFallback
+ if fb and level>=fb.MinLevel and level<=fb.MaxLevel and type(fb.AssetId)=="string" and fb.AssetId:match("^%d+$") then
+  return "rbxassetid://"..fb.AssetId
+ end
+ return nil
+end
+function Settings.FallbackForLevel(level)
+ if type(level)~="number" or level%1~=0 then return nil end
+ local asset=Settings.AssetForLevel(level)
+ if asset~=nil then return asset end
+ local fb=Settings.StarterFallback
+ if fb and level>=fb.MinLevel and level<=fb.MaxLevel then return fb.Name end
+ return nil
 end
 return Settings

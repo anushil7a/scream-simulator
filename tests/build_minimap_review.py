@@ -41,6 +41,13 @@ for _,view in ipairs({{320,568,true},{360,800,true},{390,844,true},{430,844,true
  check(not overlaps(miniMapButton,noticeView.root),"Minimap covers urgent notification")
  notifications=modules.NotificationQueue.new();settle()
 end
+gui.Size=UDim2.fromOffset(1280,720);fixtureTouch=false
+data.devAccess=true
+receiver(data)
+settle()
+check(testButton.Visible,"Dev tools button must remain visible under minimap in review place")
+check(testButton.AbsolutePosition.Y>=miniMapButton.AbsolutePosition.Y+miniMapButton.AbsoluteSize.Y+8,"Dev tools button must sit below minimap")
+check(testButton.ZIndex>devPanel.ZIndex,"Dev tools button must render above dev panel")
 local result={checks=checks,rows=rows,limits="Synthetic viewport/state/mic/remotes. No physical controls, actual phone or live services."}
 local encoded=game:GetService("HttpService"):JSONEncode(result)
 workspace:SetAttribute("MiniMapReviewResult",encoded);print("MINIMAP_REVIEW_RESULT "..encoded)

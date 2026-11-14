@@ -145,7 +145,7 @@ local function academyArt(parent,byId)
   detail("CoverTop"..i,V(11.8,.06,11.8),V(pos.X,6.04,pos.Z),ivory)
   detail("CoverFront"..i,V(10,.5,.08),V(pos.X,4.8,pos.Z-6.02),gold)
  end
- -- Foreground courtyard, spawn plaza, and promenade dressing (38 static cosmetic parts).
+ -- Foreground courtyard, spawn plaza, and promenade dressing (41 static cosmetic parts).
  -- Positioned outside route strips, pads, NPC stations, and overhead sign sightlines.
  for i,pos in ipairs({
   V(-280,0,114),V(-260,0,114),V(-280,0,74),V(-260,0,74),
@@ -174,6 +174,9 @@ local function academyArt(parent,byId)
  detail("ForegroundGatewayPillarS",V(2.4,8.5,2.4),V(-196,4.33,66),ivory)
  detail("ForegroundGatewayCapN",V(3,.9,3),V(-196,9.03,34),terracotta)
  detail("ForegroundGatewayCapS",V(3,.9,3),V(-196,9.03,66),terracotta)
+ for i,x in ipairs({-325,-165,165}) do
+  detail("ForegroundCoastalRock"..i,V(6.4,2.6,5.2),V(x,1.4,278),Color3.fromRGB(104,112,122))
+ end
  -- Clear value hierarchy without lighting/post-effect changes.
  byId.ArenaFloor.Color=Color3.fromRGB(126,147,145)
  byId.HubPaving.Color=Color3.fromRGB(224,214,188)

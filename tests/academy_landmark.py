@@ -42,7 +42,7 @@ for i,node in ipairs(oldNodes)do
 end
 check(serial(oldResult)==serial(result),'City gameplay outputs changed')
 check(#added==22,'Expected only18parts/twosigns/twolabels')
-check(#foreground==38,'Expected38foreground dressing parts')
+check(#foreground==41,'Expected41foreground dressing parts')
 for _,node in ipairs(foreground)do
  check(next(node.attributes)==nil,'Foreground carries gameplay attributes')
  check(node.ClassName=='Part' and node.Parent.Name=='CoastalAcademyArt' and node.Anchored==true and node.CanCollide==false and node.CanQuery==false and node.CanTouch==false and node.CastShadow==false,'Foreground changes physics/query/shadow')
@@ -76,8 +76,8 @@ for _,node in ipairs(added)do
 end
 check(parts==18 and signs==2 and texts==2 and bars[-1]==5 and bars[1]==5,'Landmark inventory/signals incomplete')
 local artCount=0;for _,node in ipairs(current)do if node.ClassName=='Part' and node.Parent.Name=='CoastalAcademyArt'then artCount+=1 end end
-check(artCount==347 and artCount<=348 and artCount<=350,'Art budget exceeded')
-print('PASS '..checks..' actual academy constructor/differential assertions;347parts, no native text-fit claim')
+check(artCount==350 and artCount<=350,'Art budget exceeded')
+print('PASS '..checks..' actual academy constructor/differential assertions;350parts, no native text-fit claim')
 '''
 
 def run(s):
