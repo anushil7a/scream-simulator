@@ -7,14 +7,14 @@ def read(name):return (ROOT/name).read_text(encoding='utf-8')
 tree=ast.parse(read('tests/compact_world.py'));setup=next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='setup' for t in n.targets));setup=setup[:setup.index('local Layout=')]
 layout=read('src/ReplicatedStorage/Shared/CompactLayout.luau');city=read('src/ServerScriptService/CompactCity.luau');config=read('src/ReplicatedStorage/Shared/Config.luau');server=read('src/ServerScriptService/Bootstrap.server.luau')
 pre="""
-local Healing=require('../src/ReplicatedStorage/Shared/Healing');local VoiceCombat=require('../src/ReplicatedStorage/Shared/VoiceCombat');local Progression=require('../src/ReplicatedStorage/Shared/Progression')
+local GearCatalog=require('../src/ReplicatedStorage/Shared/GearCatalog');local Healing=require('../src/ReplicatedStorage/Shared/Healing');local VoiceCombat=require('../src/ReplicatedStorage/Shared/VoiceCombat');local Progression=require('../src/ReplicatedStorage/Shared/Progression')
 local Layout=(function()
 """
 bridge="""
 end)()
 local script={Parent={WaitForChild=function(_,name)return name end}}
 local game={GetService=function()return {Shared={CompactLayout='CompactLayout'}}end}
-local require=function(name)return ({Healing=Healing,VoiceCombat=VoiceCombat,Progression=Progression,CompactLayout=Layout})[name]end
+local require=function(name)return ({GearCatalog=GearCatalog,Healing=Healing,VoiceCombat=VoiceCombat,Progression=Progression,CompactLayout=Layout})[name]end
 local function makeConfig(compact)
 """
 citybridge="""

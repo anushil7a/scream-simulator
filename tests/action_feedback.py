@@ -8,11 +8,12 @@ root = Path(__file__).resolve().parents[1]
 client = (root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 server = (root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
 receiver = client[client.index('local lastMilestone'):client.index('connectClient(UIS.InputBegan')]
-speaker = server[server.index('local function microSpeaker('):server.index('local function vendorPurchase(')]
+speaker = server[server.index('local function gearAction('):server.index('local function vendorPurchase(')]
 start = server.index(' elseif verb=="ClaimQuest" then') + len(' elseif verb=="ClaimQuest" then')
 claim = server[start:server.index(' elseif verb=="SetSettings"', start)]
 setup = '''
 local now=100;local os={clock=function()return now end}
+local academy={refreshGuide=function()end}
 local notices={};local urgentNotices={};local receiver;local data;local p={};local earned=0;local stops=0
 local function notify(message,urgent)table.insert(notices,message);table.insert(urgentNotices,urgent==true)end
 -- Account eligibility lifecycle is exercised by voice_eligibility.py; this fixture isolates notifications.
@@ -20,7 +21,7 @@ local function observeVoiceEligibility()end
 local function cueContext()end;local gameplayAudio={ObserveLevel=function()end}
 local remotes={State={OnClientEvent={}}}
 local function connectClient(_,fn)receiver=fn end
-local Config={MaxLevel=100,MicroSpeakerPrice=250,Quests={{id='garden',goal=3}},GetQuest=function(id)
+local Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLevel=100,MicroSpeakerPrice=200,Quests={{id='garden',goal=3}},GetQuest=function(id)
  if id=='garden' then return {id='garden',name='Garden',goal=3,coins=40,xp=100} end
 end}
 local questsToggle={};local stats={};local xpText={};local xf={};local zone={};local testButton={};local tracked={}
@@ -67,7 +68,7 @@ check(#notices==count+2 and notices[#notices]=='Saving is unavailable.' and urge
 print('PASS '..checks..' actual action feedback checks; synthetic client UI/time and server helpers')
 '''
 reproduce = '--reproduce' in sys.argv
-checks = checks.replace('CHECK_REJECTION', "check(#notices==1,'Expected baseline suppression missing')" if reproduce else "check(notices[#notices]=='Micro-speaker costs 250 coins. You need 240 more.','Milestone hid upgrade rejection')")
+checks = checks.replace('CHECK_REJECTION', "check(#notices==1,'Expected baseline suppression missing')" if reproduce else "check(notices[#notices]=='Need '..(Config.Gear.Get('MicroSpeaker').price-10)..' more coins.','Milestone hid upgrade rejection')")
 checks = checks.replace('CHECK_REWARD', "check(#notices==1,'Expected baseline reward suppression missing')" if reproduce else "check(notices[#notices]=='Quest reward · +100 XP · +40 coins','Milestone hid reward confirmation')")
 checks = checks.replace('CHECK_COMPLETE', "check(#notices==1,'Expected baseline completion suppression missing')" if reproduce else "check(notices[#notices]=='Quest complete! Claim your reward in Quests.','Milestone hid task completion')")
 # Client label and server reward helper have separate namespaces in production.

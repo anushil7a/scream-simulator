@@ -55,6 +55,7 @@ local function trackBeam(vfx,beam,isCore,minLightEmission)
   baseW1=beam.Width1,
   baseCurve0=beam.CurveSize0,
   baseCurve1=beam.CurveSize1,
+  baseTextureSpeed=beam.TextureSpeed,
   isCore=isCore,
  })
 end
@@ -215,53 +216,34 @@ local function buildFireBeamVfx(template)
  clone:Destroy()
  return vfx
 end
+-- The reference contains three separate demonstrations, not three layers of one beam.
+-- Preserve only the central violet Hollow Purple recipe; Amplified and Reversal
+-- are blue/red alternatives. Combining them made the previous result a rainbow.
 local function buildHollowPurpleVfx(template)
- local clone=template:Clone()
+ local holder=template:FindFirstChild("Hollow Purple")
+ if not holder then return nil end
  local root=Instance.new("Model");root.Name="BeamVfx_hollow_purple"
  local startAnchor=makeAnchorPart("StartAnchor");startAnchor.Parent=root
  local endAnchor=makeAnchorPart("EndAnchor");endAnchor.Parent=root
  local midAnchor=makeAnchorPart("MidAnchor");midAnchor.Parent=root
- local startAtt=Instance.new("Attachment");startAtt.Name="StartAtt";startAtt.Parent=startAnchor
- local endAtt=Instance.new("Attachment");endAtt.Name="EndAtt";endAtt.Parent=endAnchor
- local ampAtt=Instance.new("Attachment");ampAtt.Name="AmpAtt";ampAtt.Parent=startAnchor
- local revAtt=Instance.new("Attachment");revAtt.Name="RevAtt";revAtt.Parent=startAnchor
- local vfx={
-  styleId="hollow_purple",root=root,startAnchor=startAnchor,endAnchor=endAnchor,midAnchor=midAnchor,
-  ampAtt=ampAtt,revAtt=revAtt,beams={},emitters={},meshes={},attOffsets={},
- }
- local function collectFromRoot(partName,sAtt,maxBeams,curveSign,minLE,isMain)
-  local holder=clone:FindFirstChild(partName)
-  if not holder then return end
-  local beamCount=0
-  for _,desc in ipairs(holder:GetDescendants()) do
-   if desc:IsA("Beam") then
-    if not maxBeams or beamCount<maxBeams then
-     beamCount+=1
-     desc.Attachment0=sAtt;desc.Attachment1=endAtt;desc.Parent=startAnchor
-     if curveSign~=0 then desc.CurveSize0=curveSign*1.8 end
-     trackBeam(vfx,desc,isMain and beamCount<=2,minLE)
-    end
-   elseif desc:IsA("ParticleEmitter") then
-    desc.Parent=midAnchor
-    trackEmitter(vfx,desc,false,.55,20)
-   end
+ local startAtt=Instance.new("Attachment");startAtt.Parent=startAnchor
+ local endAtt=Instance.new("Attachment");endAtt.Parent=endAnchor
+ local vfx={styleId="hollow_purple",root=root,startAnchor=startAnchor,endAnchor=endAnchor,
+  midAnchor=midAnchor,beams={},emitters={},meshes={},attOffsets={}}
+ for _,source in ipairs(holder:GetDescendants()) do
+  -- Clone only reviewed visual primitives. No scripts or unknown descendants run.
+  if source:IsA("Beam") and #vfx.beams<5 then
+   local beam=source:Clone();beam:ClearAllChildren()
+   beam.Attachment0=startAtt;beam.Attachment1=endAtt;beam.Parent=startAnchor
+   -- Keep source colors, width ratios, curves and emission. Do not bleach violet.
+   trackBeam(vfx,beam,#vfx.beams<2)
+  elseif source:IsA("ParticleEmitter") and #vfx.emitters<4 then
+   local emitter=source:Clone();emitter:ClearAllChildren();emitter.Parent=midAnchor
+   trackEmitter(vfx,emitter,false,nil,12)
   end
  end
- collectFromRoot("Hollow Purple",startAtt,nil,0,.65,true)
- collectFromRoot("Amplified",ampAtt,2,-1,.75,false)
- collectFromRoot("Reversal",revAtt,2,1,.85,false)
- local hpStyle=Style.Styles.hollow_purple
- local coreOrb=makeAnchorPart("HollowCoreOrb")
- coreOrb.Shape=Enum.PartType.Ball;coreOrb.Material=Enum.Material.Neon
- coreOrb.Color=styleColor(hpStyle.arc,white);coreOrb.Transparency=.08;coreOrb.Parent=root
- local shellOrb=makeAnchorPart("HollowShellOrb")
- shellOrb.Shape=Enum.PartType.Ball;shellOrb.Material=Enum.Material.Neon
- shellOrb.Color=styleColor(hpStyle.primary,white);shellOrb.Transparency=.48;shellOrb.Parent=root
- local travelOrb=makeAnchorPart("HollowTravelOrb")
- travelOrb.Shape=Enum.PartType.Ball;travelOrb.Material=Enum.Material.Neon
- travelOrb.Color=styleColor(hpStyle.secondary,white);travelOrb.Transparency=.28;travelOrb.Parent=root
- vfx.orbs={core=coreOrb,shell=shellOrb,travel=travelOrb}
- clone:Destroy()
+ -- No invented opaque pink muzzle/travel balls: the source is a tapered violet
+ -- energy column, with texture/sparks providing its silhouette instead.
  return vfx
 end
 local function buildVfxForStyle(styleId)
@@ -302,9 +284,9 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
  end
  local wScale,pScale,sScale
  if styleId=="hollow_purple" then
-  wScale=math.clamp((width*.52)/13.6,.14,.36)
-  pScale=math.clamp(width*.24,.5,1.8)
-  sScale=math.clamp(length/44,.35,1.5)
+  wScale=math.clamp((width*.80)/13.61538,.08,.42)
+  pScale=math.clamp(width/13.61538,.08,.52)
+  sScale=math.clamp(length/44,.05,1.5)
   if vfx.ampAtt then vfx.ampAtt.Position=Vector3.new(-width*.45,0,0) end
   if vfx.revAtt then vfx.revAtt.Position=Vector3.new(width*.45,0,0) end
  elseif styleId=="firebeam" then
@@ -323,6 +305,7 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
  for _,entry in ipairs(vfx.beams) do
   local b=entry.inst
   b.Enabled=not far or entry.isCore
+   b.TextureSpeed=far and 0 or entry.baseTextureSpeed
   if rescale then
    local factor=entry.isCore and wScale or (styleId=="hollow_purple" and entry.baseCurve0~=0 and wScale*.58 or wScale)
    b.Width0=entry.baseW0*factor
@@ -331,7 +314,8 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
  end
  for _,entry in ipairs(vfx.emitters) do
   local em=entry.inst
-  em.Enabled=not far
+  if far and em.Enabled then em:Clear() end
+   em.Enabled=not far
   if rescale then
    em.Size=scaleNumberSequence(entry.baseSize,pScale)
    em.Speed=scaleNumberRange(entry.baseSpeed,sScale)
@@ -403,9 +387,11 @@ function Visuals.Contact(rig,position,now,sequence)
  return true
 end
 local function draw(rig,shape,size,cf,color,alpha,material,detail)
- rig.used+=1
- local part=rig.parts[rig.used]
- if not part then part=take(detail or rig.used>5);if not part then return end;rig.parts[rig.used]=part end
+ local nextIndex=rig.used+1
+ local part=rig.parts[nextIndex]
+ if not part then part=take(detail or nextIndex>5);if not part then return end;rig.parts[nextIndex]=part end
+ -- Count successful allocations only. Native tint/contact loops must never visit holes.
+ rig.used=nextIndex
  -- A pooled slot may previously have been a non-emissive shell or a Neon detail.
  part.Material=material or Enum.Material.Neon
  if isRoblox then part.LocalTransparencyModifier=0 end
@@ -519,7 +505,7 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
    local styleSpec=Style.StyleForLevel(rig.level)
    local pCol=styleColor(styleSpec.primary,color)
    local sCol=styleColor(styleSpec.secondary,white)
-   syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet,distance,styleSpec)
+   syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet or contactReduced,distance,styleSpec)
    local hasVfx=rig.vfx~=nil
    for i=1,rig.used do
     local p=rig.parts[i]

@@ -24,7 +24,7 @@ def callbacks(c):
  recal='' # Calibration panel and its close route were intentionally retired.
  convo=c[c.index('showConversation=function(info)'):].splitlines()[1]
  state=(c[c.index('local renderedMenuKey,renderedTab'):c.index('button(modal,"Close","X"')] if 'local function closeMenu()' in c else c[c.index('local renderedMenuKey,renderedTab'):c.index('local function menuKey()')])
- if 'local function ownClient(' in c: state+=c[:c.index('local function menuKey()')].rstrip().splitlines()[-1]+'\n'
+ if 'local function ownClient(' in c: state+=re.search(r'ownClient\(function\(\) modal.Visible=false[^\n]*',c).group(0)+'\n'
  elif 'local function closeMenu()' in c: state+=re.search(r'script.Destroying:Connect\(function\(\)[^\n]*gui:Destroy\(\) end\)',c).group(0)+'\n'
  key=c[c.index('local function menuKey()'):c.index('render=function()')]
  head=c[c.index('render=function()'):];head=head[:head.index(' if selected=="Shop" then')]

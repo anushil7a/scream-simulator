@@ -55,4 +55,35 @@ function Equipment.SyncMegaphone(player,equipped)
   add("AcousticNose",Vector3.new(.22,.22,.22),CFrame.new(0,.38,-.68),brass,Enum.PartType.Ball)
  end)
 end
+-- Authored templates are local imported Models in ServerStorage/GearTemplates.
+-- No asset IDs, uploads or fake mesh claims. Fallback is explicitly marked.
+function Equipment.SyncGear(player,item)
+ local character=player.Character;if not character then return end
+ local id=item and item.id
+ local current=character:FindFirstChild("ProgressionGear")
+ if current and current:GetAttribute("GearId")~=id then current:Destroy();current=nil end
+ Equipment.Sync(player,false);Equipment.SyncMegaphone(player,false)
+ if not item then return end
+ if current then return end
+ local templates=game:GetService("ServerStorage"):FindFirstChild("GearTemplates")
+ local template=templates and templates:FindFirstChild(item.template)
+ local mount=item.mount=="back" and (character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")) or (character:FindFirstChild("RightHand") or character:FindFirstChild("Right Arm"))
+ if template and template:IsA("Model") and mount and template:FindFirstChildWhichIsA("BasePart",true) then
+  local model=template:Clone();model.Name="ProgressionGear";model:SetAttribute("GearId",id);model:SetAttribute("MountKind",item.mount=="back" and "back" or "hand")
+  local offset=item.mount=="back" and CFrame.new(0,0,.8) or CFrame.new(0,-mount.Size.Y/2+.15,-.25)
+  model:PivotTo(mount.CFrame*offset)
+  for _,part in ipairs(model:GetDescendants()) do
+   if part:IsA("BasePart") then
+    part.Anchored=false;part.CanCollide=false;part.CanTouch=false;part.CanQuery=false;part.Massless=true
+    local weld=Instance.new("WeldConstraint");weld.Part0=mount;weld.Part1=part;weld.Parent=part
+   end
+  end
+  model.Parent=character
+ else
+  -- Explicit temporary old art, never presented as an imported Blender model.
+  if id=="Megaphone" then Equipment.SyncMegaphone(player,true) else Equipment.Sync(player,true) end
+  local model=character:FindFirstChild(id=="Megaphone" and "AcademyMegaphoneAccessory" or "MicroSpeakerAccessory")
+  if model then model.Name="ProgressionGear";model:SetAttribute("GearId",id);model:SetAttribute("FallbackVisual",true);model:SetAttribute("MountKind","hand") end
+ end
+end
 return Equipment

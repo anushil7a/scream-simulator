@@ -21,6 +21,7 @@ local Soccer=require(script.Parent.SoccerChallenge)
 local BeachVolley=require(script.Parent.BeachVolley)
 local QuestLifecycle=require(ReplicatedStorage.Shared.QuestLifecycle)
 local QuestGuide=require(ReplicatedStorage.Shared.QuestGuide)
+local NavigationCatalog=require(ReplicatedStorage.Shared.NavigationCatalog)
 local Equipment=require(script.Parent.Equipment)
 -- Only disposable local fixtures bypass persistent profiles. Attack mode is independent.
 local localFixture=RunService:IsStudio() and game.PlaceId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
@@ -31,6 +32,7 @@ if sustainedEnabled then
   VoiceCombat,require(script.Parent.SustainedAim))
 end
 World.Build()
+local questGivers=NavigationCatalog.IndexQuestGivers(World.Bots)
 BeachVolley.Start(workspace.ScreamSimulatorWorld)
 local Destruction=require(script.Parent.Destruction)
 if Config.ObjectDestruction==true then Destruction.Start(workspace.ScreamSimulatorWorld) end
@@ -55,6 +57,7 @@ remotes.Parent=ReplicatedStorage
 local function remote(name) local r=Instance.new("RemoteEvent");r.Name=name;r.Parent=remotes;return r end
 local action=remote("Action");local stateRemote=remote("State");local effect=remote("Effect")
 local sessions={}
+local bosses
 local closing=false
 local joinsInFlight=0
 local rewardHistory={pairs={}} -- survives reconnects in this server
@@ -94,13 +97,12 @@ local function state(p,message,conversation,messageUrgent,messageKey)
  local quest=Config.GetQuest(s.activeQuest);local progress=quest and s.data.quests[quest.id]
  local deliveryStop=Config.GetDeliveryStop(s.deliveryStop)
  local step=QuestGuide.Step(quest,progress and progress.progress or 0,s.carrying,s.raceStart~=nil,soccer and soccer.detail,deliveryStop and deliveryStop.name)
- Equipment.Sync(p,s.data.amplifierEquipped)
- Equipment.SyncMegaphone(p,s.data.megaphoneEquipped)
+ Equipment.SyncGear(p,Config.Gear.Selected(s.data))
  stateRemote:FireClient(p,{coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
  shop=Commerce.Status(p),spectrumPass=Entitlements.HasSpectrum(p),customColor=s.data.customColor,useCustomColor=s.data.useCustomColor,
  combatChallenges=s.data.combatChallenges,training=TrainingRules.Recommended(s.data.level).name,milestone=s.milestone,
- amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,megaphoneOwned=s.data.megaphoneOwned,megaphoneEquipped=s.data.megaphoneEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
- availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
+ gearOwned=s.data.gearOwned,gearEquipped=s.data.gearEquipped,gearMultiplier=Config.Gear.Multiplier(s.data),amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,megaphoneOwned=s.data.megaphoneOwned,megaphoneEquipped=s.data.megaphoneEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
+ questNavigation=NavigationCatalog.QuestTargets(s,questGivers),availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  voiceEligible=VoiceEligibility.Allowed(s.voiceEligibility,os.clock()),voiceStatus=VoiceEligibility.Status(s.voiceEligibility,os.clock()),
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
@@ -317,7 +319,7 @@ local function sustainedContext(p,s,now)
  local style=Config.GetSound(s.data.sound)
  if not style or style.level>s.data.level then return nil end
  return {player=p,character=c,origin=attackOrigin(c,r),position=r.Position,
-  level=s.data.level,amplifier=s.data.amplifierEquipped,megaphone=s.data.megaphoneEquipped}
+  level=s.data.level,gearMultiplier=Config.Gear.Multiplier(s.data),amplifier=s.data.amplifierEquipped,megaphone=s.data.megaphoneEquipped}
 end
 local function resolveSustained(ctx,direction,stats,now)
  local ids,details,dodged={},{},{}
@@ -347,6 +349,12 @@ local function resolveSustained(ctx,direction,stats,now)
   if canDamageBots(sessions[ctx.player]) and bot.alive and bot.root.Parent and (not bot.training or (ctx.position-bot.start).Magnitude<=TrainingRules.Radius) and Rules.InBeam(ctx.origin,direction,bot.root.Position,length,stats.width,1)
    and audible(ctx.character,ctx.origin,bot.root.Position,bot.model) then
    add("bot:"..tostring(bot.id),{bot=bot})
+  end
+ end
+ if bosses then
+  for _,boss in ipairs(bosses.bosses) do
+   if bosses:CanHit(boss,ctx.player,now) and Rules.InBeam(ctx.origin,direction,boss.root.Position,length,stats.width,2)
+    and audible(ctx.character,ctx.origin,boss.root.Position,boss.model) then add("boss:"..boss.spec.id,{boss=boss}) end
   end
  end
  return ids,details,{origin=ctx.origin,direction=direction,length=length,width=stats.width,power=stats.power,obstruction=obstruction,dodged=dodged}
@@ -402,7 +410,7 @@ local function stepSustained(p,s,now)
  for _,hit in ipairs(hits) do
   local target=details[hit.id]
   local dealtBefore=dealt
-  local targetRoot=target.bot and target.bot.root
+  local targetRoot=(target.bot and target.bot.root) or (target.boss and target.boss.root)
   if target.player then
    local character=target.player.Character
    targetRoot=typeof(character)=="Instance" and character:IsA("Model") and character:FindFirstChild("HumanoidRootPart") or nil
@@ -418,6 +426,8 @@ local function stepSustained(p,s,now)
     awardCombatKO(ts.credit,p,ts.data.level,h.MaxHealth,Config.PlayerKOXP(ts.data.level),now,target.player)
     eject(target.player,h)
    else h.Health-=hit.damage end
+  elseif target.boss then
+   dealt+=bosses:Hit(target.boss,p,hit.damage,now)
   elseif target.object then
    local previous=target.object:GetAttribute("ObjectHealth") or 0
    local result=Destruction.Damage(target.object,intent.level,hit.damage)
@@ -467,7 +477,7 @@ local function cast(p,request)
  local delta=aim-origin
  if delta.Magnitude<.01 or delta.Magnitude>2048 then VoiceCombat.Cancel(s.voice);return end
  if not VoiceCombat.Release(s.voice,now,request.sequence,request.power,style~=nil and style.level<=s.data.level and canCapture(p,s,now)) then return end
- local sound=VoiceCombat.Stats(s.data.level,request.power,s.data.amplifierEquipped==true,s.data.megaphoneEquipped==true)
+ local sound=VoiceCombat.Stats(s.data.level,request.power,s.data.amplifierEquipped==true,s.data.megaphoneEquipped==true,Config.Gear.Multiplier(s.data))
  local direction=delta.Unit
  s.nextCast=s.voice.nextCast;p:SetAttribute("ScreamReleased",workspace:GetServerTimeNow());p:SetAttribute("CaptureStarted",0)
  local obstruction=beamObstruction(c,origin,direction,sound.range,Players:GetPlayers())
@@ -501,6 +511,14 @@ local function cast(p,request)
    World.UpdateBot(bot)
    if not bot.training and now>=(s.botRewards[bot.id] or 0) and paid<5 then
     s.botRewards[bot.id]=now+VoiceCombat.Cooldown;paid+=1;coins(p,ko and 5 or 2);xp(p,ko and SustainedRewards.KOXP or SustainedRewards.HitXP)
+   end
+  end
+ end
+ if bosses then
+  for _,boss in ipairs(bosses.bosses) do
+   if bosses:CanHit(boss,p,now) and Rules.InBeam(origin,direction,boss.root.Position,length,sound.width,2)
+    and audible(c,origin,boss.root.Position,boss.model) then
+    if bosses:Hit(boss,p,sound.damage,now)>0 then s.nextHeal=now+Config.HealQuietSeconds end
    end
   end
  end
@@ -572,33 +590,19 @@ local function closeConversation(p)
  if bot and bot.talkingTo==p then bot.talkingTo=nil;bot.socialUntil=0 end
  if s then s.conversationBot=nil end
 end
-local function megaphone(p,s,toggleOwned)
- if s.data.megaphoneOwned then
-  if toggleOwned then s.data.megaphoneEquipped=not s.data.megaphoneEquipped
-  else state(p,"You already own the Academy megaphone. Equip it from Style.");return end
- else
-  if s.data.coins<Config.MegaphonePrice then state(p,"Academy megaphone costs "..Config.MegaphonePrice.." coins. You need "..(Config.MegaphonePrice-s.data.coins).." more.",nil,true);return end
-  s.data.coins-=Config.MegaphonePrice;s.data.megaphoneOwned=true;s.data.megaphoneEquipped=true
- end
- state(p,s.data.megaphoneEquipped and "Academy megaphone equipped · +6% normalized power, capped at 100%" or "Academy megaphone unequipped")
+local function gearAction(p,s,id,toggle)
+ local ok,message=Config.Gear.Act(s.data,id,toggle)
+ state(p,message,nil,not ok)
 end
-local function microSpeaker(p,s,toggleOwned)
- if s.data.amplifierOwned then
-  if toggleOwned then s.data.amplifierEquipped=not s.data.amplifierEquipped
-  else state(p,"You already own a micro-speaker. Equip it from Style.");return end
- else
-  if s.data.coins<Config.MicroSpeakerPrice then state(p,"Micro-speaker costs "..Config.MicroSpeakerPrice.." coins. You need "..(Config.MicroSpeakerPrice-s.data.coins).." more.",nil,true);return end
-  s.data.coins-=Config.MicroSpeakerPrice;s.data.amplifierOwned=true;s.data.amplifierEquipped=true
- end
- state(p,s.data.amplifierEquipped and "Micro-speaker equipped · +12% normalized power, capped at 100%" or "Micro-speaker unequipped")
-end
+local function megaphone(p,s,toggle) gearAction(p,s,"Megaphone",toggle) end
+local function microSpeaker(p,s,toggle) gearAction(p,s,"MicroSpeaker",toggle) end
 local function vendorPurchase(p,s,arg)
  local bot=s.conversationBot;local _,root=parts(p)
- if type(arg)~="table" or (arg.product~="MicroSpeaker" and arg.product~="Megaphone") or not bot or arg.npc~=bot.id or bot.role~="Vendor" or not bot.alive or not bot.root.Parent or bot.talkingTo~=p or (bot.socialUntil or 0)<=os.clock() or not root or not InteractionRules.CanReachNpc(p.Character,bot.model,14) then
+ if type(arg)~="table" or not Config.Gear.Get(arg.product) or not bot or arg.npc~=bot.id or bot.role~="Vendor" or not bot.alive or not bot.root.Parent or bot.talkingTo~=p or (bot.socialUntil or 0)<=os.clock() or not root or not InteractionRules.CanReachNpc(p.Character,bot.model,14) then
   state(p,"Speak with the market vendor nearby before buying.",nil,true);return
  end
  -- No yielding between ownership check and debit: duplicate requests never charge twice.
- if arg.product=="Megaphone" then megaphone(p,s,false) else microSpeaker(p,s,false) end
+ gearAction(p,s,arg.product,false)
 end
 local function talk(p,id)
  local s=sessions[p];local _,r=parts(p);if not s or not r or type(id)~="string" or os.clock()<(s.nextTalk or 0) then return end
@@ -638,7 +642,7 @@ local function talk(p,id)
    if q then table.insert(choices,{id=id,name=q.name,description=q.description,claimed=progress and progress.claimed==true,complete=progress and progress.progress>=q.goal}) end
   end
   local hints={Gardener="The raised flowerbeds in Rambla Gardens need water. Use the interaction prompt beside each bed after accepting my task.",Vendor="The café sends orders along the waterfront. Collect one, then check your objective for its destination.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker="Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
-  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices,products=b.role=="Vendor" and {{id="Megaphone",name="Academy megaphone",price=Config.MegaphonePrice,owned=s.data.megaphoneOwned,description="Starter tin horn · +6% normalized power, capped at 100%. Buy once with earned coins."},{id="MicroSpeaker",name="Micro-speaker",price=Config.MicroSpeakerPrice,owned=s.data.amplifierOwned,description="Handheld amplifier · +12% normalized power, capped at 100%. Buy once with earned coins."}} or nil});return
+  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices,products=b.role=="Vendor" and Config.Gear.Products(s.data) or nil});return
  end end
 end
 local function dev(p,command)
@@ -800,6 +804,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="Talk" then talk(p,arg)
  elseif verb=="DevCommand" then dev(p,arg)
  elseif verb=="EquipSound" then local sound=type(arg)=="string" and Config.GetSound(arg);if sound and sound.level<=s.data.level then s.data.sound=sound.id;state(p,sound.name.." equipped") end
+ elseif verb=="Gear" then if type(arg)=="string" then gearAction(p,s,arg,true) end
  elseif verb=="MicroSpeaker" then microSpeaker(p,s,true)
  elseif verb=="Megaphone" then megaphone(p,s,true)
  elseif verb=="VendorPurchase" then vendorPurchase(p,s,arg)
@@ -904,6 +909,25 @@ local function leaving(p)
  end
 end
 Players.PlayerRemoving:Connect(leaving)
+-- Bosses are separate from residents/trainers: no crowd quests, NPC hit coins or KO credit.
+if Config.CompactCity then
+ bosses=require(script.Parent.BossService).new(workspace.ScreamSimulatorWorld,{
+  player=function(id) return Players:GetPlayerByUserId(id) end,
+  context=function(p,now)
+   local s=sessions[p];local _,r,h=parts(p)
+   if not canDamageBots(s) or not r or h.PlatformStand or Config.InArena(r.Position)
+    or now<s.protectedUntil or now<(s.knockedUntil or 0) then return nil end
+   return {position=r.Position,level=s.data.level,identity=s.rewardIdentity}
+  end,
+  reward=function(p,spec,share) coins(p,math.floor(spec.coins*share));xp(p,math.floor(spec.xp*share));state(p,spec.name.." defeated · boss reward earned") end,
+  damage=function(p,amount,now)
+   local s=sessions[p];local _,_,h=parts(p)
+   if not s or not h or now<s.dodgingUntil or now<s.protectedUntil then return end
+   s.nextHeal=now+Config.HealQuietSeconds
+   if h.Health<=amount then eject(p,h) else h.Health-=amount;state(p) end
+  end,
+ })
+end
 local function stepTraining(now)
  for _,bot in ipairs(World.Bots) do
   if not bot.training or not bot.alive then continue end
@@ -960,6 +984,7 @@ task.spawn(function()
  while true do task.wait(0.1);tick+=1;local now=os.clock()
   dispatchVoiceEligibility(now)
   stepTraining(now)
+  if bosses then bosses:Step(now) end
   for p,s in pairs(sessions) do
    stepVoiceEligibility(p,s,now)
    local dt=math.max(0,now-s.lastStep);s.lastStep=now;local _,r,h=parts(p)

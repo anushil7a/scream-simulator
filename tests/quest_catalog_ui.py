@@ -26,6 +26,7 @@ local Config=(function()
 """
 between="""
 end)()
+local academy={guideMenu=function()end,NavigationCatalog={Resolve=function()return nil end}}
 local data,narrow;local title,subtitle={},{};local gui={AbsoluteSize={X=390}};local gold,muted={},{}
 local messages,buttons,calls,cards,order={},{},{},{},{}
 local function info(text)table.insert(messages,text);table.insert(order,{kind="info",text=text})end
@@ -121,7 +122,7 @@ for _,isNarrow in ipairs({false,true})do
  renderChecked(value,isNarrow);grouped(9)
  check(buttons.ActiveQuestAction and buttons.ActiveQuestAction.text=='ABANDON','Current active quest card missing')
  check(cards[1]==buttons.ActiveQuestAction.card,'Current active quest card no longer first')
- check(buttons.garden.text=='TRACKING','Active quest tracking state lost')
+ check(buttons.garden.text=='ACTIVE','Active quest tracking state lost')
  buttons.garden.call();check(#calls==0,'Tracking quest can be reaccepted')
  buttons.ActiveQuestAction.call();check(#calls==1 and calls[1][1]=='AbandonQuest','Active quest abandon changed')
  for _,q in ipairs(Config.Quests)do value.quests[q.id]={progress=q.goal,claimed=q.id=='nick'}end
@@ -150,7 +151,7 @@ for _,isNarrow in ipairs({false,true})do
  restartValue.availableQuests.garden=nil;renderChecked(restartValue,isNarrow)
  check(buttons.garden.text=='MEET NPC','Partial counter bypassed discovery');buttons.garden.call();check(#calls==0,'Locked partial sends action')
  restartValue.availableQuests.garden=true;restartValue.activeQuest='garden';renderChecked(restartValue,isNarrow)
- check(buttons.garden.text=='TRACKING','Active partial falsely called restart')
+ check(buttons.garden.text=='ACTIVE','Active partial falsely called restart')
  restartValue.quests.garden.progress=3;renderChecked(restartValue,isNarrow);check(buttons.garden.text=='CLAIM','Completed partial falsely called restart')
  restartValue.quests.garden.claimed=true;renderChecked(restartValue,isNarrow);check(buttons.garden.text=='CLAIMED','Claimed partial falsely called restart')
  renderChecked(value,isNarrow)

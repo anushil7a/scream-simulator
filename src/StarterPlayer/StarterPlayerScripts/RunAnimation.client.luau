@@ -110,7 +110,8 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
   local recoil=age>=0 and age<.38 and math.sin(age/.38*math.pi) or 0
   local charge=rig.charge
   for _,name in ipairs({"Left Shoulder","LeftShoulder"}) do pose(name,CFrame.Angles(-.65*charge-.9*recoil,0,-.32*charge)) end
-  local equipped=rig.character:FindFirstChild("MicroSpeakerAccessory")~=nil
+  local gear=rig.character:FindFirstChild("ProgressionGear")
+  local equipped=rig.character:FindFirstChild("MicroSpeakerAccessory")~=nil or (gear~=nil and gear:GetAttribute("MountKind")=="hand")
   for _,name in ipairs({"Right Shoulder","RightShoulder"}) do pose(name,CFrame.Angles(-(equipped and 1.15 or .65)*charge-.9*recoil,0,(equipped and -.15 or .32)*charge)) end
   pose("Waist",CFrame.Angles(.12*charge-.28*recoil,0,0))
   pose("Neck",CFrame.Angles(-.12*charge+.1*recoil,0,0))

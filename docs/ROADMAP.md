@@ -1,6 +1,39 @@
 # Scream Simulator development roadmap
 
-Updated November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Continue through existing PR #1; the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through f6d5e6c / 4d7b872 to the draft branch; another Roblox upload requires fresh approval. Native `Roblox_Studio` MCP validation on disposable `build/SaveNoticeReview.rbxl` (`GameId=0`, `PlaceId=0`) has now verified the compact HUD `xpText` `TextFits` fix and Wave 2 UI/map styling; physical devices, real microphones, and multiplayer remain unverified.
+Historical checkpoint, November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Work was tracked through PR #1 (since merged); the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through f6d5e6c / 4d7b872 to the draft branch; another Roblox upload requires fresh approval. Native `Roblox_Studio` MCP validation on disposable `build/SaveNoticeReview.rbxl` (`GameId=0`, `PlaceId=0`) has now verified the compact HUD `xpText` `TextFits` fix and Wave 2 UI/map styling; physical devices, real microphones, and multiplayer remain unverified.
+
+## November 16 navigation playtest QA (local)
+
+- Reproduced and fixed immediate expiry of slow successful paths, missed low streamed barriers, and repeated ray-filter allocation. Route work remains bounded; no UI/server/combat changes.
+- 38 mocked guide checks, 20 selection checks, catalog tests and module compile pass. Native pathfinding/streaming/performance remain unverified. Short touch-landscape guide HUD visibility gap reported for integration. Next: native obstacle/stair/streaming walks and short-viewport feedback. See `docs/NAVIGATION_GUIDE_REVIEW.md` follow-up.
+
+## November 16 opt-in navigation (integrated local review)
+
+- Explicit Guide buttons on an eligible quest or in NPC dialogue, and boss/place choices on the full Map. The client tracks one chosen destination, which can be changed or cleared; accepting, talking, syncing and rejoining never choose a guide. Only the already selected quest can advance to its next public step.
+- Local static ground markers use real pathfinder results and visible collision checks. If no route is found, show bearing and distance rather than drawing through obstacles. Navigation cannot move characters, accept quests, enable PvP or change saves. Unavailable/completed targets clear, and Nick's hidden puzzle answers are never disclosed.
+- Scope: compact city only. Unit/mocked verification and guarded local builds are not native pathfinding, streaming or phone acceptance. Next: test a blocked corner, quest step change and distant boss after streaming in a disposable Studio place. See `docs/NAVIGATION_GUIDE_REVIEW.md`.
+
+
+## November 16 progression wave: integrated local review
+
+- Six earned-coin gear options (four new), single equipped power bonus and no change to full-input max damage. The `Style` tab and supporting vendor show level gates and earned prices.
+- Five optional compact-city boss rings at levels 10, 30, 50, 70 and 95. The full Map uses the actual encounter catalog for B1–B5. NPC roles, ordinary quest IDs and previous compact geometry are preserved.
+- Added four support NPCs and authored Blender import/export assets. The local Roblox build still uses temporary native parts for those visual replacements; no mesh upload, native acceptance or live release is claimed.
+- Before release: import and inspect meshes in a disposable blank Studio place; then verify real microphone, phone layouts, two-client combat and save migration. Old writers must be prevented from discarding new gear ownership during rollback.
+
+## November 16 supporting NPC candidate (local only)
+
+- Added DJ Marina, Tinker Sparks, Lifeguard Kai and Archivist Lyra from the actual preferred vault concept sheets. Append-only Bot901–904 preserve existing quest workers/training IDs. Tinker uses existing Vendor purchase flow; others refer to existing activities and progression. No save schema, screen health display, map geometry or enemy reward changes.
+- Original welded native-part cosmetic interpretations are runtime fallbacks; no model uploads or publication. `docs/SUPPORTING_NPCS_REVIEW.md` records roster, locations and boundaries.
+- Focused checks pass: 133 roster/dress, 702,258 legacy constructor differential, 577 compact integration and 51 connected clearance targets. Full local gate passes 25 pure/synthetic +142 mocked suites and disposable builds. Original static Blender FBX/GLB look package is generated locally, not uploaded or mesh-integrated. Native Studio visual/navigation/multiplayer validation remains required. Next: integrate review build and run native playtest before release.
+
+## November 16 earned-coin gear candidate
+
+- Added shared six-piece catalog (existing megaphone/speaker plus Mosaic Mic, Street Boombox, Parabolic Cannon, Celestial Organ), level gates, lower earned-coin entry prices, one active normalized-input bonus capped at +32%, server-authoritative purchase/equip and validated new ownership fields. Legacy ownership/coins preserved; dual legacy gear now selects strongest single bonus. Full-power DPS/capture constants unchanged.
+- Added reusable Style/vendor catalog cards and local ServerStorage template loader with explicitly marked temporary old-art fallback; imported Organ uses back mount without handheld pose. No mesh upload or native asset-ID wiring claimed.
+- Four real Blender models, native sources, FBX/GLB, renders and export roundtrip validation are in `build/Progression-Gear-Blender.zip`; reproducible source `tools/progression_gear_blender.py`. Vault approved concepts GEAR-02/03/07/09 and Blender pipeline guidance consulted.
+- Pure purchase/lock/repeat/re-equip/bonus/adapter snapshot tests, actual Profiles migration and test-mode autosave/rejoin fake-store tests, and equipment template lifecycle mocked-tree checks added. `verify_local.py --build` passed: 26 pure/synthetic suites, 143 mocked-service suites, 66 production scripts compiled and disposable Rojo review builds. Native runtime not executed. Pacing and exact remaining gates: `docs/gear/PROGRESSION.md`.
+- Next: disposable Studio import/scale/R6-R15 grip/material checks, phone card layout, native two-client/PvP and isolated persistence faults. Old schema-4 writers drop new gear ownership: drain them and establish forward-compatible rollback before release. No live datastore, desktop checkout, remote push or publication in this task.
 
 ## November 14 Academy Megaphone (`GEAR-01`) purchasable gear integration
 
@@ -1116,3 +1149,29 @@ Check usage and current tree. Continue bounded automatic-voice integration revie
 - November 9 performance sampler control regression: actual fixture runner now has mocked-clock/Heartbeat coverage for duration/default/label bounds, before/after workload, stamped identity, nested-request exclusion, caught sampling errors, unlocked retry and the 20,000-sample cap. Nine added checks pass (14 fixture count/runner checks), plus full verification/build (16 pure/synthetic, 45 mocked-service suites). Production and fixture behavior unchanged. These generated intervals are synthetic test data, not performance evidence. Next: run identified PerformanceReview scenarios natively and record device/player/voice conditions alongside results.
 
 - November 9 audience participant lifecycle: WatchPerformance rejects removed models/detached roots for listeners and performers, and exits its watch loop when either disappears. Existing cleanup clears applause/watching state. Mocked removed-performer reproduction failed before the fix; seven audience lifecycle checks now pass, including normal completion, plus full verification/build (16 pure/synthetic, 46 mocked-service suites). Native streaming, scheduler and animation appearance remain unverified. Next: remove/restore a performing busker in a disposable server and verify listeners promptly leave applause and resume ordinary activity.
+
+## November 16 optional compact boss candidate
+
+- Added vault-derived Lv10 Whispering Metronome, Lv30 Decibel Golem and Lv95 Eclipse Conductor in three audited compact-map pockets. Separate authoritative service, opt-in attacks, fixed telegraphs, bounded contributor reward pots, respawn/reset and session/test isolation; no enemy health HUD or save-schema edits.
+- Boss runtime uses explicit simple proxy bodies; separate Blender originals are not imported. Native Studio/voice/phone/multiplayer checks pending. See [boss review](BOSS_ENCOUNTERS_REVIEW.md) for scope, test evidence and tuning limitations. Next: integrate reviewed art, native encounter walk/aim/dodge tests, then human balance tuning. No publication/push.
+
+### November 16 requested L50/L70 boss extension
+
+- Added exact-level-50 Pyro-Tenor Ignis and level-70 Leviathan Sub-Bass, retaining original Lv10/30/95 encounters unchanged. Canonical vault concepts retuned from their older Lv45/65 labels per latest owner direction. New distinct radius-18 pockets audited in current compact map.
+- Focused actual-service/callback tests pass 154 assertions plus wiring contracts; five-boss balance estimates pass. Original visual assets remain separate, native checks pending, no saves/HUD schema changes or publication. See boss review for timings and reward pots. Root will rerun aggregate integration.
+
+## November 16 opt-in navigation data candidate
+
+- Read-only `NavigationCatalog` resolves public places and actual BossCatalog coordinates; existing server state carries eligible quest destinations derived from CompactLayout markers and World.Bots giver starts. Selected active garden, litter, delivery and sprint targets advance with authoritative stage state. Complete, claimed, retired and unavailable targets clear. Hidden soccer solutions are never exported; discovered Nick quests point only to the giver.
+- No quest acceptance, automatic selection, new remotes or profile fields. Compact-city only, returning no destinations for the archived map. Client opt-in controls are integrated separately.
+- Focused actual-module tests under synthetic vectors pass, plus both changed production modules compile. Native visual guidance, moving-resident approach, phone layouts and multiplayer remain untested. Next: integrate client selection UI and run aggregate/local then disposable native tests; no upload/push/publication.
+
+## November 16 combat integration QA
+
+- Reproduced idle boss text/table churn in actual-source tests, then cached display text, gated countdown updates and reused/cleared target lists. Five idle bosses now issue five initial label writes instead of 500 over 100 ticks; no balance or combat eligibility changes.
+- Focused boss lifecycle/callback checks pass170 assertions plus wiring; retained gear/NPC suites pass. Full local gate:27 pure/synthetic +149 mocked and disposable builds. Native import/playtest remains separate. See `docs/COMBAT_PLAYTEST_QA.md`.
+### Navigation packet-path optimization (local candidate)
+
+- Built a first-giver index once immediately after World.Build instead of rescanning all residents for every eligible quest on each State packet. Targets, labels, completion/availability checks and active stage rules are unchanged. Future world rebuilds must rebuild the index too.
+- Actual-source differential tests against frozen pre-optimization 9507e84 pass across completion, claims, privacy/availability, duplicates and active stages. Synthetic 10-giver fixture: 20 property reads at index build, zero bot reads per 1,000 indexed State computations versus 46,000 prior membership scans. This is operation counting, not a native frame-time measurement.
+- Next: aggregate local verification and disposable Studio acceptance. No live publication or external push.

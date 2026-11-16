@@ -53,6 +53,7 @@ function Profiles.Sanitize(raw)
     end
     data.coins=wholeNumber(raw.coins,0,0,1000000000)
     data.level,data.xp=Config.Progression.Normalize(raw.level,raw.xp)
+    Config.Gear.Sanitize(data,raw)
     if type(raw.combatChallenges)=="table" then
         -- Keep retired counters dormant under their original IDs. No conversion
         -- into another objective or reward; repeated save/load preserves history.

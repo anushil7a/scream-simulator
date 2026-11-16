@@ -379,7 +379,7 @@ local function lockContext(power)
  local origin=root and root.Position+Vector3.new(0,1,0)
  if root and head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
  return {character=character,position=root and root.Position,origin=origin,camera=workspace.CurrentCamera,
-  range=Config.VoiceCombat.Stats(data.level,power or mic.power,data.amplifierEquipped,data.megaphoneEquipped).range,
+  range=Config.VoiceCombat.Stats(data.level,power or mic.power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).range,
   now=workspace:GetServerTimeNow(),allowed=not clientDestroyed and windowFocused and not beamBlocked()
    and (not sustainedControl or sustainedControl.armed==true)}
 end
@@ -484,17 +484,14 @@ castButton.InputBegan:Connect(function(input)
  if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then beginCapture(input) end
 end)
 
-local meter=frame(gui,"MicPower",UDim2.fromOffset(230,62),UDim2.new(.5,-115,1,-74))
-academy.surface(meter)
-local meterText=label(meter,"LIVE MIC 0%\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,white)
-local meterFill
-do
- local meterTrack=frame(meter,"Track",UDim2.new(1,-20,0,5),UDim2.fromOffset(10,49),panel)
- meterFill=frame(meterTrack,"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
- if sustainedControl then
-  local threshold=frame(meterTrack,"VoiceStartThreshold",UDim2.fromOffset(2,11),UDim2.new(sustainedControl.gate.OnPower,0,.5,0),white)
-  threshold.AnchorPoint=Vector2.new(.5,.5);threshold.ZIndex=meterFill.ZIndex+1
- end
+academy.VoiceReactor=loadClientDependency(script.Parent,"VoiceReactor");if not clientCheckpoint() then return end
+academy.reactor=academy.VoiceReactor.new(gui)
+local meter=academy.reactor.root
+local meterText=academy.reactor.text
+local meterFill=academy.reactor.fill
+if sustainedControl then
+ local threshold=frame(academy.reactor.track,"VoiceStartThreshold",UDim2.fromOffset(2,7),UDim2.new(sustainedControl.gate.OnPower,0,.5,0),white)
+ threshold.AnchorPoint=Vector2.new(.5,.5);threshold.ZIndex=meterFill.ZIndex+1
 end
 local aimGui=Instance.new("ScreenGui");aimGui.Name="ScreamAim";aimGui.ResetOnSpawn=false;aimGui.ScreenInsets=Enum.ScreenInsets.None;aimGui.Parent=p.PlayerGui
 ownClient(function() aimGui:Destroy() end);if not clientCheckpoint() then return end
@@ -535,15 +532,14 @@ local function playerTargetInfo(target,humanoid,canFight,far,now,currentFar,cove
   or rolling and "DODGING" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "ARENA OPPONENT"
  local level=target:GetAttribute("ScreamLevel")
  local name=target.DisplayName..(type(level)=="number" and string.format(" · LV %d",level) or "")
- return string.format("%s\n%d / %d HP\n%s",name,math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),
+ return string.format("%s\n%s",name,status),
   canFight and protection<=0 and not rolling and not far and not currentFar and not covered
 end
 local function residentTargetInfo(model,humanoid,far,currentFar,covered)
  if model:GetAttribute("ResidentActive")==false then return nil,false end
  if not humanoid or humanoid.Health<=0 then return nil,false end
  local status=far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "TRAINING RESIDENT"
- return string.format("%s\n%d / %d HP\n%s",model:GetAttribute("DisplayName") or model.Name,
-  math.ceil(humanoid.Health),math.ceil(humanoid.MaxHealth),status),not far and not currentFar and not covered
+ return string.format("%s\n%s",model:GetAttribute("DisplayName") or model.Name,status),not far and not currentFar and not covered
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
 local lockButton=button(controls,"LockTarget","LOCK [R]",UDim2.fromOffset(88,44),UDim2.fromOffset(0,52),toggleLock)
@@ -635,11 +631,56 @@ local function card(height)
 end
 local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
 ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)
+-- Guidance is session-local and can only be selected by an explicit button.
+academy.NavigationCatalog=loadClientDependency(shared,"NavigationCatalog");if not clientCheckpoint() then return end
+academy.BossCatalog=loadClientDependency(shared,"BossCatalog");if not clientCheckpoint() then return end
+academy.NavigationGuide=loadClientDependency(script.Parent,"NavigationGuide");if not clientCheckpoint() then return end
+academy.guide=academy.NavigationGuide.new(gui)
+ownClient(function() academy.guide:Destroy() end);if not clientCheckpoint() then return end
+academy.guidePanel=frame(gui,"SelectedGuide",UDim2.fromOffset(290,62),UDim2.fromOffset(16,120));academy.guidePanel.Visible=false
+academy.surface(academy.guidePanel)
+academy.guideText=label(academy.guidePanel,"",UDim2.new(1,-86,1,-8),UDim2.fromOffset(6,4),12)
+academy.clearGuide=function()
+ academy.guideSelection=nil;academy.guideTarget=nil;academy.guide:Clear();academy.guidePanel.Visible=false
+ renderedMenuKey=nil
+end
+button(academy.guidePanel,"ClearGuide","CLEAR",UDim2.fromOffset(72,44),UDim2.new(1,-78,.5,-22),academy.clearGuide)
+academy.refreshGuide=function()
+ local selection=academy.guideSelection
+ if not selection then return end
+ local target=academy.NavigationCatalog.Resolve(selection.kind,selection.id,data)
+ if not target then academy.clearGuide();return end
+ local previous=academy.guideTarget
+ if not previous or previous.position~=target.position or previous.label~=target.label then
+  academy.guideTarget=target;academy.guide:SetTarget(target)
+ end
+end
+academy.selectGuide=function(kind,id)
+ if not academy.NavigationCatalog.Resolve(kind,id,data) then return end
+ academy.guideSelection={kind=kind,id=id};academy.refreshGuide();renderedMenuKey=nil
+end
+academy.guideMenu=function()
+ local c=card(110)
+ label(c,academy.guideTarget and ("GUIDING: "..academy.guideTarget.label) or "Choose a guide below. Nothing is selected automatically.",UDim2.new(1,-28,0,48),UDim2.fromOffset(14,6),14,gold)
+ button(c,"ClearGuide","CLEAR GUIDE",UDim2.fromOffset(140,44),UDim2.fromOffset(14,58),function() academy.clearGuide();render() end)
+end
+-- On landscape phones the left rail may have no room above touch controls.
+academy.guideLayout=function(viewport,touch,trackedY)
+ local w,h=viewport.X,viewport.Y
+ if w>=230 and trackedY+118<h-(touch and 260 or 120) then
+  return 16,trackedY+56,math.min(290,w-32),62,false
+ end
+ local left,right=264,w-182 -- retain space for the HUD and widest minimap
+ local width=math.min(244,right-left)
+ if h>=346 and width>=194 then
+  return math.floor((left+right-width)/2),48,width,48,true
+ end
+end
 local function menuKey()
  local fields
  if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped,megaphone=data.megaphoneEquipped}
- elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,challenges=data.combatChallenges,level=data.level}
- elseif selected=="Style" then fields={aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped}
+ elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,navigation=data.questNavigation,challenges=data.combatChallenges,level=data.level}
+ elseif selected=="Style" then fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped}
  elseif selected=="Shop" then fields={spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  else fields={} end
@@ -683,7 +724,7 @@ render=function()
    progress..=string.format("\nAt level %d: %d HP · %.1f max DPS",nextStyle.level,nextStats.health,nextStats.maxDps)
   end
   info(progress..string.format("\nNow: %d HP · %.1f max DPS",stats.health,stats.maxDps))
-  local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped)
+  local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier)
   local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs",data.level,maximum.maxDps,maximum.maxRange)
    or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs",data.level,maximum.damage,maximum.maxRange)
   info(combatSummary,narrow and 112 or 82)
@@ -699,6 +740,7 @@ render=function()
   end
  elseif selected=="Quests" then
   title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
+  academy.guideMenu()
   info("COURTYARD TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads in the west courtyard. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
   for _,spec in ipairs(Config.Progression.Challenges) do
    local rewardText=data.level>=Config.MaxLevel and "MAX LEVEL · no XP awarded" or ("+"..Config.Progression.ChallengeXP(data.level).." XP on completion")
@@ -734,26 +776,36 @@ render=function()
     local descriptionHeight=math.max(49,TextService:GetTextSize(description,13,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+8)
     local descriptionY=12+nameHeight;local rewardY=descriptionY+descriptionHeight+5
     local actionY=narrow and rewardY+34 or 32
-    local c=card(narrow and actionY+48 or math.max(150,rewardY+35))
+    local canGuide=academy.NavigationCatalog.Resolve("quest",q.id,data)~=nil
+    local c=card(narrow and actionY+(canGuide and 100 or 48) or math.max(canGuide and 164 or 150,rewardY+35))
     label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
     label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
     label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
-    button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "TRACKING" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
+    button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "ACTIVE" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
      if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
     end)
+    if canGuide then
+     button(c,"Guide_"..q.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,actionY+46),function()
+      academy.selectGuide("quest",q.id);closeMenu()
+     end)
+    end
    end
   end
  elseif selected=="Style" then
   title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your beam effects."
   shopUsed=true;ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
-  local megaphoneCard=card(narrow and 142 or 90)
-  label(megaphoneCard,"ACADEMY MEGAPHONE",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
-  label(megaphoneCard,"+6% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
-  button(megaphoneCard,"Megaphone",data.megaphoneEquipped and "UNEQUIP" or data.megaphoneOwned and "EQUIP" or tostring(Config.MegaphonePrice or 500).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,narrow and 90 or 24),function() action:FireServer("Megaphone") end)
-  local equipment=card(narrow and 142 or 90)
-  label(equipment,"MICRO-SPEAKER",UDim2.new(1,-28,0,25),UDim2.fromOffset(15,10),17,gold)
-  label(equipment,"+12% mic power · capped at 100%",UDim2.new(1,narrow and -28 or -170,0,35),UDim2.fromOffset(15,42),14)
-  button(equipment,"MicroSpeaker",data.amplifierEquipped and "UNEQUIP" or data.amplifierOwned and "EQUIP" or tostring(Config.MicroSpeakerPrice).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,narrow and 90 or 24),function() action:FireServer("MicroSpeaker") end)
+  info("Earned-coin gear · one active bonus · normalized power capped at 100%. Buy once, then equip freely.",90)
+  for _,item in ipairs(Config.Gear.Items) do
+   local selectedGear=Config.Gear.Selected(data)
+   local owned=Config.Gear.Owned(data,item.id)
+   local locked=data.level<item.level
+   local c=card(narrow and 166 or 116)
+   label(c,string.upper(item.name),UDim2.new(1,-28,0,30),UDim2.fromOffset(15,8),16,gold)
+   label(c,string.format("Level %d · +%d%% mic power\n%d earned coins · one-time purchase",item.level,math.floor(item.bonus*100+.5),item.price),UDim2.new(1,narrow and -28 or -174,0,62),UDim2.fromOffset(15,42),13)
+   button(c,item.id,locked and ("LEVEL "..item.level) or selectedGear and selectedGear.id==item.id and "UNEQUIP" or owned and "EQUIP" or tostring(item.price).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,narrow and 116 or 55),function()
+    if not locked then action:FireServer("Gear",item.id) end
+   end)
+  end
   info("Movement pass: repeated jumps (24-stud height limit) and consecutive rolls only in safe areas. Arena cooldowns always apply."..(Config.MovementPassId==0 and " Purchase setup is not available yet." or ""),70)
   local base=card(76)
   label(base,"YELLOW BASE",UDim2.new(1,-158,0,48),UDim2.fromOffset(15,10),17,Config.Auras.Gold)
@@ -770,6 +822,20 @@ render=function()
   info(CityMap.mapHelp,64)
   info(CityMap.legend,CityMap.legendHeight)
   info(CityMap.activityHelp,86)
+  if Config.CompactCity~=false then
+  academy.guideMenu()
+  info("OPTIONAL DESTINATIONS · A guide does not accept quests, start fights or teleport you. Boss entry requires the listed minimum level.",90)
+  for _,boss in ipairs(academy.BossCatalog.Entries) do
+   local c=card(narrow and 112 or 72)
+   label(c,boss.name.." · MIN LEVEL "..boss.level,UDim2.new(1,narrow and -28 or -160,0,48),UDim2.fromOffset(14,6),14,gold)
+   button(c,"GuideBoss_"..boss.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,narrow and 60 or 14),function() academy.selectGuide("boss",boss.id);closeMenu() end)
+  end
+  for _,place in ipairs(academy.NavigationCatalog.Places) do
+   local c=card(70)
+   label(c,place.label,UDim2.new(1,-160,0,50),UDim2.fromOffset(14,10),14)
+   button(c,"GuidePlace_"..place.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,13),function() academy.selectGuide("place",place.id);closeMenu() end)
+  end
+  end
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
   local touch=UIS.TouchEnabled
@@ -872,7 +938,11 @@ showConversation=function(info)
    if not q.claimed then action:FireServer(q.complete and "ClaimQuest" or "AcceptQuest",q.id);closeConversation() end
   end)
   b.Active=not q.claimed;b.AutoButtonColor=not q.claimed
+  if academy.NavigationCatalog.Resolve("quest",q.id,data) then
+   choice("Guide me: "..q.name,function() academy.selectGuide("quest",q.id);closeConversation() end)
+  end
  end
+ if Config.CompactCity~=false then choice("Choose a boss or place to guide me to",function() closeConversation();toggleTab("Map") end) end
  choice("See you later",closeConversation)
  conversationList.CanvasPosition=Vector2.zero;conversationPanel.Visible=true
 end
@@ -912,6 +982,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  observeVoiceEligibility(nextData)
  cueContext();gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())
  data=nextData
+ academy.refreshGuide() -- Update only a destination the player already chose.
  local unclaimed=0
  for _,quest in ipairs(Config.Quests) do
   local progress=data.quests[quest.id]
@@ -1085,6 +1156,8 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if sprinting then setSprint(true) end
  local gameplayVisible=not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
+ academy.guide:Step(p.Character and p.Character:FindFirstChild("HumanoidRootPart"),os.clock(),gameplayVisible and not devPanel.Visible)
+
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
  local eligibilityHint=voiceEligibilityHint(true)
@@ -1092,9 +1165,10 @@ connectClient(Run.RenderStepped,function(dt)
  local confirmed=hitFeedback:Read(os.clock())
  hitText.Visible=gameplayVisible and confirmed~=nil
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
- meter.Visible=gameplayVisible;reticle.Visible=UIS.TouchEnabled and gameplayVisible
- local power=captureSource and mic:CapturePower() or mic.power;meterFill.Size=UDim2.fromScale(power,1)
- local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped).range
+ meter.Visible=gameplayVisible and viewport.Y>=315;reticle.Visible=UIS.TouchEnabled and gameplayVisible
+ local power=academy.VoiceReactor.Power(captureSource and mic:CapturePower() or mic.power)
+ academy.reactor:Step(power,dt,data.settings.reducedShake or platformReducedMotion,mic.ready and (not sustainedControl or sustainedControl.armed))
+ local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
  if sustainedControl then
@@ -1115,13 +1189,15 @@ connectClient(Run.RenderStepped,function(dt)
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
    or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
  end
- meterText.Text=string.format("%s %d%% • up to %.0f studs\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),range,captureHint)
+ meterText.Text=string.format("%s %d%%\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),captureHint)
  if eligibilityHint then
-  meterText.Text=eligibilityHint
+  meterText.Text="MIC UNAVAILABLE\nOpen Settings for voice access"
  elseif sustainedControl and not sustainedControl.armed then
   meterText.Text="BEAMS OFF · TALK FREELY\nVoice chat is unchanged"
  end
  if layoutChanged then
+ local meterWidth,meterHeight=academy.VoiceReactor.Layout(viewport.X,touch)
+ meter.Size=UDim2.fromOffset(meterWidth,meterHeight);meter.Position=UDim2.new(.5,-meterWidth/2,1,-meterHeight-((not touch and viewport.X<820) and 116 or 12))
  local short=viewport.Y<550
  menuScale.Scale=1
  local width=math.min(720,viewport.X-24)
@@ -1171,6 +1247,18 @@ connectClient(Run.RenderStepped,function(dt)
  -- Keep the fight readable without hiding a running quest deadline.
  local combatQuest=data.activeQuest=="arena" or data.activeQuest=="dodge" or data.activeQuest=="crowd" or data.activeQuest=="practice_beams" or data.activeQuest=="arena_assist"
  local showQuest=not data.inWarZone or combatQuest or (data.questTime or 0)>0
+ do
+  local x,y,w,h,compact=academy.guideLayout(viewport,touch,tracked.Position.Y.Offset)
+  academy.guidePanel.Visible=x~=nil and gameplayVisible and not devPanel.Visible and academy.guideTarget~=nil
+  if academy.guidePanel.Visible then
+   academy.guidePanel.Position=UDim2.fromOffset(x,y);academy.guidePanel.Size=UDim2.fromOffset(w,h)
+   local status,distance,bearing=academy.guide:GetStatus()
+   if compact and status=="Route unavailable" then status="No route" end
+   local suffix=distance and (" · "..math.floor(distance).." studs"..(bearing and (" "..bearing) or "")) or ""
+   local text=(compact and "" or academy.guideTarget.label.."\n")..status..suffix
+   if academy.guideText.Text~=text then academy.guideText.Text=text end
+  end
+ end
  tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=viewport.X>740 and gameplayVisible
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
@@ -1233,9 +1321,11 @@ connectClient(Run.RenderStepped,function(dt)
  shop.Visible=not (modal.Visible and noticeView.visible);questsToggle.Visible=shop.Visible
  questsToggle.Text=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
  talkButton.Visible=talkTarget~=nil and gameplayVisible
+ -- Preserve the interaction target; passive mic art must never sit under TALK.
+ if not touch and viewport.X>=820 and talkButton.Visible then meter.Visible=false end
  talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
  if noticeView.visible and noticeLayout.moveTalk then talkButton.Position=UDim2.fromOffset(noticeLayout.talkX,noticeLayout.talkY) end
- for _,passive in ipairs({hud,tracked,zone,saveNotice})do
+ for _,passive in ipairs({hud,tracked,zone,saveNotice,meter,academy.guidePanel})do
   if noticeView:Overlaps(passive,gui) or noticeView:Overlaps(passive,gui,talkButton) then passive.Visible=false end
  end
  local lockedPoint=academy.resolveLock(lockContext())
@@ -1268,7 +1358,7 @@ connectClient(Run.RenderStepped,function(dt)
    local targetRoot=object:FindFirstChild("HumanoidRootPart");local humanoid=object:FindFirstChildOfClass("Humanoid")
    if root and targetRoot and humanoid then
     local canFight=Config.InArena(root.Position) and Config.InArena(targetRoot.Position)
-    local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped).maxRange+2
+    local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).maxRange+2
     local currentFar=(targetRoot.Position-root.Position).Magnitude>range+2
     local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(root,targetRoot,object))
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
@@ -1278,14 +1368,14 @@ connectClient(Run.RenderStepped,function(dt)
    local npcRoot=object:FindFirstChild("HumanoidRootPart")
    if root and npcRoot then
     local distance=(npcRoot.Position-root.Position).Magnitude
-    local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped).maxRange+2
+    local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).maxRange+2
     local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2,not far and targetCovered(root,npcRoot,object))
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then
    local required=object:GetAttribute("RequiredLevel");local hp=object:GetAttribute("ObjectHealth") or 0
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-   local rangeLimit=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped).maxRange
+   local rangeLimit=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).maxRange
    local far=root and (hit.Position-root.Position).Magnitude>rangeLimit+2
    local currentFar=root and (hit.Position-root.Position).Magnitude>range+2
    local kind=object:GetAttribute("ObjectName") or object:GetAttribute("DestructibleType") or object.Name
@@ -1308,6 +1398,8 @@ connectClient(Run.RenderStepped,function(dt)
  CityMap.MiniUpdate(miniMapView,root,os.clock(),miniVisible and miniMapHolder.Visible)
  talkButton.Text=touch and "TALK" or "TALK [T]"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
+ -- Preserve the interaction target; passive mic art must never sit under TALK.
+ if not touch and viewport.X>=820 and talkButton.Visible then meter.Visible=false end
 end)
 end)()
 if not clientCheckpoint() then return end

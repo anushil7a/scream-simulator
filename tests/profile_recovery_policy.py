@@ -30,7 +30,7 @@ local store={UpdateAsync=function(_,key,transform)
  if afterFailures>0 then afterFailures-=1;error('lost response') end
  return copy(result)
 end}
-local config={Progression={Challenges={},Normalize=function(l,x)return l or 1,x or 0 end},Quests={},Auras={Gold=true},GetSound=function()return {id='TinyAah',level=1}end}
+local config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),Progression={Challenges={},Normalize=function(l,x)return l or 1,x or 0 end},Quests={},Auras={Gold=true},GetSound=function()return {id='TinyAah',level=1}end}
 local guid=0
 local services={DataStoreService={GetDataStore=function()return store end},ReplicatedStorage={Shared={Config='Config',ProfileLease='Lease'}},RunService={IsStudio=function()return true end},HttpService={GenerateGUID=function()guid+=1;return 'guid-'..guid end}}
 local waits={};local task={wait=function(dt)

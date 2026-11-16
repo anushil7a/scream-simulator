@@ -30,12 +30,16 @@ local function progression(level)
   end
  end
 end
-function VoiceCombat.Stats(level, power, amplifier, megaphone)
+function VoiceCombat.Stats(level, power, amplifier, megaphone, gearMultiplier)
  local l = VoiceCombat.Level(level)
  local health,maxDps = progression(l)
  local p = VoiceCombat.IsFinite(power) and math.clamp(power, 0, 1) or 0
- if amplifier then p = math.min(1, p * 1.12) end
- if megaphone then p = math.min(1, p * 1.06) end
+ if VoiceCombat.IsFinite(gearMultiplier) then
+  p=math.min(1,p*math.clamp(gearMultiplier,1,1.32))
+ else
+  if amplifier then p = math.min(1, p * 1.12) end
+  if megaphone then p = math.min(1, p * 1.06) end
+ end
  local maximum = 30 + 0.25 * (l - 1)
  return {
   maxRange = maximum,

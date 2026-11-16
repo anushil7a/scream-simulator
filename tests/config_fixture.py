@@ -2,6 +2,9 @@
 No replacement coordinates, fake catalog, service access or production mutation.
 """
 def inline_compact_layout(config, root):
+    gear='require(script.Parent:WaitForChild("GearCatalog"))'
+    if gear in config:
+        config=config.replace(gear,'(function()\n'+(root/'src/ReplicatedStorage/Shared/GearCatalog.luau').read_text()+'\nend)()')
     needle='require(script.Parent:WaitForChild("CompactLayout"))'
     if needle not in config:
         return config  # Historical baseline predates the dependency.

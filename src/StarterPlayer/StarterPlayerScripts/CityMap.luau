@@ -36,6 +36,8 @@ local landmarks=CompactLayout and CompactLayout.MapLandmarks or {
  {name='7 · Timber pier',x=525,z=537},
  {name='8 · Training fighters',x=-320,z=545},
 }
+-- Locations use the same static catalog as the server encounters.
+local bosses=CompactLayout and require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("BossCatalog")).Entries or {}
 -- Pad fills use authored world colors; badges echo the trainers' uniform accents.
 local trainingBadges={
  TrainingPad1={label="L1",color=Color3.fromRGB(111,196,180)},
@@ -121,6 +123,13 @@ function CityMap.create(parent,compact)
   end
   local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=pin;text(pin,tostring(i),13)
  end
+ for i,boss in ipairs(compact and {} or bosses) do
+  local pin=box(map,'BossPin_'..boss.id,0,0,0,0,Color3.fromRGB(62,46,85))
+  pin.AnchorPoint=Vector2.new(.5,.5);pin.Size=UDim2.fromOffset(23,18);pin.Position=position(boss.x,boss.z);pin.ZIndex=3
+  local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(0,4);corner.Parent=pin
+  local edge=Instance.new('UIStroke');edge.Color=Color3.fromRGB(218,192,241);edge.Thickness=1;edge.Parent=pin
+  local words=text(pin,'B'..i,11);words.ZIndex=4
+ end
  local dot=box(map,'Player',0,0,0,0,gold);dot.Size=UDim2.fromOffset(compact and 8 or 18,compact and 8 or 18);dot.AnchorPoint=Vector2.new(.5,.5);dot.ZIndex=5
  dot.Visible=false
  local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=dot
@@ -170,12 +179,15 @@ CityMap.activityHelp="Coffee: collect at the west café, then check your objecti
 if CompactLayout then
  CityMap.mapHelp="Gold arrow: you and your facing direction. Red: PvP arena."
  CityMap.activityHelp="PvP ends at the marked arena boundary."
- CityMap.legendHeight=#landmarks*20+24
+ CityMap.legendHeight=(#landmarks+#bosses)*20+24
  local lines={}
  for _,landmark in ipairs(landmarks) do
   if landmark.name=="2 Training" then
    table.insert(lines,"Training: L1 Rookie / L25 Brawler / L60 Elite")
   else table.insert(lines,landmark.name) end
+ end
+ for i,boss in ipairs(bosses) do
+  lines[#lines+1]=string.format("B%d  %s · Lv %d+",i,boss.name,boss.level)
  end
  CityMap.legend=table.concat(lines,"\n")
 end

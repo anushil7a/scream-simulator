@@ -18,6 +18,7 @@ local function closeMenu()modal.Visible=false end -- Lifecycle exercised separat
 local action={FireServer=function(_,verb,id)table.insert(sent,{verb,id})end}
 local goals={garden=3,practice_beams=3,beach=6,delivery=1};local Config={GetQuest=function(id)return goals[id] and {goal=goals[id]}end}
 local data={quests={}}
+local academy={NavigationCatalog={Resolve=function()return nil end}}
 '''
 checks=r'''
 for _,id in ipairs({'garden','practice_beams','beach','delivery'})do
@@ -40,7 +41,7 @@ for _,id in ipairs({'garden','practice_beams','beach','delivery'})do
 end
 -- The server supplies unlocked dialogue choices; absent/locked choices stay absent.
 texts={};buttons={};sent={};showConversation({name='NPC',line='Hello',hint='Hint',quests={}})
-check(#buttons==2 and #sent==0,'Renderer invented locked quest choice')
+check(#buttons==3 and #sent==0,'Renderer invented locked quest choice')
 print('PASS',n,'actual dialogue assertions; mocked GUI/catalog goals, no native fit')
 '''
 def run(fragment,error=None):

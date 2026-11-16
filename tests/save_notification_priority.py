@@ -13,7 +13,7 @@ local function notify(message,urgent,key)notifications:Push(message,urgent,key)e
 receiver=client[client.index('local lastMilestone'):client.index('connectClient(UIS.InputBegan')]
 state=server[server.index('local function state('):server.index('Commerce.Start(')]
 autosave=server[server.index('local function autosave('):server.index('task.spawn(function() while true do task.wait(60)')]
-speaker=server[server.index('local function microSpeaker('):server.index('local function vendorPurchase(')]
+speaker=server[server.index('local function gearAction('):server.index('local function vendorPurchase(')]
 extra='''
 local VoiceEligibility=require('../src/ServerScriptService/VoiceEligibility')
 local Queue=require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue')
@@ -24,7 +24,8 @@ Config.XPToNext=function()return 100 end;Config.GetDeliveryStop=function()end
 Config.HealthForLevel=function()return 100 end
 local function parts()end
 local Soccer={Status=function()end};local QuestGuide={Step=function()end}
-local Equipment={Sync=function()end,SyncMegaphone=function()end};local TrainingRules={Recommended=function()return {name='Rookie'}end}
+local NavigationCatalog={QuestTargets=function()return {}end};local World={Bots={}}
+local Equipment={SyncGear=function()end};local TrainingRules={Recommended=function()return {name='Rookie'}end}
 local Entitlements={HasSpectrum=function()return false end,HasMovement=function()return false end}
 local Access={IsAuthorized=function()return false end};local game={}
 local RunService={IsStudio=function()return false end}

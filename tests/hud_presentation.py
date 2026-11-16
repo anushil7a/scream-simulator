@@ -49,7 +49,7 @@ def run(source):
  with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',suffix='.luau',prefix='tmp_hud_',dir=ROOT/'tests',delete=False)as f:p=Path(f.name);f.write(build(source))
  try:return subprocess.run(['luau',str(p)],cwd=ROOT,capture_output=True,text=True)
  finally:p.unlink()
-RETAINED_CONTRACTS=['zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08', 'saveNotice.BackgroundColor3=dark;saveNotice.BackgroundTransparency=.08', 'UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108)', 'local meterText=label(meter,"LIVE MIC 0%\\nHold attack before speaking",UDim2.new(1,-20,0,40),UDim2.fromOffset(10,3),12,white)']
+RETAINED_CONTRACTS=['zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08', 'saveNotice.BackgroundColor3=dark;saveNotice.BackgroundTransparency=.08', 'UDim2.fromOffset(242,94),UDim2.new(0,14,1,-108)', 'local meterText=academy.reactor.text']
 SURFACE_CONTRACTS=['academy.surface(zone)', 'academy.surface(saveNotice,gold)', 'academy.surface(sprintButton)', 'academy.surface(talkButton,gold)', 'academy.surface(conversationPanel,gold)', 'academy.surface(devPanel)', 'academy.surface(testButton)']
 def check_contracts(source):
  for c in RETAINED_CONTRACTS+SURFACE_CONTRACTS:assert c in source,c

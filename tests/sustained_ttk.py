@@ -23,7 +23,7 @@ local VoiceCombat=require('../src/ReplicatedStorage/Shared/VoiceCombat')
 local Attack=require('../src/ReplicatedStorage/Shared/SustainedAttack')
 local Adapter=require('../src/ServerScriptService/SustainedAttackAdapter')
 local Healing=require('../src/ReplicatedStorage/Shared/Healing')
-local Config={ObjectDestruction=false,HealQuietSeconds=Healing.QuietSeconds,EffectBroadcastRange=1000}
+local Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),ObjectDestruction=false,HealQuietSeconds=Healing.QuietSeconds,EffectBroadcastRange=1000}
 function Config.GetSound()return {level=1}end
 function Config.PlayerKOXP()return 0 end
 local TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
