@@ -40,8 +40,8 @@ local function fixture(sourceFactory,index,role,tier,compact,jobMode)
  local parent=Instance.new('Folder');parent.Name='Residents'
  local training=tier and TrainingRules.Tiers[tier]
  local job=jobMode and {name='Authored '..role,stations={{position=Vector3.new(1,3,2)}},quests={'garden'}} or nil
- make(parent,index,-245,-100,role,job,training)
- return {nodes=nodes,bot=World.Bots[1],rng=rngLog}
+ local returned=make(parent,index,-245,-100,role,job,training)
+ return {nodes=nodes,bot=World.Bots[1],rng=rngLog,returned=returned}
 end
 local function path(o)if not o then return 'nil'end;return (o.Parent and path(o.Parent)..'/' or '')..o.Name..':'..o.ClassName end
 local function serial(v,seen)
@@ -52,6 +52,7 @@ local function serial(v,seen)
 end
 local function added(o)return o.Name:sub(1,7)=='Academy' or (o.Parent and o.Parent.Name:sub(1,7)=='Academy')end
 local function compare(a,b,trainer)
+ check(b.returned==b.bot,"makeBot must return registered bot for every role")
  check(serial(a.rng)==serial(b.rng),'RNG draw sequence changed')
  check(serial(a.bot)==serial(b.bot),'Bot gameplay/state fields changed')
  local originals={};local extra={}
@@ -112,13 +113,21 @@ def run(source):
 if __name__=='__main__':
  stripped=current[:current.index('-- Original academy sparring kit:')]+current[current.index('local function faceToward('):]
  stripped=stripped.replace('    if training then trainerOutfit(model,torso,la,ra,ll,rl,training) end\n','')
- assert stripped==baseline,'Source outside bounded cosmetic insertion changed'
+ # Supporting residents are additive; independently executed by supporting_npcs.py.
+ stripped=stripped.replace('local SupportingNPCs=require(script.Parent.SupportingNPCs)\n','')
+ stripped=stripped.replace('(bot.job and bot.job.lines) or roleLines[bot.role] or lines','roleLines[bot.role] or lines')
+ hook='    if Config.CompactCity then\n        for _,spec in ipairs(SupportingNPCs.Roster) do\n            local bot=makeBot(parent,spec.index,spec.x,spec.z,spec.role,SupportingNPCs.Job(spec))\n            SupportingNPCs.Dress(bot,spec,accessory)\n        end\n    end\n'
+ assert stripped.count(hook)==1,'Supporting spawn hook changed; re-audit integration'
+ stripped=stripped.replace(hook,'')
+ stripped=stripped.replace('    return bot\nend\n\nlocal function atmosphere()', 'end\n\nlocal function atmosphere()',1)
+ assert stripped==baseline,'Source outside bounded cosmetic/supporting insertion changed'
  print('PASS source contract: all other World behavior exactly baseline')
  out=run(current);print(out.stdout,end='');assert out.returncode==0,out.stderr
  if '--negative-controls' in sys.argv:
   call='if training then trainerOutfit(model,torso,la,ra,ll,rl,training) end'
   chest=next(line for line in current.splitlines() if 'accessory(model,torso,"AcademyChestLeft"' in line)
   cases=[
+   ("    return bot\nend\n\nlocal function atmosphere()", "end\n\nlocal function atmosphere()", "makeBot must return registered bot for every role"),
    ('p.CanQuery = false','p.CanQuery = true','Original property changed'),
    ('Vector3.new(2, 2, 1), cf, shirt, true','Vector3.new(3, 2, 1), cf, shirt, true','Original property changed'),
    (call,'trainerOutfit(model,torso,la,ra,ll,rl,training or TrainingRules.Tiers[1])','Trainer kit leaked into resident'),
@@ -129,4 +138,4 @@ if __name__=='__main__':
   ]
   for old,new,message in cases:
    assert old in current,old;out=run(current.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stdout,out.stderr)
-  print('PASS 7 trainer negative controls')
+  print('PASS 8 trainer negative controls')

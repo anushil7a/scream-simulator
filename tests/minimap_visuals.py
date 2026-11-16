@@ -13,7 +13,7 @@ end)()
 local Config={CompactCity=true,MapMin=Layout.BoundsMin,MapMax=Layout.BoundsMax,ZoneMin=Layout.ZoneMin,ZoneMax=Layout.ZoneMax}
 local shared={WaitForChild=function(_,name)return name end}
 local game={GetService=function()return {WaitForChild=function()return shared end}end}
-local require=function(name)assert(name=='CompactLayout');return Layout end
+local require=function(name)if name=='BossCatalog' then return {Entries={}} end;assert(name=='CompactLayout');return Layout end
 local CityMap=(function()
 '''
 checks=r'''

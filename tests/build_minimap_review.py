@@ -35,6 +35,12 @@ for _,view in ipairs({{320,568,true},{360,800,true},{390,844,true},{430,844,true
  check(testButton.TextFits,"Test tools label clipped")
  check(not overlaps(miniMapButton,testButton),"Test tools overlap minimap")
  for _,obj in ipairs({hud,tracked,controls,talkButton}) do if obj.Visible then check(not overlaps(testButton,obj),"Tools overlap "..obj.Name) end end
+ devPanel.Visible=true;settle()
+ check(miniMapButton.Visible and testButton.Visible and devPanel.Visible,"Open dev panel hid minimap or tools")
+ check(not overlaps(devPanel,testButton),"Dev panel overlaps test tools")
+ check(not overlaps(devPanel,miniMapButton),"Dev panel overlaps minimap")
+ if controls.Visible then check(not overlaps(devPanel,controls),"Dev panel overlaps controls") end
+ devPanel.Visible=false;settle()
  data.devAccess=false;receiver(data);settle()
  notify("Saving is unavailable. Progress is temporary.",true,"save");settle()
  check(noticeView.root.Visible and miniMapButton.Visible,"Notification hides minimap")
@@ -48,6 +54,12 @@ settle()
 check(testButton.Visible,"Dev tools button must remain visible under minimap in review place")
 check(testButton.AbsolutePosition.Y>=miniMapButton.AbsolutePosition.Y+miniMapButton.AbsoluteSize.Y+8,"Dev tools button must sit below minimap")
 check(testButton.ZIndex>devPanel.ZIndex,"Dev tools button must render above dev panel")
+devPanel.Visible=true
+settle()
+check(miniMapButton.Visible and testButton.Visible and devPanel.Visible,"Dev panel must remain visible alongside minimap and test tools")
+check(not overlaps(devPanel,testButton) and not overlaps(devPanel,miniMapButton) and not overlaps(testButton,miniMapButton),"Dev panel, test tools, and minimap must not overlap")
+if controls.Visible then check(not overlaps(devPanel,controls),"Dev panel must not overlap controls") end
+devPanel.Visible=false
 local result={checks=checks,rows=rows,limits="Synthetic viewport/state/mic/remotes. No physical controls, actual phone or live services."}
 local encoded=game:GetService("HttpService"):JSONEncode(result)
 workspace:SetAttribute("MiniMapReviewResult",encoded);print("MINIMAP_REVIEW_RESULT "..encoded)

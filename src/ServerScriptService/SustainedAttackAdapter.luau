@@ -21,13 +21,15 @@ function Adapter.new(Attack, Combat, directionFor)
   local power=validPower(request.power) and request.power or nil
   local level=context and Combat.Level(context.level) or 1
   local amplifier=context~=nil and context.amplifier==true
-  local stats=power and Combat.Stats(level,power,amplifier)
+  local megaphone=context~=nil and context.megaphone==true
+  local gearMultiplier=context and context.gearMultiplier
+  local stats=power and Combat.Stats(level,power,amplifier,megaphone,gearMultiplier)
   local ok,reason,ended=Attack.Begin(s.protocol,now,request.sequence,
    Combat.Stats(level,1,false).maxDps,stats and stats.power,
    context~=nil and context.character~=nil and direction~=nil)
   if not s.protocol.active then clear(s) end
   if ok then
-   s.intent={character=context.character,level=level,amplifier=amplifier,aim=request.aim,sample=0}
+   s.intent={character=context.character,level=level,gearMultiplier=gearMultiplier,amplifier=amplifier,megaphone=megaphone,aim=request.aim,sample=0}
   end
   return ok,reason,ended
  end
@@ -39,7 +41,7 @@ function Adapter.new(Attack, Combat, directionFor)
   intent.sample=request.sample
   local allowed=context~=nil and context.character==intent.character
    and directionFor(context.origin,request.aim)~=nil
-  local power=validPower(request.power) and Combat.Stats(intent.level,request.power,intent.amplifier).power or nil
+  local power=validPower(request.power) and Combat.Stats(intent.level,request.power,intent.amplifier,intent.megaphone,intent.gearMultiplier).power or nil
   local ok,reason,ended=Attack.Pulse(s.protocol,now,request.sequence,power,allowed)
   if ok then intent.aim=request.aim end
   if not s.protocol.active then clear(s) end

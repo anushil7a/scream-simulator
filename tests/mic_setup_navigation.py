@@ -52,9 +52,10 @@ end end
 mic.ready=false;data.voiceEligible=true;check(beamBlocked(),'Unready mic allowed beam')
 mic.ready=true;data.voiceEligible=false;check(beamBlocked(),'Ineligible mic allowed beam')
 mic.ready=true;data.voiceEligible=true
-for _,panel in ipairs({modal,devPanel,conversationPanel})do
+for _,panel in ipairs({modal,conversationPanel})do
  panel.Visible=true;local g,t,m=frame();check(not g and not t and not m and blocked() and beamBlocked(),'Open panel leaked gameplay');panel.Visible=false
 end
+devPanel.Visible=true;local g,t,m=frame();check(g and t and m and blocked() and beamBlocked(),'Open devPanel hid HUD/minimap or leaked attack');devPanel.Visible=false
 GuiService.MenuIsOpen=true;local g,t,m=frame();check(not g and not t and not m and blocked(),'Roblox menu leaked gameplay');GuiService.MenuIsOpen=false
 originalTouchControls=false;g,t,m=frame();check(not t,'Overrode user touch setting');originalTouchControls=true
 windowFocused=false;g,t,m=frame();check(not m,'Unfocused minimap stayed visible');windowFocused=true

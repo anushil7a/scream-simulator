@@ -6,7 +6,7 @@ import argparse,re,subprocess,tempfile
 R=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
 path='src/StarterPlayer/StarterPlayerScripts/Client.client.luau'
-assert re.search(r'MicroSpeakerPrice\s*=\s*1500', (R/'src/ReplicatedStorage/Shared/Config.luau').read_text()), 'Fixture price must follow Config'
+assert 'Config.Gear=require(script.Parent:WaitForChild("GearCatalog"))' in (R/'src/ReplicatedStorage/Shared/Config.luau').read_text().replace(' ',''), 'Fixture must use production catalog'
 c=(R/path).read_text();server=(R/'src/ServerScriptService/Bootstrap.server.luau').read_text()
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
@@ -18,7 +18,7 @@ local UDim2={new=function()return {}end,fromOffset=function()return {}end,fromSc
 local Enum={Font={GothamMedium=1},AutomaticSize={Y=1}};local TextService={GetTextSize=function()return {Y=30}end}
 local buttons={};local function button(parent,name,text,size,pos,callback,color)local b=node();b.Text=text;b.callback=callback;b.color=color;buttons[name]=b;return b end
 local function card()return node()end;local function label(_,text)local n=node();n.Text=text;return n end;local function frame()return node()end;local function info()end
-local Config={MaxLevel=100,MicroSpeakerPrice=1500,MovementPassId=0,Auras={Gold={}},Progression={Challenges={}},Quests={}}
+local Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLevel=100,MicroSpeakerPrice=200,MovementPassId=0,Auras={Gold={}},Progression={Challenges={}},Quests={}}
 for _,id in ipairs({'garden','practice_beams'})do table.insert(Config.Quests,{id=id,name=id,description='Task',goal=3,event='PracticeBeam',xp=60,coins=25,menuAvailable=id=='practice_beams'})end
 function Config.GetQuest(id)for _,q in ipairs(Config.Quests)do if q.id==id then return q end end end
 local p={};local s={activeQuest='garden',data={coins=2000,xp=0,aura='Blue',useCustomColor=false,amplifierOwned=false,amplifierEquipped=false,availableQuests={garden=true},quests={garden={progress=1,claimed=false},practice_beams={progress=2,claimed=false}},achievements={}}}
@@ -32,7 +32,7 @@ local clientDestroyed=false;local modal=node();modal.Visible=false;local gui={Ab
 local content=node();content.CanvasPosition={X=0,Y=40};content.AbsoluteCanvasSize={Y=600};content.AbsoluteWindowSize={Y=200}
 
 -- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
-local academy={tabIcons={},tabIcon=function()return {},{} end}
+local academy={guideMenu=function()end,NavigationCatalog={Resolve=function()return nil end},tabIcons={},tabIcon=function()return {},{} end}
 local title,subtitle={},{};local selected='Quests';local render;local tabs={};local devPanel=node();local narrow=false
 local conversationPanel=node();conversationPanel.Visible=false;local showConversation,closeConversation;local conversationName=node();local conversationList=node()
 local muted,gold,panel,white={},{},{},{};local version=0;local data
@@ -60,9 +60,9 @@ def assemble(client):
  closeconv=client[client.index('closeConversation=function()'):client.index('local function refreshConversation()')]
  show=client[client.index('showConversation=function(info)'):client.index('\nlocal function refreshQuestObjects()')]
  stop=server[server.index('local function stopQuest(p)'):server.index('local function protect(p,s)')]
- micro=server[server.index('local function microSpeaker(p,s,toggleOwned)'):server.index('local function vendorPurchase(p,s,arg)')]
+ micro=server[server.index('local function gearAction(p,s,id,toggle)'):server.index('local function vendorPurchase(p,s,arg)')]
  branches=server[server.index(' elseif verb=="SetAura" and'):server.index(' elseif verb=="SetSettings" and')]
- dispatch='local function dispatch(verb,arg) if verb=="MicroSpeaker" then microSpeaker(p,s,true)'+branches+' end end\n'
+ dispatch='local function dispatch(verb,arg) if verb=="Gear" then gearAction(p,s,arg,true) elseif verb=="MicroSpeaker" then microSpeaker(p,s,true)'+branches+' end end\n'
  return '\n'.join([setup,stop,micro,dispatch,ui,shop_lifecycle,close,toggle,render,convdecl,closeconv,show,open_helper])+r'''
 local f={s=s,sent=sent,modal=modal,conversation=conversationPanel,effects=effects}
 function f.open(tab)snapshot();toggleTab(tab)end
@@ -110,7 +110,7 @@ end
 local f=fixture();f.open('Quests');f.button('ActiveQuestAction')();check(f.s.activeQuest==nil and f.s.data.quests.garden.progress==0,'Current abandon blocked')
 f.rerender();f.button('practice_beams')();check(f.s.activeQuest=='practice_beams' and f.s.data.quests.practice_beams.progress==0,'Current accept blocked')
 f.s.data.quests.practice_beams.progress=3;f.rerender();local claim=f.button('practice_beams');claim();claim();check(f.s.data.coins==2025 and f.s.data.xp==60 and f.s.data.quests.practice_beams.claimed,'Claim duplicate/authority changed')
-f.tab('Style');f.button('MicroSpeaker')();check(f.s.data.coins==525 and f.s.data.amplifierOwned,'Current Style purchase blocked')
+f.tab('Style');f.button('MicroSpeaker')();check(f.s.data.coins==2025-require("../src/ReplicatedStorage/Shared/GearCatalog").Get("MicroSpeaker").price and f.s.data.amplifierOwned,'Current Style purchase blocked')
 f.button('BaseColor')();check(f.s.data.aura=='Gold','Current legacy-color action blocked')
 f=fixture();f.dialogue('practice_beams');f.npcAction()();check(f.s.activeQuest=='practice_beams' and not f.conversation.Visible,'Current NPC accept blocked')
 f.s.data.quests.practice_beams.progress=3;f.dialogue('practice_beams',true);local claim=f.npcAction();claim();claim();check(f.s.data.coins==2025 and f.s.data.xp==60,'NPC claim duplicate/authority changed')

@@ -25,7 +25,7 @@ def build(s):
 local function environment(compact)
  local Config={CompactCity=compact,MapMin=Layout.BoundsMin,MapMax=Layout.BoundsMax,ZoneMin=compact and Layout.ZoneMin or {X=-480,Z=-360},ZoneMax=compact and Layout.ZoneMax or {X=480,Z=360}}
  local game={GetService=function()return {WaitForChild=function()return {WaitForChild=function(_,name)return name end}end}end}
- local require=function(name)assert(name=='CompactLayout');return Layout end
+ local require=function(name)if name=='BossCatalog' then return {Entries={}} end;assert(name=='CompactLayout');return Layout end
  return Config,game,require
 end
 local function old(compact)local Config,game,require=environment(compact)

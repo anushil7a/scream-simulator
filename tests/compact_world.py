@@ -192,6 +192,7 @@ if __name__=='__main__':
   city=subprocess.check_output(['git','show','232b89285640fe601ca68d3626b85df142bda3c9:src/ServerScriptService/CompactCity.luau'],text=True,cwd=ROOT)
  assert 'CollectionService' not in city and 'CityDestructible' not in city,'Compact city imports destruction tagging'
  code=setup+layout+between+city+tests.replace('__RAY_POLICY__',policy)
+ code+='\nlocal SupportingNPCs=(function()\n'+(ROOT/'src/ServerScriptService/SupportingNPCs.luau').read_text()+'\nend)()\nfor _,s in ipairs(SupportingNPCs.Roster)do print(string.format("REACH|%s|%f|3|%f|2",s.name,s.x,s.z))end'
  if args.baseline:
   try:execute(code)
   except AssertionError as e:assert 'First-minute guidance missing' in str(e);print('PASS expected baseline: first-minute guidance absent');raise SystemExit(0)

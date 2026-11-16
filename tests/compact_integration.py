@@ -10,13 +10,13 @@ tree=ast.parse(read('tests/compact_world.py'));setup=next(ast.literal_eval(n.val
 setup=setup[:setup.index('local Layout=')]
 pre=r'''
 Vector3.zero=Vector3.new(0,0,0)
-local Healing=require('../src/ReplicatedStorage/Shared/Healing');local Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat');local Progression=require('../src/ReplicatedStorage/Shared/Progression');local TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
+local Gear=require('../src/ReplicatedStorage/Shared/GearCatalog');local Healing=require('../src/ReplicatedStorage/Shared/Healing');local Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat');local Progression=require('../src/ReplicatedStorage/Shared/Progression');local TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
 local Layout=(function()
 '''
 bridge=r'''
 end)()
 local script={Parent={WaitForChild=function(_,name)return name end}}
-local require=function(name)if name=='Healing' then return Healing elseif name=='VoiceCombat' then return Combat elseif name=='Progression' then return Progression elseif name=='CompactLayout' then return Layout else error('Unexpected require '..tostring(name))end end
+local require=function(name)if name=='GearCatalog' then return Gear elseif name=='Healing' then return Healing elseif name=='VoiceCombat' then return Combat elseif name=='Progression' then return Progression elseif name=='CompactLayout' then return Layout else error('Unexpected require '..tostring(name))end end
 local Config=(function()
 '''
 citybridge=r'''
@@ -33,7 +33,7 @@ check(Config.InArena(Vector3.new(-120,0,-180)) and Config.InArena(Vector3.new(20
 for _,pos in ipairs({Vector3.new(-120.01,0,0),Vector3.new(200.01,0,0),Vector3.new(0,0,-180.01),Vector3.new(0,0,140.01),Vector3.new(-270,3,130),Vector3.new(-245,3,-100)})do check(not Config.InArena(pos),'Safe region classified PvP')end
 local parent={};local layout=City.Build(parent)
 local World={Bots={},Cars={},SafeSpawn=layout.spawn};local C={green={},gold={}}
-local function makeBot(_,index,x,z,role,job,training)table.insert(World.Bots,{index=index,x=x,z=z,role=role,job=job,training=training})end
+local function makeBot(_,index,x,z,role,job,training)local b={index=index,x=x,z=z,role=role,job=job,training=training};table.insert(World.Bots,b);return b end
 local builtPads={}
 local function part(_,name,size,position,color,material) local p={Name=name,Size=size,Position=position,Color=color,Material=material};if name:sub(1,12)=="TrainingPad_" then builtPads[name]=p end;return p end
 local function billboard()return {Parent={}}end
@@ -41,9 +41,10 @@ local function vehicle()error('Legacy traffic created in compact world')end
 local function taxi()error('Legacy traffic created in compact world')end
 local original={};for i,tier in ipairs(TrainingRules.Tiers)do original[i]=table.clone(tier)end
 '''
+worldsetup=worldsetup.replace('local World={', 'local SupportingNPCs=(function()\n'+read('src/ServerScriptService/SupportingNPCs.luau')+'\nend)()\nSupportingNPCs.Dress=function(bot,spec) check(bot.index==spec.index and bot.job.lines==spec.lines,"Supporting resident wiring") end\nlocal World={')
 a=world.index('    local roles=',world.index('function World.Build()'));b=world.index('    if RunService:IsRunning()',a);spawn=world[a:b]
 worldchecks=r'''
-check(#World.Bots==#layout.seeds+#layout.jobs+3,'Wrong compact resident/trainer count')
+check(#World.Bots==#layout.seeds+#layout.jobs+3+#SupportingNPCs.Roster,'Wrong compact resident/trainer count')
 for i,seed in ipairs(layout.seeds)do local bot=World.Bots[i];check(bot.x==seed[1] and bot.z==seed[2] and bot.role==seed.role,'Compact seed ignored')end
 for i,job in ipairs(layout.jobs)do local bot=World.Bots[#layout.seeds+i];check(bot.job==job and bot.x==job.stations[1].position.X and bot.z==job.stations[1].position.Z,'Compact job ignored')end
 for i,tier in ipairs(TrainingRules.Tiers)do
@@ -302,6 +303,16 @@ do
   check(model.destroyed==true and character:FindFirstChild('MicroSpeakerAccessory')==nil,'Equipment.Sync unequip did not destroy')
   Equipment.Sync(player,false)
   check(character:FindFirstChild('MicroSpeakerAccessory')==nil,'Equipment.Sync double unequip failed')
+  Equipment.SyncMegaphone(player,true)
+  local mega=character:FindFirstChild('AcademyMegaphoneAccessory')
+  check(mega~=nil and #mega._children==13,'Equipment.SyncMegaphone did not build 13 parts for '..handName)
+  for _,p in ipairs(mega._children)do
+   check(p.CanCollide==false and p.CanTouch==false and p.CanQuery==false and p.Massless==true,'Megaphone part collision/massless invalid: '..p.Name)
+  end
+  Equipment.SyncMegaphone(player,true)
+  check(character:FindFirstChild('AcademyMegaphoneAccessory')==mega and #mega._children==13,'Equipment.SyncMegaphone re-sync not idempotent')
+  Equipment.SyncMegaphone(player,false)
+  check(mega.destroyed==true and character:FindFirstChild('AcademyMegaphoneAccessory')==nil,'Equipment.SyncMegaphone unequip did not destroy')
  end
  testRig('RightHand',Vector3.new(1,1,1),CFrame.new(10,5,2))
  testRig('Right Arm',Vector3.new(1,2,1),CFrame.new(-4,6,3))

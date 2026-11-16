@@ -8,6 +8,7 @@ tree=ast.parse((root/'tests/minimap.py').read_text())
 setup=next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='setup' for t in n.targets))
 setup=setup[:setup.index('local Config=')]
 layout=(root/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text()
+bosses=(root/'src/ReplicatedStorage/Shared/BossCatalog.luau').read_text()
 source=(root/'src/StarterPlayer/StarterPlayerScripts/CityMap.luau').read_text()
 pre=r'''
 local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}
@@ -18,7 +19,7 @@ end)()
 local Config={CompactCity=true,MapMin=Layout.BoundsMin,MapMax=Layout.BoundsMax,ZoneMin=Layout.ZoneMin,ZoneMax=Layout.ZoneMax}
 local node={};function node:WaitForChild(name)return name=='Shared' and self or name end
 local game={GetService=function()return node end}
-local function require(name)if name=='Config' then return Config elseif name=='CompactLayout' then return Layout else error('Unexpected import')end end
+local function require(name)if name=='Config' then return Config elseif name=='CompactLayout' then return Layout elseif name=='BossCatalog' then return BossCatalog else error('Unexpected import')end end
 local CityMap=(function()
 '''
 tests=r'''
@@ -55,6 +56,14 @@ for i,v in ipairs(Layout.MapLandmarks)do
  end
  check(not find(mini.map,'Landmark'..i),'Minimap landmark clutter')
 end
+for i,boss in ipairs(BossCatalog.Entries)do
+ local name='BossPin_'..boss.id
+ local pin=find(full.map,name);local expected=CityMap.Project(boss.x,boss.z)
+ check(pin and near(pin.Position.X.Scale,expected.X.Scale) and near(pin.Position.Y.Scale,expected.Y.Scale),'Boss map pin misplaced')
+ check(not find(mini.map,name),'Boss pin clutters minimap')
+ check(string.find(CityMap.legend,string.format('B%d  %s · Lv %d+',i,boss.name,boss.level),1,true)~=nil,'Boss legend missing')
+end
+check(CityMap.legendHeight==( #Layout.MapLandmarks + #BossCatalog.Entries )*20+24,'Boss legend height clips rows')
 for _,road in ipairs(Layout.MapRoads)do
  local projected=CityMap.Project(road.x-road.width/2,road.z-road.depth/2)
  for _,view in ipairs({full,mini})do
@@ -84,7 +93,7 @@ check(CityMap.activityHelp=='PvP ends at the marked arena boundary.','Compact bo
 print('PASS '..checks..' compact CityMap projection/render/lifecycle assertions; mocked GUI only')
 '''
 def run(body,error=None):
- code=setup+pre+layout+bridge+body+tests
+ code=setup+'local BossCatalog=(function()\n'+bosses+'\nend)()\n'+pre+layout+bridge+body+tests
  with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False,encoding='utf-8')as f:f.write(code);path=Path(f.name)
  try:r=subprocess.run(['luau',str(path)],text=True,capture_output=True)
  finally:path.unlink()
@@ -103,5 +112,6 @@ if args.negative_controls:
   ('road.width/width','road.width/1440','Compact road scale wrong'),
   ('part.id=="Beach"','part.id=="NotBeach"','Compact beach misplaced'),
   ('ipairs(compact and {} or landmarks)','ipairs(landmarks)','Minimap landmark clutter'),
+  ('ipairs(compact and {} or bosses)','ipairs(bosses)','Boss pin clutters minimap'),
   ('view.lastRoot==root and view.nextUpdate','view.nextUpdate','Respawn marker not immediate')]:
   changed=source.replace(old,new);assert changed!=source,old;run(changed,error)

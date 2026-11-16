@@ -6,6 +6,18 @@
       "$className": "ReplicatedStorage",
       "Shared": {
         "$path": "src/ReplicatedStorage/Shared"
+      },
+      "VfxTemplates": {
+        "$className": "Folder",
+        "HollowPurpleBeam": {
+          "$path": "assets/vfx/HollowPurpleBeam.rbxmx"
+        },
+        "FireBeam": {
+          "$path": "assets/vfx/FireBeam.rbxm"
+        },
+        "StarterBeam": {
+          "$path": "assets/vfx/StarterBeam.rbxm"
+        }
       }
     },
     "ServerScriptService": {

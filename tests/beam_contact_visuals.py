@@ -227,7 +227,7 @@ def main():
             ('contactAllowed==false', 'false', 'Blocked contact retained'),
             ('quiet or contactReduced or distance>Style.FarDistance', 'quiet or distance>Style.FarDistance', 'Quiet/far contact budget'),
             ('local contactDir=rig.contactDirection', 'local contactDir=dir', 'Quiet contact moved/flashed'),
-            ('take(detail or rig.used>5)', 'take(rig.used>5)', 'Contact pressure starved beam core'),
+            ('take(detail or nextIndex>5)', 'take(nextIndex>5)', 'Contact pressure starved beam core'),
             ('if allocated>=Style.MaxParts then return end', 'if false then return end', 'Global contact pool cap exceeded'),
             ('decoration[part]=nil;detailCount-=1', 'decoration[part]=nil', 'Contact complexity changed'),
             ('for _,part in ipairs(rig.contact.parts) do release(part) end', 'for _,part in ipairs(rig.contact.parts) do end', 'Original beam geometry count changed'),

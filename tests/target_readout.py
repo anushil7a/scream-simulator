@@ -11,7 +11,7 @@ local attrs={ScreamLevel=100};local target={DisplayName='Test Player',GetAttribu
 local h={Health=72.5,MaxHealth=135};local checks=0
 local function check(v,msg)assert(v,msg);checks+=1 end
 local text,ready=playerTargetInfo(target,h,true,false,10)
-check(ready and text=='Test Player · LV 100\\n73 / 135 HP\\nARENA OPPONENT','Opponent health/level text incorrect')
+check(ready and text=='Test Player · LV 100\\nARENA OPPONENT','Opponent name/level/status text incorrect')
 text,ready=playerTargetInfo(target,h,false,false,10)
 check(not ready and string.find(text,'SAFE · PvP OFF',1,true),'Safe opponent labeled attackable')
 attrs.ProtectionEnds=12;text,ready=playerTargetInfo(target,h,true,false,10)
@@ -38,7 +38,7 @@ local residentActive=true
 local resident={Name='Fallback',GetAttribute=function(_,key)if key=='ResidentActive' then return residentActive end;return key=='DisplayName' and 'Gardener' or nil end}
 h.Health=40;h.MaxHealth=60
 text,ready=residentTargetInfo(resident,h,false,false)
-check(ready and text=='Gardener\\n40 / 60 HP\\nTRAINING RESIDENT','Resident health/name missing')
+check(ready and text=='Gardener\\nTRAINING RESIDENT','Resident name/status missing')
 text,ready=residentTargetInfo(resident,h,true,true)
 check(not ready and string.find(text,'OUT OF MAX RANGE',1,true),'Resident maximum range ignored')
 text,ready=residentTargetInfo(resident,h,false,true)

@@ -6,6 +6,351 @@ local allocated=0
 local detailCount=0
 local decoration={}
 local white=Color3.fromRGB(245,252,255)
+local isRoblox=typeof(game)=="Instance"
+local cachedTemplatesFolder=nil
+local function getVfxTemplates()
+ if not isRoblox then return nil end
+ if cachedTemplatesFolder and cachedTemplatesFolder.Parent then return cachedTemplatesFolder end
+ local rs=game:GetService("ReplicatedStorage")
+ cachedTemplatesFolder=rs and rs:FindFirstChild("VfxTemplates") or nil
+ return cachedTemplatesFolder
+end
+local function styleColor(rgb,fallback)
+ if not rgb then return fallback end
+ return Color3.fromRGB(rgb[1],rgb[2],rgb[3])
+end
+local function makeAnchorPart(name)
+ local p=Instance.new("Part")
+ p.Name=name;p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.CastShadow=false
+ p.Transparency=1;p.Size=Vector3.new(.2,.2,.2)
+ return p
+end
+local function disablePhysics(inst)
+ if inst:IsA("BasePart") then
+  inst.Anchored=true;inst.CanCollide=false;inst.CanTouch=false;inst.CanQuery=false;inst.CastShadow=false
+ end
+end
+local function scaleNumberSequence(seq,factor)
+ local kps=seq.Keypoints
+ local out=table.create(#kps)
+ for i,kp in ipairs(kps) do
+  out[i]=NumberSequenceKeypoint.new(kp.Time,kp.Value*factor,kp.Envelope*factor)
+ end
+ return NumberSequence.new(out)
+end
+local function scaleNumberRange(rng,factor)
+ return NumberRange.new(rng.Min*factor,rng.Max*factor)
+end
+local function destroyVfx(rig)
+ local vfx=rig.vfx
+ if not vfx then return end
+ rig.vfx=nil
+ if vfx.root then vfx.root:Destroy() end
+end
+local function trackBeam(vfx,beam,isCore,minLightEmission)
+ beam.LightEmission=math.max(beam.LightEmission,minLightEmission or 0)
+ table.insert(vfx.beams,{
+  inst=beam,
+  baseW0=beam.Width0,
+  baseW1=beam.Width1,
+  baseCurve0=beam.CurveSize0,
+  baseCurve1=beam.CurveSize1,
+  baseTextureSpeed=beam.TextureSpeed,
+  isCore=isCore,
+ })
+end
+local function trackEmitter(vfx,emitter,isCore,minLightEmission,maxRate)
+ if minLightEmission then emitter.LightEmission=math.max(emitter.LightEmission,minLightEmission) end
+ local rate=maxRate and math.min(emitter.Rate,maxRate) or emitter.Rate
+ emitter.Rate=rate
+ table.insert(vfx.emitters,{
+  inst=emitter,
+  baseSize=emitter.Size,
+  baseSpeed=emitter.Speed,
+  baseRate=rate,
+  isCore=isCore,
+ })
+end
+local function buildStarterVfx(template)
+ local clone=template:Clone()
+ local root=Instance.new("Model");root.Name="BeamVfx_starter"
+ local startAnchor=makeAnchorPart("StartAnchor");startAnchor.Parent=root
+ local endAnchor=makeAnchorPart("EndAnchor");endAnchor.Parent=root
+ local startAtt=Instance.new("Attachment");startAtt.Name="StartAtt";startAtt.Parent=startAnchor
+ local endAtt=Instance.new("Attachment");endAtt.Name="EndAtt";endAtt.Parent=endAnchor
+ local vfx={styleId="starter",root=root,startAnchor=startAnchor,endAnchor=endAnchor,beams={},emitters={},meshes={},attOffsets={}}
+ local srcPart=clone:FindFirstChild("Part")
+ local srcEnd=clone:FindFirstChild("Part1")
+ if srcPart then
+  local att=srcPart:FindFirstChildOfClass("Attachment")
+  if att then
+   att.CFrame=CFrame.identity;att.Parent=startAnchor
+   for _,em in ipairs(att:GetChildren()) do
+    if em:IsA("ParticleEmitter") then trackEmitter(vfx,em,false) end
+   end
+  end
+  local beamIdx=0
+  for _,ch in ipairs(srcPart:GetChildren()) do
+   if ch:IsA("Beam") then
+    beamIdx+=1
+    ch.Attachment0=startAtt;ch.Attachment1=endAtt;ch.Parent=startAnchor
+    trackBeam(vfx,ch,beamIdx<=2,.7)
+   end
+  end
+ end
+ if srcEnd then
+  local att=srcEnd:FindFirstChildOfClass("Attachment")
+  if att then
+   att.CFrame=CFrame.identity;att.Parent=endAnchor
+   for _,em in ipairs(att:GetChildren()) do
+    if em:IsA("ParticleEmitter") then trackEmitter(vfx,em,false) end
+   end
+  end
+ end
+ clone:Destroy()
+ return vfx
+end
+local function buildFireBeamVfx(template)
+ local clone=template:Clone()
+ local root=Instance.new("Model");root.Name="BeamVfx_firebeam"
+ local startAnchor=makeAnchorPart("StartAnchor");startAnchor.Parent=root
+ local endAnchor=makeAnchorPart("EndAnchor");endAnchor.Parent=root
+ local midAnchor=makeAnchorPart("MidAnchor");midAnchor.Parent=root
+ local startAtt=Instance.new("Attachment");startAtt.Name="StartAtt";startAtt.Parent=startAnchor
+ local endAtt=Instance.new("Attachment");endAtt.Name="EndAtt";endAtt.Parent=endAnchor
+ local vfx={styleId="firebeam",root=root,startAnchor=startAnchor,endAnchor=endAnchor,midAnchor=midAnchor,beams={},emitters={},meshes={},attOffsets={}}
+ local outerMesh=clone:FindFirstChild("Beam")
+ local innerMesh=outerMesh and outerMesh:FindFirstChild("Beam")
+ local rotXtoNegZ=CFrame.Angles(0,math.pi/2,0)
+ if outerMesh then
+  local beamIdx=0
+  for _,ch in ipairs(outerMesh:GetChildren()) do
+   if ch:IsA("Beam") then
+    beamIdx+=1
+    ch.Attachment0=startAtt;ch.Attachment1=endAtt;ch.Parent=startAnchor
+    trackBeam(vfx,ch,beamIdx<=2,.45)
+   elseif ch:IsA("ParticleEmitter") then
+    ch.Parent=midAnchor
+    trackEmitter(vfx,ch,false,.15,18)
+   elseif ch:IsA("Attachment") and ch.Name=="Start" then
+    for _,sub in ipairs(ch:GetChildren()) do
+     if sub:IsA("Attachment") then
+      sub.CFrame=rotXtoNegZ;sub.Parent=startAnchor
+      for _,em in ipairs(sub:GetChildren()) do
+       if em:IsA("ParticleEmitter") then trackEmitter(vfx,em,false,.1,18) end
+      end
+     elseif sub:IsA("ParticleEmitter") then
+      local muzzleAtt=Instance.new("Attachment");muzzleAtt.CFrame=rotXtoNegZ;muzzleAtt.Parent=startAnchor
+      sub.Parent=muzzleAtt
+      trackEmitter(vfx,sub,false,.1,14)
+     end
+    end
+   end
+  end
+ end
+ if innerMesh then
+  local windHolder=innerMesh:FindFirstChild("WindBeamHolder")
+  if windHolder then
+   local a1,a2=windHolder:FindFirstChild("a1"),windHolder:FindFirstChild("a2")
+   local a3,a4=windHolder:FindFirstChild("a3"),windHolder:FindFirstChild("a4")
+   if a1 and a3 then
+    a1.Parent=startAnchor;a3.Parent=endAnchor
+    table.insert(vfx.attOffsets,{att=a1,side=-.55})
+    table.insert(vfx.attOffsets,{att=a3,side=-.28})
+    for _,b in ipairs(a1:GetChildren()) do
+     if b:IsA("Beam") then b.Attachment0=a1;b.Attachment1=a3;b.Parent=startAnchor;trackBeam(vfx,b,false,.25) end
+    end
+   end
+   if a2 and a4 then
+    a2.Parent=startAnchor;a4.Parent=endAnchor
+    table.insert(vfx.attOffsets,{att=a2,side=.55})
+    table.insert(vfx.attOffsets,{att=a4,side=.28})
+    for _,b in ipairs(a2:GetChildren()) do
+     if b:IsA("Beam") then b.Attachment0=a2;b.Attachment1=a4;b.Parent=startAnchor;trackBeam(vfx,b,false,.25) end
+    end
+   end
+  end
+  local slashIdx=0
+  for _,ch in ipairs(innerMesh:GetChildren()) do
+   if ch:IsA("Attachment") and ch.Name=="Left" then
+    for _,b in ipairs(ch:GetChildren()) do
+     if b:IsA("Beam") and b.Attachment1 and b.Attachment1:IsA("Attachment") then
+      slashIdx+=1
+      local aL=Instance.new("Attachment");local aR=Instance.new("Attachment")
+      local frac=math.clamp(.22+(slashIdx%3)*.26,.15,.85)
+      local sign=slashIdx%2==0 and 1 or -1
+      aL.Parent=midAnchor;aR.Parent=midAnchor
+      table.insert(vfx.attOffsets,{att=aL,midFrac=frac-.08,side=-.48*sign,ySide=.32*sign})
+      table.insert(vfx.attOffsets,{att=aR,midFrac=frac+.08,side=.48*sign,ySide=-.32*sign})
+      b.Attachment0=aL;b.Attachment1=aR;b.Parent=midAnchor
+      trackBeam(vfx,b,false,.35)
+     end
+    end
+   end
+  end
+  for _,ch in ipairs(innerMesh:GetChildren()) do
+   if ch:IsA("Attachment") or ch:IsA("ParticleEmitter") or ch:IsA("Model") or ch:IsA("BasePart") then
+    if not ch:IsA("Attachment") then ch:Destroy() end
+   end
+  end
+  disablePhysics(innerMesh)
+  innerMesh.Transparency=.42;innerMesh.Material=Enum.Material.Neon
+  innerMesh.Color=styleColor(Style.Styles.firebeam.primary,white)
+  innerMesh.Parent=root
+  table.insert(vfx.meshes,{inst=innerMesh,role="sheath",baseTrans=.42})
+ end
+ local strat=clone:FindFirstChild("strat")
+ if strat then
+  local st=strat:FindFirstChild("Start")
+  if st then
+   for _,sub in ipairs(st:GetChildren()) do
+    if sub:IsA("Attachment") then
+     sub.CFrame=rotXtoNegZ;sub.Parent=startAnchor
+     for _,em in ipairs(sub:GetChildren()) do
+      if em:IsA("ParticleEmitter") then trackEmitter(vfx,em,false,.15,14) end
+     end
+    end
+   end
+  end
+ end
+ clone:Destroy()
+ return vfx
+end
+-- The reference contains three separate demonstrations, not three layers of one beam.
+-- Preserve only the central violet Hollow Purple recipe; Amplified and Reversal
+-- are blue/red alternatives. Combining them made the previous result a rainbow.
+local function buildHollowPurpleVfx(template)
+ local holder=template:FindFirstChild("Hollow Purple")
+ if not holder then return nil end
+ local root=Instance.new("Model");root.Name="BeamVfx_hollow_purple"
+ local startAnchor=makeAnchorPart("StartAnchor");startAnchor.Parent=root
+ local endAnchor=makeAnchorPart("EndAnchor");endAnchor.Parent=root
+ local midAnchor=makeAnchorPart("MidAnchor");midAnchor.Parent=root
+ local startAtt=Instance.new("Attachment");startAtt.Parent=startAnchor
+ local endAtt=Instance.new("Attachment");endAtt.Parent=endAnchor
+ local vfx={styleId="hollow_purple",root=root,startAnchor=startAnchor,endAnchor=endAnchor,
+  midAnchor=midAnchor,beams={},emitters={},meshes={},attOffsets={}}
+ for _,source in ipairs(holder:GetDescendants()) do
+  -- Clone only reviewed visual primitives. No scripts or unknown descendants run.
+  if source:IsA("Beam") and #vfx.beams<5 then
+   local beam=source:Clone();beam:ClearAllChildren()
+   beam.Attachment0=startAtt;beam.Attachment1=endAtt;beam.Parent=startAnchor
+   -- Keep source colors, width ratios, curves and emission. Do not bleach violet.
+   trackBeam(vfx,beam,#vfx.beams<2)
+  elseif source:IsA("ParticleEmitter") and #vfx.emitters<4 then
+   local emitter=source:Clone();emitter:ClearAllChildren();emitter.Parent=midAnchor
+   trackEmitter(vfx,emitter,false,nil,12)
+  end
+ end
+ -- No invented opaque pink muzzle/travel balls: the source is a tapered violet
+ -- energy column, with texture/sparks providing its silhouette instead.
+ return vfx
+end
+local function buildVfxForStyle(styleId)
+ local templates=getVfxTemplates()
+ if not templates then return nil end
+ if styleId=="hollow_purple" then
+  local t=templates:FindFirstChild("HollowPurpleBeam")
+  return t and buildHollowPurpleVfx(t) or nil
+ elseif styleId=="firebeam" then
+  local t=templates:FindFirstChild("FireBeam")
+  return t and buildFireBeamVfx(t) or nil
+ end
+ local t=templates:FindFirstChild("StarterBeam")
+ return t and buildStarterVfx(t) or nil
+end
+local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet,distance,spec)
+ local styleId=spec.id
+ local vfx=rig.vfx
+ if vfx and vfx.styleId~=styleId then destroyVfx(rig);vfx=nil end
+ if not vfx then
+  vfx=buildVfxForStyle(styleId)
+  if not vfx then return end
+  rig.vfx=vfx
+ end
+ if vfx.root.Parent~=workspace then vfx.root.Parent=workspace end
+ local up=math.abs(dir.Y)>.98 and Vector3.zAxis or Vector3.yAxis
+ local mid=(origin+finish)*.5
+ vfx.startAnchor.CFrame=CFrame.lookAt(origin,finish,up)
+ vfx.endAnchor.CFrame=CFrame.lookAt(finish,finish+dir,up)
+ if vfx.midAnchor then
+  if styleId=="firebeam" then
+   vfx.midAnchor.Size=Vector3.new(math.max(1,length*.9),math.max(.8,width*.55),math.max(.8,width*.55))
+   vfx.midAnchor.CFrame=CFrame.lookAt(mid,finish,up)*CFrame.Angles(0,math.pi/2,0)
+  else
+   vfx.midAnchor.Size=Vector3.new(math.max(.6,width*.4),math.max(.6,width*.4),math.max(1,length*.9))
+   vfx.midAnchor.CFrame=CFrame.lookAt(mid,finish,up)
+  end
+ end
+ local wScale,pScale,sScale
+ if styleId=="hollow_purple" then
+  wScale=math.clamp((width*.80)/13.61538,.08,.42)
+  pScale=math.clamp(width/13.61538,.08,.52)
+  sScale=math.clamp(length/44,.05,1.5)
+  if vfx.ampAtt then vfx.ampAtt.Position=Vector3.new(-width*.45,0,0) end
+  if vfx.revAtt then vfx.revAtt.Position=Vector3.new(width*.45,0,0) end
+ elseif styleId=="firebeam" then
+  wScale=math.clamp((width*.48)/15,.08,.30)
+  pScale=wScale*1.3
+  sScale=wScale*1.3
+ else
+  wScale=math.clamp((width*.42)/1.5,.45,2.2)
+  pScale=math.clamp(wScale*.85,.45,1.6)
+  sScale=pScale
+ end
+ local far=quiet or distance>Style.FarDistance
+ local bucket=math.floor(wScale*20+.5)
+ local rescale=vfx.lastBucket~=bucket
+ if rescale then vfx.lastBucket=bucket end
+ for _,entry in ipairs(vfx.beams) do
+  local b=entry.inst
+  b.Enabled=not far or entry.isCore
+   b.TextureSpeed=far and 0 or entry.baseTextureSpeed
+  if rescale then
+   local factor=entry.isCore and wScale or (styleId=="hollow_purple" and entry.baseCurve0~=0 and wScale*.58 or wScale)
+   b.Width0=entry.baseW0*factor
+   b.Width1=entry.baseW1*factor
+  end
+ end
+ for _,entry in ipairs(vfx.emitters) do
+  local em=entry.inst
+  if far and em.Enabled then em:Clear() end
+   em.Enabled=not far
+  if rescale then
+   em.Size=scaleNumberSequence(entry.baseSize,pScale)
+   em.Speed=scaleNumberRange(entry.baseSpeed,sScale)
+  end
+ end
+ for _,off in ipairs(vfx.attOffsets) do
+  if off.midFrac then
+   off.att.Position=Vector3.new((off.midFrac-.5)*length,width*(off.ySide or 0),width*(off.side or 0))
+  else
+   off.att.Position=Vector3.new(width*(off.side or 0),0,0)
+  end
+ end
+ for _,m in ipairs(vfx.meshes) do
+  local mesh=m.inst
+  mesh.Transparency=far and 1 or m.baseTrans
+  if not far then
+   local d=math.max(.8,width*.68)
+   mesh.Size=Vector3.new(length,d,d)
+   mesh.CFrame=CFrame.lookAt(mid,finish,up)*CFrame.Angles(0,math.pi/2,0)
+  end
+ end
+ if vfx.orbs then
+  local pulse=quiet and 1 or 1+.08*math.sin(age*14)
+  local cSize=math.clamp(width*.52,.9,3.0)*pulse
+  vfx.orbs.core.Size=Vector3.one*cSize
+  vfx.orbs.core.CFrame=CFrame.new(origin)
+  vfx.orbs.shell.Size=Vector3.one*(cSize*1.42)
+  vfx.orbs.shell.CFrame=CFrame.new(origin)
+  vfx.orbs.shell.Transparency=far and 1 or .48
+  local travel=(age*2.2)%1
+  vfx.orbs.travel.Size=Vector3.one*(cSize*.72)
+  vfx.orbs.travel.CFrame=CFrame.new(origin+dir*(length*travel))
+  vfx.orbs.travel.Transparency=far and 1 or .28
+ end
+end
 local function take(detail)
  if detail and detailCount>=Style.MaxParts-24*5 then return end
  local part=table.remove(pool)
@@ -42,11 +387,14 @@ function Visuals.Contact(rig,position,now,sequence)
  return true
 end
 local function draw(rig,shape,size,cf,color,alpha,material,detail)
- rig.used+=1
- local part=rig.parts[rig.used]
- if not part then part=take(detail or rig.used>5);if not part then return end;rig.parts[rig.used]=part end
+ local nextIndex=rig.used+1
+ local part=rig.parts[nextIndex]
+ if not part then part=take(detail or nextIndex>5);if not part then return end;rig.parts[nextIndex]=part end
+ -- Count successful allocations only. Native tint/contact loops must never visit holes.
+ rig.used=nextIndex
  -- A pooled slot may previously have been a non-emissive shell or a Neon detail.
  part.Material=material or Enum.Material.Neon
+ if isRoblox then part.LocalTransparencyModifier=0 end
  part.Shape=shape;part.Size=size;part.CFrame=cf;part.Color=color;part.Transparency=alpha;part.Parent=workspace
 end
 local function line(rig,a,b,thickness,color,alpha,material,detail)
@@ -153,6 +501,34 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
     line(rig.contact,from-contactDir*.12,to-contactDir*.12,coreThickness,coreColor,quietContact and .3 or .05+fade*.9,Enum.Material.Neon,true)
    end
   end
+  if isRoblox then
+   local styleSpec=Style.StyleForLevel(rig.level)
+   local pCol=styleColor(styleSpec.primary,color)
+   local sCol=styleColor(styleSpec.secondary,white)
+   syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet or contactReduced,distance,styleSpec)
+   local hasVfx=rig.vfx~=nil
+   for i=1,rig.used do
+    local p=rig.parts[i]
+    if i==1 or decoration[p] or (i==2 and hasVfx) then
+     p.LocalTransparencyModifier=1
+    elseif i==2 then
+     p.Color=pCol;p.LocalTransparencyModifier=.35
+    elseif i==3 then
+     p.Color=pCol:Lerp(white,.55);p.LocalTransparencyModifier=hasVfx and .25 or .1
+    elseif i==4 then
+     p.Color=sCol;p.LocalTransparencyModifier=.2
+    elseif i==5 then
+     p.Color=pCol;p.LocalTransparencyModifier=.2
+    end
+   end
+   for i=1,rig.contact.used do
+    local cp=rig.contact.parts[i]
+    cp.LocalTransparencyModifier=0
+    cp.Color=i%2==1 and pCol:Lerp(Color3.fromRGB(0,0,0),.8) or pCol:Lerp(white,.45)
+   end
+  end
+ elseif isRoblox then
+  destroyVfx(rig)
  end
  for i=#rig.parts,rig.used+1,-1 do release(rig.parts[i]);rig.parts[i]=nil end
  for i=#rig.contact.parts,rig.contact.used+1,-1 do release(rig.contact.parts[i]);rig.contact.parts[i]=nil end
@@ -160,6 +536,7 @@ end
 function Visuals.Destroy(rig)
  if not live[rig] then return end
  live[rig]=nil
+ if isRoblox then destroyVfx(rig) end
  for _,part in ipairs(rig.parts) do release(part) end
  for _,part in ipairs(rig.contact.parts) do release(part) end
  table.clear(rig.parts)

@@ -12,6 +12,7 @@ World.SafeSpawn = Config.CompactCity and CFrame.new(Config.CityLayout.Spawn) or 
 World.Cars = {}
 local PhysicsService=game:GetService("PhysicsService")
 local City=require(script.Parent.City)
+local SupportingNPCs=require(script.Parent.SupportingNPCs)
 World.Bots = {}
 World.WalkPoints = {}
 World.ActivityPoints = {}
@@ -329,7 +330,7 @@ function World.Talk(bot, player, contextLine)
         bot.gestureUntil = os.clock() + 2.2
         bot.socialUntil = os.clock() + 5
     end
-    local options = roleLines[bot.role] or lines
+    local options = (bot.job and bot.job.lines) or roleLines[bot.role] or lines
     local index=rng:NextInteger(1,bot.lastTalkIndex and #options-1 or #options)
     if bot.lastTalkIndex and index>=bot.lastTalkIndex then index+=1 end
     bot.lastTalkIndex=index
@@ -788,6 +789,7 @@ local function makeBot(parent, index, x, z, role, job, training)
             end
         end)
     end
+    return bot
 end
 
 local function atmosphere()
@@ -923,6 +925,12 @@ function World.Build()
         local words=billboard(sign,tier.name.." · recommended Lv "..tier.level.."\n"..tier.health.." HP · "..tier.xp.." base XP\nHit to spar · move out of red strikes",Vector3.zero,280)
         words.Parent.Size=UDim2.fromOffset(280,76);words.Parent.MaxDistance=100
         makeBot(parent,#World.Bots+1,tier.x,tier.z,"Fighter",nil,tier)
+    end
+    if Config.CompactCity then
+        for _,spec in ipairs(SupportingNPCs.Roster) do
+            local bot=makeBot(parent,spec.index,spec.x,spec.z,spec.role,SupportingNPCs.Job(spec))
+            SupportingNPCs.Dress(bot,spec,accessory)
+        end
     end
     if layout.traffic~=false then
     for i,spec in ipairs({{-368,1,23},{-352,-1,21},{112,1,20},{128,-1,24},{352,1,18},{368,-1,22}}) do
