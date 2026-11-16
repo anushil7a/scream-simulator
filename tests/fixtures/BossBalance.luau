@@ -16,6 +16,6 @@ for _,b in ipairs(Catalog.Entries) do
  assert(quiet/full<1.6,'lower amplitude unreasonable wall')
  assert(b.damage/stats.health<.16,'one hit too punishing')
  assert(b.windup>=1.5 and b.interval-b.windup>=2,'insufficient warning/recovery')
- assert(b.radii[1]~=b.radii[2] and math.max(table.unpack(b.radii))<b.radius,'distinct bounded pattern footprints')
+ assert(b.radius==22 and b.engageHeight==12,"explicit engagement limits")
  print(string.format('%s: %.1fs full / %.1fs 35%% amplitude, %.1f%% HP per strike (ideal sustained duty cycle; not playtest)',b.id,full,quiet,100*b.damage/stats.health))
 end

@@ -3,9 +3,13 @@ from pathlib import Path
 import subprocess,tempfile
 root=Path(__file__).resolve().parents[1]
 cat=(root/'src/ReplicatedStorage/Shared/BossCatalog.luau').read_text()
+layout=(root/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text()
+motion=(root/'src/ReplicatedStorage/Shared/BossMotion.luau').read_text()
+patterns=(root/'src/ReplicatedStorage/Shared/BossPatterns.luau').read_text()
 rules=(root/'src/ReplicatedStorage/Shared/BossRules.luau').read_text()
 service=(root/'src/ServerScriptService/BossService.luau').read_text().split('local Service={}',1)[1]
 setup=r'''
+workspace={GetServerTimeNow=function()return 10000 end}
 local V={};V.__index=function(t,k) if k=="Magnitude" then return math.sqrt(t.X*t.X+t.Y*t.Y+t.Z*t.Z) elseif k=="Unit" then return t/t.Magnitude else return V[k] end end
 V.__add=function(a,b)return Vector3.new(a.X+b.X,a.Y+b.Y,a.Z+b.Z)end
 V.__sub=function(a,b)return Vector3.new(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end
@@ -14,13 +18,15 @@ V.__div=function(a,b)return Vector3.new(a.X/b,a.Y/b,a.Z/b)end
 Vector3={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},V)end}
 Color3={fromRGB=function(...)return {...}end};UDim2={fromOffset=function(...)return {...}end,fromScale=function(...)return {...}end}
 local CF={};CF.__mul=function(a,b)return a end
-CFrame={new=function(...)return setmetatable({},CF)end,Angles=function(...)return setmetatable({},CF)end}
+CFrame={new=function(pos)return setmetatable({Position=pos},CF)end,Angles=function(...)return setmetatable({},CF)end}
 Enum={Material={Neon=1},PartType={Cylinder=1}}
 local labelWrites=0
 Instance={new=function(class)
- local values={ClassName=class,Destroy=function(self)self.destroyed=true end}
+ local attrs={}
+ local values={SetAttribute=function(_,k,v)attrs[k]=v end,GetAttribute=function(_,k)return attrs[k]end,ClassName=class,Destroy=function(self)self.destroyed=true end}
  return setmetatable({}, {__index=values,__newindex=function(_,key,value)
   if class=="TextLabel" and key=="Text" then labelWrites+=1 end
+  if key=="CFrame" and value.Position then values.Position=value.Position end
   values[key]=value
  end})
 end}
@@ -29,6 +35,7 @@ tests=r'''
 local checks=0
 local function check(v,message)assert(v,message);checks+=1 end
 local users={};local contexts={};local rewards={};local damage={}
+Catalog.Entries[1].y=32 -- exercise elevated terrain without changing production catalog
 local service=Service.new({}, {
  player=function(id)return users[id]end,
  context=function(p)return contexts[p.UserId]end,
@@ -36,6 +43,8 @@ local service=Service.new({}, {
  damage=function(p,amount)table.insert(damage,{p=p,amount=amount})end,
 })
 check(#service.bosses==#Catalog.Entries,"all catalog bosses constructed")
+check(service.bosses[1].center.Y==32 and service.bosses[1].root.Position.Y==39,"elevated boss ground/anchor")
+check(service.bosses[1].root.Transparency==1,"obsolete box body visible")
 local beforeIdle=labelWrites
 for tick=1,100 do service:Step(tick*.11) end
 check(labelWrites-beforeIdle<=#Catalog.Entries,"idle labels rewritten each tick")
@@ -58,7 +67,7 @@ for _,b in ipairs(service.bosses) do
  check(not service:CanHit(b,p,1),"level gate")
  contexts[1].level=b.spec.level
  check(service:CanHit(b,p,1),"eligible hit")
- contexts[1].position=b.center+Vector3.new(19,3,0)
+ contexts[1].position=b.center+Vector3.new(23,3,0)
  check(not service:CanHit(b,p,1),"outside radius")
  contexts[1].position=b.center+Vector3.new(0,13,0)
  check(not service:CanHit(b,p,1),"roof sniping")
@@ -85,13 +94,13 @@ end
 for _,b in ipairs(service.bosses) do
  local now=1000;Rules.Reset(b,b.spec,now);service.nextStep=0;b.turn=0
  local p=player(20,b);service:Hit(b,p,1,now+2)
- for i,radius in ipairs(b.spec.radii) do
+ for i=1,2 do
   now=1002+(i-1)*b.spec.interval
   service:Step(now)
-  check(b.strike and b.strike.radius==radius,"catalog footprint "..b.spec.id)
+  check(b.strike and #b.strike.shapes>0,"catalog footprint "..b.spec.id)
   check(math.abs(b.strike.at-now-b.spec.windup)<.001,"catalog tell "..b.spec.id)
   check(math.abs(b.nextAttack-now-b.spec.interval)<.001,"catalog cadence "..b.spec.id)
-  check((b.strike.position-b.center).Magnitude+radius<=b.spec.radius+.001,"bounded pattern "..b.spec.id)
+  check(#b.strike.shapes<=16,"bounded markers "..b.spec.id)
   service:Step(now+b.spec.windup+.11)
  end
 end
@@ -102,29 +111,154 @@ local before=#damage
 service:Step(401);check(not b.strike,"no proximity aggression")
 service:Hit(b,p,10,402);service:Step(402)
 check(b.strike and b.strike.at==403.5,"full fixed 1.5 second tell")
-local fixed=b.strike.position
-contexts[3].position=b.center+Vector3.new(0,3,-10)
+local fixed=b.strike.shapes[1]
+contexts[3].position=b.center+Vector3.new(10,3,0)
 service:Step(403.6);check(#damage==before,"move off fixed point avoids strike")
 service:Step(407);check(b.strike~=nil,"second strike")
-contexts[3].position=b.strike.position+Vector3.new(0,3,0)
+contexts[3].position=b.center+Vector3.new(b.strike.shapes[1].x,3,b.strike.shapes[1].z)
 service:Step(409);check(#damage==before+1 and damage[#damage].p==p,"only participant hit")
 service:Step(412);check(b.strike~=nil,"next strike")
-contexts[3].position=b.center+Vector3.new(20,3,0)
+contexts[3].position=b.center+Vector3.new(23,3,0)
 service:Step(414);check(#damage==before+1,"escape ring avoids damage")
 check(b.credit[3]==nil,"escape removes credit")
 service:Step(425);check(b.health==b.spec.health and b.strike==nil,"idle reset cleans warning and credit")
 contexts[3].position=b.center+Vector3.new(17,3,0)
 service:Hit(b,p,10,427);service:Step(427)
-check((b.strike.position-b.center).Magnitude+b.strike.radius<=18.001,"edge hazard clipped")
+check(#b.strike.shapes==1,"edge pattern fixed")
 local old=contexts[3].identity;contexts[3].identity={}
 service:Step(428);check(#damage==before+1 and b.credit[3]==nil,"session identity prevents stale hit")
 local e={identity=old,damage=b.spec.health,at=1}
 check(not Rules.Eligible(e,old,b.spec,22),"expired contribution cannot collect")
 check(not Rules.Eligible(e,{},b.spec,2),"reconnect cannot collect")
 check(not Rules.Eligible({identity=old,damage=1,at=1},old,b.spec,2),"AFK threshold")
+-- Every shape's true corners/circumference stay inside the public boundary.
+for _,spec in ipairs(Catalog.Entries) do
+ check(spec.scale==1.4 and spec.aimHeight==7 and spec.engageHeight==12,"shared scale/range definition")
+ for turn=1,4 do
+  local pattern=Patterns.Build(spec.id,turn,18,0)
+  for _,shape in ipairs(pattern.shapes) do
+   if shape.kind=="disk" then
+    check(math.sqrt(shape.x^2+shape.z^2)+shape.radius<=18,"disk containment")
+   else
+    for _,sx in ipairs({-1,1}) do for _,sz in ipairs({-1,1}) do
+     local x=sx*shape.width/2;local z=sz*shape.length/2
+     local wx=shape.x+math.cos(shape.angle)*x+math.sin(shape.angle)*z
+     local wz=shape.z-math.sin(shape.angle)*x+math.cos(shape.angle)*z
+     check(math.sqrt(wx^2+wz^2)<=18,"bar containment")
+    end end
+   end
+   check(Patterns.Contains(shape,shape.x,shape.z),"shape center hit")
+   check(not Patterns.Contains(shape,100,100),"outside shape miss")
+  end
+ end
+ local boss=byId[spec.id];Rules.Reset(boss,spec,2000)
+ local attacker=player(90,boss)
+ for _,off in ipairs({Vector3.new(22.001,3,0),Vector3.new(0,12.001,0),Vector3.new(0,-12.001,0),Vector3.new(0/0,3,0),Vector3.new(math.huge,3,0)}) do
+  contexts[90].position=boss.center+off
+  check(not service:CanHit(boss,attacker,2002),"authoritative admission outside/invalid")
+  check(service:Hit(boss,attacker,100,2002)==0 and boss.health==spec.health,"direct damage cannot bypass admission")
+ end
+ contexts[90].position=boss.center+Vector3.new(22,12,0)
+ check(service:CanHit(boss,attacker,2002),"inclusive exact limits")
+ service:Hit(boss,attacker,1,2002);service.nextStep=0;service:Step(2002)
+ local warning=boss.warning
+ contexts[90].position=boss.center+Vector3.new(23,3,0)
+ service:Step(2002.2)
+ check(not boss.strike and not boss.warning and warning.destroyed,"empty encounter cancels before impact")
+ -- A fresh cast locks its participant set; late opt-ins get the next full tell.
+ Rules.Reset(boss,spec,2100);service.nextStep=0
+ contexts[90].position=boss.center+Vector3.new(0,3,10)
+ service:Hit(boss,attacker,1,2102);service:Step(2102)
+ local shape=boss.strike.shapes[1]
+ contexts[90].position=boss.center+Vector3.new(shape.x,3,shape.z)
+ local late=player(91,boss);contexts[91].position=contexts[90].position
+ local bystander=player(92,boss);contexts[92].position=contexts[90].position
+ service:Hit(boss,late,1,2102.2)
+ local n=#damage;local oldWarning=boss.warning
+ service:Step(2102+spec.windup+.1)
+ check(#damage==n+1 and damage[#damage].p==attacker,"one impact, no late or passive victim")
+ check(oldWarning.destroyed and not boss.warning,"impact marker cleanup")
+ service:Step(2102+spec.windup+.3)
+ check(#damage==n+1,"impact cannot repeat")
+ Rules.Reset(boss,spec,2200);service.nextStep=0
+ service:Hit(boss,attacker,1,2202);service:Step(2202)
+ oldWarning=boss.warning
+ service:Hit(boss,attacker,spec.health,2202.1)
+ check(oldWarning.destroyed and not boss.strike and not boss.warning,"KO cancels pending hazard")
+end
+-- Pure authoritative patrol: deterministic, bounded, speed-capped even after stalls.
+for _,spec in ipairs(Catalog.Entries) do
+ local a,c=Motion.New(),Motion.New()
+ for i=1,500 do
+  local x,z=a.x,a.z
+  Motion.Step(a,spec,.1);Motion.Step(c,spec,.1)
+  check(a.x==c.x and a.z==c.z and a.yaw==c.yaw,"deterministic patrol")
+  check(a.x*a.x+a.z*a.z<=spec.moveLeash^2+.0001,"patrol never leaves inner leash")
+  check(math.sqrt((a.x-x)^2+(a.z-z)^2)<=spec.moveSpeed*.1+.0001,"patrol speed bound")
+ end
+ local x,z=a.x,a.z;Motion.Step(a,spec,100)
+ check(math.sqrt((a.x-x)^2+(a.z-z)^2)<=spec.moveSpeed*.25+.0001,"stall cannot teleport")
+ for turn=1,2 do
+  local pattern=Patterns.Build(spec.id,turn,22,0)
+  for _,shape in ipairs(pattern.shapes) do
+   if shape.kind=="disk" then
+    check(math.sqrt(shape.x^2+shape.z^2)+shape.radius+spec.moveLeash<=spec.radius,"translated disk bound")
+   else
+    for _,sx in ipairs({-1,1}) do for _,sz in ipairs({-1,1}) do
+     local x,z=sx*shape.width/2,sz*shape.length/2
+     local wx=shape.x+math.cos(shape.angle)*x+math.sin(shape.angle)*z
+     local wz=shape.z-math.sin(shape.angle)*x+math.cos(shape.angle)*z
+     check(math.sqrt(wx^2+wz^2)+spec.moveLeash<=spec.radius,"translated true corner bound")
+    end end
+   end
+  end
+ end
+ local boss=byId[spec.id];Rules.Reset(boss,spec,3000);boss.recoverUntil=0;service.nextStep=0
+ local attacker=player(100,boss);service:Hit(boss,attacker,1,3002);service:Step(3002)
+ check(boss.model:GetAttribute("BossState")=="Windup","replicated windup state")
+ local x,z,yaw=boss.motion.x,boss.motion.z,boss.motion.yaw
+ local shape=boss.strike.shapes[1];local sx,sz=shape.x,shape.z
+ service:Step(3002.2)
+ check(boss.motion.x==x and boss.motion.z==z and boss.motion.yaw==yaw,"pose frozen during warning")
+ check(shape.x==sx and shape.z==sz,"ground warning never follows core/player")
+ service:Step(3002+spec.windup+.1)
+ check(boss.model:GetAttribute("BossState")=="Recovery","replicated recovery state")
+ service:Step(3002+spec.windup+.3)
+ check(boss.motion.x==x and boss.motion.z==z,"recovery settles boss")
+ service:Step(3002+spec.windup+.8)
+ check(boss.model:GetAttribute("BossState")=="Moving","patrol resumes after recovery")
+ local center=boss.center
+ check(center.X==spec.x and center.Z==spec.z,"range home never follows moving root")
+ contexts[100].position=center+Vector3.new(22.01,3,0)
+ check(service:Hit(boss,attacker,10,3006)==0,"moving toward player never extends admission")
+ contexts[100].position=center+Vector3.new(0,3,0)
+ service:Hit(boss,attacker,spec.health,3007)
+ check(boss.model:GetAttribute("BossState")=="Defeated","KO state immediate")
+ x,z=boss.motion.x,boss.motion.z;service:Step(3008)
+ check(boss.motion.x==x and boss.motion.z==z,"no dead patrol")
+ service:Step(3007+Catalog.Respawn)
+ check(boss.motion.x==0 and boss.motion.z==0 and boss.model:GetAttribute("BossState")=="Idle","respawn clean home pose")
+end
+-- Captain reskin retains slot and progression while changing the mechanical theme.
+local captain=byId.leviathan.spec
+check(captain.name=="Seagull Siren Captain" and captain.level==70,"captain public name and exact level")
+check(captain.health==1280 and captain.damage==36 and captain.coins==95 and captain.xp==340,"captain unchanged balance")
+check(captain.x==420 and captain.y==0 and captain.z==420 and captain.radius==22,"captain existing pier arena")
+for _,angle in ipairs({0,math.pi/4,math.pi/2,math.pi}) do
+ local dx,dz=math.sin(angle),math.cos(angle)
+ local cutlass=Patterns.Build("leviathan",1,dx*10,dz*10)
+ local sirens=Patterns.Build("leviathan",2,dx*10,dz*10)
+ check(#cutlass.shapes==1 and #sirens.shapes==2,"captain distinct bounded pattern counts")
+ check(Patterns.Hits(cutlass,dx*8,dz*8),"cutlass forward broadside danger")
+ check(not Patterns.Hits(cutlass,0,0),"cutlass retreat safe")
+ check(not Patterns.Hits(cutlass,-dx*8,-dz*8),"cutlass behind safe")
+ check(not Patterns.Hits(sirens,dx*10,dz*10),"dual siren middle gap safe")
+ check(Patterns.Hits(sirens,math.cos(angle)*6,-math.sin(angle)*6),"dual siren shoulder lane danger")
+ check(not Patterns.Hits(sirens,dx*16,dz*16),"dual siren outer escape safe")
+end
 print("Boss service: "..checks.." assertions passed (mocked)")
 '''
-code=setup+'\nlocal Catalog=(function()\n'+cat+'\nend)()\nlocal Rules=(function()\n'+rules+'\nend)()\nlocal Service=(function()\nlocal Service={}'+service+'\nend)()\n'+tests
+code=setup+'\nlocal Layout=(function()\n'+layout+'\nend)()\nlocal script={Parent={CompactLayout="CompactLayout"}}\nlocal function require(name) assert(name=="CompactLayout");return Layout end\nlocal Catalog=(function()\n'+cat+'\nend)()\nlocal Rules=(function()\n'+rules+'\nend)()\nlocal Motion=(function()\n'+motion+'\nend)()\nlocal Patterns=(function()\n'+patterns+'\nend)()\nlocal Service=(function()\nlocal Service={}'+service+'\nend)()\n'+tests
 with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=root/'tests',delete=False) as f:f.write(code);name=f.name
 try:subprocess.run(['luau',name],check=True,cwd=root)
 finally:Path(name).unlink()

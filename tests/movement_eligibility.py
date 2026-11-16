@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 root=Path(__file__).resolve().parents[1]
 s=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
-a=s.index('local function dodge(p)');a=s.index(' if not s or',a);b=s.index('\n',a)
+a=s.index('local function dodge(p,sideIntent)');a=s.index(' if not s or',a);b=s.index('\n',a)
 dodge=s[a:b]
 a=s.index(' elseif verb=="ExtraJump" then');a=s.index('  if root and',a);b=s.index(' then',a)
 jump=s[a+5:b]

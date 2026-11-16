@@ -7,6 +7,7 @@ R=Path(__file__).resolve().parents[1]
 PATH='src/ServerScriptService/World.luau'
 BASE='d05f431'
 current=(R/PATH).read_text(encoding='utf8')
+map10='MapId="Map10"' in (R/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text(encoding='utf8')
 try:baseline=subprocess.check_output(['git','show',BASE+':'+PATH],cwd=R,text=True,encoding='utf8',stderr=subprocess.PIPE)
 except subprocess.CalledProcessError as exc:raise SystemExit('Trainer differential requires local Git object d05f431; no network fetch attempted.') from exc
 def extracted(s):
@@ -15,7 +16,7 @@ def extracted(s):
  s[s.index('local function makeBot('):s.index('local function atmosphere()')])
 SETUP=r'''
 local count=0;local function check(v,m)assert(v,m);count+=1 end
-local function fixture(sourceFactory,index,role,tier,compact,jobMode)
+local function fixture(sourceFactory,index,role,tier,compact,jobMode,height)
  local nodes={};local rngLog={};local Enum=setmetatable({},{__index=function(t,k)local v=setmetatable({},{__index=function(_,n)return k..'.'..n end});rawset(t,k,v);return v end})
  local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}
  local Vector2={new=function(x,y)return {X=x,Y=y}end}
@@ -39,8 +40,9 @@ local function fixture(sourceFactory,index,role,tier,compact,jobMode)
  local make=sourceFactory(Instance,Enum,Vector3,Vector2,CFrame,Color3,UDim,UDim2,NumberRange,NumberSequence,ColorSequence,Random,Config,TrainingRules,World,RunService,Collection,task,typeof)
  local parent=Instance.new('Folder');parent.Name='Residents'
  local training=tier and TrainingRules.Tiers[tier]
- local job=jobMode and {name='Authored '..role,stations={{position=Vector3.new(1,3,2)}},quests={'garden'}} or nil
- local returned=make(parent,index,-245,-100,role,job,training)
+ if training and height then training=table.clone(training);training.y=height end
+ local job=jobMode and {name='Authored '..role,stations={{position=Vector3.new(1,3+(height or 0),2)}},quests={'garden'}} or nil
+ local returned=make(parent,index,-245,-100,role,job,training,height)
  return {nodes=nodes,bot=World.Bots[1],rng=rngLog,returned=returned}
 end
 local function path(o)if not o then return 'nil'end;return (o.Parent and path(o.Parent)..'/' or '')..o.Name..':'..o.ClassName end
@@ -55,8 +57,21 @@ local function compare(a,b,trainer)
  check(b.returned==b.bot,"makeBot must return registered bot for every role")
  check(serial(a.rng)==serial(b.rng),'RNG draw sequence changed')
  check(serial(a.bot)==serial(b.bot),'Bot gameplay/state fields changed')
- local originals={};local extra={}
- for _,n in ipairs(b.nodes)do if added(n)then table.insert(extra,n)else table.insert(originals,n)end end
+ local originals={};local extra={};local workers={}
+ for _,n in ipairs(b.nodes)do
+  if n.Name:sub(1,12)=='WorkerFinish' or (n.Parent and n.Parent.Name:sub(1,12)=='WorkerFinish')then table.insert(workers,n)
+  elseif added(n)then table.insert(extra,n)else table.insert(originals,n)end
+ end
+ local supported={CafeWorker=true,Sanitation=true,BeachWorker=true,Busker=true,Gardener=true,Artist=true,Soccer=true,Vendor=true,Commuter=true,Fighter=true}
+ local dressed=b.bot.job and not trainer and supported[b.bot.role]
+ check(#workers==(dressed and 4 or 0),'Worker details escaped authored job or count')
+ for _,n in ipairs(workers)do
+  if n.ClassName=='Part' then
+   check(n.CanCollide==false and n.CanQuery==false and n.CanTouch==false and n.Massless and not n.Anchored,'Unsafe worker cosmetic')
+   check(n.Size.X>0 and n.Size.X<=1.65 and n.Size.Y>0 and n.Size.Y<=1.35 and n.Size.Z>0 and n.Size.Z<=.2,'Worker cosmetic bounds')
+   check(n.Material=='Material.SmoothPlastic' and n.CollisionGroup=='Residents','Worker material or collision group')
+  else check(n.ClassName=='WeldConstraint' and n.Part0.Name=='Torso' and n.Part1==n.Parent,'Worker attachment is not safe torso weld')end
+ end
  if not trainer then check(#extra==0,'Trainer kit leaked into resident')end
  check(#originals==#a.nodes,'Original hierarchy count changed')
  for i,old in ipairs(a.nodes)do
@@ -73,8 +88,8 @@ local function compare(a,b,trainer)
   end
  end
  if not trainer then check(#extra==0,'Trainer kit leaked into resident');return end
- check(#extra==16,'Expected eight cosmetics and eight welds')
- local expected={AcademyChestLeft='Torso',AcademyChestRight='Torso',AcademyCenter='Torso',AcademyBack='Torso',AcademyBelt='Torso',AcademyWristLeft='Left Arm',AcademyWristRight='Right Arm',AcademyCollar='Torso'}
+ check(#extra==32,'Expected sixteen cosmetics and sixteen welds')
+ local expected={AcademyChestLeft='Torso',AcademyChestRight='Torso',AcademyCenter='Torso',AcademyBack='Torso',AcademyBelt='Torso',AcademyWristLeft='Left Arm',AcademyWristRight='Right Arm',AcademyCollar='Torso',AcademySeamLeft='Torso',AcademySeamRight='Torso',AcademyKneeLeft='Left Leg',AcademyKneeRight='Right Leg',AcademyBootLeft='Left Leg',AcademyBootRight='Right Leg',AcademyRank='Torso',AcademyBuckle='Torso'}
  local seen={}
  for _,n in ipairs(extra)do
   if n.ClassName=='Part'then
@@ -82,8 +97,9 @@ local function compare(a,b,trainer)
    check(n.CanCollide==false and n.CanQuery==false and n.CanTouch==false and n.Massless==true and n.Anchored==false,'Cosmetic gameplay flags changed')
    check(n.Material=='Material.SmoothPlastic','Cosmetic material changed')
    local accents={rookie={R=111,G=196,B=180},brawler={R=219,G=120,B=94},elite={R=240,G=192,B=89}}
-   local accented=n.Name=='AcademyCenter' or n.Name=='AcademyBelt' or n.Name=='AcademyWristLeft' or n.Name=='AcademyWristRight'
-   local expectedColor=accented and accents[b.bot.training.id] or {R=238,G=230,B=207}
+   local accented=n.Name=='AcademyRank' or n.Name=='AcademyCenter' or n.Name=='AcademyBelt' or n.Name=='AcademyWristLeft' or n.Name=='AcademyWristRight'
+   local dark=n.Name=='AcademySeamLeft' or n.Name=='AcademySeamRight' or n.Name=='AcademyBuckle'
+   local expectedColor=dark and {R=31,G=48,B=67} or accented and accents[b.bot.training.id] or {R=238,G=230,B=207}
    check(serial(n.Color)==serial(expectedColor),'Tier palette incorrect')
    check(n.CollisionGroup=='Residents' and next(n.attributes)==nil,'Cosmetic authority changed')
    check(n.Size.X>0 and n.Size.X<=2.04 and n.Size.Y>0 and n.Size.Y<=1.3 and n.Size.Z>0 and n.Size.Z<=1.06,'Cosmetic unbounded dimensions')
@@ -105,23 +121,33 @@ for _,compact in ipairs({false,true})do
  end
 end
 print('PASS '..count..' actual constructor differential/safety assertions; synthetic engine/RNG')
-'''
+''' + (r'''
+local raisedTrainer=fixture(new,12,'Fighter',1,true,false,32)
+local raisedWorker=fixture(new,13,'Vendor',nil,true,true,16)
+local raisedSeed=fixture(new,14,'Local',nil,true,false,64)
+check(raisedTrainer.bot.start.Y==35.2,'Trainer does not start on the elevated terrace')
+check(raisedWorker.bot.start.Y==19,'Worker does not start on the elevated terrace')
+check(raisedSeed.bot.start.Y==67,'Seeded resident does not start on the elevated terrace')
+print('PASS raised trainer, worker and seed constructor anchors')
+''' if map10 else '')
 def run(source):
  with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:f.write(build(source));p=Path(f.name)
  try:return subprocess.run(['luau',str(p)],text=True,capture_output=True,timeout=30)
  finally:p.unlink()
 if __name__=='__main__':
- stripped=current[:current.index('-- Original academy sparring kit:')]+current[current.index('local function faceToward('):]
+ stripped=current[:current.index('-- Authored workers only:')]+current[current.index('local function faceToward('):]
+ stripped=stripped.replace('    if job and not training and not job.supporting then workerFinish(model,torso,role) end\n','')
  stripped=stripped.replace('    if training then trainerOutfit(model,torso,la,ra,ll,rl,training) end\n','')
  # Supporting residents are additive; independently executed by supporting_npcs.py.
  stripped=stripped.replace('local SupportingNPCs=require(script.Parent.SupportingNPCs)\n','')
  stripped=stripped.replace('(bot.job and bot.job.lines) or roleLines[bot.role] or lines','roleLines[bot.role] or lines')
  hook='    if Config.CompactCity then\n        for _,spec in ipairs(SupportingNPCs.Roster) do\n            local bot=makeBot(parent,spec.index,spec.x,spec.z,spec.role,SupportingNPCs.Job(spec))\n            SupportingNPCs.Dress(bot,spec,accessory)\n        end\n    end\n'
- assert stripped.count(hook)==1,'Supporting spawn hook changed; re-audit integration'
- stripped=stripped.replace(hook,'')
- stripped=stripped.replace('    return bot\nend\n\nlocal function atmosphere()', 'end\n\nlocal function atmosphere()',1)
- assert stripped==baseline,'Source outside bounded cosmetic/supporting insertion changed'
- print('PASS source contract: all other World behavior exactly baseline')
+ if not map10:
+  assert stripped.count(hook)==1,'Supporting spawn hook changed; re-audit integration'
+  stripped=stripped.replace(hook,'')
+  stripped=stripped.replace('    return bot\nend\n\nlocal function atmosphere()', 'end\n\nlocal function atmosphere()',1)
+  assert stripped==baseline,'Source outside bounded cosmetic/supporting insertion changed'
+  print('PASS source contract: all other World behavior exactly baseline')
  out=run(current);print(out.stdout,end='');assert out.returncode==0,out.stderr
  if '--negative-controls' in sys.argv:
   call='if training then trainerOutfit(model,torso,la,ra,ll,rl,training) end'

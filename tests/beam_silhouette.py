@@ -22,7 +22,7 @@ local white=Color3.fromRGB(245,252,255)
 for _,level in ipairs({1,40,100})do
  for _,tint in ipairs({color,Color3.fromRGB(90,70,220),Color3.fromRGB(22,150,100)})do
   local r=Visuals.Create();Visuals.Update(r,Vector3.zero,Vector3.zAxis,40,7,tint,level,false)
-  local age=.6;local radius=7*(.24+StyleSource.Tier(level)*.012);local pulse=1+.035*math.sin(age*9)
+  local age=.6;local radius=7*(.24+StyleSource.Tier(level)*.012)*StyleSource.WidthScale(level,false);local pulse=1+.035*math.sin(age*9)
   Visuals.Animate(r,r.born+age,Vector3.zero,false)
   local spec=StyleSource.Detail(level,false,0)
   check(r.parts[1].Material==Enum.Material.SmoothPlastic and r.parts[2].Material==Enum.Material.SmoothPlastic and r.parts[4].Material==Enum.Material.SmoothPlastic and r.parts[5].Material==Enum.Material.SmoothPlastic,'Wide regular body still emissive')
@@ -39,7 +39,7 @@ for _,level in ipairs({1,40,100})do
   check(near(r.parts[3].Size.Y,radius*.1) and same(r.parts[3].Color,tint:Lerp(white,.72)),'Hot spine lost hierarchy/tint')
   check(r.parts[4].Shape==Enum.PartType.Cylinder and near(r.parts[4].Size.X,radius*.22) and near(r.parts[4].Size.Y,radius*1.25),'Termination lens missing')
   check(near(r.parts[4].CFrame.Position.Z,40-radius*.11) and near(r.parts[4].CFrame.Target.Z,40),'Lens exceeds endpoint')
-  check(near(r.parts[5].Size.X,radius*.72) and same(r.parts[5].Color,tint),'Emitter obscures origin')
+  check(r.parts[5].Shape==Enum.PartType.Cylinder and near(r.parts[5].Size.X,1.5) and same(r.parts[5].Color,tint),'Emitter obscures origin')
   local travel=(age*(.6+spec.tier*.025)+1/spec.rings)%1;local rr=radius*(.85+.2*math.sin(travel*math.pi))*(spec.tier>=1 and 1.25 or 1)
   local angleA=age*.9+.6;local angleB=.72*math.pi/5+angleA
   local function collarRadius(angle)
@@ -57,15 +57,16 @@ for _,level in ipairs({1,40,100})do
    end
   end
   for _,v in ipairs(r.parts)do check(not v.CanQuery and not v.CanCollide and not v.CanTouch and not v.CastShadow,'Cosmetic physics changed')end
+  radius=7*(.24+StyleSource.Tier(level)*.012)*StyleSource.WidthScale(level,true)
   Visuals.Animate(r,r.born+age,Vector3.zero,true)
   for _,v in ipairs(r.parts)do check(v.Material==Enum.Material.Neon,'Reused quiet/far material not reset')end
   check(#r.parts==4 and near(r.parts[1].Size.Y,radius*1.65) and r.parts[1].Transparency==.72,'Reduced body changed')
   check(near(r.parts[3].Size.Y,radius*.28) and same(r.parts[3].Color,white) and r.parts[3].Transparency==.45,'Reduced spine changed')
-  check(r.parts[4].Shape==Enum.PartType.Ball and near(r.parts[4].Size.X,radius*1.5),'Reduced endpoint changed')
+  check(r.parts[4].Shape==Enum.PartType.Cylinder and near(r.parts[4].Size.X,.12),'Reduced endpoint changed')
   Visuals.Animate(r,r.born+age,vec(0,0,111),false)
   for _,v in ipairs(r.parts)do check(v.Material==Enum.Material.Neon,'Reused quiet/far material not reset')end
-  check(#r.parts==4 and near(r.parts[1].Size.Y,radius*1.65*pulse) and r.parts[1].Transparency==.68,'Far body changed')
-  check(r.parts[4].Shape==Enum.PartType.Ball and same(r.parts[3].Color,white),'Far silhouette changed')
+  check(#r.parts==4 and near(r.parts[1].Size.Y,radius*1.65) and r.parts[1].Transparency==.68,'Far body changed')
+  check(r.parts[4].Shape==Enum.PartType.Cylinder and same(r.parts[3].Color,white),'Far silhouette changed')
   Visuals.Animate(r,r.born+age,vec(0,0,181),false);check(#r.parts==0,'Cull retained parts')
   Visuals.Destroy(r)
  end

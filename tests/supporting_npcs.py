@@ -25,6 +25,14 @@ for _,spec in ipairs(NPCs.Roster) do
  check(#job.stations==1 and #job.lines>=3,'bounded route/dialogue')
  local station=job.stations[1]
  check(station.position.X==spec.x and station.position.Z==spec.z and station.position.Y==3,'home route')
+ check(NPCs.AtHome(spec,nil)==spec,'old layout keeps original roster')
+ local moved=NPCs.AtHome(spec,{x=500,y=32,z=-100,lookX=504})
+ local relocated=NPCs.Job(moved)
+ local newStation=relocated.stations[1]
+ check(moved~=spec and moved.lines~=spec.lines and moved.index==spec.index,'relocation preserves stable identity and roster')
+ check(relocated.role==spec.role and relocated.quests==nil and relocated.lines[1]~=spec.lines[1],'map dialogue preserves quest ownership')
+ check(newStation.position.X==500 and newStation.position.Y==35 and newStation.position.Z==-100,'relocated station follows elevated floor')
+ check(newStation.lookAt.X==504 and newStation.lookAt.Y==35 and newStation.lookAt.Z==-99,'relocated gaze, with default direction')
  check(not(spec.x>=-120 and spec.x<=200 and spec.z>=-180 and spec.z<=140),'outside PvP')
  check(spec.x>-350 and spec.x<350 and spec.z>-290 and spec.z<290,'map bounds')
  for _,line in ipairs(job.lines)do check(#line<200 and #line>25,'bounded helpful dialogue')end
@@ -44,7 +52,11 @@ for _,spec in ipairs(NPCs.Roster) do
  end
  NPCs.Dress({model=model},spec,accessory)
  check(old.removed and model.SupportConcept==spec.concept,'cosmetic cleanup and provenance')
- check(#added>=5 and #added<=10,'bounded per-character detail count')
+ local expectedCounts={dj=15,tinker=19,lifeguard=14,archivist=15}
+ check(#added==expectedCounts[spec.kind],'exact bounded per-character detail count')
+ local signatures={dj='MarinaLapel',tinker='HarnessBuckle',lifeguard='RescueBuckle',archivist='SplitCoatTail'}
+ local found=false;for _,p in ipairs(added)do if p.name==signatures[spec.kind] then found=true end end
+ check(found,'missing role-defining costume detail')
  print('NPC|'..spec.name..'|'..spec.x..'|'..spec.z..'|'..spec.kind)
  for _,p in ipairs(added)do
   print('PART|'..p.name..'|'..p.target..'|'..p.size.X..'|'..p.size.Y..'|'..p.size.Z..'|'..p.offset.X..'|'..p.offset.Y..'|'..p.offset.Z..'|'..p.color.R..'|'..p.color.G..'|'..p.color.B)

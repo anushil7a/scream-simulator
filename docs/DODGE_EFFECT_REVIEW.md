@@ -1,3 +1,5 @@
+> Historical removal review. New authorized lightning side-dodge visuals are documented in [SIDEWAYS_DODGE_REVIEW.md](SIDEWAYS_DODGE_REVIEW.md). The yellow placeholder remains removed.
+
 # Cosmetic dodge effect review - November 11, 2026
 
 Base `078dbb1ddac9e4e07a05d3c643a5994334fc7e96`, fetched and clean. The recovered reference shows a yellow world-space box near dodge onset, disappearing before the roll finishes. Source inspection and an actual-branch reproduction identify the client cosmetic: an anchored Neon Part sized 2x3x2 at the event position, transparency0.3, tweening to5x1x5/transparency1 over0.35 seconds. Default aura makes it yellow. This is not the server Blockcast collision query.

@@ -1,6 +1,49 @@
 # Scream Simulator development roadmap
 
+## Seagull Siren Captain and boss attack feedback (local candidate)
+
+- The Lv70 pier encounter replaces the sea dragon with the Blender-authored Seagull Siren Captain from the vault. The same arena, 22-stud range, rewards, health and unlock remain. A transverse cutlass broadside and twin siren lanes with a clear center gap alternate. See [encounter](SEAGULL_GAMEPLAY_REVIEW.md) and [art](SEAGULL_ART_REVIEW.md).
+- All five boss fights add themed warning accents and confirmed-impact effects drawn over the server’s actual damage shapes. Reduced Effects removes cosmetic additions without hiding the fight's core warning. See [visual/effect verification](BOSS_ATTACK_FX_REVIEW.md).
+- All boss attacks have gated, positional warning and impact audio. This local candidate uses available packaged fallback cues; the original ten produced WAVs are audition assets until separately approved for Roblox upload, assigned permission and verified. Gameplay SFX mutes audio; essential warnings stay visible. See [boss audio](BOSS_AUDIO_REVIEW.md). No live settings, asset uploads or publication.
+- Next: native local Studio review of Captain navigation, patrol and both patterns; canceled casts, reduced effects and actual audibility across five encounters; then physical device, real microphone and multiplayer acceptance.
+
+## Map10 repair candidate, November16
+
+- Removed6600square studs of same-height district slab overlap and1632square studs of dock overlap while preserving footprint unions. Corrected floating garden ribbon, exact sloped-ramp contacts and red dock shelter roof placement.
+-604base parts;18new stdlib geometric checks,671contracts,grounding/finish/static walk suites pass. Radius22+2stud floor margin checked for all five stationary homes; no runtime destination or archive changes. See `docs/MAP10_REPAIR_REVIEW.md` for before/after evidence. Next: disposable native seam/ramp/dock walkthrough and enlarged boss patrol/boundary check. Unpublished.
+## November 16 guarded local Test Tools flight
+
+- Fly on/off is available only in explicitly guarded unpublished local Studio fixtures, behind existing Test Tools authorization and a temporary profile snapshot. Shared preview access does not grant flight.
+- Server-owned32stud/s bounded obstacle-aware movement; WASD/Space/Ctrl and touch joystick/up/down controls. Off returns to preflight location. Active flight blocks combat and gameplay actions; task identity retained, active soccer attempt retired and quest timers paused.
+- Actual-module security/lifecycle tests and dev-command/UI tests pass; compilation/aggregate verification recorded in `docs/TEST_FLIGHT_REVIEW.md`. Native movement/device input still requires the disposable playtest gate. No publish or live settings changed.
+
+## Four-way dodge and themed bosses (local review)
+
+- Q or touch Dodge uses a direction from keyboard or current movement. The server maps it to one of four avatar-relative directions while preserving facing, collision checks, duration and cooldown. No tumble.
+- Boss appearances scale 1.4× from the floor with the same model part budgets. The center-body aim samples cover their taller silhouettes, but cannot extend ray length or bypass cover.
+- Five encounters have distinct patterns with readable warnings: pendulum bars, seismic slam/faults, flame lanes, sonar/undertow and staggered bell disks. A single shape definition drives both warnings and damage.
+- The 18-stud marked circle and 12-stud vertical envelope remain authoritative. Both beam paths use the same check, and the damage call checks again. Health, rewards, required levels and saves unchanged.
+
+## November 16 four-way dodge extension
+
+- Owner-requested forward/back dodge added alongside left/right. Upright lightning presentation, existing facing, 14-stud/.6-second limits and server-owned collision/cooldown checks preserved.
+- Cardinal intent whitelist; keyboard opposite pairs cancel, forward/back wins diagonal ties, dominant joystick axis with .1 deadzone and neutral-right fallback. No client-supplied movement vector accepted.
+- Actual-module/input synthetic tests cover four-axis geometry, malformed payloads and input combinations; aggregate compilation passes. Native controller/touch movement and animation remain unverified. Next: disposable Studio four-way wall/ramp/edge smoke. See `docs/SIDEWAYS_DODGE_REVIEW.md`.
+
+## Current local review: Map 10 and combat visuals, November 16
+
+- The playable review place replaces the compact city with an original, larger Map 10 island. Quest and resident IDs are preserved; trainers, boss rings, guides and sports use the moved coordinates. The old compact source and earlier original-city archive are preserved separately.
+- Five distinct Blender-authored boss designs render in a nearby client model, not as colored boxes. Existing server encounter rules and health presentation are unchanged. See `docs/BOSS_FIDELITY_REVIEW.md`.
+- The actual sustained renderer has a distinct cosmetic scale step every ten levels, adds progressively denser lightning and has no firing spheres. The dodge is lateral and upright, with cyan lightning afterimages. See `docs/reviews/BEAM_MILESTONES_2026_11_16.md` and `docs/SIDEWAYS_DODGE_REVIEW.md`.
+- The integrated local gate covers 26 pure/synthetic suites, 147 mocked suites, 79 production compiles and guarded builds. The archived compact suite passed separately. Real microphone, live saves, physical phones, representative multiplayer and full Map 10 walkthrough/timed quests are release gates. The place remains unpublished.
+
 Historical checkpoint, November 13, 2026. The owner confirmed `feature/microphone-city-redesign` as the shared development branch. The candidate now uses a four-second maximum automatic attack and five-second cooldown after attack end. Work was tracked through PR #1 (since merged); the separate prototype PR #2 is superseded. City Preview version 19 was previously published and verified; its completed release still uses hold/release. The current unpublished candidate defaults to automatic voice and the compact pedestrian map, with coordinated quests, sports, trainers and map projection. Object destruction and repair are disabled per the latest owner direction; the exact original city is archived. The owner approved the saved changes and they were non-force pushed through f6d5e6c / 4d7b872 to the draft branch; another Roblox upload requires fresh approval. Native `Roblox_Studio` MCP validation on disposable `build/SaveNoticeReview.rbxl` (`GameId=0`, `PlaceId=0`) has now verified the compact HUD `xpText` `TextFits` fix and Wave 2 UI/map styling; physical devices, real microphones, and multiplayer remain unverified.
+
+## November 16 sideways lightning dodge (unpublished local candidate)
+
+- Replaced full forward tumble with server-owned lateral movement and upright lean. Left/right keyboard intent or joystick movement chooses side; absent lateral input defaults right. Facing, 14-stud maximum, .6-second duration and existing cooldown/entitlement rules retained.
+- Exact vault VFX-02 Lightning Dash Warp pixels and selected roblox-vfx/LOCAL guidance consulted. Two bounded actual-position cyan body echoes plus angular cyan filaments and thin gold foot sparks, no yellow box or camera kick. Reduced effects suppress new visuals.
+- Local aggregate/build and new synthetic direction, geometry and visual-lifecycle checks pass. These do not establish native collisions/rendering or device controls. Next: disposable Studio A/D/mobile movement/default-right checks, walls/ramps/edges, repeated dodge and reduced-motion visuals. See `docs/SIDEWAYS_DODGE_REVIEW.md`.
 
 ## November 16 navigation playtest QA (local)
 
@@ -1175,3 +1218,37 @@ Check usage and current tree. Continue bounded automatic-voice integration revie
 - Built a first-giver index once immediately after World.Build instead of rescanning all residents for every eligible quest on each State packet. Targets, labels, completion/availability checks and active stage rules are unchanged. Future world rebuilds must rebuild the index too.
 - Actual-source differential tests against frozen pre-optimization 9507e84 pass across completion, claims, privacy/availability, duplicates and active stages. Synthetic 10-giver fixture: 20 property reads at index build, zero bot reads per 1,000 indexed State computations versus 46,000 prior membership scans. This is operation counting, not a native frame-time measurement.
 - Next: aggregate local verification and disposable Studio acceptance. No live publication or external push.
+
+## November 16 visible boss-reference fidelity candidate
+
+- Replaced generic visible rectangular boss proxies with original Blender-authored continuous surfaces and reference-specific silhouettes rendered locally near the player, without asset IDs/template/security dependencies. One active appearance, <=450 native visual parts, batched/cancellable construction; gameplay anchors and encounter rules unchanged, elevated map ground supported.
+- World boss labels expanded to fit name/level/join/status, no health display. Geometry/controller mock verification and actual Blender renders complete; native appearance/performance checks remain separate. See `docs/BOSS_FIDELITY_REVIEW.md` for exact runtime path and reference-parity gaps.
+## November16 Map10 replacement (isolated staged candidate)
+Original island geometry now replaces active compact city, retaining old source/archive. Repositioned quests/sports/trainers/boss homes and navigation consistently across0/16/32/64heights; preserved IDs, sports relative dimensions and440stud sprint.601static map parts,668stdlib contract checks,10grounding-decision checks,37static destination/endpoint routes and module compilation pass. Native acceptance/streaming/timing/performance remain pending; see MAP10_REVIEW.md. Next: integrate root elevation/adapters and save isolation, then disposable Studio walk-through and reference comparison before any release.
+
+## November 16 NPC costume finishing (local only)
+
+- Four support NPCs now have role-specific lapels, harness/webbing, buckles and layered coat/short details; three trainer tiers gain seams, knee protection, boot welts and rank accents. Stable rigs, faces, IDs, paths, quests and collision contracts retained. Ordinary workers untouched.
+- Full local gate passes 26 synthetic +147 mocked suites/builds; focused constructor differential and bounded appearance tests pass. Blender front/rear costume previews derive from the runtime definitions, not independent look-only concepts. See `docs/NPC_FINISH_REVIEW.md`.
+- Next action: native animation/clipping and gameplay-distance visual review before claiming final in-game polish. No publication/upload.
+
+- Incremental NPC finishing: seven authored worker roles receive two fitted role-specific kit details each, with no seeded-resident or support/trainer leakage. Constructor differential now passes 714,218 assertions/eight controls; World compiles. Full root integration/native review remains the next gate.
+## November 16 boss appearance polish
+
+- Refined five existing reference-guided silhouettes, facial/costume contours and runtime metal/stone/fabric hierarchy without changing combat/map/HUD. Max parts remain450 (actual274/291/269/435/417); one-active and GeometryReady lifecycle unchanged.
+- Fixed Blender tessellator return-type compatibility and regenerated source/renders. Focused8068 visual +172 service assertions pass; full local26 pure +147 mocked suites/builds pass. Native appearance/performance remains unclaimed. See `docs/BOSS_POLISH_REVIEW.md`.
+
+## November16 larger themed boss attacks
+
+- Added shared1.4 scale/7-stud aim anchor while retaining18-stud authoritative engagement radius and±12height. Five distinct committed ground patterns, participant snapshot/late-join safety, immediate empty-fight cancellation, at most16 temporary marker parts per encounter. Levels, health, rewards, saves unchanged; no enemy-health HUD.
+- Focused635 service +10callback assertions, five balance estimates, full26 pure +148 mocked suites/builds pass. Client scale and root aim integration are coordinated separately. Native warning/camera/phone acceptance remains next; see BOSS_THEMED_ATTACKS.md.
+
+## November16 wider moving boss encounters
+
+- Radius22 home-centered admission/boundary; deterministic server4stud patrol at2stud/s, fixed tell pose and0.6s recovery. Core pose and shared phase timestamps drive separately coordinated client animation. Combat shapes lock to the floor and remain within22; health/rewards/levels unchanged.
+- Focused8313 service/motion +10callback checks pass; map audit confirmsradius24floor and inner10body clearance at all five homes. Native movement/animation/camera acceptance remains pending. See BOSS_MOVEMENT_REVIEW.md.
+
+## November16 Seagull Siren Captain gameplay
+
+- Replaced visible Lv70 Leviathan metadata with owner-selected Captain while preserving internal encounter/nav key and all balance/home/ring/save semantics. Alternating committed cutlass broadside and twin shoulder-siren lanes provide retreat/center-gap counterplay; no enemy HP HUD.
+- Focused8129 service/motion +10callback checks, balance, aim/cover and navigation tests pass. Art/pose integration and native acceptance are separate. See SEAGULL_GAMEPLAY_REVIEW.md.

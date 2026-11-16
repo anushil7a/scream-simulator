@@ -57,15 +57,20 @@ checks=r"""
 local n=0;local function check(x,m)assert(x,m);n+=1 end
 local function measure(level,targetLevel,power,kind,tier,phase,quiet,quantum)
  clock=0;cover=kind=='cover';awards=0;koAt=nil;World.Bots={}
- attacker=player(1,v(0,3,0),VoiceCombat.Stats(level,1,false).health)
- victim=player(2,v(kind=='range' and 120 or 10,3,0),VoiceCombat.Stats(targetLevel,1,false).health)
+ local min,max=Config.ZoneMin,Config.ZoneMax
+ local x,z=min.X+20,(min.Z+max.Z)*.5
+ if kind=='safe' then x=max.X-8 end
+ if tier then x=min.X-80 end
+ attacker=player(1,v(x,3,z),VoiceCombat.Stats(level,1,false).health)
+ victim=player(2,v(x+(kind=='range' and 120 or 10),3,z),VoiceCombat.Stats(targetLevel,1,false).health)
  local s={data={level=level,sound='TinyAah'},micReady=true,voiceEligibility=kind~='notEligible',protectedUntil=kind=='attackerProtected' and 100 or 0,dodgingUntil=0,sustained=sustained.New()}
  local ts={data={level=targetLevel},protectedUntil=kind=='protected' and 100 or 0,dodgingUntil=kind=='dodge' and 100 or 0}
  sessions={[attacker]=s,[victim]=ts}
  if kind=='mixedMode' or kind=='bothTest'then s.testBaseline={} end
  if kind=='bothTest'then ts.testBaseline={} end
- if kind=='safe'then victim.root.Position=v(500,3,0)end
- local bot;if tier then bot={id=1,alive=true,root={Parent=true,Position=v(10,3,0)},model={Parent=true},start=v(10,3,0),health=tier.health,maxHealth=tier.health,training=tier,credit={}};World.Bots={bot};victim.root.Position=v(120,3,0)end
+ if kind=='safe' then check(Config.InArena(attacker.root.Position) and not Config.InArena(victim.root.Position),'Cross-boundary guard has invalid setup') end
+ if kind=='range' then check(Config.InArena(attacker.root.Position) and Config.InArena(victim.root.Position),'Range guard requires both endpoints within PvP') end
+ local bot;if tier then bot={id=1,alive=true,root={Parent=true,Position=v(x+10,3,z)},model={Parent=true},start=v(x+10,3,z),health=tier.health,maxHealth=tier.health,training=tier,credit={}};World.Bots={bot};victim.root.Position=v(x+120,3,z)end
  local sequence,sample,nextPulse,begins=0,0,0,0;local ticks={};local initial=victim.h.Health
  for i=0,math.ceil(45/(quantum or .025)) do
   clock=i*(quantum or .025)

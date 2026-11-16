@@ -1,13 +1,12 @@
-"""Actual high-tier styling against b76c94f; mocked Parts/orientation, no native clarity claim."""
+"""Actual high-tier styling against milestone baseline; mocked Parts/orientation, no native clarity claim."""
 from pathlib import Path
 import argparse
 import subprocess
 import tempfile
 import beam_contact_visuals as support
-from review_baseline import contact_renderer
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = 'b76c94fafd65be4cec85f1c5f2caa4355262e43b'
+BASE = support.BASE
 CHECKS = r'''
 local white=Color3.fromRGB(245,252,255);local black=Color3.fromRGB(0,0,0)
 local function sameColor(a,b)return a and b and near(a.R,b.R) and near(a.G,b.G) and near(a.B,b.B) end
@@ -21,13 +20,13 @@ local function hierarchy(rig,spec,tint,age)
    check(equal(p.Color,ring==1 and tint or tint:Lerp(black,.2)),'High-tier support tint changed')
    check(near(p.Transparency,ring==1 and .26+travel*.32 or .6+travel*.25),'High-tier support alpha changed')
   elseif i>collarEnd and i<=ribbonEnd then
-   check(p.Material==Enum.Material.SmoothPlastic and equal(p.Color,tint:Lerp(white,.12)) and p.Transparency==.42,'High-tier ribbon stayed a white emissive net')
+   check(p.Material==Enum.Material.Neon and equal(p.Color,tint:Lerp(white,.35)) and p.Transparency==.22,'High-tier lightning hierarchy changed')
   elseif i>ribbonEnd then
    check(p.Material==Enum.Material.SmoothPlastic and equal(p.Color,tint) and p.Transparency==.55,'High-tier corona competed with contact')
   end
  end
  local bright=0;for i=6,#rig.parts do if rig.parts[i].Material==Enum.Material.Neon then bright+=1 end end
- check(bright==10,'High-tier lost exactly one bright collar')
+ check(bright==10+spec.strands*12,'High-tier bright collar/lightning count changed')
  check(rig.parts[1].Transparency==.78,'High-tier outer shell transparency stayed opaque')
  check(rig.parts[2].Transparency==.7,'High-tier body transparency stayed opaque')
 end
@@ -102,8 +101,8 @@ def main():
     parser.add_argument('--negative-controls', action='store_true')
     args = parser.parse_args()
     source = support.VISUAL.read_text(encoding='utf-8-sig')
-    old_visual = contact_renderer().decode('utf-8')
-    old_style = subprocess.check_output(['git', 'show', '5622daa54424e639e7d3f671b2e453ff377b2cb6:src/ReplicatedStorage/Shared/BeamStyle.luau'], cwd=ROOT, text=True)
+    old_visual = subprocess.check_output(['git','show',BASE+':src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau'],cwd=ROOT,text=True)
+    old_style = subprocess.check_output(['git', 'show', BASE+':src/ReplicatedStorage/Shared/BeamStyle.luau'], cwd=ROOT, text=True)
     old_visual = old_visual.replace('require(game:GetService("ReplicatedStorage").Shared.BeamStyle)', 'OldStyle')
     baseline = '\nlocal OldStyle=(function()\n' + old_style + '\nend)()\nlocal Baseline=(function()\n' + old_visual + '\nend)()\n'
     run(source, baseline)
@@ -114,7 +113,7 @@ def main():
             ('local support=high and ring>1', 'local support=false', 'High-tier collar material hierarchy lost'),
             ('support and .1 or .16+tier*.012', 'support and .2 or .16+tier*.012', 'High-tier collar thickness hierarchy lost'),
             ('support and .6+travel*.25', 'support and .3+travel*.25', 'High-tier support alpha changed'),
-            ('color:Lerp(white,high and .12 or .4)', 'color:Lerp(white,.4)', 'High-tier ribbon stayed a white emissive net'),
+            ('color:Lerp(white,.35),.22,Enum.Material.Neon', 'color:Lerp(white,.8),.22,Enum.Material.Neon', 'Original beam property changed'),
             ('high and .55 or .3', 'high and .3 or .3', 'High-tier corona competed with contact'),
             ('radius*(detailed and .10 or .28)', 'radius*(detailed and .11 or .28)', 'Original beam property changed'),
             ('rig.contactPosition-contactDir*.7', 'rig.contactPosition-contactDir*.6', 'Contact stroke left target front plane'),

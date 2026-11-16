@@ -24,7 +24,7 @@ end
 def assemble(src):
  parts=src[src.index('local function parts(p)'):src.index('local function sustainedEnd(')]
  sprint=src[src.index('local function stepSprint('):src.index('task.spawn(function()\n local tick=0')]
- dodge=src[src.index('local function dodge(p)'):src.index(' local direction=h.MoveDirection',src.index('local function dodge(p)'))]+'end\n'
+ dodge=src[src.index('local function dodge(p,sideIntent)'):src.index(' local direction,side,front=DodgeMotion.Direction',src.index('local function dodge(p,sideIntent)'))]+'end\n'
  handler=src[src.index('action.OnServerEvent:Connect('):src.index('local function joined(')]
  begin=src.index('    h.WalkSpeed=',src.index('local function stepSprint('));end=src.index('    local healed,',begin)
  apply='local function applyMovement(running)\n'+src[begin:end]+'end\n'
@@ -78,7 +78,7 @@ else:
  capture=s[s.index('local function canCapture('):s.index('local function attackOrigin(')]
  training=s[s.index('local function stepTraining('):s.index('local function stepSprint(')]
  assert 's.micReady and VoiceEligibility.Allowed' in capture, 'Beam readiness/eligibility gate changed'
- assert 'local valid=s and r and s.micReady' in training, 'Trainer readiness gate changed'
+ assert 'local valid=s and not s.flight and r and s.micReady' in training, 'Trainer readiness gate changed'
  print('PASS two source contracts: beam eligibility/readiness and trainer gate retained')
  if a.negative_controls:
   mutations=[

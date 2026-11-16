@@ -76,6 +76,7 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
   if not rig.root.Parent or not rig.humanoid.Parent or rig.humanoid.Health<=0 or rig.humanoid.Sit or rig.humanoid.SeatPart or rig.humanoid.PlatformStand or now<(player:GetAttribute("KnockdownEnds") or 0) then
    rig.charge=0;rig.blend=0;rig.airborne=false;rig.landing=0
    rig.character:SetAttribute("RollAnimationProgress",-1)
+   rig.character:SetAttribute("DodgeAnimationProgress",-1)
    rig.character:SetAttribute("SprintAnimationBlend",0)
    continue
   end
@@ -84,19 +85,23 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
    local t=math.clamp((now-started)/Config.DodgeDuration,0,1);local tuck=math.sin(t*math.pi)
    local rootJoint=rig.rootJoint or rig.joints.RootJoint or rig.joints.Root or rig.joints.RootMotor
    if rootJoint then
-    local roll=CFrame.new(0,-1.1*tuck,0)*CFrame.Angles(-math.pi*2*t,0,0)
+    local side=player:GetAttribute("DodgeSide") or 1
+    local front=player:GetAttribute("DodgeForward") or 0
+    local roll=CFrame.new(0,-.25*tuck,0)*CFrame.Angles((-.12-.25*front)*tuck,0,-.34*side*tuck)
     local basis=rootJoint:IsA("Motor6D") and rootJoint.C0 or rootJoint.Attachment0 and rootJoint.Attachment0.CFrame or CFrame.identity
     local offset=basis:Inverse()*roll*basis
     pose(rootJoint.Name,offset,true)
    end
-   for _,name in ipairs({"Left Shoulder","Right Shoulder","LeftShoulder","RightShoulder"}) do pose(name,CFrame.Angles(-1.4*tuck,0,0)) end
-   for _,name in ipairs({"Left Hip","Right Hip","LeftHip","RightHip"}) do pose(name,CFrame.Angles(1.2*tuck,0,0)) end
-   for _,name in ipairs({"LeftKnee","RightKnee"}) do pose(name,CFrame.Angles(-1.6*tuck,0,0)) end
-   pose("Waist",CFrame.Angles(-.4*tuck,0,0))
-   rig.character:SetAttribute("RollAnimationProgress",t)
+   for _,name in ipairs({"Left Shoulder","Right Shoulder","LeftShoulder","RightShoulder"}) do pose(name,CFrame.Angles(-.65*tuck,0,0)) end
+   for _,name in ipairs({"Left Hip","Right Hip","LeftHip","RightHip"}) do pose(name,CFrame.Angles(.3*tuck,0,0)) end
+   for _,name in ipairs({"LeftKnee","RightKnee"}) do pose(name,CFrame.Angles(-.45*tuck,0,0)) end
+   pose("Waist",CFrame.Angles(-.12*tuck,0,0))
+   rig.character:SetAttribute("RollAnimationProgress",-1)
+   rig.character:SetAttribute("DodgeAnimationProgress",t)
    continue
   end
   rig.character:SetAttribute("RollAnimationProgress",-1)
+  rig.character:SetAttribute("DodgeAnimationProgress",-1)
   local v=rig.root.AssemblyLinearVelocity;local speed=Vector3.new(v.X,0,v.Z).Magnitude
   local sprinting=player:GetAttribute("Sprinting") and speed>3 and rig.humanoid.FloorMaterial~=Enum.Material.Air and now>=(player:GetAttribute("KnockdownEnds") or 0)
   rig.blend+=((sprinting and 1 or 0)-rig.blend)*math.min(dt*12,1)

@@ -19,6 +19,7 @@ local rendered
 local function button(_,name,text,size,pos,callback)rendered={Text=text,callback=callback};return rendered end
 local gameplayAudioSettings=settings;local destroyed=0
 local gameplayAudio=Mix.new(settings,function()return {}end,function()end,function()destroyed+=1 end)
+local function cueContext()end
 local function render()
 '''
 checks=r'''
@@ -34,7 +35,7 @@ for _,mode in ipairs({'empty','partial','all'})do
  gameplayAudio:SetEnabled(false)
  local ui=render();check(ui.Text=='GAMEPLAY SFX: OFF','OFF state hidden by pending upload')
  ui.callback();check(gameplayAudio.enabled,'Enable callback failed')
- local on=expectedReady and 'GAMEPLAY SFX: LOW' or 'GAMEPLAY SFX: LOW (PENDING)'
+ local on='GAMEPLAY SFX: LOW'
  check(ui.Text==on,'Enabled label missing LOW or pending distinction')
  ui=render();check(ui.Text==on and gameplayAudio.enabled,'Reopen lost enabled label/state')
  local before=destroyed

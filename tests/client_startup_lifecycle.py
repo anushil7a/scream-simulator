@@ -57,6 +57,7 @@ function methods:IsA(c)return c==self.ClassName or c=='GuiObject' end
 function methods:WaitForChild(n)boundary('wait:'..self.Name..'/'..n);assert(self[n],'Missing mock child '..n);return self[n] end
 function methods:FindFirstChild(n)return self[n] end
 function methods:GetAttribute(n)return self.attrs[n]end
+function methods:SetAttribute(n,v)self.attrs[n]=v end
 function methods:GetPropertyChangedSignal(n)local k='property:'..n;if not rawget(self,k)then rawset(self,k,signal(self.Name..'.'..k))end;return self[k]end
 methods.GetAttributeChangedSignal=methods.GetPropertyChangedSignal
 function methods:FireServer(verb,...)table.insert(commands,verb)end
@@ -93,10 +94,11 @@ local function resource(name)
  function o:Pulse()end
  if name~='NotificationQueue' and name~='HitFeedback' and name~='VoiceActivation' then table.insert(owned,o)end;if variant=="late-"..name then script.Destroying:Fire()end;return o
 end
-for _,n in ipairs({'CityMap','Config','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','LockOn','TrainingRules','VoiceReactor','NavigationCatalog','BossCatalog','NavigationGuide'})do
+for _,n in ipairs({'DodgeVisuals','CityMap','Config','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','LockOn','TrainingRules','VoiceReactor','NavigationCatalog','BossCatalog','NavigationGuide'})do
  local node=object(n,shared);shared[n]=node;scriptParent[n]=node
  modules[n]={new=function(...)return resource(n)end,Clear=function()singletonClears[n]=(singletonClears[n] or 0)+1;table.insert(cleanupOrder,n)end}
 end
+modules.DodgeVisuals={Destroy=function()end,Play=function()end}
 modules.Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLevel=100,MicroSpeakerPrice=200,MovementPassId=0,XPToNext=function()return 100 end,Auras={Gold={}}}
 modules.TrainingRules={Tiers={{id='rookie',x=0,z=0}},Radius=32}
 modules.VoiceReactor.new=function(parent)
@@ -202,6 +204,7 @@ if __name__=='__main__':
   r=run(source,auto,fixed=not args.baseline);assert r.returncode==0,r.stdout+r.stderr
   boundaries=re.findall(r'^BOUNDARY (\d+) (.+)$',r.stdout,re.M)
   expected=([name for name in EXPECTED_COMMON if args.baseline or name not in ('wait:Shared/FirstBeamGuide','require:FirstBeamGuide')])+([] if args.baseline else ['wait:PlayerScripts/LockOn','require:LockOn','wait:Shared/TrainingRules','require:TrainingRules'])+(EXPECTED_AUTO if auto else [])+([name for name in EXPECTED_TAIL if not args.baseline or not any(module in name for module in ("VoiceReactor","NavigationCatalog","BossCatalog","NavigationGuide"))])+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
+  if not args.baseline: expected[2:2]=['wait:PlayerScripts/DodgeVisuals','require:DodgeVisuals']
   assert [name for _,name in boundaries]==expected,'Startup dependency boundary coverage changed'
   print(('automatic' if auto else 'legacy')+' boundaries='+str(len(boundaries)))
   for i,name in boundaries:

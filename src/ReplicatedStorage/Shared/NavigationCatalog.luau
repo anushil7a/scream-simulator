@@ -18,13 +18,13 @@ function Catalog.Resolve(kind,id,data)
  data=data or {}
  if kind=="boss" then
   for _,boss in ipairs(BossCatalog.Entries) do
-   if boss.id==id then return target(Vector3.new(boss.x,3,boss.z),boss.name.." · Lv "..boss.level) end
+   if boss.id==id then return target(Vector3.new(boss.x,(boss.y or 0)+3,boss.z),boss.name.." · Lv "..boss.level) end
   end
  elseif kind=="place" then
   for index,place in ipairs(Catalog.Places) do
    if place.id==id then
     local landmark=Config.CityLayout.MapLandmarks[index]
-    return landmark and target(Vector3.new(landmark.x,3,landmark.z),place.label) or nil
+    return landmark and target(Vector3.new(landmark.x,(landmark.y or 0)+3,landmark.z),place.label) or nil
    end
   end
  elseif kind=="quest" then

@@ -11,19 +11,26 @@ function Style.Tier(level)
  return math.floor(math.clamp(level,1,100)/10)
 end
 -- Authored silhouettes, not damage tiers. Counts stay within the existing budget.
+-- Every ten levels gains visible width and a stronger lightning/corona recipe.
+-- Cosmetic only: never feed these widths back to combat or contact placement.
 local profiles={
- [0]={collar="round",ribbon="helix",turns=1.5},
- [1]={collar="diamond",ribbon="helix",turns=1.5},
- [2]={collar="diamond",ribbon="helix",turns=1.5},
- [3]={collar="round",ribbon="helix",turns=1.5},
- [4]={collar="round",ribbon="helix",turns=1.5},
- [5]={collar="round",ribbon="zigzag",turns=1.5},
- [6]={collar="round",ribbon="helix",turns=1.5},
- [7]={collar="round",ribbon="helix",turns=1.5},
- [8]={collar="round",ribbon="helix",turns=1.5},
- [9]={collar="star",ribbon="helix",turns=2.5},
- [10]={collar="star",ribbon="braid",turns=3.5},
+ [0]={widthScale=1.00,rings=1,strands=0,sparks=0},
+ [1]={widthScale=1.22,rings=1,strands=1,sparks=0},
+ [2]={widthScale=1.46,rings=1,strands=1,sparks=2},
+ [3]={widthScale=1.72,rings=1,strands=1,sparks=4},
+ [4]={widthScale=2.00,rings=1,strands=2,sparks=4},
+ [5]={widthScale=2.30,rings=1,strands=2,sparks=6},
+ [6]={widthScale=2.62,rings=1,strands=2,sparks=8},
+ [7]={widthScale=2.96,rings=2,strands=3,sparks=8},
+ [8]={widthScale=3.32,rings=2,strands=3,sparks=10},
+ [9]={widthScale=3.70,rings=2,strands=3,sparks=12},
+ [10]={widthScale=4.10,rings=2,strands=3,sparks=16},
 }
+function Style.WidthScale(level,quiet)
+ local scale=profiles[Style.Tier(level)].widthScale
+ -- Static quiet silhouettes still identify the milestone, without huge coverage.
+ return quiet and 1+(scale-1)*.18 or scale
+end
 Style.Styles={
  starter={
   id="starter",
@@ -78,6 +85,8 @@ function Style.Detail(level,reduced,distance)
  local styleId=Style.StyleForLevel(level).id
  if reduced or distance>Style.FarDistance then return {tier=tier,rings=0,strands=0,sparks=0,style=styleId} end
  local profile=profiles[tier]
- return {tier=tier,rings=1+math.floor(tier/3),strands=tier>=4 and (tier>=8 and 2 or 1) or 0,sparks=tier>=2 and (tier>=7 and 8 or 4) or 0,collar=profile.collar,ribbon=profile.ribbon,turns=profile.turns,style=styleId}
+ return {tier=tier,rings=profile.rings,strands=profile.strands,sparks=profile.sparks,
+  collar=tier>=8 and "star" or tier>=1 and "diamond" or "round",
+  ribbon="lightning",turns=1.5+tier*.2,style=styleId}
 end
 return Style

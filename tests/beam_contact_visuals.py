@@ -7,7 +7,8 @@ import beam_silhouette as support
 
 ROOT = Path(__file__).resolve().parents[1]
 VISUAL = ROOT / 'src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau'
-BASE = '5622daa54424e639e7d3f671b2e453ff377b2cb6'
+# Milestone geometry intentionally supersedes the old sphere-based silhouette.
+BASE = '760b257984edce31e46d8cfb7bb2928410185ec2'
 ENV = """
 local clock=20;local os={clock=function()return clock end}
 local function typeof(v)return getmetatable(v)==V and 'Vector3' or type(v)end
@@ -225,7 +226,7 @@ def main():
             ('now>=rig.contactBorn+.28', 'now>rig.contactBorn+.28', 'Contact TTL boundary'),
             ('n~=n or math.abs(n)==math.huge', 'math.abs(n)==math.huge', 'Malformed/out-of-range position accepted'),
             ('contactAllowed==false', 'false', 'Blocked contact retained'),
-            ('quiet or contactReduced or distance>Style.FarDistance', 'quiet or distance>Style.FarDistance', 'Quiet/far contact budget'),
+            ('local quiet=reduced or rig.reduced or contactReduced', 'local quiet=reduced or rig.reduced', 'Quiet/far contact budget'),
             ('local contactDir=rig.contactDirection', 'local contactDir=dir', 'Quiet contact moved/flashed'),
             ('take(detail or nextIndex>5)', 'take(nextIndex>5)', 'Contact pressure starved beam core'),
             ('if allocated>=Style.MaxParts then return end', 'if false then return end', 'Global contact pool cap exceeded'),

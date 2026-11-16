@@ -97,6 +97,7 @@ check(equal(ownerRejoin,victim.testBaseline) and equal(normalRejoin,rewardSnapsh
 attacker.data=normalRejoin
 check(not sameCombatMode(victim,attacker) and not sameCombatMode(attacker,victim),'Mixed PvP allowed')
 check(sameCombatMode(attacker,helper) and sameCombatMode(victim,victim),'Same mode incorrectly blocked')
+helper.flight={};check(not sameCombatMode(attacker,helper) and not sameCombatMode(helper,attacker) and not canDamageBots(helper),'Flying combat participation accepted');helper.flight=nil
 check(not sameCombatMode(nil,attacker) and not sameCombatMode(attacker,nil),'Missing session accepted')
 check(not canDamageBots(victim) and canDamageBots(attacker),'Shared NPC mode gate incorrect')
 localFixture=true;check(canDamageBots(victim),'Guarded local fixture blocked');localFixture=false

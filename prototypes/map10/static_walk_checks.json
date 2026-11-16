@@ -1,0 +1,229 @@
+{
+  "method": "5stud OBB heightfield,step<=2.5,normalsY>=.7; no native or avatar radius proof",
+  "parts": 604,
+  "reachableCells": 41352,
+  "targets": {
+    "spawn": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 0
+    },
+    "trainer1": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 260
+    },
+    "trainer2": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 160
+    },
+    "trainer3": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 260
+    },
+    "garden": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 260
+    },
+    "market": {
+      "ground": 16.0,
+      "expected": 16,
+      "reachable": true,
+      "routeStuds": 640
+    },
+    "arena": {
+      "ground": 0.0,
+      "expected": 0,
+      "reachable": true,
+      "routeStuds": 800
+    },
+    "coast": {
+      "ground": 0.1,
+      "expected": 0,
+      "reachable": true,
+      "routeStuds": 1320
+    },
+    "football": {
+      "ground": 0.0,
+      "expected": 0,
+      "reachable": true,
+      "routeStuds": 1170
+    },
+    "volley": {
+      "ground": 0.0,
+      "expected": 0,
+      "reachable": true,
+      "routeStuds": 980
+    },
+    "pier": {
+      "ground": 0.1,
+      "expected": 0,
+      "reachable": true,
+      "routeStuds": 1880
+    },
+    "amphitheatre": {
+      "ground": 32.6,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 560
+    },
+    "metronome": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 190
+    },
+    "golem": {
+      "ground": 0.0,
+      "expected": 0,
+      "reachable": true,
+      "routeStuds": 1470
+    },
+    "ignis": {
+      "ground": 32.3,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 830
+    },
+    "leviathan": {
+      "ground": 0.0,
+      "expected": 0,
+      "reachable": true,
+      "routeStuds": 1400
+    },
+    "conductor": {
+      "ground": 64.08,
+      "expected": 64,
+      "reachable": true,
+      "routeStuds": 1120
+    },
+    "DJ": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 425
+    },
+    "Tinker": {
+      "ground": 16.0,
+      "expected": 16,
+      "reachable": true,
+      "routeStuds": 640
+    },
+    "Kai": {
+      "ground": 0.0,
+      "expected": 0,
+      "reachable": true,
+      "routeStuds": 1300
+    },
+    "Lyra": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 190
+    },
+    "AcademyGarden0": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 300
+    },
+    "AcademyGarden1": {
+      "ground": 16.0,
+      "expected": 16,
+      "reachable": true,
+      "routeStuds": 400
+    },
+    "GardenCoast0": {
+      "ground": 16.0,
+      "expected": 16,
+      "reachable": true,
+      "routeStuds": 790
+    },
+    "GardenCoast1": {
+      "ground": 0.0,
+      "expected": 0,
+      "reachable": true,
+      "routeStuds": 890
+    },
+    "GardenArena0": {
+      "ground": 16.0,
+      "expected": 16,
+      "reachable": true,
+      "routeStuds": 650
+    },
+    "GardenArena1": {
+      "ground": 0.0,
+      "expected": 0,
+      "reachable": true,
+      "routeStuds": 750
+    },
+    "AcademyAmphitheatre0": {
+      "ground": 32.08,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 300
+    },
+    "AcademyAmphitheatre1": {
+      "ground": 32.6,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 560
+    },
+    "VolcanoBridgeNorth0": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 460
+    },
+    "VolcanoBridgeNorth1": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 680
+    },
+    "VolcanoBridgeSouth0": {
+      "ground": 16.0,
+      "expected": 16,
+      "reachable": true,
+      "routeStuds": 770
+    },
+    "VolcanoBridgeSouth1": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 900
+    },
+    "ShrineAscent0": {
+      "ground": 32.0,
+      "expected": 32,
+      "reachable": true,
+      "routeStuds": 850
+    },
+    "ShrineAscent1": {
+      "ground": 64.08,
+      "expected": 64,
+      "reachable": true,
+      "routeStuds": 1020
+    },
+    "ShrineApproach0": {
+      "ground": 64.08,
+      "expected": 64,
+      "reachable": true,
+      "routeStuds": 1020
+    },
+    "ShrineApproach1": {
+      "ground": 64.08,
+      "expected": 64,
+      "reachable": true,
+      "routeStuds": 1120
+    }
+  }
+}
