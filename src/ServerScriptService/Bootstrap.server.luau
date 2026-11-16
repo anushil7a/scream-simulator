@@ -1,3 +1,5 @@
+local TestFlight=require(script.Parent.TestFlight)
+local DodgeMotion=require(script.Parent.DodgeMotion)
 local Credit=require(game:GetService("ReplicatedStorage").Shared.CombatCredit)
 local TrainingRules=require(game:GetService("ReplicatedStorage").Shared.TrainingRules)
 local Healing=require(game:GetService("ReplicatedStorage").Shared.Healing)
@@ -25,6 +27,7 @@ local NavigationCatalog=require(ReplicatedStorage.Shared.NavigationCatalog)
 local Equipment=require(script.Parent.Equipment)
 -- Only disposable local fixtures bypass persistent profiles. Attack mode is independent.
 local localFixture=RunService:IsStudio() and game.PlaceId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
+local flightBounds={min=Vector3.new(Config.MapMin.X+8,-4,Config.MapMin.Z+8),max=Vector3.new(Config.MapMax.X-8,220,Config.MapMax.Z-8),localOnly=localFixture}
 local sustainedEnabled=Config.AutomaticVoice==true or localFixture
 local sustained
 if sustainedEnabled then
@@ -106,7 +109,7 @@ local function state(p,message,conversation,messageUrgent,messageKey)
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  voiceEligible=VoiceEligibility.Allowed(s.voiceEligibility,os.clock()),voiceStatus=VoiceEligibility.Status(s.voiceEligibility,os.clock()),
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
+ conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,flying=s.flight~=nil,message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
 end
 -- No remote can enqueue voice checks. Retry state belongs only to live sessions;
 -- at most eight actual API calls exist, with one new start per quarter-second.
@@ -206,11 +209,11 @@ local function combatChallenge(p,id,quiet)
  return reward,credited
 end
 local function sameCombatMode(a,b)
- return a~=nil and b~=nil and (a.testBaseline~=nil)==(b.testBaseline~=nil)
+ return a~=nil and b~=nil and not a.flight and not b.flight and (a.testBaseline~=nil)==(b.testBaseline~=nil)
 end
 local function canDamageBots(s)
  -- Only the guarded local fixture makes every participant's profile temporary.
- return s~=nil and (s.testBaseline==nil or localFixture==true)
+ return s~=nil and not s.flight and (s.testBaseline==nil or localFixture==true)
 end
 -- Ledger ownership uses an opaque session token, never a profile/session table.
 local function recordCredit(ledger,p,damage,maximum,now)
@@ -294,7 +297,19 @@ local function audible(c,origin,target,targetModel)
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c,targetModel};params.RespectCanCollide=true
  return workspace:Raycast(origin,target-origin,params)==nil
 end
+-- Bigger visual silhouettes need a taller aim envelope, not a larger
+-- engagement circle. Callers still require the same server CanHit gate.
+local function bossInBeam(boss,c,origin,direction,length,width)
+ local scale=boss.spec.scale or 1
+ local center=boss.root.Position
+ for i=-1,1 do
+  local sample=center+Vector3.new(0,i*2.5*scale,0)
+  if Rules.InBeam(origin,direction,sample,length,width,2*scale) and audible(c,origin,sample,boss.model) then return true end
+ end
+ return false
+end
 local function canCapture(p,s,now)
+ if s.flight then return false end
  local _,r,h=parts(p)
  local bot=s.conversationBot
  if r and bot and bot.alive and bot.root.Parent and bot.talkingTo==p and (bot.socialUntil or 0)>now
@@ -353,8 +368,9 @@ local function resolveSustained(ctx,direction,stats,now)
  end
  if bosses then
   for _,boss in ipairs(bosses.bosses) do
-   if bosses:CanHit(boss,ctx.player,now) and Rules.InBeam(ctx.origin,direction,boss.root.Position,length,stats.width,2)
-    and audible(ctx.character,ctx.origin,boss.root.Position,boss.model) then add("boss:"..boss.spec.id,{boss=boss}) end
+   if bosses:CanHit(boss,ctx.player,now) and bossInBeam(boss,ctx.character,ctx.origin,direction,length,stats.width) then
+    add("boss:"..boss.spec.id,{boss=boss})
+   end
   end
  end
  return ids,details,{origin=ctx.origin,direction=direction,length=length,width=stats.width,power=stats.power,obstruction=obstruction,dodged=dodged}
@@ -516,8 +532,7 @@ local function cast(p,request)
  end
  if bosses then
   for _,boss in ipairs(bosses.bosses) do
-   if bosses:CanHit(boss,p,now) and Rules.InBeam(origin,direction,boss.root.Position,length,sound.width,2)
-    and audible(c,origin,boss.root.Position,boss.model) then
+   if bosses:CanHit(boss,p,now) and bossInBeam(boss,c,origin,direction,length,sound.width) then
     if bosses:Hit(boss,p,sound.damage,now)>0 then s.nextHeal=now+Config.HealQuietSeconds end
    end
   end
@@ -553,7 +568,7 @@ local function finishDodge(p,s,c,r,h,started,now)
  h.AutoRotate=true
  if r.Parent and not r.Anchored then r:SetNetworkOwnershipAuto() end
 end
-local function dodge(p)
+local function dodge(p,sideIntent)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
  if s then cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
  if not s or not r or r.Anchored or h.Sit or h.SeatPart or h.PlatformStand or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
@@ -562,24 +577,26 @@ local function dodge(p)
  s.lastDodge=now;s.premiumRoll=cooldown<Config.DodgeCooldown
  p:SetAttribute("DodgeEnds",workspace:GetServerTimeNow()+Config.DodgeDuration)
  p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+cooldown)
- local direction=h.MoveDirection;if direction.Magnitude<0.1 then direction=r.CFrame.LookVector end
- direction=Vector3.new(direction.X,0,direction.Z).Unit
- local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c}
+ local direction,side,front=DodgeMotion.Direction(r.CFrame,h.MoveDirection,sideIntent)
+ local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c};params.RespectCanCollide=true
  local hit=workspace:Blockcast(r.CFrame,Vector3.new(2,3,2),direction*Config.DodgeDistance,params)
  local distance=hit and math.max(0,hit.Distance-1) or Config.DodgeDistance
- local start=r.CFrame;r:SetNetworkOwner(nil);h.AutoRotate=false
- r.CFrame=CFrame.lookAt(r.Position,r.Position+direction)
+ local start=r.CFrame;local facing=start.Rotation;r:SetNetworkOwner(nil);h.AutoRotate=false
+ p:SetAttribute("DodgeSide",side);p:SetAttribute("DodgeForward",front)
  p:SetAttribute("DodgeStarted",workspace:GetServerTimeNow());p:SetAttribute("DodgeDirection",direction)
- effect:FireAllClients("Dodge",r.Position,beamColor(p,s))
+ effect:FireAllClients("Dodge",r.Position,p.UserId)
  task.spawn(function()
   local previousDistance=0
   while sessions[p]==s and s.lastDodge==now and c.Parent and p.Character==c and h.Health>0 and s.dodgingUntil>os.clock() and os.clock()-now<Config.DodgeDuration do
    local t=math.clamp((os.clock()-now)/Config.DodgeDuration,0,1)
    local desired=distance*(t*t*(3-2*t));local step=desired-previousDistance
-   local blocked=step>0 and workspace:Blockcast(r.CFrame,Vector3.new(2,2.5,2),direction*step,params)
-   if blocked then break end
-   r.CFrame=CFrame.lookAt(r.Position+direction*step,r.Position+direction*(step+1));previousDistance=desired
+   local target=DodgeMotion.Step(workspace,r.CFrame,direction,step,params,h)
+   if not target then break end
+   r.CFrame=CFrame.new(target)*facing;previousDistance=desired
    r.AssemblyLinearVelocity=Vector3.zero;RunService.Heartbeat:Wait()
+  end
+  if sessions[p]==s and s.lastDodge==now then
+   s.dodgingUntil=math.min(s.dodgingUntil,os.clock());p:SetAttribute("DodgeEnds",workspace:GetServerTimeNow())
   end
   finishDodge(p,s,c,r,h,now,os.clock())
  end)
@@ -648,8 +665,9 @@ end
 local function dev(p,command)
  if Commerce.Busy(p) then state(p,"Wait for your purchase to finish saving.");return end
  local s=sessions[p];if not s or not Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId) then return end
- local valid={Coins=true,XP=true,AddLevels=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true,StudioMovement=true}
+ local valid={Coins=true,XP=true,AddLevels=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true,StudioMovement=true,Fly=true}
  if type(command)~="string" or not valid[command] then return end
+ if command=="Fly" and not (localFixture and RunService:IsStudio() and game.PlaceId==0 and game.GameId==0) then return end
  if command=="StudioMovement" and not game:GetService("RunService"):IsStudio() then return end
  if command=="ResetBots" and not localFixture then state(p,"Reset bots requires the isolated local Studio fixture; shared fights are unchanged.");return end
  -- Freeze legitimate progress before any test mutation. Keep renewing/releasing its lease.
@@ -659,7 +677,15 @@ local function dev(p,command)
  end
  local c,_,h=parts(p)
  local positions={Hub=World.SafeSpawn,Arena=Config.CompactCity and CFrame.new(Config.CityLayout.Teleports.Arena) or CFrame.new(0,6,0),Beach=Config.CompactCity and CFrame.new(Config.CityLayout.Teleports.Beach) or CFrame.new(0,4,403)}
- if command=="Coins" then s.data.coins+=1000
+ if command=="Fly" then
+  if s.flight then TestFlight.Stop(p,s)
+  else
+   cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
+   local ok,reason=TestFlight.Start(p,s,true,flightBounds,os.clock())
+   if not ok then state(p,reason or "Flight unavailable");return end
+   closeConversation(p);Soccer.Cancel(p);s.sprintRequested=false
+  end
+ elseif command=="Coins" then s.data.coins+=1000
  elseif command=="XP" then xp(p,500)
  elseif command=="AddLevels" then
   s.data.level=math.min(Config.MaxLevel,s.data.level+10)
@@ -672,12 +698,12 @@ local function dev(p,command)
  elseif command=="StudioMovement" then Entitlements.SetStudioMovement(p,not Entitlements.HasStudioMovement(p))
  elseif command=="ResetBots" then for _,b in ipairs(World.Bots) do restoreBot(b) end
  else return end
- syncHealth(p,command=="Heal");state(p,command=="StudioMovement" and ("Studio movement test "..(Entitlements.HasStudioMovement(p) and "ON" or "OFF").." · safe areas only · not saved") or "Test applied · progress is temporary. PvP is test-to-test only; NPC damage/reset requires the isolated local Studio fixture.")
+ syncHealth(p,command=="Heal");state(p,command=="Fly" and (s.flight and "Test flight ON · WASD, Space up, Ctrl down · combat disabled" or "Test flight OFF · returned to your starting position") or command=="StudioMovement" and ("Studio movement test "..(Entitlements.HasStudioMovement(p) and "ON" or "OFF").." · safe areas only · not saved") or "Test applied · progress is temporary. PvP is test-to-test only; NPC damage/reset requires the isolated local Studio fixture.")
 end
 World.OnVehicleSweep=function(car,previous,nextFrame)
  for player,s in pairs(sessions) do
   local character,root,humanoid=parts(player);local now=os.clock()
-  if root and now>=s.protectedUntil and now>=(s.nextCarHit or 0) and Rules.VehicleSweep(previous*CFrame.new(0,.55,0),nextFrame*CFrame.new(0,.55,0),root.Position,Vector3.new(8,4,4.5)) then
+  if root and not s.flight and now>=s.protectedUntil and now>=(s.nextCarHit or 0) and Rules.VehicleSweep(previous*CFrame.new(0,.55,0),nextFrame*CFrame.new(0,.55,0),root.Position,Vector3.new(8,4,4.5)) then
    cancelSustained(player,s,now);VoiceCombat.Cancel(s.voice);player:SetAttribute("CaptureStarted",0)
    s.nextCarHit=now+4;s.knockedUntil=now+1.3;s.dodgingUntil=0;s.sprintRequested=false;s.nextHeal=now+Config.HealQuietSeconds
    player:SetAttribute("DodgeEnds",0);player:SetAttribute("KnockdownEnds",workspace:GetServerTimeNow()+1.3)
@@ -708,7 +734,7 @@ end
 local function interactQuest(p,obj)
   if not obj.Enabled or not obj:IsDescendantOf(workspace.ScreamSimulatorWorld) then return end
   local s=sessions[p];local _,r=parts(p);local marker=obj.Parent
-  if not s or not r or not marker or not marker:IsA("BasePart") or (r.Position-marker.Position).Magnitude>12 then return end
+  if not s or s.flight or not r or not marker or not marker:IsA("BasePart") or (r.Position-marker.Position).Magnitude>12 then return end
   local active=Config.GetQuest(s.activeQuest)
   local progress=active and s.data.quests[active.id]
   if progress and (progress.claimed or progress.progress>=active.goal) then state(p,"Task complete · claim your reward in Quests.");return end
@@ -741,6 +767,12 @@ for _,obj in ipairs(workspace.ScreamSimulatorWorld:GetDescendants()) do
 end
 action.OnServerEvent:Connect(function(p,verb,arg)
  local s=sessions[p];if not s or type(verb)~="string" then return end
+ if verb=="FlightStop" then if s.flight then TestFlight.Stop(p,s) end;return end
+ if verb=="FlightInput" then
+  if s.flight then TestFlight.Input(p,s,arg,os.clock()) end
+  return
+ end
+ if s.flight and not (verb=="DevCommand" and arg=="Fly") and verb~="SetSettings" and verb~="Sync" then return end
  -- Validated idempotent stops must survive saturation; they grant no new action.
  if verb=="Sprint" and arg==false then s.sprintRequested=false;return end
  if verb=="EndConversation" and arg==nil then
@@ -787,7 +819,7 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   if VoiceCombat.Begin(s.voice,now,arg,canCapture(p,s,now)) then p:SetAttribute("CaptureStarted",workspace:GetServerTimeNow()) end;return
  elseif verb=="CancelCast" then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0);return
  elseif verb=="MicReady" then s.micReady=arg==true;if not s.micReady then cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end;return
- elseif verb=="Cast" then cast(p,arg);return elseif verb=="Dodge" then dodge(p);return
+ elseif verb=="Cast" then cast(p,arg);return elseif verb=="Dodge" then dodge(p,arg);return
  elseif verb=="ExtraJump" then
   local _,root,h=parts(p)
   if root and not root.Anchored and not h.Sit and not h.SeatPart and not h.PlatformStand and Entitlements.CanUseMovement(p,root.Position) and now>=(s.nextExtraJump or 0) and now>=s.dodgingUntil and now>=(s.knockedUntil or 0) and h.FloorMaterial==Enum.Material.Air and s.jumpOriginY and root.Position.Y<s.jumpOriginY+24 then
@@ -865,7 +897,7 @@ local function joined(p)
  local function spawn(c)
   local h=c:WaitForChild("Humanoid",10)
   if not h or not p.Parent or sessions[p]~=s or p.Character~=c or s.character==c then return end
-  s.character=c;closeConversation(p)
+  if s.flight then TestFlight.Stop(p,s) end;s.character=c;closeConversation(p)
   s.jumpPower=h.JumpPower;s.jumpHeight=h.JumpHeight
   h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=16
   s.sprintCharge=Config.SprintDuration;s.sprintRequested=false;s.sprintRunning=false;s.sprintRegenAt=0;s.lastStep=os.clock();s.sprintLockedUntil=0;s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false
@@ -876,7 +908,7 @@ local function joined(p)
  end
  s.characterRemovingConnection=p.CharacterRemoving:Connect(function(c)
   if sessions[p]~=s or s.character~=c then return end
-  closeConversation(p);cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
+  if s.flight then TestFlight.Stop(p,s) end;closeConversation(p);cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
   p:SetAttribute("CaptureStarted",0);s.sprintRequested=false;s.character=nil
  end)
  s.characterAddedConnection=p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
@@ -896,7 +928,7 @@ local function leaving(p)
  closeConversation(p)
  local s=sessions[p]
  if not s then return end
- disconnectSessionSignals(s)
+ if s.flight then TestFlight.Stop(p,s) end;disconnectSessionSignals(s)
  cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
  -- Release gameplay ownership before Save yields. Delayed gameplay callbacks
  -- must not mutate a departing profile or clear a replacement session later.
@@ -934,7 +966,7 @@ local function stepTraining(now)
   if now-(bot.lastTrainingHit or now)>TrainingRules.ResetAfter and bot.health<bot.maxHealth then restoreBot(bot) end
   local p=bot.trainingTarget;local s=p and sessions[p];local c,r,h
   if p then c,r,h=parts(p) end
-  local valid=s and r and s.micReady and not Config.InArena(r.Position) and (r.Position-bot.start).Magnitude<=TrainingRules.Radius
+  local valid=s and not s.flight and r and s.micReady and not Config.InArena(r.Position) and (r.Position-bot.start).Magnitude<=TrainingRules.Radius
    and now>=s.protectedUntil and now>=(s.knockedUntil or 0) and audible(bot.model,bot.root.Position,r.Position,c)
   if not valid then bot.strike=nil;bot.trainingTarget=nil;continue end
   if bot.strike then
@@ -952,7 +984,8 @@ local function stepTraining(now)
    -- Replicated, bounded warning disc; never collides or blocks the player's beam.
    local disc=Instance.new("Part");disc.Name="TrainingStrikeWarning";disc.Anchored=true
    disc.CanCollide=false;disc.CanTouch=false;disc.CanQuery=false;disc.Shape=Enum.PartType.Cylinder
-   disc.Size=Vector3.new(.1,8,8);disc.CFrame=CFrame.new(r.Position.X,1.4,r.Position.Z)*CFrame.Angles(0,0,math.pi/2)
+   local warningY=(bot.training.y or 0)+1.4
+   disc.Size=Vector3.new(.1,8,8);disc.CFrame=CFrame.new(r.Position.X,warningY,r.Position.Z)*CFrame.Angles(0,0,math.pi/2)
    disc.Color=Color3.fromRGB(255,90,70);disc.Material=Enum.Material.Neon;disc.Transparency=.45;disc.Parent=workspace
    game:GetService("Debris"):AddItem(disc,TrainingRules.Windup)
   end
@@ -986,6 +1019,13 @@ task.spawn(function()
   stepTraining(now)
   if bosses then bosses:Step(now) end
   for p,s in pairs(sessions) do
+   if s.flight then
+    -- Pause timed quest counters while traversal/interactions are disabled.
+    local pause=math.clamp(now-(s.lastStep or now),0,1)
+    if s.questDeadline then s.questDeadline+=pause end
+    if s.raceStart then s.raceStart+=pause end
+    TestFlight.Step(p,s,Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),flightBounds,now,.1)
+   end
    stepVoiceEligibility(p,s,now)
    local dt=math.max(0,now-s.lastStep);s.lastStep=now;local _,r,h=parts(p)
    -- Crossing into PvP immediately restores the full dodge cooldown.
@@ -1043,7 +1083,7 @@ local function shutdown()
  -- Freeze gameplay before any final save can yield or release its lease.
  -- In-flight joins see closing and release their acquired profile instead.
  for p,s in pairs(sessions) do
-  disconnectSessionSignals(s)
+  if s.flight then TestFlight.Stop(p,s) end;disconnectSessionSignals(s)
   closeConversation(p);cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
   sessions[p]=nil
   if s.canSave then table.insert(finalSaves,{player=p,session=s}) end

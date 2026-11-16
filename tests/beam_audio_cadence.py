@@ -13,6 +13,7 @@ local Mix=require('../src/StarterPlayer/StarterPlayerScripts/BeamAudioMix')
 local settings=require('../src/ReplicatedStorage/Shared/AttackAudioConfig')
 local checks=0;local function check(ok,msg)assert(ok,msg);checks+=1 end
 local function near(a,b)return math.abs(a-b)<.0000001 end
+local p={SetAttribute=function()end}
 local function make()
  local now=0;local os={clock=function()return now end};local elapsed=0
  local mic={ready=true,power=0,phase=nil};local handles={};local updates,destroyed=0,0

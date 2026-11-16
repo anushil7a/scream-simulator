@@ -10,13 +10,14 @@ setup="""
 local checks=0;local function check(ok,message)assert(ok,message);checks+=1 end
 local Config={MaxLevel=100};local studio=false;local Run={IsStudio=function()return studio end}
 local UDim2={fromOffset=function(x,y)return {X=x,Y=y}end}
+local localFlightTools=false
 local testContent={};local calls={};local buttons={}
 local action={FireServer=function(_,verb,arg)table.insert(calls,{verb,arg})end}
 local function button(parent,key,text,size,pos,callback)
  buttons[key]={text=text,size=size,pos=pos,call=callback}
 end
-local function render(isStudio)
- studio=isStudio;buttons={};calls={}
+local function render(isStudio,flight)
+ localFlightTools=flight==true;studio=isStudio;buttons={};calls={}
 """
 checks="""
 end
@@ -43,6 +44,7 @@ for _,value in ipairs({false,true,1,'true'})do
  update({devAccess=value});check(testButton.Visible==(value==true),'Test-tools visibility trusts nonboolean access')
 end
 update({});check(testButton.Visible==false,'Missing authorization leaves test tools visible')
+render(true,true);check(buttons.Fly~=nil,'Guarded fixture Fly missing');buttons.Fly.call();check(calls[1][1]=='DevCommand' and calls[1][2]=='Fly','Fly command changed')
 print('PASS '..checks..' actual test-tool UI checks; synthetic geometry and events only')
 """
 def run(code,expected=None):

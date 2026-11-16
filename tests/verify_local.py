@@ -47,7 +47,7 @@ def verify(args, report=None):
     for path in suites:
         print(f'Checking {path.name}', flush=True)
         run(['luau', str(path)])
-    mocked = ('profile_migration.py', 'gear_persistence.py', 'gear_equipment.py', 'profile_race.py', 'entitlements.py', 'destruction_service.py', 'microphone_lifecycle.py', 'animation_lifecycle.py', 'effect_cleanup.py', 'landmark_lifecycle.py', 'ambience_startup.py', 'performance_counts.py', 'hud_health.py', 'menu_cleanup.py', 'client_connections.py', 'resident_labels.py', 'interaction_recovery.py', 'city_map_marker.py', 'progress_label.py', 'settings_validation.py', 'knockout_recovery.py', 'combat_availability.py', 'respawn_state.py', 'target_readout.py', 'target_cover.py', 'sprint_state.py', 'dodge_cleanup.py', 'destruction_hint.py', 'npc_routes.py', 'sprint_input.py', 'movement_eligibility.py', 'npc_social.py', 'npc_audience.py', 'npc_greetings.py', 'npc_recovery.py', 'voice_toggle.py', 'npc_work.py', 'conversation_lifecycle.py', 'conversation_ownership.py', 'capture_blocking.py', 'player_departure.py', 'shutdown_saves.py', 'autosave_status.py', 'quest_prompt.py', 'quest_accept.py', 'quest_claim.py', 'pvp_rewards.py', 'ko_reward_cleanup.py')
+    mocked = ('boss_audio.py', 'test_flight.py', 'test_flight_input.py', 'profile_migration.py', 'gear_persistence.py', 'gear_equipment.py', 'profile_race.py', 'entitlements.py', 'destruction_service.py', 'microphone_lifecycle.py', 'animation_lifecycle.py', 'effect_cleanup.py', 'landmark_lifecycle.py', 'ambience_startup.py', 'performance_counts.py', 'hud_health.py', 'menu_cleanup.py', 'client_connections.py', 'resident_labels.py', 'interaction_recovery.py', 'city_map_marker.py', 'progress_label.py', 'settings_validation.py', 'knockout_recovery.py', 'combat_availability.py', 'respawn_state.py', 'target_readout.py', 'target_cover.py', 'sprint_state.py', 'dodge_cleanup.py', 'destruction_hint.py', 'npc_routes.py', 'sprint_input.py', 'movement_eligibility.py', 'npc_social.py', 'npc_audience.py', 'npc_greetings.py', 'npc_recovery.py', 'voice_toggle.py', 'npc_work.py', 'conversation_lifecycle.py', 'conversation_ownership.py', 'capture_blocking.py', 'player_departure.py', 'shutdown_saves.py', 'autosave_status.py', 'quest_prompt.py', 'quest_accept.py', 'quest_claim.py', 'pvp_rewards.py', 'ko_reward_cleanup.py')
     mocked += ('attack_audio.py', 'gameplay_audio.py', 'combat_healing.py', 'commerce.py', 'shop_rewards.py', 'practice_lane.py', 'shutdown_race.py', 'profile_recovery.py', 'recovery_notice.py', 'acquisition_lifetime.py', 'action_feedback.py')
     mocked += ('navigation_ui.py', 'navigation_layout.py', 'voice_notice_lifecycle.py', 'supporting_npcs.py')
     mocked += ('save_notification_priority.py', 'third_person.py', 'beam_readout.py', 'boost_purchase_ui.py', 'developer_tools.py', 'developer_tools_ui.py', 'challenge_retirement.py', 'quest_catalog_ui.py', 'dodge_effect.py', 'style_controls.py', 'minimap.py', 'training_roam.py', 'beam_audio_levels.py', 'beam_audio_cadence.py', 'compact_city_draft.py', 'compact_city_map.py', 'compact_world.py', 'compact_integration.py', 'compact_review_fixture.py', 'compact_guidance.py', 'microphone_notice.py', 'voice_stop_rate_limit.py', 'combat_quests.py', 'test_session_rewards.py', 'voice_eligibility.py', 'voice_eligibility_recovery.py', 'session_connections.py', 'combat_credit_identity.py', 'gameplay_cue_settings.py', 'sprint_recovery.py', 'quest_dialogue_restart.py', 'quest_writer_compatibility.py', 'quest_writer_preflight.py', 'entitlement_refresh.py')
@@ -58,12 +58,21 @@ def verify(args, report=None):
     mocked += ('notice_view.py', 'beam_pool_composition.py', 'conversation_stop_rate_limit.py', 'reward_credit_feedback.py', 'nick_practice_goal.py', 'compact_ambience.py', 'prelaunch_release_gate.py', 'prelaunch_test_isolation.py')
     mocked += ('local_run_reporting.py', 'beam_performance_cleanup.py', 'run_animation_startup.py')
     mocked += ('client_startup_lifecycle.py', 'client_startup_builder.py')
-    mocked += ('challenge_cap_copy.py',)
+    mocked += ('challenge_cap_copy.py', 'sideways_dodge.py', 'dodge_visuals_contract.py', 'dodge_visuals_lifecycle.py')
     mocked += ('hud_readability.py', 'voice_reactor.py')
     mocked += ('lock_on.py', 'lock_on_integration.py', 'hud_presentation.py', 'coastal_art.py', 'academy_landmark.py', 'minimap_visuals.py', 'beam_silhouette.py')
-    mocked += ('beam_contact_anchor.py', 'beam_contact_visuals.py', 'beam_contact_integration.py', 'beam_native_budget.py')
-    mocked += ('high_tier_clarity.py', 'boss_service.py', 'boss_spatial.py', 'navigation_catalog.py', 'navigation_guide.py')
+    mocked += ('beam_contact_anchor.py', 'beam_contact_visuals.py', 'beam_contact_integration.py', 'beam_native_budget.py', 'beam_milestone_native.py')
+    mocked += ('high_tier_clarity.py', 'boss_service.py', 'boss_attack_effects.py', 'boss_balance.py', 'boss_aim.py', 'boss_visuals.py', 'boss_pose.py', 'boss_spatial.py', 'navigation_catalog.py', 'navigation_guide.py')
     mocked += ('sustained_ttk.py', 'beam_tier_silhouettes.py', 'microphone_direct_ready.py', 'practice_retirement.py', 'cast_feedback_contract.py', 'ui_copy_cleanup.py', 'npc_nameplate.py', 'menu_icons.py', 'trainer_models.py', 'training_map.py')
+    from preserved_compact import SUITES as compact_archival_suites
+    map10 = 'MapId="Map10"' in (ROOT / 'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text(encoding='utf-8')
+    if map10:
+        # These geometric/placement oracles describe the old, archived compact city.
+        # Run them against its checked source with tests/preserved_compact.py.
+        mocked = tuple(name for name in mocked if name not in compact_archival_suites) + (
+            "map10_contract.py", "map10_grounding.py", "map10_finish.py", "map10_repairs.py",
+        )
+        print(f'{len(compact_archival_suites)} compact-city-only suites are archived; see tests/preserved_compact.py.', flush=True)
     for name in mocked:
         print(f'Checking {name} (mocked services)', flush=True)
         run([sys.executable, str(ROOT / 'tests' / name)])
@@ -86,7 +95,8 @@ def verify(args, report=None):
         run([sys.executable, 'tests/build_beam_performance_review.py'])
         run([sys.executable, 'tests/build_notice_layout_review.py'])
         run([sys.executable, 'tests/build_notice_input_review.py'])
-        run([sys.executable, 'tests/build_compact_review.py'])
+        if not map10:
+            run([sys.executable, 'tests/build_compact_review.py'])
         run([sys.executable, 'tools/build_compact_city_draft.py'])
         for path in sorted((ROOT / 'build').glob('Studio*Harness.luau')) + [ROOT / 'build/StudioUIPreview.luau']:
             run(['luau-compile', str(path)], quiet=True)

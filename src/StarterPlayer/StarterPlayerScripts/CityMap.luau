@@ -54,6 +54,11 @@ function CityMap.create(parent,compact)
  box(map,'Arena',arenaX,arenaZ,arenaWidth,arenaHeight,Color3.fromRGB(111,66,69))
  if CompactLayout then
   local width=Config.MapMax.X-Config.MapMin.X;local depth=Config.MapMax.Z-Config.MapMin.Z
+  -- Flat region silhouettes follow the new authoritative island schema.
+  for _,region in ipairs(CompactLayout.MapRegions or {}) do
+   local start=position(region.x-region.width/2,region.z-region.depth/2)
+   box(map,'Region_'..region.name,start.X.Scale,start.Y.Scale,region.width/width,region.depth/depth,region.color)
+  end
   -- Match the actual shared beach/courtyard footprints and frame the southern surf edge.
   for _,part in ipairs(CompactLayout.PartSpecs) do
    if part.id=="HubPaving" or part.id=="Beach" then

@@ -299,7 +299,16 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
   sScale=pScale
  end
  local far=quiet or distance>Style.FarDistance
- local bucket=math.floor(wScale*20+.5)
+ local scale=Style.WidthScale(rig.level,far)
+ -- Normalize against the actual selected recipe, not a guessed pack width.
+ -- Family switches at 40/80 must not shrink a newly earned milestone.
+ local widest=.001
+ for _,entry in ipairs(vfx.beams) do
+  if not far or entry.isCore then widest=math.max(widest,entry.baseW0,entry.baseW1) end
+ end
+ wScale=width*.6*scale/widest
+ pScale*=math.min(scale,1.5)
+ local bucket=wScale
  local rescale=vfx.lastBucket~=bucket
  if rescale then vfx.lastBucket=bucket end
  for _,entry in ipairs(vfx.beams) do
@@ -315,7 +324,10 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
  for _,entry in ipairs(vfx.emitters) do
   local em=entry.inst
   if far and em.Enabled then em:Clear() end
-   em.Enabled=not far
+   -- Endpoint particle clusters read as the rejected firing spheres. Only
+   -- reviewed column emitters remain; lightning is original pooled geometry.
+   em.Enabled=not far and vfx.midAnchor~=nil and em.Parent==vfx.midAnchor
+   em.Rate=math.min(entry.baseRate,60/math.max(1,#vfx.emitters))
   if rescale then
    em.Size=scaleNumberSequence(entry.baseSize,pScale)
    em.Speed=scaleNumberRange(entry.baseSpeed,sScale)
@@ -330,26 +342,14 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
  end
  for _,m in ipairs(vfx.meshes) do
   local mesh=m.inst
-  mesh.Transparency=far and 1 or m.baseTrans
+  mesh.Transparency=1 -- No imported mesh bulbs on the firing path.
   if not far then
    local d=math.max(.8,width*.68)
    mesh.Size=Vector3.new(length,d,d)
    mesh.CFrame=CFrame.lookAt(mid,finish,up)*CFrame.Angles(0,math.pi/2,0)
   end
  end
- if vfx.orbs then
-  local pulse=quiet and 1 or 1+.08*math.sin(age*14)
-  local cSize=math.clamp(width*.52,.9,3.0)*pulse
-  vfx.orbs.core.Size=Vector3.one*cSize
-  vfx.orbs.core.CFrame=CFrame.new(origin)
-  vfx.orbs.shell.Size=Vector3.one*(cSize*1.42)
-  vfx.orbs.shell.CFrame=CFrame.new(origin)
-  vfx.orbs.shell.Transparency=far and 1 or .48
-  local travel=(age*2.2)%1
-  vfx.orbs.travel.Size=Vector3.one*(cSize*.72)
-  vfx.orbs.travel.CFrame=CFrame.new(origin+dir*(length*travel))
-  vfx.orbs.travel.Transparency=far and 1 or .28
- end
+
 end
 local function take(detail)
  if detail and detailCount>=Style.MaxParts-24*5 then return end
@@ -410,16 +410,16 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
  rig.contact.used=0
  if contactAllowed==false or distance>Style.DrawDistance or rig.contactBorn and now>=rig.contactBorn+.28 then rig.contactPosition=nil end
  if distance<=Style.DrawDistance then
-  local spec=Style.Detail(rig.level,reduced or rig.reduced,distance)
+  local spec=Style.Detail(rig.level,reduced or rig.reduced or contactReduced,distance)
   local origin,dir,length,width,color=rig.origin,rig.direction,rig.length,rig.width,rig.color
   local basis=CFrame.lookAt(origin,origin+dir,math.abs(dir.Y)>.98 and Vector3.zAxis or Vector3.yAxis)
   local right,up=basis.RightVector,basis.UpVector
   local age=now-rig.born;local tier=spec.tier
-  local quiet=reduced or rig.reduced
-  local radius=width*(.24+tier*.012)*Style.LaunchScale(age,quiet)
+  local quiet=reduced or rig.reduced or contactReduced
+  local radius=width*(.24+tier*.012)*Style.WidthScale(rig.level,quiet or distance>Style.FarDistance)*Style.LaunchScale(age,quiet or distance>Style.FarDistance)
   local finish=origin+dir*length
   -- Smooth low-amplitude breathing; no screen flash, camera shake or lights.
-  local pulse=quiet and 1 or 1+.035*math.sin(age*9)
+  local pulse=(quiet or distance>Style.FarDistance) and 1 or 1+.035*math.sin(age*9)
   local detailed=not quiet and distance<=Style.FarDistance
   local high=tier>=8
   -- Quiet mode retains its simple silhouette. Regular energy has a slim hot spine
@@ -428,14 +428,15 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
   line(rig,origin,finish,radius*.85,color,quiet and .32 or detailed and (high and .7 or .18) or .12,detailed and Enum.Material.SmoothPlastic or nil)
   line(rig,origin,finish,radius*(detailed and .10 or .28),detailed and color:Lerp(white,.72) or white,quiet and .45 or .08)
   if quiet or distance>Style.FarDistance then
-   draw(rig,Enum.PartType.Ball,Vector3.one*math.min(length,radius*1.5),CFrame.new(finish),color,.3)
+   line(rig,finish-dir*math.min(length,.12),finish,radius*.8,color,.55)
   else
    -- An energy termination lens, not a hit-confirmation flash. Stay within range.
    local depth=math.min(length,radius*.22)
    line(rig,finish-dir*depth,finish,radius*1.25,color,.18,Enum.Material.SmoothPlastic)
   end
   if not quiet and distance<=Style.FarDistance then
-   draw(rig,Enum.PartType.Ball,Vector3.one*radius*.72,CFrame.new(origin),color,.18,Enum.Material.SmoothPlastic)
+   -- Thin axial ignition streak, never a launch sphere.
+   line(rig,origin,origin+dir*math.min(length,1.5),radius*.12,color,.18,Enum.Material.SmoothPlastic)
    local function offset(angle,r) return (right*math.cos(angle)+up*math.sin(angle))*r end
    local function collarOffset(angle,r)
     if spec.collar=="diamond" then r/=math.abs(math.cos(angle))+math.abs(math.sin(angle))
@@ -461,12 +462,12 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
     local previous=origin
     for i=1,12 do
      local t=i/12
-     local winding=spec.ribbon=="braid" and (strand==1 and 1 or -1) or 1
-     local phase=t*math.pi*2*spec.turns*winding-age*5+strand*math.pi
-     local radial=radius*.95*math.sin(t*math.pi)
-     if spec.ribbon=="zigzag" then phase=age*.35+strand*math.pi;radial*=i%2==0 and -1 or 1 end
+     -- Angular, continuous electric filaments from VFX-02, not rotating beads.
+     -- Low-amplitude drift keeps crisp bends without random/strobing flashes.
+     local phase=strand*math.pi*2/spec.strands+t*spec.turns+age*.35
+     local radial=radius*(i%2==0 and .95 or .48)*math.sin(t*math.pi)
      local point=origin+dir*(length*t)+offset(phase,radial)
-     line(rig,previous,point,.065+tier*.006,color:Lerp(white,high and .12 or .4),high and .42 or .25,high and Enum.Material.SmoothPlastic or nil);previous=point
+     line(rig,previous,point,.075+tier*.012,color:Lerp(white,.35),.22,Enum.Material.Neon);previous=point
     end
    end
    for i=1,spec.sparks do
@@ -477,7 +478,7 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
    end
   end
   if rig.contactPosition then
-   local quietContact=quiet or contactReduced or distance>Style.FarDistance
+   local quietContact=quiet or distance>Style.FarDistance
    local progress=math.clamp((now-rig.contactBorn)/.28,0,1)
    local ease=1-(1-progress)^3
    local heat=(1-progress)^2
@@ -509,8 +510,11 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
    local hasVfx=rig.vfx~=nil
    for i=1,rig.used do
     local p=rig.parts[i]
-    if i==1 or decoration[p] or (i==2 and hasVfx) then
+    if i==1 or (i==2 and hasVfx) then
      p.LocalTransparencyModifier=1
+    elseif decoration[p] then
+     -- Native templates must not erase the ten-level lightning progression.
+     p.Color=pCol:Lerp(sCol,.35);p.LocalTransparencyModifier=0
     elseif i==2 then
      p.Color=pCol;p.LocalTransparencyModifier=.35
     elseif i==3 then

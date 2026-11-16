@@ -7,24 +7,24 @@ resident=(R/'src/StarterPlayer/StarterPlayerScripts/Residents.client.luau').read
 layout=cw.layout;city=cw.city
 BASE='0c68c05'
 GOALS=r'''
-local result=City.Build({});local goalNames={NickPracticeGoalLeft=true,NickPracticeGoalRight=true,NickPracticeGoalCrossbar=true};local goalCount=0
+local result=City.Build({});local goal=Layout.Soccer.practiceGoal;local goalNames={NickPracticeGoalLeft=true,NickPracticeGoalRight=true,NickPracticeGoalCrossbar=true};local goalCount=0
 local byName={};for _,n in ipairs(nodes)do if n.Name then byName[n.Name]=n end end
-check(Layout.Soccer.practiceGoal.X==265 and Layout.Soccer.practiceGoal.Y==1.05 and Layout.Soccer.practiceGoal.Z==287,'Compact endpoint changed')
+check(goal.Y==1.05,'Practice ball endpoint must sit above the pitch')
 for name in pairs(goalNames)do
  local n=byName[name];check(n~=nil,'Decorative practice goal missing');goalCount+=1
  check(n.ClassName=='Part' and n.Anchored==true and n.CanCollide==false and n.CanQuery==false and n.CanTouch==false and n.CastShadow==false,'Goal changes physics/query')
  check(next(n.attributes)==nil,'Goal has gameplay tags')
  for _,child in ipairs(nodes)do check(child.Parent~=n,'Goal has prompt/light child')end
- check(n.Position.Z==286,'Goal plane not one stud before endpoint')
+ check(n.Position.Z==goal.Z-1,'Goal plane not one stud before endpoint')
 end
 check(goalCount==3,'Goal inventory wrong')
 local l,r,c=byName.NickPracticeGoalLeft,byName.NickPracticeGoalRight,byName.NickPracticeGoalCrossbar
-check(l.Position.X==257 and r.Position.X==273 and l.Position.Y==3.5 and r.Position.Y==3.5,'Goal post placement wrong')
+check(l.Position.X==goal.X-8 and r.Position.X==goal.X+8 and l.Position.Y==3.5 and r.Position.Y==3.5,'Goal post placement wrong')
 check(l.Size.X==.35 and l.Size.Y==7 and l.Size.Z==.35 and r.Size.X==.35 and r.Size.Y==7 and r.Size.Z==.35,'Goal post dimensions wrong')
-check(c.Position.X==265 and c.Position.Y==7 and c.Size.X==16 and c.Size.Y==.35 and c.Size.Z==.35,'Goal crossbar wrong')
+check(c.Position.X==goal.X and c.Position.Y==7 and c.Size.X==16 and c.Size.Y==.35 and c.Size.Z==.35,'Goal crossbar wrong')
 local found=false;for _,job in ipairs(result.jobs)do if job.role=='Soccer' then
- local station=job.stations[1];check(station.position.X==239 and station.position.Y==3 and station.position.Z==281,'Nick station moved')
- check(station.lookAt.X==265 and station.lookAt.Z==286 and job.quests[1]=='nick','Nick aim/quest changed');found=true
+ local station=job.stations[1];check(station.position.X==goal.X-26 and station.position.Y==3 and station.position.Z==goal.Z-6,'Nick station moved')
+ check(station.lookAt.X==goal.X and station.lookAt.Z==goal.Z-1 and job.quests[1]=='nick','Nick aim/quest changed');found=true
 end end;check(found,'Nick missing')
 '''
 MATH=r'''
@@ -38,7 +38,7 @@ CFrame.new=function(v)return setmetatable({Position=v},CF)end;CFrame.Angles=func
 CHECKS=r'''
 for _,compact in ipairs({true,false})do
  local animate,rig,root=make(compact)
- local dest=compact and Vector3.new(265,1.05,287) or Vector3.new(628,2.05,586)
+ local dest=compact and Layout.Soccer.practiceGoal or Vector3.new(628,2.05,586)
  local start=root.Position-Vector3.new(0,1.9,0)+root.CFrame.LookVector*1.65
  for _,age in ipairs({0,1.2,2,3.7,6.49})do
   animate(true,10,'OwnGoal',age)
@@ -50,10 +50,11 @@ for _,compact in ipairs({true,false})do
   end
  end
  if compact then
-  local cross=start:Lerp(dest,(286-start.Z)/(dest.Z-start.Z))
-  check(cross.X-.75>257+.175 and cross.X+.75<273-.175 and cross.Y+.75<7-.175 and cross.Y-.75>0,'Ball path intersects goal frame or ground')
-  check(dest.X-239==26 and dest.Z-281==6,'Original station-relative endpoint changed')
-  local hit=rig.practiceBall.last.Position;check(hit.X>257+.175+.75 and hit.X<273-.175-.75 and hit.Y+.75<7-.175 and hit.Z>286,'Ball does not finish through open goal')
+  local left,right,plane=dest.X-8,dest.X+8,dest.Z-1
+  local cross=start:Lerp(dest,(plane-start.Z)/(dest.Z-start.Z))
+  check(cross.X-.75>left+.175 and cross.X+.75<right-.175 and cross.Y+.75<7-.175 and cross.Y-.75>0,'Ball path intersects goal frame or ground')
+  check(dest.X-root.Position.X==26 and dest.Z-root.Position.Z==6,'Original station-relative endpoint changed')
+  local hit=rig.practiceBall.last.Position;check(hit.X>left+.175+.75 and hit.X<right-.175-.75 and hit.Y+.75<7-.175 and hit.Z>plane,'Ball does not finish through open goal')
  end
  for _,condition in ipairs({'inactive','far'})do
   animate(true,10,'OwnGoal',2);local count=rig.practiceBall.calls
@@ -70,10 +71,17 @@ print('PASS '..checks..' actual Nick goal construction/animation assertions; moc
 def build(resident,layout,city,baseline=False):
  a=resident.index('  if rig.practiceBall then',resident.index('local workAge='));b=resident.index('  for i,name in ipairs(jointNames)',a);branch=resident[a:b]
  goal=next((l for l in resident.splitlines()if l.startswith('local practiceGoal=')),'local practiceGoal=nil')
- return cw.setup+layout+cw.between+city+'\nend)()\n'+('' if baseline else GOALS)+MATH+'''\nlocal function make(compact)
+ setup=cw.setup.replace('local Layout=(function()', '''local nativeCF=CFrame.new
+local cityCF={__mul=function(a)return a end}
+CFrame.new=function(...)return setmetatable(nativeCF(...),cityCF)end
+CFrame.Angles=function()return {}end
+Vector3.zero=Vector3.new(0,0,0)
+local Layout=(function()''')
+ return setup+layout+cw.between+city+'\nend)()\n'+('' if baseline else GOALS)+MATH+'''\nlocal function make(compact)
 local Config={CompactCity=compact,CityLayout=Layout}
 '''+goal+'''
-local origin=compact and Vector3.new(239,3,281) or Vector3.new(602,4,580)
+local g=Layout.Soccer.practiceGoal
+local origin=compact and Vector3.new(g.X-26,3,g.Z-6) or Vector3.new(602,4,580)
 local toward=Vector3.new(26,0,5).Unit
 local root={Position=origin,CFrame={LookVector=toward}}
 local ball={calls=0,piece={Transparency=1}};function ball:GetChildren()return {self.piece}end;function ball:PivotTo(cf)self.last=cf;self.calls+=1 end

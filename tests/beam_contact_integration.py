@@ -135,7 +135,7 @@ for _,case in ipairs({
 end
 rig,id=make();hit(id,10,anchor);frame(1/30)
 local before=#rig.parts;platformReducedMotion=true;clock+=.02;frame(1/30)
-check(#rig.contact.parts==8 and #rig.parts==before and rig.parts[1].Material==Enum.Material.SmoothPlastic,'OS quiet contact changed core tier or missed quiet mode')
+check(#rig.contact.parts==8 and #rig.parts==4 and rig.level==100 and rig.parts[1].Material==Enum.Material.Neon,'OS quiet contact or beam missed quiet mode')
 data.settings.reducedShake=true;clock+=.02;frame(1/30);check(#rig.contact.parts==8 and #rig.parts==4,'Game reduced mode missed contact/core policy')
 data.settings.reducedShake=false;platformReducedMotion=false;workspace.CurrentCamera.CFrame.Position=vec(0,0,111);frame(1/30)
 check(#rig.contact.parts==8 and #rig.parts==4,'Far contact/core policy changed')
@@ -145,6 +145,18 @@ rig,id=make();hit(id,10,anchor);frame(1/30);send('SustainedBeamEnd',nil,8);check
 send('SustainedBeamEnd',nil,7);check(not sustainedBeams.entries[7] and #rig.contact.parts==0 and stops>0 and screenClears>0,'Local end retained contact/audio/screen state')
 rig,id=make();hit(id,10,anchor);frame(1/30);clock=sustainedBeams.entries[7].expires;frame(1/30)
 check(not sustainedBeams.entries[7] and #rig.parts==0 and #rig.contact.parts==0,'Expired client entry retained contact')
+-- Actual event slice: attacker level, not viewer or selected sound, drives both IDs.
+platformReducedMotion=false;data.settings.reducedShake=false
+for _,level in ipairs({1,10,20,30,40,50,60,70,80,90,100})do
+ for _,attacker in ipairs({7,8})do
+  send('SustainedBeam',Vector3.zero,attacker,'Gold',Vector3.zAxis,40,7,'TinyAah',level)
+  frame(1/30)
+  local visual=sustainedBeams.entries[attacker].visual
+  local spec=StyleSource.Detail(level,false,0)
+  check(visual.level==level and visual.width==7 and visual.length==40,'Packet lost attacker level or changed gameplay dimensions')
+  check(#visual.parts==5+spec.rings*10+spec.strands*12+spec.sparks,'Packet milestone recipe lost')
+ end
+end
 sustainedBeams:Destroy();sustainedControl:Destroy();BeamVisuals.Clear();check(BeamVisuals.Budget()==0 and made==dead,'Integrated cleanup leaked')
 print('PASS',checks,'actual Client contact integration checks; real acknowledgement/hit/manager/renderer, mocked transport/HUD/audio')
 '''
@@ -196,7 +208,7 @@ def main():
             (render, 'and p:GetAttribute("SustainedActive")==true', '', 'Current-state frame gate retained contact: inactive'),
             (render, 'and p:GetAttribute("SustainedSequence")==attack.sequence', '', 'Current-state frame gate retained contact: mismatch'),
             (render, 'entry.visual.contactSequence==attack.sequence', 'true', 'Current-state frame gate retained contact: contact owner mismatch'),
-            (render, 'platformReducedMotion)', 'false)', 'OS quiet contact changed core tier or missed quiet mode'),
+            (render, 'platformReducedMotion)', 'false)', 'OS quiet contact or beam missed quiet mode'),
         ]
         for fragment, old, new, expected in cases:
             assert fragment.count(old) == 1, old

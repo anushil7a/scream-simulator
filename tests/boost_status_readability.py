@@ -210,6 +210,8 @@ def main():
     args = parser.parse_args()
     source = (ROOT / PATH).read_text(encoding='utf-8-sig')
     baseline = subprocess.check_output(['git', 'show', BASE + ':' + PATH], cwd=ROOT, text=True, encoding='utf-8')
+    # Approved movement rename is unrelated to boost-state layout invariance.
+    baseline = baseline.replace("Chain jumps and rolls through the safe city", "Chain jumps and dodges through the safe city")
     run(source, baseline)
     if args.negative_controls:
         cases = [

@@ -55,6 +55,12 @@ setup=r"""
 end)()
 local owner={UserId=11499795799,SetAttribute=function()end};local ordinary={UserId=1234,SetAttribute=function()end}
 local VoiceCombat=Combat;local function cancelSustained()end
+local localFixture=false;local flightBounds={localOnly=true};local flightStarts=0;local flightStops=0
+local TestFlight={Start=function(p,s,authorized,bounds,now)
+ assert(authorized==true and type(s.testBaseline)=='table','Flight before isolated temporary baseline')
+ flightStarts+=1;s.flight={};return true end,Stop=function(p,s)flightStops+=1;s.flight=nil end}
+local function closeConversation()end
+local Soccer={Cancel=function()end}
 local sessions={};local busy=false;local notices=0;local healthSync=0;local entitlementWrites=0;local movement=false
 local Commerce={Busy=function()return busy end}
 local function state()notices+=1 end
@@ -122,6 +128,17 @@ check(s.data.level==100 and s.data.xp==0,'Repeated tool exceeded cap')
 check(s.testBaseline==baseline and baseline.level==1 and baseline.xp==17,'Repeat test recaptured modified baseline')
 check(baseline.quests.garden.progress==1 and baseline.settings.volume==.4 and baseline.achievements.FirstBeam,'Nested legitimate baseline changed')
 check(entitlementWrites==0 and healthSync>0,'Level tool modified movement entitlement or skipped health sync')
+-- The actual dev dispatcher rejects preview/live contexts before touching profiles.
+for _,context in ipairs({{false,true,0,0},{true,false,0,0},{true,true,9,0},{true,true,0,9}})do
+ studio=context[1];localFixture=context[2];game.GameId=context[3];game.PlaceId=context[4]
+ local test=fresh(owner,1);dev(owner,'Fly');check(test.flight==nil and test.testBaseline==nil,'Nonlocal Fly mutated session')
+end
+studio=true;localFixture=true;game.GameId=0;game.PlaceId=0
+local flightSession=fresh(owner,1);flightSession.activeQuest='garden'
+dev(owner,'Fly');check(flightStarts==1 and flightSession.flight and flightSession.testBaseline.coins==123,'First Fly did not isolate before activation')
+check(flightSession.activeQuest=='garden','Flight erased active quest identity')
+local heldBaseline=flightSession.testBaseline;dev(owner,'Fly')
+check(flightStops==1 and not flightSession.flight and flightSession.testBaseline==heldBaseline,'Off lost baseline or failed cleanup')
 print('PASS '..n..' actual developer access/command/sanitizer assertions; mocked engine, no native or real save validation')
 """
 def assemble(access_source=access,dev_source=dev):
@@ -148,7 +165,7 @@ else:
  late=server[server.index(' if closing or not p.Parent then',server.index('local function joined(p)')):server.index(' local s={data=data',server.index('local function joined(p)'))]
  assert 'pcall(Profiles.Save,p.UserId,data,true)' in late and 'return' in late,'Unexpected raw-data save outside pre-session late-load release'
  assert 'devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)' in server,'Visibility omitted server Studio/universe context'
- assert server.count('Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)')==2,'Visibility/command must both use server universe'
+ assert server.count('Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)')==3,'Visibility, command and flight revalidation must use server universe'
  print('PASS three persistence call-site baseline selections and server-side visibility wiring (source checks only)')
  if args.negative_controls:
   bad_access=re.sub(r'function Access.IsAuthorized\(.*?\nend', 'function Access.IsAuthorized(player,creatorType,creatorId,isStudio)\n return player~=nil\nend',access,flags=re.S)

@@ -37,6 +37,8 @@ local function screenFeedbackAllowed()return false end
 local stops,removed,pulses,updates={},{},{},{}
 local attackAudio={Stop=function(_,id)table.insert(stops,id)end,Remove=function(_,id)table.insert(removed,id)end,Pulse=function(...)table.insert(pulses,{...})end}
 local sustainedBeams={Remove=function(_,id)table.insert(removed,id)end,Update=function(...)table.insert(updates,{...})end}
+local dodgeCalls={}
+local DodgeVisuals={Play=function(character,reduced)table.insert(dodgeCalls,{character,reduced})end}
 local Players={GetPlayerByUserId=function(_,id)return id==7 and p end};local attackAudioSettings={Range=100}
 local remotes={Effect={OnClientEvent={}}};local handler
 local function connectClient(signal,fn)check(signal==remotes.Effect.OnClientEvent,"Wrong event");handler=fn end
@@ -44,6 +46,9 @@ local function reset()parts={};tweens={};debris={};cues={};renders={};lookups=0 
 '''
 tests=r'''
 local pos=Vector3.new(2,0,0)
+handler("Dodge",pos,7);check(#dodgeCalls==1 and dodgeCalls[1][1]==character and dodgeCalls[1][2]==nil,"Accepted actor visual dispatch changed")
+data.settings.reducedShake=true;handler("Dodge",pos,7);check(dodgeCalls[2][2]==true,"Reduced effects not forwarded")
+data.settings.reducedShake=false
 for _,reduced in ipairs({false,true}) do
  data.settings.reducedShake=reduced
  for _,id in ipairs({"Blue","Known","Unknown",color()}) do

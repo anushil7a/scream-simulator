@@ -11,7 +11,7 @@ assert 'World.Build()\nlocal questGivers=NavigationCatalog.IndexQuestGivers(Worl
 setup=strings('tests/compact_world.py')['setup'];setup=setup[:setup.index('local Layout=')]
 s=strings('tests/compact_integration.py')
 source=setup+s['pre']+read('src/ReplicatedStorage/Shared/CompactLayout.luau')+s['bridge']+read('src/ReplicatedStorage/Shared/Config.luau')+'\nend)()\n'
-source+='local BossCatalog=(function()\n'+read('src/ReplicatedStorage/Shared/BossCatalog.luau')+'\nend)()\n'
+source+='script.Parent.CompactLayout="CompactLayout"\nlocal BossCatalog=(function()\n'+read('src/ReplicatedStorage/Shared/BossCatalog.luau')+'\nend)()\n'
 source+='local require=function(name) if name=="Config" then return Config elseif name=="BossCatalog" then return BossCatalog else error(name) end end\nlocal Nav=(function()\n'+read('src/ReplicatedStorage/Shared/NavigationCatalog.luau')+'\nend)()\n'
 # Frozen actual production source from 9507e84 provides a differential oracle.
 source+='local scanCount=0\nlocal Before=(function()\nlocal table=setmetatable({find=function(t,v) scanCount+=1;return table.find(t,v) end},{__index=table})\n'+read('tests/fixtures/navigation_catalog_before_index.luau')+'\nend)()\n'
@@ -24,7 +24,8 @@ for i,q in ipairs(Config.Quests) do table.insert(bots,{questIds={q.id},start=Vec
 local givers=Nav.IndexQuestGivers(bots)
 check(Nav.Resolve('quest','nick',data)==nil,'hidden revealed')
 check(Nav.Resolve('boss','invalid',data)==nil,'invalid boss')
-for _,b in ipairs(BossCatalog.Entries) do eq(Nav.Resolve('boss',b.id,data).position,Vector3.new(b.x,3,b.z)) end
+check(Nav.Resolve('boss','leviathan',data).label=='Seagull Siren Captain · Lv 70','captain navigation name/level')
+for _,b in ipairs(BossCatalog.Entries) do eq(Nav.Resolve('boss',b.id,data).position,Vector3.new(b.x,(b.y or 0)+3,b.z)) end
 for _,place in ipairs(Nav.Places) do check(Nav.Resolve('place',place.id,data)~=nil,'place missing') end
 check(Nav.Resolve('place','nick',data)==nil,'hidden place exposed')
 check(Nav.QuestTargets(session,givers).nick==nil,'hidden server target')

@@ -111,7 +111,8 @@ server_order=common+[shared/'ProfileLease.luau',shared/'DestructionRules.luau',s
 (out/'StudioServerHarness.luau').write_text(bundle(server_order,server/'Bootstrap.server.luau'))
 (out/'StudioClientHarness.luau').write_text(bundle(common+[shared/'MicPower.luau',client/'Microphone.luau',client/'ScreamEffects.luau'],client/'Client.client.luau'))
 (out/'StudioAnimationsHarness.luau').write_text(bundle(common,client/'RunAnimation.client.luau')+'\n'+inline(client/'Residents.client.luau'))
-print('Assembled server, client and animation harnesses from current source')
+(out/'StudioBossVisualHarness.luau').write_text(bundle([],client/'BossVisuals.client.luau'))
+print('Assembled server, client, boss visual and animation harnesses from current source')
 
 world_source=bundle(common+[server/'City.luau'],server/'World.luau')
 head,tail=world_source.rsplit('return World',1)

@@ -1,0 +1,19 @@
+PASS AcademyGarden endpoint error 0.0
+PASS GardenCoast endpoint error 0.0
+PASS GardenArena endpoint error 0.0
+PASS AcademyAmphitheatre endpoint error 0.0
+PASS VolcanoBridgeNorth endpoint error 0.0
+PASS VolcanoBridgeSouth endpoint error 0.0
+PASS ShrineAscent endpoint error 0.0
+PASS ShrineApproach endpoint error 0.0
+PASS No floating GardenSpine over descending ramp -190.0
+PASS Dock coplanar overlap area 0.0
+PASS District coplanar slab overlap area 0.0
+PASS Dock walkable union preserved 0
+PASS Dock shelter red roof, cream columns True
+PASS metronome radius22+2 floor support {'samples': 468, 'failures': []}
+PASS golem radius22+2 floor support {'samples': 468, 'failures': []}
+PASS ignis radius22+2 floor support {'samples': 468, 'failures': []}
+PASS leviathan radius22+2 floor support {'samples': 468, 'failures': []}
+PASS conductor radius22+2 floor support {'samples': 468, 'failures': []}
+18 / 18 passed

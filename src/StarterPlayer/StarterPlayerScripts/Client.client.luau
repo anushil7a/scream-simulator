@@ -33,6 +33,8 @@ local function loadClientDependency(parent,name,direct)
 end
 if not clientCheckpoint() then return end
 local CityMap=loadClientDependency(script.Parent,"CityMap");if not clientCheckpoint() then return end
+local DodgeVisuals=loadClientDependency(script.Parent,"DodgeVisuals");if not clientCheckpoint() then return end
+ownClient(function() DodgeVisuals.Destroy() end)
 local Players=game:GetService("Players")
 local RS=game:GetService("ReplicatedStorage")
 local UIS=game:GetService("UserInputService")
@@ -89,6 +91,12 @@ local gameplayAudioSettings=loadClientDependency(RS.Shared,"GameplayAudioConfig"
 
 connectClient(p.CharacterRemoving,function() gameplayAudio:Clear() end)
 local function cueContext()
+ local enabled=gameplayAudio.enabled==true
+ local voice=not mic.ready or mic.power>.12 -- unknown microphone state uses the conservative duck
+ local suppressed=mic.phase~=nil -- quiet/voice calibration; spectators without a mic can hear
+ if gameplayAudio.bossEnabled~=enabled then gameplayAudio.bossEnabled=enabled;p:SetAttribute("BossAudioEnabled",enabled) end
+ if gameplayAudio.bossVoice~=voice then gameplayAudio.bossVoice=voice;p:SetAttribute("BossAudioVoiceActive",voice) end
+ if gameplayAudio.bossSuppressed~=suppressed then gameplayAudio.bossSuppressed=suppressed;p:SetAttribute("BossAudioSuppressed",suppressed) end
  gameplayAudio:SetContext(mic.ready and mic.power>.12,mic.phase~=nil or not mic.ready)
 end
 local function playGameplayCue(kind,position)
@@ -366,7 +374,7 @@ do
  local lockHomes={}
  for index,tier in ipairs(TrainingRules.Tiers) do
   local home=Config.CompactCity and Config.CityLayout.TrainingHomes[index]
-  lockHomes[tier.id]=Vector3.new(home and home.x or tier.x,Config.CompactCity and 3.2 or 4.2,home and home.z or tier.z)
+  lockHomes[tier.id]=Vector3.new(home and home.x or tier.x,home and ((home.y or 0)+3.2) or 4.2,home and home.z or tier.z)
  end
  lockController=LockOn.new({world=workspace,players=Players,collection=game:GetService("CollectionService"),
   localPlayer=p,trainingHomes=lockHomes,trainingRadius=TrainingRules.Radius,inArena=Config.InArena})
@@ -471,7 +479,21 @@ local function releaseCapture(source)
 end
 local function dodge()
  cancelCapture()
- if not blocked() then action:FireServer("Dodge") end
+ if not blocked() then
+  local character=p.Character;local root=character and character:FindFirstChild("HumanoidRootPart")
+  local humanoid=character and character:FindFirstChildOfClass("Humanoid")
+  local intent="Right"
+  -- Cardinal intent only. Forward wins exact diagonal ties; opposite keys cancel.
+  local x=(UIS:IsKeyDown(Enum.KeyCode.D) and 1 or 0)-(UIS:IsKeyDown(Enum.KeyCode.A) and 1 or 0)
+  local z=(UIS:IsKeyDown(Enum.KeyCode.W) and 1 or 0)-(UIS:IsKeyDown(Enum.KeyCode.S) and 1 or 0)
+  if x==0 and z==0 and root and humanoid then
+   x=humanoid.MoveDirection:Dot(root.CFrame.RightVector)
+   z=humanoid.MoveDirection:Dot(root.CFrame.LookVector)
+  end
+  if math.abs(z)>.1 and math.abs(z)>=math.abs(x) then intent=z<0 and "Back" or "Forward"
+  elseif math.abs(x)>.1 then intent=x<0 and "Left" or "Right" end
+  action:FireServer("Dodge",intent)
+ end
 end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
 local castButton=button(controls,"Cast","BEAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),toggleVoice,gold);castButton.TextColor3=dark
@@ -598,6 +620,7 @@ local function requestTalk()
  action:FireServer("Talk",target:GetAttribute("NpcId") or target.Name)
 end
 local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),requestTalk);talkButton.Visible=false;academy.surface(talkButton,gold)
+local localFlightTools=Run:IsStudio() and game.PlaceId==0 and game.GameId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
 devPanel=frame(gui,"TestPanel",UDim2.fromOffset(230,330),UDim2.new(1,-244,0,60));devPanel.Visible=false;devPanel.ZIndex=10;academy.surface(devPanel)
 do
  local testContent=Instance.new("ScrollingFrame");testContent.Name="Commands";testContent.BackgroundTransparency=1;testContent.BorderSizePixel=0;testContent.ScrollBarThickness=4;testContent.Position=UDim2.fromOffset(8,76);testContent.Size=UDim2.new(1,-16,1,-84);testContent.CanvasSize=UDim2.fromOffset(0,235);testContent.Parent=devPanel
@@ -605,6 +628,7 @@ do
  label(devPanel,"Temporary progress. Shared combat is isolated.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
  do
   local testCommands={{"XP","+500 XP"},{"AddLevels","+10 levels"},{"Coins","+1,000 coins"},{"MaxLevel","Level "..Config.MaxLevel},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"}}
+  if localFlightTools then table.insert(testCommands,{"Fly","Fly on / off"}) end
   if Run:IsStudio() then table.insert(testCommands,{"ResetBots","Reset bots"});table.insert(testCommands,{"StudioMovement","Test movement"}) end
   testContent.CanvasSize=UDim2.fromOffset(0,math.ceil(#testCommands/2)*47)
   for i,item in ipairs(testCommands) do
@@ -614,6 +638,38 @@ do
  testContent.XP.Modal=true
 end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then closeMenu() end end);testButton.Visible=false;testButton.ZIndex=11;academy.surface(testButton)
+-- Flight controls exist only as UI; server independently validates the local fixture.
+local flightUp=false;local flightDown=false;local flightSentAt=0;local flightFocused=true
+local flightStatus=label(gui,"",UDim2.fromOffset(360,28),UDim2.new(.5,-180,0,110),13,gold)
+flightStatus.Name="FlightStatus";flightStatus.Visible=false
+local upButton=button(gui,"FlightUp","FLY UP",UDim2.fromOffset(90,44),UDim2.new(1,-210,1,-190),function() flightUp=not flightUp;flightDown=false end)
+local downButton=button(gui,"FlightDown","FLY DOWN",UDim2.fromOffset(90,44),UDim2.new(1,-110,1,-190),function() flightDown=not flightDown;flightUp=false end)
+upButton.Visible=false;downButton.Visible=false
+connectClient(UIS.WindowFocusReleased,function() flightFocused=false;flightUp=false;flightDown=false end)
+connectClient(UIS.WindowFocused,function() flightFocused=true end)
+connectClient(Run.Heartbeat,function()
+ local active=p:GetAttribute("TestFlight")==true
+ flightStatus.Visible=active;upButton.Visible=active and UIS.TouchEnabled;downButton.Visible=active and UIS.TouchEnabled
+ if not active then flightUp=false;flightDown=false;return end
+ flightStatus.Text="TEST FLIGHT · WASD · Space up / Ctrl down"
+ upButton.Text=flightUp and "UP: STOP" or "FLY UP";downButton.Text=flightDown and "DOWN: STOP" or "FLY DOWN"
+ local now=os.clock();if now-flightSentAt<.1 then return end;flightSentAt=now
+ local x,z,y=0,0,0
+ if flightFocused and not UIS:GetFocusedTextBox() and not GuiService.MenuIsOpen then
+  x=(UIS:IsKeyDown(Enum.KeyCode.D) and 1 or 0)-(UIS:IsKeyDown(Enum.KeyCode.A) and 1 or 0)
+  z=(UIS:IsKeyDown(Enum.KeyCode.W) and 1 or 0)-(UIS:IsKeyDown(Enum.KeyCode.S) and 1 or 0)
+  y=((flightUp or UIS:IsKeyDown(Enum.KeyCode.Space)) and 1 or 0)-((flightDown or UIS:IsKeyDown(Enum.KeyCode.LeftControl)) and 1 or 0)
+  if x==0 and z==0 then
+   local c=p.Character;local h=c and c:FindFirstChildOfClass("Humanoid");local root=c and c:FindFirstChild("HumanoidRootPart")
+   if h and root then
+    local mx=h.MoveDirection:Dot(root.CFrame.RightVector);local mz=h.MoveDirection:Dot(root.CFrame.LookVector)
+    x=math.abs(mx)>.2 and (mx>0 and 1 or -1) or 0;z=math.abs(mz)>.2 and (mz>0 and 1 or -1) or 0
+   end
+  end
+ end
+ action:FireServer("FlightInput",{x=x,y=y,z=z})
+end)
+ownClient(function() if p:GetAttribute("TestFlight")==true then action:FireServer("FlightStop") end end)
 -- Everyone sees the same navigation; authorized test controls sit below it.
 -- Keep a separate view: modal renders replace mapDot but never this HUD map.
 local miniMapButton=button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end)
@@ -845,7 +901,7 @@ render=function()
   else attackHelp=touch and "Hold BEAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / BEAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
   info("VOICE SAFETY\nAvoid profanity. Roblox's profanity rules depend on the game's rating and settings; harassment, threats and hate speech are not allowed. Rule violations may restrict voice or your account.\nRoblox records voice for moderation. The beam mechanic reads volume, not words. Stopping attacks does not mute voice. Use Roblox's mic control to mute, or Report Abuse for violations.",100)
-  info(string.format("Third-person camera\n%s: roll · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
+  info(string.format("Third-person camera\n%s: dodge (W/A/S/D) · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
   info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
   info("MICROPHONE\n"..mic.status,60)
   if not mic.eligible and not mic.checkPending then
@@ -862,10 +918,11 @@ render=function()
   end)
   info("NORMAL boosts effects; LOW keeps the old mix; OFF mutes them. Starter beam has no SFX. Session only; mic and voice chat unchanged.",narrow and 100 or 68)
   local cueCard=card(58);local cueButton
-  local function cueLabel()return "GAMEPLAY SFX: "..(not gameplayAudio.enabled and "OFF" or gameplayAudioSettings.Ready() and "LOW" or "LOW (PENDING)") end
+  local function cueLabel()return "GAMEPLAY SFX: "..(not gameplayAudio.enabled and "OFF" or "LOW") end
   cueButton=button(cueCard,"GameplayAudio",cueLabel(),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
-   gameplayAudio:SetEnabled(not gameplayAudio.enabled);cueButton.Text=cueLabel()
+   gameplayAudio:SetEnabled(not gameplayAudio.enabled);cueContext();cueButton.Text=cueLabel()
   end)
+  info("This also mutes boss warnings. Packaged boss fallbacks play only when available; custom hit/dodge/level cues still await upload.",72)
   info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
   local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
  end
@@ -982,6 +1039,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  observeVoiceEligibility(nextData)
  cueContext();gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())
  data=nextData
+ p:SetAttribute("BossReducedEffects",not data.settings or data.settings.reducedShake~=false)
  academy.refreshGuide() -- Update only a destination the player already chose.
  local unclaimed=0
  for _,quest in ipairs(Config.Quests) do
@@ -1100,7 +1158,12 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  end
  local chosenColor=kind=="Dodge" and id or aura
  local color=typeof(chosenColor)=="Color3" and chosenColor or Config.Auras[chosenColor] or gold
- if kind=="Dodge" then playGameplayCue("Dodge",pos);return end
+ if kind=="Dodge" then
+  playGameplayCue("Dodge",pos)
+  local actor=type(id)=="number" and Players:GetPlayerByUserId(id)
+  if actor and actor.Character then DodgeVisuals.Play(actor.Character,data.settings.reducedShake or platformReducedMotion) end
+  return
+ end
  local s=Config.GetSound(id);if not s then return end
  -- Actual voice stays on Roblox proximity audio. Owner-selected SFX are separate.
  direction=direction or Vector3.new(0,0,-1);length=length or Config.VoiceCombat.Stats(data.level,1,false).range

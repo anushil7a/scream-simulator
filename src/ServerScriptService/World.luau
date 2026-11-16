@@ -249,6 +249,25 @@ local function accessory(model, attachedTo, name, size, offset, color, material,
     return p
 end
 
+-- Authored workers only: two fitted marks, no changes to carried tools or animation.
+local function workerFinish(model,torso,role)
+    local designs={
+        CafeWorker={{"ApronPocket",.75,.35,.08,0,-.52,-.67,238,230,207},{"ApronSeam",.06,1.2,.07,-.67,-.2,-.66,32,79,73}},
+        Sanitation={{"ReflectiveChest",1.65,.12,.08,0,.37,-.68,238,230,207},{"UtilityPocket",.55,.42,.12,.48,-.42,-.7,70,78,68}},
+        BeachWorker={{"CrewBadgeInset",.38,.13,.06,.45,.4,-.69,42,136,139},{"CrewPocket",.5,.34,.12,-.5,-.4,-.58,238,230,207}},
+        Busker={{"GuitarBridge",.64,.12,.08,.2,-.75,-1.19,55,41,32},{"PickPocket",.38,.38,.1,.7,.58,-.59,220,177,80}},
+        Gardener={{"SeedPouch",.62,.48,.18,-.5,-.55,-.63,155,113,77},{"PouchFlap",.68,.1,.2,-.5,-.32,-.65,238,230,207}},
+        Artist={{"SmockPocket",.66,.48,.13,-.5,-.4,-.64,238,230,207},{"PaintMark",.16,.25,.06,-.5,-.4,-.74,64,143,165}},
+        Soccer={{"JerseyPipingLeft",.08,1.35,.08,-.78,.05,-.58,238,230,207},{"JerseyPipingRight",.08,1.35,.08,.78,.05,-.58,238,230,207}},
+        Vendor={{"LedgerPocket",.62,.46,.12,.51,-.3,-.63,131,94,62},{"MarketPin",.29,.28,.08,-.48,.51,-.63,226,178,90}},
+        Commuter={{"RunnerZipper",.07,1.28,.08,0,.06,-.56,231,227,210},{"RunnerStripe",1.45,.12,.09,0,.51,-.57,93,183,173}},
+        Fighter={{"CoachBraid",.13,.86,.1,-.65,.26,-.57,195,151,80},{"CoachBadge",.42,.22,.09,.53,.42,-.59,235,215,169}},
+    }
+    for _,d in ipairs(designs[role] or {}) do
+        accessory(model,torso,"WorkerFinish"..d[1],Vector3.new(d[2],d[3],d[4]),CFrame.new(d[5],d[6],d[7]),Color3.fromRGB(d[8],d[9],d[10]))
+    end
+end
+
 -- Original academy sparring kit: cosmetic shells only, never additional hitboxes.
 local function trainerOutfit(model,torso,leftArm,rightArm,leftLeg,rightLeg,tier)
     local navy=Color3.fromRGB(31,48,67)
@@ -271,6 +290,15 @@ local function trainerOutfit(model,torso,leftArm,rightArm,leftLeg,rightLeg,tier)
     accessory(model,leftArm,"AcademyWristLeft",Vector3.new(1.06,.58,1.06),CFrame.new(0,-.66,0),accent,Enum.Material.SmoothPlastic)
     accessory(model,rightArm,"AcademyWristRight",Vector3.new(1.06,.58,1.06),CFrame.new(0,-.66,0),accent,Enum.Material.SmoothPlastic)
     accessory(model,torso,"AcademyCollar",Vector3.new(1.14,.18,1.04),CFrame.new(0,.85,0),ivory,Enum.Material.SmoothPlastic)
+    -- Large readable seams and protective kit; welded per limb, never across joints.
+    accessory(model,torso,"AcademySeamLeft",Vector3.new(.07,1.12,.06),CFrame.new(-.73,.12,-.7),navy)
+    accessory(model,torso,"AcademySeamRight",Vector3.new(.07,1.12,.06),CFrame.new(.73,.12,-.7),navy)
+    accessory(model,leftLeg,"AcademyKneeLeft",Vector3.new(.68,.54,.16),CFrame.new(0,0,-.58),ivory)
+    accessory(model,rightLeg,"AcademyKneeRight",Vector3.new(.68,.54,.16),CFrame.new(0,0,-.58),ivory)
+    accessory(model,leftLeg,"AcademyBootLeft",Vector3.new(1.02,.22,1.04),CFrame.new(0,-.84,0),ivory)
+    accessory(model,rightLeg,"AcademyBootRight",Vector3.new(1.02,.22,1.04),CFrame.new(0,-.84,0),ivory)
+    accessory(model,torso,"AcademyRank",Vector3.new(.36,.16,.08),CFrame.new(-.48,.52,-.72),accent)
+    accessory(model,torso,"AcademyBuckle",Vector3.new(.36,.3,.13),CFrame.new(0,-.77,-.59),navy)
 end
 
 local function faceToward(bot, position)
@@ -543,7 +571,7 @@ function World.ReactToScream(bot, origin)
     World.Speak(bot, ({"Whoa, my ears!", "That echoed down the block!", "Careful with that beam!"})[rng:NextInteger(1, 3)])
 end
 
-local function makeBot(parent, index, x, z, role, job, training)
+local function makeBot(parent, index, x, z, role, job, training, groundY)
     local displayName = names[(index - 1) % #names + 1] .. (index > #names and " " .. ({"Park", "Reed", "Chen", "Rivera", "Brooks", "Shah"})[(index-1)%6+1] or "")
     if job then displayName=job.name end
     if training then displayName=training.name.." · Lv "..training.level end
@@ -556,7 +584,7 @@ local function makeBot(parent, index, x, z, role, job, training)
     model:SetAttribute("DisplayName", displayName)
     model:SetAttribute("Role", role)
     local avatarRng = Random.new(8044 + index * 479)
-    local home=Vector3.new(x,training and (Config.CompactCity and 3.2 or 4.2) or job and job.stations[1].position.Y or (Config.CompactCity and 3 or 3.9),z)
+    local home=Vector3.new(x,training and (Config.CompactCity and (training.y or 0)+3.2 or 4.2) or job and job.stations[1].position.Y or (Config.CompactCity and (groundY or 0)+3 or 3.9),z)
     local cf = CFrame.new(home)
     local skin = skinColors[avatarRng:NextInteger(1, #skinColors)]
     local shirt = shirtColors[avatarRng:NextInteger(1, #shirtColors)]
@@ -673,6 +701,7 @@ local function makeBot(parent, index, x, z, role, job, training)
         accessory(model, torso, "CrossbodyBag", Vector3.new(1.25, 0.9, 0.35),
             CFrame.new(0.4, -0.5, -0.72), Color3.fromRGB(86, 61, 47), Enum.Material.Fabric)
     end
+    if job and not training and not job.supporting then workerFinish(model,torso,role) end
     if training then trainerOutfit(model,torso,la,ra,ll,rl,training) end
     local humanoid = Instance.new("Humanoid")
     humanoid.RigType = Enum.HumanoidRigType.R6
@@ -815,6 +844,24 @@ local function atmosphere()
     haze.Density = 0.17
     haze.Haze = 0.3
     haze.Color = Color3.fromRGB(235, 210, 181)
+    if Config.CityLayout and Config.CityLayout.MapId == "Map10" then
+        -- Directional late afternoon, cool open shade, no bloom or screen flashes.
+        lighting.ClockTime = 15.25
+        lighting.GeographicLatitude = 22
+        lighting.Brightness = 2.45
+        lighting.Ambient = Color3.fromRGB(87, 98, 118)
+        lighting.OutdoorAmbient = Color3.fromRGB(124, 137, 153)
+        lighting.EnvironmentDiffuseScale = 0.58
+        lighting.EnvironmentSpecularScale = 0.42
+        lighting.ShadowSoftness = 0.42
+        grade.Contrast = 0.10
+        grade.Saturation = 0.02
+        grade.TintColor = Color3.fromRGB(255, 251, 244)
+        haze.Density = 0.15
+        haze.Haze = 0.21
+        haze.Color = Color3.fromRGB(215, 228, 233)
+        haze.Decay = Color3.fromRGB(126, 138, 165)
+    end
 end
 
 
@@ -901,6 +948,9 @@ function World.Build()
     atmosphere()
     local parent=Instance.new("Model");parent.Name="ScreamSimulatorWorld";parent.Parent=workspace
     local layout=City.Build(parent);World.WalkPoints=layout.walk;World.ActivityPoints=layout.activities;World.SafeSpawn=layout.spawn
+    if Config.CityLayout and Config.CityLayout.MapId == "Map10" then
+        require(script.Parent.Map10Finish).Build(parent)
+    end
     table.clear(World.Seats);for _,item in ipairs(parent:GetDescendants()) do if item:IsA("Seat") then table.insert(World.Seats,item) end end
     local spawn=Instance.new("SpawnLocation");spawn.Name="SafeSpawn";spawn.Size=Vector3.new(7,.2,7);spawn.CFrame=World.SafeSpawn-Vector3.new(0,3,0);spawn.Anchored=true;spawn.Neutral=true;spawn.Duration=0;spawn.Transparency=1;spawn.CanCollide=false;spawn.Parent=parent
     local roles={"Local","Tourist","Vendor","Commuter","Busker","Fighter"}
@@ -909,25 +959,27 @@ function World.Build()
     if layout.seeds then seeds=layout.seeds else
         for i=1,20 do local point=layout.walk[((i-1)*29+5)%#layout.walk+1];table.insert(seeds,{point.X,point.Z}) end
     end
-    for i,spot in ipairs(seeds) do makeBot(parent,i,spot[1],spot[2],spot.role or roles[(i-1)%#roles+1]) end
+    for i,spot in ipairs(seeds) do makeBot(parent,i,spot[1],spot[2],spot.role or roles[(i-1)%#roles+1],nil,nil,spot.y) end
     for i,job in ipairs(layout.jobs or {}) do local point=job.stations[1].position;makeBot(parent,#seeds+i,point.X,point.Z,job.role,job) end
     -- Dedicated sparring pads sit outside PvP and do not recruit city workers.
     for index,originalTier in ipairs(TrainingRules.Tiers) do
         local tier=originalTier;local padColor=C.green
         if Config.CompactCity then
-            tier=table.clone(originalTier);local home=Config.CityLayout.TrainingHomes[index];tier.x=home.x;tier.z=home.z
+            tier=table.clone(originalTier);local home=Config.CityLayout.TrainingHomes[index];tier.x=home.x;tier.z=home.z;tier.y=home.y or 0
             for _,spec in ipairs(Config.CityLayout.PartSpecs) do
                 if spec.id=="TrainingPad"..index then padColor=spec.color;break end
             end
         end
-        local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,Config.CompactCity and .1 or 1.1,tier.z),padColor,Enum.Material.SmoothPlastic)
-        local sign=part(parent,"TrainingSign_"..tier.id,Vector3.new(1,1,1),Vector3.new(tier.x,7,tier.z+30),C.gold,nil,false);sign.Transparency=1
+        local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,Config.CompactCity and (tier.y or 0)+.1 or 1.1,tier.z),padColor,Enum.Material.SmoothPlastic)
+        local sign=part(parent,"TrainingSign_"..tier.id,Vector3.new(1,1,1),Vector3.new(tier.x,(tier.y or 0)+7,tier.z+30),C.gold,nil,false);sign.Transparency=1
         local words=billboard(sign,tier.name.." · recommended Lv "..tier.level.."\n"..tier.health.." HP · "..tier.xp.." base XP\nHit to spar · move out of red strikes",Vector3.zero,280)
         words.Parent.Size=UDim2.fromOffset(280,76);words.Parent.MaxDistance=100
         makeBot(parent,#World.Bots+1,tier.x,tier.z,"Fighter",nil,tier)
     end
     if Config.CompactCity then
-        for _,spec in ipairs(SupportingNPCs.Roster) do
+        for _,original in ipairs(SupportingNPCs.Roster) do
+            local homes=Config.CityLayout.SupportHomes
+            local spec=SupportingNPCs.AtHome(original,homes and homes[original.index])
             local bot=makeBot(parent,spec.index,spec.x,spec.z,spec.role,SupportingNPCs.Job(spec))
             SupportingNPCs.Dress(bot,spec,accessory)
         end
@@ -968,7 +1020,8 @@ function World.Build()
                     if grounding>=.25 and not bot.humanoid.SeatPart then
                         local hit=workspace:Raycast(bot.root.Position+Vector3.new(0,2,0),Vector3.new(0,-20,0),groundParams)
                         local gap=hit and bot.root.Position.Y-hit.Position.Y or 99
-                        if gap>5 or gap<1.5 or bot.root.Position.Y>8 or bot.root.Position.Y< -3 then
+                        local heightLimit=Config.CityLayout and Config.CityLayout.MapId=="Map10" and Config.MapMax.Y or 8
+                        if gap>5 or gap<1.5 or bot.root.Position.Y>heightLimit or bot.root.Position.Y< -3 then
                             bot.airSince=bot.airSince or now
                             if now-bot.airSince>.45 then
                                 -- Invalidate the old path/precision approach before moving

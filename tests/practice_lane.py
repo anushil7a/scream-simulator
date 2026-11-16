@@ -8,7 +8,8 @@ def check(sources):
   for token in ('MicPracticeLane','MicPracticeTarget','MIC PRACTICE','PracticeTarget','PracticeBackstop'):
    assert token not in source,'Retired mic area token remains: '+name+'/'+token
  assert 'Layout.Soccer=' in sources[FILES[2]] and 'NickPracticeGoalLeft' in sources[FILES[1]],'Unrelated soccer practice removed'
- assert 'Layout.TrainingHomes=' in sources[FILES[2]] and 'TrainingPad1' in sources[FILES[2]],'Training area removed'
+ assert 'Layout.TrainingHomes=' in sources[FILES[2]],'Training homes removed'
+ assert 'TrainingPad_' in (ROOT/'src/ServerScriptService/World.luau').read_text(encoding='utf-8'),'Runtime training pads removed'
  assert 'FlowerKiosk' in sources[FILES[0]],'Unrelated fallback plaza removed'
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');p.add_argument('--baseline',action='store_true');args=p.parse_args()

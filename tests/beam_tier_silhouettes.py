@@ -9,12 +9,13 @@ CHECKS='''
 local checks=0;local function check(v,m)assert(v,m);checks+=1 end
 local function near(a,b)return math.abs(a-b)<.00001 end
 local expected={
- {1,1,0,0,'round','helix',1.5},{10,1,0,0,'diamond','helix',1.5},
- {20,1,0,4,'diamond','helix',1.5},{30,2,0,4,'round','helix',1.5},
- {40,2,1,4,'round','helix',1.5},{50,2,1,4,'round','zigzag',1.5},
- {60,3,1,4,'round','helix',1.5},{70,3,1,8,'round','helix',1.5},
- {80,3,2,8,'round','helix',1.5},{90,4,2,8,'star','helix',2.5},
- {100,4,2,8,'star','braid',3.5}}
+ {1,1,0,0,'round','lightning',1.5},{10,1,1,0,'diamond','lightning',1.7},
+ {20,1,1,2,'diamond','lightning',1.9},{30,1,1,4,'diamond','lightning',2.1},
+ {40,1,2,4,'diamond','lightning',2.3},{50,1,2,6,'diamond','lightning',2.5},
+ {60,1,2,8,'diamond','lightning',2.7},{70,2,3,8,'diamond','lightning',2.9},
+ {80,2,3,10,'star','lightning',3.1},{90,2,3,12,'star','lightning',3.3},
+ {100,2,3,16,'star','lightning',3.5}}
+
 local cases={}
 for i,e in ipairs(expected)do
  table.insert(cases,e)
@@ -25,13 +26,13 @@ local previous
 for _,e in ipairs(cases)do
  local level=e[1];local s=StyleSource.Detail(level,false,0)
  check(s.rings==e[2] and s.strands==e[3] and s.sparks==e[4],'Tier budget changed')
- check(s.collar==e[5] and s.ribbon==e[6] and s.turns==e[7],'Authored tier identity missing')
+ check(s.collar==e[5] and s.ribbon==e[6] and near(s.turns,e[7]),'Authored tier identity missing')
  local signature=s.rings..s.strands..s.sparks..s.collar..s.ribbon..s.turns
  if level==1 or level%10==0 then check(signature~=previous,'Adjacent tier has identical authored silhouette');previous=signature end
  if level%10==0 then local before=StyleSource.Detail(level-1,false,0);check(before.tier==s.tier-1,'Threshold early/late')end
  for _,tint in ipairs({color,Color3.fromRGB(90,70,220),Color3.fromRGB(22,150,100)})do
   local r=Visuals.Create();Visuals.Update(r,Vector3.zero,Vector3.zAxis,40,7,tint,level,false)
-  local age=.6;local radius=7*(.24+s.tier*.012)
+  local age=.6;local radius=7*(.24+s.tier*.012)*StyleSource.WidthScale(level,false)
   Visuals.Animate(r,r.born+age,Vector3.zero,false)
   check(#r.parts==5+s.rings*10+s.strands*12+s.sparks,'Actual geometry count mismatches profile')
   check(r.parts[1].Transparency==(level>=80 and .78 or .55) and r.parts[2].Transparency==(level>=80 and .7 or .18),'Body transparency tier boundary changed')
@@ -48,21 +49,21 @@ for _,e in ipairs(cases)do
   if s.strands>0 then
    for strand=1,s.strands do
     for i=1,12 do
-     local t=i/12;local winding=e[6]=='braid' and (strand==1 and 1 or -1) or 1
-     local phase=t*math.pi*2*e[7]*winding-age*5+strand*math.pi
-     local distance=radius*.95*math.sin(t*math.pi)
-     if e[6]=='zigzag' then phase=age*.35+strand*math.pi;distance*=i%2==0 and -1 or 1 end
+     local t=i/12
+     local phase=strand*math.pi*2/s.strands+t*s.turns+age*.35
+     local distance=radius*(i%2==0 and .95 or .48)*math.sin(t*math.pi)
      local part=r.parts[5+s.rings*10+(strand-1)*12+i];local endpoint=part.CFrame.Target
      check(near(endpoint.X,math.cos(phase)*distance) and near(endpoint.Y,math.sin(phase)*distance) and near(endpoint.Z,40*t),'Actual ribbon ignores authored silhouette')
     end
    end
   end
   for _,p in ipairs(r.parts)do check(not p.CanCollide and not p.CanQuery and not p.CanTouch and not p.CastShadow,'Cosmetic became physical')end
+  radius=7*(.24+s.tier*.012)*StyleSource.WidthScale(level,true)
   Visuals.Animate(r,r.born+age,Vector3.zero,true)
   check(#r.parts==4 and near(r.parts[1].Size.Y,radius*1.65) and r.parts[1].Transparency==.72,'Reduced geometry changed')
   for _,p in ipairs(r.parts)do check(p.Material==Enum.Material.Neon,'Reduced material changed')end
   Visuals.Animate(r,r.born+age,vec(0,0,111),false)
-  check(#r.parts==4 and near(r.parts[1].Size.Y,radius*1.65*(1+.035*math.sin(age*9))) and r.parts[1].Transparency==.68,'Far geometry changed')
+  check(#r.parts==4 and near(r.parts[1].Size.Y,radius*1.65) and r.parts[1].Transparency==.68,'Far geometry changed')
   Visuals.Destroy(r)
  end
 end
@@ -88,9 +89,9 @@ def main():
   plain=visual.replace(fade,'').replace('color,.26+.74*fade)','color,.26+travel*.32)')
   r=run(style,plain);assert r.returncode==0,r.stdout+r.stderr;print('PASS same tier assertions without pre-existing local collar fade')
  if args.negative_controls:
-  cases=[(style.replace('[1]={collar="diamond"','[1]={collar="round"'),visual,'Authored tier identity missing'),(style,visual.replace('local offset=collarOffset','local offset=offset'),'Actual collar ignores'),(style,visual.replace('if spec.ribbon=="zigzag" then','if false then'),'Actual ribbon ignores'),(style,visual.replace('spec.ribbon=="braid" and (strand==1 and 1 or -1) or 1','1'),'Actual ribbon ignores'),(style,visual.replace('2*spec.turns*winding','3*winding'),'Actual ribbon ignores')]
+  cases=[(style.replace('tier>=1 and "diamond"','tier>=1 and "round"'),visual,'Authored tier identity missing'),(style,visual.replace('local offset=collarOffset','local offset=offset'),'Actual collar ignores'),(style,visual.replace('i%2==0 and .95 or .48','.65'),'Actual ribbon ignores'),(style,visual.replace('t*spec.turns','t*1.5'),'Actual ribbon ignores')]
   cases += [(style,visual.replace('*(tier>=1 and 1.25 or 1)',''),'Actual collar ignores'),(style,visual.replace('math.cos(angle)*r*.75','0'),'Side-view collar sweep missing'),(style,visual.replace('.16+tier*.012,support and color','.055+tier*.008,support and color'),'Readable collar thickness missing')]
   for st,vs,message in cases:
    assert st!=style or vs!=visual;r=run(st,vs);assert r.returncode and message in r.stderr,r.stdout+r.stderr
-  print('PASS 8 targeted silhouette controls')
+  print('PASS 7 targeted silhouette controls')
 if __name__=='__main__':main()

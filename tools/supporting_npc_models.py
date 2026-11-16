@@ -9,7 +9,8 @@ OUT=ROOT/'build/supporting-npcs'
 if '--blender-stage' not in sys.argv:
  spec=importlib.util.spec_from_file_location('npc_test',ROOT/'tests/supporting_npcs.py');mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
  roster=[]
- for line in mod.run().splitlines():
+ import trainer_preview_geometry
+ for line in (mod.run()+trainer_preview_geometry.run()).splitlines():
   row=line.split('|')
   if row[0]=='NPC':roster.append(dict(name=row[1],home=[float(row[2]),float(row[3])],kind=row[4],parts=[]))
   elif row[0]=='PART':roster[-1]['parts'].append(dict(name=row[1],target=row[2],size=list(map(float,row[3:6])),offset=list(map(float,row[6:9])),color=list(map(float,row[9:12]))))
@@ -36,7 +37,7 @@ def cube(name,size,position,color,parent):
  o.modifiers.new('Weighted normals','WEIGHTED_NORMAL');return o
 for index,s in enumerate(roster):
  parent=bpy.data.objects.new(s['name'],None);bpy.context.collection.objects.link(parent)
- shirt={'dj':[32,91,105],'tinker':[81,104,62],'lifeguard':[232,101,75],'archivist':[30,112,117]}[s['kind']]
+ shirt={'dj':[32,91,105],'tinker':[81,104,62],'lifeguard':[232,101,75],'archivist':[30,112,117],'trainer':[31,48,67]}[s['kind']]
  positions={'Torso':[0,3,0],'Head':[0,4.5,0],'Left Arm':[-1.5,3,0],'Right Arm':[1.5,3,0],'Left Leg':[-.5,1,0],'Right Leg':[.5,1,0]}
  for name,pos in positions.items():
   size=[2,1,1] if name=='Head' else [2,2,1] if name=='Torso' else [1,2,1]
@@ -50,12 +51,15 @@ for index,s in enumerate(roster):
  slug=s['name'].replace(' ','_')
  bpy.ops.export_scene.fbx(filepath=str(OUT/(slug+'.fbx')),use_selection=True,apply_scale_options='FBX_SCALE_UNITS',axis_forward='-Z',axis_up='Y',add_leaf_bones=False)
  bpy.ops.export_scene.gltf(filepath=str(OUT/(slug+'.glb')),use_selection=True,export_format='GLB')
- parent.location.x=index*5.5-8.25
+ parent.location.x=(index%4)*5.5-8.25
+ parent.location.y=-8*(index//4)
 # Preview-only ground/camera/light are excluded from exports.
 bpy.ops.mesh.primitive_plane_add(size=200,location=(0,0,-.03));bpy.context.object.data.materials.append(material([22,31,42]))
 bpy.ops.object.light_add(type='AREA',location=(0,5,12));bpy.context.object.data.energy=2300;bpy.context.object.data.shape='DISK';bpy.context.object.data.size=14
-bpy.ops.object.camera_add(location=(11,25,14));camera=bpy.context.object;camera.rotation_euler=(Vector((0,0,2.5))-camera.location).to_track_quat('-Z','Y').to_euler();camera.data.type='ORTHO';camera.data.ortho_scale=25
-scene=bpy.context.scene;scene.camera=camera;scene.render.engine='CYCLES';scene.cycles.samples=24;scene.cycles.use_denoising=False;scene.render.resolution_x=1500;scene.render.resolution_y=650;scene.render.resolution_percentage=100
+bpy.ops.object.camera_add(location=(10,29,20));camera=bpy.context.object;camera.rotation_euler=(Vector((0,-3,2.5))-camera.location).to_track_quat('-Z','Y').to_euler();camera.data.type='ORTHO';camera.data.ortho_scale=29
+scene=bpy.context.scene;scene.camera=camera;scene.render.engine='CYCLES';scene.cycles.samples=24;scene.cycles.use_denoising=False;scene.render.resolution_x=1500;scene.render.resolution_y=1000;scene.render.resolution_percentage=100
 scene.world.color=(.22,.22,.22);scene.render.image_settings.file_format='PNG';scene.render.filepath=str(OUT/'roster.png')
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'SupportingResidents.blend'));bpy.ops.render.render(write_still=True)
-print('PASS four original static NPC looks exported; NOT uploaded or runtime mesh-integrated')
+camera.location=(-11,-32,17);camera.rotation_euler=(Vector((0,-3,2.5))-camera.location).to_track_quat('-Z','Y').to_euler()
+scene.render.filepath=str(OUT/'roster-back.png');bpy.ops.render.render(write_still=True)
+print('PASS seven actual-runtime costume previews exported; NOT uploaded or runtime mesh-integrated')
