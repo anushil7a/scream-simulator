@@ -165,7 +165,7 @@ else:
  late=server[server.index(' if closing or not p.Parent then',server.index('local function joined(p)')):server.index(' local s={data=data',server.index('local function joined(p)'))]
  assert 'pcall(Profiles.Save,p.UserId,data,true)' in late and 'return' in late,'Unexpected raw-data save outside pre-session late-load release'
  assert 'devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)' in server,'Visibility omitted server Studio/universe context'
- assert server.count('Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)')==3,'Visibility, command and flight revalidation must use server universe'
+ assert server.count('Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)')==6,'Visibility, command, flight and beam-test revalidation must use server universe'
  print('PASS three persistence call-site baseline selections and server-side visibility wiring (source checks only)')
  if args.negative_controls:
   bad_access=re.sub(r'function Access.IsAuthorized\(.*?\nend', 'function Access.IsAuthorized(player,creatorType,creatorId,isStudio)\n return player~=nil\nend',access,flags=re.S)

@@ -30,10 +30,19 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--transport-mutation', choices=('drop-stop', 'corrupt-replay'),
                         help='Build only an intentionally broken, guarded transport negative control')
+    parser.add_argument('--test-tools-local', action='store_true',
+                        help='Build one guarded Test Tools place, using procedural fallback for two incompatible VFX binaries')
     args = parser.parse_args()
+    if args.test_tools_local and args.transport_mutation:
+        parser.error('--test-tools-local and --transport-mutation are separate fixtures')
     rojo = shutil.which("rojo") or "/opt/homebrew/bin/rojo"
     compiler = shutil.which("luau-compile") or "/opt/homebrew/bin/luau-compile"
     project = json.loads((ROOT / "default.project.json").read_text())
+    if args.test_tools_local:
+        # Rojo in the review environment cannot decode two legacy .rbxm
+        # templates. The production project and both asset files are untouched.
+        templates = project["tree"]["ReplicatedStorage"]["VfxTemplates"]
+        del templates["FireBeam"], templates["StarterBeam"]
     absolute_paths(project)
     source = ROOT / "src/ServerScriptService"
     server = project["tree"]["ServerScriptService"]
@@ -45,7 +54,7 @@ def main():
         else:
             raise RuntimeError(f"Explicitly map new server content before building: {path}")
     guard = '''-- DISPOSABLE LOCAL REVIEW ONLY: NEVER PUBLISH THIS BUILD.
-assert(game:GetService("RunService"):IsStudio() and game.PlaceId == 0,
+assert(game:GetService("RunService"):IsStudio() and game.PlaceId == 0 and game.GameId == 0,
  "Open this disposable review as a local file in Studio; never publish it")
 workspace:SetAttribute("LocalSustainedPrototype", true)
 '''
@@ -59,9 +68,14 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
           "StudioSustainedDestruction.server.luau", "StudioSustainedPvp.server.luau", "StudioProgression.server.luau", "StudioFirstBeam.server.luau",
           "StudioTrainingRoam.server.luau", "StudioPerformance.server.luau", "StudioVoiceTransport.server.luau", "StudioVoiceTransport.client.luau", "support/HeartbeatSummary.luau"]),
     })
+    if args.test_tools_local:
+        fingerprint_paths = sorted(set(fingerprint_paths) | {
+            ROOT / "assets/vfx/HollowPurpleBeam.rbxmx",
+            ROOT / "assets/review/MosaicFountain.rbxmx",
+        })
     def source_fingerprint():
         digest = hashlib.sha256()
-        digest.update((args.transport_mutation or "none").encode() + b"\0")
+        digest.update(("test-tools-local" if args.test_tools_local else args.transport_mutation or "none").encode() + b"\0")
         for path in fingerprint_paths:
             digest.update(path.relative_to(ROOT).as_posix().encode() + b"\0")
             digest.update(path.read_bytes() + b"\0")
@@ -73,7 +87,9 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         temp = Path(temp)
         transport_fixture = (ROOT / "tests/StudioVoiceTransport.server.luau").read_text()
         builds = [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", transport_fixture), ("TrainingRoamReview", (ROOT / "tests/StudioTrainingRoam.server.luau").read_text())]
-        if args.transport_mutation:
+        if args.test_tools_local:
+            builds = [("TestToolsLocalPlay", "")]
+        elif args.transport_mutation:
             builds = [("VoiceTransportDropStop" if args.transport_mutation == "drop-stop" else "VoiceTransportCorruptReplay", transport_fixture)]
         template = copy.deepcopy(project)
         for name, appendix in builds:
@@ -134,8 +150,12 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
                 "build": name, "sourceSha256": source_hash, "mutation": args.transport_mutation,
                 "artifactSha256": hashlib.sha256((output / (name + ".rbxl")).read_bytes()).hexdigest(),
                 "scope": "Compiled disposable local fixture; not executed or published",
+                **({"proceduralFallback": ["FireBeam", "StarterBeam"]} if args.test_tools_local else {}),
             }, indent=2) + "\n")
-    print("Built local play, native and transport fixtures, and performance review; none was executed in Studio.")
+    if args.test_tools_local:
+        print("Built Test Tools local play with procedural fallback for two legacy VFX assets; not executed in Studio.")
+    else:
+        print("Built local play, native and transport fixtures, and performance review; none was executed in Studio.")
 
 if __name__ == "__main__":
     main()

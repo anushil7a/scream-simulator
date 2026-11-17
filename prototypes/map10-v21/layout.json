@@ -1,0 +1,20 @@
+{
+  "boundsXZ": [-1600, 1600, -1600, 1600],
+  "arteryWidth": 32,
+  "rampLimitDegrees": 32,
+  "districts": {
+    "01": {"name":"Grand Academy","level":[1,15],"center":[-780,50,620],"size":[640,580]},
+    "02": {"name":"SoundBowl","level":[10,35],"center":[-920,22,-80],"size":[420,420]},
+    "03": {"name":"Boardwalk and DJ Stage","level":[15,30],"center":[-420,8,-820],"size":[780,320]},
+    "04": {"name":"Rambla Gardens","level":[20,40],"center":[-180,65,160],"size":[520,460]},
+    "05": {"name":"Tidal Bell-Foundry","level":[25,45],"center":[420,48,-680],"size":[680,520]},
+    "06": {"name":"Neon Colosseum","level":[40,65],"center":[120,115,760],"size":[680,640]},
+    "07": {"name":"Magma Rift","level":[60,80],"center":[880,175,120],"size":[760,680]},
+    "08": {"name":"Astral Void Citadel","level":[80,100],"center":[840,340,860],"size":[660,660]},
+    "10": {"name":"Outer Reef","level":[50,100],"center":[-1150,12,-650],"size":[480,480]}
+  },
+  "plannedZone09Links": [
+    ["01","02"],["02","10"],["10","03"],["03","05"],["05","07"],["07","08"],["08","06"],["06","01"],
+    ["01","04"],["04","06"],["04","05"]
+  ]
+}

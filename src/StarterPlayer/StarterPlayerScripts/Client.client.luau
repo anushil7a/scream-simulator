@@ -628,14 +628,71 @@ do
  label(devPanel,"Temporary progress. Shared combat is isolated.",UDim2.fromOffset(210,38),UDim2.fromOffset(10,35),12,muted)
  do
   local testCommands={{"XP","+500 XP"},{"AddLevels","+10 levels"},{"Coins","+1,000 coins"},{"MaxLevel","Level "..Config.MaxLevel},{"LevelOne","Level 1"},{"Heal","Heal"},{"Hub","Safe hub"},{"Arena","Arena"},{"Beach","Beach"},{"ResetQuests","Reset quests"}}
-  if localFlightTools then table.insert(testCommands,{"Fly","Fly on / off"}) end
+  if localFlightTools then table.insert(testCommands,1,{"Fly","Fly on / off"}) end
   if Run:IsStudio() then table.insert(testCommands,{"ResetBots","Reset bots"});table.insert(testCommands,{"StudioMovement","Test movement"}) end
-  testContent.CanvasSize=UDim2.fromOffset(0,math.ceil(#testCommands/2)*47)
+  local beamOffset=localFlightTools and 164 or 0
+  testContent.CanvasSize=UDim2.fromOffset(0,beamOffset+math.ceil(#testCommands/2)*47)
   for i,item in ipairs(testCommands) do
-   button(testContent,item[1],item[2],UDim2.fromOffset(98,44),UDim2.fromOffset(((i-1)%2)*108,math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
+   button(testContent,item[1],item[2],UDim2.new(.5,-6,0,44),UDim2.new(((i-1)%2)*.5,0,0,beamOffset+math.floor((i-1)/2)*47),function() action:FireServer("DevCommand",item[1]) end)
   end
  end
  testContent.XP.Modal=true
+ if localFlightTools then
+  local TestBeamTools=loadClientDependency(script.Parent,"TestBeamTools");if not clientCheckpoint() then return end
+  -- ScreamAim has ScreenInsets.None: its center matches ViewportPointToRay,
+  -- independent of the cursor sitting over a Test Tools button or the top inset.
+  local testAim=label(aimGui,"+",UDim2.fromOffset(28,28),UDim2.new(.5,-14,.5,-14),26,gold)
+  testAim.Name="TestBeamCrosshair";testAim.TextXAlignment=Enum.TextXAlignment.Center;testAim.Visible=false
+  local testAimHint=label(aimGui,"TEST AIM",UDim2.fromOffset(100,20),UDim2.new(.5,-50,.5,18),11,gold)
+  testAimHint.Name="TestBeamAimHint";testAimHint.TextXAlignment=Enum.TextXAlignment.Center;testAimHint.Visible=false
+  local function testBeamAllowed()
+   return devPanel.Visible and data.devAccess==true and windowFocused
+    and not GuiService.MenuIsOpen and not UIS:GetFocusedTextBox() and not modal.Visible
+    and not (conversationPanel and conversationPanel.Visible) and p:GetAttribute("TestFlight")~=true
+  end
+  local testBeam=TestBeamTools.new({
+   now=os.clock,state=function() return data end,allowed=testBeamAllowed,
+   aim=function()
+    local camera=workspace.CurrentCamera
+    if not camera or camera.ViewportSize.X<2 or camera.ViewportSize.Y<2 then return nil end
+    local ray=camera:ViewportPointToRay(camera.ViewportSize.X/2,camera.ViewportSize.Y/2)
+    -- No microphone, lock, or UI-position raycast. The server excludes the
+    -- character and clips this far-point intent against authoritative cover.
+    return ray.Origin+ray.Direction*1000
+   end,
+   send=function(verb,payload) action:FireServer(verb,payload) end,
+  })
+  local powerLabel=label(testContent,"BEAM TEST · Power 50%",UDim2.new(1,-4,0,22),UDim2.fromOffset(0,0),12,gold)
+  powerLabel.Name="TestBeamPower"
+  label(testContent,"Silent visual preview · no damage",UDim2.new(1,-4,0,20),UDim2.fromOffset(0,22),10,muted)
+  for i,item in ipairs({{"BeamZero","0%",0},{"BeamLess","-10%",-10},{"BeamMore","+10%",10},{"BeamFull","100%",100}}) do
+   local b=button(testContent,item[1],item[2],UDim2.new(.25,-4,0,44),UDim2.new((i-1)*.25,0,0,44),function()
+    testBeam:SetPower((i==1 or i==4) and item[3] or testBeam.power+item[3])
+   end);b.TextSize=12;b.Selectable=true
+  end
+  local fire=button(testContent,"TestBeam","TEST BEAM",UDim2.new(1,-4,0,44),UDim2.fromOffset(0,92),function() cancelCapture();testBeam:Toggle() end)
+  fire.Selectable=true
+  local status=label(testContent,"Aim at +, then click Test Beam.",UDim2.new(1,-4,0,22),UDim2.fromOffset(0,138),10,muted)
+  status.Name="TestBeamStatus"
+  connectClient(Run.Heartbeat,function()
+   testBeam:Tick()
+   testAim.Visible=testBeamAllowed() and (data.testBeamAvailable==true or testBeam.running)
+   testAimHint.Visible=testAim.Visible
+   powerLabel.Text=string.format("BEAM TEST · Power %d%%",testBeam.power)
+   fire.Text=testBeam.running and "STOP TEST BEAM" or "TEST BEAM"
+   status.Text=data.testBeamActive==true and string.format("Active: %d%% · silent / visual only",data.testBeamPower or 0)
+    or (data.testBeamCooldown or 0)>0 and string.format("Cooldown: %.1fs",data.testBeamCooldown)
+    or p:GetAttribute("TestFlight")==true and "Turn Fly off to test the beam."
+    or data.testBeamAvailable~=true and "Local test session required."
+    or testBeam.power==0 and "0% · no beam. Increase power to test."
+    or "Aim at +, then click Test Beam."
+  end)
+  connectClient(devPanel:GetPropertyChangedSignal("Visible"),function() if not devPanel.Visible then testBeam:Stop() end end)
+  connectClient(UIS.WindowFocusReleased,function() testBeam:Stop() end)
+  connectClient(GuiService.MenuOpened,function() testBeam:Stop() end)
+  connectClient(p.CharacterRemoving,function() testBeam:Stop() end)
+  ownClient(function() testBeam:Stop() end)
+ end
 end
 local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then closeMenu() end end);testButton.Visible=false;testButton.ZIndex=11;academy.surface(testButton)
 -- Flight controls exist only as UI; server independently validates the local fixture.
@@ -1107,11 +1164,24 @@ if sustainedControl then
  ownClient(function() sustainedBeams:Destroy() end);if not clientCheckpoint() then return end
  connectClient(p.CharacterRemoving,function() sustainedBeams:Clear() end)
  connectClient(p.CharacterRemoving,function() attackAudio:Clear() end)
- connectClient(Players.PlayerRemoving,function(leaving) sustainedBeams:Remove(leaving.UserId) end)
+ connectClient(Players.PlayerRemoving,function(leaving) sustainedBeams:Remove(leaving.UserId);sustainedBeams:Remove("test:"..tostring(leaving.UserId)) end)
  connectClient(Players.PlayerRemoving,function(leaving) attackAudio:Remove(leaving.UserId) end)
 
 end
 connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,length,beamWidth,audioStyleId,attackLevel)
+ -- The test packet deliberately returns before all attack/gameplay audio paths.
+ if kind=="TestBeamEnd" then
+  if localFlightTools and sustainedBeams then sustainedBeams:Remove("test:"..tostring(id)) end
+  return
+ end
+ if kind=="TestBeam" then
+  if not localFlightTools or not sustainedBeams then return end
+  local key="test:"..tostring(id)
+  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+  if not Players:GetPlayerByUserId(id) or not root or (root.Position-pos).Magnitude>180 or length<.05 then sustainedBeams:Remove(key);return end
+  sustainedBeams:Update(key,os.clock(),pos,direction,length,beamWidth,(typeof(aura)=="Color3" and aura or gold),attackLevel or 1,data.settings.reducedShake)
+  return
+ end
  if kind=="SustainedHit" then
   if hitFeedback:Accept(id,aura,os.clock()) then
    playGameplayCue("Hit");beamScreenFeedback:Hit(os.clock(),screenFeedbackAllowed())
@@ -1302,7 +1372,7 @@ connectClient(Run.RenderStepped,function(dt)
   devPanel.Size=UDim2.fromOffset(panelWidth,math.min(330,belowHeight))
  else
   local rightColWidth=miniLayout.available and math.max(miniLayout.width,viewport.X<432 and 86 or 112) or (viewport.X<432 and 86 or 112)
-  devPanel.Position=UDim2.new(1,-(rightColWidth+22+panelWidth),0,14)
+  devPanel.Position=UDim2.fromOffset(math.max(8,viewport.X-(rightColWidth+22+panelWidth)),14)
   devPanel.Size=UDim2.fromOffset(panelWidth,math.min(330,math.max(120,viewport.Y-14-bottomReserve)))
  end
  end

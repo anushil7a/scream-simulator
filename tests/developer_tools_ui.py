@@ -9,7 +9,8 @@ visibility=next(line for line in source.splitlines() if 'testButton.Visible=data
 setup="""
 local checks=0;local function check(ok,message)assert(ok,message);checks+=1 end
 local Config={MaxLevel=100};local studio=false;local Run={IsStudio=function()return studio end}
-local UDim2={fromOffset=function(x,y)return {X=x,Y=y}end}
+local contentWidth=196
+local UDim2={fromOffset=function(x,y)return {X=x,Y=y}end,new=function(xs,x,ys,y)return {X=contentWidth*xs+x,Y=y}end}
 local localFlightTools=false
 local testContent={};local calls={};local buttons={}
 local action={FireServer=function(_,verb,arg)table.insert(calls,{verb,arg})end}
@@ -32,6 +33,7 @@ for _,isStudio in ipairs({false,true}) do
  local n=0;for _,b in pairs(buttons)do
   n+=1;check(b.size.X>=44 and b.size.Y>=44,'Test target below minimum touch size')
   check(b.pos.Y+b.size.Y<=testContent.CanvasSize.Y,'Test control outside scroll canvas')
+  check(b.pos.X+b.size.X<=contentWidth,'Test control clipped on narrow panel')
  end
  check(n==(isStudio and 12 or 10),'Existing test tools lost or duplicated')
 end
@@ -44,7 +46,7 @@ for _,value in ipairs({false,true,1,'true'})do
  update({devAccess=value});check(testButton.Visible==(value==true),'Test-tools visibility trusts nonboolean access')
 end
 update({});check(testButton.Visible==false,'Missing authorization leaves test tools visible')
-render(true,true);check(buttons.Fly~=nil,'Guarded fixture Fly missing');buttons.Fly.call();check(calls[1][1]=='DevCommand' and calls[1][2]=='Fly','Fly command changed')
+render(true,true);check(buttons.Fly.pos.Y==164,'Fly not visible beneath Beam Test');check(buttons.Fly~=nil,'Guarded fixture Fly missing');buttons.Fly.call();check(calls[1][1]=='DevCommand' and calls[1][2]=='Fly','Fly command changed')
 print('PASS '..checks..' actual test-tool UI checks; synthetic geometry and events only')
 """
 def run(code,expected=None):
