@@ -1,5 +1,42 @@
 # Scream Simulator development roadmap
 
+## Guarded Test Tools: Fly confirmation and silent adjustable Beam
+
+- Existing full-game **Fly on / off** is restricted to the authorized unpublished local test fixture. Add **Beam Test** with 0–100% controls and click-to-run silent preview, separate from microphone, sound, damage and rewards.
+- The standalone Academy review has its own Test Tools, reuses guarded TestFlight with map-specific bounds and plays silent adjustable beams against the temporary course. Flight returns to its origin and cannot advance the course.
+- [Test Tools review and build details](SILENT_BEAM_TEST_REVIEW.md). Two old VFX binaries remain incompatible with local Rojo; the explicitly labeled full-game tools build uses procedural fallback for these assets. No published place or live settings change.
+
+## MAP-10 v2.1 Academy first playable (standalone)
+
+- Opt-in `build_overworld.py --academy` target: held-input Beam training, Marina encounter, optional path guide, server-authoritative Metronome combat, temporary 100-coin starter reward and original Academy Megaphone equip through Tinker. The course temporarily grants level 10 after training; no microphone, save writes, live purchase systems or publication.
+- All five assigned boss homes preserved; only Metronome accepts damage in this fixture. Geometry stays on the prior tested map. Prior map-only and placement-only targets are unchanged.
+- Reproduction, acceptance and evidence scope: [Academy route review](../prototypes/map10-v21/ACADEMY_ROUTE_REVIEW.md). Next: verify the exact artifact natively, then validate real microphone, physical mobile and multiplayer separately. Full production migration and remaining quest destinations are not included.
+
+## MAP-10 v2.1 boss-placement review (standalone)
+
+- Buss assigned Whispering Metronome to the blue-roof Academy, Decibel Golem to the purple Neon Colosseum, Pyro-Tenor Ignis to Magma Rift, Seagull Siren Captain to the lighthouse/Bell-Foundry district, and Eclipse Conductor to Astral Citadel.
+- The opt-in `build_overworld.py --bosses` target uses the current boss models, encounter IDs, levels, 22-stud rings and 4-stud patrol. It does not enable fights, rewards, progression, or saves. The original map-only review artifact still rebuilds byte-for-byte. See [boss home details and reproducible checks](../prototypes/map10-v21/BOSS_HOMES_REVIEW.md).
+- Exact Windows Studio Play: all five models streamed and patrolled at the assigned homes; 1,210 boss floor/headroom probes and 5,145 existing route probes passed.
+- Next for live-game migration: connect the new homes to the full game's world and navigation, then test beam reach and combat behavior in Studio. No production branch, live Roblox, or published place changes.
+
+## MAP-10 v2.1 reference-led art rebuild (standalone)
+
+- Rebuilt the landscape and landmarks throughout the overworld: joined mainland terrain, clipped terraces, full Colosseum, larger Academy campus and lava mountain, floating Astral keel and purple spires, fuller boardwalk/reef, a rebuilt Foundry casting yard and sea arcade.
+- Physical thresholds cover three exact boundary joins identified by native Studio; under-bridge rib grades and floor support were corrected. 3,148 geometry parts (2,594 solid), with 75,674 analytic route probes and 573 grounded structure envelopes. Exact final Windows Studio Play passed 5,145 floor/headroom probes and both selected repaired seam crossings. The gate/ramp paths, coastline recovery and art remain in an unpublished isolated review place, not production.
+- Detailed scope in [overworld review](../prototypes/map10-v21/OVERWORLD_REVIEW.md). Next: wire production NPC/quest/boss locations and profile real mobile/multiplayer before considering a live release. Do not infer a GitHub push or publication.
+
+## MAP-10 v2.1 full overworld review (unpublished)
+
+- Nine buildable districts plus Zone 09's 11 physically connected 32-stud bridges, on the owner's five-band 3,200×3,200 layout. Separate Studio place, no production/gameplay or save changes. Academy spawn and bridge signage, solid rails/buildings/props, decorative exceptions carried separately.
+- Fixed a bridge support obstructing the Foundry dock and three slope-rail ends protruding into turn landings. Added 65 solid cliff pieces outside the route clear envelopes. Final local build: 1,603 geometry parts, 1,285 solid, 75,674 analytic clearance/support samples across 106 segments. Anchored parts, no touch events, shadow cost limited on small detail, streaming configured per the preview baseline.
+- Earlier full-world exact native candidate: 2,577 successful floor probes, all nine streamed arrivals, two actual avatar transects (Academy–SoundBowl and Magma–Astral), rail blocked deliberate crossing. Final cliff revision passed the exact 2,577 native floor rays plus Academy spawn and a 40-stud walk/return; long transects weren't repeated on that exact revision. See [overworld review](../prototypes/map10-v21/OVERWORLD_REVIEW.md). Next: production-location migration, native timing of remaining loops, multiplayer and mobile profiler checks before considering any live map replacement.
+
+## MAP-10 v2.1 Tidal Bell-Foundry review slice (standalone)
+
+- Owner-supplied MAP-10 v2.1 blueprint and both actual reference images reviewed. Recorded nine non-intersecting in-bounds footprints and a connected planned Zone 09 cycle network. Gate/sub-POI timing replaces blanket center-to-center spacing; no active world/sprint edits.
+- Isolated studio-only place builds original 538-part Foundry with three bronze gantries/bells, tiered dock, 32-stud arched link to a standalone 180-stud cyan lighthouse, and a Ø190 arena with eight queryable pillars. Original four-piece Blender prop pack and validated GLBs are separate from the native-part place.
+- Local build, 460 analytic geometry probes and 19 mocked ambience checks pass. Active Map10, quests, combat and publication remain untouched. See [preview notes](../prototypes/map10-v21/README.md). Initial native launch was blocked by the Library transfer helper; normal ChatGPT attachment download later enabled the exact isolated Foundry build to pass 272 native ray checks and the first dock ramp out/back. The full historical aggregate has baseline/toolchain blockers without active source edits. Next: walk ramp/causeway at player height, compare streaming budgets and validate alternate arterial gates before binding a boss/quests or switching the world.
+
 ## Seagull Siren Captain and boss attack feedback (local candidate)
 
 - The Lv70 pier encounter replaces the sea dragon with the Blender-authored Seagull Siren Captain from the vault. The same arena, 22-stud range, rewards, health and unlock remain. A transverse cutlass broadside and twin siren lanes with a clear center gap alternate. See [encounter](SEAGULL_GAMEPLAY_REVIEW.md) and [art](SEAGULL_ART_REVIEW.md).

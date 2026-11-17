@@ -1,0 +1,69 @@
+{
+  "name": "Map10V21OverworldReview",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "StreamingEnabled": true,
+        "StreamingMinRadius": 256,
+        "StreamingTargetRadius": 896,
+        "StreamOutBehavior": "Opportunistic",
+        "StreamingIntegrityMode": "PauseOutsideLoadedArea",
+        "FallenPartsDestroyHeight": -32
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "$properties": {
+        "CameraMode": "Classic",
+        "CameraMinZoomDistance": 6
+      },
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts"
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Zone05Geometry": {
+        "$path": "Zone05Geometry.luau"
+      },
+      "DistrictWest": {
+        "$path": "DistrictWest.luau"
+      },
+      "DistrictEast": {
+        "$path": "DistrictEast.luau"
+      },
+      "DistrictCoast": {
+        "$path": "DistrictCoast.luau"
+      },
+      "OverworldPreview": {
+        "$path": "OverworldPreview.server.luau"
+      },
+      "OverworldSpecs": {
+        "$path": "OverworldSpecs.luau"
+      },
+      "OverworldGeometry": {
+        "$path": "OverworldGeometry.luau"
+      },
+      "OverworldArteries": {
+        "$path": "OverworldArteries.luau"
+      },
+      "OverworldLayout": {
+        "$path": "OverworldLayout.luau"
+      },
+      "OverworldBuilder": {
+        "$path": "OverworldBuilder.luau"
+      },
+      "OverworldCliffs": {
+        "$path": "OverworldCliffs.luau"
+      },
+      "FoundryHarborArt": {
+        "$path": "FoundryHarborArt.luau"
+      },
+      "MainlandRidge": {
+        "$path": "MainlandRidge.luau"
+      }
+    }
+  }
+}

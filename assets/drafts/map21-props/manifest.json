@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "source_units": "1 Blender unit intended as 1 Roblox stud; verify importer scale",
+  "glb_up_axis": "Y",
+  "origin": "base centered, no baked display offset in exports",
+  "individual_triangle_cap": 4000,
+  "assets": [
+    {
+      "name": "LighthouseCrystalCage",
+      "triangles": 992,
+      "mesh_objects": 13,
+      "bounds_blender_xyz": [
+        [
+          -3.0,
+          -3.0,
+          0.0
+        ],
+        [
+          3.0,
+          3.0,
+          7.400000095367432
+        ]
+      ],
+      "dimensions_studs": [
+        6.0,
+        6.0,
+        7.4
+      ],
+      "file": "LighthouseCrystalCage.glb",
+      "bytes": 54332,
+      "sha256": "6391651e817438921df2a6eb0ed28c24d1f0614e2db8a96bd32342024afe4097"
+    },
+    {
+      "name": "FoundryBell",
+      "triangles": 1140,
+      "mesh_objects": 7,
+      "bounds_blender_xyz": [
+        [
+          -2.5,
+          -2.5,
+          0.0
+        ],
+        [
+          2.5,
+          2.5,
+          4.179999828338623
+        ]
+      ],
+      "dimensions_studs": [
+        5.0,
+        5.0,
+        4.18
+      ],
+      "file": "FoundryBell.glb",
+      "bytes": 60660,
+      "sha256": "7d6317614afaabde63f105d715596f482f376523c964e3ceecad336db028bcba"
+    },
+    {
+      "name": "GantryBay",
+      "triangles": 204,
+      "mesh_objects": 15,
+      "bounds_blender_xyz": [
+        [
+          -4.5,
+          -0.6000000238418579,
+          0.0
+        ],
+        [
+          4.5,
+          0.6000000238418579,
+          7.534999847412109
+        ]
+      ],
+      "dimensions_studs": [
+        9.0,
+        1.2,
+        7.535
+      ],
+      "file": "GantryBay.glb",
+      "bytes": 25496,
+      "sha256": "26666eba8b5136c64d4c1d6339f312b2ca5ca9efc441b66d877af0a20099757b"
+    },
+    {
+      "name": "DockCapstan",
+      "triangles": 700,
+      "mesh_objects": 11,
+      "bounds_blender_xyz": [
+        [
+          -2.25,
+          -2.25,
+          0.0
+        ],
+        [
+          2.25,
+          2.25,
+          1.899999976158142
+        ]
+      ],
+      "dimensions_studs": [
+        4.5,
+        4.5,
+        1.9
+      ],
+      "file": "DockCapstan.glb",
+      "bytes": 43468,
+      "sha256": "226191978443a65f792e43b56b7fb84988ac66ffada6addffcca2729d8845a7a"
+    }
+  ]
+}

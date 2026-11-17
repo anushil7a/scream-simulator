@@ -16,6 +16,8 @@ local Profiles=require(script.Parent.Profiles)
 local Access=require(script.Parent.DeveloperAccess)
 local Rules=require(script.Parent.CombatRules)
 local VoiceCombat=require(ReplicatedStorage.Shared.VoiceCombat)
+local TestBeamRules=require(script.Parent.TestBeam)
+local testBeam=TestBeamRules.new(VoiceCombat,require(script.Parent.SustainedAim))
 local Entitlements=require(script.Parent.Entitlements)
 local Commerce=require(script.Parent.Commerce)
 local ShopCatalog=require(ReplicatedStorage.Shared.ShopCatalog)
@@ -76,6 +78,13 @@ local function sustainedEnd(p,ended,now)
  p:SetAttribute("SustainedEndsAt",0)
  p:SetAttribute("SustainedReadyAt",workspace:GetServerTimeNow()+math.max(0,ended.nextStart-now))
 end
+local function testBeamEnd(p,s,now,ended)
+ if ended or testBeam.Stop(s,now) then
+  effect:FireAllClients("TestBeamEnd",nil,p.UserId)
+  return true
+ end
+ return false
+end
 local function cancelSustained(p,s,now)
  if s.sustained then sustainedEnd(p,sustained.Cancel(s.sustained,now),now) end
 end
@@ -109,7 +118,9 @@ local function state(p,message,conversation,messageUrgent,messageKey)
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  voiceEligible=VoiceEligibility.Allowed(s.voiceEligibility,os.clock()),voiceStatus=VoiceEligibility.Status(s.voiceEligibility,os.clock()),
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
- conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,flying=s.flight~=nil,message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
+ conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,flying=s.flight~=nil,
+ testBeamAvailable=s.testBeamAvailable==true,
+ testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
 end
 -- No remote can enqueue voice checks. Retry state belongs only to live sessions;
 -- at most eight actual API calls exist, with one new start per quarter-second.
@@ -258,6 +269,7 @@ local function stopQuest(p)
  Soccer.Cancel(p);QuestLifecycle.Clear(s,Config.GetQuest)
 end
 local function protect(p,s)
+ if s.testBeam then testBeamEnd(p,s,os.clock()) end
  s.credit={}
  cancelSustained(p,s,os.clock())
  VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
@@ -309,7 +321,7 @@ local function bossInBeam(boss,c,origin,direction,length,width)
  return false
 end
 local function canCapture(p,s,now)
- if s.flight then return false end
+ if s.flight or s.testBeam then return false end
  local _,r,h=parts(p)
  local bot=s.conversationBot
  if r and bot and bot.alive and bot.root.Parent and bot.talkingTo==p and (bot.socialUntil or 0)>now
@@ -670,6 +682,7 @@ local function dev(p,command)
  if command=="Fly" and not (localFixture and RunService:IsStudio() and game.PlaceId==0 and game.GameId==0) then return end
  if command=="StudioMovement" and not game:GetService("RunService"):IsStudio() then return end
  if command=="ResetBots" and not localFixture then state(p,"Reset bots requires the isolated local Studio fixture; shared fights are unchanged.");return end
+ if s.testBeam then testBeamEnd(p,s,os.clock()) end
  -- Freeze legitimate progress before any test mutation. Keep renewing/releasing its lease.
  if not s.testBaseline then
   cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0);s.credit={}
@@ -767,6 +780,10 @@ for _,obj in ipairs(workspace.ScreamSimulatorWorld:GetDescendants()) do
 end
 action.OnServerEvent:Connect(function(p,verb,arg)
  local s=sessions[p];if not s or type(verb)~="string" then return end
+ if verb=="TestBeamStop" and arg==nil then
+  if testBeamEnd(p,s,os.clock()) then state(p) end
+  return
+ end
  if verb=="FlightStop" then if s.flight then TestFlight.Stop(p,s) end;return end
  if verb=="FlightInput" then
   if s.flight then TestFlight.Input(p,s,arg,os.clock()) end
@@ -794,9 +811,30 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   end
   return
  end
+ if s.testBeam and verb~="TestBeamPulse" and verb~="TestBeamBegin" and verb~="DevCommand" and verb~="SetSettings" and verb~="Sync" then return end
  s.requestWindow=s.requestWindow or now;s.requestCount=s.requestCount or 0
  if now-s.requestWindow>=1 then s.requestWindow=now;s.requestCount=0 end
  s.requestCount+=1;if s.requestCount>30 then return end
+ if verb=="TestBeamBegin" or verb=="TestBeamPulse" then
+  local authorized=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)
+  if verb=="TestBeamPulse" then
+   local _,ended=testBeam.Pulse(p,s,authorized,localFixture,now,arg)
+   if ended then testBeamEnd(p,s,now,true);state(p) end
+  else
+   if Commerce.Busy(p) then state(p,"Wait for your purchase to finish saving.");return end
+   local ok,reason=testBeam.ValidateStart(p,s,authorized,localFixture,now,arg)
+   if not ok then
+    -- Do not return detailed test information to callers outside the guard.
+    if TestBeamRules.Available(authorized,localFixture) then state(p,reason) end
+    return
+   end
+   if not s.testBaseline then s.testBaseline=Profiles.Sanitize(s.data);s.data=Profiles.Sanitize(s.data) end
+   cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0);s.credit={}
+   ok,reason=testBeam.Start(p,s,authorized,localFixture,now,arg,Config.Gear.Multiplier(s.data))
+   state(p,ok and "Silent beam test · visual only · no damage, rewards or progress" or reason)
+  end
+  return
+ end
  if s.sustained then
   if verb=="BeginCast" or verb=="Cast" or verb=="CancelCast" then return end
   if verb=="SustainedBegin" then
@@ -889,6 +927,8 @@ local function joined(p)
  end
  local s={data=data,canSave=save,recoveryWarning=recoveryWarning,rewardIdentity={},voice=VoiceCombat.New(),voiceEligibility=VoiceEligibility.New(localFixture,os.clock(),p.UserId),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
  botRewards={},credit={},collected={},sprintRequested=false,sprintRunning=false,sprintRegenAt=0,sprintCharge=Config.SprintDuration,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
+ -- Visibility cache only. Every activation, pulse and tick rechecks the dynamic server guard.
+ s.testBeamAvailable=localFixture and TestBeamRules.Available(Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),localFixture)
  task.spawn(Commerce.Load,p)
  if sustainedEnabled then
   s.sustained=sustained.New()
@@ -897,6 +937,7 @@ local function joined(p)
  local function spawn(c)
   local h=c:WaitForChild("Humanoid",10)
   if not h or not p.Parent or sessions[p]~=s or p.Character~=c or s.character==c then return end
+  if s.testBeam then testBeamEnd(p,s,os.clock()) end
   if s.flight then TestFlight.Stop(p,s) end;s.character=c;closeConversation(p)
   s.jumpPower=h.JumpPower;s.jumpHeight=h.JumpHeight
   h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=16
@@ -908,6 +949,7 @@ local function joined(p)
  end
  s.characterRemovingConnection=p.CharacterRemoving:Connect(function(c)
   if sessions[p]~=s or s.character~=c then return end
+  if s.testBeam then testBeamEnd(p,s,os.clock()) end
   if s.flight then TestFlight.Stop(p,s) end;closeConversation(p);cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
   p:SetAttribute("CaptureStarted",0);s.sprintRequested=false;s.character=nil
  end)
@@ -928,6 +970,7 @@ local function leaving(p)
  closeConversation(p)
  local s=sessions[p]
  if not s then return end
+ if s.testBeam then testBeamEnd(p,s,os.clock()) end
  if s.flight then TestFlight.Stop(p,s) end;disconnectSessionSignals(s)
  cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
  -- Release gameplay ownership before Save yields. Delayed gameplay callbacks
@@ -1026,6 +1069,21 @@ task.spawn(function()
     if s.raceStart then s.raceStart+=pause end
     TestFlight.Step(p,s,Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),flightBounds,now,.1)
    end
+   if s.testBeam then
+    local preview,ended=testBeam.Step(p,s,Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),localFixture,now)
+    if ended then testBeamEnd(p,s,now,true);state(p) end
+    if preview then
+     -- Cover uses the real server beam ray; no target resolver, damage or audio event is called.
+     local obstruction=beamObstruction(s.testBeam.character,preview.origin,preview.direction,preview.length,Players:GetPlayers())
+     local length=obstruction and obstruction.Distance or preview.length
+     for _,viewer in ipairs(Players:GetPlayers()) do
+      local _,root=parts(viewer)
+      if root and (root.Position-preview.origin).Magnitude<=180 then
+       effect:FireClient(viewer,"TestBeam",preview.origin,p.UserId,beamColor(p,s),preview.direction,length,preview.width,nil,preview.level)
+      end
+     end
+    end
+   end
    stepVoiceEligibility(p,s,now)
    local dt=math.max(0,now-s.lastStep);s.lastStep=now;local _,r,h=parts(p)
    -- Crossing into PvP immediately restores the full dodge cooldown.
@@ -1083,6 +1141,7 @@ local function shutdown()
  -- Freeze gameplay before any final save can yield or release its lease.
  -- In-flight joins see closing and release their acquired profile instead.
  for p,s in pairs(sessions) do
+  if s.testBeam then testBeamEnd(p,s,os.clock()) end
   if s.flight then TestFlight.Stop(p,s) end;disconnectSessionSignals(s)
   closeConversation(p);cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
   sessions[p]=nil
