@@ -1297,3 +1297,9 @@ The local Academy preview now keeps a manual beam attached to its initiating key
 ## November 18 Academy course HUD
 
 Rearranged the course and open tools around the reticle in compact viewports, kept power buttons 42 by 40 pixels, and cached static geometry by viewport and touch capability. The actual placement function passed 12 mocked cases including rotation and zero static layout writes on unchanged refresh. The other 100 tool checks, 126 rules assertions, 135 route probes and Academy Rojo build passed. Next check text wrapping, safe-area insets and thumbstick clearance in Studio and on a phone.
+
+## November 18 compact Academy playtest map
+
+The Academy build uses 1,280 × 1,280 stud design bounds and 12.8-stud main bridges. Compact stations, flight bounds, boss homes and bridge labels follow the new layout. Ground and paving use legacy finishes where districts correspond. The art pass corrected two lantern intrusions and coplanar stage, lookout and fossil-base joins. The full-size base layout remains available for comparison.
+
+Verified the Academy Rojo build, all 3,148 part transforms, 106 routes, 14,538 route samples, 2,205 boss clearance samples and 135 Academy probes. Next, walk the narrow bridges and boss approaches in local Studio and inspect the deck joins and finishes from player height.

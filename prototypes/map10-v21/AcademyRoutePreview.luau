@@ -12,8 +12,8 @@ return function(world)
  local Homes=require(Shared.CompactLayout).BossHomes
  local Equipment=require(game:GetService("ServerScriptService").Equipment)
  local Flight=require(game:GetService("ServerScriptService").TestFlight)
- -- Official 3200-square map, including Astral altitude; no production bounds reused.
- local flightBounds={min=Vector3.new(-1592,-4,-1592),max=Vector3.new(1592,600,1592),localOnly=true}
+ -- Compact 1280-square map, including Astral altitude; no production bounds reused.
+ local flightBounds={min=Vector3.new(-632,-4,-632),max=Vector3.new(632,240,632),localOnly=true}
  local BossService=require(game:GetService("ServerScriptService").BossService)
  local net=Instance.new("Folder");net.Name="AcademyRoutePreview";net.Parent=Replicated
  local input=Instance.new("RemoteEvent");input.Name="BeamInput";input.Parent=net

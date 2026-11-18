@@ -67,6 +67,7 @@ def audit(data,layout,budget):
             if role not in ('Decorative','Decoration','Optical','NonPhysical') and not tags&DECOR_TAGS:
                 errors.append(f"Nonphysical part needs explicit decorative exception: {p['id']} tags={sorted(tags)}")
     expected={tuple(sorted(x)) for x in layout['plannedZone09Links']};found=set();graph=defaultdict(set);edge_routes=defaultdict(list)
+    scale=data.get("worldScale",1)
     samples=0
     for r in routes:
         a=np.array(r['a'],dtype=float);b=np.array(r['b'],dtype=float);delta=b-a
@@ -76,7 +77,7 @@ def audit(data,layout,budget):
             edge=tuple(sorted(str(x).zfill(2) for x in link));found.add(edge)
             if len(edge)==2:
                 graph[edge[0]].add(edge[1]);graph[edge[1]].add(edge[0]);edge_routes[edge].append(r)
-        minimum=32 if link or r.get('class')=='arterial' else 24 if r.get('class','main')=='main' else 8
+        minimum=(32 if link or r.get('class')=='arterial' else 24 if r.get('class','main')=='main' else 8)*scale
         angle=math.degrees(math.atan2(abs(delta[1]),horizontal))
         if not math.isfinite(width) or width<minimum:errors.append(f"{r['id']}: width {width} < {minimum}")
         if horizontal<.001 or angle>layout['rampLimitDegrees']+1e-6:
@@ -87,7 +88,8 @@ def audit(data,layout,budget):
         points=np.array([a+t*delta+side*off for t in ts for off in offsets]);samples+=len(points)
         starts=points+np.array([0,.25,0]);directions=np.tile([0,-1,0],(len(points),1));lengths=np.full(len(points),.5)
         support=np.zeros(len(points),bool);blocked=np.zeros(len(points),bool)
-        ceiling=16 if r.get("class") in ("main","arterial") else 6
+        authored_ceiling=16 if r.get("class") in ("main","arterial") else 6
+        ceiling=max(6,authored_ceiling*scale)
         # Conservative horizontal AABB filter only excludes solids impossible to intersect.
         low=points.min(axis=0);high=points.max(axis=0)
         for p in solids:
@@ -156,7 +158,8 @@ def main():
     args=parser.parse_args()
     if args.self_test:
         self_test();return 0
-    data=json.loads(args.geometry.read_text());layout=json.loads((Path(__file__).parent/'layout.json').read_text())
+    data=json.loads(args.geometry.read_text())
+    layout=data if "worldScale" in data else json.loads((Path(__file__).parent/'layout.json').read_text())
     errors=audit(data,layout,args.part_budget)
     for message in errors:print('FAIL',message)
     print('STATIC_OVERWORLD_PASS' if not errors else f'STATIC_OVERWORLD_FAIL {len(errors)}')

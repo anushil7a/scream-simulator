@@ -4,7 +4,7 @@
 return function(build,id,spec)
  local cx,y,cz=table.unpack(spec.center)
  local w,d=table.unpack(spec.size)
- local sand={220,202,157};local timber={122,85,52};local teal={38,118,126}
+ local sand={220,202,157};local timber={122,85,52};local dockTimber={156,109,69};local teal={38,118,126}
  local dark={34,49,61};local gold={192,151,70};local cyan={60,220,225}
  local function p(n,x,h,z,s,c,rot,mat,tags)
   build:part('Coast'..id..n,{cx+x,y+h,cz+z},s,c,true,rot,mat or 'SmoothPlastic',tags or {'CoastalPOI'})
@@ -12,14 +12,17 @@ return function(build,id,spec)
  local function disk(n,x,h,z,r,thick,c,mat)
   build:disk('Coast'..id..n,cx+x,y+h,cz+z,r,thick,c,true,mat or 'SmoothPlastic',{'CoastalPOI'})
  end
- local function steps(n,x,z,width,count,depth)
-  for j=1,count do p(n..j,x,j*.6,z+(j-1)*depth,{width,j*1.2,math.abs(depth)},sand,nil,'Sandstone') end
+ local function steps(n,x,z,width,count,depth,joinDeck)
+  for j=1,count do
+   local height=j*1.2-(joinDeck and j==count and .02 or 0)
+   p(n..j,x,height/2,z+(j-1)*depth,{width,height,math.abs(depth)},sand,nil,'Sandstone')
+  end
  end
  if id=='03' then
   -- Stage is in NW quadrant. A broad three-step approach starts outside cross.
   local sx=-w*.26;local sz=-d*.25
-  p('Stage',sx,1.8,sz,{140,3.6,56},timber,nil,'WoodPlanks',{'WalkablePOI','DJStage'})
-  steps('StageStep',sx,sz+34,64,3,-5)
+  p('Stage',sx,1.8,sz,{140,3.6,56},dockTimber,nil,'SmoothPlastic',{'WalkablePOI','DJStage'})
+  steps('StageStep',sx,sz+34,64,3,-5,true)
   for _,side in ipairs({-1,1}) do
    p('Speaker'..side,sx+side*55,13.6,sz-8,{16,20,16},dark)
    for k=1,2 do
@@ -63,7 +66,7 @@ return function(build,id,spec)
   for _,sign in ipairs({-1,1}) do
    for j=1,10 do
     local x=sign*(42+j*28)
-    p('PromenadePlank'..sign..j,x,.12,80,{26,.24,92},timber,nil,'WoodPlanks')
+    p('PromenadePlank'..sign..j,x,.12,80,{26,.24,92},dockTimber,nil,'SmoothPlastic')
    end
   end
   for j=1,9 do
@@ -123,7 +126,7 @@ return function(build,id,spec)
   p('ShellKeystone',qx,39,-qz,{10,10,16},teal,nil,'Slate')
   for i=1,6 do p('ShellInlay'..i,qx-21+i*6,.15,-qz+30,{3,.3,10},gold,nil,'Metal') end
   -- Accessible lookout at only7.2studs: six1.2stud steps, open skyline.
-  steps('LookoutSteps',-qx,qz-48,32,6,6)
+  steps('LookoutSteps',-qx,qz-48,32,6,6,true)
   p('LookoutDeck',-qx,3.6,qz,{64,7.2,46},sand,nil,'Sandstone',{'WalkablePOI','ReefLookout'})
   for _,s in ipairs({-1,1}) do
    p('LookoutSideRail'..s,-qx+s*31,10,qz,{2,5.6,46},timber,nil,'Wood')
@@ -152,7 +155,7 @@ return function(build,id,spec)
   for _,side in ipairs({-1,1}) do
    for j=1,3 do
     local x=qx+side*(31+j*10);local z=-qz-25-j*5
-    p('FossilBase'..side..j,x,3,z,{14,6,18},{155,163,153},nil,'Slate')
+    p('FossilBase'..side..j,x,3,z,{10,6,18},{155,163,153},nil,'Slate')
     p('FossilRib'..side..j,x,15+j*5,z,{5,24+j*10,7},sand,{0,0,side*(7+j*2)},'Sandstone')
     p('FossilCrown'..side..j,x-side*5,29+j*10,z,{16,5,7},sand,{0,0,side*25},'Sandstone')
    end

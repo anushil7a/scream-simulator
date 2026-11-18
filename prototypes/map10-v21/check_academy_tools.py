@@ -53,7 +53,7 @@ for fragment in ['if flying(p) or not near(', 'if flying(p) or not s or s.stage~
  'if not flying(p) and s and spec.id=="metronome"', 'if h and not flying(p)',
  'if not s or flying(p) then return end', 'if flying(p) then',
  'stopFlight(p);flights[p]=nil;toolSessions[p]=nil', 'p.CharacterRemoving:Connect(function() stopFlight(p)',
- 'max=Vector3.new(1592,600,1592)', 'Voice.Stats(s.level,power,', 'Rules.Dps(stats)*dt',
+ 'max=Vector3.new(632,240,632)', 'Voice.Stats(s.level,power,', 'Rules.Dps(stats)*dt',
  'or power<=0 then continue end', 'fx:FireClient(p,origin,endpoint,stats.power)']:
     assert fragment in server,fragment
 for fragment in ['testUntil=os.clock()+4', 'if testUntil and (now>=testUntil or (player:GetAttribute("AcademyCharge") or -1)<0) then stopBeam() end',

@@ -131,7 +131,7 @@ return function(build,id,spec)
      local angle=math.rad(quadrant*90+24+segment*14)
      local length=2*r*math.tan(math.rad(6.8))
      part("BowlTier",r*math.cos(angle),tier+1,r*math.sin(angle),length,2*(tier+1),14,
-      tier%2==0 and {211,179,130} or {188,153,108},{0,90-math.deg(angle),0},"Sandstone")
+      {159,149,129},{0,90-math.deg(angle),0},"SmoothPlastic")
      part("BowlCoping",r*math.cos(angle),2*(tier+1)+.3,r*math.sin(angle),length,.6,2.2,pale,{0,90-math.deg(angle),0})
     end
    end

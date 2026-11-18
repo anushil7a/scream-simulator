@@ -18,9 +18,9 @@ local function stripShape(w,h,r)
  return out
 end
 local palettes={
- ["01"]={{193,175,138},{221,200,164}},["02"]={{161,138,115},{195,166,131}},
- ["03"]={{138,107,84},{166,128,97}},["04"]={{138,153,106},{190,178,138}},
- ["06"]={{103,94,127},{121,112,145}},["07"]={{92,80,83},{125,103,101}},
+ ["01"]={{200,174,132},{239,219,172}},["02"]={{161,138,115},{195,166,131}},
+ ["03"]={{138,107,84},{156,109,69}},["04"]={{115,152,85},{190,178,138}},
+ ["06"]={{103,94,127},{121,112,145}},["07"]={{65,58,63},{125,103,101}},
  ["08"]={{112,95,143},{137,119,159}},["10"]={{142,150,125},{165,173,144}},
 }
 local function paddedOpenings(layout,id,d)
@@ -90,12 +90,12 @@ local function base(builder,id,d)
  local p=palettes[id]
  for i,strip in ipairs(stripShape(w,h,CHAMFER[id] or 0)) do
   local lo,hi,width=table.unpack(strip)
-  builder:part("DistrictGround_"..i,{x,(y+bottom)/2,z+(lo+hi)/2},{width,y-bottom,hi-lo},p[1],true,nil,"Slate",{"GroundSurface"})
+  builder:part("DistrictGround_"..i,{x,(y+bottom)/2,z+(lo+hi)/2},{width,y-bottom,hi-lo},p[1],true,nil,(id=="01" or id=="04" or id=="07") and "SmoothPlastic" or "Slate",{"GroundSurface"})
  end
  -- Material changes read as paving rather than luminous paint. The four
  -- arms terminate at an inset octagonal plaza with no coplanar overlap.
  local center=35
- builder:disk("CenterPaving",x,y+.042,z,center,.08,p[2],false,"Cobblestone",{"CosmeticDetail"})
+ builder:disk("CenterPaving",x,y+.042,z,center,.08,p[2],false,id=="01" and "SmoothPlastic" or "Cobblestone",{"CosmeticDetail"})
  for j,dir in ipairs({{1,0},{-1,0},{0,1},{0,-1}}) do
   local dx,dz=table.unpack(dir);local radius=dx~=0 and w/2 or h/2
   local last=radius-9
@@ -104,7 +104,7 @@ local function base(builder,id,d)
   local along=(center+last)/2
   local q={x+dx*along,y+.046,z+dz*along}
   builder:part("Paving_"..j,q,dx~=0 and {length,.08,width} or {width,.08,length},
-    p[2],false,nil,id=="03" and "WoodPlanks" or "Concrete",{"CosmeticDetail"})
+    p[2],false,nil,(id=="01" or id=="03") and "SmoothPlastic" or "Concrete",{"CosmeticDetail"})
  end
 end
 local function gatesTest(builder,id,d,gates)

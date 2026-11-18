@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -26,7 +27,7 @@ def include_bosses(project, paths, academy=False):
         parent[key]={"$path":filename}
         paths[filename]=original
     if academy:
-        for name in ("AcademyRoutePreview","AcademyRouteRules"):
+        for name in ("AcademyRoutePreview","AcademyRouteRules","AcademyWorldScale"):
             filename=name+".luau"
             add(sss,name,filename,BASE/filename)
         add(sss,"Equipment","Equipment.luau",source/"ServerScriptService"/"Equipment.luau")
@@ -37,6 +38,8 @@ def include_bosses(project, paths, academy=False):
     rep=tree["ReplicatedStorage"]={"$className":"ReplicatedStorage"}
     shared=rep["Shared"]={"$className":"Folder"}
     add(shared,"CompactLayout","CompactLayout.luau",BASE/"BossHomes.luau")
+    if academy:
+        shared["AcademyWorldScale"]={"$path":"AcademyWorldScale.luau"}
     for name in BOSS_SHARED+(("GearCatalog","VoiceCombat") if academy else ()):
         filename=name+".luau"
         add(shared,name,filename,source/"ReplicatedStorage"/"Shared"/filename)
@@ -55,26 +58,35 @@ def include_bosses(project, paths, academy=False):
 def run(*args, capture=False):
     return subprocess.run(args,cwd=BASE,check=True,text=True,stdout=subprocess.PIPE if capture else None)
 
-def export():
+def export(academy=False):
     data=json.loads((BASE/"layout.json").read_text())
     parts=[];routes=[]
     def vector(s):return list(map(float,s.split(",")))
     def tags(s):return s.split(",") if s else []
-    for line in run("luau","export_overworld.luau",capture=True).stdout.splitlines():
+    mode=("-a","--academy") if academy else ()
+    for line in run("luau","export_overworld.luau",*mode,capture=True).stdout.splitlines():
         kind,*row=line.split("|")
         if kind=="P":
             ident,position,size,rotation,color,shape,material,collide,query,role,zone,labels=row
             parts.append(dict(id=f"{zone}/{ident}",position=vector(position),size=vector(size),
                rotation=vector(rotation),color=vector(color),shape=shape,material=material,
                collidable=collide=="true",queryable=query=="true",collisionRole=role,zone=zone,tags=tags(labels)))
+        elif kind=="S":
+            factor=float(row[0])
+            data["worldScale"]=factor
+            data["boundsXZ"]=[x*factor for x in data["boundsXZ"]]
+            data["arteryWidth"]*=factor
+            for district in data["districts"].values():
+                district["center"]=[x*factor for x in district["center"]]
+                district["size"]=[x*factor for x in district["size"]]
         else:
             assert kind=="R"
             ident,start,end,width,style,link=row
             routes.append(dict(id=ident,a=vector(start),b=vector(end),width=float(width),
                                **{"class":style},**({"link":tags(link)} if link else {})))
     data.update(parts=parts,routes=routes)
-    (OUT/"overworld-geometry.json").write_text(json.dumps(data,indent=2))
-    return len(parts),len(routes)
+    (OUT/("academy-overworld-geometry.json" if academy else "overworld-geometry.json")).write_text(json.dumps(data,indent=2))
+    return len(parts),len(routes),data.get("worldScale",1)
 
 def main():
     parser=argparse.ArgumentParser()
@@ -83,8 +95,8 @@ def main():
     mode.add_argument("--academy",action="store_true",help="Include the disposable playable Academy route with temporary progression.")
     options=parser.parse_args()
     OUT.mkdir(parents=True,exist_ok=True)
-    run("python3","build_layout_data.py","--check")
-    count,routes=export()
+    run(sys.executable,"build_layout_data.py","--check")
+    count,routes,scale=export(options.academy)
     project=json.loads((BASE/PROJECT).read_text())
     paths={v["$path"]:BASE/v["$path"] for v in project["tree"]["ServerScriptService"].values() if isinstance(v,dict)}
     if options.bosses or options.academy:
@@ -123,6 +135,7 @@ def main():
     if options.bosses:
         manifest["bossPreview"]="Current roster visuals and patrol only, no combat/progression"
     if options.academy:
+        manifest["worldScale"]=scale
         manifest["academyRoute"]="Unpublished Studio only; adjustable silent held-input Beam and Test Flight, temporary coins and gear; no microphone or live saves"
     provenance=("academy-route-provenance.json" if options.academy else
                 "boss-placement-provenance.json" if options.bosses else "overworld-provenance.json")

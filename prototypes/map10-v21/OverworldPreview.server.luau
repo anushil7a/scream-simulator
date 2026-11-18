@@ -6,6 +6,13 @@ local Lighting=game:GetService("Lighting")
 Players.CharacterAutoLoads=false
 local make=require(script.Parent.OverworldSpecs)
 local builder,groupNames,layout=make()
+local scale=1
+local academyScale=script.Parent:FindFirstChild("AcademyWorldScale")
+if academyScale then
+ local transform=require(academyScale)
+ scale=transform.Factor
+ layout=transform.Apply(builder,layout)
+end
 local world=Instance.new("Folder");world.Name="Map10V21_Overworld"
 local groups=builder:Build(world,groupNames)
 
@@ -21,7 +28,8 @@ bloom.Name="LandmarkBloom";bloom.Intensity=.17;bloom.Threshold=2.7;bloom.Size=20
 local spawn=Instance.new("SpawnLocation")
 spawn.Name="AcademyPreviewSpawn";spawn.Transparency=1;spawn.Size=Vector3.new(8,.4,8)
 spawn.Anchored=true;spawn.CanCollide=false;spawn.CanQuery=false;spawn.CanTouch=false;spawn.Neutral=true;spawn.Duration=0
-spawn.CFrame=CFrame.lookAt(Vector3.new(-780,50.2,620),Vector3.new(-780,50.2,330))
+local spawnPosition=Vector3.new(table.unpack(layout.districts["01"].center))+Vector3.new(0,.2,0)
+spawn.CFrame=CFrame.lookAt(spawnPosition,spawnPosition-Vector3.zAxis)
 spawn.Parent=groups["01"]
 local trail=Instance.new("Folder")
 trail.Name="NativeReviewMarkers";trail.Parent=world
@@ -52,7 +60,7 @@ for _,link in ipairs(layout.plannedZone09Links) do
   local b=k==1 and points[2] or points[#points-1]
   local along=Vector3.new(b[1]-a[1],0,b[3]-a[3]).Unit
   local anchor=Vector3.new(table.unpack(a))-along*7+Vector3.new(0,9,0)
-  label(groups[id], "TO  "..layout.districts[link[3-k]].name,anchor,190,120)
+  label(groups[id], "TO  "..layout.districts[link[3-k]].name,anchor,190,120*scale)
  end
 end
 world.Parent=workspace
@@ -71,7 +79,8 @@ local function probe(point,id,scope)
   table.insert(pending,id..":"..tostring(point)..":"..(hit and hit.Instance.Name or "no floor"))
  end
  if scope then
-  local ceiling=(scope=="arterial" or scope=="main") and 16 or 6
+  local authoredCeiling=(scope=="arterial" or scope=="main") and 16 or 6
+  local ceiling=math.max(6,authoredCeiling*scale)
   local obstruction=workspace:Raycast(point+vector(0,.66,0),vector(0,ceiling-.66,0),params)
   headroomCount+=1
   if obstruction then table.insert(pending,id..":"..tostring(point)..":overhead "..obstruction.Instance.Name) end
@@ -82,7 +91,7 @@ for _,r in ipairs(builder.routes) do
  local a,c=vector(table.unpack(r.a)),vector(table.unpack(r.b))
  local d=c-a
  local side=vector(d.Z,0,-d.X).Unit
- local steps=math.ceil(d.Magnitude/22)
+ local steps=math.ceil(d.Magnitude/(22*scale))
  for n=0,steps do
   for _,o in ipairs({-r.width*.5+2,0,r.width*.5-2}) do
    probe(a:Lerp(c,n/steps)+side*o,r.id,r.class)
