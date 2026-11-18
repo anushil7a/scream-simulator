@@ -161,7 +161,16 @@ local function foundry(builder,old)
    if p.collidable and (id:match("^Platform") or id:match("^DockUpper") or id:match("^DockLower") or id=="LighthouseIsland") then
     table.insert(tags,"GroundSurface")
    end
-   builder:part(id,p.position,p.size,p.color,physical,p.rotation,p.material,tags,p.shape)
+   if builder.compact and westCliff then
+    local cap=id:match("^BackCliffHeather")
+    local toe=id:match("^CliffTalus")
+    local size={p.size[1],p.size[2],p.size[3]*1.17}
+    local position=table.clone(p.position)
+    if cap then position[2]-=7 end
+    builder:part(id,position,size,p.color,true,{0,0,0},cap and "Ground" or toe and "Slate" or "Limestone",tags,"Ball")
+   else
+    builder:part(id,p.position,p.size,p.color,physical,p.rotation,p.material,tags,p.shape)
+   end
   end
  end
  for _,route in ipairs(old.Routes) do builder:route("05_"..route.id,route.a,route.b,route.width,"secondary") end
@@ -183,7 +192,7 @@ function Geometry.Compose(builder,layout,arteries,west,coast,east,originalFoundr
  end
  arteries.Build(builder,layout)
  builder.zone="00"
- builder:part("Sea",{0,-2.2,0},{4200,4,4200},{23,124,154},false,nil,"SmoothPlastic",{"WaterVisual"})
+ builder:part("Sea",{0,-2.2,0},{4200,4,4200},{36,103,117},false,nil,"SmoothPlastic",{"WaterVisual"})
  -- Restrained nearshore water strokes. Unwalkable and non-queryable, no per-frame animation.
  local foam={
   {236,-411,4,16,2},{459,-231,-14,17,2},{657,-401,13,22,2},{842,-579,-11,9,2},{913,-660,75,10,2},
@@ -196,7 +205,7 @@ function Geometry.Compose(builder,layout,arteries,west,coast,east,originalFoundr
   for i2=1,count do
    local coast=(i2-1)*5
    builder:part("HarborFoam"..i.."_"..i2,{fx+math.sin(a)*coast,.065+i2*.008,fz+math.cos(a)*coast},
-    {length+i2*4,.07,1.15+i2*.42},i2==1 and {130,209,201} or {58,169,180},
+    {length+i2*4,.07,1.15+i2*.42},i2==1 and {155,201,188} or {65,142,147},
     false,{0,yaw+(-1)^i2*4,0},"SmoothPlastic",{"WaterVisual"})
   end
  end

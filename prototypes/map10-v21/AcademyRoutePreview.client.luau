@@ -4,6 +4,7 @@ if not RunService:IsStudio() or game.GameId ~= 0 or game.PlaceId ~= 0 then retur
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
 local GuiService = game:GetService("GuiService")
 local Workspace = game:GetService("Workspace")
 local Debris = game:GetService("Debris")
@@ -21,7 +22,8 @@ gui.Name = "AcademyRoutePreviewUI"
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-gui.Parent = player:WaitForChild("PlayerGui")
+local playerGui = player:WaitForChild("PlayerGui")
+gui.Parent = playerGui
 local connections = {}
 local function connect(signal, callback)
  local connection = signal:Connect(callback)
@@ -149,7 +151,17 @@ connect(holdButton.InputBegan, function(input)
 end)
 connect(UserInputService.InputBegan, function(input, processed)
  if processed then return end
- if input.UserInputType == Enum.UserInputType.MouseButton1 or input.KeyCode == Enum.KeyCode.ButtonR2 or input.KeyCode == Enum.KeyCode.B then startBeam(input) end
+ if input.UserInputType == Enum.UserInputType.MouseButton1 then
+  local point = input.Position
+  if point.Y < 0 then return end -- Roblox's top bar, above the GUI inset.
+  for _, object in ipairs(playerGui:GetGuiObjectsAtPosition(point.X, point.Y)) do
+   if object == panel or object == toolsPanel or object.Active or object:IsA("GuiButton") or object:IsA("TextBox")
+    or object:IsA("ScrollingFrame") then return end
+  end
+  startBeam(input)
+ elseif input.KeyCode == Enum.KeyCode.ButtonR2 or input.KeyCode == Enum.KeyCode.B then
+  startBeam(input)
+ end
 end)
 local function ownsBeamInput(input)
  if not heldInput then return false end
@@ -236,6 +248,12 @@ connect(UserInputService.InputBegan,function(input,processed)
  if not processed and input.KeyCode==Enum.KeyCode.Home then stopBeam();vertical=0;toolsRemote:FireServer("FlyOff") end
 end)
 local flightSent=-math.huge
+ContextActionService:BindActionAtPriority("AcademyFlightSpace",function()
+ if player:GetAttribute("TestFlight") and not GuiService.MenuIsOpen and not UserInputService:GetFocusedTextBox() then
+  return Enum.ContextActionResult.Sink
+ end
+ return Enum.ContextActionResult.Pass
+end,false,Enum.ContextActionPriority.High.Value,Enum.KeyCode.Space)
 local function flightInput(now)
  if not player:GetAttribute("TestFlight") or now-flightSent<.1 then return end
  flightSent=now
@@ -244,10 +262,10 @@ local function flightInput(now)
   local function key(k) return UserInputService:IsKeyDown(k) and 1 or 0 end
   x=key(Enum.KeyCode.D)-key(Enum.KeyCode.A);z=key(Enum.KeyCode.W)-key(Enum.KeyCode.S)
   y=key(Enum.KeyCode.Space)-key(Enum.KeyCode.LeftControl)
-  if UserInputService.TouchEnabled then
-   y=vertical
+  if UserInputService.PreferredInput==Enum.PreferredInput.Touch then
+   if y==0 then y=vertical end
    local c=player.Character;local h=c and c:FindFirstChildOfClass("Humanoid");local r=c and c:FindFirstChild("HumanoidRootPart")
-   if h and r then
+   if x==0 and z==0 and h and r then
     local forward=Vector3.new(r.CFrame.LookVector.X,0,r.CFrame.LookVector.Z)
     if forward.Magnitude>.001 then
      forward=forward.Unit;local right=Vector3.new(-forward.Z,0,forward.X)
@@ -281,10 +299,10 @@ connect(clearButton.Activated, function()
  routeText.Text = "No guide selected. Choosing a guide never moves your character."
 end)
 local stageCopy = {
- Train = "Train: aim at the Academy practice target. Hold mouse / R2 / HOLD BEAM.",
+ Train = "Put the center + on the cyan resonator. Hold left mouse, B, R2, or HOLD BEAM.",
  Meet = "Meet: approach the Academy mentor and use the nearby prompt.",
  Guide = "Guide: choose a guide to Whispering Metronome, then walk to the course entry.",
- Fight = "Fight: hold your beam on Whispering Metronome. Move clear of its warnings.",
+ Fight = "Put the center + on Metronome. Hold Beam and dodge the colored ground.",
  Gear = "Gear: approach Academy starter gear and use its prompt to equip.",
  Complete = "Course complete! Explore the Academy. This local progress is temporary.",
 }
@@ -402,6 +420,7 @@ connect(RunService.Heartbeat, function()
 end)
 connect(gui.Destroying, function()
  stopBeam(); hover();toolsRemote:FireServer("FlyOff"); alive = false
+ ContextActionService:UnbindAction("AcademyFlightSpace")
  for _, connection in connections do connection:Disconnect() end
  if navigation then navigation:Destroy() end
  effects:Destroy()

@@ -62,6 +62,93 @@ for fragment in ['testUntil=os.clock()+4', 'if testUntil and (now>=testUntil or 
  'Vector3.new(.08+.22*power, .08+.22*power, length)', 'toolsRemote:FireServer("FlyOff"); alive = false']:
     assert fragment in client,fragment
 print('PASS 24 Academy server/client integration contracts (source checks only)')
+flight_start=client.index("local flightSent=")
+flight_end=client.index("local function destinationForStage",flight_start)
+pre='''
+local active,focused,windowFocused=true,false,true
+local keys={};local vertical=0
+local GuiService={MenuIsOpen=false}
+local Enum={
+ KeyCode={W="W",A="A",S="S",D="D",Space="Space",LeftControl="Ctrl"},
+ PreferredInput={Touch="touch"},ContextActionResult={Sink="sink",Pass="pass"},
+ ContextActionPriority={High={Value=3000}},
+}
+local spaceAction
+local ContextActionService={BindActionAtPriority=function(_,_,callback)spaceAction=callback end}
+local UserInputService={
+ TouchEnabled=true,PreferredInput="keyboard",
+ IsKeyDown=function(_,key)return keys[key]==true end,
+ GetFocusedTextBox=function()return focused end,
+}
+local Vector3={new=function(x,_,z)
+ local v={X=x,Z=z,Magnitude=1};v.Unit=v;return v
+end}
+local h={MoveDirection={Dot=function(_,axis)return axis.X end}}
+local root={CFrame={LookVector={X=0,Z=-1}}}
+local player={
+ GetAttribute=function()return active end,
+ Character={FindFirstChildOfClass=function()return h end,FindFirstChild=function()return root end},
+}
+local input
+local toolsRemote={FireServer=function(_,action,arg)assert(action=="FlightInput");input=arg end}
+'''
+post='''
+keys.W=true;keys.Space=true;flightInput(1)
+assert(input.x==0 and input.y==1 and input.z==1,"touch-enabled laptop keeps W and Space")
+assert(spaceAction()=="sink","Space ascends without triggering normal jump")
+keys={A=true,Space=false,Ctrl=true};flightInput(2)
+assert(input.x==-1 and input.y==-1 and input.z==0,"touch-enabled laptop keeps A and Ctrl")
+keys={};flightInput(3)
+assert(input.x==0 and input.y==0 and input.z==0,"keyboard release ignores stale humanoid movement")
+UserInputService.PreferredInput="touch";vertical=1;flightInput(4)
+assert(input.x==1 and input.y==1 and input.z==0,"touch stick and lift still work")
+focused=true;flightInput(5)
+assert(input.x==0 and input.y==0 and input.z==0 and spaceAction()=="pass","text focus suppresses flight only")
+active=false;focused=false;assert(spaceAction()=="pass","Space retains normal jump on ground")
+print("PASS Academy keyboard, touch and Space flight input arbitration (mocked client)")
+'''
+with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=base,delete=False) as f:
+    f.write(pre+client[flight_start:flight_end]+post);path=Path(f.name)
+try:subprocess.run([os.environ.get('LUAU','luau'),str(path)],check=True)
+finally:path.unlink()
+
+heartbeat_start=server.index(' local last=0\n bind(Run.Heartbeat')
+heartbeat_end=server.index('  for p,s in pairs(states) do',heartbeat_start)
+pre='''
+local now=0;local os={clock=function()return now end}
+local Run={Heartbeat=true};local callback
+local function bind(_,fn)callback=fn end
+local workspace={};local world={Parent=workspace};local folder={Parent=workspace}
+local flying={active=true};local idle={}
+local flights={pilot=flying,grounded=idle};local flightBounds={}
+local Rules={Tick=.1};local steps=0;local elapsed=0;local combatTicks=0
+local Flight={
+ Active=function(session)return session.active==true end,
+ Step=function(player,session,authorized,bounds,time,dt)
+  assert(player=="pilot" and session==flying and authorized and bounds==flightBounds and time==now)
+  assert(dt==1/60,"flight receives frame dt rather than the combat interval")
+  steps+=1;elapsed+=dt
+ end,
+}
+'''
+post='''
+  combatTicks+=1
+ end)
+ for frame=1,30 do
+  now=frame/60
+  callback(1/60)
+ end
+ assert(steps==30 and math.abs(elapsed-.5)<1e-6,"active flight steps every heartbeat")
+ assert(combatTicks>0 and combatTicks<steps,"combat stays throttled independently")
+ flying.active=false;now=31/60;callback(1/60)
+ assert(steps==30,"grounded avatars do not step flight")
+ print("PASS Academy flight cadence independent of combat (mocked Heartbeat)")
+'''
+with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=base,delete=False) as f:
+    f.write(pre+server[heartbeat_start:heartbeat_end]+post);path=Path(f.name)
+try:subprocess.run([os.environ.get('LUAU','luau'),str(path)],check=True)
+finally:path.unlink()
+
 layout_start=client.index('local layoutWidth, layoutHeight, layoutTouch')
 layout_end=client.index('local updateAt',layout_start)
 pre='''
@@ -133,6 +220,8 @@ local now=1;local os={clock=function()return now end};local held=false;local tes
 local toolsPanel={Visible=true};local alive=true;local windowFocused=true;local attrs={AcademyBeamPercent=100,AcademyCharge=0};local health=100
 local player={Character={FindFirstChildOfClass=function()return {Health=health}end},GetAttribute=function(_,k)return attrs[k]end}
 local GuiService={MenuIsOpen=false};local focused=false
+local panel={};local guiHits={}
+local playerGui={GetGuiObjectsAtPosition=function()return guiHits end}
 local UserInputService={GetFocusedTextBox=function()return focused end,InputBegan="begin",InputEnded="ended",InputChanged="changed"}
 local Enum={UserInputType={MouseButton1="mouse",Touch="touch"},KeyCode={B="B",ButtonR2="R2"}}
 local holdButton={InputBegan="button"};local Color3={fromRGB=function()end};local function aimDirection()return "fresh aim"end
@@ -147,7 +236,7 @@ attrs.AcademyCharge=-2;callbacks.fire();check(not held,"cooldown cannot queue")
 attrs.AcademyCharge=2;callbacks.fire();check(not held,"existing beam cannot queue")
 attrs.AcademyCharge=0
 local keyboard={UserInputType="keyboard",KeyCode="B"}
-local mouse={UserInputType="mouse",KeyCode="unknown"}
+local mouse={UserInputType="mouse",KeyCode="unknown",Position={X=200,Y=160}}
 local trigger={UserInputType="gamepad1",KeyCode="R2",Position={Z=.05}}
 callbacks.begin(keyboard,false)
 check(held,"B starts manual beam")
@@ -155,8 +244,27 @@ callbacks.fire();check(held and not testUntil,"stale ready status cannot convert
 callbacks.ended(mouse);check(held,"mouse release leaves B held")
 callbacks.changed(trigger);check(held,"trigger drift leaves B held")
 callbacks.ended(keyboard);check(not held,"B release stops its beam")
+callbacks.begin(mouse,true)
+check(not held,"engine-consumed left mouse click does not fire")
 callbacks.begin(mouse,false)
+check(held,"unprocessed left click in world starts manual beam")
 callbacks.ended({UserInputType="mouse",KeyCode="unknown"});check(not held,"mouse release stops its beam")
+for _,blocker in ipairs({panel,toolsPanel,{Active=true},{IsA=function(_,class)return class=="GuiButton"end},
+ {IsA=function(_,class)return class=="TextBox"end},{IsA=function(_,class)return class=="ScrollingFrame"end}}) do
+ guiHits={blocker};callbacks.begin(mouse,false);check(not held,"HUD click does not fire")
+end
+guiHits={}
+mouse.Position.Y=-1;callbacks.begin(mouse,false);check(not held,"top-bar click does not fire")
+mouse.Position.Y=160
+attrs.TestFlight=true;callbacks.begin(mouse,false);check(not held,"flight still blocks world mouse firing")
+attrs.TestFlight=false
+GuiService.MenuIsOpen=true;callbacks.begin(mouse,false);check(not held,"menu still blocks world mouse firing")
+GuiService.MenuIsOpen=false
+focused=true;callbacks.begin(mouse,false);check(not held,"text focus still blocks world mouse firing")
+focused=false
+windowFocused=false;callbacks.begin(mouse,false);check(not held,"unfocused viewport does not fire")
+windowFocused=true;callbacks.begin(mouse,false);check(held,"fresh mouse press after focus starts beam")
+callbacks.ended(mouse)
 local touch={UserInputType="touch"}
 callbacks.button(touch)
 callbacks.ended({UserInputType="touch"});check(held,"other finger leaves firing touch held")

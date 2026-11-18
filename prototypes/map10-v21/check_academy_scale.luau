@@ -1,7 +1,7 @@
 local make = require("./OverworldSpecs")
 local scale = require("./AcademyWorldScale")
-local original, _, authoredLayout = make()
-local compact, _, sharedLayout = make()
+local original, _, authoredLayout = make(true)
+local compact, _, sharedLayout = make(true)
 local mapped = scale.Apply(compact, sharedLayout)
 
 local function checkVector(actual, before)

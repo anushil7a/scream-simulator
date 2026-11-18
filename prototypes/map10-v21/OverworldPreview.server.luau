@@ -5,9 +5,9 @@ local Players=game:GetService("Players")
 local Lighting=game:GetService("Lighting")
 Players.CharacterAutoLoads=false
 local make=require(script.Parent.OverworldSpecs)
-local builder,groupNames,layout=make()
-local scale=1
 local academyScale=script.Parent:FindFirstChild("AcademyWorldScale")
+local builder,groupNames,layout=make(academyScale~=nil)
+local scale=1
 if academyScale then
  local transform=require(academyScale)
  scale=transform.Factor

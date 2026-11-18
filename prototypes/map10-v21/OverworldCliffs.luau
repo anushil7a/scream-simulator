@@ -35,6 +35,49 @@ return function(build,layout)
   build.zone=id;build:part(name,{x,y,z},size,color,true,rot,mat,{"CoastalCliff","PhysicalTerrain"},shape)
   count+=1;return true
  end
+ -- Eight aligned faces follow each district's chamfered plan. Three inset bands
+ -- expose bedding planes at the waterline and preserve the cut-stone upper edge.
+ if build.compact then
+  for _,id in ipairs(ids) do
+   local district=layout.districts[id]
+   local x,y,z=table.unpack(district.center)
+   local w,d=district.size[1]/2,district.size[2]/2
+   local cut=math.min(w,d)*.21
+   local outline={{-w+cut,-d},{w-cut,-d},{w,-d+cut},{w,d-cut},
+    {w-cut,d},{-w+cut,d},{-w,d-cut},{-w,-d+cut}}
+   local colors=id=="07" and {{108,84,70},{83,69,67},{60,57,59}}
+    or id=="08" and {{144,127,151},{106,95,123},{77,73,95}}
+    or {{192,169,128},{164,144,112},{125,121,106}}
+   local bottom=id=="08" and y-164 or -10
+   local relief=y-5-bottom
+   for edge,a in ipairs(outline) do
+    local b=outline[edge%#outline+1]
+    local dx,dz=b[1]-a[1],b[2]-a[2]
+    local length=math.sqrt(dx*dx+dz*dz)
+    local nx,nz=dz/length,-dx/length
+    local yaw=math.deg(math.atan2(-nx,-nz))
+    local pieces=math.ceil(length/185)
+    for j=1,pieces do
+     local t=(j-.5)/pieces
+     local px,pz=x+a[1]+dx*t,z+a[2]+dz*t
+     for layer,section in ipairs({{0,.31,10,18},{.31,.43,19,27},{.74,.26,28,40}}) do
+      local inset,fraction,offset,depth=table.unpack(section)
+      if id=="08" then offset=-offset end
+      emit(id,"CoastStratum"..edge.."_"..j.."_"..layer,px+nx*offset,pz+nz*offset,y-5-relief*inset,
+       {length/pieces+.8,relief*fraction,depth},{0,yaw,0},colors[layer],
+       layer==1 and "Sandstone" or layer==2 and "Limestone" or "Slate","Wedge")
+     end
+    end
+   end
+   -- The inset core closes the underside between the radiating shore faces.
+   local foundationDepth=relief*.98
+   build.zone=id
+   build:part("CoastFoundation",{x,y-8-foundationDepth/2,z},{w*1.91,foundationDepth,d*1.91},
+    colors[3],true,nil,"Rock",{"CoastalCliff","PhysicalTerrain"},"Ball")
+  end
+  build.zone=oldZone
+  return count
+ end
  for _,id in ipairs(ids)do
   local s=layout.districts[id];local x,y,z=table.unpack(s.center);local w,d=table.unpack(s.size)
   local volcanic=id=="07";local astral=id=="08"

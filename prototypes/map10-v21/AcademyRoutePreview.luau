@@ -103,7 +103,7 @@ return function(world)
  assert(metronome and #service.bosses==5,"Expected full five-boss preview roster")
  prompt(mentor,"Accept Academy encounter",function(p,s)
   if Rules.Accept(s) then sync(p,s,"Academy accepted. Preview-only level 10. Choose Guide if wanted, then enter the Metronome ring and aim at its body.")
-  elseif s.stage=="Train" then sync(p,s,"First hold Beam on the cyan training resonator for one second.") end
+  elseif s.stage=="Train" then sync(p,s,"Put the center + on the cyan resonator and hold Beam for one second.") end
  end)
  prompt(gear,"Buy + equip Megaphone · 100",function(p,s)
   if s.stage=="Gear" then
@@ -120,7 +120,7 @@ return function(world)
   p:SetAttribute("AcademyBeamPercent",100);p:SetAttribute("TestFlight",false)
   local s=sessionRecords[p.UserId] or Rules.New();sessionRecords[p.UserId]=s;states[p]=s
   Rules.Stop(s,os.clock());s.released=true;s.direction=nil
-  sync(p,s,s.stage=="Train" and "Isolated Studio route: hold Beam on the cyan resonator. No real microphone or saved progression." or "")
+  sync(p,s,s.stage=="Train" and "Put the center + on the cyan resonator. Hold left mouse, B, R2, or HOLD BEAM." or "")
   playerConnections[p]={
    p.CharacterRemoving:Connect(function() stopFlight(p);Rules.Stop(s,os.clock());s.released=true;s.direction=nil end),
    p.CharacterAdded:Connect(function() stopFlight(p);Rules.Stop(s,os.clock());s.released=true;s.direction=nil;sync(p,s,"") end),
@@ -187,7 +187,7 @@ return function(world)
   return origin+direction*t
  end
  local last=0
- bind(Run.Heartbeat,function()
+ bind(Run.Heartbeat,function(frameDt)
   if world.Parent~=workspace or folder.Parent~=workspace then
    for p in pairs(flights) do stopFlight(p) end
    table.clear(flights);table.clear(toolSessions)
@@ -196,11 +196,13 @@ return function(world)
    table.clear(playerConnections);table.clear(states);table.clear(sessionRecords)
    net:Destroy();folder:Destroy();props:Destroy();return
   end
-  local now=os.clock();if now-last<Rules.Tick then return end
+  local now=os.clock()
+  for p,f in pairs(flights) do
+   if Flight.Active(f) then Flight.Step(p,f,true,flightBounds,now,frameDt) end
+  end
+  if now-last<Rules.Tick then return end
   local dt=math.min(Rules.Tick,now-last);last=now
   for p,s in pairs(states) do
-   local f=flights[p]
-   if f then Flight.Step(p,f,true,flightBounds,now,dt) end
    if flying(p) then
     Rules.Stop(s,now);s.released=true;s.direction=nil;p:SetAttribute("AcademyCharge",0)
     continue
@@ -210,7 +212,7 @@ return function(world)
     if s.stage=="Complete" and s.gearEquipped=="Megaphone" and not p.Character:FindFirstChild("AcademyMegaphoneAccessory") then Equipment.SyncMegaphone(p,true) end
     local delta=root.Position-metronome.center
     if Rules.Enter(s,math.abs(delta.Y)<=metronome.spec.engageHeight and Vector3.new(delta.X,0,delta.Z).Magnitude<=22) then
-     sync(p,s,"Fight ready. Hold Beam, dodge the colored ground. Four seconds maximum, five seconds cooldown.")
+     sync(p,s,"Put the center + on Metronome. Hold Beam and dodge the colored ground.")
     end
    else Rules.Stop(s,now) end
    local active=Rules.Active(s,now)

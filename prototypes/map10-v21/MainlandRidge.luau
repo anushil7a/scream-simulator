@@ -13,6 +13,15 @@ return function(b)
   local seq={0,12,-16,9,-6,19,-9,15}
   for i,p in ipairs(spec) do
    local x,top,z,w,d,angle=table.unpack(p)
+   if b.compact then
+    -- Low horizontal beds follow the shoulder of the road. Their exposed edges
+    -- share the same lithology as the intertidal ledges on the district coast.
+    local length,width=w*1.14,d*1.03
+    mass("ShoreBed"..i,x,(top-6)/2,z, length,top+6,width,angle,sand[tone],"Limestone","Ball")
+    mass("ShoreCap"..i,x,top*.74,z,length*.83,top*.45,width*.79,angle,
+     i%3==0 and moss[2] or sand[3],i%3==0 and "Ground" or "Sandstone","Ball")
+    continue
+   end
    -- Massive voxels deliberately overlap well below useable surfaces. Wedge
    -- wings feather the contour toward water instead of exposed box ends.
    local height=top+3

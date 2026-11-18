@@ -1,5 +1,5 @@
 local build=require("./OverworldSpecs")
-local b,_,layout=build()
+local b,_,layout=build(...=="--academy")
 if ...=="--academy" then
  local scale=require("./AcademyWorldScale")
  scale.Apply(b,layout)
