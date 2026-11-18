@@ -62,6 +62,69 @@ for fragment in ['testUntil=os.clock()+4', 'if testUntil and (now>=testUntil or 
  'Vector3.new(.08+.22*power, .08+.22*power, length)', 'toolsRemote:FireServer("FlyOff"); alive = false']:
     assert fragment in client,fragment
 print('PASS 24 Academy server/client integration contracts (source checks only)')
+layout_start=client.index('local layoutWidth, layoutHeight, layoutTouch')
+layout_end=client.index('local updateAt',layout_start)
+pre='''
+local writes=0
+local function gui(props)
+ return setmetatable({},{
+  __index=props,
+  __newindex=function(_,key,value) writes+=1;props[key]=value end,
+ })
+end
+local Vector2={new=function(x,y)return {X=x,Y=y}end}
+local UDim2={new=function(sx,x,sy,y)return {sx=sx,x=x,sy=sy,y=y}end}
+UDim2.fromOffset=function(x,y)return UDim2.new(0,x,0,y)end
+local panel=gui({})
+local toolsPanel=gui({Position=UDim2.new(1,-12,0,92),AnchorPoint=Vector2.new(1,0)})
+local toolsToggle=gui({Position=UDim2.new(1,-12,0,48),AnchorPoint=Vector2.new(1,0)})
+local heading,objective,routeText,disclaimer=gui({}),gui({}),gui({}),gui({})
+local guideButton=gui({Position=UDim2.new(0,5,1,-49)})
+local clearButton,holdButton=gui({}),gui({})
+'''
+post='''
+local function bounds(node,w,h)
+ local size,pos,pivot=node.Size,node.Position,node.AnchorPoint or Vector2.new(0,0)
+ local width,height=size.sx*w+size.x,size.sy*h+size.y
+ local x,y=pos.sx*w+pos.x-pivot.X*width,pos.sy*h+pos.y-pivot.Y*height
+ return {left=x,top=y,right=x+width,bottom=y+height}
+end
+local function intersects(a,b)
+ return a.left<b.right and a.right>b.left and a.top<b.bottom and a.bottom>b.top
+end
+local cases={
+ {320,568,true},{568,320,true},{480,320,true},{640,360,true},
+ {768,1024,true},{1024,768,true},{510,500,false},{500,510,false},{600,550,false},{800,600,false},
+ {800,600,true},{1920,1080,false},
+}
+for _,case in ipairs(cases) do
+ local x,y,touch=table.unpack(case)
+ local viewport=Vector2.new(x,y)
+ local before=writes
+ layoutHud(viewport,touch)
+ assert(writes>before,"viewport or capability change must update layout")
+ local course,tools,toggle=bounds(panel,x,y),bounds(toolsPanel,x,y),bounds(toolsToggle,x,y)
+ local reticle={left=x/2-11,top=y/2-11,right=x/2+11,bottom=y/2+11}
+ for _,rect in ipairs({course,tools,toggle}) do
+  assert(rect.left>=0 and rect.top>=0 and rect.right<=x and rect.bottom<=y,"HUD inside viewport")
+  assert(not intersects(rect,reticle),"HUD leaves center aim visible")
+ end
+ assert(not intersects(course,tools) and not intersects(course,toggle),"opened tools clear of course")
+ local w,h=course.right-course.left,course.bottom-course.top
+ local guide,clear,hold=bounds(guideButton,w,h),bounds(clearButton,w,h),bounds(holdButton,w,h)
+ assert(guide.right<=clear.left and clear.right<=hold.left,"buttons have distinct hit areas")
+ assert(clear.right-clear.left>=40 and hold.bottom<=h,"compact controls fit panel")
+ before=writes
+ layoutHud(Vector2.new(x,y),touch)
+ assert(writes==before,"unchanged view must not write static GUI properties")
+end
+print("PASS "..#cases.." actual Academy HUD layout and unchanged-refresh checks (mocked geometry)")
+'''
+with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=base,delete=False) as f:
+    f.write(pre+client[layout_start:layout_end]+post);path=Path(f.name)
+try:subprocess.run([os.environ.get('LUAU','luau'),str(path)],check=True)
+finally:path.unlink()
+
 start=client.index('local function stopBeam()');end=client.index('connect(UserInputService.WindowFocusReleased',start)
 fire=client.index('connect(fireTest.Activated,');fire_end=client.index('connect(flyButton.Activated,',fire)
 tick=client.index(' local now = os.clock()\n flightInput(now)');tick_end=client.index(' if now - updateAt < .15 then return end',tick)

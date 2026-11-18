@@ -1293,3 +1293,7 @@ Original island geometry now replaces active compact city, retaining old source/
 ## November 18 Academy beam input ownership
 
 The local Academy preview now keeps a manual beam attached to its initiating key, controller or touch. Its one-shot tool only arms when it starts a new cast. The previous client failed the B-hold plus mouse-release regression. Independent review and 100 focused mocked/source checks passed, as did 126 Luau rules checks and the Academy Rojo build. The aggregate verifier stopped at an unavailable historical BeamVisuals Git object. Next, play the rebuilt fixture with keyboard/mouse, touch and controller and verify interrupt and release behavior on the actual devices.
+
+## November 18 Academy course HUD
+
+Rearranged the course and open tools around the reticle in compact viewports, kept power buttons 42 by 40 pixels, and cached static geometry by viewport and touch capability. The actual placement function passed 12 mocked cases including rotation and zero static layout writes on unchanged refresh. The other 100 tool checks, 126 rules assertions, 135 route probes and Academy Rojo build passed. Next check text wrapping, safe-area insets and thumbstick clearance in Studio and on a phone.

@@ -180,18 +180,20 @@ toolsPanel.Name="LocalTestTools";toolsPanel.AnchorPoint=Vector2.new(1,0)
 toolsPanel.Position=UDim2.new(1,-12,0,92);toolsPanel.Size=UDim2.fromOffset(252,284)
 toolsPanel.BackgroundColor3=Color3.fromRGB(19,31,49);toolsPanel.Visible=false;toolsPanel.Parent=gui;corner(toolsPanel)
 local function toolButton(name,x,y,w,label)
- local b=Instance.new("TextButton");b.Name=name;b.Position=UDim2.fromOffset(x,y);b.Size=UDim2.fromOffset(w,40)
+ local b=Instance.new("TextButton");b.Name=name;b.Position=UDim2.new(x/252,0,0,y);b.Size=UDim2.new(w/252,0,0,40)
  b.Text=label;b.BackgroundColor3=Color3.fromRGB(39,78,103);b.TextColor3=Color3.new(1,1,1)
  b.Font=Enum.Font.GothamBold;b.TextSize=12;b.TextWrapped=true;b.Parent=toolsPanel;corner(b);return b
 end
 local toolLabel=Instance.new("TextLabel")
 toolLabel.Position=UDim2.fromOffset(8,4);toolLabel.Size=UDim2.new(1,-16,0,38);toolLabel.BackgroundTransparency=1
- toolLabel.Text="LOCAL • silent Beam Test\nPower 0–100% • no microphone";toolLabel.TextColor3=Color3.new(1,1,1);toolLabel.TextSize=12;toolLabel.Parent=toolsPanel
+toolLabel.Text="LOCAL • silent Beam Test\nPower 0–100% • no microphone";toolLabel.TextColor3=Color3.new(1,1,1);toolLabel.TextSize=12;toolLabel.TextWrapped=true;toolLabel.Parent=toolsPanel
 local minus=toolButton("PowerDown",8,46,42,"−")
+minus.Position=UDim2.fromOffset(8,46);minus.Size=UDim2.fromOffset(42,40)
 local powerBox=Instance.new("TextBox");powerBox.Name="BeamPowerPercent";powerBox.Position=UDim2.fromOffset(56,46)
-powerBox.Size=UDim2.fromOffset(140,40);powerBox.Text="100";powerBox.ClearTextOnFocus=false
+powerBox.Size=UDim2.new(1,-112,0,40);powerBox.Text="100";powerBox.ClearTextOnFocus=false
 powerBox.BackgroundColor3=Color3.fromRGB(30,53,70);powerBox.TextColor3=Color3.new(1,1,1);powerBox.TextSize=16;powerBox.Parent=toolsPanel;corner(powerBox)
 local plus=toolButton("PowerUp",202,46,42,"+")
+plus.Position=UDim2.new(1,-50,0,46);plus.Size=UDim2.fromOffset(42,40)
 local fireTest=toolButton("FireTest",8,92,236,"Fire test • once, up to 4s")
 local flyButton=toolButton("FlyToggle",8,138,236,"Fly on")
 local up=toolButton("FlyUp",8,184,115,"Fly up")
@@ -304,6 +306,53 @@ connect(fxRemote.OnClientEvent, function(origin, endpoint, power)
 end)
 local rayParams = RaycastParams.new(); rayParams.FilterType = Enum.RaycastFilterType.Exclude
 rayParams.RespectCanCollide = true
+local layoutWidth, layoutHeight, layoutTouch
+local compact = false
+local function layoutHud(viewport, touch)
+ local width, height = viewport.X, viewport.Y
+ if width == layoutWidth and height == layoutHeight and touch == layoutTouch then return end
+ layoutWidth, layoutHeight, layoutTouch = width, height, touch
+
+ local portrait = height > width
+ local sideBySide = not portrait and (height < 500 or touch and height < 800)
+ local courseHeight = 193
+ local columnWidth = math.max(1, width / 2 - 32)
+ local courseWidth = sideBySide and math.min(290, columnWidth) or math.min(620, width - 24)
+ local toolsWidth = math.min(252, sideBySide and columnWidth or width - 24)
+ local bottom = math.clamp(height / 2 - courseHeight - 24, 12, touch and 180 or 24)
+ local toolsHeight = height - 104
+ if sideBySide and touch then
+  toolsHeight = height - 180
+ elseif not sideBySide then
+  toolsHeight = height - bottom - courseHeight - 104
+  if toolsWidth + 24 >= width / 2 then
+   toolsHeight = math.min(toolsHeight, height / 2 - 112)
+  end
+ end
+ toolsPanel.Size = UDim2.fromOffset(toolsWidth, math.clamp(toolsHeight, 1, 284))
+ toolsToggle.Size = UDim2.fromOffset(math.min(172, toolsWidth), 40)
+ panel.Size = UDim2.fromOffset(courseWidth, courseHeight)
+ if sideBySide then
+  panel.AnchorPoint = Vector2.new(0, 0)
+  panel.Position = UDim2.fromOffset(12, 44)
+ else
+  panel.AnchorPoint = Vector2.new(.5, 1)
+  panel.Position = UDim2.new(.5, 0, 1, -bottom)
+ end
+
+ compact = courseWidth < 290
+ local narrow = courseWidth < 450
+ heading.TextSize = narrow and 11 or 15
+ objective.TextSize = narrow and 11 or 14
+ routeText.TextSize = narrow and 10 or 12
+ disclaimer.TextSize = narrow and 10 or 11
+ clearButton.Position = UDim2.new(compact and 1/3 or .4, 5, 1, -49)
+ holdButton.Position = UDim2.new(compact and 2/3 or .63, 5, 1, -49)
+ guideButton.Size = UDim2.new(compact and 1/3 or .4, -10, 0, 42)
+ clearButton.Size = UDim2.new(compact and 1/3 or .23, -10, 0, 42)
+ holdButton.Size = UDim2.new(compact and 1/3 or .37, -10, 0, 42)
+ holdButton.Text = touch and "HOLD BEAM\nAim center +" or "HOLD BEAM\nMouse / R2"
+end
 local updateAt = -math.huge
 connect(RunService.Heartbeat, function()
  if not alive then return end
@@ -318,45 +367,23 @@ connect(RunService.Heartbeat, function()
  if now - updateAt < .15 then return end
  updateAt = now
  local camera = Workspace.CurrentCamera
- local viewport = camera and camera.ViewportSize or Vector2.new(800, 600)
- local touch = UserInputService.TouchEnabled
- -- Right-side tools remain clear of the left course/joystick in landscape.
- toolsPanel.Size=UDim2.fromOffset(math.min(252,viewport.X-24),math.min(284,math.max(100,viewport.Y-104)))
- if viewport.X<600 and viewport.Y>viewport.X then
-  -- Keep the entire open tools panel above the center reticle in portrait.
-  toolsPanel.Size=UDim2.fromOffset(math.min(252,viewport.X-24),math.max(80,math.min(284,viewport.Y/2-116)))
- end
- toolsPanel.Position=UDim2.new(1,-12,0,92)
+ layoutHud(camera and camera.ViewportSize or Vector2.new(800, 600), UserInputService.TouchEnabled)
  flyButton.Text=player:GetAttribute("TestFlight") and "Fly off • return to start (Home)" or "Fly on"
  fireTest.Text=testUntil and "Stop test" or "Fire test • once, up to 4s"
  up.Text=vertical==1 and "Up • STOP" or "Fly up";down.Text=vertical==-1 and "Down • STOP" or "Fly down"
  up.Visible=player:GetAttribute("TestFlight")==true;down.Visible=up.Visible
- panel.Size = UDim2.fromOffset(math.max(230, math.min(620, viewport.X - (touch and 36 or 32))), 193)
- if touch and viewport.Y < 500 then
-  -- Short landscape: upper-left compact column leaves center reticle and bottom sticks free.
-  panel.Size = UDim2.fromOffset(math.max(180, math.min(290, viewport.X * .38, viewport.X / 2 - 36)), 193)
-  panel.AnchorPoint = Vector2.new(0, 0); panel.Position = UDim2.fromOffset(12, 44)
- else
-  panel.AnchorPoint = Vector2.new(.5, 1)
-  panel.Position = UDim2.new(.5, 0, 1, -(touch and 180 or 24))
- end
  if not UserInputService:GetFocusedTextBox() then powerBox.Text=tostring(player:GetAttribute("AcademyBeamPercent") or 100) end
- local narrow = panel.AbsoluteSize.X < 450
- heading.TextSize = narrow and 11 or 15
- objective.TextSize = narrow and 11 or 14
- routeText.TextSize = narrow and 10 or 12
- disclaimer.TextSize = narrow and 10 or 11
- holdButton.Text = touch and "HOLD BEAM\nAim center +" or "HOLD BEAM\nMouse / R2"
  local stage = player:GetAttribute("AcademyStage") or "Train"
  local coins = player:GetAttribute("AcademyCoins") or 0
  local level = player:GetAttribute("AcademyLevel") or 1
  local charge = player:GetAttribute("AcademyCharge")
- heading.Text = string.format("ACADEMY COURSE • Lv %s • %s coins%s", tostring(level), tostring(coins), type(charge) == "number" and (charge < 0 and string.format(" • Cooldown %.1fs", -charge) or charge > 0 and string.format(" • Beam %.1fs", charge) or " • Ready") or "")
+ local title = compact and "" or "ACADEMY COURSE • "
+ heading.Text = string.format("%sLv %s • %s coins%s", title, tostring(level), tostring(coins), type(charge) == "number" and (charge < 0 and string.format(" • Cooldown %.1fs", -charge) or charge > 0 and string.format(" • Beam %.1fs", charge) or " • Ready") or "")
  local notice = player:GetAttribute("AcademyNotice")
  objective.Text = (type(notice) == "string" and notice ~= "") and notice or stageCopy[stage] or "Waiting for Academy course…"
  local nextName = destinationForStage()
  guideButton.Visible = nextName ~= nil
- guideButton.Text = (stage == "Gear" or stage == "Complete") and "Guide: gear" or "Guide: Metronome"
+ guideButton.Text = (stage == "Gear" or stage == "Complete") and "Guide: gear" or compact and "Guide: boss" or "Guide: Metronome"
  clearButton.Visible = selected ~= nil
  if not selected then
   routeText.Text = "No guide selected. Choose one when ready; walk there yourself."
