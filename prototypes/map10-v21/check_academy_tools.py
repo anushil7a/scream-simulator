@@ -58,19 +58,21 @@ for fragment in ['if flying(p) or not near(', 'if flying(p) or not s or s.stage~
     assert fragment in server,fragment
 for fragment in ['testUntil=os.clock()+4', 'if testUntil and (now>=testUntil or (player:GetAttribute("AcademyCharge") or -1)<0) then stopBeam() end',
  'Enum.KeyCode.Home', 'Enum.KeyCode.B', 'windowFocused=false;hover()',
- 'if not h or h.Health<=0', 'Instance.new("ScrollingFrame")', 'if not testUntil and (input == heldInput',
+ 'if not h or h.Health<=0', 'Instance.new("ScrollingFrame")', 'if ownsBeamInput(input) then stopBeam() end',
  'Vector3.new(.08+.22*power, .08+.22*power, length)', 'toolsRemote:FireServer("FlyOff"); alive = false']:
     assert fragment in client,fragment
 print('PASS 24 Academy server/client integration contracts (source checks only)')
-start=client.index('local function stopBeam()');end=client.index('connect(holdButton.InputBegan',start)
+start=client.index('local function stopBeam()');end=client.index('connect(UserInputService.WindowFocusReleased',start)
 fire=client.index('connect(fireTest.Activated,');fire_end=client.index('connect(flyButton.Activated,',fire)
 tick=client.index(' local now = os.clock()\n flightInput(now)');tick_end=client.index(' if now - updateAt < .15 then return end',tick)
 pre='''local n=0;local function check(v,m)assert(v,m);n+=1 end
 local now=1;local os={clock=function()return now end};local held=false;local testUntil;local heldInput;local sentAt=-math.huge
 local toolsPanel={Visible=true};local alive=true;local windowFocused=true;local attrs={AcademyBeamPercent=100,AcademyCharge=0};local health=100
 local player={Character={FindFirstChildOfClass=function()return {Health=health}end},GetAttribute=function(_,k)return attrs[k]end}
-local GuiService={MenuIsOpen=false};local focused=false;local UserInputService={GetFocusedTextBox=function()return focused end}
-local holdButton={};local Color3={fromRGB=function()end};local function aimDirection()return "fresh aim"end
+local GuiService={MenuIsOpen=false};local focused=false
+local UserInputService={GetFocusedTextBox=function()return focused end,InputBegan="begin",InputEnded="ended",InputChanged="changed"}
+local Enum={UserInputType={MouseButton1="mouse",Touch="touch"},KeyCode={B="B",ButtonR2="R2"}}
+local holdButton={InputBegan="button"};local Color3={fromRGB=function()end};local function aimDirection()return "fresh aim"end
 local sent={};local inputRemote={FireServer=function(_,held,aim)table.insert(sent,{held,aim,now})end}
 local fireTest={Activated="fire"};local callbacks={};local function connect(k,f)callbacks[k]=f end
 local function flightInput()end
@@ -81,7 +83,29 @@ attrs.AcademyCharge=nil;callbacks.fire();check(not held,"unknown readiness canno
 attrs.AcademyCharge=-2;callbacks.fire();check(not held,"cooldown cannot queue")
 attrs.AcademyCharge=2;callbacks.fire();check(not held,"existing beam cannot queue")
 attrs.AcademyCharge=0
+local keyboard={UserInputType="keyboard",KeyCode="B"}
+local mouse={UserInputType="mouse",KeyCode="unknown"}
+local trigger={UserInputType="gamepad1",KeyCode="R2",Position={Z=.05}}
+callbacks.begin(keyboard,false)
+check(held,"B starts manual beam")
+callbacks.fire();check(held and not testUntil,"stale ready status cannot convert a manual hold to one-shot")
+callbacks.ended(mouse);check(held,"mouse release leaves B held")
+callbacks.changed(trigger);check(held,"trigger drift leaves B held")
+callbacks.ended(keyboard);check(not held,"B release stops its beam")
+callbacks.begin(mouse,false)
+callbacks.ended({UserInputType="mouse",KeyCode="unknown"});check(not held,"mouse release stops its beam")
+local touch={UserInputType="touch"}
+callbacks.button(touch)
+callbacks.ended({UserInputType="touch"});check(held,"other finger leaves firing touch held")
+callbacks.ended(touch);check(not held,"firing touch release stops beam")
+callbacks.begin(trigger,false)
+callbacks.changed({UserInputType="gamepad2",KeyCode="R2",Position={Z=.05}})
+check(held,"another gamepad leaves firing trigger held")
+callbacks.changed({UserInputType="gamepad1",KeyCode="R2",Position={Z=.05}})
+check(not held,"own trigger below threshold stops beam")
+table.clear(sent)
 callbacks.fire();check(held and testUntil==5 and #sent==1,"one click arms one bounded test");check(not toolsPanel.Visible,"firing folds tools clear of reticle")
+callbacks.changed(trigger);check(held,"trigger drift leaves one-shot test running")
 for i=1,30 do tick(1+i*.12)end
 check(held and #sent>10 and sent[#sent][2]=="fresh aim","refreshes aim and hold pulses")
 tick(5.01);check(not held and not testUntil and sent[#sent][1]==false,"test stops at four seconds")

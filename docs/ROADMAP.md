@@ -1289,3 +1289,7 @@ Original island geometry now replaces active compact city, retaining old source/
 
 - Replaced visible Lv70 Leviathan metadata with owner-selected Captain while preserving internal encounter/nav key and all balance/home/ring/save semantics. Alternating committed cutlass broadside and twin shoulder-siren lanes provide retreat/center-gap counterplay; no enemy HP HUD.
 - Focused8129 service/motion +10callback checks, balance, aim/cover and navigation tests pass. Art/pose integration and native acceptance are separate. See SEAGULL_GAMEPLAY_REVIEW.md.
+
+## November 18 Academy beam input ownership
+
+The local Academy preview now keeps a manual beam attached to its initiating key, controller or touch. Its one-shot tool only arms when it starts a new cast. The previous client failed the B-hold plus mouse-release regression. Independent review and 100 focused mocked/source checks passed, as did 126 Luau rules checks and the Academy Rojo build. The aggregate verifier stopped at an unavailable historical BeamVisuals Git object. Next, play the rebuilt fixture with keyboard/mouse, touch and controller and verify interrupt and release behavior on the actual devices.

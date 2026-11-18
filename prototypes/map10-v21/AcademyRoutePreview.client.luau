@@ -142,6 +142,7 @@ local function startBeam(input,singleTest)
  if toolsPanel then toolsPanel.Visible=false end
  holdButton.BackgroundColor3 = Color3.fromRGB(20, 128, 149)
  inputRemote:FireServer(true, aimDirection(),singleTest and "TestStart" or nil)
+ return true
 end
 connect(holdButton.InputBegan, function(input)
  if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then startBeam(input) end
@@ -150,11 +151,16 @@ connect(UserInputService.InputBegan, function(input, processed)
  if processed then return end
  if input.UserInputType == Enum.UserInputType.MouseButton1 or input.KeyCode == Enum.KeyCode.ButtonR2 or input.KeyCode == Enum.KeyCode.B then startBeam(input) end
 end)
+local function ownsBeamInput(input)
+ if not heldInput then return false end
+ if input.UserInputType == Enum.UserInputType.Touch then return input == heldInput end
+ return input.UserInputType == heldInput.UserInputType and input.KeyCode == heldInput.KeyCode
+end
 connect(UserInputService.InputEnded, function(input)
- if not testUntil and (input == heldInput or input.UserInputType == Enum.UserInputType.MouseButton1 or input.KeyCode == Enum.KeyCode.ButtonR2 or input.KeyCode == Enum.KeyCode.B) then stopBeam() end
+ if ownsBeamInput(input) then stopBeam() end
 end)
 connect(UserInputService.InputChanged, function(input)
- if held and input.KeyCode == Enum.KeyCode.ButtonR2 and input.Position.Z < .1 then stopBeam() end
+ if input.KeyCode == Enum.KeyCode.ButtonR2 and ownsBeamInput(input) and input.Position.Z < .1 then stopBeam() end
 end)
 connect(UserInputService.WindowFocusReleased, stopBeam)
 connect(UserInputService.TextBoxFocused, stopBeam)
@@ -207,8 +213,7 @@ connect(fireTest.Activated,function()
  if testUntil then stopBeam();return end
  -- A test click is never queued behind cooldown or an unknown server status.
  if player:GetAttribute("AcademyCharge")~=0 then return end
- startBeam(nil,true)
- if held then testUntil=os.clock()+4 end -- one cast only; no auto-repeat after cooldown
+ if startBeam(nil,true) then testUntil=os.clock()+4 end -- one cast only; no auto-repeat after cooldown
 end)
 connect(flyButton.Activated,function()
  stopBeam();vertical=0;toolsRemote:FireServer(player:GetAttribute("TestFlight") and "FlyOff" or "FlyOn")
