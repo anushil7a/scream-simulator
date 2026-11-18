@@ -101,8 +101,8 @@ for _,tier in ipairs({{34,-385,70,72},{22,-272,60,100}}) do
  end
 end
 -- The acoustic lighthouse sits on its OWN rocky octagonal islet, approached east.
--- Wide continuous causeway top48.12; individual arch voussoirs leave real gaps.
-box("LighthouseCauseway",{782,46.12,-650},{44,4,32},pale,true,nil,"Sandstone",{"WalkableRoute"})
+-- Keep the north lantern shelf outside the 32-stud walking corridor.
+box("LighthouseCauseway",{782,46.12,-651},{44,4,34},pale,true,nil,"Sandstone",{"WalkableRoute"})
 for _,cx in ipairs({782}) do
  for _,side in ipairs({-1,1}) do
   box("ArcadePier"..cx.."_"..side,{cx+side*17,22,-650},{7,16,25},cream,true)
@@ -186,7 +186,7 @@ for i=0,7 do
  local a=i*math.pi/4+.18
  box("IsletBreaker"..i,{840+72*math.cos(a),.2,-650+72*math.sin(a)},{28,.14,1.6},{116,191,181},false,{0,90-math.deg(a),0},"SmoothPlastic")
 end
-for i,t in ipairs({{494,48,-549},{578,48,-667},{665,48,-667},{743,48,-667},{769,48.12,-664.5},{795,48.12,-664.5},{391,36,-386},{449,36,-386},{383,24,-278},{457,24,-278}}) do
+for i,t in ipairs({{494,48,-549},{578,48,-667},{665,48,-667},{743,48,-667},{769,48.12,-666.5},{795,48.12,-666.5},{391,36,-386},{449,36,-386},{383,24,-278},{457,24,-278}}) do
  local x,y,z=table.unpack(t)
  box("HarborLanternColumn"..i,{x,y+2.8,z},{1.6,5.6,1.6},dark,false,nil,"Metal")
  box("HarborLanternGlow"..i,{x,y+5.7,z},{2.2,1.15,2.2},{66,199,191},false,nil,"Neon")
