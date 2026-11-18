@@ -66,7 +66,11 @@ function Arteries.Build(builder,layout)
    local finish=extrapolate(b,-dx,-dz,i+1==#points and 0 or PAD)
    local len=math.sqrt((finish[1]-start[1])^2+(finish[3]-start[3])^2)
    local prefix=id.."_Deck"..i
-   ramp(builder,prefix,start,finish,32,4,0,deck,true,"Concrete",{"WalkableRoute"})
+   -- Carry the deck through the landing edge so Studio rays hit a face interior.
+   local overlap=.5/len
+   local deckStart=i>1 and makePoint(start,finish,-overlap) or start
+   local deckEnd=i+1<#points and makePoint(start,finish,1+overlap) or finish
+   ramp(builder,prefix,deckStart,deckEnd,32,4,0,deck,true,"Concrete",{"WalkableRoute"})
    -- Inset bronze/colored marker strips follow the native slope, but their
    -- sub-stud height never creates ledges or affects authoritative queries.
    for _,s in ipairs({-1,1}) do

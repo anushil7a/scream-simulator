@@ -1303,3 +1303,7 @@ Rearranged the course and open tools around the reticle in compact viewports, ke
 The Academy build uses 1,280 × 1,280 stud design bounds and 12.8-stud main bridges. Compact stations, flight bounds, boss homes and bridge labels follow the new layout. Ground and paving use legacy finishes where districts correspond. The art pass corrected two lantern intrusions and coplanar stage, lookout and fossil-base joins. The full-size base layout remains available for comparison.
 
 Verified the Academy Rojo build, all 3,148 part transforms, 106 routes, 14,538 route samples, 2,205 boss clearance samples and 135 Academy probes. Next, walk the narrow bridges and boss approaches in local Studio and inspect the deck joins and finishes from player height.
+
+## November 18 native Academy startup repair
+
+Studio Play on the compact build missed the floor at three lanes on the 07–08 bridge seam, counted twice by the adjacent routes. The native check halted startup before spawning. Extended the sloped decks half an authored stud into interior landings. A fresh Studio Play on the rebuilt Academy logged 2,622 floor probes, 2,613 headroom probes, zero failures and Academy route ready. Also passed 14,538 analytic route samples and 135 Academy probes. Actual player traversal is still to be checked.
