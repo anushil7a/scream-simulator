@@ -18,7 +18,7 @@ local function closeMenu()modal.Visible=false end -- Lifecycle exercised separat
 local action={FireServer=function(_,verb,id)table.insert(sent,{verb,id})end}
 local goals={garden=3,practice_beams=3,beach=6,delivery=1};local Config={GetQuest=function(id)return goals[id] and {goal=goals[id]}end}
 local data={quests={}}
-local academy={NavigationCatalog={Resolve=function()return nil end}}
+local academy={refreshTestLauncher=function()end,NavigationCatalog={Resolve=function()return nil end}}
 '''
 checks=r'''
 for _,id in ipairs({'garden','practice_beams','beach','delivery'})do

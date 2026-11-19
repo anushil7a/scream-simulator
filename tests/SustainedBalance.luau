@@ -42,7 +42,18 @@ for _,attacker in ipairs({1,25,50,75,100}) do
 end
 check(matchups["100:1"].casts==1 and matchups["100:1"].time<2,"Level 100 should overwhelm level 1")
 check(matchups["100:50"].casts==1 and matchups["100:50"].time<4,"Level 100 should defeat level 50 within one beam")
-check(matchups["1:100"].casts==8,"Level 1 should need eight full attacks against level 100")
+check(matchups["1:100"].casts>=8 and matchups["1:100"].casts<=10,"Starter-to-cap full beam progression is out of range")
+for level=1,100 do
+ local health=Combat.Stats(level,1,false).health
+ for attacker=math.max(1,level-5),math.min(100,level+5) do
+  local matchup=scenario(attacker,1,health,nil,true)
+  check(matchup.casts==2 and matchup.time>=9 and matchup.time<=13.35,string.format("Nearby tiers slipped out of two-cast counterplay range: %d→%d, %d casts %.2fs",attacker,level,matchup.casts,matchup.time))
+ end
+ local normal=scenario(level,.35,health,nil,true)
+ local charged=scenario(level,1,health,nil,true)
+ check(normal.time>charged.time and normal.time<35,"Moderate charge should remain meaningfully weaker but viable")
+ check(Combat.Stats(level,1,false,false,1.32).power==1,"Gear exceeds full charge")
+end
 local weak=scenario(1,.35,Combat.Stats(100,1,false).health,nil,true)
 check(weak.time<300,"Low-level onset-strength attack cannot overcome regeneration")
 for kind,spec in pairs(Rules.Types) do

@@ -49,6 +49,7 @@ local function sustainedEnd()end;local function beamColor()return nil end
 local Soccer={Hit=function()return false end};local BeachVolley=Soccer
 local function questProgress()end;local function state()end
 local function recordCredit()end
+local function recordDamage()end
 local function awardCombatKO()awards+=1 end
 local function eject(p,h)koAt=clock;h.Health=0 end
 local function knockOutBot(bot)bot.alive=false;koAt=clock end
@@ -102,7 +103,7 @@ measure(100,25,1);measure(100,50,1);measure(100,75,1);measure(100,100,1)
 for _,kind in ipairs({'cover','range','safe','protected','dodge','attackerProtected','notEligible','timeout','mixedMode','bothTest','capturedLevel'})do measure(100,1,1,kind)end
 for level=75,100 do
  local stats=VoiceCombat.Stats(level,1,false)
- check(math.abs(stats.maxDps-(49+(level-75)*(110-49)/25))<1e-8,'Upper interpolation changed')
+ check(math.abs(stats.maxDps-(63+(level-75)*(110-63)/25))<1e-8,'Upper interpolation changed')
  for _,power in ipairs({1,.5,.08})do measure(level,1,power,nil,nil,nil,true)end
 end
 for _,tier in ipairs(TrainingRules.Tiers)do for _,power in ipairs({1,.5,.08})do
@@ -136,7 +137,7 @@ if '--baseline' in sys.argv:
   historical=subprocess.check_output(['git','show','09e0996:src/ReplicatedStorage/Shared/'+module+'.luau'],text=True)
   code=code.replace("require('../src/ReplicatedStorage/Shared/"+module+"')",'(function()\n'+historical+'\nend)()')
  code=code.replace("check(math.abs(offgrid-2.0375)<1e-7,'Off-grid timing changed')","check(offgrid>2,'Historical off-grid exceeds target')")
- code=code.replace('(110-49)','(68-49)').replace("check(t<=2.0250001,'Accepted-power TTK exceeds quantized target')","check(t<=4,'Historical completes one cast')")
+ code=code.replace('(63+(level-75)*(110-63)/25)','(49+(level-75)*(68-49)/25)').replace("check(t<=2.0250001,'Accepted-power TTK exceeds quantized target')","check(t<=4,'Historical completes one cast')")
  code=code.replace('victim.h.Health==56','victim.h.Health==73').replace('koAt==1.0','koAt==1.6').replace('time-1.0','time-1.6')
 result=run(code);print(result.stdout,end='');assert result.returncode==0,result.stderr
 if '--negative-controls' in sys.argv:
@@ -144,8 +145,8 @@ if '--negative-controls' in sys.argv:
   assert old in code
   out=run(code.replace(old,new));assert out.returncode and message in out.stderr,(old,out.stdout,out.stderr)
  original=(R/'src/ReplicatedStorage/Shared/VoiceCombat.luau').read_text()
- assert original.count('level=100,health=450,dps=110')==1
- mutant=original.replace('level=100,health=450,dps=110','level=100,health=450,dps=68')
+ assert original.count('level=100,health=480,dps=110')==1
+ mutant=original.replace('level=100,health=480,dps=110','level=100,health=480,dps=68')
  out=run(code.replace("require('../src/ReplicatedStorage/Shared/VoiceCombat')",'(function()\n'+mutant+'\nend)()'))
  assert out.returncode and 'Max vs starter full-power TTK changed' in out.stderr,out.stderr
  print('PASS 3 authority/balance negative controls')

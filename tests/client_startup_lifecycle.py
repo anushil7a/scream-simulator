@@ -39,7 +39,7 @@ local methods={}
 local mt={__index=function(t,k)
  if methods[k] then return methods[k] end
  if k=="Parent" or k=="dead" then return nil end
- if k=='Destroying' or k=='AncestryChanged' or k=='Activated' or k=='InputBegan' or k=='InputEnded' or k=='OnClientEvent' or k=='CharacterAdded' or k=='CharacterRemoving' or k=='PlayerRemoving' or k=='Heartbeat' or k=='RenderStepped' or k=='JumpRequest' or k=='WindowFocusReleased' or k=='WindowFocused' or k=='MenuOpened' then local s=signal(t.Name..'.'..k);rawset(t,k,s);return s end
+ if k=='Destroying' or k=='ChildAdded' or k=='AncestryChanged' or k=='Activated' or k=='InputBegan' or k=='InputEnded' or k=='OnClientEvent' or k=='CharacterAdded' or k=='CharacterRemoving' or k=='PlayerRemoving' or k=='Heartbeat' or k=='RenderStepped' or k=='JumpRequest' or k=='WindowFocusReleased' or k=='WindowFocused' or k=='MenuOpened' then local s=signal(t.Name..'.'..k);rawset(t,k,s);return s end
  for _,o in ipairs(objects)do if rawget(o,"Parent")==t and rawget(o,"Name")==k then return o end end
  return nil
 end}
@@ -94,13 +94,14 @@ local function resource(name)
  function o:Pulse()end
  if name~='NotificationQueue' and name~='HitFeedback' and name~='VoiceActivation' then table.insert(owned,o)end;if variant=="late-"..name then script.Destroying:Fire()end;return o
 end
-for _,n in ipairs({'DodgeVisuals','CityMap','Config','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','LockOn','TrainingRules','VoiceReactor','NavigationCatalog','BossCatalog','NavigationGuide'})do
+for _,n in ipairs({'DodgeVisuals','CityMap','Config','DamageReadout','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','LockOn','TrainingRules','VoiceReactor','NavigationCatalog','BossCatalog','NavigationGuide'})do
  local node=object(n,shared);shared[n]=node;scriptParent[n]=node
  modules[n]={new=function(...)return resource(n)end,Clear=function()singletonClears[n]=(singletonClears[n] or 0)+1;table.insert(cleanupOrder,n)end}
 end
 modules.DodgeVisuals={Destroy=function()end,Play=function()end}
 modules.Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLevel=100,MicroSpeakerPrice=200,MovementPassId=0,XPToNext=function()return 100 end,Auras={Gold={}}}
 modules.TrainingRules={Tiers={{id='rookie',x=0,z=0}},Radius=32}
+modules.DamageReadout.new=function(parent) return {root=object("DamageReadout",parent),Clear=function()end} end
 modules.VoiceReactor.new=function(parent)
  local root=object('MicPower',parent)
  return {root=root,text=object('Status',root),fill=object('Fill',root),track=object('Track',root)}
@@ -109,6 +110,8 @@ modules.CityMap.create=function()return {}end
 modules.Config.GetSound=function()return {effect='fixture',level=1}end
 modules.AttackAudioConfig.Range=100
 modules.ShopUI.Render=function()renders+=1 end;modules.ShopUI.ColorMixer=function()renders+=1 end
+-- This lifecycle fixture only checks the desktop port, not Shop layout.
+modules.ShopUI.CompactLandscape=function()return false end
 modules.ScreamEffects.Render=function()renders+=1 end
 modules.BeamVisuals.Create=function()renders+=1;return {}end
 modules.SustainedBeams.new=function(create)
@@ -205,6 +208,8 @@ if __name__=='__main__':
   boundaries=re.findall(r'^BOUNDARY (\d+) (.+)$',r.stdout,re.M)
   expected=([name for name in EXPECTED_COMMON if args.baseline or name not in ('wait:Shared/FirstBeamGuide','require:FirstBeamGuide')])+([] if args.baseline else ['wait:PlayerScripts/LockOn','require:LockOn','wait:Shared/TrainingRules','require:TrainingRules'])+(EXPECTED_AUTO if auto else [])+([name for name in EXPECTED_TAIL if not args.baseline or not any(module in name for module in ("VoiceReactor","NavigationCatalog","BossCatalog","NavigationGuide"))])+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
   if not args.baseline: expected[2:2]=['wait:PlayerScripts/DodgeVisuals','require:DodgeVisuals']
+  if not args.baseline:
+   insert=expected.index('require:NoticeView')+1;expected[insert:insert]=['wait:PlayerScripts/DamageReadout','require:DamageReadout']
   assert [name for _,name in boundaries]==expected,'Startup dependency boundary coverage changed'
   print(('automatic' if auto else 'legacy')+' boundaries='+str(len(boundaries)))
   for i,name in boundaries:

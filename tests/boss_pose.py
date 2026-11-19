@@ -61,15 +61,53 @@ check(names.SirenHorn==2 and names.SirenDriver==2,'paired sirens missing')
 check(not names.LowerJaw and not names.DorsalFin,'retired sea creature leaked')
 check(nativeBudget<=435,'Seagull exceeded old budget')
 check(Motion.Group('leviathan','CutlassBlade',-1)=='armL','cutlass not attached to arm')
+check(Motion.Group('metronome','CrescentBlade',.9)=='armL','crescent blade split across arms')
 check(Motion.Group('leviathan','CaptainHook',2)=='armR','hook not attached to arm')
 check(Motion.Group('leviathan','CaptainPeg',1)=='legR','peg gait not grouped')
 check(Motion.Group('leviathan','SirenHorn',2)=='sirens','horn windup missing')
 check(not same(Motion.Pose('leviathan','sirens',10,'Windup',1,1.4,false),CFrame.identity),'horn windup is static')
 check(same(Motion.Pose('leviathan','sirens',10,'Windup',1,1.4,true),CFrame.identity),'reduced effects retained cosmetic pose (horn windup)')
+local moves={
+ metronome={'PendulumSweep','ResonanceKick','pendulum','legL'},
+ golem={'FaultLine','WooferSlam','armR','armL'},
+ ignis={'OrganFlames','Backdraft','armR','armL'},
+ leviathan={'TwinSirens','CutlassBroadside','sirens','armL'},
+ conductor={'BellCascade','BatonSweep','bell1','armR'},
+}
+-- Verify timing, canceled casts and distinct anticipation and contact silhouettes with actual source.
+for id,move in pairs(moves) do
+ local function attack(style,serial)
+  return {style=style,serial=3,startAt=100,attackAt=102,impactAt=102,impactSerial=serial,recovery=.66}
+ end
+ local range,melee=attack(move[1],3),attack(move[2],3)
+ local function get(group,now,state,age,data)
+  return Motion.Pose(id,group,now,state,age,1.4,false,data)
+ end
+ for i,cast in ipairs({range,melee}) do
+  local key=move[i+2]
+  local ready=get(key,102,'Windup',2,cast)
+  check(not same(get(key,100,'Windup',0,cast),ready),id..' windup silhouette static '..cast.style)
+  check(same(ready,get(key,102,'Recovery',0,cast)),id..' pose jumps at state seam')
+  check(not same(ready,get(key,102.105,'Recovery',.105,cast)),id..' confirm delivered no follow-through')
+  check(not same(get(key,102.105,'Recovery',.105,cast),get(key,102.105,'Recovery',.105,attack(cast.style,2))),id..' stale impact replayed')
+  check(same(get('body',102.66,'Recovery',.66,cast),CFrame.identity),id..' recovery does not settle')
+  check(same(get('body',100.65,'Recovery',.35,attack(cast.style,2)),CFrame.identity),id..' canceled cast does not settle')
+ end
+ check(not same(get('body',101.8,'Windup',1.8,range),get('body',101.8,'Windup',1.8,melee)),id..' both attacks use same body animation')
+ local early=attack(move[2],2)
+ check(same(get('body',100.3,'Windup',.3,early),get('body',100.3,'Recovery',0,early)),id..' early canceled cast jumps through full tell')
+end
+local visualScale=2.8 -- current production candidate, double the previous 1.4
 for id in pairs(Data)do
  local center=v(20,64,-30);local m=model(center);created={}
- local ok,count=Appearance.Build(m,id,center,function()return true end,function()end,1.4)
- local animation=Motion.new(m,id,center,1.4);local initialCount=#created
+ local ok,count=Appearance.Build(m,id,center,function()return true end,function()end,visualScale)
+ local batches=0
+ local animation=Motion.new(m,id,center,visualScale,function(parts,frames)
+  check(#parts==#frames and #parts==#created,'bulk frame lost anatomy')
+  local seen={}
+  for slot,p in ipairs(parts) do check(not seen[p],'duplicate bulk write');seen[p]=true;p.CFrame=frames[slot] end
+  batches+=1
+ end);local initialCount=#created
  check(ok and count==initialCount and count<=450,'appearance budget')
  local grouped=0;for _,entries in pairs(animation.groups)do grouped+=#entries end
  check(grouped>0 and grouped<=count,'anatomy grouping empty/unbounded')
@@ -82,10 +120,11 @@ for id in pairs(Data)do
    if key=='legL' or key=='legR' then for _,entry in ipairs(entries)do
     local localPose=animation.frame:ToObjectSpace(entry.part.CFrame)
     local rise=localPose.Position.Y-entry.base.Position.Y
-    check(rise>=-.00001 and rise<=.18201,'walking foot sank or excessive lift')
+    check(rise>=-.00001 and rise<=.27*visualScale+.00001,'walking foot sank or excessive lift')
    end end
   end
  end
+ check(batches==100,'expected one native bulk call per pose')
  local cast=CFrame.new(v(22,64,-31))*CFrame.Angles(0,.6,0)
  animation:Step(cast,'Windup',104,.033,false,103)
  check(same(animation.frame,cast),'cast failed to snap authoritative root')
@@ -106,8 +145,8 @@ for id in pairs(Data)do
  -- Stream back in halfway through the SAME windup: comfort remains quiet,
  -- then restoring full motion joins the shared timestamp, not frame zero.
  created={};local rejoined=model(center)
- Appearance.Build(rejoined,id,center,function()return true end,function()end,1.4)
- local resumed=Motion.new(rejoined,id,center,1.4)
+ Appearance.Build(rejoined,id,center,function()return true end,function()end,visualScale)
+ local resumed=Motion.new(rejoined,id,center,visualScale)
  resumed:Step(cast,'Windup',104,.033,true,103)
  for _,entries in pairs(resumed.groups)do for _,entry in ipairs(entries)do check(same(entry.part.CFrame,cast*entry.base),'stream-in ignored reduced setting')end end
  resumed:Step(cast,'Windup',104,.033,false,103)
@@ -168,6 +207,7 @@ def run(m=motion,c=controller,expected=None):
  else:assert result.returncode==0,out;print(out.strip())
 run()
 run(c=controller.replace('self.current.id==chosen.id then','self.current.id==chosen.id and self.current.center==chosen.center then'),expected='movement rebuilt pending appearance')
-run(m=motion.replace('if reduced or state=="Defeated" then','if state=="Defeated" then'),expected='reduced effects retained cosmetic pose')
-run(m=motion.replace('math.max(0,wave*sign)*.13','wave*sign*.13'),expected='walking foot sank')
+run(m=motion.replace('if reduced or state=="Defeated" or not actor then','if state=="Defeated" or not actor then'),expected='reduced effects retained cosmetic pose')
+run(m=motion.replace('math.max(0,step)*lift','step*lift'),expected='walking foot sank')
+run(m=motion.replace('attack.serial==attack.impactSerial','true'),expected='stale impact replayed')
 run(c=controller.replace('(candidate.home or candidate.center)','candidate.center'),expected='LOD follows moving core')

@@ -25,7 +25,7 @@ local s=make();sessions[p]=s;s.nextTalk=102;s.voice.nextCast=105;s.conversationB
 local reserved=s.conversationBot
 for i=1,30 do dispatch(p,'Unknown')end
 check(s.requestCount==30 and not canCapture(p,s,now),'Saturation setup failed')
-local sends=0;local conversationPanel={Visible=true};local conversationNPC={};local conversationRevision=0
+local academy={refreshTestLauncher=function()end};local sends=0;local conversationPanel={Visible=true};local conversationNPC={};local conversationRevision=0
 -- Actual client helper and synchronous transport; no native network scheduling claim.
 local serverClose=closeConversation
 local action={FireServer=function(_,verb,arg)sends+=1;dispatch(p,verb,arg)end}

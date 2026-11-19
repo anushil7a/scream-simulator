@@ -81,12 +81,30 @@ for _,groundY in ipairs({0,16,32,64})do
   end
  end
 end
+-- Compare the actual prior 1.4 render to the production 2.8 render;
+-- doubling counts is not acceptable and thin wedges must double as well.
+for _,groundY in ipairs({0,20,136})do
+ local center,scale=Appearance.FromCore(Vector3.new(12,groundY+14,22),{scale=2.8,aimHeight=14})
+ check(center.Y==groundY and scale==2.8,'double build lifted floor or clamped scale')
+ for id in pairs(Data)do
+  created={};local baseline=model()
+  check(Appearance.Build(baseline,id,center,function()return true end,function()end,1.4),'old fixture missing')
+  local old=created;created={};local new=model()
+  check(Appearance.Build(new,id,center,function()return true end,function()end,scale),'double fixture missing')
+  check(#old==#created and new.VisualScale==2.8,'double geometry part count changed')
+  for i,p in ipairs(created)do
+   local q=old[i];local a=p.CFrame.p or p.CFrame.values[1];local b=q.CFrame.p or q.CFrame.values[1]
+   check(q.Name==p.Name and q.Material==p.Material and not p.CanCollide and not p.CanQuery and not p.CanTouch,'double build altered identity/physics')
+   check((p.Size-q.Size*2).Magnitude<.0001 and (a-center-(b-center)*2).Magnitude<.0001,'not 2x in actual mesh coordinates')
+  end
+ end
+end
 for _,bad in ipairs({'bad',{},0/0,math.huge,-math.huge})do
  check(Appearance.Scale(bad)==1,'unsafe scale accepted')
  local ground,scale=Appearance.FromCore(Vector3.new(0,37,0),{scale=bad,aimHeight=bad})
  check(ground.Y==32 and scale==1,'unsafe anchor accepted')
 end
-check(Appearance.Scale(-3)==1 and Appearance.Scale(99)==2,'scale unbounded')
+check(Appearance.Scale(-3)==1 and Appearance.Scale(99)==2.8,'scale unbounded')
 local fallback,s=Appearance.FromCore(Vector3.new(0,37,0),nil)
 check(fallback.Y==32 and s==1,'old caller compatibility lost')
 local pending={};local models={};local builds=0

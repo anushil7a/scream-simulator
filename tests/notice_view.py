@@ -122,6 +122,7 @@ local NoticeLayout=Layout;local noticeView=make();local notifications=Queue.new(
 local modal={Visible=false};local shop={Visible=true};local talkTarget
 local selected='Shop';local function closeMenu()modal.Visible=false end;local function render()end
 local devPanel={Visible=false};local closeConversation;local action={FireServer=function()end}
+local academy={damageReadout={}} -- The extracted tab handler shares the Client UI namespace.
 TOGGLE
 local top={};local function button(_,_,_,_,_,fn)return {Visible=true,callback=fn}end
 QUEST_BUTTON
@@ -134,7 +135,7 @@ RECEIVER_COUNT
 end
 local gameplayVisible=true;local windowFocused=true;local GuiService={MenuIsOpen=false};local gui={AbsolutePosition=Vector2.zero};local dt=.05
 local function rect(x,y,w,h)return {Visible=true,AbsolutePosition=Vector2.new(x,y),AbsoluteSize=Vector2.new(w,h),Position={}}end
-local academy={guidePanel=rect(16,270,290,62)}
+academy.guidePanel=rect(16,270,290,62)
 local talkButton=rect(100,66,120,44);local hud=rect(14,118,240,88);local tracked=rect(16,214,290,50);local zone=rect(40,12,240,28);local saveNotice=rect(35,40,250,28)
 local function frame()
  local notice=notifications:Step(0,false)

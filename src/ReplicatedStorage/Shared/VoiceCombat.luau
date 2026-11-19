@@ -14,11 +14,12 @@ function VoiceCombat.Level(value)
  if not VoiceCombat.IsFinite(value) then return 1 end
  return math.clamp(math.floor(value), 1, VoiceCombat.MaxLevel)
 end
--- Approved progression anchors; interpolate each level without widening reach.
+-- Combat pacing anchors. Lift the middle tiers without changing the beginner
+-- and max beam ceilings, silence gate, gear cap or attack envelope.
 local tiers = {
- {level=1,health=100,dps=15}, {level=25,health=150,dps=23},
- {level=50,health=225,dps=34}, {level=75,health=325,dps=49},
- {level=100,health=450,dps=110},
+ {level=1,health=100,dps=15}, {level=25,health=155,dps=24},
+ {level=50,health=240,dps=40}, {level=75,health=350,dps=63},
+ {level=100,health=480,dps=110},
 }
 local function progression(level)
  for i=2,#tiers do

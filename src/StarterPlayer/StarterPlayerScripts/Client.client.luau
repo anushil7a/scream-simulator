@@ -246,6 +246,7 @@ local renderedMenuKey,renderedTab
 local renderRevision=0
 local function closeMenu()
  modal.Visible=false
+ if academy.refreshTestLauncher then academy.refreshTestLauncher() end
  clearShop()
  -- Retain the previous tab/scroll position, but rebuild its subscriptions on reopen.
  renderedMenuKey=nil;renderRevision+=1
@@ -261,6 +262,8 @@ local function toggleTab(name)
  if lockController then lockController:Clear();academy.lockLostUntil=0 end
  local opening=not modal.Visible or selected~=name
  selected=name;if not opening then closeMenu();return end;modal.Visible=true
+ if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end
+ if academy.refreshTestLauncher then academy.refreshTestLauncher() end
  if opening then
   if name=="Shop" then action:FireServer("ShopRefresh") end
   if closeConversation then closeConversation() end
@@ -315,10 +318,31 @@ xpText.TextScaled=true
 do local xpScale=Instance.new("UITextSizeConstraint");xpScale.Name="XPTextScale";xpScale.MaxTextSize=12;xpScale.MinTextSize=9;xpScale.Parent=xpText end
 local xf=frame(frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,82),panel),"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
-local zone=label(gui,"SAFE CITY • PvP off",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
+local zone=label(gui,"SAFE • PvP OFF",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
 zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08
 do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=zone end
 academy.surface(zone)
+-- Immediate local zone cue only; server damage authorization remains independent.
+function academy.refreshZone()
+ local character=p.Character
+ local root=character and character:FindFirstChild("HumanoidRootPart")
+ local position=root and root.Position
+ local enabled=position and Config.InArena(position)==true or false
+ local garden=enabled and Config.InGardenPvp and Config.InGardenPvp(position)==true
+ local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or "SAFE • PvP OFF"
+ if zone.Text~=value then
+  zone.Text=value;zone.TextColor3=enabled and Color3.fromRGB(255,140,139) or white
+ end
+end
+function academy.layoutZone(viewport,touch)
+ if touch or viewport.X<820 then
+  zone.Size=UDim2.fromOffset(math.min(190,math.max(120,viewport.X-140)),14)
+  zone.Position=UDim2.fromOffset(14,49);zone.TextSize=11
+ else
+  zone.Size=UDim2.fromOffset(240,24);zone.Position=UDim2.new(.5,-120,0,12);zone.TextSize=13
+ end
+end
+
 local tracked=label(gui,"",UDim2.fromOffset(290,50),UDim2.fromOffset(16,56),13);tracked.Name="QuestTracker";tracked.TextYAlignment=Enum.TextYAlignment.Top
 tracked.BackgroundColor3=dark;tracked.BackgroundTransparency=.06
 academy.surface(tracked)
@@ -344,6 +368,21 @@ local function notify(t,urgent,key) notifications:Push(t,urgent,key) end
 local nextCast=0;local sequence=0;local captureSource=nil
 local sustainedControl,sustainedRules
 local voiceAccessInterrupted=false
+do
+ local readout=loadClientDependency(script.Parent,"DamageReadout");if not clientCheckpoint() then return end
+ academy.damageReadout=readout.new(gui,frame,label,academy.surface,gold,muted)
+ ownClient(function() academy.damageReadout.root:Destroy() end)
+ connectClient(p.CharacterRemoving,function() academy.damageReadout:Clear() end)
+ local function bind(remote)
+  if academy.damageReadout.available or remote.Name~="DamageSummary" or not remote:IsA("RemoteEvent") then return end
+  academy.damageReadout.available=true
+  connectClient(remote.OnClientEvent,function(phase,dps,total)
+   academy.damageReadout:Receive(phase,dps,total,os.clock())
+  end)
+ end
+ connectClient(remotes.ChildAdded,bind)
+ local remote=remotes:FindFirstChild("DamageSummary");if remote then bind(remote) end
+end
 local windowFocused=true
 local function cancelCapture()
  if lockController then lockController:Clear();academy.lockLostUntil=0 end
@@ -694,7 +733,15 @@ do
   ownClient(function() testBeam:Stop() end)
  end
 end
-local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() devPanel.Visible=not devPanel.Visible;if devPanel.Visible then closeMenu() end end);testButton.Visible=false;testButton.ZIndex=11;academy.surface(testButton)
+local testButton=button(gui,"TestToggle","TEST TOOLS",UDim2.fromOffset(112,32),UDim2.new(1,-126,0,14),function() if not academy.canShowTestLauncher() then return end;devPanel.Visible=not devPanel.Visible;if devPanel.Visible then closeMenu() end end);testButton.Visible=false;testButton.ZIndex=11;academy.surface(testButton)
+-- One visibility owner: replicated State and the frame loop must agree while menus are open.
+-- Keep modal transitions synchronous so no launcher frame leaks before RenderStepped.
+function academy.canShowTestLauncher()
+ return not clientDestroyed and not academy.testLauncherBlocked and data.devAccess==true and not GuiService.MenuIsOpen and not modal.Visible and not (conversationPanel and conversationPanel.Visible)
+end
+function academy.refreshTestLauncher()
+ testButton.Visible=academy.canShowTestLauncher()
+end
 -- Flight controls exist only as UI; server independently validates the local fixture.
 local flightUp=false;local flightDown=false;local flightSentAt=0;local flightFocused=true
 local flightStatus=label(gui,"",UDim2.fromOffset(360,28),UDim2.new(.5,-180,0,110),13,gold)
@@ -737,6 +784,11 @@ end
 local miniMapHolder=frame(miniMapButton,"MiniMapHolder",UDim2.new(1,-16,1,-42),UDim2.fromOffset(8,34));miniMapHolder.BackgroundTransparency=1
 local miniMapView=CityMap.create(miniMapHolder,true)
 local miniMapAvailable=false
+-- Hide the HUD map before menu dispatch/render; keep normal restoration frame-owned.
+function academy.hideMiniMapForMenu()
+ miniMapButton.Visible=false
+ CityMap.MiniUpdate(miniMapView,nil,os.clock(),false)
+end
 local function card(height)
  local c=frame(content,"Card",UDim2.new(1,-8,0,height),UDim2.new(),panel)
  local edge=Instance.new("UIStroke");edge.Color=Color3.fromRGB(64,91,125);edge.Transparency=.65;edge.Parent=c
@@ -794,7 +846,7 @@ local function menuKey()
  if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped,megaphone=data.megaphoneEquipped}
  elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,navigation=data.questNavigation,challenges=data.combatChallenges,level=data.level}
  elseif selected=="Style" then fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped}
- elseif selected=="Shop" then fields={spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
+ elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  else fields={} end
  return selected..":"..gui.AbsoluteSize.X..":"..game:GetService("HttpService"):JSONEncode(fields)
@@ -823,7 +875,7 @@ render=function()
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Shop" then
   title.Text="THE AMPLIFIER";subtitle.Text="SIGNATURE COLORS / POWER YOUR PROGRESS"
-  shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow},action)
+  shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow,compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
  elseif selected=="Screams" then
   title.Text="BEAM COLLECTION"
   local nextStyle
@@ -927,7 +979,7 @@ render=function()
    info("Your saved "..data.aura.." color is still equipped. Choosing yellow replaces this legacy selection; the old free palette is no longer selectable.")
   end
  elseif selected=="Map" then
-  title.Text="CITY & COAST";subtitle.Text=string.format("Arena District: %d%% PvP. Rest of the map: %d%% safe.",CityMap.arenaPercent,100-CityMap.arenaPercent)
+  title.Text="CITY & COAST";subtitle.Text="Red: PvP • Pale café path: safe."
   local c=card(300)
   local holder=frame(c,"MapHolder",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13));holder.BackgroundTransparency=1
   mapDot=CityMap.create(holder)
@@ -951,6 +1003,15 @@ render=function()
   end
  else
   title.Text="SETTINGS & CONTROLS";subtitle.Text="Keep the action comfortable and easy to read."
+  if academy.damageReadout.available then
+   local recapCard=card(74);local recapToggle
+   local function recapLabel() return "COMBAT STATS: "..(academy.damageReadout.enabled and "ON" or "OFF") end
+   recapToggle=button(recapCard,"CombatStats",recapLabel(),UDim2.new(1,-24,0,44),UDim2.fromOffset(12,6),function()
+    academy.damageReadout:SetEnabled(not academy.damageReadout.enabled);recapToggle.Text=recapLabel()
+   end)
+   local note=label(recapCard,"Live DPS and fight total · this session",UDim2.new(1,-24,0,20),UDim2.fromOffset(12,50),12,muted)
+   note.TextXAlignment=Enum.TextXAlignment.Center
+  end
   local touch=UIS.TouchEnabled
   local attackHelp
   if sustainedControl then
@@ -1004,6 +1065,7 @@ closeConversation=function()
  conversationRevision+=1
  if conversationPanel.Visible then action:FireServer("EndConversation") end
  conversationPanel.Visible=false;conversationNPC=nil
+ academy.testLauncherBlocked=false;academy.refreshTestLauncher()
 end
 local function refreshConversation()
  if not conversationPanel.Visible then return end
@@ -1018,7 +1080,7 @@ local function refreshConversation()
 end
 button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
 showConversation=function(info)
- cancelCapture();closeMenu();if devPanel then devPanel.Visible=false end
+ academy.testLauncherBlocked=true;if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end;academy.refreshTestLauncher();cancelCapture();closeMenu();if devPanel then devPanel.Visible=false end
  conversationRevision+=1;local revision=conversationRevision
  conversationNPC=info.npc;conversationUntil=os.clock()+20;conversationName.Text=info.name
  for _,child in ipairs(conversationList:GetChildren()) do if child:IsA("GuiObject") then child:Destroy() end end
@@ -1056,9 +1118,10 @@ showConversation=function(info)
    choice("Guide me: "..q.name,function() academy.selectGuide("quest",q.id);closeConversation() end)
   end
  end
- if Config.CompactCity~=false then choice("Choose a boss or place to guide me to",function() closeConversation();toggleTab("Map") end) end
+ if Config.CompactCity~=false then choice("Choose a boss or place to guide me to",function() toggleTab("Map") end) end
  choice("See you later",closeConversation)
  conversationList.CanvasPosition=Vector2.zero;conversationPanel.Visible=true
+ academy.testLauncherBlocked=false;academy.refreshTestLauncher()
 end
 local function refreshQuestObjects()
  local world=workspace:FindFirstChild("ScreamSimulatorWorld")
@@ -1107,8 +1170,8 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  questsToggle.TextColor3=unclaimed>0 and gold or white
  refreshQuestObjects();stats.Text="LEVEL "..data.level;coins.Text=data.coins.." coins";refreshHealth()
  xpText.Text=progressLabel(gui.AbsoluteSize.X<820);xf.Size=UDim2.fromScale(data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext,1)
- zone.Text=data.inWarZone and "ARENA DISTRICT • PvP ON" or "SAFE CITY • PvP OFF";zone.TextColor3=data.inWarZone and Color3.fromRGB(255,140,139) or white
- testButton.Visible=data.devAccess==true
+ academy.refreshZone()
+ academy.refreshTestLauncher()
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
  tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west courtyard\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
  trackedQuestText=tracked.Text
@@ -1248,7 +1311,7 @@ connectClient(Run.RenderStepped,function(dt)
  if notice~=toast.Text then toast.Text=notice;toastWidth=0 end
  -- NoticeView owns full-text visibility and readable dwell.
  ShopUI.Tick()
- refreshHealth()
+ refreshHealth();academy.refreshZone()
  local viewport=gui.AbsoluteSize
  local touch=UIS.TouchEnabled
  local layoutChanged=viewport~=lastViewport or touch~=lastTouch or data.devAccess~=lastDevAccess
@@ -1322,14 +1385,12 @@ connectClient(Run.RenderStepped,function(dt)
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
    or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
  end
- meterText.Text=string.format("%s %d%%\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),captureHint)
- if eligibilityHint then
-  meterText.Text="MIC UNAVAILABLE\nOpen Settings for voice access"
- elseif sustainedControl and not sustainedControl.armed then
-  meterText.Text="BEAMS OFF · TALK FREELY\nVoice chat is unchanged"
- end
+ meterText.Text=academy.VoiceReactor.Status(
+  string.format("%s %d%%\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),captureHint),
+  eligibilityHint,sustainedControl and not sustainedControl.armed,viewport.X,viewport.Y,touch)
  if layoutChanged then
- local meterWidth,meterHeight=academy.VoiceReactor.Layout(viewport.X,touch)
+ academy.layoutZone(viewport,touch)
+ local meterWidth,meterHeight=academy.VoiceReactor.Layout(viewport.X,touch,viewport.Y)
  meter.Size=UDim2.fromOffset(meterWidth,meterHeight);meter.Position=UDim2.new(.5,-meterWidth/2,1,-meterHeight-((not touch and viewport.X<820) and 116 or 12))
  local short=viewport.Y<550
  menuScale.Scale=1
@@ -1345,7 +1406,11 @@ connectClient(Run.RenderStepped,function(dt)
   local decoration=academy.tabIcons[name];academy.layoutTab(b,decoration.icon,decoration.padding,tabWidth)
  end
  content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
- if width~=lastLayoutWidth then lastLayoutWidth=width;if modal.Visible then render() end end
+ if width~=lastLayoutWidth or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) then
+  lastLayoutWidth=width
+  academy.shopCompactLandscape=ShopUI.CompactLandscape(viewport.X,viewport.Y)
+  if modal.Visible then render() end
+ end
  -- Keep desktop controls compact; smaller displays retain readable button text.
  local tight=viewport.X<380
  shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "SHOP" or "SHOP [B]"
@@ -1392,7 +1457,7 @@ connectClient(Run.RenderStepped,function(dt)
    if academy.guideText.Text~=text then academy.guideText.Text=text end
   end
  end
- tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=viewport.X>740 and gameplayVisible
+ tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=gameplayVisible
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
  if sustainedControl then
@@ -1461,6 +1526,10 @@ connectClient(Run.RenderStepped,function(dt)
  for _,passive in ipairs({hud,tracked,zone,saveNotice,meter,academy.guidePanel})do
   if noticeView:Overlaps(passive,gui) or noticeView:Overlaps(passive,gui,talkButton) then passive.Visible=false end
  end
+ if academy.damageReadout.phase then
+  academy.damageReadout:Step(noticeNow,dt,gameplayVisible and windowFocused and alive and not devPanel.Visible,
+   gui,hud,tracked,academy.guidePanel,miniMapButton,testButton,noticeView.root,talkButton,meter,controls,zone,saveNotice)
+ end
  local lockedPoint=academy.resolveLock(lockContext())
  lockMarker.Visible=lockedPoint~=nil and gameplayVisible
  if lockedPoint then
@@ -1525,9 +1594,9 @@ connectClient(Run.RenderStepped,function(dt)
   end
  end
  if mapDot then CityMap.update(mapDot,root) end
- local miniVisible=miniMapAvailable and gameplayVisible and windowFocused
+ local miniVisible=miniMapAvailable and gameplayVisible and windowFocused and not modal.Visible and not (conversationPanel and conversationPanel.Visible) and not academy.testLauncherBlocked
  miniMapButton.Visible=miniVisible
- testButton.Visible=data.devAccess==true and not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
+ academy.refreshTestLauncher()
  CityMap.MiniUpdate(miniMapView,root,os.clock(),miniVisible and miniMapHolder.Visible)
  talkButton.Text=touch and "TALK" or "TALK [T]"
  talkButton.Visible=talkTarget~=nil and gameplayVisible

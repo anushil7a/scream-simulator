@@ -5,9 +5,11 @@ root=Path(__file__).resolve().parents[1]
 source=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text(encoding='utf-8')
 start=source.index('local testCommands=')
 fragment=source[start:source.index('\n end\n testContent.XP.Modal=true',start)]
-visibility=next(line for line in source.splitlines() if 'testButton.Visible=data.devAccess' in line)
+visibility=source[source.index('function academy.canShowTestLauncher()'):source.index('\n-- Flight controls exist only',source.index('function academy.canShowTestLauncher()'))]+'\nacademy.refreshTestLauncher()'
 setup="""
 local checks=0;local function check(ok,message)assert(ok,message);checks+=1 end
+local clientDestroyed=false
+local GuiService={MenuIsOpen=false};local modal={Visible=false};local conversationPanel={Visible=false}
 local Config={MaxLevel=100};local studio=false;local Run={IsStudio=function()return studio end}
 local contentWidth=196
 local UDim2={fromOffset=function(x,y)return {X=x,Y=y}end,new=function(xs,x,ys,y)return {X=contentWidth*xs+x,Y=y}end}
@@ -37,6 +39,7 @@ for _,isStudio in ipairs({false,true}) do
  end
  check(n==(isStudio and 12 or 10),'Existing test tools lost or duplicated')
 end
+local academy={}
 local testButton={Visible=false}
 local function update(data)
 """

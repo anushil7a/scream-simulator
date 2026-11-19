@@ -15,7 +15,7 @@ Enum={Font={GothamMedium='GothamMedium'},TextXAlignment={Left='Left'}}
 Instance={new=function(class)local o={ClassName=class};table.insert(objects,o);return o end}
 local Reactor=(function()
 '''
-checks='''
+checks=r'''
 end)()
 local n=0;local function check(v,msg)assert(v,msg);n+=1 end
 for _,entry in ipairs({{-.5,0},{2,1},{0,0},{.42,.42},{math.huge,1},{-math.huge,0},{0/0,0},{'bad',0}})do check(Reactor.Power(entry[1])==entry[2],'Unbounded power')end
@@ -36,6 +36,28 @@ for _,v in ipairs({{320,true},{390,true},{844,true},{819,false},{820,false},{128
  local bottom=12;local top=bottom+h
  if v[2] or v[1]<820 then check(top<=99,'Meter overlaps reserved actions')end
  if not v[2] and v[1]>=820 then check((v[1]-w)/2>=256 and (v[1]+w)/2<=v[1]-274,'Desktop side HUD overlap')end
+end
+-- Native baseline footprints from stock Studio emulation. These coordinates
+-- are specific to the profiles; physical touch and other stick modes are separate.
+for _,v in ipairs({{388,762,103,293},{359,690,103,264}})do
+ local w,h=Reactor.Layout(v[1],true,v[2])
+ local left=(v[1]-w)/2
+ local right=left+w
+ check(left-v[3]>=8 and v[4]-right>=8,'Known stock-control clearance not preserved')
+ check(h==84,'This fix should not push the meter upward toward actions')
+ check(Reactor.Status('live',false,true,v[1],v[2],true)=='BEAMS OFF\nVoice chat unchanged','Compact state suggests mic mute')
+ check(Reactor.Status('live',true,true,v[1],v[2],true)=='MIC UNAVAILABLE\nOpen voice settings','Unavailable status precedence changed')
+ check(Reactor.Status('live status unchanged',false,false,v[1],v[2],true)=='live status unchanged','Live status must stay truthful')
+end
+for _,v in ipairs({{749,388,true},{844,390,true},{388,762,false},{1280,900,false},{320,568,true},{343,942,true},{452,800,true}})do
+ local oldW,oldH=Reactor.Layout(v[1],v[3])
+ local w,h=Reactor.Layout(v[1],v[3],v[2])
+ check(oldW==w and oldH==h,'Out-of-scope screen allocation changed')
+ check(Reactor.Status('live',false,true,v[1],v[2],v[3])=='BEAMS OFF · TALK FREELY\nVoice chat is unchanged','Out-of-scope copy changed')
+end
+for width=344,451 do
+ local w=Reactor.Layout(width,true,700)
+ check((w-20)/28-3>0,'Portrait waveform has negative-width bars')
 end
 check(r.text.TextSize>=12,'Unreadable status')
 print('PASS '..n..' VoiceReactor contracts with UI doubles; no Studio or live mic')

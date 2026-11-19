@@ -19,6 +19,7 @@ end
 '''
 ENV=r'''
 local calls,contacts={},{}
+local function recordDamage()end
 local VoiceCombat=require('../src/ReplicatedStorage/Shared/VoiceCombat')
 local Config={HealQuietSeconds=12,PlayerKOXP=function(level)return level*2 end}
 local function log(...)table.insert(calls,{...})end
@@ -124,6 +125,8 @@ if __name__=='__main__':
  boss_branch='  elseif target.boss then\n   dealt+=bosses:Hit(target.boss,p,hit.damage,now)\n'
  assert new.count(boss_branch)==1
  new=new.replace(boss_branch,'',1)
+ # Separate private damage telemetry is exercised by its own tests, not part of old feedback comparison.
+ new=new.replace('  if not target.object then summaryDamage+=dealt-dealtBefore end\n','',1)
  a='  if target.player then';b='\n  end\n end\n if dealt>0 then'
  assert old[old.index(a):old.index(b)+len('\n  end')]==new[new.index(a,new.index('local position=')):new.index('\n  if dealt>dealtBefore')],'Damage/reward branch text changed'
  print('PASS unchanged damage/reward branch source contract')

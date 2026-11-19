@@ -38,11 +38,11 @@ def assemble(c):
  tailSetup=tailSetup.replace('records=prices','records=prices,connections=connections')
  context=r'''
 local ShopUI=m.shop;local selected='Shop';local render;local closeMenu;local clientDestroyed=false;local clientConnections={};local button=ui.button
-local modal={Visible=false};local gui={AbsoluteSize={X=720},Destroy=function()f.destroyed=true end}
+local modal={Visible=false};local gui={AbsoluteSize={X=720,Y=720},Destroy=function()f.destroyed=true end}
 local content={CanvasPosition={X=0,Y=40},AbsoluteCanvasSize={Y=600},AbsoluteWindowSize={Y=200},GetChildren=function()return {}end}
 
 -- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
-local academy={tabIcons={},tabIcon=function()return {},{} end}
+local academy={tabIcons={},tabIcon=function()return {},{} end,refreshTestLauncher=function()end,canShowTestLauncher=function()return not clientDestroyed and not modal.Visible end}
 local tabs={};local panel={};local title={};local subtitle={};local mapDot;local narrow=false
 local devPanel={Visible=false};local data={level=1,xp=0,xpNext=100,savingAvailable=true,settings={},quests={},aura='Gold',shop={ready=true,inventory={},ends={},serverNow=100}}
 local destroyed={};local script={Destroying={Connect=function(_,fn)table.insert(destroyed,fn);return {Disconnect=function()end}end}}
@@ -85,7 +85,7 @@ end
 '''.replace('XCLOSE',x).replace('DEVCLOSE',dev).replace('RECALCLOSE',recal).replace('CONVOCLOSE',convo)
  return setup+shop+tailSetup+context+owner+'\n'+state+'\n'+open_helper+'\nmodal.Visible=true;(function() '+x+' end)();check(not modal.Visible,"Early X close failed")\n'+key+toggle+'\n'+head+renderbody+tail+'\n'+input_setup+c[c.index('connectClient(UIS.InputBegan,function(input,processed)'):c.index('connectClient(UIS.InputEnded,function(input)')]+'\n'+c[c.index('for i,name in ipairs({"Shop"'):c.index('\nlocal conversationNPC',c.index('for i,name in ipairs({"Shop"'))]+'\n'+finish
 checks=r'''
-for _,route in ipairs({'closeX','toggle','keyB','sameTab','closeDev','closeConversation','destroy'})do
+for _,route in ipairs({'closeX','toggle','keyB','sameTab','closeConversation','destroy'})do
  local f=fixture();f.tab('Shop');check(#f.stats().views==4,'Opening did not render Shop')
  f.blockedKeys();check(f.modal.Visible,'Processed/menu/typing B closed modal')
  local jobs=f.priceJobs();check(#jobs==4,'Opening price call count wrong')
@@ -101,6 +101,7 @@ for _,route in ipairs({'closeX','toggle','keyB','sameTab','closeDev','closeConve
   f.flushScroll();check(f.content.CanvasPosition.Y==77,'Same-tab reopen lost scroll: '..route)
  end
 end
+local blocked=fixture();blocked.tab('Shop');blocked.closeDev();check(blocked.modal.Visible and #blocked.stats().views==4,'Obscured Test Tools callback closed Shop');blocked.closeX();blocked.destroy()
 local f=fixture();f.tab('Shop');f.closeX();f.now=1;for i=1,4 do f.reply(i,{IsForSale=true,PriceInRobux=20})end
 check(#f.stats().views==0,'Late completion reinstated closed views')
 f.tab('Shop');check(#f.priceJobs()==4 and #f.stats().views==4,'Fresh cache reopen lost price views')
@@ -142,6 +143,6 @@ else:
  assert client.index('local function closeMenu()')<client.index('button(modal,"Close","X"'), 'Close registered before helper initialization'
  run(client)
  if a.negative_controls:
-  mutants=[('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'selected=name;render()', 'Hidden tab callback rebuilt subscriptions or changed selection: Shop'),('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'if not modal.Visible then return end;selected=name;render()', 'Destroyed tab callback rebuilt subscriptions'),('elseif k==Enum.KeyCode.B then toggle()','elseif k==Enum.KeyCode.B then do end','Close wiring retained views: keyB'),(next(line for line in client.splitlines() if line.startswith('button(modal,"Close","X"')),next(line for line in client.splitlines() if line.startswith('button(modal,"Close","X"')).replace('closeMenu()','modal.Visible=false'),'Close wiring retained views: closeX'),('if modal.Visible then closeMenu() else','if modal.Visible then modal.Visible=false else','Close wiring retained views: toggle'),('if not opening then closeMenu();return end','if not opening then modal.Visible=false;return end','Close wiring retained views: sameTab'),('if devPanel.Visible then closeMenu() end','if devPanel.Visible then modal.Visible=false end','Close wiring retained views: closeDev'),('cancelCapture();closeMenu();if devPanel','cancelCapture();modal.Visible=false;if devPanel','Close wiring retained views: closeConversation'),('renderedMenuKey=nil;renderRevision+=1','renderRevision+=1','Unchanged key reopen lost subscriptions'),('renderedMenuKey=nil;renderRevision+=1','renderedMenuKey=nil','Pending scroll survived close'),('ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)','ownClient(function() modal.Visible=false;renderedMenuKey=nil end)','Pending scroll survived close: destroy')]
+  mutants=[('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'selected=name;render()', 'Hidden tab callback rebuilt subscriptions or changed selection: Shop'),('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'if not modal.Visible then return end;selected=name;render()', 'Destroyed tab callback rebuilt subscriptions'),('elseif k==Enum.KeyCode.B then toggle()','elseif k==Enum.KeyCode.B then do end','Close wiring retained views: keyB'),(next(line for line in client.splitlines() if line.startswith('button(modal,"Close","X"')),next(line for line in client.splitlines() if line.startswith('button(modal,"Close","X"')).replace('closeMenu()','modal.Visible=false'),'Close wiring retained views: closeX'),('if modal.Visible then closeMenu() else','if modal.Visible then modal.Visible=false else','Close wiring retained views: toggle'),('if not opening then closeMenu();return end','if not opening then modal.Visible=false;return end','Close wiring retained views: sameTab'),('cancelCapture();closeMenu();if devPanel','cancelCapture();modal.Visible=false;if devPanel','Close wiring retained views: closeConversation'),('renderedMenuKey=nil;renderRevision+=1','renderRevision+=1','Unchanged key reopen lost subscriptions'),('renderedMenuKey=nil;renderRevision+=1','renderedMenuKey=nil','Pending scroll survived close'),('ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)','ownClient(function() modal.Visible=false;renderedMenuKey=nil end)','Pending scroll survived close: destroy')]
   for old,new,error in mutants:
    assert client.count(old)==(2 if old=="renderedMenuKey=nil;renderRevision+=1" else 1),old;run(client.replace(old,new,1),error)
