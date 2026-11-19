@@ -4,7 +4,7 @@ local Appearance={MaxParts=450}
 -- Bounded presentation values; old callers retain the original scale/anchor.
 function Appearance.Scale(value)
  if type(value)~="number" or value~=value or math.abs(value)==math.huge then return 1 end
- return math.clamp(value,1,2)
+ return math.clamp(value,1,2.8)
 end
 function Appearance.FromCore(position,spec)
  local height=spec and spec.aimHeight
@@ -27,7 +27,7 @@ local function triangle(parent,name,a,b,c,color,glow,style,center,scale)
  local height=math.abs(ab:Dot(up));local count=0
  for _,v in ipairs({{(a+b)/2,right,back,math.abs(ab:Dot(back))},{(a+c)/2,-right,-back,math.abs(ac:Dot(back))}}) do
   if v[4]>1e-5 and height>1e-5 then
-   local p=Instance.new("WedgePart");p.Name=name;p.Size=Vector3.new(.015,height*scale,v[4]*scale)
+   local p=Instance.new("WedgePart");p.Name=name;p.Size=Vector3.new(.015*math.max(1,scale/1.4),height*scale,v[4]*scale)
    p.CFrame=CFrame.fromMatrix(center+v[1]*scale,v[2],up,v[3]);configure(p,parent,color,glow,style);count+=1
   end
  end

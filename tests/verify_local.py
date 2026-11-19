@@ -51,7 +51,7 @@ def verify(args, report=None):
     mocked += ('attack_audio.py', 'gameplay_audio.py', 'combat_healing.py', 'commerce.py', 'shop_rewards.py', 'practice_lane.py', 'shutdown_race.py', 'profile_recovery.py', 'recovery_notice.py', 'acquisition_lifetime.py', 'action_feedback.py')
     mocked += ('navigation_ui.py', 'navigation_layout.py', 'voice_notice_lifecycle.py', 'supporting_npcs.py')
     mocked += ('save_notification_priority.py', 'third_person.py', 'beam_readout.py', 'boost_purchase_ui.py', 'developer_tools.py', 'developer_tools_ui.py', 'challenge_retirement.py', 'quest_catalog_ui.py', 'dodge_effect.py', 'style_controls.py', 'minimap.py', 'training_roam.py', 'beam_audio_levels.py', 'beam_audio_cadence.py', 'compact_city_draft.py', 'compact_city_map.py', 'compact_world.py', 'compact_integration.py', 'compact_review_fixture.py', 'compact_guidance.py', 'microphone_notice.py', 'voice_stop_rate_limit.py', 'combat_quests.py', 'test_session_rewards.py', 'voice_eligibility.py', 'voice_eligibility_recovery.py', 'session_connections.py', 'combat_credit_identity.py', 'gameplay_cue_settings.py', 'sprint_recovery.py', 'quest_dialogue_restart.py', 'quest_writer_compatibility.py', 'quest_writer_preflight.py', 'entitlement_refresh.py')
-    mocked += ('microphone_active.py', 'microphone_check_requests.py', 'shop_price_requests.py', 'shop_modal_lifecycle.py')
+    mocked += ('microphone_active.py', 'microphone_check_requests.py', 'shop_price_requests.py', 'shop_modal_lifecycle.py', 'test_launcher_modal.py')
     mocked += ('boost_status_readability.py',)
     mocked += ('panel_action_lifecycle.py', 'commerce_lifecycle.py', 'mic_setup_navigation.py', 'microphone_movement.py')
     mocked += ('beam_screen_feedback.py', 'beam_screen_integration.py')
@@ -62,7 +62,7 @@ def verify(args, report=None):
     mocked += ('hud_readability.py', 'voice_reactor.py')
     mocked += ('lock_on.py', 'lock_on_integration.py', 'hud_presentation.py', 'coastal_art.py', 'academy_landmark.py', 'minimap_visuals.py', 'beam_silhouette.py')
     mocked += ('beam_contact_anchor.py', 'beam_contact_visuals.py', 'beam_contact_integration.py', 'beam_native_budget.py', 'beam_milestone_native.py')
-    mocked += ('high_tier_clarity.py', 'boss_service.py', 'boss_attack_effects.py', 'boss_balance.py', 'boss_aim.py', 'boss_visuals.py', 'boss_pose.py', 'boss_spatial.py', 'navigation_catalog.py', 'navigation_guide.py')
+    mocked += ('high_tier_clarity.py', 'damage_summary.py', 'damage_readout.py', 'health_bar_presentation.py', 'boss_service.py', 'boss_attack_effects.py', 'boss_balance.py', 'boss_aim.py', 'boss_visuals.py', 'boss_pose.py', 'boss_spatial.py', 'navigation_catalog.py', 'navigation_guide.py')
     mocked += ('sustained_ttk.py', 'beam_tier_silhouettes.py', 'microphone_direct_ready.py', 'practice_retirement.py', 'cast_feedback_contract.py', 'ui_copy_cleanup.py', 'npc_nameplate.py', 'menu_icons.py', 'trainer_models.py', 'training_map.py')
     mocked += ('test_beam.py', 'test_beam_ui.py')
     from preserved_compact import SUITES as compact_archival_suites
@@ -71,7 +71,7 @@ def verify(args, report=None):
         # These geometric/placement oracles describe the old, archived compact city.
         # Run them against its checked source with tests/preserved_compact.py.
         mocked = tuple(name for name in mocked if name not in compact_archival_suites) + (
-            "map10_contract.py", "map10_grounding.py", "map10_finish.py", "map10_repairs.py",
+            "map10_contract.py", "map10_grounding.py", "map10_finish.py", "map10_repairs.py", "garden_pvp.py", "garden_pvp_map.py",
         )
         print(f'{len(compact_archival_suites)} compact-city-only suites are archived; see tests/preserved_compact.py.', flush=True)
     for name in mocked:

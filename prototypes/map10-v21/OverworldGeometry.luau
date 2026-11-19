@@ -18,9 +18,9 @@ local function stripShape(w,h,r)
  return out
 end
 local palettes={
- ["01"]={{193,175,138},{221,200,164}},["02"]={{161,138,115},{195,166,131}},
- ["03"]={{138,107,84},{166,128,97}},["04"]={{138,153,106},{190,178,138}},
- ["06"]={{103,94,127},{121,112,145}},["07"]={{92,80,83},{125,103,101}},
+ ["01"]={{200,174,132},{239,219,172}},["02"]={{161,138,115},{195,166,131}},
+ ["03"]={{138,107,84},{156,109,69}},["04"]={{115,152,85},{190,178,138}},
+ ["06"]={{103,94,127},{121,112,145}},["07"]={{65,58,63},{125,103,101}},
  ["08"]={{112,95,143},{137,119,159}},["10"]={{142,150,125},{165,173,144}},
 }
 local function paddedOpenings(layout,id,d)
@@ -90,12 +90,12 @@ local function base(builder,id,d)
  local p=palettes[id]
  for i,strip in ipairs(stripShape(w,h,CHAMFER[id] or 0)) do
   local lo,hi,width=table.unpack(strip)
-  builder:part("DistrictGround_"..i,{x,(y+bottom)/2,z+(lo+hi)/2},{width,y-bottom,hi-lo},p[1],true,nil,"Slate",{"GroundSurface"})
+  builder:part("DistrictGround_"..i,{x,(y+bottom)/2,z+(lo+hi)/2},{width,y-bottom,hi-lo},p[1],true,nil,(id=="01" or id=="04" or id=="07") and "SmoothPlastic" or "Slate",{"GroundSurface"})
  end
  -- Material changes read as paving rather than luminous paint. The four
  -- arms terminate at an inset octagonal plaza with no coplanar overlap.
  local center=35
- builder:disk("CenterPaving",x,y+.042,z,center,.08,p[2],false,"Cobblestone",{"CosmeticDetail"})
+ builder:disk("CenterPaving",x,y+.042,z,center,.08,p[2],false,id=="01" and "SmoothPlastic" or "Cobblestone",{"CosmeticDetail"})
  for j,dir in ipairs({{1,0},{-1,0},{0,1},{0,-1}}) do
   local dx,dz=table.unpack(dir);local radius=dx~=0 and w/2 or h/2
   local last=radius-9
@@ -104,7 +104,7 @@ local function base(builder,id,d)
   local along=(center+last)/2
   local q={x+dx*along,y+.046,z+dz*along}
   builder:part("Paving_"..j,q,dx~=0 and {length,.08,width} or {width,.08,length},
-    p[2],false,nil,id=="03" and "WoodPlanks" or "Concrete",{"CosmeticDetail"})
+    p[2],false,nil,(id=="01" or id=="03") and "SmoothPlastic" or "Concrete",{"CosmeticDetail"})
  end
 end
 local function gatesTest(builder,id,d,gates)
@@ -161,7 +161,16 @@ local function foundry(builder,old)
    if p.collidable and (id:match("^Platform") or id:match("^DockUpper") or id:match("^DockLower") or id=="LighthouseIsland") then
     table.insert(tags,"GroundSurface")
    end
-   builder:part(id,p.position,p.size,p.color,physical,p.rotation,p.material,tags,p.shape)
+   if builder.compact and westCliff then
+    local cap=id:match("^BackCliffHeather")
+    local toe=id:match("^CliffTalus")
+    local size={p.size[1],p.size[2],p.size[3]*1.17}
+    local position=table.clone(p.position)
+    if cap then position[2]-=7 end
+    builder:part(id,position,size,p.color,true,{0,0,0},cap and "Ground" or toe and "Slate" or "Limestone",tags,"Ball")
+   else
+    builder:part(id,p.position,p.size,p.color,physical,p.rotation,p.material,tags,p.shape)
+   end
   end
  end
  for _,route in ipairs(old.Routes) do builder:route("05_"..route.id,route.a,route.b,route.width,"secondary") end
@@ -183,7 +192,7 @@ function Geometry.Compose(builder,layout,arteries,west,coast,east,originalFoundr
  end
  arteries.Build(builder,layout)
  builder.zone="00"
- builder:part("Sea",{0,-2.2,0},{4200,4,4200},{23,124,154},false,nil,"SmoothPlastic",{"WaterVisual"})
+ builder:part("Sea",{0,-2.2,0},{4200,4,4200},{36,103,117},false,nil,"SmoothPlastic",{"WaterVisual"})
  -- Restrained nearshore water strokes. Unwalkable and non-queryable, no per-frame animation.
  local foam={
   {236,-411,4,16,2},{459,-231,-14,17,2},{657,-401,13,22,2},{842,-579,-11,9,2},{913,-660,75,10,2},
@@ -196,7 +205,7 @@ function Geometry.Compose(builder,layout,arteries,west,coast,east,originalFoundr
   for i2=1,count do
    local coast=(i2-1)*5
    builder:part("HarborFoam"..i.."_"..i2,{fx+math.sin(a)*coast,.065+i2*.008,fz+math.cos(a)*coast},
-    {length+i2*4,.07,1.15+i2*.42},i2==1 and {130,209,201} or {58,169,180},
+    {length+i2*4,.07,1.15+i2*.42},i2==1 and {155,201,188} or {65,142,147},
     false,{0,yaw+(-1)^i2*4,0},"SmoothPlastic",{"WaterVisual"})
   end
  end

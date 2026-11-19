@@ -19,6 +19,19 @@ function City.Build(parent)
   if spec.material then p.Material=Enum.Material[spec.material] end
   if spec.collidable then p:SetAttribute("GroundSurface",true) end
  end
+ -- Offset a narrow line just inside confirmed green, so even at a cut
+ -- corner the decoration neither floats over a notch nor paints a ramp.
+ if Layout.MapId=="Map10" and Layout.GardenPvpEdges then
+  local boundaries=Instance.new("Folder");boundaries.Name="GardenPvPBoundary";boundaries.Parent=parent
+  local width=.65
+  for i,e in ipairs(Layout.GardenPvpEdges) do
+   local xLen,zLen=math.abs(e.x2-e.x1),math.abs(e.z2-e.z1)
+   local position=V((e.x1+e.x2)/2+e.inX*.48,Layout.GardenPvpMinY+.09,(e.z1+e.z2)/2+e.inZ*.48)
+   local size=V(xLen>0 and xLen-.9 or width,.05,zLen>0 and zLen-.9 or width)
+   local stripe=part(boundaries,"GardenPvP" .. i,size,position,Color3.fromRGB(195,88,73),false)
+   stripe.Transparency=.18;stripe.CastShadow=false
+  end
+ end
  local quests=Instance.new("Folder");quests.Name="QuestObjects";quests.Parent=parent
  for _,spec in ipairs(Layout.QuestMarkers) do
   local p=part(quests,spec.id,V(1,1.6,1),spec.position,Color3.fromRGB(226,181,83),false)

@@ -94,26 +94,34 @@ local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
  local view={record=record,id=id,kind=item.kind=="pass" and Enum.InfoType.GamePass or Enum.InfoType.Product,apply=apply}
  table.insert(priceViews,view);updatePrice(view)
 end
+function Shop.CompactLandscape(width,height)
+ return width>=644 and height>=326 and height<=430
+end
 function Shop.Render(data,ui,action)
  Shop.Clear()
  local narrow=ui.narrow
- local hero=ui.card(narrow and 300 or 260);hero.Name="SpectrumFeature"
+ local compact=ui.compactLandscape==true
+ local hero=ui.card(compact and 124 or narrow and 300 or 260);hero.Name="SpectrumFeature"
+ local textScale,textOffset=compact and .48 or 1,compact and -24 or -32
+ local function heroLabel(text,height,y,size,color)
+  return ui.label(hero,text,UDim2.new(textScale,textOffset,0,height),UDim2.fromOffset(16,y),size,color)
+ end
  hero.BackgroundColor3=Color3.new(1,1,1)
  gradient(hero,{ColorSequenceKeypoint.new(0,Color3.fromRGB(30,49,76)),ColorSequenceKeypoint.new(1,Color3.fromRGB(39,24,61))},25)
  stroke(hero,accent)
- ui.label(hero,"01 / MAKE IT YOURS",UDim2.new(1,-32,0,20),UDim2.fromOffset(16,12),12,accent)
- local heading=ui.label(hero,"SPECTRUM",UDim2.new(1,-32,0,38),UDim2.fromOffset(16,35),30);heading.Font=Enum.Font.GothamBlack
- ui.label(hero,"One pass. Choose your beam hue.",UDim2.new(1,-32,0,38),UDim2.fromOffset(16,78),15)
- local beam=ui.frame(hero,"SpectrumBeam",UDim2.new(1,-48,0,12),UDim2.fromOffset(24,137),Color3.new(1,1,1))
+ heroLabel("01 / MAKE IT YOURS",20,compact and 8 or 12,12,accent)
+ local heading=heroLabel("SPECTRUM",38,compact and 23 or 35,30);heading.Font=Enum.Font.GothamBlack
+ heroLabel("One pass. Choose your beam hue.",compact and 24 or 38,compact and 61 or 78,15)
+ local beam=ui.frame(hero,"SpectrumBeam",UDim2.new(compact and .52 or 1,compact and -38 or -48,0,12),compact and UDim2.new(.48,14,0,29) or UDim2.fromOffset(24,137),Color3.new(1,1,1))
  local keys={};for i=0,6 do table.insert(keys,ColorSequenceKeypoint.new(i/6,Color3.fromHSV(i/6,.8,1))) end
  gradient(beam,keys)
  ui.frame(beam,"HotCore",UDim2.new(1,0,0,3),UDim2.fromOffset(0,4),Color3.new(1,1,1))
  for i=1,4 do
-  local ring=ui.frame(hero,"EnergyRing",UDim2.fromOffset(14,42),UDim2.new(i/5,-7,0,122),accent)
+  local ring=ui.frame(hero,"EnergyRing",UDim2.fromOffset(14,42),UDim2.new(compact and .48+.52*i/5 or i/5,-7,0,compact and 14 or 122),accent)
   ring.BackgroundTransparency=1;stroke(ring,Color3.fromHSV(i/5,.5,1),2)
  end
- ui.label(hero,"Yellow base. Saved colors are kept.",UDim2.new(1,-32,0,narrow and 42 or 30),UDim2.fromOffset(16,167),13,soft)
- purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,UDim2.new(1,-32,0,44),UDim2.fromOffset(16,narrow and 238 or 206))
+ heroLabel("Yellow base. Saved colors are kept.",compact and 24 or narrow and 42 or 30,compact and 86 or 167,13,soft)
+ purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,UDim2.new(compact and .52 or 1,-32,0,44),compact and UDim2.new(.48,16,0,66) or UDim2.fromOffset(16,narrow and 238 or 206))
  for index,key in ipairs({"XP","Coins"}) do
   local item=Catalog.Get(key);local tint=key=="XP" and violet or gold
   local c=ui.card(narrow and 262 or 242);c.Name="Boost"..key;stroke(c,tint)

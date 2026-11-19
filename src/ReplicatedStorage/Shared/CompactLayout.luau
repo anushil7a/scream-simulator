@@ -634,6 +634,96 @@ Layout.PartSpecs={
 {id="GardenTree3Palm4",position=Vector3.new(141.0815594803123,27.8,-33.32869780703304),size=Vector3.new(10.5,1.4,2.8),color=Color3.fromRGB(104,153,69),collidable=false,rotation=Vector3.new(0,-288.0,-12),material="SmoothPlastic"},
 }
 -- MAP10_PARTS_END
+-- Garden PvP is derived from the authored olive terraces, never the broad map
+-- region. Preserve the full actual café crosswalk and the two elevated access
+-- ramps' top-face footprints. The other ramp notches already lie outside green.
+Layout.GardenPvpMinY=16;Layout.GardenPvpMaxY=30
+do
+ local function rect(minX,maxX,minZ,maxZ)
+  return {minX=minX,maxX=maxX,minZ=minZ,maxZ=maxZ}
+ end
+ local terraces={}
+ local cuts={rect(-108,-72,-170,-70),rect(170,300,25,55)}
+ for _,part in ipairs(Layout.PartSpecs) do
+  if part.id:match("^CentralGardenTerrace%d+$") or part.id=="GardenSpine" then
+   local p,s=part.position,part.size
+   local footprint=rect(p.X-s.X/2,p.X+s.X/2,p.Z-s.Z/2,p.Z+s.Z/2)
+   table.insert(part.id=="GardenSpine" and cuts or terraces,footprint)
+  end
+ end
+ local function inside(r,x,z)
+  return x>=r.minX and x<=r.maxX and z>=r.minZ and z<=r.maxZ
+ end
+ local function contains(rects,x,z)
+  for _,r in ipairs(rects) do if inside(r,x,z) then return true end end
+  return false
+ end
+ -- Cut each source footprint into disjoint rectangular interiors.
+ local function subtract(items,cut)
+  local result={}
+  local function add(x1,x2,z1,z2)
+   if x1<x2 and z1<z2 then table.insert(result,rect(x1,x2,z1,z2)) end
+  end
+  for _,r in ipairs(items) do
+   local x1,x2=math.max(r.minX,cut.minX),math.min(r.maxX,cut.maxX)
+   local z1,z2=math.max(r.minZ,cut.minZ),math.min(r.maxZ,cut.maxZ)
+   if x1>=x2 or z1>=z2 then table.insert(result,r)
+   else
+    add(r.minX,x1,r.minZ,r.maxZ);add(x2,r.maxX,r.minZ,r.maxZ)
+    add(x1,x2,r.minZ,z1);add(x1,x2,z2,r.maxZ)
+   end
+  end
+  return result
+ end
+ local rects=terraces
+ for _,cut in ipairs(cuts) do rects=subtract(rects,cut) end
+ Layout.GardenPvpRects=rects
+ function Layout.InGardenPvpXZ(x,z)
+  -- Exact cut boundaries belong to the safe route; adjoining terrace seams
+  -- do not, so crossing a subdivision never toggles PvP.
+  return not contains(cuts,x,z) and contains(rects,x,z)
+ end
+
+ -- Compare cells on either side of each edge, merging contiguous exterior
+ -- intervals before rendering. Adjacent source terraces never draw seams.
+ local seenX,seenZ,xs,zs={},{},{},{}
+ for _,r in ipairs(rects) do
+  for _,x in ipairs({r.minX,r.maxX}) do if not seenX[x] then seenX[x]=true;table.insert(xs,x) end end
+  for _,z in ipairs({r.minZ,r.maxZ}) do if not seenZ[z] then seenZ[z]=true;table.insert(zs,z) end end
+ end
+ table.sort(xs);table.sort(zs)
+ local edges={}
+ local function build(axis,across,vertical)
+  for i,start in ipairs(axis) do
+   local previous=start-(start-(axis[i-1] or start-1))/2
+   local following=start+((axis[i+1] or start+1)-start)/2
+   local edge
+   local function point(a,b)
+    if vertical then return a,b else return b,a end
+   end
+   for j=1,#across-1 do
+    local lo,hi=across[j],across[j+1]
+    local mid=(lo+hi)/2
+    local low=contains(rects,point(previous,mid))
+    local high=contains(rects,point(following,mid))
+    if low==high then edge=nil
+    else
+     local normal=high and 1 or -1
+     local inX,inZ=point(normal,0)
+     if edge and edge.inX==inX and edge.inZ==inZ then edge.x2,edge.z2=point(start,hi)
+     else
+      local x1,z1=point(start,lo);local x2,z2=point(start,hi)
+      edge={x1=x1,z1=z1,x2=x2,z2=z2,inX=inX,inZ=inZ}
+      table.insert(edges,edge)
+     end
+    end
+   end
+  end
+ end
+ build(xs,zs,true);build(zs,xs,false)
+ Layout.GardenPvpEdges=edges
+end
+
 Layout.Walk={V(-300,35,-260),V(-420,35,-400),V(-300,35,-400),V(-180,35,-400),V(-90,35,-170),V(-90,19,-70),V(-90,19,110),V(80,19,150),V(80,3,250),V(-220,3,420),V(220,3,420),V(310,3,300),V(-190,19,110),V(-290,3,110),V(-70,35,-330),V(90,35,-330),V(90,35,-190),V(300,35,-180),V(170,19,40),V(300,35,40),V(450,35,-250),V(450,67,-420),V(350,67,-420),V(-220,4,610),V(180,4,610)}
 Layout.QuestMarkers={
 {id="Flowerbed228",action="Garden",position=V(-490,34,-160),text="Water flowers"},

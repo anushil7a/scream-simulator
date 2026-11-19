@@ -60,6 +60,21 @@ return function(build,id,spec)
   -- Asymmetric dominant mountain, broad continuous overlapping rock mass.
   -- Its open cleavage faces the plaza; all apparent rock is physical.
   local x,z=184,164
+  if build.compact then
+   -- Six inclined basalt faces converge on the same crater. The open side
+   -- frames the molten chute instead of enclosing it with overlapping cubes.
+   for k=0,7 do
+    if k~=5 and k~=6 then
+     local a=math.rad(k*45)
+     local nx,nz=math.cos(a),math.sin(a)
+     local yaw=math.deg(math.atan2(-nx,-nz))
+     part("CalderaFace"..k,x+nx*59,89,z+nz*59,71,178,116,
+      k%3==0 and ash or basalt,{0,yaw,0},"Basalt","Wedge")
+     part("CalderaApron"..k,x+nx*104,19,z+nz*104,83,38,56,
+      k%3==0 and oxide or ash,{0,yaw,0},"Ground","Wedge")
+    end
+   end
+  else
   for layer=0,4 do
    local r=124-layer*21;local h=28+layer*39
    for k=0,7 do
@@ -87,6 +102,7 @@ return function(build,id,spec)
    part('MountainSkirt'..i,b[1],b[4]/2,b[2],b[3],b[4],b[5],i%2==0 and ash or basalt,nil,'Slate','Wedge')
    -- Fitted dark-red mineral ribs break the large facets without disconnected lava.
    part('SkirtMineral'..i,b[1],b[4]*.22,b[2],b[3]*.62,3,b[5]*.34,oxide,nil,'Slate')
+  end
   end
   for k=0,5 do
    local a=math.rad(k*60);local px=x+math.cos(a)*27;local pz=z+math.sin(a)*27

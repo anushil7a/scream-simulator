@@ -1,5 +1,30 @@
 # Scream Simulator development roadmap
 
+## Beam, player health and boss pacing (unpublished balance candidate)
+
+- Smoothed mid-tier sustained damage and raised mid-/late-player HP. Same-level and ±5 matchups retain a two-cast window under synthetic full-power contact. Lv100 vs Lv1 still reaches the existing 1.0s full-power endpoint on the actual mocked server path. Keep the 4s maximum / 5s cooldown, power gate, gear and PvP boundaries.
+- Lowered boss health for unlock-level solo fights and separated ranged vs melee damage. See [actual-protocol pacing scenarios](BOSS_COMBAT_BALANCE_REVIEW.md). Model results estimate 30–40s at sustained full contact and 52–63s for the defined imperfect/dodge schedule. Exact solo Studio passed 10/10 boss retaliation checks; isolated real-server beam budget runs verified the two endpoint bosses. Human/mobile/multiplayer encounter balance and live release are not claimed.
+
+## Central garden PvP (unpublished Studio-reviewed build)
+
+- The actual olive lawn by the market is now PvP. The pale café spine and connector ramps are safe, and the western stadium stays PvP. Full/mini map and in-play status use the same source shape as authority. Eight two-client resolver checks and a native walk/return on the café boundary pass. [Boundary gates and build](CENTRAL_GARDEN_PVP_REVIEW.md).
+
+## Personal damage recap and health bars (unpublished Studio-reviewed build)
+
+- Shop → Settings → Combat Stats opts into rolling personal DPS and a fight total; privacy and actual HP loss are server-authoritative. A recap appears after 12 quiet seconds. The optional visual setting resets each session.
+- Boss plates keep name and level and gain one slim line for HP. Nearby other players use a native overhead bar without disturbing names; your own health stays in the existing HUD. This is the narrow exception to the older no-enemy-health-HUD direction, not a persistent enemy overlay.
+- [Combat readouts review](COMBAT_READOUTS_REVIEW.md): exact builds, desktop two-client counters and bars, phone-emulator checks, and remaining limits.
+
+## Expanded boss arenas and melee push (unpublished local candidate)
+
+- All five production arenas are larger, with longer themed ranged attacks and a separately telegraphed close attack. Four have 38-stud radii; the Conductor has 25 to clear the first Shrine tier. Exact homes, progression, reward pots, damage and 12-stud vertical admission remain unchanged. Grounded melee survivors receive one obstacle-checked shove of at most 6.5 studs. No fixed enemy HUD panel; the later overhead health bars are described above.
+- Focused service, callback, movement and 23,081 exact-layout sample checks pass; see [arena and knockback review](BOSS_ARENA_AND_KNOCKBACK_REVIEW.md). Earlier and current scoped native attack checks are recorded in the linked reviews. Human boss combat, representative multiplayer comfort and physical phone play remain open.
+
+## Full-game visual and control fixes
+
+- Keep Test Tools hidden while Shop is open, prevent minimap flashes at modal transitions, and reserve the portrait mic status away from stock touch controls. Use the shorter first Spectrum card in landscape. [Launcher checks](TEST_TOOLS_SHOP_FLASH_REVIEW.md) and [Shop comparison](SHOP_LANDSCAPE_REVIEW.md).
+- Full-game builds retain the original integrated assets; separately staged or rejected Academy, foliage and Beam art trials are not in this checkpoint.
+
 ## Guarded Test Tools: Fly confirmation and silent adjustable Beam
 
 - Existing full-game **Fly on / off** is restricted to the authorized unpublished local test fixture. Add **Beam Test** with 0–100% controls and click-to-run silent preview, separate from microphone, sound, damage and rewards.
@@ -1289,3 +1314,32 @@ Original island geometry now replaces active compact city, retaining old source/
 
 - Replaced visible Lv70 Leviathan metadata with owner-selected Captain while preserving internal encounter/nav key and all balance/home/ring/save semantics. Alternating committed cutlass broadside and twin shoulder-siren lanes provide retreat/center-gap counterplay; no enemy HP HUD.
 - Focused8129 service/motion +10callback checks, balance, aim/cover and navigation tests pass. Art/pose integration and native acceptance are separate. See SEAGULL_GAMEPLAY_REVIEW.md.
+
+## November 18 Academy beam input ownership
+
+The local Academy preview now keeps a manual beam attached to its initiating key, controller or touch. Its one-shot tool only arms when it starts a new cast. The previous client failed the B-hold plus mouse-release regression. Independent review and 100 focused mocked/source checks passed, as did 126 Luau rules checks and the Academy Rojo build. The aggregate verifier stopped at an unavailable historical BeamVisuals Git object. Next, play the rebuilt fixture with keyboard/mouse, touch and controller and verify interrupt and release behavior on the actual devices.
+
+## November 18 Academy course HUD
+
+Rearranged the course and open tools around the reticle in compact viewports, kept power buttons 42 by 40 pixels, and cached static geometry by viewport and touch capability. The actual placement function passed 12 mocked cases including rotation and zero static layout writes on unchanged refresh. The other 100 tool checks, 126 rules assertions, 135 route probes and Academy Rojo build passed. Next check text wrapping, safe-area insets and thumbstick clearance in Studio and on a phone.
+
+## November 18 compact Academy playtest map
+
+The Academy build uses 1,280 × 1,280 stud design bounds and 12.8-stud main bridges. Compact stations, flight bounds, boss homes and bridge labels follow the new layout. Ground and paving use legacy finishes where districts correspond. The art pass corrected two lantern intrusions and coplanar stage, lookout and fossil-base joins. The full-size base layout remains available for comparison.
+
+Verified the Academy Rojo build, all 3,148 part transforms, 106 routes, 14,538 route samples, 2,205 boss clearance samples and 135 Academy probes. Next, walk the narrow bridges and boss approaches in local Studio and inspect the deck joins and finishes from player height.
+
+## November 18 native Academy startup repair
+
+Studio Play on the compact build missed the floor at three lanes on the 07–08 bridge seam, counted twice by the adjacent routes. The native check halted startup before spawning. Extended the sloped decks half an authored stud into interior landings. A fresh Studio Play on the rebuilt Academy logged 2,622 floor probes, 2,613 headroom probes, zero failures and Academy route ready. Also passed 14,538 analytic route samples and 135 Academy probes. Actual player traversal is still to be checked.
+
+## Academy art and controls playtest, November 18
+
+Reworked the compact Academy against the approved MAP-01 campus reference. The palace has warm plaster, teal roofs, framed glazing and a distinct tower. The library backdrop leaves a central opening. Cypress groups and planting beds frame the fountain. Inset shore terraces, a lower ridge and basalt caldera faces replace the haphazard coastal blocks. The final compact export has 3,085 parts, 106 routes and all eleven bridges.
+
+The supplied level-one clip shows an active beam while facing the level-ten encounter. Guidance now identifies the practice resonator and center reticle. Consumed UI input is excluded. Flight movement steps every server Heartbeat, separate from combat; keyboard and touch flight inputs are selected independently on hybrid devices. A disposable native Studio playtest using the revised scripts reported 2,622 floor and 2,613 headroom probes with zero failures. Automated Windows left-mouse hold and release produced active beam then cooldown; with flight enabled through the fixture, one second of Space moved the avatar 32 studs. This does not measure network jitter, physical touch, or human comfort. Geometry verification passed 14,538 route samples, 135 Academy probes and 2,205 boss probes. Next review player-height views, the new coast and steering feel with the owner.
+
+## Bounded voice onset trial
+
+- Lowered the calibrated start gate from 0.35 to 0.33, leaving the 0.18 release level, 0.25 s sustained onset, 0.20 s quiet/release interval, off toggle and five-second cooldown unchanged. The meter already reads the shared start gate. The independently applied server input floor remains 0.08 for start and sustain; no server settings or protocol changes.
+- Synthetic controller traces pass the new boundary, sustained input below onset, sub-threshold/short interrupted peaks, quiet after cooldown and re-arm, and absolute off. This amplitude gate does not classify speech: sustained speech in the newly admitted band may trigger while on. Next: compare ordinary speech and deliberate mic activation on the same device/calibration in Studio, without storing voice recordings. No physical mic or native execution claimed.

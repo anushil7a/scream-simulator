@@ -42,7 +42,11 @@ function Builder:Build(parent,groupNames)
   local wedge=p.shape=="Wedge"
   local item=Instance.new(wedge and "WedgePart" or "Part");item.Name=p.id;item.Anchored=true
   item.Size=Vector3.new(table.unpack(p.size));item.Color=Color3.fromRGB(table.unpack(p.color))
-  item.Material=Enum.Material[p.material];if not wedge then item.Shape=Enum.PartType[p.shape] end
+  item.Material=Enum.Material[p.material]
+  if p.shape=="Ball" and not p.collidable and not p.queryable and p.zone=="01" then
+   -- The soft canopy and inset trim use their authored ellipsoid proportions.
+   local mesh=Instance.new("SpecialMesh");mesh.MeshType=Enum.MeshType.Sphere;mesh.Parent=item
+  elseif not wedge then item.Shape=Enum.PartType[p.shape] end
   item.CanCollide=p.collidable;item.CanQuery=p.queryable;item.CanTouch=false
   local significant=math.max(table.unpack(p.size))>=8
   item.CastShadow=p.material~="Neon" and (p.collidable and significant or table.find(p.tags,"HeroLandmark")~=nil)

@@ -382,3 +382,21 @@ Performance sampler validation update: mocked runner tests cover bounded duratio
 ### Audience participant removal
 
 Pending native check: remove the performing busker or detach its root while nearby residents listen. Audience state/applause should end promptly, and removed listeners must not start watching. Restore valid participants and verify normal performance watching later, respecting the existing cooldown. Seven mocked lifecycle checks pass; native animation/streaming behavior remains untested.
+
+### Slightly lower activation threshold: analyzer-to-gate check
+
+Normalized onset changed from .35 to .33; the .25 s hold and existing
+off/release/rearm/cooldown rules retain their original settings. The
+default adapter maps normalized .33 and .35 to settled RMS about .02181
+and .02295, respectively, with a 90 ms smoothing time constant. Those
+RMS values are not physical loudness or fixed across microphone gains.
+The actual adapter-plus-gate synthetic test verifies .0224 steady input
+starts once at .550 s with the new default, not at .35, not Off, and
+not after a changed calibration. A 100 ms pulse does not start;
+a stronger sustained trace starts at both thresholds.
+
+Physical follow-up: same mic, gain, room and cadence, compare numeric
+envelopes and start counts with ordinary speech, short transients, and
+a sustained louder signal. Verify no assists/attacks while Off. Avoid
+recording or retaining voice audio; synthetic tests are not evidence
+that normal speech is safe from false triggers.

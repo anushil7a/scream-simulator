@@ -15,11 +15,13 @@ local function sustainedContext()return {position=0}end
 local function sustainedEnd()end
 local function resolveSustained()end
 local function recordCredit()end
+local summary=0;local function recordDamage(_,_,_,amount)summary+=amount end
 local function coverChallenge()end
 local function xp()end
 local function questProgress()end
 local function state()end
 local function destructionHint()end
+local bosses
 local World={UpdateBot=function()end,ReactToScream=function()end}
 local SustainedRewards={Hit=function()return 0,0 end}
 local effect={FireClient=function()end,FireAllClients=function()end}
@@ -41,6 +43,7 @@ stepSustained(p,s,10.2)
 check(s.nextHeal==22.2 and defender.nextHeal==22.2,'Continued damage did not extend both deadlines')
 queuedHits={};stepSustained(p,s,20)
 check(s.nextHeal==22.2,'Miss/blocked/dodged target extended healing')
+check(summary==6 and not defender.damageSummary,'Owner tally included misses or incoming damage')
 local hp=Healing.Step(50,100,s.nextHeal,22.19)
 check(hp==50,'Attacker healed while combat delay remained')
 hp=Healing.Step(50,100,s.nextHeal,22.2)
@@ -51,10 +54,16 @@ stepSustained(p,s,30)
 check(object.health==47 and s.nextHeal==42,'Object damage did not tag attacker')
 object.locked=true;stepSustained(p,s,31)
 check(s.nextHeal==42,'Rejected object damage tagged attacker')
+check(summary==6,'Object health incorrectly entered personal damage telemetry')
 local bot={health=60,id=1}
 queuedDetails={target={bot=bot}};queuedHits={{id='target',damage=3,firstHit=true}}
 stepSustained(p,s,40)
-check(bot.health==57 and s.nextHeal==52,'NPC damage did not tag attacker')
+check(bot.health==57 and s.nextHeal==52 and summary==9,'NPC damage did not tag attacker and private total')
+local bossesMock={Hit=function(_,boss,_,damage)return math.min(boss.health,damage)end}
+bosses=bossesMock
+queuedDetails={target={boss={health=2}}};queuedHits={{id='target',damage=50}}
+stepSustained(p,s,41)
+check(summary==11,'Boss telemetry must consume only accepted overkill-capped damage')
 print('PASS '..n..' actual combat-healing checks with mocked targets')
 '''
 with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.combat_heal_', dir=root/'tests', delete=False) as f:

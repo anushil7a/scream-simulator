@@ -1,7 +1,7 @@
 -- Pure rules for this disposable Studio fixture. Never used by live profiles.
 local Rules={MaxHold=4,Cooldown=5,InputExpiry=.65,Tick=.1,TrainSeconds=1,Reward=100,MaxBeamPercent=100}
-Rules.Locations={AcademyTrainTarget={-760,55,600},AcademyMentor={-735,50,620},
- AcademyMetronomeEntry={-534,50,730},AcademyGear={-805,50,620}}
+Rules.Locations={AcademyTrainTarget={-304,25,240},AcademyMentor={-294,20,248},
+ AcademyMetronomeEntry={-228,20,248},AcademyGear={-322,20,248}}
 function Rules.New()
  return {stage="Train",coins=0,level=1,gearOwned={},trained=0,rewarded=false,held=false,
   released=true,nextCast=0,lastInput=-math.huge,lastPacket=-math.huge,started=0}

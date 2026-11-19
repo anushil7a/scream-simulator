@@ -1,5 +1,6 @@
 local TestFlight=require(script.Parent.TestFlight)
 local DodgeMotion=require(script.Parent.DodgeMotion)
+local DamageSummary=require(script.Parent.DamageSummary)
 local Credit=require(game:GetService("ReplicatedStorage").Shared.CombatCredit)
 local TrainingRules=require(game:GetService("ReplicatedStorage").Shared.TrainingRules)
 local Healing=require(game:GetService("ReplicatedStorage").Shared.Healing)
@@ -61,6 +62,22 @@ remotes:SetAttribute("AutomaticVoice",sustainedEnabled)
 remotes.Parent=ReplicatedStorage
 local function remote(name) local r=Instance.new("RemoteEvent");r.Name=name;r.Parent=remotes;return r end
 local action=remote("Action");local stateRemote=remote("State");local effect=remote("Effect")
+local damageSummary=remote("DamageSummary")
+local function recordDamage(p,s,now,actual)
+ local nextState,finished=DamageSummary.Record(s.damageSummary,now,actual)
+ s.damageSummary=nextState
+ if finished then damageSummary:FireClient(p,"recap",0,finished) end
+end
+local function stepDamageSummary(p,s,now)
+ local nextState,phase,dps,total=DamageSummary.Step(s.damageSummary,now)
+ s.damageSummary=nextState
+ if phase then damageSummary:FireClient(p,phase,dps,total) end
+end
+local function clearDamageSummary(p,s)
+ if not s.damageSummary then return end
+ s.damageSummary=nil
+ if p.Parent then damageSummary:FireClient(p,"clear",0,0) end
+end
 local sessions={}
 local bosses
 local closing=false
@@ -269,6 +286,7 @@ local function stopQuest(p)
  Soccer.Cancel(p);QuestLifecycle.Clear(s,Config.GetQuest)
 end
 local function protect(p,s)
+ if s.damageSummary then clearDamageSummary(p,s) end
  if s.testBeam then testBeamEnd(p,s,os.clock()) end
  s.credit={}
  cancelSustained(p,s,os.clock())
@@ -433,7 +451,7 @@ local function stepSustained(p,s,now)
    end
   end
  end
- local dealt=0
+ local dealt=0;local summaryDamage=0
  local contactPosition,contactChosen
  for _,hit in ipairs(hits) do
   local target=details[hit.id]
@@ -487,8 +505,10 @@ local function stepSustained(p,s,now)
     if rewardCoins>0 or rewardXP>0 then coins(p,rewardCoins);xp(p,rewardXP) end
    end
   end
+  if not target.object then summaryDamage+=dealt-dealtBefore end
   if dealt>dealtBefore and not contactChosen then contactChosen=true;contactPosition=position end
  end
+ if summaryDamage>0 then recordDamage(p,s,now,summaryDamage) end
  if dealt>0 then
   s.nextHeal=now+Config.HealQuietSeconds
   intent.damageTotal=(intent.damageTotal or 0)+dealt
@@ -526,10 +546,10 @@ local function cast(p,request)
    end
   end
  end
- local hits=0;local paid=0;local playerHits=0;local evades=0;local knockoutMessage
+ local hits=0;local paid=0;local playerHits=0;local evades=0;local knockoutMessage;local summaryDamage=0
  for _,bot in ipairs(World.Bots) do
   if canDamageBots(s) and bot.alive and bot.root.Parent and (not bot.training or (r.Position-bot.start).Magnitude<=TrainingRules.Radius) and Rules.InBeam(origin,direction,bot.root.Position,length,sound.width,1) and audible(c,origin,bot.root.Position,bot.model) then
-   hits+=1
+   hits+=1;summaryDamage+=math.min(sound.damage,bot.health)
    if bot.training then recordCredit(bot.credit,p,math.min(sound.damage,bot.health),bot.maxHealth,now);bot.trainingTarget=p;bot.lastTrainingHit=now end
    bot.health=math.max(0,bot.health-sound.damage);local ko=bot.health==0
    if ko then
@@ -545,7 +565,8 @@ local function cast(p,request)
  if bosses then
   for _,boss in ipairs(bosses.bosses) do
    if bosses:CanHit(boss,p,now) and bossInBeam(boss,c,origin,direction,length,sound.width) then
-    if bosses:Hit(boss,p,sound.damage,now)>0 then s.nextHeal=now+Config.HealQuietSeconds end
+    local actual=bosses:Hit(boss,p,sound.damage,now)
+    if actual>0 then summaryDamage+=actual;s.nextHeal=now+Config.HealQuietSeconds end
    end
   end
  end
@@ -556,7 +577,7 @@ local function cast(p,request)
    if target~=p and sameCombatMode(s,ts) and tr and Rules.CanTarget(r.Position,tr.Position,ts.protectedUntil,now,sound.range+2) and Rules.InBeam(origin,direction,tr.Position,length,sound.width,1) and audible(c,origin,tr.Position,tc) then
     if now<ts.dodgingUntil and not ts.premiumRoll then evades+=1;questProgress(target,"Evade")
     else
-     playerHits+=1
+     playerHits+=1;summaryDamage+=math.min(sound.damage,th.Health)
      ts.nextHeal=now+Config.HealQuietSeconds
      ts.credit=ts.credit or {};recordCredit(ts.credit,p,math.min(sound.damage,th.Health),th.MaxHealth,now)
      if th.Health<=sound.damage then
@@ -567,6 +588,7 @@ local function cast(p,request)
    end
   end
  end
+ if summaryDamage>0 then recordDamage(p,s,now,summaryDamage) end
  local totalHits=hits+playerHits
  if totalHits>0 then s.nextHeal=now+Config.HealQuietSeconds end
  if knockoutMessage then castMessage=knockoutMessage
@@ -696,6 +718,7 @@ local function dev(p,command)
    cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
    local ok,reason=TestFlight.Start(p,s,true,flightBounds,os.clock())
    if not ok then state(p,reason or "Flight unavailable");return end
+   if s.damageSummary then clearDamageSummary(p,s) end
    closeConversation(p);Soccer.Cancel(p);s.sprintRequested=false
   end
  elseif command=="Coins" then s.data.coins+=1000
@@ -949,6 +972,7 @@ local function joined(p)
  end
  s.characterRemovingConnection=p.CharacterRemoving:Connect(function(c)
   if sessions[p]~=s or s.character~=c then return end
+  if s.damageSummary then clearDamageSummary(p,s) end
   if s.testBeam then testBeamEnd(p,s,os.clock()) end
   if s.flight then TestFlight.Stop(p,s) end;closeConversation(p);cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
   p:SetAttribute("CaptureStarted",0);s.sprintRequested=false;s.character=nil
@@ -973,6 +997,7 @@ local function leaving(p)
  if s.testBeam then testBeamEnd(p,s,os.clock()) end
  if s.flight then TestFlight.Stop(p,s) end;disconnectSessionSignals(s)
  cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice)
+ s.damageSummary=nil
  -- Release gameplay ownership before Save yields. Delayed gameplay callbacks
  -- must not mutate a departing profile or clear a replacement session later.
  sessions[p]=nil
@@ -986,6 +1011,7 @@ end
 Players.PlayerRemoving:Connect(leaving)
 -- Bosses are separate from residents/trainers: no crowd quests, NPC hit coins or KO credit.
 if Config.CompactCity then
+ local knockback=require(script.Parent.BossKnockback)
  bosses=require(script.Parent.BossService).new(workspace.ScreamSimulatorWorld,{
   player=function(id) return Players:GetPlayerByUserId(id) end,
   context=function(p,now)
@@ -995,11 +1021,25 @@ if Config.CompactCity then
    return {position=r.Position,level=s.data.level,identity=s.rewardIdentity}
   end,
   reward=function(p,spec,share) coins(p,math.floor(spec.coins*share));xp(p,math.floor(spec.xp*share));state(p,spec.name.." defeated · boss reward earned") end,
-  damage=function(p,amount,now)
-   local s=sessions[p];local _,_,h=parts(p)
-   if not s or not h or now<s.dodgingUntil or now<s.protectedUntil then return end
+  damage=function(p,amount,now,boss,strike)
+   local s=sessions[p];local c,r,h=parts(p)
+   if not s or not r or not h or now<s.dodgingUntil or now<s.protectedUntil then return end
+   if not audible(c,boss.root.Position,r.Position,boss.model) then return end
    s.nextHeal=now+Config.HealQuietSeconds
-   if h.Health<=amount then eject(p,h) else h.Health-=amount;state(p) end
+   if h.Health<=amount then eject(p,h);return end
+   h.Health-=amount
+   if strike.push and not r.Anchored and not h.Sit and not h.SeatPart and h.FloorMaterial~=Enum.Material.Air then
+    local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c};params.RespectCanCollide=true
+    local target=knockback.Target(workspace,r.CFrame,boss,strike,params,h,function(pos)
+     return pos.X>=Config.MapMin.X+2 and pos.X<=Config.MapMax.X-2 and pos.Z>=Config.MapMin.Z+2 and pos.Z<=Config.MapMax.Z-2
+      and not Config.InArena(pos)
+    end)
+    if target then
+     r.CFrame=CFrame.new(target)*r.CFrame.Rotation
+     r.AssemblyLinearVelocity=Vector3.zero
+    end
+   end
+   state(p)
   end,
  })
 end
@@ -1091,6 +1131,9 @@ task.spawn(function()
     if s.premiumRoll then s.premiumRoll=false;s.dodgingUntil=0;p:SetAttribute("DodgeEnds",0) end
     s.nextDodge=math.max(s.nextDodge,s.lastDodge+Config.DodgeCooldown);p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+math.max(0,s.nextDodge-now)) end
    if s.sustained and s.sustained.protocol.active then stepSustained(p,s,os.clock()) end
+   if s.damageSummary then
+    if h and not s.flight then stepDamageSummary(p,s,os.clock()) else clearDamageSummary(p,s) end
+   end
    if s.voice.capture and now-s.voice.capture.started>VoiceCombat.CaptureExpiry then VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
    local running=stepSprint(s,r,h,now,dt)
    if h then

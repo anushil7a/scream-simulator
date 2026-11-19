@@ -98,5 +98,6 @@ end
 function Config.GetQuest(id) for _,q in ipairs(Config.Quests) do if q.id==id then return q end end end
 function Config.XPToNext(level) return Progression.XPToNext(level) end
 function Config.PlayerKOXP(level) return Progression.PlayerKOXP(level) end
-function Config.InArena(p) return p.X>=Config.ZoneMin.X and p.X<=Config.ZoneMax.X and p.Z>=Config.ZoneMin.Z and p.Z<=Config.ZoneMax.Z and p.Y>=Config.ZoneMin.Y and p.Y<=Config.ZoneMax.Y end
+function Config.InGardenPvp(p) return Config.CompactCity and CompactLayout.MapId=="Map10" and p.Y>=CompactLayout.GardenPvpMinY and p.Y<=CompactLayout.GardenPvpMaxY and CompactLayout.InGardenPvpXZ(p.X,p.Z) end
+function Config.InArena(p) return (p.X>=Config.ZoneMin.X and p.X<=Config.ZoneMax.X and p.Z>=Config.ZoneMin.Z and p.Z<=Config.ZoneMax.Z and p.Y>=Config.ZoneMin.Y and p.Y<=Config.ZoneMax.Y) or (Config.CompactCity and Config.InGardenPvp(p))==true end
 return Config

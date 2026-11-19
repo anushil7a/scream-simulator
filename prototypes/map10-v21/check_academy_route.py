@@ -18,21 +18,21 @@ def coords(source, name):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--geometry",type=Path,default=BASE.parents[1]/"build/map21/overworld-geometry.json")
+    parser.add_argument("--geometry",type=Path,default=BASE.parents[1]/"build/map21/academy-overworld-geometry.json")
     args=parser.parse_args()
     data=json.loads(args.geometry.read_text())
     parts=[p for p in data["parts"] if p["collidable"] and p["zone"]=="01"]
     source=(BASE/"AcademyRouteRules.luau").read_text()
-    # Station vectors (spawn is supplied by the unchanged overworld host).
+    # Station vectors (spawn is at the same district center consumed by the overworld host).
     anchor={
-        "spawn":np.array([-780., 50., 620.]),
+        "spawn":np.array(data["districts"]["01"]["center"]),
         "target":coords(source,"AcademyTrainTarget"),
         "mentor":coords(source,"AcademyMentor"),
         "entry":coords(source,"AcademyMetronomeEntry"),
         "gear":coords(source,"AcademyGear"),
     }
     # Training target center is elevated; use the known Academy terrain plane.
-    feet={name:np.array([p[0],50.,p[2]]) for name,p in anchor.items()}
+    feet={name:np.array([p[0],anchor["spawn"][1],p[2]]) for name,p in anchor.items()}
     total=0
     for name,p in feet.items():
         start=np.array([p+[dx,4.,dz] for dx,dz in itertools.product((-2.,0.,2.),repeat=2)])
@@ -59,7 +59,7 @@ def main():
                 assert not any(ok),(a,b,h,"lane blocked",p["id"])
             total+=len(origins)
     entry=feet["entry"]
-    boss=np.array([-520.,50.,730.])
+    boss=coords((BASE/"BossHomes.luau").read_text(),"metronome")
     assert np.linalg.norm(entry-boss)<=22.,("guide entry outside encounter",entry)
     target_delta=anchor["target"]-(anchor["spawn"]+[0.,4.5,0.])
     assert np.linalg.norm(target_delta)<=30.,target_delta

@@ -40,6 +40,11 @@ local before=rays
 cover=true;assert(not aim(7,24) and rays>before,'Cover should block each candidate ray')
 cover=false;boss.spec.scale=nil
 assert(aim(7,24) and not aim(12.7,24),'Unscaled fallback should stay smaller')
+boss.root.Position=V(0,14,24);boss.spec.scale=2.8
+assert(aim(14,32) and aim(23.8,32) and aim(5.6,32),'Double scale lost proportional body hits')
+assert(not aim(31,32) and not aim(14,32,16),'Double scale extended off-body')
+assert(not aim(14,23.9),'Double scale extended beam length')
+cover=true;assert(not aim(14,32),'Double scale bypassed cover')
 print('PASS boss body, upper/lower aim, off-body miss, clipped beam and cover')
 '''
 assert 'bosses:CanHit(boss,ctx.player,now) and bossInBeam(' in bootstrap

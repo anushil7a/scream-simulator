@@ -6,7 +6,7 @@ path='src/StarterPlayer/StarterPlayerScripts/ShopUI.luau';s=subprocess.check_out
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
- local f={now=0,jobs={},buttons={},sent=0,labels={}};local os={clock=function()return f.now end,time=function()return 100 end}
+ local f={now=0,jobs={},buttons={},sent=0,labels={},cards={}};local os={clock=function()return f.now end,time=function()return 100 end}
  local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement'})do table.insert(Catalog.Items,{key=key,id=100+i,kind=(i==1 or i==4) and 'pass' or 'product'})end
  function Catalog.Get(key)for _,v in ipairs(Catalog.Items)do if v.key==key then return v end end end
  for _,item in ipairs(Catalog.Items)do item.tag='tag';item.name=item.key;item.description='description';item.boost=item.key=='XP' and 'xp' or 'coins'end
@@ -14,12 +14,12 @@ local function fixture()
  local Marketplace={GetProductInfoAsync=function(_,id,kind)if f.sync then return f.sync end;local result=coroutine.yield();if result=='error'then error('mock unavailable')end;return result end}
  local services={MarketplaceService=Marketplace,UserInputService={},ReplicatedStorage={Shared={ShopCatalog=Catalog,Config=Config}}}
  local game={GetService=function(_,name)return services[name]end};local require=function(v)return v end
- local Color3={fromRGB=function()return {}end,new=function()return {}end,fromHSV=function()return {}end};local UDim2={new=function()return {}end,fromOffset=function()return {}end,fromScale=function()return {}end};local ColorSequence={new=function()return {}end};local ColorSequenceKeypoint={new=function()return {}end};local Instance={new=function()return {}end};local Enum={InfoType={GamePass='pass',Product='product'},Font={GothamBlack=1},TextXAlignment={Center=1}}
+ local Color3={fromRGB=function()return {}end,new=function()return {}end,fromHSV=function()return {}end};local UDim2={new=function(xs,x,ys,y)return {xs=xs,x=x,ys=ys,y=y}end,fromOffset=function(x,y)return {xs=0,x=x,ys=0,y=y}end,fromScale=function(xs,ys)return {xs=xs,x=0,ys=ys,y=0}end};local ColorSequence={new=function()return {}end};local ColorSequenceKeypoint={new=function()return {}end};local Instance={new=function()return {}end};local Enum={InfoType={GamePass='pass',Product='product'},Font={GothamBlack=1},TextXAlignment={Center=1}}
  local task={spawn=function(fn,...)
   local args={...};local co=coroutine.create(fn);table.insert(f.jobs,{co=co,args=args});assert(coroutine.resume(co,...))
  end}
- local ui={button=function(_,_,text,_,_,callback)local b={Text=text,Parent=true,callback=callback};table.insert(f.buttons,b);return b end}
- ui.card=function()return {}end;ui.label=function(_,text)f.labels[text]=true;return {Text=text}end;ui.frame=function()return {}end;ui.info=function()end
+ local ui={button=function(parent,name,text,size,pos,callback)local b={Name=name,Text=text,Parent=true,callback=callback,holder=parent,size=size,pos=pos};table.insert(f.buttons,b);return b end}
+ ui.card=function(height)local card={height=height};table.insert(f.cards,card);return card end;ui.label=function(_,text)f.labels[text]=true;return {Text=text}end;ui.frame=function()return {}end;ui.info=function()end
  local action={FireServer=function()f.sent+=1 end}
  local function module()
 '''
@@ -28,7 +28,7 @@ endsetup=r'''
 end
 local m=module();f.shop=m.shop;f.stats=m.stats;f.items=Catalog.Items;f.config=Config
 function f.draw(i,clear,allowed,owned)if clear~=false then m.shop.Clear()end;m.button(Catalog.Items[i or 2],{},owned==true,{savingAvailable=allowed~=false},ui,action,{},{});return f.buttons[#f.buttons]end
-function f.render(narrow)ui.narrow=narrow;f.buttons={};m.shop.Render({savingAvailable=true,shop={ready=true,inventory={},ends={},serverNow=100}},ui,action)end
+function f.render(narrow,compact)ui.narrow=narrow;ui.compactLandscape=compact;f.buttons={};f.cards={};m.shop.Render({savingAvailable=true,shop={ready=true,inventory={},ends={},serverNow=100}},ui,action)end
 function f.finish(i,result)local ok,err=coroutine.resume(f.jobs[i].co,result);assert(ok,err);m.shop.Tick()end
 return f
 end
@@ -40,6 +40,21 @@ for _,narrow in ipairs({false,true})do
  check(not rendered.labels['Unlock the hue picker. Yellow is the base color; saved colors are kept.'],'Repeated hue instruction retained')
  check(#rendered.jobs==4 and #rendered.stats().views==4,'Full Render did not bound four product views/calls')
  rendered.shop.Clear();check(#rendered.stats().views==0,'Full Render clear retained views')
+end
+local visual=fixture()
+if visual.shop.CompactLandscape then
+ check(not visual.shop.CompactLandscape(388,762) and not visual.shop.CompactLandscape(1024,720),'Portrait or desktop compact')
+ for _,xy in ipairs({{644,326},{749,388},{749,330},{844,390}})do
+  check(visual.shop.CompactLandscape(xy[1],xy[2]),'Supported landscape not compact')
+  visual.render(false,true)
+  local feature=visual.cards[1];local cta=visual.buttons[1]
+  local scrollY=math.min(620,xy[2]-76)-(54+50+18)
+  check(feature.height<=scrollY and cta.pos.y+cta.size.y<=feature.height and cta.size.y==44,'Spectrum action below first fold or shortened')
+  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==4,'Hierarchy or action count changed')
+ end
+ check(not visual.shop.CompactLandscape(643,388) and not visual.shop.CompactLandscape(749,325) and not visual.shop.CompactLandscape(749,431),'Breakpoint leaked')
+ visual.render(false,false);check(visual.cards[1].height==260 and visual.buttons[1].pos.y==206,'Desktop hero changed')
+ visual.render(true,false);check(visual.cards[1].height==300 and visual.buttons[1].pos.y==238,'Portrait hero changed')
 end
 local sync=fixture();sync.sync={IsForSale=true,PriceInRobux=15};local direct=sync.draw()
 check(direct.Text=='R$ 15','Synchronous success displayed unavailable');check(sync.stats().flight==0,'Synchronous success retained slot')

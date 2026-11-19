@@ -32,7 +32,19 @@ def main():
                         help='Build only an intentionally broken, guarded transport negative control')
     parser.add_argument('--test-tools-local', action='store_true',
                         help='Build one guarded Test Tools place, using procedural fallback for two incompatible VFX binaries')
+    parser.add_argument("--boss-arena-local-qa", action="store_true",
+                        help="Build the single-player, unpublished boss diagnostic place only")
+    parser.add_argument("--combat-readouts-local-qa", action="store_true",
+                        help="Build the unpublished combat readout diagnostic place only")
+    parser.add_argument("--central-pvp-local-qa", action="store_true",
+                        help="Build the unpublished two-client middle-green PvP diagnostic place")
     args = parser.parse_args()
+    if args.central_pvp_local_qa and (args.combat_readouts_local_qa or args.boss_arena_local_qa or args.transport_mutation or args.test_tools_local):
+        parser.error("Central PvP diagnostic is a separate local-only fixture")
+    if args.combat_readouts_local_qa and (args.boss_arena_local_qa or args.transport_mutation or args.test_tools_local):
+        parser.error("Combat readouts diagnostic is a separate local-only fixture")
+    if args.boss_arena_local_qa and (args.test_tools_local or args.transport_mutation):
+        parser.error("Boss arena diagnostic is a separate local-only fixture")
     if args.test_tools_local and args.transport_mutation:
         parser.error('--test-tools-local and --transport-mutation are separate fixtures')
     rojo = shutil.which("rojo") or "/opt/homebrew/bin/rojo"
@@ -73,9 +85,18 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
             ROOT / "assets/vfx/HollowPurpleBeam.rbxmx",
             ROOT / "assets/review/MosaicFountain.rbxmx",
         })
+    if args.central_pvp_local_qa:
+        fingerprint_paths = sorted(set(fingerprint_paths) | {
+            ROOT / "tests/StudioCentralPvpReview.server.luau",
+            ROOT / "tests/StudioCombatReadoutsReview.server.luau",
+        })
+    if args.combat_readouts_local_qa:
+        fingerprint_paths = sorted(set(fingerprint_paths) | {ROOT / "tests/StudioCombatReadoutsReview.server.luau"})
+    if args.boss_arena_local_qa:
+        fingerprint_paths = sorted(set(fingerprint_paths) | {ROOT / "tests/StudioBossArenaReview.server.luau"})
     def source_fingerprint():
         digest = hashlib.sha256()
-        digest.update(("test-tools-local" if args.test_tools_local else args.transport_mutation or "none").encode() + b"\0")
+        digest.update(("central-pvp-local-qa" if args.central_pvp_local_qa else "combat-readouts-local-qa" if args.combat_readouts_local_qa else "boss-arena-local-qa" if args.boss_arena_local_qa else "test-tools-local" if args.test_tools_local else args.transport_mutation or "none").encode() + b"\0")
         for path in fingerprint_paths:
             digest.update(path.relative_to(ROOT).as_posix().encode() + b"\0")
             digest.update(path.read_bytes() + b"\0")
@@ -87,7 +108,15 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         temp = Path(temp)
         transport_fixture = (ROOT / "tests/StudioVoiceTransport.server.luau").read_text()
         builds = [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", transport_fixture), ("TrainingRoamReview", (ROOT / "tests/StudioTrainingRoam.server.luau").read_text())]
-        if args.test_tools_local:
+        if args.central_pvp_local_qa:
+            appendix = "\n".join((ROOT / "tests" / file).read_text() for file in
+                                  ("StudioCombatReadoutsReview.server.luau", "StudioCentralPvpReview.server.luau"))
+            builds = [("CentralPvpLocalReview", appendix)]
+        elif args.combat_readouts_local_qa:
+            builds = [("CombatReadoutsLocalReview", (ROOT / "tests/StudioCombatReadoutsReview.server.luau").read_text())]
+        elif args.boss_arena_local_qa:
+            builds = [("BossArenaLocalReview", (ROOT / "tests/StudioBossArenaReview.server.luau").read_text())]
+        elif args.test_tools_local:
             builds = [("TestToolsLocalPlay", "")]
         elif args.transport_mutation:
             builds = [("VoiceTransportDropStop" if args.transport_mutation == "drop-stop" else "VoiceTransportCorruptReplay", transport_fixture)]
@@ -152,7 +181,13 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
                 "scope": "Compiled disposable local fixture; not executed or published",
                 **({"proceduralFallback": ["FireBeam", "StarterBeam"]} if args.test_tools_local else {}),
             }, indent=2) + "\n")
-    if args.test_tools_local:
+    if args.central_pvp_local_qa:
+        print("Built unpublished central PvP diagnostic; no Studio test was run.")
+    elif args.combat_readouts_local_qa:
+        print("Built unpublished combat readouts diagnostic; no Studio test was run.")
+    elif args.boss_arena_local_qa:
+        print("Built unpublished boss diagnostic; no Studio test was run.")
+    elif args.test_tools_local:
         print("Built Test Tools local play with procedural fallback for two legacy VFX assets; not executed in Studio.")
     else:
         print("Built local play, native and transport fixtures, and performance review; none was executed in Studio.")

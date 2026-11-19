@@ -16,7 +16,7 @@ def line(source,prefix):
 def baseline():
  s=subprocess.check_output(['git','show','b60dada:'+PATH],cwd=R,text=True,encoding='utf-8')
  code="""local mic={ready=true};local modal={Visible=false};local devPanel={Visible=false};local conversationPanel={Visible=false};local micPanel={Visible=false}
-local GuiService={MenuIsOpen=false};local originalTouchControls=true;local miniMapAvailable=true;local windowFocused=true;local toast={Visible=false};local data={devAccess=false}
+local GuiService={MenuIsOpen=false};local originalTouchControls=true;local academy={testLauncherBlocked=false};local miniMapAvailable=true;local windowFocused=true;local toast={Visible=false};local data={devAccess=false}
 local function frame()
 """+line(s,'micPanel.Visible=')+'\n'+line(s,'local gameplayVisible=')+'\n'+line(s,'local showTouchControls=')+'\n'+line(s,'local miniVisible=')+"""
 return gameplayVisible,showTouchControls,miniVisible end
@@ -31,7 +31,7 @@ print('REPRO notification hides otherwise available minimap; no native rendering
 
 def current(source):
  blocked=source[source.index('local function blocked()'):source.index('local function beginCapture(')]
- frame='\n'.join(line(source,x) for x in ['local gameplayVisible=','local showTouchControls=','if GuiService.TouchControlsEnabled~=showTouchControls','local miniVisible=','miniMapButton.Visible='])
+ frame='\n'.join(line(source,x) for x in ['local gameplayVisible=','local showTouchControls=','if GuiService.TouchControlsEnabled~=showTouchControls','local miniVisible='])+'\n'+line(source[source.index('local miniVisible='):],'miniMapButton.Visible=')
  return r"""
 local checks=0;local function check(v,m)assert(v,m);checks+=1 end
 local workspace={GetServerTimeNow=function()return 100 end};local attrs={};local humanoid={Health=100,PlatformStand=false}
@@ -39,7 +39,7 @@ local p={Character={FindFirstChildOfClass=function()return humanoid end},GetAttr
 local modal={Visible=false};local devPanel={Visible=false};local conversationPanel={Visible=false}
 local mic={ready=false};local data={voiceEligible=false,devAccess=false};local GuiService={MenuIsOpen=false};local focus
 local UIS={GetFocusedTextBox=function()return focus end};local originalTouchControls=true;local lastTouchControls
-local miniMapAvailable=true;local windowFocused=true;local toast={Visible=false};local miniMapButton={}
+local academy={testLauncherBlocked=false};local miniMapAvailable=true;local windowFocused=true;local toast={Visible=false};local miniMapButton={}
 """+blocked+'\nlocal function frame()\n'+frame+'\nreturn gameplayVisible,showTouchControls,miniVisible end\n'+r"""
 for _,ready in ipairs({false,true})do for _,eligible in ipairs({false,true})do
  mic.ready=ready;data.voiceEligible=eligible

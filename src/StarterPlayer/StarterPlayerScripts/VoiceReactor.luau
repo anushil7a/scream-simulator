@@ -7,9 +7,26 @@ function Reactor.Power(value)
  if type(value)~="number" or value~=value then return 0 end
  return math.clamp(value,0,1)
 end
-function Reactor.Layout(width,touch)
+function Reactor.CompactPortrait(width,height,touch)
+ return touch and type(height)=="number" and height>width and width>=344 and width<452
+end
+function Reactor.Layout(width,touch,height)
  local wide=width>=1100 and not touch
+ if Reactor.CompactPortrait(width,height,touch) then
+  -- Keep the passive meter out of the two bottom corner control lanes.
+  return width-222,84
+ end
  return wide and 300 or math.min(230,math.max(140,width-28)),wide and 96 or 84
+end
+function Reactor.Status(defaultText,unavailable,off,width,height,touch)
+ local compact=Reactor.CompactPortrait(width,height,touch)
+ if unavailable then
+  return compact and "MIC UNAVAILABLE\nOpen voice settings" or "MIC UNAVAILABLE\nOpen Settings for voice access"
+ end
+ if off then
+  return compact and "BEAMS OFF\nVoice chat unchanged" or "BEAMS OFF · TALK FREELY\nVoice chat is unchanged"
+ end
+ return defaultText
 end
 function Reactor.new(parent)
  local theme=Reactor.Theme

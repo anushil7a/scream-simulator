@@ -44,6 +44,29 @@ local trainingBadges={
  TrainingPad2={label="L25",color=Color3.fromRGB(219,120,94)},
  TrainingPad3={label="L60",color=Color3.fromRGB(240,192,89)},
 }
+-- The exact server footprint is projected, never expanded to its bounding box.
+-- Exterior segments come from the shared union, so clipped safe corridors have no false seams.
+function CityMap.GardenPvp(map,compact)
+ if not CompactLayout then return end
+ for index,rect in ipairs(CompactLayout.GardenPvpRects or {}) do
+  local start=position(rect.minX,rect.minZ);local finish=position(rect.maxX,rect.maxZ)
+  local fill=box(map,'GardenPvp_'..index,start.X.Scale,start.Y.Scale,
+   finish.X.Scale-start.X.Scale,finish.Y.Scale-start.Y.Scale,Color3.fromRGB(205,69,67))
+  fill.BackgroundTransparency=.6;fill.ZIndex=2;fill.Active=false;fill.Selectable=false;fill.Interactable=false
+ end
+ for index,edge in ipairs(CompactLayout.GardenPvpEdges or {}) do
+  local start=position(math.min(edge.x1,edge.x2),math.min(edge.z1,edge.z2))
+  local finish=position(math.max(edge.x1,edge.x2),math.max(edge.z1,edge.z2))
+  local line=box(map,'GardenPvpEdge_'..index,start.X.Scale,start.Y.Scale,0,0,Color3.fromRGB(250,143,128))
+  local thickness=compact and 1 or 2
+  if edge.x1==edge.x2 then
+   line.AnchorPoint=Vector2.new(.5,0);line.Size=UDim2.new(0,thickness,finish.Y.Scale-start.Y.Scale,0)
+  else
+   line.AnchorPoint=Vector2.new(0,.5);line.Size=UDim2.new(finish.X.Scale-start.X.Scale,0,0,thickness)
+  end
+  line.ZIndex=3;line.Active=false;line.Selectable=false;line.Interactable=false
+ end
+end
 function CityMap.create(parent,compact)
  local map=box(parent,'CityMap',.5,.5,1,1,Color3.fromRGB(47,69,69));map.AnchorPoint=Vector2.new(.5,.5)
  local ratio=Instance.new('UIAspectRatioConstraint');ratio.AspectRatio=CityMap.aspectRatio;ratio.AspectType=Enum.AspectType.FitWithinMaxSize;ratio.Parent=map
@@ -115,18 +138,19 @@ function CityMap.create(parent,compact)
    end
   end
  end
+ CityMap.GardenPvp(map,compact)
  local boundary=box(map,'ArenaBoundary',arenaX,arenaZ,arenaWidth,arenaHeight,cream);boundary.BackgroundTransparency=1
  local stroke=Instance.new('UIStroke');stroke.Color=Color3.fromRGB(247,139,120);stroke.Thickness=2;stroke.Parent=boundary
  for i,v in ipairs(compact and {} or landmarks) do
   if CompactLayout and v.name=="2 Training" then continue end
-  local pin=box(map,'Landmark'..i,0,0,0,0,Color3.fromRGB(22,39,46));pin.Size=UDim2.fromOffset(23,23);pin.AnchorPoint=Vector2.new(.5,.5);pin.Position=position(v.x,v.z)
+  local pin=box(map,'Landmark'..i,0,0,0,0,Color3.fromRGB(22,39,46));pin.Size=UDim2.fromOffset(23,23);pin.AnchorPoint=Vector2.new(.5,.5);pin.Position=position(v.x,v.z);pin.ZIndex=3
   if CompactLayout then
    -- Give nearby pins breathing room on narrow maps without shrinking their text.
    pin.Size=UDim2.fromScale(.08,.08*CityMap.aspectRatio)
    local size=Instance.new('UISizeConstraint');size.MinSize=Vector2.new(18,18);size.MaxSize=Vector2.new(23,23);size.Parent=pin
    local pinStroke=Instance.new('UIStroke');pinStroke.Color=Color3.fromRGB(168,186,184);pinStroke.Thickness=1;pinStroke.Transparency=.35;pinStroke.Parent=pin
   end
-  local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=pin;text(pin,tostring(i),13)
+  local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(1,0);corner.Parent=pin;local words=text(pin,tostring(i),13);words.ZIndex=4
  end
  for i,boss in ipairs(compact and {} or bosses) do
   local pin=box(map,'BossPin_'..boss.id,0,0,0,0,Color3.fromRGB(62,46,85))
@@ -182,8 +206,8 @@ CityMap.legendHeight=94
 CityMap.mapHelp="Gold arrow: you and your facing direction. Red: PvP. Green and sand: safe. Pale coast path: promenade."
 CityMap.activityHelp="Coffee: collect at the west café, then check your objective for the assigned stop. Race: lifeguard start to east promenade finish. PvP ends at the marked district boundary."
 if CompactLayout then
- CityMap.mapHelp="Gold arrow: you and your facing direction. Red: PvP arena."
- CityMap.activityHelp="PvP ends at the marked arena boundary."
+ CityMap.mapHelp="Gold: you. Red: PvP."
+ CityMap.activityHelp="Pale café path: safe. PvP ends at marked boundaries."
  CityMap.legendHeight=(#landmarks+#bosses)*20+24
  local lines={}
  for _,landmark in ipairs(landmarks) do

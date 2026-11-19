@@ -75,7 +75,7 @@ g:Step(m,'golem',2,5,2,5,'Recovery',5.1,{},true);check(#played==4,'Retried impac
 print('PASS '..n..' actual boss event serial/split/stale/cancellation checks')
 ''')
 service=(R/'src/ServerScriptService/BossService.luau').read_text()
-assert 'phase(b,"Windup")' in service
+assert 'phase(b,"Windup",startAt)' in service
 listener=(R/'src/StarterPlayer/StarterPlayerScripts/BossAttackAudio.client.luau').read_text()
 for key in ['BossAttackSerial','BossAttackAt','BossAttackImpactSerial','BossAttackImpactAt','BossAudioSuppressed','BossAudioEnabled']:assert key in listener
 print('PASS exact production Windup phase and audio-only metadata/preferences contract')

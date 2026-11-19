@@ -9,14 +9,23 @@ return function(build,id,spec)
  local prefix="West"..tostring(id).."_";local serial=0
  local function part(n,x,h,z,sx,sy,sz,c,rot,mat,shape,solid)
   serial+=1
-  build:part(prefix..n..serial,{cx+x,y+h,cz+z},{sx,sy,sz},c,solid~=false,rot,mat or "Sandstone",{},shape)
+  build:part(prefix..n..serial,{cx+x,y+h,cz+z},{sx,sy,sz},c,solid~=false,rot,mat or ((id=="01" or id==1) and "SmoothPlastic" or "Sandstone"),{},shape)
  end
  local function disk(n,x,h,z,r,height,c,mat,solid)
-  serial+=1;build:disk(prefix..n..serial,cx+x,y+h,cz+z,r,height,c,solid~=false,mat or "Sandstone",{})
+  serial+=1;build:disk(prefix..n..serial,cx+x,y+h,cz+z,r,height,c,solid~=false,mat or ((id=="01" or id==1) and "SmoothPlastic" or "Sandstone"),{})
  end
  local function tree(n,x,z,base,scale)
-  disk(n.."Trunk",x,base+5*scale,z,1.4*scale,10*scale,earth,"Wood")
-  part(n.."Crown",x,base+12*scale,z,12*scale,18*scale,12*scale,leaf,nil,"Grass","Ball")
+  if id=="01" or id==1 then
+   disk(n.."Planter",x,base+.45*scale,z,5*scale,.9*scale,sand,"SmoothPlastic")
+   disk(n.."Trunk",x,base+6*scale,z,1.1*scale,12*scale,earth,"Wood")
+   part(n.."Foliage",x,base+18*scale,z,13*scale,30*scale,12*scale,{60,98,74},{0,0,-4},"SmoothPlastic","Ball",false)
+   if build.compact then
+    part(n.."Bough",x+3*scale,base+13*scale,z+2*scale,9*scale,17*scale,8*scale,{74,111,77},{6,0,-18},"SmoothPlastic","Ball",false)
+   end
+  else
+   disk(n.."Trunk",x,base+5*scale,z,1.4*scale,10*scale,earth,"Wood")
+   part(n.."Crown",x,base+12*scale,z,12*scale,18*scale,12*scale,leaf,nil,"Grass","Ball")
+  end
  end
  local function steps(n,x,z,sx,sz)
   -- Three low continuous risers; upper sill4.5studs, no tall hidden blocker.
@@ -37,8 +46,8 @@ return function(build,id,spec)
    disk(n.."DomeCollar",x,13+height,z,size*.44,2,brass,"Metal")
    part(n.."Finial",x,20+height+size*.325,z,2,9,2,brass,nil,"Metal")
   else
-   for _,side in ipairs({-1,1})do part(n.."RoofSlope",x+side*size*.23,13+height,z,size*.56,3,size+13,teal,{0,0,-side*18},"Slate")end
-   part(n.."Ridge",x,17+height,z,3,3,size+14,brass,nil,"Metal")
+   for _,side in ipairs({-1,1})do part(n.."RoofSlope",x+side*size*.23,13+height,z,size*.56,3,size+13,teal,{0,0,-side*18},"SmoothPlastic")end
+   part(n.."Ridge",x,21+height,z,5,5,size+14,brass,nil,"Metal")
   end
  end
  if id=="01" or id==1 then
@@ -49,11 +58,18 @@ return function(build,id,spec)
   part("PalaceCorniceLower",x,49,z,160,4,132,pale)
   part("PalaceUpperStorey",x,61,z,112,22,94,cream)
   part("PalaceCorniceUpper",x,74,z,124,4,106,pale)
-  disk("PalaceDomeDrum",x,82,z,48,14,pale)
-  disk("PalaceDomeGoldBand",x,89,z,50,2,brass,"Metal")
-  part("GreatTealDome",x,96,z,108,68,108,teal,nil,"Slate","Ball")
-  disk("GreatDomeCrown",x,129,z,5,4,brass,"Metal")
-  part("GreatDomeFinial",x,139,z,2.5,18,2.5,brass,nil,"Metal")
+  -- A narrow, supported central tower echoes the approved Academy silhouette.
+  part("CentralTower",x,96,z,50,40,50,cream)
+  part("TowerCornice",x,117,z,56,3,56,pale)
+  disk("PalaceDomeDrum",x,122,z,23,8,pale)
+  disk("PalaceDomeGoldBand",x,126,z,24,2,brass,"Metal")
+  part("GreatTealDome",x,136,z,50,22,50,teal,nil,"SmoothPlastic","Ball")
+  disk("GreatDomeCrown",x,147,z,4,3,brass,"Metal")
+  part("GreatDomeFinial",x,154,z,2,12,2,brass,nil,"Metal")
+  for _,side in ipairs({-1,1}) do
+   part("TowerPier",x+side*21,96,z+26,4,36,4,pale)
+   part("TowerWindow",x+side*10,98,z+25.5,7,18,1.5,ink)
+  end
   -- Deep attached facade reveals, pilasters and a portal; not a fake walk-through door.
   for _,side in ipairs({-1,1})do
    for i=-2,2 do
@@ -62,13 +78,37 @@ return function(build,id,spec)
     if i~=0 then
      part("WindowRecess",px+8,32,z+side*61,9,18,1.4,ink)
      part("WindowSill",px+8,22,z+side*63,12,2,4,brass)
-     part("WindowArchCrown",px+8,42,z+side*62,10,4,2,pale,nil,"Sandstone","Ball")
+     part("WindowHood",px+8,41.6,z+side*62,11,1.6,3,pale)
+     if build.compact then
+      part("WindowTransom",px+8,34,z+side*62,9,.9,1,brass,nil,"Metal",nil,false)
+      part("WindowMullion",px+8,32,z+side*62,.75,18,1,teal,nil,"SmoothPlastic",nil,false)
+     end
     end
+   end
+  end
+  -- Shallow glazed bays and lintels articulate both long side elevations.
+  -- They are applied surface detail, not openings through the solid hall.
+  for _,side in ipairs({-1,1}) do
+   for _,i in ipairs({-1,1}) do
+    local bz=z+i*28
+    part("SideBayGlass",x+side*74.2,29,bz,.5,23,11,{53,95,99},nil,"SmoothPlastic",nil,false)
+    part("SideBayArch",x+side*74.4,41,bz,1,5,12,pale,nil,"SmoothPlastic","Ball",false)
+    part("SideBaySill",x+side*75,17,bz,2,1.5,13,brass,nil,"Metal",nil,false)
    end
   end
   part("PortalRecess",x,22,z+61,21,32,2,ink)
   for _,side in ipairs({-1,1})do part("PortalJamb",x+side*14,23,z+65,5,34,7,pale)end
+  if build.compact then
+   for _,side in ipairs({-1,1}) do
+    part("DoorLeaf",x+side*4.8,21,z+62,8.8,29,1,{47,90,89})
+    part("DoorPull",x+side*1.8,20,z+63,1,5,1.4,brass,nil,"Metal",nil,false)
+   end
+  end
   part("PortalLintel",x,42,z+65,33,5,7,brass)
+  for _,side in ipairs({-1,1}) do
+   part("PortalGable",x+side*8,47,z+65,19,2,12,teal,{0,0,-side*18},"SmoothPlastic")
+   part("UpperWingRoof",x+side*39,78,z,34,3,104,teal,nil,"SmoothPlastic")
+  end
   -- Four narrow minarets frame the dominant dome, all grounded on terrace/floor.
   for _,tx in ipairs({-250,-60})do for _,tz in ipairs({-227,-53})do
    disk("MinaretPlinth",tx,3,tz,11,6,sand)
@@ -76,12 +116,19 @@ return function(build,id,spec)
    disk("MinaretBalcony",tx,63,tz,10,3,pale)
    disk("MinaretLantern",tx,72,tz,5.5,16,teal)
    disk("MinaretEave",tx,81,tz,8,2,brass,"Metal")
-   part("MinaretCap",tx,86,tz,14,12,14,teal,nil,"Slate","Ball")
+   part("MinaretCap",tx,86,tz,14,12,14,teal,nil,"SmoothPlastic","Ball")
    part("MinaretSpire",tx,96,tz,1.5,12,1.5,brass,nil,"Metal")
   end end
   pavilion("Library",150,-140,94,31,false)
-  for _,sz in ipairs({-1,1})do
-   for i=-1,1 do part("LibraryBookshelfWall",150+i*25,17,-140+sz*33,19,25,4,cream)end
+  -- A continuous inset back wall with a clear central opening and shelf bands.
+  -- The open front and column structure stay intact.
+  for _,side in ipairs({-1,1}) do
+   local bx=150+side*25
+   part("LibraryBackWall",bx,17,-173,34,25,4,cream)
+   part("LibraryShelfInset",bx,18,-170.8,29,20,.4,ink,nil,"SmoothPlastic",nil,false)
+   for _,h in ipairs({13,20}) do
+    part("LibraryShelfBand",bx,h,-170.4,29,1,1,brass,nil,"SmoothPlastic",nil,false)
+   end
   end
   -- Library-side faculty wings taper down from the palace skyline, forming a civic block.
   for _,wing in ipairs({{65,38},{244,26}})do
@@ -89,7 +136,7 @@ return function(build,id,spec)
    part("FacultyPlinth",wx,1,-145,48,2,112,sand)
    part("FacultyWing",wx,wh/2+2,-145,42,wh,104,cream)
    part("FacultyCornice",wx,wh+3,-145,48,3,112,pale)
-   part("FacultyTealRoof",wx,wh+6,-145,46,3,110,teal,nil,"Slate")
+   part("FacultyTealRoof",wx,wh+6,-145,46,3,110,teal,nil,"SmoothPlastic")
    for j=-1,1 do part("FacultyFrontPier",wx+j*16,wh/2+2,-91,3,wh,3,pale)end
    for _,side in ipairs({-1,1})do part("FacultyWindow",wx+side*8,wh*.55,-91.5,8,wh*.42,1.5,ink)end
   end
@@ -102,16 +149,33 @@ return function(build,id,spec)
    disk("CloisterColumn",78+i*35,17,132,3,34,cream)
   end
   part("CloisterArchitrave",148,36,110,160,4,58,pale)
-  part("CloisterTealRoof",148,41,110,166,6,64,teal,nil,"Slate")
+  part("CloisterTealRoof",148,41,110,166,6,64,teal,nil,"SmoothPlastic")
   for i=0,3 do tree("CloisterCypress",85+i*42,190,0,1.1)end
   local fx,fz=-147,137
+  -- Low planting beds flank the fountain without crossing either main axis.
+  for _,side in ipairs({-1,1}) do
+   local bx=fx+side*78
+   part("CourtPlantingBed",bx,.35,fz,18,.7,34,sand,nil,"SmoothPlastic",nil,false)
+   part("CourtPlantingSoil",bx,.75,fz,15,.2,31,earth,nil,"Ground",nil,false)
+   for j=-1,1 do
+    part("CourtShrub",bx,2.6,fz+j*10,8,4,7,{79,126,72},nil,"SmoothPlastic","Ball",false)
+   end
+  end
+  -- Two flush borders lead from the south steps toward the fountain plaza.
+  for _,side in ipairs({-1,1}) do
+   part("ApproachBorder",fx+side*19,.075,4,1.2,.15,110,brass,nil,"SmoothPlastic",nil,false)
+  end
   disk("FountainPlaza",fx,.12,fz,66,.24,sand)
+  disk("FountainFoundation",fx,.65,fz,36,1.3,cream)
+  disk("BasinFoot",fx,1.6,fz,33,1.2,sand)
   disk("Basin",fx,2,fz,30,4,pale)
   disk("Water",fx,4.08,fz,26,.16,water,"SmoothPlastic",false)
   disk("Pedestal",fx,10,fz,5,12,cream)
+  disk("PedestalBase",fx,5.4,fz,8,2.4,sand)
+  disk("PedestalCollar",fx,15.3,fz,7,1.4,brass,"Metal")
   disk("UpperBowl",fx,17,fz,15,3,pale)
   disk("UpperWater",fx,18.58,fz,12,.16,water,"SmoothPlastic",false)
-  part("FountainCrown",fx,23,fz,5,8,5,brass,nil,"Metal","Ball")
+  part("FountainCrown",fx,21,fz,5,5,5,brass,nil,"Metal","Ball")
   for i=0,7 do
    local angle=i*math.pi/4
    part("FountainRim",fx+29*math.cos(angle),4.5,fz+29*math.sin(angle),23,2,3,pale,{0,90-math.deg(angle),0})
@@ -131,7 +195,7 @@ return function(build,id,spec)
      local angle=math.rad(quadrant*90+24+segment*14)
      local length=2*r*math.tan(math.rad(6.8))
      part("BowlTier",r*math.cos(angle),tier+1,r*math.sin(angle),length,2*(tier+1),14,
-      tier%2==0 and {211,179,130} or {188,153,108},{0,90-math.deg(angle),0},"Sandstone")
+      {159,149,129},{0,90-math.deg(angle),0},"SmoothPlastic")
      part("BowlCoping",r*math.cos(angle),2*(tier+1)+.3,r*math.sin(angle),length,.6,2.2,pale,{0,90-math.deg(angle),0})
     end
    end

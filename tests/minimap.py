@@ -94,6 +94,7 @@ local function toggleTab(tab)table.insert(opens,tab)end
 local function button(parent,name,text,size,pos,fn)allocations+=1;activated=fn;return {Parent=parent,Name=name,Text=text,Size=size,Position=pos}end
 local function frame(parent,name,size,pos)allocations+=1;return {Parent=parent,Name=name,Size=size,Position=pos}end
 '''
+ client_setup+='\nlocal academy={};local clientDestroyed=false\n'+client[client.index('function academy.canShowTestLauncher()'):client.index('\n-- Flight controls exist only',client.index('function academy.canShowTestLauncher()'))]+'\n'
  client_end=r'''
 check(miniMapButton.Name=="MiniMap" and miniMapButton.Text=="MAP",'MAP launcher missing')
 activated();check(#opens==1 and opens[1]=='Map','MAP launcher opens wrong tab')

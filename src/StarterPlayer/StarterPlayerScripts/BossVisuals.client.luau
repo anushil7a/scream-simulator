@@ -19,9 +19,14 @@ local function comfort()
  local ok,value=pcall(function()return Gui.ReducedMotionEnabled end)
  return Players.LocalPlayer:GetAttribute("BossReducedEffects")~=false or not ok or value==true
 end
+local attack={}
+local function bulkMove(parts,frames)
+ workspace:BulkMoveTo(parts,frames,Enum.BulkMoveMode.FireCFrameChanged)
+end
 controller=Controller.new({
  create=function(id)local model=Instance.new("Model");model.Name="BossVisual_"..id;model.Parent=workspace;return model end,
- spawn=task.spawn,pause=task.wait,build=Appearance.Build,prepare=Motion.new,
+ spawn=task.spawn,pause=task.wait,build=Appearance.Build,
+ prepare=function(model,id,center,scale)return Motion.new(model,id,center,scale,bulkMove)end,
  animate=function(current,now,dt,reduced)
   local candidate=current.candidate;local core=candidate.core
   if not core or not core.Parent then return false end
@@ -29,7 +34,21 @@ controller=Controller.new({
   local look=core.CFrame.LookVector;local flat=Vector3.new(look.X,0,look.Z)
   if flat.Magnitude<.001 then flat=Vector3.new(0,0,-1) end
   local target=CFrame.lookAt(ground,ground+flat)
-  return current.motion:Step(target,current.source:GetAttribute("BossState") or "Idle",now,dt,reduced,current.source:GetAttribute("BossStateAt"))
+  local source=current.source
+  local state=source:GetAttribute("BossState") or "Idle"
+  local stateAt=source:GetAttribute("BossStateAt")
+  local timing
+  if state=="Windup" or state=="Recovery" then
+   attack.style=source:GetAttribute("BossAttackStyle")
+   attack.serial=source:GetAttribute("BossAttackSerial")
+   attack.startAt=source:GetAttribute("BossAttackStartAt") or (state=="Windup" and stateAt)
+   attack.attackAt=source:GetAttribute("BossAttackAt")
+   attack.impactSerial=source:GetAttribute("BossAttackImpactSerial")
+   attack.impactAt=source:GetAttribute("BossAttackImpactAt")
+   attack.recovery=specs[current.id].recovery
+   timing=attack
+  end
+  return current.motion:Step(target,state,now,dt,reduced,stateAt,timing)
  end,
 })
 local elapsed=0

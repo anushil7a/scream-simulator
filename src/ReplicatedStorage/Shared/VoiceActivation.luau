@@ -2,7 +2,7 @@
 -- The caller supplies armed/allowed/ready and handles server acknowledgement.
 local Gate={}
 Gate.__index=Gate
-Gate.OnPower=.35
+Gate.OnPower=.33
 Gate.OffPower=.18
 Gate.OnSeconds=.25
 Gate.QuietSeconds=.2
