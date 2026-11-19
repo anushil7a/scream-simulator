@@ -38,7 +38,11 @@ def main():
                         help="Build the unpublished combat readout diagnostic place only")
     parser.add_argument("--central-pvp-local-qa", action="store_true",
                         help="Build the unpublished two-client middle-green PvP diagnostic place")
+    parser.add_argument("--test-beam-damage-local-qa", action="store_true",
+                        help="Build the unpublished manual two-player Test Beam damage review")
     args = parser.parse_args()
+    if args.test_beam_damage_local_qa and (args.central_pvp_local_qa or args.combat_readouts_local_qa or args.boss_arena_local_qa or args.transport_mutation or args.test_tools_local):
+        parser.error("Test Beam damage review is a separate local-only fixture")
     if args.central_pvp_local_qa and (args.combat_readouts_local_qa or args.boss_arena_local_qa or args.transport_mutation or args.test_tools_local):
         parser.error("Central PvP diagnostic is a separate local-only fixture")
     if args.combat_readouts_local_qa and (args.boss_arena_local_qa or args.transport_mutation or args.test_tools_local):
@@ -85,6 +89,8 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
             ROOT / "assets/vfx/HollowPurpleBeam.rbxmx",
             ROOT / "assets/review/MosaicFountain.rbxmx",
         })
+    if args.test_beam_damage_local_qa:
+        fingerprint_paths = sorted(set(fingerprint_paths) | {ROOT / "tests/StudioTestBeamDamageReview.server.luau"})
     if args.central_pvp_local_qa:
         fingerprint_paths = sorted(set(fingerprint_paths) | {
             ROOT / "tests/StudioCentralPvpReview.server.luau",
@@ -96,7 +102,7 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         fingerprint_paths = sorted(set(fingerprint_paths) | {ROOT / "tests/StudioBossArenaReview.server.luau"})
     def source_fingerprint():
         digest = hashlib.sha256()
-        digest.update(("central-pvp-local-qa" if args.central_pvp_local_qa else "combat-readouts-local-qa" if args.combat_readouts_local_qa else "boss-arena-local-qa" if args.boss_arena_local_qa else "test-tools-local" if args.test_tools_local else args.transport_mutation or "none").encode() + b"\0")
+        digest.update(("test-beam-damage-local-qa" if args.test_beam_damage_local_qa else "central-pvp-local-qa" if args.central_pvp_local_qa else "combat-readouts-local-qa" if args.combat_readouts_local_qa else "boss-arena-local-qa" if args.boss_arena_local_qa else "test-tools-local" if args.test_tools_local else args.transport_mutation or "none").encode() + b"\0")
         for path in fingerprint_paths:
             digest.update(path.relative_to(ROOT).as_posix().encode() + b"\0")
             digest.update(path.read_bytes() + b"\0")
@@ -108,7 +114,9 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         temp = Path(temp)
         transport_fixture = (ROOT / "tests/StudioVoiceTransport.server.luau").read_text()
         builds = [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", transport_fixture), ("TrainingRoamReview", (ROOT / "tests/StudioTrainingRoam.server.luau").read_text())]
-        if args.central_pvp_local_qa:
+        if args.test_beam_damage_local_qa:
+            builds = [("TestBeamDamageLocalReview", (ROOT / "tests/StudioTestBeamDamageReview.server.luau").read_text())]
+        elif args.central_pvp_local_qa:
             appendix = "\n".join((ROOT / "tests" / file).read_text() for file in
                                   ("StudioCombatReadoutsReview.server.luau", "StudioCentralPvpReview.server.luau"))
             builds = [("CentralPvpLocalReview", appendix)]
@@ -181,7 +189,9 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
                 "scope": "Compiled disposable local fixture; not executed or published",
                 **({"proceduralFallback": ["FireBeam", "StarterBeam"]} if args.test_tools_local else {}),
             }, indent=2) + "\n")
-    if args.central_pvp_local_qa:
+    if args.test_beam_damage_local_qa:
+        print("Built unpublished Test Beam damage review; no Studio test was run.")
+    elif args.central_pvp_local_qa:
         print("Built unpublished central PvP diagnostic; no Studio test was run.")
     elif args.combat_readouts_local_qa:
         print("Built unpublished combat readouts diagnostic; no Studio test was run.")

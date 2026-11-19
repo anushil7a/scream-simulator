@@ -6,6 +6,9 @@ s=(r/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 a=s.index('local flightUp=false;');b=s.index('-- Everyone sees the same navigation',a)
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
+local capability=true;local localFlightTools=false;local clientDestroyed=false
+local data={devAccess=true,testBeamAvailable=true}
+local remotes={GetAttribute=function()return capability end};local academy={}
 local now=1;local os={clock=function()return now end};local active=false;local keys={};local textFocus=false
 local signals={};local cleanup;local buttons={};local sent={}
 local p={GetAttribute=function()return active end};local gui={};local gold={}
@@ -23,6 +26,8 @@ local move={x=0,z=0,Dot=function(self,axis)return axis=='right' and self.x or se
 local root={CFrame={RightVector='right',LookVector='forward'}}
 p.Character={FindFirstChildOfClass=function()return {MoveDirection=move}end,FindFirstChild=function()return root end}
 '''
+capability=s[s.index('function academy.testToolsAllowed()'):s.index('\ndevPanel=frame',s.index('function academy.testToolsAllowed()'))]
+setup+=capability+'\n'
 checks=r'''
 local function tick()now+=.11;signals.tick()end
 signals.tick();check(#sent==0 and not buttons.FlightUp.Visible,'Inactive input sent')
@@ -36,6 +41,11 @@ buttons.FlightUp.call();signals.blur();tick();arg=sent[#sent][2];check(arg.x==0 
 GuiService.MenuIsOpen=true;keys={W=true};tick();check(sent[#sent][2].z==0,'Menu hover failed')
 cleanup();check(sent[#sent][1]=='FlightStop','Client cleanup did not stop')
 active=false;before=#sent;tick();cleanup();check(#sent==before and not buttons.FlightDown.Visible,'Inactive cleanup/input leaked')
+GuiService.MenuIsOpen=false;active=true;capability=false;tick();check(sent[#sent][1]=='FlightStop' and not buttons.FlightUp.Visible,'Online revoke did not stop/hide flight')
+before=#sent;tick();check(#sent==before,'Revoked flight stop spammed')
+capability=true;tick();check(sent[#sent][1]=='FlightInput','Authorized online flight input blocked')
+data.devAccess=false;tick();check(sent[#sent][1]=='FlightStop' and not buttons.FlightDown.Visible,'Per-user revoke kept flying input')
+data.devAccess=true;capability=nil;localFlightTools=true;tick();check(sent[#sent][1]=='FlightInput','Guarded local startup flight path lost')
 print('PASS '..n..' actual flight input/UI checks with mocked controls')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=r/'tests',delete=False) as f:f.write(setup+s[a:b]+checks);p=Path(f.name)

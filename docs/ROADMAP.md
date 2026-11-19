@@ -25,9 +25,9 @@
 - Keep Test Tools hidden while Shop is open, prevent minimap flashes at modal transitions, and reserve the portrait mic status away from stock touch controls. Use the shorter first Spectrum card in landscape. [Launcher checks](TEST_TOOLS_SHOP_FLASH_REVIEW.md) and [Shop comparison](SHOP_LANDSCAPE_REVIEW.md).
 - Full-game builds retain the original integrated assets; separately staged or rejected Academy, foliage and Beam art trials are not in this checkpoint.
 
-## Guarded Test Tools: Fly confirmation and silent adjustable Beam
+## Guarded Test Tools: City Preview and local Studio
 
-- Existing full-game **Fly on / off** is restricted to the authorized unpublished local test fixture. Add **Beam Test** with 0–100% controls and click-to-run silent preview, separate from microphone, sound, damage and rewards.
+- The full-game **Fly on / off** and **Test Beam** (0–100% silent click-to-fire, real tester-only PvP damage) remain available for testing until the owner says otherwise. The new online gate is bound to the existing City Preview place and its tester switch; isolate local Studio as before. See [scope and test evidence](CITY_PREVIEW_TEST_TOOLS.md).
 - The standalone Academy review has its own Test Tools, reuses guarded TestFlight with map-specific bounds and plays silent adjustable beams against the temporary course. Flight returns to its origin and cannot advance the course.
 - [Test Tools review and build details](SILENT_BEAM_TEST_REVIEW.md). Two old VFX binaries remain incompatible with local Rojo; the explicitly labeled full-game tools build uses procedural fallback for these assets. No published place or live settings change.
 

@@ -4,7 +4,7 @@ import hashlib,json,re,sys
 ROOT=Path(__file__).resolve().parents[1]
 ACCESS=ROOT/'src/ServerScriptService/DeveloperAccess.luau'
 # Exact reviewed owner/Studio-only module with the prelaunch flag false. Any change needs review.
-DISABLED_REVIEWED_SHA256='9f8eee76c1f05f848458e555f83c1165c5bec2103f7e16984a5b0d8bc2002ffe'
+DISABLED_REVIEWED_SHA256='c0167a31c4b05d539d9526c9ca11bb8da4d01970cda0148c27155a0ec9a2cbad'
 def release_gate(source=None):
  try:
   source=ACCESS.read_text(encoding='utf8') if source is None else source
