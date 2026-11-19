@@ -1,4 +1,4 @@
--- Silent visual-only local test input. Server independently authorizes every action.
+-- Silent adjustable test input. Server authorizes scope, targets and applied damage.
 local Tools={};Tools.__index=Tools
 function Tools.new(env)
  return setmetatable({env=env,power=50,running=false,started=0,nextPulse=0,acknowledged=false},Tools)

@@ -7,6 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 pre=r'''
 local checks=0;local function check(v,m)assert(v,m);checks+=1 end
 local Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat')
+local Attack=require('../src/ReplicatedStorage/Shared/SustainedAttack')
 local V={};local mt={}
 function V.new(x,y,z)return setmetatable({X=x,Y=y,Z=z},mt)end
 mt.__sub=function(a,b)return V.new(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end
@@ -32,7 +33,7 @@ local Rules=(function()
 '''
 post=r'''
 end)()
-local Beam=Rules.new(Combat,Aim)
+local Beam=Rules.new(Combat,Aim,Attack)
 local function fresh()
  local c={Parent=true};local r={Parent=c,Position=V.new(0,10,0),Anchored=false,IsA=function(_,kind)return kind=='BasePart'end}
  local h={Parent=c,Health=100};local head={Position=V.new(0,12,0),IsA=r.IsA}
@@ -123,6 +124,7 @@ integration_pre=r'''
 local TestBeamRules=Rules;local testBeam=Beam
 local RunService=game:GetService("RunService")
 local now=0;local os={clock=function()return now end}
+local workspace={GetServerTimeNow=function()return now+100 end}
 local localFixture=true;local auth=true;local busy=false;local sanitized=0
 local Access={IsAuthorized=function()return auth end}
 local function toolAuthorized()return Rules.Available(auth,localFixture)end
@@ -184,7 +186,7 @@ check(not firstState.testBeam and secondState.testBeam,'Stop crossed player boun
 -- An ordinary ready microphone is preserved rather than permanently disabled.
 p,s=freshDispatch();dispatch(p,'TestBeamBegin',req(100));check(s.micReady==true,'Preview changed ordinary microphone readiness')
 
--- The exact online destination uses a real loaded profile and mic state.
+-- The exact online destination snapshots only at accepted isolated activation.
 local function online()
  studio=false;localFixture=false;game.GameId=10769005350;game.PlaceId=90337242377543
  game.CreatorType=Enum.CreatorType.User;game.CreatorId=AccessModule.OwnerUserId;AccessModule.PrelaunchAllTesters=true
@@ -206,15 +208,73 @@ end
 online();p,s=freshDispatch();local real=s.data;local legitimateCredit={}
 s.credit=legitimateCredit;s.canSave=true
 dispatch(p,"TestBeamBegin",req(100))
-check(s.testBeam and s.canSave and s.data==real and not s.testBaseline and sanitized==0,"Valid online preview mutated or froze profile")
-check(s.credit==legitimateCredit and s.micReady==true and s.voice.capture==nil,"Only capture should cancel with online preview")
+check(s.testBeam and s.canSave and s.data~=real and s.testBaseline and sanitized==2,"Valid online hit testing failed to isolate its loaded profile")
+check(s.testBaseline.coins==real.coins and s.testBaseline.quests.garden.progress==1,"Legitimate online profile changed")
+check(s.credit~=legitimateCredit and s.micReady==true and s.voice.capture==nil,"Test setup changed microphone readiness or retained old combat credit")
 now=.1;dispatch(p,"TestBeamPulse",req(55))
 check(s.testBeam.power==55,"Online preview pulse rejected")
 AccessModule.PrelaunchAllTesters=false
 now=.2;dispatch(p,"TestBeamPulse",req(100))
 check(not s.testBeam and #events==1 and events[1][1]=="TestBeamEnd","Revocation left preview running")
 for i=1,20 do dispatch(p,"TestBeamStop",nil) end
-check(#events==1 and s.canSave and s.data==real,"Replay amplified signal or mutated saving")
+check(#events==1 and s.canSave and s.testBaseline.coins==real.coins and sanitized==2,"Replay amplified signal or recaptured saving baseline")
+
+
+-- Exercise actual normal protocol quantization and test visual lifecycle.
+local function damageBudget(power,mode)
+ online()
+ local p,s=fresh();s.data.level=100
+ check(Beam.Start(p,s,true,false,0,req(power),1),"Isolated online cast rejected")
+ local total=0;local samples=0
+ local function resolve(ctx,direction,stats,now)
+  check(ctx.root~=nil and direction.Z==-1 and stats.power>0 and now>0,"Damage geometry/time not derived by server")
+  samples+=1;return {42,42},{[42]={}}
+ end
+ for i=1,39 do
+  local now=i*.1
+  check(Beam.Pulse(p,s,true,false,now,req(power)),"Normal test damage input pulse rejected")
+  local _,ended,hits=Beam.Step(p,s,true,false,now,resolve)
+  check(not ended,"Damage test timeline ended early")
+  for _,hit in ipairs(hits or {}) do total+=hit.damage end
+  local _,_,duplicate=Beam.Step(p,s,true,false,now,resolve)
+  check(not duplicate or #duplicate==0,"Duplicate timer observation repeated damage")
+ end
+ local _,ended,hits=Beam.Step(p,s,true,false,4,resolve)
+ for _,hit in ipairs(hits or {}) do total+=hit.damage end
+ check(ended and not s.testBeam and s.testBeamReadyAt==9,"Damage final tick changed visual duration/cooldown")
+ return total,samples
+end
+local full,fullSamples=damageBudget(100)
+local soft,softSamples=damageBudget(35)
+local below,belowSamples=damageBudget(1)
+check(full==440 and fullSamples==20 and soft==282 and softSamples==20,"Real production damage scaling, rounding, maxDPS or tick cadence changed")
+check(below==0 and belowSamples==0,"Preview below normal power gate applied damage")
+
+
+-- Cross-mode cool-down: neither a sandbox microphone cast nor its recovery
+-- can overlap a test cast; active test blocks the dispatcher in either mode.
+online();p,s=freshDispatch()
+s.sustained={protocol={active={},nextStart=0}}
+dispatch(p,"TestBeamBegin",req(100))
+check(not s.testBeam and not s.testBaseline and sanitized==0,"Active normal beam bypassed or mutated profile")
+s.sustained.protocol.active=nil;s.sustained.protocol.nextStart=2
+dispatch(p,"TestBeamBegin",req(100))
+check(not s.testBeam and not s.testBaseline and sanitized==0,"Normal cooldown bypassed or mutated profile")
+now=2;dispatch(p,"TestBeamBegin",req(100))
+check(s.testBeam~=nil and s.testBaseline~=nil,"Normal cooldown never released test cast")
+dispatch(p,"SustainedBegin",{sequence=1})
+check(s.testBeam~=nil and s.sustained.protocol.active==nil,"Test did not block concurrent normal cast")
+now=2.2;dispatch(p,"TestBeamStop")
+check(not s.testBeam and s.sustained.protocol.nextStart==7.2 and s.voice.nextCast==7.2 and s.nextCast==7.2,"Test stop did not impose normal cooldown floor")
+check(p.attributes.SustainedReadyAt==107.2,"Readiness replica does not reflect shared cooldown")
+online();p,s=freshDispatch();s.voice.nextCast=1
+dispatch(p,"TestBeamBegin",req(100))
+check(not s.testBeam and not s.testBaseline,"Legacy cast cooldown bypassed or mutated profile")
+now=1;dispatch(p,"TestBeamBegin",req(100));check(s.testBeam~=nil,"Legacy cooldown never released test cast")
+dispatch(p,"Cast",{aim=V.new(0,12,-100)})
+check(s.testBeam~=nil,"Concurrent legacy cast was not blocked")
+now=1.2;dispatch(p,"TestBeamStop")
+check(s.voice.nextCast==6.2 and s.nextCast==6.2,"Test stop did not preserve legacy cooldown")
 
 print('PASS '..checks..' total module + actual Action dispatcher preview assertions; synthetic only')
 '''

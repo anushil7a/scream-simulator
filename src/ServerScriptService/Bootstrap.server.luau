@@ -18,7 +18,7 @@ local Access=require(script.Parent.DeveloperAccess)
 local Rules=require(script.Parent.CombatRules)
 local VoiceCombat=require(ReplicatedStorage.Shared.VoiceCombat)
 local TestBeamRules=require(script.Parent.TestBeam)
-local testBeam=TestBeamRules.new(VoiceCombat,require(script.Parent.SustainedAim))
+local testBeam=TestBeamRules.new(VoiceCombat,require(script.Parent.SustainedAim),require(ReplicatedStorage.Shared.SustainedAttack))
 local Entitlements=require(script.Parent.Entitlements)
 local Commerce=require(script.Parent.Commerce)
 local ShopCatalog=require(ReplicatedStorage.Shared.ShopCatalog)
@@ -105,6 +105,15 @@ local function sustainedEnd(p,ended,now)
 end
 local function testBeamEnd(p,s,now,ended)
  if ended or testBeam.Stop(s,now) then
+  -- Don't let alternating test and microphone attacks bypass either cooldown.
+  local ready=s.testBeamReadyAt or now
+  local protocol=s.sustained and s.sustained.protocol
+  if protocol then
+   protocol.nextStart=math.max(protocol.nextStart or 0,ready)
+   p:SetAttribute("SustainedReadyAt",workspace:GetServerTimeNow()+math.max(0,protocol.nextStart-now))
+  end
+  s.voice.nextCast=math.max(s.voice.nextCast or 0,ready)
+  s.nextCast=math.max(s.nextCast or 0,ready)
   effect:FireAllClients("TestBeamEnd",nil,p.UserId)
   return true
  end
@@ -144,7 +153,7 @@ local function state(p,message,conversation,messageUrgent,messageKey)
  voiceEligible=VoiceEligibility.Allowed(s.voiceEligibility,os.clock()),voiceStatus=VoiceEligibility.Status(s.voiceEligibility,os.clock()),
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,flying=s.flight~=nil,
- testBeamAvailable=s.testBeamAvailable==true,
+ testBeamAvailable=s.testBeamAvailable==true,testBeamDamageAvailable=s.testBeamAvailable==true,
  testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
 end
 -- No remote can enqueue voice checks. Retry state belongs only to live sessions;
@@ -365,6 +374,46 @@ local function beamObstruction(c,origin,direction,range,players)
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
  params.FilterDescendantsInstances=exclude;params.RespectCanCollide=true
  return workspace:Raycast(origin,direction*range,params)
+end
+-- Dedicated sandbox targets. Normal combat keeps its own resolver, credit
+-- ledger and rewards; do not call those from a Test Beam.
+local function resolveTestBeam(p,s,ctx,direction,stats,now)
+ if type(s.testBaseline)~="table" or s.flight or now<s.protectedUntil or not Config.InArena(ctx.root.Position) then return end
+ local ids,details={},{}
+ local players=Players:GetPlayers()
+ local obstruction=beamObstruction(ctx.character,ctx.origin,direction,stats.range,players)
+ local length=obstruction and obstruction.Distance or stats.range
+ details.length=length
+ for _,target in ipairs(players) do
+  local ts=sessions[target]
+  if target~=p and ts and type(ts.testBaseline)=="table" and not ts.flight and toolAuthorized(target) then
+   local c,r,h=parts(target)
+   if r and Rules.CanTarget(ctx.root.Position,r.Position,ts.protectedUntil,now,stats.range+2)
+    and (now>=ts.dodgingUntil or ts.premiumRoll)
+    and Rules.InBeam(ctx.origin,direction,r.Position,length,stats.width,1) and audible(ctx.character,ctx.origin,r.Position,c) then
+    local id="player:"..target.UserId
+    table.insert(ids,id);details[id]={player=target,session=ts,humanoid=h}
+   end
+  end
+ end
+ return ids,details
+end
+local function applyTestBeam(p,s,now,hits,details)
+ if not hits or not details then return end
+ local total=0
+ for _,hit in ipairs(hits) do
+  local target=details[hit.id]
+  if not target then continue end
+  local ts,h=target.session,target.humanoid
+  local actual=math.min(hit.damage,h.Health)
+  if actual<=0 then continue end
+  total+=actual;ts.nextHeal=now+Config.HealQuietSeconds
+  if h.Health<=actual then eject(target.player,h) else h.Health-=actual end
+ end
+ if total>0 then
+  s.nextHeal=now+Config.HealQuietSeconds
+  recordDamage(p,s,now,total)
+ end
 end
 local function sustainedContext(p,s,now)
  if not canCapture(p,s,now) then return nil end
@@ -861,13 +910,15 @@ action.OnServerEvent:Connect(function(p,verb,arg)
     if TestBeamRules.Available(authorized,localFixture) then state(p,reason) end
     return
    end
-   if TestBeamRules.LocalFixture(localFixture) then
-    if not s.testBaseline then s.testBaseline=Profiles.Sanitize(s.data);s.data=Profiles.Sanitize(s.data) end
-    s.credit={}
+   local protocol=s.sustained and s.sustained.protocol
+   if (protocol and (protocol.active or now<protocol.nextStart)) or now<(s.voice.nextCast or 0) then
+    state(p,"Finish the microphone attack and cooldown before Test Beam.")
+    return
    end
+   if not s.testBaseline then s.testBaseline=Profiles.Sanitize(s.data);s.data=Profiles.Sanitize(s.data);s.credit={} end
    cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
    ok,reason=testBeam.Start(p,s,authorized,localFixture,now,arg,Config.Gear.Multiplier(s.data))
-   state(p,ok and "Silent beam test · visual only · no damage, rewards or progress" or reason)
+   state(p,ok and "Silent beam test · isolated test damage · no saved rewards" or reason)
   end
   return
  end
@@ -1126,12 +1177,17 @@ task.spawn(function()
     TestFlight.Step(p,s,toolAuthorized(p),flightBounds,now,.1)
    end
    if s.testBeam then
-    local preview,ended=testBeam.Step(p,s,Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),localFixture,now)
+    local preview,ended,hits,details=testBeam.Step(p,s,Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),localFixture,now,function(ctx,direction,stats,at)
+     return resolveTestBeam(p,s,ctx,direction,stats,at)
+    end)
+    applyTestBeam(p,s,now,hits,details)
     if ended then testBeamEnd(p,s,now,true);state(p) end
     if preview then
-     -- Cover uses the real server beam ray; no target resolver, damage or audio event is called.
-     local obstruction=beamObstruction(s.testBeam.character,preview.origin,preview.direction,preview.length,Players:GetPlayers())
-     local length=obstruction and obstruction.Distance or preview.length
+     local length=details and details.length
+     if not length then
+      local obstruction=beamObstruction(s.testBeam.character,preview.origin,preview.direction,preview.length,Players:GetPlayers())
+      length=obstruction and obstruction.Distance or preview.length
+     end
      for _,viewer in ipairs(Players:GetPlayers()) do
       local _,root=parts(viewer)
       if root and (root.Position-preview.origin).Magnitude<=180 then

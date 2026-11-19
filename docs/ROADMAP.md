@@ -27,7 +27,7 @@
 
 ## Guarded Test Tools: City Preview and local Studio
 
-- The full-game **Fly on / off** and **Test Beam** (0–100% click-to-run silent preview) remain available for testing until the owner says otherwise. The new online gate is bound to the existing City Preview place and its tester switch; isolate local Studio as before. See [scope and test evidence](CITY_PREVIEW_TEST_TOOLS.md).
+- The full-game **Fly on / off** and **Test Beam** (0–100% silent click-to-fire, real tester-only PvP damage) remain available for testing until the owner says otherwise. The new online gate is bound to the existing City Preview place and its tester switch; isolate local Studio as before. See [scope and test evidence](CITY_PREVIEW_TEST_TOOLS.md).
 - The standalone Academy review has its own Test Tools, reuses guarded TestFlight with map-specific bounds and plays silent adjustable beams against the temporary course. Flight returns to its origin and cannot advance the course.
 - [Test Tools review and build details](SILENT_BEAM_TEST_REVIEW.md). Two old VFX binaries remain incompatible with local Rojo; the explicitly labeled full-game tools build uses procedural fallback for these assets. No published place or live settings change.
 

@@ -754,13 +754,17 @@ do
    testBeam:Tick()
    testAim.Visible=testBeamAllowed() and (data.testBeamAvailable==true or testBeam.running)
    testAimHint.Visible=testAim.Visible
+   local damaging=data.testBeamDamageAvailable==true
+   local description=damaging and "Silent · damages other testers in PvP" or "Silent visual preview · no damage"
+   if explanation.Text~=description then explanation.Text=description end
    powerLabel.Text=string.format("BEAM TEST · Power %d%%",testBeam.power)
    fire.Text=testBeam.running and "STOP TEST BEAM" or "TEST BEAM"
-   status.Text=data.testBeamActive==true and string.format("Active: %d%% · silent / visual only",data.testBeamPower or 0)
+   status.Text=data.testBeamActive==true and string.format(damaging and "Active: %d%% · silent test damage" or "Active: %d%% · silent / visual only",data.testBeamPower or 0)
     or (data.testBeamCooldown or 0)>0 and string.format("Cooldown: %.1fs",data.testBeamCooldown)
     or p:GetAttribute("TestFlight")==true and "Turn Fly off to test the beam."
     or data.testBeamAvailable~=true and "Authorized test session required."
     or testBeam.power==0 and "0% · no beam. Increase power to test."
+    or damaging and "Both players need a test session."
     or "Aim at +, then click Test Beam."
   end)
   connectClient(devPanel:GetPropertyChangedSignal("Visible"),function() if not devPanel.Visible then testBeam:Stop() end end)

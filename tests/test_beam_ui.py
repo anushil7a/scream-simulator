@@ -65,6 +65,18 @@ controls.TestBeam.call();cleanups[1]();check(last()[1]=='TestBeamStop','Retireme
 workspace.CurrentCamera=nil;data.testBeamActive=false;local before=#sent;controls.TestBeam.call();check(#sent==before,'Absent camera fired')
 workspace.CurrentCamera={ViewportSize={X=320,Y=240},ViewportPointToRay=function(_,x,y)check(x==160 and y==120,'Resized viewport center mismatch');return {Origin=10,Direction=2}end}
 UIS.TouchEnabled=true;controls.TestBeam.call();check(last()[1]=='TestBeamBegin' and last()[2].aim==2010,'Touch aim differs from desktop center');controls.TestBeam.call()
+-- New damaging mode is only described when the server explicitly advertises it.
+local function shown(text)for _,v in ipairs(controls)do if v.Text==text then return true end end;return false end
+data.testBeamDamageAvailable=true;data.testBeamActive=false;connections.tick()
+check(shown('Silent · damages other testers in PvP') and shown('Both players need a test session.'),'Damaging mode lacks isolated-target and two-person instructions')
+controls.TestBeam.call();data.testBeamActive=true;data.testBeamPower=90;connections.tick()
+check(shown('Active: 90% · silent test damage'),'Real server active power lost in damage mode')
+controls.TestBeam.call();data.testBeamActive=false
+for _,invalid in ipairs({false,1,'true'})do
+ data.testBeamDamageAvailable=invalid;connections.tick()
+ check(shown('Silent visual preview · no damage'),'Nonboolean damage capability advertised damaging beam')
+end
+data.testBeamDamageAvailable=nil;connections.tick();check(shown('Silent visual preview · no damage'),'Legacy/missing State falsely advertises damage')
 -- Online UI starts rejected and never infers a scope from client game IDs.
 localFlightTools=false;capability=nil;academy.refreshTesterTools()
 check(not controls.TestBeam.Visible and academyLayout==false,'Online controls appeared without server capability')
