@@ -2,9 +2,14 @@
 -- Level/gear/origin come from the server; the only client choices are bounded power and aim.
 local TestBeam={MaxDuration=4,Cooldown=5,InputTimeout=.5,MinPulseInterval=.1}
 local RunService=game:GetService("RunService")
+local Access=require(script.Parent.DeveloperAccess)
 local function finite(n)return type(n)=="number" and n==n and math.abs(n)<math.huge end
+function TestBeam.LocalFixture(localFixture)
+ return localFixture==true and RunService:IsStudio() and game.GameId==0 and game.PlaceId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
+end
 function TestBeam.Available(authorized,localFixture)
- return authorized==true and localFixture==true and RunService:IsStudio() and game.GameId==0 and game.PlaceId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
+ return authorized==true and (TestBeam.LocalFixture(localFixture)
+  or Access.IsCityPreviewTools(game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId,game.PlaceId))
 end
 function TestBeam.new(Combat,directionFor)
  local api={}
@@ -27,7 +32,7 @@ function TestBeam.new(Combat,directionFor)
  end
  function api.ValidateStart(p,s,authorized,localFixture,now,arg)
   local ctx=context(p,s,authorized,localFixture,now)
-  if not ctx then return false,"Beam test needs an authorized local Studio fixture and a standing character." end
+  if not ctx then return false,"Beam test needs an authorized test environment and a standing character." end
   if s.testBeam then return false,"Beam test is already active." end
   if now<(s.testBeamReadyAt or 0) then return false,"Beam test is cooling down." end
   if not request(arg,ctx.origin) then return false,"Invalid beam test input." end
@@ -37,7 +42,7 @@ function TestBeam.new(Combat,directionFor)
  function api.Start(p,s,authorized,localFixture,now,arg,gearMultiplier)
   local ok,reason,ctx=api.ValidateStart(p,s,authorized,localFixture,now,arg)
   if not ok then return false,reason end
-  if type(s.testBaseline)~="table" then return false,"Start a temporary developer test session first." end
+  if TestBeam.LocalFixture(localFixture) and type(s.testBaseline)~="table" then return false,"Start a temporary developer test session first." end
   s.testBeam={character=ctx.character,root=ctx.root,humanoid=ctx.humanoid,level=Combat.Level(s.data.level),
    gearMultiplier=gearMultiplier,power=arg.power,aim=arg.aim,started=now,lastPulse=now,clock=now,lastVisual=-math.huge}
   return true
@@ -53,7 +58,7 @@ function TestBeam.new(Combat,directionFor)
  local function current(p,s,authorized,localFixture,now)
   local b=s.testBeam;if not b then return nil end
   local ctx=context(p,s,authorized,localFixture,now)
-  if not ctx or type(s.testBaseline)~="table" or ctx.character~=b.character or ctx.root~=b.root or ctx.humanoid~=b.humanoid
+  if not ctx or (TestBeam.LocalFixture(localFixture) and type(s.testBaseline)~="table") or ctx.character~=b.character or ctx.root~=b.root or ctx.humanoid~=b.humanoid
    or now<b.clock or now>=b.started+TestBeam.MaxDuration or now>=b.lastPulse+TestBeam.InputTimeout then return nil end
   return ctx
  end

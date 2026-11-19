@@ -18,4 +18,13 @@ function Access.IsAuthorized(player, creatorType, creatorId, isStudio, universeI
             and universeId % 1 == 0 and Access.PrelaunchUniverseIds[universeId] == true))))
 end
 
+-- Deliberately narrower than historical DevCommand visibility: exactly one
+-- experience/place pair, not just a universe or the creator's other places.
+function Access.IsCityPreviewTools(creatorType, creatorId, isStudio, universeId, placeId)
+    return isStudio == false and Access.PrelaunchAllTesters == true
+        and creatorType == Enum.CreatorType.User and creatorId == Access.OwnerUserId
+        and universeId == 10769005350 and Access.PrelaunchUniverseIds[universeId] == true
+        and placeId == 90337242377543
+end
+
 return Access

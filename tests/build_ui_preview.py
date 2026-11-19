@@ -20,7 +20,7 @@ local sample={level=100,xp=30,xpNext=1800,coins=1500,activeQuest="garden",health
 sample.shop={ready=true,inventory={xp=2,coins=1},ends={xp=os.time()+1800,coins=0},serverNow=os.time()}
 for _,q in ipairs(Config.Quests) do sample.availableQuests[q.id]=true;sample.quests[q.id]={progress=0} end
 local actionMock={FireServer=function(_,verb) if verb=="Sync" and receiver then receiver(sample) end end}
-local remotes={GetAttribute=function(_,name) return name=="AutomaticVoice" and true or nil end,WaitForChild=function() return actionMock end,State={OnClientEvent={Connect=function(_,fn) receiver=fn;return {Disconnect=function() if receiver==fn then receiver=nil end end} end}},Effect={OnClientEvent={Connect=function() return {Disconnect=function() end} end}}}''')
+local remotes={GetAttribute=function(_,name) return name=="AutomaticVoice" and true or nil end,GetAttributeChangedSignal=function()return {Connect=function()return {Disconnect=function()end}end}end,WaitForChild=function() return actionMock end,State={OnClientEvent={Connect=function(_,fn) receiver=fn;return {Disconnect=function() if receiver==fn then receiver=nil end end} end}},Effect={OnClientEvent={Connect=function() return {Disconnect=function() end} end}}}''')
 original='local gui=Instance.new("ScreenGui");ownClient(function() gui:Destroy() end);if not clientCheckpoint() then return end\ngui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=playerGui'
 replacement=f'''local screen=Instance.new("ScreenGui");ownClient(function() screen:Destroy() end);if not clientCheckpoint() then return end
 screen.Name="LayoutPreview";screen.ResetOnSpawn=false;screen.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;screen.Parent=playerGui

@@ -30,7 +30,14 @@ local NavigationCatalog=require(ReplicatedStorage.Shared.NavigationCatalog)
 local Equipment=require(script.Parent.Equipment)
 -- Only disposable local fixtures bypass persistent profiles. Attack mode is independent.
 local localFixture=RunService:IsStudio() and game.PlaceId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
-local flightBounds={min=Vector3.new(Config.MapMin.X+8,-4,Config.MapMin.Z+8),max=Vector3.new(Config.MapMax.X-8,220,Config.MapMax.Z-8),localOnly=localFixture}
+local function onlinePreviewTools()
+ return Access.IsCityPreviewTools(game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId,game.PlaceId)
+end
+local function toolAuthorized(p)
+ return TestBeamRules.Available(Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),localFixture)
+end
+local flightBounds={min=Vector3.new(Config.MapMin.X+8,-4,Config.MapMin.Z+8),max=Vector3.new(Config.MapMax.X-8,220,Config.MapMax.Z-8),localOnly=localFixture,
+ previewAuthorized=function(p)return onlinePreviewTools() and toolAuthorized(p)end}
 local sustainedEnabled=Config.AutomaticVoice==true or localFixture
 local sustained
 if sustainedEnabled then
@@ -59,6 +66,7 @@ end
 local old=ReplicatedStorage:FindFirstChild("ScreamRemotes");if old then old:Destroy() end
 local remotes=Instance.new("Folder");remotes.Name="ScreamRemotes"
 remotes:SetAttribute("AutomaticVoice",sustainedEnabled)
+remotes:SetAttribute("TestToolsAvailable",TestBeamRules.LocalFixture(localFixture) or onlinePreviewTools())
 remotes.Parent=ReplicatedStorage
 local function remote(name) local r=Instance.new("RemoteEvent");r.Name=name;r.Parent=remotes;return r end
 local action=remote("Action");local stateRemote=remote("State");local effect=remote("Effect")
@@ -701,7 +709,7 @@ local function dev(p,command)
  local s=sessions[p];if not s or not Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId) then return end
  local valid={Coins=true,XP=true,AddLevels=true,MaxLevel=true,LevelOne=true,Heal=true,Hub=true,Arena=true,Beach=true,ResetQuests=true,ResetBots=true,StudioMovement=true,Fly=true}
  if type(command)~="string" or not valid[command] then return end
- if command=="Fly" and not (localFixture and RunService:IsStudio() and game.PlaceId==0 and game.GameId==0) then return end
+ if command=="Fly" and not toolAuthorized(p) then return end
  if command=="StudioMovement" and not game:GetService("RunService"):IsStudio() then return end
  if command=="ResetBots" and not localFixture then state(p,"Reset bots requires the isolated local Studio fixture; shared fights are unchanged.");return end
  if s.testBeam then testBeamEnd(p,s,os.clock()) end
@@ -716,7 +724,7 @@ local function dev(p,command)
   if s.flight then TestFlight.Stop(p,s)
   else
    cancelSustained(p,s,os.clock());VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
-   local ok,reason=TestFlight.Start(p,s,true,flightBounds,os.clock())
+   local ok,reason=TestFlight.Start(p,s,toolAuthorized(p),flightBounds,os.clock())
    if not ok then state(p,reason or "Flight unavailable");return end
    if s.damageSummary then clearDamageSummary(p,s) end
    closeConversation(p);Soccer.Cancel(p);s.sprintRequested=false
@@ -809,7 +817,9 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  end
  if verb=="FlightStop" then if s.flight then TestFlight.Stop(p,s) end;return end
  if verb=="FlightInput" then
-  if s.flight then TestFlight.Input(p,s,arg,os.clock()) end
+  if s.flight then
+   if toolAuthorized(p) then TestFlight.Input(p,s,arg,os.clock()) else TestFlight.Stop(p,s) end
+  end
   return
  end
  if s.flight and not (verb=="DevCommand" and arg=="Fly") and verb~="SetSettings" and verb~="Sync" then return end
@@ -851,8 +861,11 @@ action.OnServerEvent:Connect(function(p,verb,arg)
     if TestBeamRules.Available(authorized,localFixture) then state(p,reason) end
     return
    end
-   if not s.testBaseline then s.testBaseline=Profiles.Sanitize(s.data);s.data=Profiles.Sanitize(s.data) end
-   cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0);s.credit={}
+   if TestBeamRules.LocalFixture(localFixture) then
+    if not s.testBaseline then s.testBaseline=Profiles.Sanitize(s.data);s.data=Profiles.Sanitize(s.data) end
+    s.credit={}
+   end
+   cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
    ok,reason=testBeam.Start(p,s,authorized,localFixture,now,arg,Config.Gear.Multiplier(s.data))
    state(p,ok and "Silent beam test · visual only · no damage, rewards or progress" or reason)
   end
@@ -951,7 +964,7 @@ local function joined(p)
  local s={data=data,canSave=save,recoveryWarning=recoveryWarning,rewardIdentity={},voice=VoiceCombat.New(),voiceEligibility=VoiceEligibility.New(localFixture,os.clock(),p.UserId),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
  botRewards={},credit={},collected={},sprintRequested=false,sprintRunning=false,sprintRegenAt=0,sprintCharge=Config.SprintDuration,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
  -- Visibility cache only. Every activation, pulse and tick rechecks the dynamic server guard.
- s.testBeamAvailable=localFixture and TestBeamRules.Available(Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),localFixture)
+ s.testBeamAvailable=toolAuthorized(p)
  task.spawn(Commerce.Load,p)
  if sustainedEnabled then
   s.sustained=sustained.New()
@@ -1101,13 +1114,16 @@ task.spawn(function()
   dispatchVoiceEligibility(now)
   stepTraining(now)
   if bosses then bosses:Step(now) end
+  local toolsAvailable=TestBeamRules.LocalFixture(localFixture) or onlinePreviewTools()
+  if remotes:GetAttribute("TestToolsAvailable")~=toolsAvailable then remotes:SetAttribute("TestToolsAvailable",toolsAvailable) end
   for p,s in pairs(sessions) do
+   s.testBeamAvailable=toolsAvailable and toolAuthorized(p)
    if s.flight then
     -- Pause timed quest counters while traversal/interactions are disabled.
     local pause=math.clamp(now-(s.lastStep or now),0,1)
     if s.questDeadline then s.questDeadline+=pause end
     if s.raceStart then s.raceStart+=pause end
-    TestFlight.Step(p,s,Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),flightBounds,now,.1)
+    TestFlight.Step(p,s,toolAuthorized(p),flightBounds,now,.1)
    end
    if s.testBeam then
     local preview,ended=testBeam.Step(p,s,Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),localFixture,now)

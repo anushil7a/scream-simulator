@@ -72,6 +72,26 @@ for _,mode in ipairs({'Sit','SeatPart','PlatformStand','knock','dodge'})do
 end
 p,s,root,h=fixture();root.CFrame=cf(V.new(0,3,0));check(Flight.Start(p,s,true,bounds,0),'Grounded coastal start rejected');Flight.Stop(p,s)
 p,s,root,h=fixture();root.CFrame=cf(V.new(19.9,10,0));Flight.Start(p,s,true,bounds,0);Flight.Input(p,s,{x=1,y=0,z=0},0);Flight.Step(p,s,true,bounds,.1,.1);check(root.Position.X==20,'World bounds exceeded');Flight.Stop(p,s)
+-- Full-game online bounds inject a trusted authorization function.
+local onlineBounds={min=bounds.min,max=bounds.max}
+p,s,root,h=fixture();studio=false
+check(not Flight.Start(p,s,true,onlineBounds,0),'No bounds callback permitted online start')
+local validScope=false
+onlineBounds.previewAuthorized=function(candidate)return validScope and candidate==p end
+check(not Flight.Start(p,s,true,onlineBounds,0),'Rejected online context permitted start')
+validScope=true
+check(not Flight.Start(p,{},{},onlineBounds,0),'Invalid server authorization permitted flight')
+check(not Flight.Start(p,{},true,onlineBounds,0),'No temporary baseline permitted online flight')
+check(Flight.Start(p,s,true,onlineBounds,0),'Authorized staged online flight rejected')
+check(Flight.Input(p,s,{x=1,y=0,z=0},.01),'First online flight input rejected')
+check(not Flight.Input(p,s,{x=1,y=0,z=0},.01),'Same-tick flight input extended timeout')
+check(Flight.Input(p,s,{x=0,y=0,z=0},.02),'Zero input did not clear immediately')
+check(not Flight.Input(p,s,{x=1,y=0,z=0},.01),'Older replay after zero input accepted')
+check(Flight.Input(p,s,{x=1,y=0,z=0},.1),'Normal input cadence rejected')
+Flight.Step(p,s,true,onlineBounds,.1,.1)
+check(root.Position.X>0,'Online movement not server-owned')
+validScope=false
+check(not Flight.Step(p,s,true,onlineBounds,.2,.1) and not root.Anchored and h.AutoRotate and root.Position.X==0,'Online revoke failed to restore origin and controls')
 print('PASS '..n..' actual TestFlight security/movement/lifecycle checks; mocked server physics')
 '''
 with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=r/'tests',delete=False)as f:

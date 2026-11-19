@@ -1,9 +1,14 @@
 -- Server-authoritative, explicitly activated developer-test flight only.
--- Bounds are {min=Vector3,max=Vector3,localOnly=true}; no client CFrame, velocity or speed is accepted.
+-- Bounds are server-owned. The standalone local fixture supplies localOnly;
+-- the full game supplies its exact City Preview authorization callback too.
+-- No client CFrame, velocity or speed is accepted.
 local Flight={}
 local RunService=game:GetService("RunService")
 local function localOnly(bounds)
  return RunService:IsStudio() and game.GameId==0 and game.PlaceId==0 and type(bounds)=="table" and bounds.localOnly==true
+end
+local function allowedScope(p,bounds)
+ return localOnly(bounds) or (type(bounds)=="table" and type(bounds.previewAuthorized)=="function" and bounds.previewAuthorized(p)==true)
 end
 local SPEED=32
 local MAX_DT=.1
@@ -38,7 +43,7 @@ function Flight.Stop(p,s)
  if f.humanoid.Parent then f.humanoid.AutoRotate=f.autoRotate end
 end
 function Flight.Start(p,s,authorized,bounds,now)
- if authorized~=true or not localOnly(bounds) or type(s.testBaseline)~="table" then return false,"Start a developer test session first." end
+ if authorized~=true or not allowedScope(p,bounds) or type(s.testBaseline)~="table" then return false,"Start a developer test session first." end
  if not finite(now) or not validBounds(bounds) then return false,"Invalid flight bounds or clock." end
  if Flight.Active(s) then return false,"Flight is already active." end
  local character=p.Character
@@ -61,16 +66,20 @@ function Flight.Start(p,s,authorized,bounds,now)
 end
 function Flight.Input(p,s,arg,now)
  local f=s.flight
- if not f or type(s.testBaseline)~="table" or not live(p,f) or not finite(now) or now<f.clock then return false end
+ if not f or type(s.testBaseline)~="table" or not live(p,f) or not finite(now) or now<f.clock or now<(f.lastInputAt or 0) then return false end
  if type(arg)~="table" then return false end
  for k in pairs(arg) do if k~="x" and k~="y" and k~="z" then return false end end
  for _,key in ipairs({"x","y","z"}) do local v=arg[key];if v~=-1 and v~=0 and v~=1 then return false end end
- f.input=Vector3.new(arg.x,arg.y,arg.z);f.inputAt=now
+ local stop=arg.x==0 and arg.y==0 and arg.z==0
+ -- Refresh at most the normal preview packet cadence; an immediate zero
+ -- still clears directional intent when the client loses focus.
+ if not stop and f.lastInputAt and now-f.lastInputAt+.000001<.075 then return false end
+ f.input=Vector3.new(arg.x,arg.y,arg.z);f.inputAt=now;f.lastInputAt=now
  return true
 end
 function Flight.Step(p,s,authorized,bounds,now,dt)
  local f=s.flight;if not f then return false end
- if authorized~=true or not localOnly(bounds) or type(s.testBaseline)~="table" or not live(p,f) or not validBounds(bounds)
+ if authorized~=true or not allowedScope(p,bounds) or type(s.testBaseline)~="table" or not live(p,f) or not validBounds(bounds)
   or f.humanoid.Sit or f.humanoid.SeatPart or f.humanoid.PlatformStand or now<(s.knockedUntil or 0)
   or not finite(now) or now<f.clock or not finite(dt) or dt<0 then Flight.Stop(p,s);return false end
  f.clock=now

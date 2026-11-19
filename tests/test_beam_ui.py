@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess, tempfile
 root=Path(__file__).resolve().parents[1]
 s=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
-a=s.index(' if localFlightTools then\n  local TestBeamTools=')
+a=s.index(' do\n  local TestBeamTools=')
 ui=s[a:s.index('\nend\nlocal testButton=',a)]
 a=s.index(' if kind=="TestBeamEnd" then')
 fx=s[a:s.index(' if kind=="SustainedHit" then',a)]
@@ -11,7 +11,11 @@ setup=r'''
 local checks=0;local function check(v,m)assert(v,m);checks+=1 end
 local Module=require('../src/StarterPlayer/StarterPlayerScripts/TestBeamTools')
 local now=1;local os={clock=function()return now end}
-local localFlightTools=true;local script={Parent={}};local clientDestroyed=false
+local localFlightTools=true;local capability
+local remotes={GetAttribute=function()return capability end,GetAttributeChangedSignal=function()return 'capability'end}
+local academy={}
+function academy.layoutTestCommands(v)academyLayout=v;academy.testerToolsVisible=v end
+local script={Parent={}};local clientDestroyed=false
 local function loadClientDependency()return Module end;local function clientCheckpoint()return true end
 local data={settings={},devAccess=true,testBeamAvailable=true,testBeamActive=false,testBeamPower=0,testBeamCooldown=0}
 local windowFocused=true;local modal={Visible=false};local conversationPanel={Visible=false}
@@ -32,6 +36,8 @@ local function ownClient(fn)table.insert(cleanups,fn)end
 local function cancelCapture()end
 local function aimRay()error("Normal mic/cursor aim must not be used for Test Beam")end
 '''
+capability=s[s.index('function academy.testToolsAllowed()'):s.index('\ndevPanel=frame',s.index('function academy.testToolsAllowed()'))]
+setup+=capability+'\n'
 checks=r'''
 local function last()return sent[#sent]end
 connections.tick()
@@ -59,6 +65,23 @@ controls.TestBeam.call();cleanups[1]();check(last()[1]=='TestBeamStop','Retireme
 workspace.CurrentCamera=nil;data.testBeamActive=false;local before=#sent;controls.TestBeam.call();check(#sent==before,'Absent camera fired')
 workspace.CurrentCamera={ViewportSize={X=320,Y=240},ViewportPointToRay=function(_,x,y)check(x==160 and y==120,'Resized viewport center mismatch');return {Origin=10,Direction=2}end}
 UIS.TouchEnabled=true;controls.TestBeam.call();check(last()[1]=='TestBeamBegin' and last()[2].aim==2010,'Touch aim differs from desktop center');controls.TestBeam.call()
+-- Online UI starts rejected and never infers a scope from client game IDs.
+localFlightTools=false;capability=nil;academy.refreshTesterTools()
+check(not controls.TestBeam.Visible and academyLayout==false,'Online controls appeared without server capability')
+local before=#sent;controls.TestBeam.call();check(#sent==before,'Hidden queued online click dispatched')
+for _,invalid in ipairs({false,1,'true',{}})do
+ capability=invalid;academy.refreshTesterTools();check(not controls.TestBeam.Visible,'Nonboolean capability showed online tools')
+end
+capability=true;data.devAccess=false;academy.refreshTesterTools();check(not controls.TestBeam.Visible,'Capability bypassed per-user authorization')
+data.devAccess=true;data.testBeamAvailable=false;academy.refreshTesterTools();check(not controls.TestBeam.Visible,'Capability bypassed per-user State')
+data.testBeamAvailable=true;academy.refreshTesterTools();check(controls.TestBeam.Visible and academyLayout==true,'Server online capability did not activate rows')
+data.testBeamActive=false;controls.TestBeam.call();check(last()[1]=='TestBeamBegin','Authorized online click failed')
+capability=false;connections.capability();check(last()[1]=='TestBeamStop' and not controls.TestBeam.Visible and not crosshair.Visible,'Capability revoke failed immediate stop/hide')
+capability=true;academy.refreshTesterTools();controls.TestBeam.call();data.devAccess=false;academy.refreshTesterTools();check(last()[1]=='TestBeamStop' and not controls.TestBeam.Visible,'Per-user revoke failed stop/hide')
+data.devAccess=true;data.testBeamAvailable=true;capability=nil
+localFlightTools=true;capability=false;academy.refreshTesterTools();check(not controls.TestBeam.Visible,'Local startup fallback overrode explicit server denial')
+capability='true';academy.refreshTesterTools();check(not controls.TestBeam.Visible,'Local fallback accepted malformed replicated capability')
+capability=nil;academy.refreshTesterTools();check(controls.TestBeam.Visible,'Guarded local startup fallback lost')
 -- Separate effect path has no attackAudio/playGameplayCue globals at all.
 local removed,updated;local sustainedBeams={Remove=function(_,key)removed=key end,Update=function(_,key)updated=key end}
 local pos={};local position={};setmetatable(position,{__sub=function()return {Magnitude=1}end})
@@ -69,7 +92,8 @@ local function effect(kind,id,length)
  local aura={};local direction={};local beamWidth=4;local attackLevel=10
 __EFFECT_FRAGMENT__
 end
-localFlightTools=false;effect('TestBeam',7,20);check(updated==nil,'Test FX outside local fixture')
+localFlightTools=false;capability=nil;effect('TestBeam',7,20);check(updated==nil,'Test FX without server capability')
+capability=true;effect('TestBeam',7,20);check(updated=='test:7','Authorized online FX not rendered');updated=nil;capability=nil
 localFlightTools=true;effect('TestBeam',7,20);check(updated=='test:7','Test visuals missing/disturb normal beam key')
 effect('TestBeamEnd',7);check(removed=='test:7','End did not clear test beam')
 updated=nil;effect('TestBeam',8,20);check(updated==nil and removed=='test:8','Unknown attacker admitted')

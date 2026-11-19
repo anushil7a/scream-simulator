@@ -55,7 +55,12 @@ setup=r"""
 end)()
 local owner={UserId=11499795799,SetAttribute=function()end};local ordinary={UserId=1234,SetAttribute=function()end}
 local VoiceCombat=Combat;local function cancelSustained()end
-local localFixture=false;local flightBounds={localOnly=true};local flightStarts=0;local flightStops=0
+local localFixture=false
+local TestBeamRules={Available=function(authorized,fixture)
+ return authorized and ((fixture and studio and game.GameId==0 and game.PlaceId==0)
+  or Access.IsCityPreviewTools(game.CreatorType,game.CreatorId,studio,game.GameId,game.PlaceId))
+end}
+local flightBounds={localOnly=true};local flightStarts=0;local flightStops=0
 local TestFlight={Start=function(p,s,authorized,bounds,now)
  assert(authorized==true and type(s.testBaseline)=='table','Flight before isolated temporary baseline')
  flightStarts+=1;s.flight={};return true end,Stop=function(p,s)flightStops+=1;s.flight=nil end}
@@ -139,10 +144,32 @@ dev(owner,'Fly');check(flightStarts==1 and flightSession.flight and flightSessio
 check(flightSession.activeQuest=='garden','Flight erased active quest identity')
 local heldBaseline=flightSession.testBaseline;dev(owner,'Fly')
 check(flightStops==1 and not flightSession.flight and flightSession.testBaseline==heldBaseline,'Off lost baseline or failed cleanup')
+
+-- Everyone in the exact owner preview is an approved tester while the server flag is true.
+-- The owner cannot use the new flight path in that place when the flag is false.
+studio=false;localFixture=false;game.GameId=10769005350;game.PlaceId=90337242377543
+s=fresh(owner,1);dev(owner,'Fly');check(not s.flight and not s.testBaseline,'Owner bypassed disabled exact preview access')
+Access.PrelaunchAllTesters=true
+local bad={{10769005350,90337242377544},{10769005351,90337242377543},{10769005350,0}}
+for _,v in ipairs(bad) do
+ game.GameId,game.PlaceId=v[1],v[2];s=fresh(owner,1);dev(owner,'Fly');check(not s.flight and not s.testBaseline,'Wrong live destination entered isolated flight')
+end
+game.GameId=10769005350;game.PlaceId=90337242377543
+s=fresh(ordinary,1);dev(ordinary,'Fly')
+check(s.flight and s.testBaseline.coins==123 and s.testBaseline~=s.data,'Exact preview flight must preserve real profile snapshot')
+dev(ordinary,'Fly')
+check(not s.flight and s.testBaseline.coins==123,'Online flight stop changed baseline')
+s=fresh(ordinary,1);dev(ordinary,'ResetBots')
+check(not s.testBaseline,'Online preview unlocked guarded Studio ResetBots')
+Access.PrelaunchUniverseIds[10769005350]=nil
+s=fresh(owner,1);dev(owner,'Fly')
+check(not s.flight and not s.testBaseline,'Owner bypassed removed preview universe allowlist entry')
+
 print('PASS '..n..' actual developer access/command/sanitizer assertions; mocked engine, no native or real save validation')
 """
 def assemble(access_source=access,dev_source=dev):
- return preamble+config+between+profiles+helpers+access_source+setup+'\nAccess.PrelaunchAllTesters=false -- retained owner-only policy matrix; enabled policy covered separately\n'+dev_source+'\nlocal function visible(p)return '+visibility+' end\n'
+ tool_guard='' if args.baseline else server[server.index('local function toolAuthorized('):server.index('local flightBounds=')]
+ return preamble+config+between+profiles+helpers+access_source+setup+tool_guard+'\nAccess.PrelaunchAllTesters=false -- retained owner-only policy matrix; enabled policy covered separately\n'+dev_source+'\nlocal function visible(p)return '+visibility+' end\n'
 def run(code,expected=None):
  with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',encoding='utf-8',delete=False) as f:
   path=Path(f.name);f.write(code)
@@ -165,7 +192,9 @@ else:
  late=server[server.index(' if closing or not p.Parent then',server.index('local function joined(p)')):server.index(' local s={data=data',server.index('local function joined(p)'))]
  assert 'pcall(Profiles.Save,p.UserId,data,true)' in late and 'return' in late,'Unexpected raw-data save outside pre-session late-load release'
  assert 'devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)' in server,'Visibility omitted server Studio/universe context'
- assert server.count('Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)')==6,'Visibility, command, flight and beam-test revalidation must use server universe'
+ assert 'return TestBeamRules.Available(Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),localFixture)' in server
+ assert 'TestFlight.Step(p,s,toolAuthorized(p),flightBounds,now,.1)' in server
+ assert 'TestFlight.Start(p,s,toolAuthorized(p),flightBounds,os.clock())' in server
  print('PASS three persistence call-site baseline selections and server-side visibility wiring (source checks only)')
  if args.negative_controls:
   bad_access=re.sub(r'function Access.IsAuthorized\(.*?\nend', 'function Access.IsAuthorized(player,creatorType,creatorId,isStudio)\n return player~=nil\nend',access,flags=re.S)

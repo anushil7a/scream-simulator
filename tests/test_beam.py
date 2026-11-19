@@ -15,12 +15,19 @@ mt.__mul=function(a,b)return V.new(a.X*b,a.Y*b,a.Z*b)end
 mt.__index=function(a,k)if k=='Magnitude'then return math.sqrt(a.X*a.X+a.Y*a.Y+a.Z*a.Z)elseif k=='Unit'then return a*(1/a.Magnitude)end end
 local Vector3=V;local typeof=function(v)return type(v)=='table'and getmetatable(v)==mt and 'Vector3'or type(v)end
 local studio=true;local flag=true
-local game={GameId=0,PlaceId=0,GetService=function()return {IsStudio=function()return studio end}end}
+local Enum={CreatorType={User="User",Group="Group"}}
+local game={GameId=0,PlaceId=0,CreatorType=Enum.CreatorType.User,CreatorId=11499795799,GetService=function()return {IsStudio=function()return studio end}end}
 local workspace={GetAttribute=function(_,name)assert(name=='LocalSustainedPrototype');return flag end}
 local Aim=(function()
 '''
 mid=r'''
 end)()
+local AccessModule=(function()
+'''
+access_bridge=r'''
+end)()
+local script={Parent={DeveloperAccess="DeveloperAccess"}}
+local function require(name) assert(name=="DeveloperAccess");return AccessModule end
 local Rules=(function()
 '''
 post=r'''
@@ -118,6 +125,7 @@ local RunService=game:GetService("RunService")
 local now=0;local os={clock=function()return now end}
 local localFixture=true;local auth=true;local busy=false;local sanitized=0
 local Access={IsAuthorized=function()return auth end}
+local function toolAuthorized()return Rules.Available(auth,localFixture)end
 local Commerce={Busy=function()return busy end}
 local Config={Gear={Multiplier=function()return 1.32 end}}
 local function copy(t)local out={};for k,v in pairs(t)do out[k]=type(v)=='table'and copy(v)or v end;return out end
@@ -175,9 +183,42 @@ dispatch(second,'TestBeamBegin',req(100));dispatch(first,'TestBeamStop',nil)
 check(not firstState.testBeam and secondState.testBeam,'Stop crossed player boundary')
 -- An ordinary ready microphone is preserved rather than permanently disabled.
 p,s=freshDispatch();dispatch(p,'TestBeamBegin',req(100));check(s.micReady==true,'Preview changed ordinary microphone readiness')
+
+-- The exact online destination uses a real loaded profile and mic state.
+local function online()
+ studio=false;localFixture=false;game.GameId=10769005350;game.PlaceId=90337242377543
+ game.CreatorType=Enum.CreatorType.User;game.CreatorId=AccessModule.OwnerUserId;AccessModule.PrelaunchAllTesters=true
+ AccessModule.PrelaunchUniverseIds[10769005350]=true
+ auth=true;busy=false
+end
+for _,mode in ipairs({"place","universe","creatorType","creatorId","publishedStudio","flag","allowlist","auth","notReady"}) do
+ online()
+ local p,s=freshDispatch()
+ local old=s.data
+ if mode=="place" then game.PlaceId+=1 elseif mode=="universe" then game.GameId+=1
+ elseif mode=="creatorType" then game.CreatorType=Enum.CreatorType.Group
+ elseif mode=="creatorId" then game.CreatorId+=1 elseif mode=="publishedStudio" then studio=true
+ elseif mode=="flag" then AccessModule.PrelaunchAllTesters=false elseif mode=="allowlist" then AccessModule.PrelaunchUniverseIds[10769005350]=nil elseif mode=="auth" then auth=false
+ else busy=true end
+ dispatch(p,"TestBeamBegin",req(100))
+ check(not s.testBeam and not s.testBaseline and s.data==old and sanitized==0,"Wrong online context admitted: "..mode)
+end
+online();p,s=freshDispatch();local real=s.data;local legitimateCredit={}
+s.credit=legitimateCredit;s.canSave=true
+dispatch(p,"TestBeamBegin",req(100))
+check(s.testBeam and s.canSave and s.data==real and not s.testBaseline and sanitized==0,"Valid online preview mutated or froze profile")
+check(s.credit==legitimateCredit and s.micReady==true and s.voice.capture==nil,"Only capture should cancel with online preview")
+now=.1;dispatch(p,"TestBeamPulse",req(55))
+check(s.testBeam.power==55,"Online preview pulse rejected")
+AccessModule.PrelaunchAllTesters=false
+now=.2;dispatch(p,"TestBeamPulse",req(100))
+check(not s.testBeam and #events==1 and events[1][1]=="TestBeamEnd","Revocation left preview running")
+for i=1,20 do dispatch(p,"TestBeamStop",nil) end
+check(#events==1 and s.canSave and s.data==real,"Replay amplified signal or mutated saving")
+
 print('PASS '..checks..' total module + actual Action dispatcher preview assertions; synthetic only')
 '''
-code=pre+(ROOT/'src/ServerScriptService/SustainedAim.luau').read_text()+mid+(ROOT/'src/ServerScriptService/TestBeam.luau').read_text()+post+integration_pre+end_helper+dispatcher+integration_checks
+code=pre+(ROOT/'src/ServerScriptService/SustainedAim.luau').read_text()+mid+(ROOT/'src/ServerScriptService/DeveloperAccess.luau').read_text()+access_bridge+(ROOT/'src/ServerScriptService/TestBeam.luau').read_text()+post+integration_pre+end_helper+dispatcher+integration_checks
 with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=ROOT/'tests',delete=False)as f:
  path=Path(f.name);f.write(code)
 try:subprocess.run(['luau',str(path)],cwd=ROOT,check=True)

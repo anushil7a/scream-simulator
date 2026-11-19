@@ -16,6 +16,7 @@ EXPECTED_AUTO = ['wait:Shared/SustainedAttack','require:SustainedAttack','wait:S
 EXPECTED_TAIL = ['wait:PlayerScripts/VoiceReactor','require:VoiceReactor','wait:PlayerScripts/HitFeedback','require:HitFeedback','wait:Shared/NavigationCatalog','require:NavigationCatalog','wait:Shared/BossCatalog','require:BossCatalog','wait:PlayerScripts/NavigationGuide','require:NavigationGuide','wait:PlayerScripts/BeamVisuals','require:BeamVisuals']
 SETUP=r'''
 local RealControls=require("../src/StarterPlayer/StarterPlayerScripts/SustainedControls")
+local RealTestBeamTools=require("../src/StarterPlayer/StarterPlayerScripts/TestBeamTools")
 local variant=VARIANT
 local warnings=0;local function warn(message)assert(message=="ScreamSimulator Client cleanup failed");warnings+=1 end
 local singletonClears={};local cleanupOrder={};local renders=0;local jobs={};local terminalShopClears=0
@@ -94,10 +95,11 @@ local function resource(name)
  function o:Pulse()end
  if name~='NotificationQueue' and name~='HitFeedback' and name~='VoiceActivation' then table.insert(owned,o)end;if variant=="late-"..name then script.Destroying:Fire()end;return o
 end
-for _,n in ipairs({'DodgeVisuals','CityMap','Config','DamageReadout','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','LockOn','TrainingRules','VoiceReactor','NavigationCatalog','BossCatalog','NavigationGuide'})do
+for _,n in ipairs({'DodgeVisuals','CityMap','Config','DamageReadout','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','LockOn','TrainingRules','VoiceReactor','NavigationCatalog','BossCatalog','NavigationGuide','TestBeamTools'})do
  local node=object(n,shared);shared[n]=node;scriptParent[n]=node
  modules[n]={new=function(...)return resource(n)end,Clear=function()singletonClears[n]=(singletonClears[n] or 0)+1;table.insert(cleanupOrder,n)end}
 end
+modules.TestBeamTools=RealTestBeamTools
 modules.DodgeVisuals={Destroy=function()end,Play=function()end}
 modules.Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLevel=100,MicroSpeakerPrice=200,MovementPassId=0,XPToNext=function()return 100 end,Auras={Gold={}}}
 modules.TrainingRules={Tiers={{id='rookie',x=0,z=0}},Radius=32}
@@ -210,6 +212,7 @@ if __name__=='__main__':
   if not args.baseline: expected[2:2]=['wait:PlayerScripts/DodgeVisuals','require:DodgeVisuals']
   if not args.baseline:
    insert=expected.index('require:NoticeView')+1;expected[insert:insert]=['wait:PlayerScripts/DamageReadout','require:DamageReadout']
+   insert=expected.index('require:HitFeedback')+1;expected[insert:insert]=['wait:PlayerScripts/TestBeamTools','require:TestBeamTools']
   assert [name for _,name in boundaries]==expected,'Startup dependency boundary coverage changed'
   print(('automatic' if auto else 'legacy')+' boundaries='+str(len(boundaries)))
   for i,name in boundaries:
