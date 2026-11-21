@@ -1,5 +1,10 @@
 # Scream Simulator development roadmap
 
+## Overlapping beam audio
+
+- An unloaded remote clip previously halved a loaded remote clip's normal gain from .40 to .20 before group gain and spatial rolloff. The adapter now admits only loaded active clips and previously started fades to the shared gain calculation. Clips canceled before first playback stay silent and consume no gain. The four-handle limit, voice ceiling and calibration mute still apply.
+- Independent review passed 29 adapter, 481 level, 2,148 LOW baseline and 344 cadence assertions plus 12 negative controls. The full local test and build matrix passed. These are simulated readiness and gain checks, with real asset playback, voice audibility and physical-device mix still open.
+
 ## Restored HUD and beam verification
 
 - The repaired HUD fixture passes 1,160 assertions and 14 negative controls. The full gate previously stopped in two beam renderer suites at unavailable ref `760b257`. Both now use the tracked Map 10 milestone `0f0ddbe`, compare unchanged geometry to that snapshot, and assert the approved contact lens fade and pool reserves explicitly.

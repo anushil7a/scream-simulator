@@ -26,7 +26,9 @@ function Audio.new()
    handle.started=true
    sound:Play()
   end
- end,function(handle) handle.sound:Stop();handle.anchor:Destroy() end)
+ end,function(handle) handle.sound:Stop();handle.anchor:Destroy() end,function(handle,fading)
+  return handle.started or not fading and handle.sound.IsLoaded
+ end)
  local destroy=mix.Destroy
  function mix:Destroy() destroy(self);group:Destroy() end
  return mix

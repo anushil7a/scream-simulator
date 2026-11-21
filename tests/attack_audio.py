@@ -67,6 +67,23 @@ mixer:Step(2.12,.01,false)
 check(delayed.plays==1,"Live beam restarted on a later mix step")
 mixer:Stop(3,2.12);mixer:Step(2.20,.08,false)
 check(delayed.plays==1 and delayed.Volume>0 and delayed.Volume<gain,"A playing beam lost its normal fade")
+mixer:Clear()
+local start=#nodes
+check(mixer:Pulse(4,3,10,false,10) and mixer:Pulse(5,3,10,false,20),"Concurrent beams rejected")
+local audible,loading=nodes[start+2],nodes[start+4]
+loading.IsLoaded=false
+mixer:Step(3.13,.13,false)
+check(audible.plays==1 and math.abs(audible.Volume-settings.TotalVolume)<1e-6 and loading.Volume==0,"Unloaded beam took a share of the mix")
+loading.IsLoaded=true
+mixer:Step(3.14,.01,false)
+check(loading.plays==1 and math.abs(audible.Volume-settings.TotalVolume/2)<1e-6 and math.abs(audible.Volume+loading.Volume-settings.TotalVolume)<1e-6,"Newly loaded beam did not share the bounded mix")
+check(mixer:Pulse(6,3.14,10,false,30),"Third beam rejected")
+local canceled=nodes[start+6]
+mixer:Stop(6,3.15)
+mixer:Step(3.16,.02,false)
+check(canceled.plays==0 and canceled.Volume==0 and math.abs(audible.Volume+loading.Volume-settings.TotalVolume)<1e-6,"Stopped unplayed beam took a share of the mix")
+mixer:Step(3.17,.01,true)
+check(audible.Volume+loading.Volume<=settings.LowVolume*mixer.duck+1e-6,"Loaded beams exceeded the voice-active ceiling")
 mixer:Destroy();check(nodes[1].destroyed,"Teardown leaked SoundGroup")
 check(not mixer:Pulse(2,1,10,true),"Destroyed adapter recreated audio")
 print("PASS "..checks.." actual attack audio adapter checks with mocked instances")

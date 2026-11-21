@@ -1,7 +1,7 @@
 -- Cosmetic timing/mixing only. No voice recording, damage or server requests.
 local Mix={};Mix.__index=Mix
-function Mix.new(settings,create,update,destroy)
- return setmetatable({settings=settings,create=create,update=update,destroy=destroy,
+function Mix.new(settings,create,update,destroy,canMix)
+ return setmetatable({settings=settings,create=create,update=update,destroy=destroy,canMix=canMix,
   entries={},count=0,enabled=true,level="NORMAL",duck=1},Mix)
 end
 function Mix:Remove(id)
@@ -49,7 +49,12 @@ function Mix:Step(now,dt,voiceActive,calibrating)
  local budget=self.level=="LOW" and self.settings.LowVolume or self.settings.TotalVolume
  -- Louder listening must not raise the old voice-active feedback ceiling.
  if voiceActive then budget=math.min(budget,self.settings.LowVolume) end
- local gain=calibrating and 0 or budget/math.max(1,self.count)*self.duck
+ local audible=0
+ for _,entry in pairs(self.entries) do
+  entry.audible=not self.canMix or self.canMix(entry.sound,entry.stopped~=nil)
+  if entry.audible then audible+=1 end
+ end
+ local gain=calibrating and 0 or budget/math.max(1,audible)*self.duck
  for _,entry in pairs(self.entries) do
   local age=math.max(0,now-entry.started)
   local envelope=math.clamp(age/self.settings.FadeIn,0,1)
@@ -58,7 +63,7 @@ function Mix:Step(now,dt,voiceActive,calibrating)
    local release=math.clamp((now-entry.stopped)/self.settings.FadeOut,0,1)
    envelope*=1-release
   end
-  self.update(entry.sound,entry.position,gain*envelope*(entry.isLocal and self.settings.LocalMultiplier or 1),pitch,entry.stopped~=nil)
+  self.update(entry.sound,entry.position,(entry.audible and gain or 0)*envelope*(entry.isLocal and self.settings.LocalMultiplier or 1),pitch,entry.stopped~=nil)
  end
 end
 function Mix:Destroy()
