@@ -66,7 +66,7 @@ check(meter.Position.x==14 and meter.Position.y==164 and meter.Position.x+meter.
 meterLayout(750,323,true)
 check(meter.Position.x==-115 and meter.Position.y==-96 and meter.Size.y==84 and meter.RecentAmplitude.Visible,
  'Full meter did not restore after resize')
-local function visibility(active,selected,paused,touch,view)
+local function visibility(active,selected,paused,touch,view,selection,routeStatus)
  local viewport=view or (touch and {X=750,Y=323} or {X=567,Y=241})
  local showQuest,gameplayVisible=true,not paused
  local data={activeQuest=active and 'sprint' or nil}
@@ -79,7 +79,8 @@ local function visibility(active,selected,paused,touch,view)
  academy.guidePanel={}
  academy.guideText={}
  academy.guideTarget=selected and {label='Training courtyard'} or nil
- academy.guide={GetStatus=function()return 'Follow the markers',42,'N' end}
+ academy.guideSelection=selection
+ academy.guide={GetStatus=function()return routeStatus or 'Follow the markers',42,'N' end}
  academy.trainingGuideButton={}
  academy.canGuideTraining=function()return not active and not selected end
  local zone={}
@@ -102,6 +103,17 @@ track,route,guide,text=visibility(false,true,false,true,{X=529,Y=242})
 check(route and not track and not guide and text=='Training courtyard\nFollow the markers · 42 studs N','Short touch route disappeared after Guide')
 track,route,guide=visibility(true,true,false,true,{X=529,Y=242})
 check(track and not route and not guide,'Short touch route covered an active quest timer')
+local training={kind='place',id='training'}
+local _,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},training,'Arrived')
+check(arrival=='Training courtyard\nHit the fighter to spar','Training arrival does not teach the first action')
+_,_,_,arrival=visibility(false,true,false,true,{X=667,Y=375},training,'Arrived')
+check(arrival=='Hit the fighter to spar','Compact training arrival carries stale distance or heading')
+_,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},training,'Follow the markers')
+check(arrival=='Training courtyard\nFollow the markers · 42 studs N','Training arrival cue appears before reaching the pad')
+_,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},{kind='place',id='gardens'},'Arrived')
+check(arrival=='Training courtyard\nArrived · 42 studs N','Another destination showed fight instructions')
+_,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},{kind='quest',id='training'},'Arrived')
+check(arrival=='Training courtyard\nArrived · 42 studs N','Another guide type showed fight instructions')
 print('PASS '..checks..' navigation layout checks; no native rendering claim')
 '''
 start=s.index(' local guideUsesTracker=false')
@@ -132,10 +144,12 @@ for old,new,reason in [
     ('and not (guideUsesTracker and academy.guidePanel.Visible)','and true','Selected route does not replace idle progress'),
     ('w-274>=314 and defaultY+50<=h-102','true','Tracker enters thumbstick lane'),
     (' and h<346 and w-274>=314',' and w-274>=314','Landscape guide clear button overlaps Talk on taller narrow screens'),
+    ('status=="Arrived" and selection.kind=="place" and selection.id=="training"', 'status=="Arrived" and selection.kind=="place"', 'Another destination showed fight instructions'),
+    ('status=="Arrived" and selection.kind=="place" and selection.id=="training"', 'selection and selection.kind=="place" and selection.id=="training"', 'Training arrival cue appears before reaching the pad'),
 ]:
     assert code.count(old)==1,old
     result=run(code.replace(old,new))
     assert result.returncode and reason in result.stderr,(old,result.stderr)
-print('PASS 12 tracker lane, priority and meter negative controls')
+print('PASS 14 tracker lane, priority, meter and arrival negative controls')
 assert 'or noticeView:Overlaps(passive,gui,talkButton)' in s and 'meter,academy.guidePanel}' in s
 assert 'if academy.guideText.Text~=text' in s

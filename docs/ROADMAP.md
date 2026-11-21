@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Training guidance hands off to the first fight
+
+- At the Rookie pad, the selected guide previously showed **Arrived · 5 studs W**. It now says **Hit the fighter to spar**, with the fighter and level above it where the layout has room. Walking out of the arrival radius restores the direction and distance. Other destinations keep their arrival text, and the training guide still requires the player to select it.
+- In the guarded city build, a native Studio emulated touch tapped GUIDE at spawn. Staging the avatar beside Rookie showed the new copy at 750 × 323 and 567 × 242. The smaller label fit 116 × 24 pixels of text in 143 × 52 pixels. Staging the avatar 22 studs away restored **Follow the markers**, and CLEAR restored the idle card and GUIDE. Correctly mapped touch taps worked on both baseline and candidate, so the trial layout move was dropped.
+- Focused checks passed 106 assertions and 14 negative controls. Independent review and the full local build and check matrix passed. Three disposable Studio sessions closed after restoring the default viewport. The next release check is an unassisted opening through the first upgrade with eligible voice and physical touch.
+
 ## Resonance Hall local combat preview
 
 - `python tests/build_sustained_review.py --resonance-local-qa` builds `build/ResonanceCombatLocalReview.rbxl`. Run Studio Server & Clients with two players, then invoke `game.ServerStorage.ResonanceCombatReview:Invoke()` in the server session. The diagnostic stages power, positions, and time directly on the existing server combat controller. Start a fresh session for manual play after running it.

@@ -1689,6 +1689,10 @@ connectClient(Run.RenderStepped,function(dt)
   if academy.guidePanel.Visible then
    academy.guidePanel.Position=UDim2.fromOffset(x,y);academy.guidePanel.Size=UDim2.fromOffset(w,h)
    local status,distance,bearing=academy.guide:GetStatus()
+   local selection=academy.guideSelection
+   if status=="Arrived" and selection.kind=="place" and selection.id=="training" then
+    status,distance="Hit the fighter to spar",nil
+   end
    if compact and status=="Route unavailable" then status="No route" end
    local suffix=distance and (" · "..math.floor(distance).." studs"..(bearing and (" "..bearing) or "")) or ""
    local text=(compact and "" or academy.guideTarget.label.."\n")..status..suffix
