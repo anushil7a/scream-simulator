@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Defender feedback when an active beam reconnects
+
+- In a disposable two-client Studio session, a Garden beam reduced the defender from 100 to 97 HP, dealt no damage on the safe café paving, and reduced health to 94 on re-entry under the same cast. The baseline showed **BEAM HIT YOU** for the first hit only. It expired on the safe paving and stayed hidden after return damage. The fixed build showed the cue for both hits. Moving the attacker across the boundary and back produced the same damage and feedback results. The attacker's client received no defender cue.
+- Confirmed nonlethal beam damage can now refresh the existing defender message at most once per second per defender across all attackers. Respawn resets the presentation timer. Damage, targeting, safe-zone rules, healing and rewards are unchanged.
+- Critic cleared the change. Focused tests passed 165 server differential assertions, 10 negative controls, 330 client integration assertions and 20 PvP reward assertions. All eight prior stationary Garden cases also passed natively. All 312 checks and builds passed with matching input hashes. The disposable sessions closed. Endpoint positions and power pulses were staged in the guarded fixture, which stepped the production resolver under a single cast and observed actual client health and HUD updates. Walking across the boundary while firing, physical devices, real microphone input and live network conditions remain unverified.
+
 ## Eclipse Conductor escape guidance
 
 - In the native baseline, the six damage circles appeared with only the boss identity label. The attack instruction never reached the HUD. A world-space candidate went above the short phone viewport at the sampled camera angle. Moving it down brought it behind the level HUD. The final cue reuses the existing status line, says **Step off the circles**, and keeps active PvP status higher priority.

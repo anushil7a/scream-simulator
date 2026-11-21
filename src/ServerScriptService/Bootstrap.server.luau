@@ -543,7 +543,9 @@ local function stepSustained(p,s,now)
    else
     local previous=h.Health
     h.Health-=hit.damage
-    if hit.firstHit and h.Health<previous then
+    if h.Health<previous and now>=(ts.nextBeamCueAt or 0) then
+     -- Refresh the 1.4-second defender cue at most once per second across all beams.
+     ts.nextBeamCueAt=now+1
      effect:FireClient(target.player,"SustainedDamageTaken",h)
     end
    end
@@ -1047,7 +1049,7 @@ local function joined(p)
   s.jumpPower=h.JumpPower;s.jumpHeight=h.JumpHeight
   h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=16
   s.sprintCharge=Config.SprintDuration;s.sprintRequested=false;s.sprintRunning=false;s.sprintRegenAt=0;s.lastStep=os.clock();s.sprintLockedUntil=0;s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false
-  s.nextHeal=os.clock()+Config.HealQuietSeconds
+  s.nextHeal=os.clock()+Config.HealQuietSeconds;s.nextBeamCueAt=nil
   p:SetAttribute("DodgeEnds",0);p:SetAttribute("DodgeStarted",0);p:SetAttribute("KnockdownEnds",0)
   p:SetAttribute("Sprinting",false);p:SetAttribute("SprintCooldown",0);p:SetAttribute("SprintCharge",Config.SprintDuration)
   protect(p,s);state(p)

@@ -19,6 +19,7 @@ local localFixture=false
 local sessions={}
 for _,p in pairs(players) do sessions[p]={rewardIdentity={},data={level=20,xp=0,coins=0,combatChallenges={}},credit={}} end
 local notices={};local updates={};local quests={};local ejections=0
+local effect={FireClient=function(_,player,kind)assert(player==victim and kind=="SustainedDamageTaken")end}
 local function state(p,message)notices[p]=message;updates[p]=(updates[p] or 0)+1 end
 local Commerce={Multiplier=function()return 1 end}
 local function coins(p,amount)sessions[p].data.coins+=amount;return amount end
