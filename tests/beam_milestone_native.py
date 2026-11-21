@@ -34,14 +34,18 @@ CFrame.identity=CFrame.new(Vector3.zero)
 local NumberSequenceKeypoint={new=function(t,v,e)return {Time=t,Value=v,Envelope=e or 0}end}
 local NumberSequence={new=function(k)return {Keypoints=k}end}
 local NumberRange={new=function(a,b)return {Min=a,Max=b or a}end}
+local ColorSequence={new=function(c)return {Keypoints={{Value=c}}}end}
+local authored=ColorSequence.new(Color3.fromRGB(130,54,204))
 local templates=make('Folder','VfxTemplates',workspace)
 local function beam(parent,width,core)
  local b=make('Beam','Filament',parent)
  b.Width0=width;b.Width1=width*.6;b.CurveSize0=0;b.CurveSize1=0;b.LightEmission=.2;b.TextureSpeed=2
+ b.Color=authored
  return b
 end
 local function emitter(parent)
  local e=make('ParticleEmitter','Sparks',parent);e.LightEmission=.1;e.Rate=30;e.Enabled=true
+ e.Color=authored
  e.Size=NumberSequence.new({NumberSequenceKeypoint.new(0,1,0),NumberSequenceKeypoint.new(1,0,0)})
  e.Speed=NumberRange.new(1,3);return e
 end
@@ -161,6 +165,42 @@ for _,mode in ipairs({{false,false},{false,true},{true,false},{false,false}}) do
  check(v.emitters[1].inst.clearCount==clears,'Steady mode cleared particles again')
 end
 check(v.emitters[1].inst.clearCount==1 and v.emitters[1].inst.Enabled,'Particle transition failed to clear or restore')
+local tint=Color3.fromRGB(32,235,88)
+local base=Color3.fromRGB(255,203,99)
+local light=tint:Lerp(Color3.fromRGB(245,252,255),.32)
+local baseLight=base:Lerp(Color3.fromRGB(245,252,255),.32)
+local function sameColor(a,b)return near(a.R,b.R) and near(a.G,b.G) and near(a.B,b.B) end
+for _,level in ipairs({100,50,10}) do
+ manager:Update(1,1,Vector3.zero,Vector3.zAxis,40,7,tint,level,false)
+ Visuals.Animate(r,r.born+1,Vector3.zero,false,false,false)
+ local tintedVfx=r.vfx
+ for _,entry in ipairs(tintedVfx.beams)do
+  check(sameColor(entry.inst.Color.Keypoints[1].Value,entry.isCore and tint or light),'Explicit tint did not reach the cloned beam')
+  countWrites(entry.inst,{'Color'})
+ end
+ for _,entry in ipairs(tintedVfx.emitters)do
+  check(sameColor(entry.inst.Color.Keypoints[1].Value,light),'Explicit tint did not reach the cloned particles')
+  countWrites(entry.inst,{'Color'})
+ end
+ check(sameColor(r.parts[5].Color,tint),'Explicit tint did not reach pooled geometry')
+ writes=0
+ manager:Update(1,1.2,Vector3.zero,Vector3.zAxis,40,7,tint,level,false)
+ Visuals.Animate(r,r.born+1.2,Vector3.zero,false,false,false)
+ check(writes==0 and r.vfx==tintedVfx,'Steady tint rewrote or reallocated template')
+ Visuals.Animate(r,r.born+1.3,Vector3.zero,true,false,false)
+ for _,entry in ipairs(tintedVfx.beams)do
+  if entry.isCore then check(entry.inst.Enabled and sameColor(entry.inst.Color.Keypoints[1].Value,tint),'Reduced effects lost the selected color') end
+ end
+ manager:Update(1,1.4,Vector3.zero,Vector3.zAxis,40,7,base,level,false)
+ Visuals.Animate(r,r.born+1.4,Vector3.zero,false,false,false)
+ check(r.vfx==tintedVfx,'Restoring default rebuilt the template')
+ for _,entry in ipairs(tintedVfx.beams)do
+  check(sameColor(entry.inst.Color.Keypoints[1].Value,entry.isCore and base or baseLight),'Default yellow did not return across beam tiers')
+ end
+ for _,entry in ipairs(tintedVfx.emitters)do
+  check(sameColor(entry.inst.Color.Keypoints[1].Value,baseLight),'Default yellow did not return to particles')
+ end
+end
 manager:Update(1,1,Vector3.zero,Vector3.zAxis,40,7,color,50,false)
 Visuals.Animate(r,r.born+1,Vector3.zero,false,false,false)
 check(#r.vfx.emitters==4,'Rate cap case needs four FireBeam emitters')
@@ -191,7 +231,12 @@ for old,new,message in [
  ('local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .18','local endAlpha=.18','Crowded mode retained the opaque endpoint lens'),
  ('local visibilityChanged=vfx.showSecondary~=showSecondary','local visibilityChanged=true','Steady mode rewrote template properties'),
  ('math.min(entry.baseRate,60/#vfx.emitters)','entry.baseRate','Initial aggregate particle rate cap missing'),
+ ('entry.inst.Color=entry.isCore and core or accent','entry.inst.Color=entry.inst.Color','Explicit tint did not reach the cloned beam'),
+ ('entry.inst.Color=accent','entry.inst.Color=entry.inst.Color','Explicit tint did not reach the cloned particles'),
+ ('p.Color=color;p.LocalTransparencyModifier=.2','p.Color=styleColor(styleSpec.primary,color);p.LocalTransparencyModifier=.2','Explicit tint did not reach pooled geometry'),
+ ('if vfx.tint==tint then return end','if false then return end','Steady tint rewrote or reallocated template'),
+ ('vfx.tint=tint','if vfx.tint and tint.R==1 then return end;vfx.tint=tint','Default yellow did not return across beam tiers'),
 ]:
  assert old in s
  result=run(s.replace(old,new));assert result.returncode and message in result.stderr,result.stdout+result.stderr
-print('PASS 8 native-path negative controls (progression, scale, motion, crowding, redundant writes and rate cap)')
+print('PASS 13 native-path negative controls (progression, scale, crowding, rate, tint and redundant writes)')

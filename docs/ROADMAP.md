@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Yellow base across all beam tiers
+
+- The renderer previously replaced the server's resolved color with reference palettes. A staged level-100 green packet rendered purple. All tier recipes now use the existing yellow base (`#FFCB63`) or the server-resolved saved color. The tier shapes and motion continue to come from the existing recipes. Template colors update when the color value changes, without rebuilding the active effect.
+- Fixed-camera Studio captures showed yellow at levels 10, 50 and 100 using the existing full-power range and width for each level. The level-100 effect switched from a staged custom green to legacy Mint and back to yellow on the same rig. The fixture sent test packets to the production client receiver. It used no real microphone or purchase.
+- Independent review found no blocker. The renderer passed 7,326 checks and 13 negative controls, and the client integration passed 335 checks and 23 controls. All 312 local checks and builds passed with matching inputs. Three disposable Studio sessions closed. Next, check readability during overlapping casts on representative physical devices.
+
 ## The first gear card directs players to coin quests
 
 - A fresh 567 × 242 Studio profile previously saw a disabled NEED 100 COINS button and generic training/quests copy. The Academy Megaphone now offers GUIDE TO MAR while the player is short of coins and has no active quest. An earned Mar reward gets VIEW REWARDS, which opens Quests at the claim card. Both actions show the exact shortfall and use the existing navigation and claim UI.

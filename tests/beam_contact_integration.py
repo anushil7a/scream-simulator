@@ -44,7 +44,14 @@ local callbacks={};local function connectClient(signal,callback)callbacks[signal
 local remotes={Effect={OnClientEvent={}}};local gold=color
 local Players={GetPlayerByUserId=function(_,id)return (id==7 or id==8 or id==9) and {} or nil end}
 local academy={testToolsAllowed=function()return true end,incomingHit={}}
-local Config={Auras={Gold=color},GetSound=function()return nil end}
+local legacy=Color3.fromRGB(146,226,181)
+local base=Color3.fromRGB(255,203,99)
+local Config={Auras={Gold=base,Mint=legacy},GetSound=function()return nil end}
+local engineTypeof=typeof
+local function typeof(v)
+ if type(v)=='table' and type(v.R)=='number' and type(v.G)=='number' and type(v.B)=='number' then return 'Color3' end
+ return engineTypeof(v)
+end
 local attackAudioSettings={Range=100};local stops,pulses,cues,screenHits,screenClears=0,0,0,0,0
 local attackAudio={Stop=function()stops+=1 end,Remove=function()end,Pulse=function()pulses+=1 end}
 local beamScreenFeedback={Hit=function()screenHits+=1 end,Begin=function()end,Clear=function()screenClears+=1 end}
@@ -56,6 +63,15 @@ local protectionRemaining=0;local alive=true
 CHECKS = r'''
 local send=callbacks[remotes.Effect.OnClientEvent]
 local function beam(id)send('SustainedBeam',Vector3.zero,id or 7,'Gold',Vector3.zAxis,40,7,nil,100)end
+local function appearance(kind,aura,key)
+ send(kind,Vector3.zero,7,aura,Vector3.zAxis,40,7,nil,100)
+ return sustainedBeams.entries[key].visual.color
+end
+check(appearance('SustainedBeam',color,7)==color,'Explicit Color3 lost its override')
+check(appearance('SustainedBeam','Mint',7)==legacy,'Saved legacy color was dropped')
+check(appearance('SustainedBeam','Gold',7)==base,'Base Gold was replaced by a different hue')
+check(appearance('SustainedBeam','Unknown',7)==base,'Unknown palette name did not fall back to base Gold')
+check(appearance('TestBeam',legacy,'test:7')==legacy,'Test Beam dropped its selected color')
 local anchor=vec(2,1,24)
 local function make(ack)
  sustainedBeams:Clear();BeamVisuals.Clear();hitFeedback=Hits.new();sustainedControl:Cancel();sustainedControl:SetArmed(true)
@@ -254,6 +270,7 @@ def main():
             (event, 'and windowFocused and not beamBlocked()', '', 'Blocked hit created contact'),
             (event, 'playGameplayCue("Hit");', '', 'Accepted hit lost retained sound/HUD'),
             (event, 'character:FindFirstChildOfClass("Humanoid")==pos', 'true', 'Foreign Humanoid showed defender cue'),
+            (event, 'beamWidth,color,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'beamWidth,Config.Auras.Gold,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'Explicit Color3 lost its override'),
             (hud, 'if protectionRemaining>0 then academy.damageTakenUntil=nil end', '', 'Defender cue replayed after protection'),
             (hud, 'hitText.Visible=gameplayVisible and confirmed~=nil', 'hitText.Visible=false', 'Accepted hit lost retained sound/HUD'),
             (render, 'windowFocused and not beamBlocked() and attack', 'attack', 'Blocked frame retained contact'),

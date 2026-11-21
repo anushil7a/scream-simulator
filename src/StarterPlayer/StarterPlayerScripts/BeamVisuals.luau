@@ -238,7 +238,7 @@ local function buildHollowPurpleVfx(template)
   if source:IsA("Beam") and #vfx.beams<5 then
    local beam=source:Clone();beam:ClearAllChildren()
    beam.Attachment0=startAtt;beam.Attachment1=endAtt;beam.Parent=startAnchor
-   -- Keep source colors, width ratios, curves and emission. Do not bleach violet.
+   -- Preserve width ratios, curves and emission from the reference.
    trackBeam(vfx,beam,#vfx.beams<2)
   elseif source:IsA("ParticleEmitter") and #vfx.emitters<4 then
    local emitter=source:Clone();emitter:ClearAllChildren();emitter.Parent=midAnchor
@@ -262,6 +262,18 @@ local function buildVfxForStyle(styleId)
  local t=templates:FindFirstChild("StarterBeam")
  return t and buildStarterVfx(t) or nil
 end
+local function applyTemplateTint(vfx,tint)
+ if vfx.tint==tint then return end
+ vfx.tint=tint
+ local core=ColorSequence.new(tint)
+ local accent=ColorSequence.new(tint:Lerp(white,.32))
+ for _,entry in ipairs(vfx.beams) do
+  entry.inst.Color=entry.isCore and core or accent
+ end
+ for _,entry in ipairs(vfx.emitters) do
+  entry.inst.Color=accent
+ end
+end
 local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet,distance,spec,suppressSecondary)
  local styleId=spec.id
  local vfx=rig.vfx
@@ -271,6 +283,7 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
   if not vfx then return end
   rig.vfx=vfx
  end
+ applyTemplateTint(vfx,rig.color)
  if vfx.root.Parent~=workspace then vfx.root.Parent=workspace end
  local up=math.abs(dir.Y)>.98 and Vector3.zAxis or Vector3.yAxis
  local mid=(origin+finish)*.5
@@ -541,8 +554,7 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,su
   end
   if isRoblox then
    local styleSpec=Style.StyleForLevel(rig.level)
-   local pCol=styleColor(styleSpec.primary,color)
-   local sCol=styleColor(styleSpec.secondary,white)
+   local accent=color:Lerp(white,.32)
    syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet or contactReduced,distance,styleSpec,suppressSecondary)
    local hasVfx=rig.vfx~=nil
    for i=1,rig.used do
@@ -551,21 +563,21 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,su
      p.LocalTransparencyModifier=1
     elseif partKind[p]=="detail" then
      -- Native templates must not erase the ten-level lightning progression.
-     p.Color=pCol:Lerp(sCol,.35);p.LocalTransparencyModifier=0
+     p.Color=color:Lerp(accent,.35);p.LocalTransparencyModifier=0
     elseif i==2 then
-     p.Color=pCol;p.LocalTransparencyModifier=.35
+     p.Color=color;p.LocalTransparencyModifier=.35
     elseif i==3 then
-     p.Color=pCol:Lerp(white,.55);p.LocalTransparencyModifier=hasVfx and .25 or .1
+     p.Color=color:Lerp(white,.55);p.LocalTransparencyModifier=hasVfx and .25 or .1
     elseif i==4 then
-     p.Color=sCol;p.LocalTransparencyModifier=.2
+     p.Color=accent;p.LocalTransparencyModifier=.2
     elseif i==5 then
-     p.Color=pCol;p.LocalTransparencyModifier=.2
+     p.Color=color;p.LocalTransparencyModifier=.2
     end
    end
    for i=1,rig.contact.used do
     local cp=rig.contact.parts[i]
     cp.LocalTransparencyModifier=0
-    cp.Color=i%2==1 and pCol:Lerp(Color3.fromRGB(0,0,0),.8) or pCol:Lerp(white,.45)
+    cp.Color=i%2==1 and color:Lerp(Color3.fromRGB(0,0,0),.8) or color:Lerp(white,.45)
    end
   end
  elseif isRoblox then

@@ -1431,7 +1431,8 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   local key="test:"..tostring(id)
   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
   if not Players:GetPlayerByUserId(id) or not root or (root.Position-pos).Magnitude>180 or length<.05 then sustainedBeams:Remove(key);return end
-  sustainedBeams:Update(key,os.clock(),pos,direction,length,beamWidth,(typeof(aura)=="Color3" and aura or gold),attackLevel or 1,data.settings.reducedShake)
+  local color=typeof(aura)=="Color3" and aura or Config.Auras[aura] or Config.Auras.Gold
+  sustainedBeams:Update(key,os.clock(),pos,direction,length,beamWidth,color,attackLevel or 1,data.settings.reducedShake)
   return
  end
  if kind=="SustainedDamageTaken" then
@@ -1474,7 +1475,8 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   if not Players:GetPlayerByUserId(id) or not distance or distance>180 or length<.05 then
    sustainedBeams:Remove(id);attackAudio:Remove(id);return
   end
-  sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,(typeof(aura)=="Color3" and aura or Config.Auras[aura] or gold),attackLevel or 1,data.settings.reducedShake)
+  local color=typeof(aura)=="Color3" and aura or Config.Auras[aura] or Config.Auras.Gold
+  sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,color,attackLevel or 1,data.settings.reducedShake)
   local style=distance<=attackAudioSettings.Range and type(audioStyleId)=="string" and Config.GetSound(audioStyleId)
   attackAudio:Pulse(id,os.clock(),pos,id==p.UserId,style and style.level,distance)
   return
