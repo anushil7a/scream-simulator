@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Combat HUD layout
+
+- Beams has a full-width action with a passive waveform marker. Dodge and Sprint share the lower row. The 567 × 241 Studio touch emulator reported 260 × 44, 108 × 44 and 144 × 44 targets with no text clipping. The same buttons and short-screen voice guidance also fit on desktop and at 388 × 704 portrait.
+- MENU opened via an automated pointer in the short landscape emulator. All six tabs fit in one row at 78 × 44, gaining 50 pixels of vertical content space. Portrait retains two rows. The empty healthy-save panel is hidden; existing save-warning text and queue paths still run.
+- The layout regression passed 663 assertions and eight negative controls, including a threshold test that detects loss of the short-landscape row. Voice guidance passed 240 assertions and five negative controls. Critic cleared the diff, and the full local suite passed 312 commands with matching input hashes. The unpublished Studio fixture used temporary profiles. Physical touch/controller, voice and listening checks remain open. The small landscape quest tracker can still share space with the stock thumbstick, and narrow desktop TALK can share space with the combat group. Next HUD pass should validate those crowded states without moving core controls into native input lanes.
+
 ## Free aim, grouped HUD and solid scenery
 
 - Removed target lock, acquired-target marker and touch/R/R3 lock controls. Mouse free aim follows the cursor, and touch and gamepad free aim share the centered reticle using Roblox preferred input. The world hit and target readout still use the same ray and respect solid cover. Critic found the parked-mouse controller issue in the first build and cleared the corrected implementation. Native Studio showed the touch reticle and the absence of lock UI. Active gamepad hardware remains unverified.

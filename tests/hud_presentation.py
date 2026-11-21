@@ -71,7 +71,7 @@ def main():
    try:check_contracts(source.replace(c,''))
    except AssertionError as exc:assert c in str(exc),str(exc)
    else:raise AssertionError(f'Negative control did not fail for {c}')
-  swapped=source.replace(';academy.surface(dodgeButton)','').replace('academy.surface(castButton)','academy.surface(castButton);academy.surface(dodgeButton)')
+  swapped=source.replace(';academy.surface(dodgeButton)','').replace('academy.surface(castButton,gold)','academy.surface(castButton,gold);academy.surface(dodgeButton)')
   try:check_contracts(swapped)
   except AssertionError as exc:
    assert 'dodgeButton surfaced before declaration' in str(exc),str(exc)

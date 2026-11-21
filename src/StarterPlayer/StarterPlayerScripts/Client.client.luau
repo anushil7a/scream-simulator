@@ -496,9 +496,11 @@ local function dodge()
  end
 end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
-local castButton=button(controls,"Cast","BEAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),toggleVoice,gold);castButton.TextColor3=dark
+local castButton=button(controls,"Cast","BEAM  [E]",UDim2.fromOffset(260,44),UDim2.fromOffset(0,0),toggleVoice,gold);castButton.TextColor3=dark
 castButton.TextWrapped=true;castButton.Selectable=true
-academy.surface(castButton)
+academy.surface(castButton,gold)
+academy.beamMark=academy.mark(castButton,"voice",UDim2.fromOffset(14,12),20,dark)
+academy.beamMark.Visible=sustainedControl~=nil
 local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-12,0,3),UDim2.new(0,6,1,-6),panel)
 local voiceTimeFill=frame(voiceTimeTrack,"RemainingOrRecovery",UDim2.fromScale(0,1),UDim2.new(),muted)
 voiceTimeTrack.Visible=false
@@ -523,7 +525,7 @@ hitFeedback=hitFeedback.new();if not clientCheckpoint() then return end
 local hitText=label(aimGui,"",UDim2.fromOffset(210,26),UDim2.new(.5,-105,.5,-48),16,gold);hitText.Name="ConfirmedDamage";hitText.TextXAlignment=Enum.TextXAlignment.Center;hitText.Visible=false
 local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
 local reportedReady=nil;local readyReportAt=0
-local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge);academy.surface(dodgeButton)
+local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,32),UDim2.fromOffset(0,52),dodge);academy.surface(dodgeButton)
 local sprinting=false
 local nextSprintSend=0
 local function setSprint(requested)
@@ -563,7 +565,7 @@ local function residentTargetInfo(model,humanoid,far,currentFar,covered)
  local status=far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "TRAINING RESIDENT"
  return string.format("%s\n%s",model:GetAttribute("DisplayName") or model.Name,status),not far and not currentFar and not covered
 end
-local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
+local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(144,32),UDim2.fromOffset(116,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
 local talkTarget
 local nextResidentUi=0
 local function refreshResidentLabels(root,camera,residents)
@@ -1351,7 +1353,7 @@ connectClient(Run.RenderStepped,function(dt)
  if layoutChanged then conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-36)) end
  refreshConversation()
  saveNotice.Text=saveStatus()
- saveNotice.Visible=not modal.Visible and viewport.X>=820
+ saveNotice.Visible=saveNotice.Text~="" and not modal.Visible and viewport.X>=820
  local progress=progressLabel(viewport.X<820)
  if xpText.Text~=progress then xpText.Text=progress end
  -- Consume every observed input interruption before availability can recover.
@@ -1440,7 +1442,7 @@ connectClient(Run.RenderStepped,function(dt)
  title.TextSize=width<620 and 20 or 23
  subtitle.Visible=not short;subtitle.Size=UDim2.new(1,-44,0,width<620 and 42 or 25)
  local tabY=shortLandscape and 44 or short and 54 or width<620 and 102 or 88
- local columns=width<620 and 3 or 6;local rows=math.ceil(6/columns)
+ local columns=(width>=620 or shortLandscape and width>=500) and 6 or 3;local rows=6/columns
  local tabWidth=(width-40-(columns-1)*6)/columns
  for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do
   local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(20+((i-1)%columns)*(tabWidth+6),tabY+math.floor((i-1)/columns)*50);b.TextSize=width<620 and 12 or 14
@@ -1467,7 +1469,8 @@ connectClient(Run.RenderStepped,function(dt)
  talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
  tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64)
- sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
+ dodgeButton.Size=UDim2.fromOffset(108,touch and 44 or 32)
+ sprintButton.Size=UDim2.fromOffset(144,touch and 44 or 32)
  local testBottom=testTop+44
  local bottomReserve=(touch and 189 or 96)+14
  local belowHeight=viewport.Y-(testBottom+8)-bottomReserve
@@ -1511,7 +1514,7 @@ connectClient(Run.RenderStepped,function(dt)
    end
   end
   castButton.Text=screamToggleLabel(sustainedControl.armed,touch,status)
-  castButton.TextSize=12
+  castButton.TextSize=13
  else
   castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
  end

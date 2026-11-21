@@ -7,9 +7,9 @@ def build(c):
  helpers=c[c.index('local academy={}'):c.index('local top=frame(')]
  a=c.index('for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs')
  register=c[a:c.index('local conversationNPC',a)]
- a=c.index(' local columns=width<620');layout=c[a:c.index(' content.Position=',a)]
+ a=c.index(' local columns=', c.index(' local tabY='));layout=c[a:c.index(' content.Position=',a)]
  selection=next(x for x in c.splitlines() if 'for name,b in pairs(tabs) do b.BackgroundColor3=' in x)
- return SETUP+helpers+'\n'+register+'\nlocal function layout(width) local tabY=88\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+CHECKS
+ return SETUP+helpers+'\n'+register+'\nlocal function layout(width,shortLandscape) local tabY=88\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+CHECKS
 SETUP=r'''
 local made={};local Instance={new=function(class)local o={ClassName=class,PaddingLeft={Scale=0,Offset=0},PaddingRight={Scale=0,Offset=0}};table.insert(made,o);return o end}
 local UDim={new=function(s,o)return {Scale=s,Offset=o}end}
@@ -53,10 +53,13 @@ for _,name in ipairs(names)do
  clientDestroyed=true;b.callback();check(renders==previous+1,'Destroyed callback activated');clientDestroyed=false
 end
 local allocated=#made
-for _,viewport in ipairs({320,390,640,820,1280})do
+for _,view in ipairs({{320,false},{390,false},{523,true},{524,true},{567,true},{640,false},{820,false},{1280,false}})do
+ local viewport,shortLandscape=view[1],view[2]
  local width=math.min(720,viewport-24)
+ local singleRow=viewport>=644 or shortLandscape and viewport>=524
  for _,metricScale in ipairs({1,3})do metrics=metricScale
- layout(width)
+ layout(width,shortLandscape)
+ check((tabs.Settings.Position.Y.Offset==tabs.Shop.Position.Y.Offset)==singleRow,'Wrong compact tab row count')
  for _,name in ipairs(names)do
   local b=tabs[name];local icon,padding
   for _,o in ipairs(made)do if o.Parent==b then if o.ClassName=='Frame'then icon=o elseif o.ClassName=='UIPadding'then padding=o end end end
@@ -64,7 +67,7 @@ for _,viewport in ipairs({320,390,640,820,1280})do
   local textWidth=math.ceil(#b.Text*b.TextSize*.55*metrics)
   local expected=20+6+textWidth+16<=b.Size.X.Offset
   check(icon.Visible==expected,'Incorrect fit fallback')
-  check(b.Size.Y.Offset==44,'Input target height changed')
+  check(b.Size.Y.Offset==44 and b.Size.X.Offset>=44,'Navigation target smaller than 44 pixels')
   if expected then
    local x=icon.Position.X.Offset;local right=b.Size.X.Offset-padding.PaddingRight.Offset
    check(x>=8 and right<=b.Size.X.Offset-8,'Icon/text group outside padded bounds')
@@ -79,15 +82,17 @@ for _,name in ipairs(names)do select(name);for other,b in pairs(tabs)do check(b.
 print('PASS '..n..' actual icon/registration/layout assertions; synthetic text metrics only')
 '''
 def run(c):
- with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:f.write(build(c));p=Path(f.name)
- try:return subprocess.run(['luau',str(p)],text=True,capture_output=True,timeout=15)
+ with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:p=Path(f.name)
+ try:
+  p.write_text(build(c),encoding='utf-8')
+  return subprocess.run(['luau',str(p)],text=True,capture_output=True,timeout=15)
  finally:p.unlink()
 if __name__=='__main__':
  out=run(source);print(out.stdout,end='');assert out.returncode==0,out.stderr
 
  if '--negative-controls' in sys.argv:
-  cases=[('shape("EmitterInk",2,5,6,11,ink,-18,2)','shape("EmitterInk",1,5,6,11,ink,-18,2)','Rotated glyph outside slot'),('icon.Visible=fits','icon.Visible=false','Incorrect fit fallback'),('padding.PaddingRight=UDim.new(0,fits and (width-total)/2 or 0)','padding.PaddingRight=UDim.new(0,0)','Icon/text group outside padded bounds'),('name=="Screams" and "BEAMS"','name=="Screams" and "WRONG"','Tab label changed'),('academy.tabIcon(tabs[name],name)','academy.tabIcon(tabs[name],"Shop")','Duplicate semantic silhouette'),('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),(' local fits=width>=total+16',' local fits=width>=total+16;Instance.new("Frame")','Layout allocated new icons')]
+  cases=[('shape("EmitterInk",2,5,6,11,ink,-18,2)','shape("EmitterInk",1,5,6,11,ink,-18,2)','Rotated glyph outside slot'),('icon.Visible=fits','icon.Visible=false','Incorrect fit fallback'),('padding.PaddingRight=UDim.new(0,fits and (width-total)/2 or 0)','padding.PaddingRight=UDim.new(0,0)','Icon/text group outside padded bounds'),('name=="Screams" and "BEAMS"','name=="Screams" and "WRONG"','Tab label changed'),('academy.tabIcon(tabs[name],name)','academy.tabIcon(tabs[name],"Shop")','Duplicate semantic silhouette'),('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),(' local fits=width>=total+16',' local fits=width>=total+16;Instance.new("Frame")','Layout allocated new icons'),('shortLandscape and width>=500','shortLandscape and width>=620','Wrong compact tab row count')]
   for old,new,message in cases:
    assert old in source,old
    out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stdout,out.stderr)
-  print('PASS 7 menu icon negative controls')
+  print(f'PASS {len(cases)} menu icon negative controls')
