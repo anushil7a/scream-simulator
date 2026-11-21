@@ -1,6 +1,7 @@
 -- Read-only destinations. Selection belongs to the client, never to quest acceptance.
 local Config=require(script.Parent:WaitForChild("Config"))
 local BossCatalog=require(script.Parent:WaitForChild("BossCatalog"))
+local TrainingRules=require(script.Parent:WaitForChild("TrainingRules"))
 local Catalog={Places={
  {id="spawn",label="Spawn"},{id="training",label="Training"},{id="arena",label="Arena"},
  {id="gardens",label="Gardens"},{id="market",label="Market / café"},{id="coast",label="Coast"},
@@ -21,6 +22,12 @@ function Catalog.Resolve(kind,id,data)
    if boss.id==id then return target(Vector3.new(boss.x,(boss.y or 0)+3,boss.z),boss.name.." · Lv "..boss.level) end
   end
  elseif kind=="place" then
+  if id=="training" then
+   local tier=TrainingRules.Recommended(data.level or 1)
+   local index=table.find(TrainingRules.Tiers,tier)
+   local home=Config.CityLayout.TrainingHomes[index]
+   return home and target(Vector3.new(home.x,home.y+3,home.z),tier.name.." Training · Lv "..tier.level)
+  end
   for index,place in ipairs(Catalog.Places) do
    if place.id==id then
     local landmark=Config.CityLayout.MapLandmarks[index]

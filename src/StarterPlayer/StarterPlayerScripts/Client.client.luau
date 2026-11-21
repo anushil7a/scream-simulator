@@ -893,6 +893,7 @@ local function menuKey()
  elseif selected=="Style" then fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped}
  elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
+ elseif selected=="Map" then fields={level=data.level}
  else fields={} end
  return selected..":"..gui.AbsoluteSize.X..":"..game:GetService("HttpService"):JSONEncode(fields)
 end
@@ -1025,6 +1026,12 @@ render=function()
   end
  elseif selected=="Map" then
   title.Text="CITY & COAST";subtitle.Text="Red: PvP • Pale café path: safe."
+  local trainingTarget=academy.NavigationCatalog.Resolve("place","training",data)
+  if trainingTarget then
+   local trainingCard=card(narrow and 106 or 70)
+   label(trainingCard,trainingTarget.label,UDim2.new(1,narrow and -28 or -160,0,44),UDim2.fromOffset(14,8),14,gold)
+   button(trainingCard,"GuidePlace_training","GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,narrow and 54 or 13),function() academy.selectGuide("place","training");closeMenu() end)
+  end
   local c=card(300)
   local holder=frame(c,"MapHolder",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13));holder.BackgroundTransparency=1
   mapDot=CityMap.create(holder)
@@ -1041,6 +1048,7 @@ render=function()
    button(c,"GuideBoss_"..boss.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,narrow and 60 or 14),function() academy.selectGuide("boss",boss.id);closeMenu() end)
   end
   for _,place in ipairs(academy.NavigationCatalog.Places) do
+   if place.id=="training" then continue end
    local c=card(70)
    label(c,place.label,UDim2.new(1,-160,0,50),UDim2.fromOffset(14,10),14)
    button(c,"GuidePlace_"..place.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,13),function() academy.selectGuide("place",place.id);closeMenu() end)

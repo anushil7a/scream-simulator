@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## First training route
+
+- On fresh level 1 in disposable Studio, the HUD recommended Rookie while Map → Training guided 140 studs north to Brawler. Brawler's pad is 120 studs from Rookie's. The training destination now follows the existing recommended tier and appears first in Map with the fighter name and level.
+- The rebuilt local place opened the map at scroll zero, showed exactly one Rookie guide, and set the HUD route to 184 studs northwest. A tool-driven walk on the native avatar reached the Rookie pad and displayed “Arrived · 1 studs.” The iPhone 17 Pro landscape emulator reported touch enabled and a 750 × 381 viewport. Opened with the keyboard, the first card fit and the 116 × 44 guide button was fully visible. Physical touch and human discoverability remain open.
+- Catalog tests cover the default, level 1, both tier boundaries and level 100. The new test fails against the old training resolver. Independent review found no blocker. Full build and check matrix passed 312 of 314 commands. The same two legacy beam comparison tests still require the missing historical ref `760b257984edce31e46d8cfb7bb2928410185ec2`.
+- Later-game baseline in the guarded local solo fixture: the level 95 Eclipse Conductor's six-shape Bell Cascade dealt 58 damage; a scripted dodge avoided Baton Sweep with zero damage or shove. The native diagnostic seeds the level and action, so this verifies encounter behavior without a human fight or microphone claim.
+- Next opening pass: make the guide discoverable directly from the HUD, then verify fresh-profile first hit, reward and upgrade timing. Reserve the dedicated sound-themed PvP world and its return portal for after the current-world pass. No Roblox publication or live save test.
+
 ## Training strike feedback
 
 - The strike marker brightens over the existing 1.1-second windup. The warning's eight-stud diameter stays fixed and it clears on resolution, lost eligibility, trainer reset, or knockout. Damage and dodge rules stay on the existing server path.
