@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Confirmed hits in overlapping beams
+
+- Six nearby level-100 beams exhausted secondary geometry on the previous native renderer. A valid simulated contact was accepted but allocated zero strokes. The renderer now reserves 16 of the 512 pooled Parts for the local confirmed-hit effect and limits secondary geometry to 376. All 24 admitted beams still have five core slots each. On matched local Studio builds with the actual Hollow Purple template, contact allocated 0 strokes before and 16 after. The expiry and teardown probe returned the slots and cleared the pool. The matched captures still show dense visual overlap at the target, so allocation alone does not establish readability.
+- The native performance fixture now uses the production Hollow Purple asset, converging paths, and per-rig core/particle checks. For 24 beams it recorded 496 active pooled slots, 120 enabled template Beams and 96 enabled emitters in regular mode, versus 96 slots, 48 Beams and zero emitters in reduced mode. The instrumented script-section p95 was 6.03 ms regular and 1.09 ms reduced. Frame intervals stayed near the same roughly 67 ms cadence across all three phases, so this is not an FPS improvement or GPU result. Template anchors are outside the pooled Part count.
+- Independent review confirmed allocation limits and prompted the per-rig checks. The composition suite passed 115,412 assertions and seven negative controls, including removal of the hit reserve. Next: tune overlapping secondary effects against a native arena view, then verify actual player readability and performance on a physical phone. The dedicated sound-themed PvP world and training return portal still follow the current-world pass.
+
 ## First earned equipment
 
 - Baseline Studio Style put the 38 px starter button at y457 in a 464 px scroll window, behind the color picker. Beams now links to gear, and Style starts with the Academy Megaphone. The 44 px action shows coins still needed, Buy & Equip, Equip or Unequip as applicable. Prices, bonuses and save schema retain their existing rules.

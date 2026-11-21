@@ -17,6 +17,7 @@ V.__sub=function(a,b)return vec(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end
 V.__mul=function(a,b)if type(a)=='number'then a,b=b,a end return vec(a.X*b,a.Y*b,a.Z*b)end
 V.__div=function(a,b)return a*(1/b)end
 V.__index=function(a,k)if k=='Magnitude'then return math.sqrt(a.X*a.X+a.Y*a.Y+a.Z*a.Z)elseif k=='Unit'then return a/a.Magnitude end end
+local function typeof(v)return getmetatable(v)==V and 'Vector3' or type(v)end
 local Vector3={new=vec,one=vec(1,1,1),zero=vec(0,0,0),yAxis=vec(0,1,0),zAxis=vec(0,0,1)}
 -- Orientation is deliberately a stub; this is allocation/lifecycle, not geometry fidelity.
 local C={};C.__mul=function(a,b)return a end
@@ -46,10 +47,18 @@ local function audit(reduced,viewer)
    check(p.Color==color and p.Transparency>=0 and p.Transparency<=1 and p.Size.X>0,'reuse properties not initialized')
   end
  end
- if not reduced and viewer.Magnitude<=110 and b.count==24 then check(n==512,'released detail budget not reusable')end
+ if not reduced and viewer.Magnitude<=110 and b.count==24 then check(n==496,'released detail budget not reusable')end
  local allocated,pooled=Visuals.Budget();check(allocated<=512 and allocated==made-dead,'cap/accounting');check(n+pooled==allocated,'pool leak or orphan')
 end
 for i=1,24 do check(update(i),'admit24')end
+for _,entry in pairs(b.entries) do Visuals.Animate(entry.visual,now+.1,Vector3.zero,false,false) end
+local localBeam=b.entries[1].visual
+check(Visuals.Contact(localBeam,vec(0,20,0),now+.15,1),'Local contact rejected')
+Visuals.Animate(localBeam,now+.18,Vector3.zero,false,true)
+check(#localBeam.contact.parts==16,'Decorations starved confirmed hit')
+check(Visuals.Budget()==512,'Confirmed hit exceeded or missed its reserved budget')
+Visuals.Animate(localBeam,now+.45,Vector3.zero,false,true)
+check(#localBeam.contact.parts==0,'Confirmed hit slots did not return after expiry')
 check(not update(25),'manager overflow');audit(false,Vector3.zero)
 local peak=Visuals.Budget();check(peak==512,'unexpected peak')
 -- Direct extra rig exercises the visual module hard cap independently of manager admission.
@@ -83,10 +92,10 @@ def run(s,expected=None):
 run(source)
 if args.negative_controls:
  for file,old,new,expected in [
-  ('visual','if allocated>=Style.MaxParts then return end','if false then return end','hard cap exceeded'),
-  ('visual','if detail and detailCount>=Style.MaxParts-24*5 then return end','if false then return end','core starved'),
+  ('visual','if inUse[kind]>=limits[kind] then return end','if kind~="core" and inUse[kind]>=limits[kind] then return end','hard cap exceeded'),
+  ('visual','local coreLimit,contactLimit=24*5,16','local coreLimit,contactLimit=24*5,0','Decorations starved confirmed hit'),
   ('visual','part.Parent=nil;table.insert(pool,part)','part.Parent=nil','pool leak or orphan'),
-  ('visual','decoration[part]=nil;detailCount-=1','decoration[part]=nil','released detail budget not reusable'),
+  ('visual','partKind[part]=nil;inUse[kind]-=1','partKind[part]=nil','core starved'),
   ('manager','if now>=entry.expires then','if now>entry.expires then','expiry boundary'),
   ('manager','if self.destroyed then return false end','if false then return false end','terminal manager recreated'),
   ('visual','for _,part in ipairs(pool) do part:Destroy() end','for _,part in ipairs(pool) do end','final destruction'),

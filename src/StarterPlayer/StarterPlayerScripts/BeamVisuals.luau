@@ -3,8 +3,11 @@ local Style=require(game:GetService("ReplicatedStorage").Shared.BeamStyle)
 local Visuals={}
 local pool,live={},{}
 local allocated=0
-local detailCount=0
-local decoration={}
+-- Reserve five core Parts per admitted beam and one local confirmed-hit burst.
+local coreLimit,contactLimit=24*5,16
+local limits={core=coreLimit,contact=contactLimit,detail=Style.MaxParts-coreLimit-contactLimit}
+local inUse={core=0,contact=0,detail=0}
+local partKind={}
 local white=Color3.fromRGB(245,252,255)
 local isRoblox=typeof(game)=="Instance"
 local cachedTemplatesFolder=nil
@@ -351,8 +354,8 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
  end
 
 end
-local function take(detail)
- if detail and detailCount>=Style.MaxParts-24*5 then return end
+local function take(kind)
+ if inUse[kind]>=limits[kind] then return end
  local part=table.remove(pool)
  if not part then
   if allocated>=Style.MaxParts then return end
@@ -361,11 +364,12 @@ local function take(detail)
   part.CanTouch=false;part.CanQuery=false;part.CastShadow=false
   part.Material=Enum.Material.Neon;part.TopSurface=Enum.SurfaceType.Smooth;part.BottomSurface=Enum.SurfaceType.Smooth
  end
- if detail then decoration[part]=true;detailCount+=1 end
+ partKind[part]=kind;inUse[kind]+=1
  return part
 end
 local function release(part)
- if decoration[part] then decoration[part]=nil;detailCount-=1 end
+ local kind=partKind[part]
+ partKind[part]=nil;inUse[kind]-=1
  part.Parent=nil;table.insert(pool,part)
 end
 function Visuals.Create()
@@ -386,10 +390,10 @@ function Visuals.Contact(rig,position,now,sequence)
  rig.contactBasis=CFrame.lookAt(position,position+rig.direction,math.abs(rig.direction.Y)>.98 and Vector3.zAxis or Vector3.yAxis)
  return true
 end
-local function draw(rig,shape,size,cf,color,alpha,material,detail)
+local function draw(rig,shape,size,cf,color,alpha,material,kind)
  local nextIndex=rig.used+1
  local part=rig.parts[nextIndex]
- if not part then part=take(detail or nextIndex>5);if not part then return end;rig.parts[nextIndex]=part end
+ if not part then part=take(kind or (nextIndex>5 and "detail" or "core"));if not part then return end;rig.parts[nextIndex]=part end
  -- Count successful allocations only. Native tint/contact loops must never visit holes.
  rig.used=nextIndex
  -- A pooled slot may previously have been a non-emissive shell or a Neon detail.
@@ -397,11 +401,11 @@ local function draw(rig,shape,size,cf,color,alpha,material,detail)
  if isRoblox then part.LocalTransparencyModifier=0 end
  part.Shape=shape;part.Size=size;part.CFrame=cf;part.Color=color;part.Transparency=alpha;part.Parent=workspace
 end
-local function line(rig,a,b,thickness,color,alpha,material,detail)
+local function line(rig,a,b,thickness,color,alpha,material,kind)
  local delta=b-a;local length=delta.Magnitude;if length<.001 then return end
  local direction=delta/length
  draw(rig,Enum.PartType.Cylinder,Vector3.new(length,thickness,thickness),
-  CFrame.lookAt((a+b)*.5,b,math.abs(direction.Y)>.98 and Vector3.zAxis or Vector3.yAxis)*CFrame.Angles(0,math.pi/2,0),color,alpha,material,detail)
+  CFrame.lookAt((a+b)*.5,b,math.abs(direction.Y)>.98 and Vector3.zAxis or Vector3.yAxis)*CFrame.Angles(0,math.pi/2,0),color,alpha,material,kind)
 end
 function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
  if not rig.origin then return end
@@ -498,8 +502,8 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
     local angle=(i-.5)*math.pi*2/count
     local radial=contactRight*math.cos(angle)+contactUp*math.sin(angle)
     local from=center+radial*inner;local to=center+radial*extent
-    line(rig.contact,from,to,backThickness,color:Lerp(Color3.fromRGB(0,0,0),.8),quietContact and .15 or .1+fade*.82,Enum.Material.SmoothPlastic,true)
-    line(rig.contact,from-contactDir*.12,to-contactDir*.12,coreThickness,coreColor,quietContact and .3 or .05+fade*.9,Enum.Material.Neon,true)
+    line(rig.contact,from,to,backThickness,color:Lerp(Color3.fromRGB(0,0,0),.8),quietContact and .15 or .1+fade*.82,Enum.Material.SmoothPlastic,"contact")
+    line(rig.contact,from-contactDir*.12,to-contactDir*.12,coreThickness,coreColor,quietContact and .3 or .05+fade*.9,Enum.Material.Neon,"contact")
    end
   end
   if isRoblox then
@@ -512,7 +516,7 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
     local p=rig.parts[i]
     if i==1 or (i==2 and hasVfx) then
      p.LocalTransparencyModifier=1
-    elseif decoration[p] then
+    elseif partKind[p]=="detail" then
      -- Native templates must not erase the ten-level lightning progression.
      p.Color=pCol:Lerp(sCol,.35);p.LocalTransparencyModifier=0
     elseif i==2 then

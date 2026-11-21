@@ -125,7 +125,7 @@ def run(source):
  finally:path.unlink()
 s=P.read_text();result=run(s);assert result.returncode==0,result.stdout+result.stderr;print(result.stdout.strip())
 for old,new,message in [
- ('if i==1 or (i==2 and hasVfx) then','if i==1 or decoration[p] or (i==2 and hasVfx) then','native hides milestone decoration'),
+ ('if i==1 or (i==2 and hasVfx) then','if i==1 or partKind[p]=="detail" or (i==2 and hasVfx) then','native hides milestone decoration'),
  ('wScale=width*.6*scale/widest','wScale=width*.6/widest','native milestone width lost'),
  ('local quiet=reduced or rig.reduced or contactReduced','local quiet=reduced or rig.reduced','quiet native retained dynamic parts'),
  ('b.TextureSpeed=far and 0 or entry.baseTextureSpeed','b.TextureSpeed=entry.baseTextureSpeed','quiet template motion'),
