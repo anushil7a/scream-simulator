@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## The Academy Megaphone clears the palm
+
+- The stock horn collar extended about .254 studs inside the sampled R15 hand. The procedural horn now sits .04 studs clear in a native R15 avatar and a rotated, one-stud R6-sized arm fixture. The leather grip stays in place and the bracket spans the gap. Both cases retained 13 massless, noncolliding parts with 13 hand welds. Three mocked hand depths and two fit-specific mutation controls passed.
+- The new hollow cream-and-brass model follows the vault's GEAR-01 concept. The editable Blender file and verified FBX are in `assets/drafts/academy-megaphone/`. Run `blender -b --python tools/academy_megaphone_blender.py` to regenerate them, the GLB, and a render in `build/academy-megaphone/`. The exports use five meshes grouped by material and 2,304 triangles.
+- Studio imported the FBX into `build/MegaphoneArtLocalImport.rbxl` with **Upload to Roblox** unchecked. The default import was 100× too large and gray. The local review template is scaled to 0.98 × 1.21 × 1.16 studs, with cream, brass and leather colors applied in Studio. The existing equipment loader mounted all five meshes on the sampled R15 avatar, and a new Studio process on the same PC fetched all five meshes after reopening a copy of the saved place. Production uses the corrected procedural model. Cross-machine asset availability, authored R6 fit, moving poses and physical phones remain open.
+- Independent review, Blender export checks and the full local regression and builds passed. All four disposable Studio processes closed. The pre-existing unsaved Blender scene stayed open.
+
 ## The first menu opening leads to earned gear
 
 - In a fresh temporary profile at 750 × 323, MENU opened directly on the Spectrum pass. The first tab is now **GEAR**, and the first opening shows the Academy Megaphone, its 100-coin price, and **GUIDE TO MAR**. The gear card and action also fit at 567 × 242. SHOP still opens from its tab, and MENU returns to the player's last tab.

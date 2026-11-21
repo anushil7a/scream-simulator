@@ -18,7 +18,7 @@ local function syncAccessory(player,equipped,modelName,build)
  -- R15 grips at the palm; R6 grips at the end of its full-length arm.
  local grip=CFrame.new(0,-hand.Size.Y/2+.15,-.25)
  local function add(name,size,offset,color,shape) return piece(model,hand,name,size,grip*offset,color,shape) end
- build(add)
+ build(add,hand)
  model.Parent=character
 end
 function Equipment.Sync(player,equipped)
@@ -36,23 +36,26 @@ function Equipment.Sync(player,equipped)
  end)
 end
 function Equipment.SyncMegaphone(player,equipped)
- syncAccessory(player,equipped,"AcademyMegaphoneAccessory",function(add)
+ syncAccessory(player,equipped,"AcademyMegaphoneAccessory",function(add,hand)
   local cream,gold,brass=Color3.fromRGB(242,232,206),Color3.fromRGB(224,180,86),Color3.fromRGB(196,148,64)
   local leather,stitch,cavity=Color3.fromRGB(122,74,42),Color3.fromRGB(214,186,140),Color3.fromRGB(48,38,28)
   local rot=CFrame.Angles(0,math.pi/2,0)
+  -- Leave .04 studs between the rear collar and the palm while keeping the handle in the grip.
+  local forward=math.max(0,hand.Size.Z/2-.02)
+  local function horn(z) return CFrame.new(0,.38,z-forward)*rot end
   add("Grip",Vector3.new(.22,.56,.22),CFrame.new(0,0,0),leather)
   add("GripStitch",Vector3.new(.23,.36,.04),CFrame.new(0,0,.09),stitch)
   add("PommelCap",Vector3.new(.26,.08,.26),CFrame.new(0,-.3,0),gold)
   add("WristLoop",Vector3.new(.06,.34,.18),CFrame.new(0,-.46,.04),leather)
-  add("MountBracket",Vector3.new(.16,.18,.24),CFrame.new(0,.24,-.04),gold)
-  add("MouthpieceCollar",Vector3.new(.14,.32,.32),CFrame.new(0,.38,.12)*rot,gold,Enum.PartType.Cylinder)
-  add("RearCone",Vector3.new(.22,.44,.44),CFrame.new(0,.38,-.04)*rot,cream,Enum.PartType.Cylinder)
-  add("MidBand",Vector3.new(.06,.58,.58),CFrame.new(0,.38,-.16)*rot,gold,Enum.PartType.Cylinder)
-  add("MidCone",Vector3.new(.26,.64,.64),CFrame.new(0,.38,-.3)*rot,cream,Enum.PartType.Cylinder)
-  add("FrontCone",Vector3.new(.28,.86,.86),CFrame.new(0,.38,-.54)*rot,cream,Enum.PartType.Cylinder)
-  add("BellRim",Vector3.new(.09,.96,.96),CFrame.new(0,.38,-.7)*rot,gold,Enum.PartType.Cylinder)
-  add("BellCavity",Vector3.new(.04,.76,.76),CFrame.new(0,.38,-.73)*rot,cavity,Enum.PartType.Cylinder)
-  add("AcousticNose",Vector3.new(.22,.22,.22),CFrame.new(0,.38,-.68),brass,Enum.PartType.Ball)
+  add("MountBracket",Vector3.new(.16,.18,.24+forward),CFrame.new(0,.24,-.04-forward/2),gold)
+  add("MouthpieceCollar",Vector3.new(.14,.32,.32),horn(.12),gold,Enum.PartType.Cylinder)
+  add("RearCone",Vector3.new(.22,.44,.44),horn(-.04),cream,Enum.PartType.Cylinder)
+  add("MidBand",Vector3.new(.06,.58,.58),horn(-.16),gold,Enum.PartType.Cylinder)
+  add("MidCone",Vector3.new(.26,.64,.64),horn(-.3),cream,Enum.PartType.Cylinder)
+  add("FrontCone",Vector3.new(.28,.86,.86),horn(-.54),cream,Enum.PartType.Cylinder)
+  add("BellRim",Vector3.new(.09,.96,.96),horn(-.7),gold,Enum.PartType.Cylinder)
+  add("BellCavity",Vector3.new(.04,.76,.76),horn(-.73),cavity,Enum.PartType.Cylinder)
+  add("AcousticNose",Vector3.new(.22,.22,.22),horn(-.68),brass,Enum.PartType.Ball)
  end)
 end
 -- Authored templates are local imported Models in ServerStorage/GearTemplates.

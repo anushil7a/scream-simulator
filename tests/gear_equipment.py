@@ -4,17 +4,16 @@ import subprocess,sys,tempfile
 root=Path(__file__).resolve().parents[1]
 source=(root/'src/ServerScriptService/Equipment.luau').read_text()
 code=r'''
-local transform=setmetatable({},{__mul=function()return transform end})
--- Return a self-multiplying token; positional correctness requires native fitting.
-local mt={};mt.__mul=function(a)return a end
-local function cf()return setmetatable({},mt)end
-local CFrame={new=cf,Angles=cf}
+-- Local Z translation only. Studio verifies the rotated cylinders and poses.
+local mt={};mt.__mul=function(a,b)return setmetatable({Z=a.Z+b.Z},mt)end
+local function cf(_,_,z)return setmetatable({Z=z or 0},mt)end
+local CFrame={new=cf,Angles=function()return cf()end}
 local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}
 local Color3={fromRGB=function(...)return {...}end}
 local Enum={Material={SmoothPlastic=1,Neon=2},PartType={Ball=1,Cylinder=2}}
 local methods={}
 local function node(class,name)
- return setmetatable({ClassName=class,Name=name or class,children={},attrs={},Size={Y=1},CFrame=cf()},{__index=function(n,k)if k=='Parent' then return rawget(n,'_parent') end;return methods[k]end,__newindex=function(n,k,v)
+ return setmetatable({ClassName=class,Name=name or class,children={},attrs={},Size={Y=1,Z=1},CFrame=cf()},{__index=function(n,k)if k=='Parent' then return rawget(n,'_parent') end;return methods[k]end,__newindex=function(n,k,v)
   if k=='Parent' then local old=rawget(n,'_parent');if old then for i,x in ipairs(old.children)do if x==n then table.remove(old.children,i);break end end end
    if v then table.insert(v.children,n)end end
   rawset(n,k=='Parent' and '_parent' or k,v)
@@ -51,13 +50,41 @@ end
 Equipment.SyncGear(player,G.Get('CelestialOrgan'))
 local fallback=character:FindFirstChild('ProgressionGear');assert(fallback:GetAttribute('FallbackVisual') and fallback:GetAttribute('MountKind')=='hand')
 Equipment.SyncGear(player,nil);assert(fallback.destroyed)
+for _,case in ipairs({{'RightHand',.6275},{'Right Arm',1},{'RightHand',1.5}})do
+ local rig=node('Model');local palm=node('Part',case[1]);palm.Size.Z=case[2];palm.Parent=rig;player.Character=rig
+ Equipment.SyncGear(player,G.Get('Megaphone'))
+ local gear=rig:FindFirstChild('ProgressionGear')
+ local rear=gear:FindFirstChild('MouthpieceCollar');local grip=gear:FindFirstChild('Grip')
+ local bracket=gear:FindFirstChild('MountBracket')
+ assert(rear.CFrame.Z+rear.Size.X/2<=-palm.Size.Z/2-.039,'Megaphone mouthpiece crosses the palm')
+ assert(grip.CFrame.Z==-.25,'Megaphone grip lost its palm anchor')
+ assert(bracket.CFrame.Z-bracket.Size.Z/2<=rear.CFrame.Z+rear.Size.X/2
+  and bracket.CFrame.Z+bracket.Size.Z/2>=grip.CFrame.Z,'Megaphone bracket no longer spans mouthpiece and grip')
+end
 local respawn=node('Model');local arm=node('Part','Right Arm');arm.Parent=respawn;player.Character=respawn
 Equipment.SyncGear(player,G.Get('MosaicMic'));assert(respawn:FindFirstChild('ProgressionGear'))
-print('PASS actual equipment template/fallback lifecycle, pose tags, weld target and R6 fallback in mocked tree; not native geometry')
+print('PASS actual equipment lifecycle, welds and three Megaphone grip depths; synthetic transforms')
 '''
-with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:path=Path(f.name);f.write(code)
-try:subprocess.run(['luau',str(path)],cwd=root,check=True)
-finally:path.unlink()
+def run_equipment(payload, expected=None):
+ with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
+  path=Path(f.name);f.write(payload)
+ try: result=subprocess.run(['luau',str(path)],cwd=root,capture_output=True,text=True)
+ finally:path.unlink()
+ if expected:
+  assert result.returncode and expected in result.stderr,result.stderr
+  print('PASS control: '+expected)
+ else:
+  assert result.returncode==0,result.stderr
+  print(result.stdout,end='')
+
+run_equipment(code)
+if '--negative-controls' in sys.argv:
+ for old,new,reason in [
+  ('math.max(0,hand.Size.Z/2-.02)','0','Megaphone mouthpiece crosses the palm'),
+  ('Vector3.new(.16,.18,.24+forward)','Vector3.new(.16,.18,.24)','Megaphone bracket no longer spans mouthpiece and grip'),
+ ]:
+  assert code.count(old)==1,old
+  run_equipment(code.replace(old,new),reason)
 
 client=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 start=client.index(' elseif selected=="Style" then',client.index('render=function()'))
