@@ -1320,14 +1320,13 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  if kind=="SustainedBeam" then
   if not sustainedBeams then return end
   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-  if not Players:GetPlayerByUserId(id) or not root or (root.Position-pos).Magnitude>180 or length<.05 then
+  local distance=root and (root.Position-pos).Magnitude
+  if not Players:GetPlayerByUserId(id) or not distance or distance>180 or length<.05 then
    sustainedBeams:Remove(id);attackAudio:Remove(id);return
   end
   sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,(typeof(aura)=="Color3" and aura or Config.Auras[aura] or gold),attackLevel or 1,data.settings.reducedShake)
-  if (root.Position-pos).Magnitude<=attackAudioSettings.Range then
-   local style=type(audioStyleId)=="string" and Config.GetSound(audioStyleId)
-   attackAudio:Pulse(id,os.clock(),pos,id==p.UserId,style and style.level)
-  else attackAudio:Remove(id) end
+  local style=distance<=attackAudioSettings.Range and type(audioStyleId)=="string" and Config.GetSound(audioStyleId)
+  attackAudio:Pulse(id,os.clock(),pos,id==p.UserId,style and style.level,distance)
   return
  end
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if not root or (root.Position-pos).Magnitude>180 then return end

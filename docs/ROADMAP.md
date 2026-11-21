@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Beam audio across the range boundary
+
+- In an unpublished Studio fixture, staged server Effect pulses at 69 → 71 → 69 studs destroyed and recreated the baseline level-20 emitter. The verified client allocated nothing at the initial 71-stud sample. After admission at 69, one Sound instance advanced from .58s to 2.05s at zero gain at 71, then to 3.53s on returning to 69. The normal end packet removed the emitter.
+- A clip outside range stops sharing the near mix and continues its playback timeline while it retains a slot. At the four-handle limit an eligible nearby sound reclaims the farthest out-of-range handle. An unassigned starter cannot reclaim a slot. Eviction, timeout and a fresh entry after leaving the server's 180-stud effect feed can reset playback. Map, damage and voice transport are unaffected.
+- Critic cleared the correction. The adapter passed 57 checks and three mutation controls, and all 312 local checks and builds passed with matching input hashes. The Studio probe used the production receiver and a real configured asset with muted output, synthetic server events and a temporary profile. Real listening, microphones and multiplayer timing remain open. Both disposable Studio sessions closed.
+
 ## Beam audio gain after a clip ends
 
 - In matched local Studio runs with the owner-approved level-10 and level-20 assets, both clips received .20 NORMAL gain before group and distance attenuation. The 2.112-second level-10 clip ended naturally while the 4.113-second clip was still playing. Synthetic pulses continued for both casts. The old mixer left the second sound at .20. The corrected mixer gave it the available .40 and set the completed sound to zero without replaying it.

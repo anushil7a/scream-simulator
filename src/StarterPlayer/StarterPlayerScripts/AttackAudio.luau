@@ -30,7 +30,7 @@ function Audio.new()
   -- Keep a completed one-shot from replaying without reserving mix gain.
   if handle.started then return handle.sound.IsPlaying end
   return not fading and handle.sound.IsLoaded
- end)
+ end,Settings.AssetForLevel)
  local destroy=mix.Destroy
  function mix:Destroy() destroy(self);group:Destroy() end
  return mix

@@ -1,12 +1,15 @@
 """Actual Roblox audio adapter with mocked instances; no asset loading/listening."""
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 root = Path(__file__).resolve().parents[1]
 source = (root/'src/StarterPlayer/StarterPlayerScripts/AttackAudio.luau').read_text()
 setup = '''
-local RealMix=require("../src/StarterPlayer/StarterPlayerScripts/BeamAudioMix")
+local RealMix=(function()
+__MIX__
+end)()
 local settings=require("../src/ReplicatedStorage/Shared/AttackAudioConfig")
 local nodes={}
 local Instance={new=function(class)
@@ -93,14 +96,60 @@ check(audible.plays==1 and not audible.IsPlaying and loading.plays==1,"Natural c
 check(math.abs(loading.Volume-settings.TotalVolume*mixer.duck)<1e-6,"Remaining beam did not regain its normal budget")
 mixer:Step(3.20,.01,false,true)
 check(loading.Volume==0 and loading.IsPlaying,"Calibration did not mute current playback")
+mixer:Clear()
+local edgeStart=#nodes
+check(not mixer:Pulse(11,4,71,false,10,71) and #nodes==edgeStart,"Distant first pulse allocated audio")
+check(mixer:Pulse(11,4,69,false,10,69) and mixer:Pulse(12,4,6,false,20,6),"Nearby casts not admitted")
+mixer:Step(4.13,.13,false)
+local edge=mixer.entries[11].sound
+local close=mixer.entries[12].sound.sound
+check(edge.sound.plays==1 and close.plays==1,"Initial clips did not start")
+check(mixer:Pulse(11,4.14,71,false,10,71),"Range exit lost the live clip")
+mixer:Step(4.14,.01,false)
+check(edge.anchor.Position==71 and edge.sound.Volume==0 and edge.sound.IsPlaying,"Distant clip was not silently advanced at its new position")
+check(math.abs(close.Volume-settings.TotalVolume*mixer.duck)<1e-6,"Distant clip took a share of nearby gain")
+check(mixer:Pulse(11,4.15,69,false,10,69),"Reentry rejected continuing clip")
+mixer:Step(4.15,.01,false)
+check(edge==mixer.entries[11].sound and edge.sound.plays==1 and edge.sound.Volume>0,"Range reentry restarted the recording")
+mixer:Stop(11,4.16)
+check(not mixer:Pulse(11,4.17,69,false,10,69),"Range reentry revived stopped audio")
+mixer:Step(4.33,.16,false)
+check(not mixer.entries[11] and edge.anchor.destroyed,"Stopped range-tracked audio did not release its handle")
+mixer:Clear()
+for id=21,24 do check(mixer:Pulse(id,5,20,false,10,20),"Base slot not admitted") end
+check(not mixer:Pulse(25,5,10,false,20,10) and mixer.count==4,"All-nearby cap changed")
+for id=21,24 do check(mixer:Pulse(id,5.05,id+60,false,10,id+60),"Distant existing handle lost") end
+local evicted=mixer.entries[24].sound.anchor
+check(not mixer:Pulse(25,5.06,20,false,1,20) and not evicted.destroyed and mixer.count==4,"Unassigned starter evicted a live handle")
+check(mixer:Pulse(25,5.07,20,false,20,20) and mixer.count==4 and evicted.destroyed and not mixer.entries[24],"Nearby clip did not reclaim the farthest slot")
+mixer:Step(5.13,.13,false)
+check(mixer.entries[25].sound.sound.plays==1,"Reclaimed slot did not play")
+mixer:Step(5.74,.25,false)
+check(mixer.count==0,"Distant entries escaped normal timeout cleanup")
 mixer:Destroy();check(nodes[1].destroyed,"Teardown leaked SoundGroup")
 check(not mixer:Pulse(2,1,10,true),"Destroyed adapter recreated audio")
 print("PASS "..checks.." actual attack audio adapter checks with mocked instances")
 '''
-with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.attack_audio_', dir=root/'tests', delete=False) as f:
-    path = Path(f.name)
-    f.write(setup+source+checks)
-try:
-    subprocess.run(['luau', str(path)], cwd=root, check=True)
-finally:
-    path.unlink()
+mix = (root/'src/StarterPlayer/StarterPlayerScripts/BeamAudioMix.luau').read_text()
+def run(mixer_source):
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.luau', prefix='.attack_audio_', dir=root/'tests', delete=False) as f:
+        path = Path(f.name)
+        f.write(setup.replace('__MIX__', mixer_source) + source + checks)
+    try:
+        return subprocess.run(['luau', str(path)], cwd=root, capture_output=True, text=True)
+    finally:
+        path.unlink()
+
+result = run(mix)
+assert result.returncode == 0, result.stderr
+print(result.stdout.strip())
+if '--negative-controls' in sys.argv:
+    for old, new, diagnostic in (
+        ('  if distance and distance>self.settings.Range then return false end', '', 'Distant first pulse allocated audio'),
+        ('(not entry.distance or entry.distance<=self.settings.Range) and ', '', 'Distant clip was not silently advanced'),
+        (' or not self.canCreate(tier)', '', 'Unassigned starter evicted a live handle'),
+    ):
+        assert mix.count(old) == 1, old
+        result = run(mix.replace(old, new))
+        assert result.returncode and diagnostic in result.stderr, result.stderr
+    print('PASS 3 audio range negative controls')
