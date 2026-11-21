@@ -196,6 +196,7 @@ local gui={AbsoluteSize={X=390}}
 local card,frame,label,button=ui.card,ui.frame,ui.label,ui.button
 local function info(text)table.insert(infoTexts,text)end
 local ShopUI={ColorMixer=function(data,ui,action)end}
+local academy={starterCoinAction=function()end}
 Config.Gear=require("../src/ReplicatedStorage/Shared/GearCatalog");Config.MegaphonePrice=100;Config.MicroSpeakerPrice=200;Config.MovementPassId=0
 local function renderStyle(data)
  buttons={};actions={};labels={};infoTexts={}

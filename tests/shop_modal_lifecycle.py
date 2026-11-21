@@ -43,6 +43,7 @@ local content={CanvasPosition={X=0,Y=40},AbsoluteCanvasSize={Y=600},AbsoluteWind
 
 -- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
 local academy={tabIcons={},tabIcon=function()return {},{} end,refreshTestLauncher=function()end,canShowTestLauncher=function()return not clientDestroyed and not modal.Visible end}
+academy.starterCoinAction=function()end
 local tabs={};local panel={};local title={};local subtitle={};local mapDot;local narrow=false
 local devPanel={Visible=false};local data={level=1,xp=0,xpNext=100,savingAvailable=true,settings={},quests={},aura='Gold',shop={ready=true,inventory={},ends={},serverNow=100}}
 local destroyed={};local script={Destroying={Connect=function(_,fn)table.insert(destroyed,fn);return {Disconnect=function()end}end}}

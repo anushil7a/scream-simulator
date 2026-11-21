@@ -110,6 +110,7 @@ modules.VoiceReactor.new=function(parent)
 end
 modules.CityMap.create=function()return {}end
 modules.Config.GetSound=function()return {effect='fixture',level=1}end
+modules.NavigationCatalog.Resolve=function()return nil end
 modules.AttackAudioConfig.Range=100
 modules.ShopUI.Render=function()renders+=1 end;modules.ShopUI.ColorMixer=function()renders+=1 end
 -- This lifecycle fixture only checks the desktop port, not Shop layout.

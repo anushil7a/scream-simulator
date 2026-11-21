@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## The first gear card directs players to coin quests
+
+- A fresh 567 × 242 Studio profile previously saw a disabled NEED 100 COINS button and generic training/quests copy. The Academy Megaphone now offers GUIDE TO MAR while the player is short of coins and has no active quest. An earned Mar reward gets VIEW REWARDS, which opens Quests at the claim card. Both actions show the exact shortfall and use the existing navigation and claim UI.
+- In the disposable place, the guide showed Mar's work area at 188 studs. A temporary profile discovered Mar through the normal Talk remote, accepted both quests through the normal handler, watered three garden beds and collected six bottles at staged positions, then used the real claim and gear buttons. Claims paid 80 and 50 coins; a repeat claim added nothing. Buy & Equip mounted the megaphone and left 30 coins. A staged earned-garden case on the final build paid 80 while the active beach progress stayed 2/6.
+- Four gear negative controls, Style color regressions and the 102-check menu lifecycle passed. Independent review cleared the source. All 312 local checks and builds passed with matching inputs. All three disposable Studio sessions closed. Voice, natural travel, physical touch and persistence still need a continuous real opening playtest.
+
 ## Guide and microphone feedback share midsize landscape layouts
 
 - At 567 × 315 usable pixels, GUIDE overlapped Dodge by seven pixels horizontally and selecting Rookie Training hid the button without showing directions. The new center card clears the combat controls and stock movement and Jump areas. A slim left meter keeps the current input level and guidance visible. The waveform history is hidden in this layout and restores at 588 × 315, 750 × 323 and 567 × 346.

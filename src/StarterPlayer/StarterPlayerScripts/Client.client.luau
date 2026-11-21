@@ -945,11 +945,25 @@ academy.guideLayout=function(viewport,touch,trackedY)
   return math.floor((left+right-width)/2),48,width,48,true
  end
 end
+function academy.starterCoinAction(data)
+ if not academy.NavigationCatalog.Resolve("place","gardens",data) then return end
+ local canGuide=false
+ for _,id in ipairs({"garden","beach"}) do
+  local quest=Config.GetQuest(id)
+  local progress=(data.quests or {})[id]
+  if quest and not quest.retired and not (progress and progress.claimed) then
+   local active=data.activeQuest==id
+   if (active or (data.availableQuests or {})[id]) and (progress and progress.progress or 0)>=quest.goal then return "claim" end
+   canGuide=true
+  end
+ end
+ if canGuide and not data.activeQuest then return "guide" end
+end
 local function menuKey()
  local fields
  if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped,megaphone=data.megaphoneEquipped}
  elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,navigation=data.questNavigation,challenges=data.combatChallenges,level=data.level}
- elseif selected=="Style" then fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped}
+ elseif selected=="Style" then fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=academy.starterCoinAction(data)}
  elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  elseif selected=="Map" then fields={level=data.level}
@@ -1096,19 +1110,28 @@ render=function()
    local canAct=not locked and remaining==0
    local equipped=selectedGear and selectedGear.id==item.id
    local canBuy=canAct and not owned
+   local coinAction=starter and not locked and remaining>0 and academy.starterCoinAction(data) or nil
+   local shortfall="NEED "..remaining.." COINS"
    local stateText=locked and ("LEVEL "..item.level) or equipped and "UNEQUIP" or owned and "EQUIP"
-    or remaining>0 and ("NEED "..remaining.." COINS") or ("BUY & EQUIP\n"..item.price.." COINS")
+    or coinAction=="claim" and ("VIEW REWARDS\n"..shortfall) or coinAction=="guide" and ("GUIDE TO MAR\n"..shortfall)
+    or remaining>0 and shortfall or ("BUY & EQUIP\n"..item.price.." COINS")
    local c=card(compactGear and 72 or narrow and 116 or 110)
    label(c,string.upper(item.name),UDim2.new(1,narrow and -168 or -28,0,compactGear and 20 or narrow and 44 or 28),UDim2.fromOffset(15,6),16,gold)
    local status=equipped and "Equipped · " or owned and "Owned · " or not canBuy and (item.price.." coins · ") or ""
    local detail=string.format("Level %d · +%d%% mic power\n%s%d coins in wallet",item.level,math.floor(item.bonus*100+.5),status,data.coins)
-   if starter and not canAct then detail..="\nEarn coins from training or quests" end
+   if starter and not canAct then
+    detail..=coinAction=="claim" and "\nClaim coins in Quests" or coinAction=="guide" and "\nEarn coins with Mar's quests" or "\nEarn coins from training or quests"
+   end
    label(c,detail,UDim2.new(1,narrow and not compactGear and -28 or -170,0,compactGear and 42 or 48),UDim2.fromOffset(15,compactGear and 26 or narrow and 57 or 34),13)
    local control=button(c,item.id,stateText,UDim2.fromOffset(135,44),UDim2.new(1,-149,0,narrow and 6 or 50),function()
-    if canAct then action:FireServer("Gear",item.id) end
+    if canAct then action:FireServer("Gear",item.id);return end
+    if coinAction and academy.starterCoinAction(data)==coinAction then
+     if coinAction=="claim" then toggleTab("Quests",true)
+     else academy.selectGuide("mar","gardens");closeMenu() end
+    end
    end)
-   control.Interactable=canAct
-   if not canAct then control.TextColor3=muted end
+   control.Interactable=canAct or coinAction~=nil
+   if not control.Interactable then control.TextColor3=muted end
   end
   local starter=Config.Gear.Get("Megaphone")
   if starter then gearCard(starter,true) end
