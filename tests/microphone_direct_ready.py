@@ -18,7 +18,7 @@ check(mic.model.floor==.003 and mic.model.ceiling==.06,'Default thresholds chang
 local sends={};local gate=Gate.new()
 local sustainedControl=Controls.new(gate,function(verb,value)table.insert(sends,{verb,value})end,function()return 1 end)
 local observedMicInterruption=0;local alive=true;local data={voiceEligible=true}
-local lockController=nil;local captureSource=nil
+local captureSource=nil
 local action={FireServer=function(_,verb)table.insert(sends,{verb})end}
 __CANCEL__
 local function frame()

@@ -27,6 +27,7 @@ screen.Name="LayoutPreview";screen.ResetOnSpawn=false;screen.ZIndexBehavior=Enum
 local gui=Instance.new("Frame");ownClient(function() gui:Destroy() end);if not clientCheckpoint() then return end
 gui.Name="ScreamUI";gui.Size=UDim2.fromOffset({width},{height});gui.Position=UDim2.fromOffset(10,10);gui.BackgroundTransparency=1;gui.Parent=screen'''
 source=replace_once(source,original,replacement).replace('workspace.CurrentCamera.ViewportSize',f'Vector2.new({width},{height})').replace('UIS.TouchEnabled','fixtureTouch')
+source=source.replace('UIS.PreferredInput','(fixtureTouch and Enum.PreferredInput.Touch or Enum.PreferredInput.KeyboardAndMouse)')
 source='local fixtureTouch=true\n'+source
 source+='''
 local report={}

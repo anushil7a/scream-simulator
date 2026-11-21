@@ -2917,7 +2917,7 @@
    ],
    "material": "Marble",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "NorthCourtSoil0",
@@ -3047,7 +3047,7 @@
    ],
    "material": "Marble",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "NorthCourtSoil1",
@@ -3177,7 +3177,7 @@
    ],
    "material": "Marble",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "NorthCourtSoil2",
@@ -3307,7 +3307,7 @@
    ],
    "material": "Marble",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "NorthCourtSoil3",
@@ -17737,7 +17737,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat0_0",
@@ -17763,7 +17763,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat0_1.3",
@@ -17789,7 +17789,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchBack0",
@@ -17815,7 +17815,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot0_-1",
@@ -17841,7 +17841,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot0_1",
@@ -17867,7 +17867,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat1_-1.3",
@@ -17893,7 +17893,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat1_0",
@@ -17919,7 +17919,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat1_1.3",
@@ -17945,7 +17945,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchBack1",
@@ -17971,7 +17971,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot1_-1",
@@ -17997,7 +17997,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot1_1",
@@ -18023,7 +18023,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat2_-1.3",
@@ -18049,7 +18049,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat2_0",
@@ -18075,7 +18075,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat2_1.3",
@@ -18101,7 +18101,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchBack2",
@@ -18127,7 +18127,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot2_-1",
@@ -18153,7 +18153,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot2_1",
@@ -18179,7 +18179,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat3_-1.3",
@@ -18205,7 +18205,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat3_0",
@@ -18231,7 +18231,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat3_1.3",
@@ -18257,7 +18257,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchBack3",
@@ -18283,7 +18283,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot3_-1",
@@ -18309,7 +18309,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot3_1",
@@ -18335,7 +18335,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanter0",
@@ -18361,7 +18361,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil0",
@@ -18491,7 +18491,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil1",
@@ -18621,7 +18621,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil2",
@@ -18751,7 +18751,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil3",
@@ -18881,7 +18881,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil4",
@@ -19011,7 +19011,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil5",
@@ -19141,7 +19141,7 @@
    ],
    "material": "Wood",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBollardCap0",
@@ -19193,7 +19193,7 @@
    ],
    "material": "Wood",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBollardCap1",
@@ -21143,7 +21143,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress0_0Stem",
@@ -21169,7 +21169,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress0_0Cornice",
@@ -21247,7 +21247,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress0_1Stem",
@@ -21273,7 +21273,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress0_1Cornice",
@@ -21351,7 +21351,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress1_0Stem",
@@ -21377,7 +21377,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress1_0Cornice",
@@ -21455,7 +21455,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress1_1Stem",
@@ -21481,7 +21481,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress1_1Cornice",
@@ -21559,7 +21559,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress3_0Stem",
@@ -21585,7 +21585,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress3_0Cornice",
@@ -21663,7 +21663,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress3_1Stem",
@@ -21689,7 +21689,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress3_1Cornice",
@@ -21767,7 +21767,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress4_0Stem",
@@ -21793,7 +21793,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress4_0Cornice",
@@ -21871,7 +21871,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress4_1Stem",
@@ -21897,7 +21897,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress4_1Cornice",
@@ -21975,7 +21975,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress5_0Stem",
@@ -22001,7 +22001,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress5_0Cornice",
@@ -22079,7 +22079,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress5_1Stem",
@@ -22105,7 +22105,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress5_1Cornice",
@@ -22183,7 +22183,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress6_0Stem",
@@ -22209,7 +22209,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress6_0Cornice",
@@ -22287,7 +22287,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress6_1Stem",
@@ -22313,7 +22313,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress6_1Cornice",
@@ -22391,7 +22391,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress7_0Stem",
@@ -22417,7 +22417,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress7_0Cornice",
@@ -22495,7 +22495,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress7_1Stem",
@@ -22521,7 +22521,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress7_1Cornice",
@@ -22599,7 +22599,7 @@
    ],
    "material": "Slate",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumEntry-1Stone",
@@ -22625,7 +22625,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumEntry-1Seat",
@@ -22755,7 +22755,7 @@
    ],
    "material": "Slate",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumEntry1Stone",
@@ -22781,7 +22781,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumEntry1Seat",
@@ -25537,7 +25537,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm0Canopy0",
@@ -25745,7 +25745,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm1Canopy0",
@@ -25953,7 +25953,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm2Canopy0",
@@ -26161,7 +26161,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm3Canopy0",
@@ -26369,7 +26369,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm4Canopy0",
@@ -26577,7 +26577,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm5Canopy0",

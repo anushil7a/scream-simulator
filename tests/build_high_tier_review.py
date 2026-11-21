@@ -13,8 +13,6 @@ before=contact_renderer()
 (OUT/'BeforeVisuals.luau').write_bytes(before)
 subprocess.run([sys.executable,str(R/'tests/build_ui_preview.py'),'1280','640'],cwd=R,check=True)
 preview=(R/'build/StudioUIPreview.luau').read_text(encoding='utf8');prefix=preview[:preview.rindex('local report={}')]
-assert prefix.count('local view=Vector2.new(1280,640)')==1
-prefix=prefix.replace('local view=Vector2.new(1280,640)','local view=workspace.CurrentCamera.ViewportSize',1)
 waiting='local playerGui=p:WaitForChild("PlayerGui");if not clientCheckpoint() then return end'
 assert prefix.count(waiting)==1
 prefix=prefix.replace(waiting,'local playerGui=p:WaitForChild("PlayerGui",12);assert(playerGui and playerGui:IsA("PlayerGui"),"Fixture PlayerGui unavailable after12seconds");if not clientCheckpoint() then return end',1)
@@ -75,7 +73,6 @@ local ok,err=xpcall(function()
  dummy.PrimaryPart=torso;dummy:SetAttribute("TrainingTier","rookie");dummy:SetAttribute("ResidentActive",true)
  Collection:AddTag(dummy,"CityResident");ownClient(function()Collection:RemoveTag(dummy,"CityResident")end)
  local backdrop=part("FixtureContrastBackdrop",Vector3.new(44,20,.6),home+Vector3.new(0,6,-13),Color3.fromRGB(239,224,190))
- local function rect(o)return {x=o.AbsolutePosition.X,y=o.AbsolutePosition.Y,w=o.AbsoluteSize.X,h=o.AbsoluteSize.Y}end
  local function settle()for _=1,3 do Run.RenderStepped:Wait();assert(clientCheckpoint() and p.Character==character and root.Parent==character,"Review/character replaced")end end
  local function tuple(v)return {v.X,v.Y,v.Z}end
  local function select(options)
@@ -98,17 +95,16 @@ local ok,err=xpcall(function()
   local position=home+(view=="front" and Vector3.new(0,6,26) or Vector3.new(12,6,24));local look=home+Vector3.new(0,1,0)
   camera.CameraType=Enum.CameraType.Scriptable;camera.CFrame=CFrame.lookAt(position,look)
   backdrop.Color=options.backdrop=="dark" and Color3.fromRGB(42,65,72) or Color3.fromRGB(239,224,190)
-  settle();lockController:Clear();academy.lockLostUntil=0;toggleLock();settle()
-  assert(lockController.target and lockController.target.model==dummy,"Native lock acquisition failed")
+  settle()
   renderer=mode=="Before" and Before or After;rig=renderer.Create();rig.born=99
   local width=Config.VoiceCombat.Stats(level,1,false).width
   renderer.Update(rig,home+Vector3.new(0,0,16),Vector3.new(0,0,-1),25,width,Config.Auras.Gold,level,reduced)
   assert(renderer.Contact(rig,torso.Position,100,1),"Contact setter rejected fixture target");renderer.Animate(rig,100+age,position,reduced,true,reduced)
   settle()
-  local allocated,pooled=renderer.Budget();local words=lockMarker:FindFirstChild("LockText") or lockMarker
+  local allocated,pooled=renderer.Budget()
   local contacts=rig.contact and rig.contact.parts or {};local contactParts={}
   for _,f in ipairs(contacts)do table.insert(contactParts,{size=tuple(f.Size),position=tuple(f.Position),transparency=f.Transparency,material=f.Material.Name})end
-  local row={identity=identity,gameId=game.GameId,placeId=game.PlaceId,mode=mode,level=level,reduced=reduced,frozenAge=age,renderNow=100+age,beamBorn=99,contactBorn=100,view=view,backdrop=options.backdrop or "bright",physicalViewport=tuple(Vector3.new(camera.ViewportSize.X,camera.ViewportSize.Y,0)),logicalAllocation=tostring(gui.AbsoluteSize),camera={position=tuple(position),lookAt=tuple(look)},beam={origin=tuple(home+Vector3.new(0,0,16)),direction={0,0,-1},length=25,width=width,coreAndTierParts=#rig.parts,contactParts=#contacts,contactGeometry=contactParts,allocated=allocated,pooled=pooled,contactActive=rig.contactPosition~=nil},target={position=tuple(torso.Position),health=h.Health,opaque=torso.Transparency==0},lock={retained=lockController.target~=nil,markerVisible=lockMarker.Visible,bounds=rect(lockMarker),text=words.Text,textFits=words.TextFits,textBounds=tostring(words.TextBounds),buttonText=lockButton.Text,buttonTextFits=lockButton.TextFits},scope="Actual native Client HUD/lock and renderer/City constructors with fake mic/remotes, scripted target/level/comfort state, frozen VFX timestamps and fixture contrast wall. No real hit, damage, voice, physical-device or animated/performance proof."}
+  local row={identity=identity,gameId=game.GameId,placeId=game.PlaceId,mode=mode,level=level,reduced=reduced,frozenAge=age,renderNow=100+age,beamBorn=99,contactBorn=100,view=view,backdrop=options.backdrop or "bright",physicalViewport=tuple(Vector3.new(camera.ViewportSize.X,camera.ViewportSize.Y,0)),logicalAllocation=tostring(gui.AbsoluteSize),camera={position=tuple(position),lookAt=tuple(look)},beam={origin=tuple(home+Vector3.new(0,0,16)),direction={0,0,-1},length=25,width=width,coreAndTierParts=#rig.parts,contactParts=#contacts,contactGeometry=contactParts,allocated=allocated,pooled=pooled,contactActive=rig.contactPosition~=nil},target={position=tuple(torso.Position),health=h.Health,opaque=torso.Transparency==0},scope="Actual native Client HUD and renderer/City constructors with fake mic/remotes, scripted target/level/comfort state, frozen VFX timestamps and fixture contrast wall. No real hit, damage, voice, physical-device or animated/performance proof."}
   assert(allocated<=512,"Shared visual pool exceeded512")
   if age==.29 then assert(#contacts==0 and not rig.contactPosition,"Expired contact retained")end
   workspace:SetAttribute("HighTierReviewResult",Http:JSONEncode(row));return row
@@ -144,7 +140,7 @@ artifact_names=('BeforeVisuals.luau','Prefix.luau','Tail.luau','Review.client.lu
 report={'version':1,'baseline':BASE,'baselineFixture':'tests/fixtures/nov13-contact-baseline/manifest.json','sourceHashes':inputs,'beforeVisualsSha256':sha(before),'builderSha256':filehash(Path(__file__)),
  'artifacts':{name:filehash(OUT/name) for name in artifact_names},'nativeExecuted':False,
  'scope':'High-tier clarity build/compile only: matched b76 baseline/current renderer, both with identical fixture-injected contact. Actual Client preview prefix with fake microphone/remotes, genuine static City constructor, opaque scripted humanoid and one renderer at a time. No server Bootstrap/Profiles. Only root runs reviewed native fixture.',
- 'fixtureEdits':['Matched Before/After logical UI allocation1280x640 and virtual touchfalse fit the current native capture; this is not a device setting. Marker camera viewport restored to real camera.','PlayerGui startup wait bounded12seconds.','Fixture camera/avatar/target and ivory/slate backdrop, fully cleaned.','Sample level/reduced state is fake local UI data; no settings service or real profile.','Explicit frozen renderer timeline: born99/contact100/Animate100+age; no animation loop or real damage event.'],
+ 'fixtureEdits':['Matched Before/After logical UI allocation1280x640 and virtual touchfalse fit the current native capture; this is not a device setting.','PlayerGui startup wait bounded12seconds.','Fixture camera/avatar/target and ivory/slate backdrop, fully cleaned.','Sample level/reduced state is fake local UI data; no settings service or real profile.','Explicit frozen renderer timeline: born99/contact100/Animate100+age; no animation loop or real damage event.'],
  'control':'LocalPlayer.PlayerGui.HighTierReviewControl:Invoke({mode="Before"/"After",level=1/50/70/80/90/100,reduced=boolean,age=0/.06/.16/.29,view="front"/"oblique",backdrop="bright"/"dark"}); cleanup via {cleanup=true}',
  'limits':['High-tier clarity native appearance pending.','Frozen ages do not prove motion/comfort/performance.','Fake mic/remotes/state and scripted humanoid do not establish human voice/phone/multiplayer/server hits.','Both endpoints remain9studs past target; identical Contact calls are fixture-injected at target root in both Before and After.','Fixture Spawn is declared at origin(0,0,0), matching the previous observed native export; root verifies actual origin and more than100studs from target before use.']}
 (OUT/'provenance.json').write_text(json.dumps(report,indent=2),encoding='utf8')

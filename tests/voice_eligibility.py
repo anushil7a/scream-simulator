@@ -171,7 +171,6 @@ local Controls=require('../src/StarterPlayer/StarterPlayerScripts/SustainedContr
 local Gate=require('../src/ReplicatedStorage/Shared/VoiceActivation')
 local p={SetAttribute=function()end} -- Local cosmetic preference publication, independent of eligibility.
 local data={voiceEligible=false,voiceStatus='checking'};local voiceAccessInterrupted=false
-local lockController={Clear=function()end}
 local academy={refreshGuide=function()end,lockLostUntil=0} -- Presentation dependency; eligibility assertions remain unchanged.
 local unavailable=false;local function blocked()return unavailable end
 local alive=true;local mic={ready=true};local windowFocused=true;local GuiService={MenuIsOpen=false}

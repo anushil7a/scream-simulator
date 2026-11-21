@@ -1,4 +1,4 @@
-"""Build non-physical Map 10 finishing art. No imported dependencies or asset IDs."""
+"""Build Map 10 finishing art and authored solid footprints. No imported dependencies or asset IDs."""
 import argparse
 import importlib
 import json
@@ -14,6 +14,22 @@ MATERIALS={'SmoothPlastic','Sandstone','Concrete','Wood','WoodPlanks','Metal','N
            'Limestone','Ground','Pebble','Sand','Asphalt','DiamondPlate'}
 SHAPES={None,'Block','Ball','Cylinder','Wedge'}
 
+# Only visible structural pieces take part in movement and clearance queries.
+# Gate supports remain separate so the entrance centre line stays open.
+SOLID_PROP_IDS = {
+    *(f'StadiumEntry{side}{part}' for side in (-1, 1) for part in ('Plinth', 'Stone')),
+    *(f'StadiumButtress{side}_{i}{part}' for side in (0, 1, 3, 4, 5, 6, 7)
+      for i in range(2) for part in ('Base', 'Stem')),
+    *(f'NorthCourtPlanter{i}' for i in range(4)),
+    *(f'CoastBenchSlat{i}_{offset}' for i in range(4) for offset in (-1.3, 0, 1.3)),
+    *(f'CoastBenchBack{i}' for i in range(4)),
+    *(f'CoastBenchFoot{i}_{side}' for i in range(4) for side in (-1, 1)),
+    *(f'CoastPlanter{i}' for i in range(6)),
+    *(f'CoastBollard{i}' for i in range(2)),
+    *(f'LandmarkCoastPalm{i}Trunk' for i in range(6)),
+}
+
+
 def collect(wip=False):
     all_props=[]
     def box(name,pos,size,color,rot=None,material='SmoothPlastic',shape=None):
@@ -26,7 +42,7 @@ def collect(wip=False):
         assert shape in SHAPES,(name,shape)
         assert all(abs(v)<=1600 for v in pos), (name,pos)
         all_props.append(dict(id=name,position=pos,size=size,color=color,rotation=rot,material=material,shape=shape,
-                              collidable=False))
+                              collidable=name in SOLID_PROP_IDS))
     def disk(name,x,y,z,r,h,color,material='SmoothPlastic'):
         box(name,(x,y,z),(h,2*r,2*r),color,(0,0,90),material,'Cylinder')
     def line(name,a,b,width,height,color,material='SmoothPlastic'):
@@ -61,6 +77,8 @@ def collect(wip=False):
         assert 0<len(group)<=limit,(key,len(group),limit)
         assert all(q['id'].startswith(key) for q in group),key
         groups[key]=len(group)
+    if not wip:
+        assert SOLID_PROP_IDS <= {q['id'] for q in all_props}, 'missing authored collision part'
     assert len({q['id'] for q in all_props})==len(all_props),'duplicate finishing ID'
     assert sum(q['material']=='Neon' for q in all_props)<=160,'emissive accents must remain sparse'
     return all_props,groups
@@ -68,13 +86,13 @@ def collect(wip=False):
 def encode(parts):
     def vector(value):
         return ','.join(format(v,'.6f').rstrip('0').rstrip('.') for v in value)
-    lines=['-- Generated with tools/build_map10_finish.py. Original, non-physical environment art.','return {']
+    lines=['-- Generated with tools/build_map10_finish.py. Original environment art.','return {']
     for q in parts:
-        # Compact positional rows keep the server module small. The loader owns all physics flags.
+        # Append a true flag only for authored solid geometry.
         lines.append(' {'+','.join([json.dumps(q['id']),
              f'Vector3.new({vector(q["position"])})',f'Vector3.new({vector(q["size"])})',
              f'Color3.fromRGB({vector(q["color"])})',f'Vector3.new({vector(q["rotation"])})',
-             json.dumps(q['material']),json.dumps(q['shape'] or 'Block')])+'},')
+             json.dumps(q['material']),json.dumps(q['shape'] or 'Block')])+(',true' if q['collidable'] else '')+'},')
     return '\n'.join(lines+['}',''])
 
 def main():

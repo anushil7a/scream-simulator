@@ -4,7 +4,7 @@ import argparse,json,re,subprocess,tempfile
 R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
 paths=['NoticeLayout','NoticeView'];sources={n:(R/f'src/StarterPlayer/StarterPlayerScripts/{n}.luau').read_text(encoding='utf-8-sig') for n in paths}
 client=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text();city=(R/'src/StarterPlayer/StarterPlayerScripts/CityMap.luau').read_text();mini=city[city.index('function CityMap.MiniLayout('):city.index('function CityMap.MiniUpdate(')]
-integration=client[client.index(' -- Pause queue time while covered,'):client.index(' local lockedPoint=',client.index(' -- Pause queue time while covered,'))]
+integration=client[client.index(' -- Pause queue time while covered,'):client.index(' beamScreenFeedback:Step(',client.index(' -- Pause queue time while covered,'))]
 texts=[]
 for f in (R/'src').rglob('*.luau'):
  for t in re.findall(r'"([^"\n]+)"',f.read_text(encoding='utf-8-sig')):
@@ -119,12 +119,13 @@ check(v.headerHeight==0 and not v.hint.Visible and v.text.Position.Y.Offset==4 a
 v:Destroy()
 -- Execute the actual per-frame Client queue/layout block with real helper/queue.
 local NoticeLayout=Layout;local noticeView=make();local notifications=Queue.new();local viewport=Vector2.new(320,315);local touch=true;local data={devAccess=true}
-local modal={Visible=false};local shop={Visible=true};local title={Visible=true};local talkTarget
+local modal={Visible=false};local title={Visible=true};local talkTarget
 local selected='Shop';local function closeMenu()modal.Visible=false end;local function render()end
 local devPanel={Visible=false};local closeConversation;local action={FireServer=function()end}
 local academy={damageReadout={}} -- The extracted tab handler shares the Client UI namespace.
 TOGGLE
-local top={};local function button(_,_,_,_,_,fn)return {Visible=true,callback=fn}end
+local top={};local dark,gold={},{};local function button(_,_,text,_,_,fn)return {Visible=true,callback=fn,Text=text}end
+MENU_BUTTON
 QUEST_BUTTON
 local Config={Quests={{id='a',goal=3},{id='b',goal=2}}};data.quests={}
 local gold,white={},{}
@@ -157,7 +158,11 @@ notifications:Remove('save');frame();check(notifications.active==ordinary and no
 notifications=Queue.new()
 notifications:Push('Purchase unavailable. Nothing was charged.',true);modal.Visible=true;gameplayVisible=false;frame()
 check(noticeView.root.Visible and noticeView.layout.y+noticeView.layout.height<=56 and not shop.Visible and not questsToggle.Visible,'Shop error hidden or covers modal navigation')
-modal.Visible=false;gameplayVisible=true;frame();check(shop.Visible and questsToggle.Visible,'Modal notice lost navigation launchers')
+modal.Visible=false;gameplayVisible=true;frame();check(shop.Visible and not questsToggle.Visible,'Modal exit failed to restore grouped navigation')
+notifications=Queue.new();selected="Style";frame()
+check(shop.Text=="MENU [B]" and shop.Visible and not questsToggle.Visible,'Ordinary HUD retained separate menu buttons')
+shop.callback();check(modal.Visible and selected=="Style",'Menu toggle did not reopen the last tab')
+shop.callback();check(not modal.Visible,'Menu toggle did not close its group')
 notifications=Queue.new();notifications:Push(samples[3],true,'save');talkTarget={};modal.Visible=false;gameplayVisible=true;frame()
 check(not noticeView.root.Visible and questsToggle.Text=='NOTICE' and questsToggle.Visible,'Unavailable notice has no reachable disclosure')
 windowFocused=false;frame();check(questsToggle.Text=='QUESTS','Unfocused fallback launcher not restored');windowFocused=true;frame()
@@ -165,7 +170,7 @@ questsToggle.callback();frame();check(modal.Visible and noticeView.root.Visible 
 check(noticeView.scroll.Size.Y.Offset>=44,'Modal scroll target below44px')
 noticeView.scroll.CanvasPosition=Vector2.new(0,noticeView.contentHeight-noticeView.visibleHeight);frame();check(noticeView.text.Position.Y.Offset+noticeView.text.Size.Y.Offset-noticeView.scroll.CanvasPosition.Y<=noticeView.visibleHeight,'Modal last line remains beneath cue')
 modal.Visible=false;viewport=Vector2.new(640,360);frame();check(questsToggle.Text=='QUESTS' and noticeView.root.Visible,'Fitting resize retained fallback disclosure')
-notifications:Remove('save');frame();check(questsToggle.Text=='QUESTS' and questsToggle.Visible,'Recovered notice retained disclosure launcher')
+notifications:Remove('save');frame();check(questsToggle.Text=='QUESTS' and not questsToggle.Visible,'Recovered notice retained disclosure launcher')
 -- The baseline safe HUD measured 567 × 242 even though the camera was taller.
 viewport=Vector2.new(567,242);talkTarget={};notifications=Queue.new()
 local function checkShortTalk()
@@ -200,13 +205,13 @@ check(title.Visible and not shop.Visible,'Short modal title did not return when 
 local v=make();local id={};v:Update('Short',Layout.Modal(1024,720),true,1,16,id);local before=measured
 v:Update('Short',Layout.Modal(1280,720),true,2,16,id);check(v.root.Position.X.Offset==320 and measured==before,'Same-size reposition used stale drawn bounds');v:Destroy()
 modal.Visible=false;talkTarget=nil;viewport=Vector2.new(640,360);notifications=Queue.new()
-receiveQuests({a={progress=3,claimed=false},b={progress=2,claimed=false}});frame();check(questsToggle.Text=='QUESTS 2','Frame erased actual receiver reward count')
+receiveQuests({a={progress=3,claimed=false},b={progress=2,claimed=false}});frame();check(questsToggle.Text=='QUESTS 2' and questsToggle.Visible,'Frame erased actual receiver reward count')
 notifications:Push('Ordinary notice',false);frame();check(questsToggle.Text=='QUESTS 2','Ordinary notice erased reward count')
 viewport=Vector2.new(320,315);talkTarget={};frame();check(questsToggle.Text=='NOTICE','Reward count prevented fallback disclosure')
 receiveQuests({a={progress=3,claimed=true},b={progress=2,claimed=false}});frame();check(questsToggle.Text=='NOTICE','Receiver displaced active disclosure')
 notifications:Remove(nil);notifications=Queue.new();frame();check(questsToggle.Text=='QUESTS 1','Recovery restored stale reward count')
 notifications:Push(samples[1],true,'save');frame();viewport=Vector2.new(640,360);frame();check(questsToggle.Text=='QUESTS 1','Resize restored stale reward count')
-receiveQuests({a={progress=3,claimed=true},b={progress=2,claimed=true}});frame();check(questsToggle.Text=='QUESTS','Claimed reward count persisted')
+receiveQuests({a={progress=3,claimed=true},b={progress=2,claimed=true}});frame();check(questsToggle.Text=='QUESTS' and not questsToggle.Visible,'Claimed reward count persisted')
 -- Native fractional-height reproduction modeled at the actual allocation boundary.
 local oldMeasure=TextService.GetTextSize
 TextService.GetTextSize=function(_,text)measured+=1;return {Y=text=='Scroll for full notice' and 16.2000008 or 81.5999985}end
@@ -226,7 +231,7 @@ local count=measured;f:Update('Fractional recovery warning',lane,true,4,14,id)
 check(measured==count,'Rounded measurement causes repeated invalidation')
 f:Destroy();TextService.GetTextSize=oldMeasure
 print('PASS',n,'notice module/Client assertions; mock text metrics/GUI, no native access claim')
-'''.replace('MINI',mini).replace('SAMPLES','{'+','.join(json.dumps(t) for t in texts)+'}').replace('INTEGRATION',integration).replace('TOGGLE',client[client.index('local function toggleTab('):client.index('local function toggle()')]).replace('QUEST_LABEL',client[client.index('local function questLauncherText()'):client.index('local hud=frame(gui,"CompactHUD"')]).replace('RECEIVER_COUNT',client[client.index(' local unclaimed=0'):client.index(' refreshQuestObjects();stats.Text=')]).replace('QUEST_BUTTON',next(x for x in client.splitlines() if x.startswith('local questsToggle=button(')))
+'''.replace('MINI',mini).replace('SAMPLES','{'+','.join(json.dumps(t) for t in texts)+'}').replace('INTEGRATION',integration).replace('TOGGLE',client[client.index('local function toggleTab('):client.index('local shop=button(')]).replace('MENU_BUTTON',next(x for x in client.splitlines() if x.startswith('local shop=button('))).replace('QUEST_LABEL',client[client.index('local function questLauncherText()'):client.index('local hud=frame(gui,"CompactHUD"')]).replace('RECEIVER_COUNT',client[client.index(' local unclaimed=0'):client.index(' refreshQuestObjects();stats.Text=')]).replace('QUEST_BUTTON',next(x for x in client.splitlines() if x.startswith('local questsToggle=button(')))
 def run(layout,view,body=checks,error=None):
  code=setup+layout+'\nend\nlocal Layout=loadLayout();local function require(k)if k=="layout"then return Layout end;return _G.require(k)end\nlocal function loadView()\n'+view+'\nend\nlocal View=loadView()\n'+body
  # Preserve ordinary file require while mocking just the module dependency.
@@ -246,6 +251,8 @@ if a.negative_controls:
  for old,new,error in [('h>=44','h>=1','Tiny viewport claimed safe access'),('width-map.width-22','width-14','Notice overlaps actionable target'),('result.talkY=14','result.talkY=height-143','TALK moved into native thumbstick zone')]:
   assert old in sources['NoticeLayout'];run(sources['NoticeLayout'].replace(old,new),sources['NoticeView'],error=error)
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('or questLauncherText()', 'or "QUESTS"'),'Frame erased actual receiver reward count')
+ run(sources['NoticeLayout'],sources['NoticeView'],checks.replace(' and questsToggle.Text~="QUESTS"',''),'Modal exit failed to restore grouped navigation')
+ run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('),toggle,gold);shop.TextColor3', '),function()toggleTab("Shop")end,gold);shop.TextColor3'),'Menu toggle did not reopen the last tab')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('elseif noticeLayout.baseTalkX then','elseif noticeView.visible and noticeLayout.baseTalkX then'),'Short phone TALK extends outside the safe HUD')
  run(sources['NoticeLayout'].replace('talk.x=x;talk.y=','talk.x=navRight-24;talk.y='),sources['NoticeView'],error='Short phone TALK overlaps an existing HUD control')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('(gameplayVisible or modal.Visible)','gameplayVisible'),'Shop error hidden or covers modal navigation')

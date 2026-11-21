@@ -161,7 +161,6 @@ local function button(parent,name,text,size,pos,callback,color)
 end
 -- Presentation only: no subscriptions, assets, input handlers or independent lifetime.
 local academy={}
-academy.lockLostUntil=0
 function academy.surface(object,accent)
  local stroke=Instance.new("UIStroke");stroke.Name="AcademyEdge";stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;stroke.Color=accent or Color3.fromRGB(89,110,114);stroke.Transparency=.45;stroke.Thickness=1;stroke.Parent=object
  local shade=Instance.new("UIGradient");shade.Name="AcademyDepth";shade.Color=ColorSequence.new(Color3.new(1,1,1),Color3.fromRGB(183,196,201));shade.Rotation=90;shade.Parent=object
@@ -257,9 +256,7 @@ do local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.Sort
 local selected="Shop";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local conversationPanel,showConversation,closeConversation
 local observedMicInterruption=0
-local lockController
 local function toggleTab(name)
- if lockController then lockController:Clear();academy.lockLostUntil=0 end
  local opening=not modal.Visible or selected~=name
  selected=name;if not opening then closeMenu();return end;modal.Visible=true
  if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end
@@ -274,8 +271,9 @@ end
 local function toggle()
  if modal.Visible then closeMenu() else toggleTab(selected) end
 end
-local shop=button(top,"ShopToggle","SHOP  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),function() toggleTab("Shop") end,gold);shop.TextColor3=dark
+local shop=button(top,"ShopToggle","MENU [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),toggle,gold);shop.TextColor3=dark
 local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests") end)
+questsToggle.Visible=false
 academy.surface(shop);academy.surface(questsToggle)
 local function questLauncherText()
  local count=0
@@ -392,7 +390,6 @@ do
 end
 local windowFocused=true
 local function cancelCapture()
- if lockController then lockController:Clear();academy.lockLostUntil=0 end
  if sustainedControl then sustainedControl:Cancel();return end
  captureSource=nil;mic:Cancel();action:FireServer("CancelCast")
 end
@@ -414,55 +411,14 @@ local function beginCapture(source)
  if sustainedControl or captureSource or beamBlocked() or os.clock()<nextCast then return end
  if mic:Begin() then sequence+=1;captureSource=source;action:FireServer("BeginCast",sequence) end
 end
-do
- local LockOn=loadClientDependency(script.Parent,"LockOn");if not clientCheckpoint() then return end
- local TrainingRules=loadClientDependency(RS.Shared,"TrainingRules");if not clientCheckpoint() then return end
- local lockHomes={}
- for index,tier in ipairs(TrainingRules.Tiers) do
-  local home=Config.CompactCity and Config.CityLayout.TrainingHomes[index]
-  lockHomes[tier.id]=Vector3.new(home and home.x or tier.x,home and ((home.y or 0)+3.2) or 4.2,home and home.z or tier.z)
- end
- lockController=LockOn.new({world=workspace,players=Players,collection=game:GetService("CollectionService"),
-  localPlayer=p,trainingHomes=lockHomes,trainingRadius=TrainingRules.Radius,inArena=Config.InArena})
+local function usesCenterAim()
+ local input=UIS.PreferredInput
+ return input==Enum.PreferredInput.Touch or input==Enum.PreferredInput.Gamepad
 end
-ownClient(function() lockController:Destroy() end);if not clientCheckpoint() then return end
-connectClient(p.CharacterRemoving,function() lockController:Clear();academy.lockLostUntil=0 end)
-local function lockContext(power)
- local character=p.Character;local root=character and character:FindFirstChild("HumanoidRootPart")
- local head=character and character:FindFirstChild("Head")
- local origin=root and root.Position+Vector3.new(0,1,0)
- if root and head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
- return {character=character,position=root and root.Position,origin=origin,camera=workspace.CurrentCamera,
-  range=Config.VoiceCombat.Stats(data.level,power or mic.power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).range,
-  now=workspace:GetServerTimeNow(),allowed=not clientDestroyed and windowFocused and not beamBlocked()
-   and (not sustainedControl or sustainedControl.armed==true)}
-end
--- Presentation only: both aim sampling and marker updates can consume a lost lock.
-function academy.resolveLock(context)
- local hadTarget=lockController.target~=nil
- local point,target=lockController:Resolve(context)
- if point or not context.allowed then academy.lockLostUntil=0
- elseif hadTarget then academy.lockLostUntil=os.clock()+.8 end
- return point,target
-end
-local nextLockAcquire=0
-local function toggleLock()
- if clientDestroyed then return end
- if not lockController.target then
-  local now=os.clock();if now<nextLockAcquire then return end;nextLockAcquire=now+.2
- end
- lockController:Toggle(lockContext())
- academy.lockLostUntil=0
-end
-local function aimRay(power)
- local locked,target=academy.resolveLock(lockContext(power))
- if locked then
-  local origin=lockContext(power).origin
-  return {Origin=origin,Direction=(locked-origin).Unit},{Position=locked,Instance=target}
- end
+local function aimRay()
  local camera=workspace.CurrentCamera
  if not camera or camera.ViewportSize.X<2 or camera.ViewportSize.Y<2 then return nil end
- local location=UIS.TouchEnabled and camera.ViewportSize/2 or UIS:GetMouseLocation()
+ local location=usesCenterAim() and camera.ViewportSize/2 or UIS:GetMouseLocation()
  local ray=camera:ViewportPointToRay(location.X,location.Y)
  local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
  return ray,workspace:Raycast(ray.Origin,ray.Direction*1000,params)
@@ -494,7 +450,6 @@ end
 -- Process every server transition, not only the last state visible next frame.
 local function observeVoiceEligibility(nextData)
  if nextData.voiceEligible==true then return end
- lockController:Clear();academy.lockLostUntil=0
  if nextData.voiceStatus=="denied" or nextData.voiceStatus=="unavailable" then voiceAccessInterrupted=true end
  if sustainedControl then sustainedControl:SetArmed(false)
  elseif captureSource then cancelCapture() end
@@ -506,7 +461,6 @@ local function toggleVoice()
   notify(voiceEligibilityHint() or "Beams stay OFF. Wait for live microphone input and gameplay to be ready, then turn them on.",true,"voice");return
  end
  sustainedControl:SetArmed(not sustainedControl.armed)
- if not sustainedControl.armed then lockController:Clear();academy.lockLostUntil=0 end
  notify(sustainedControl.armed and "Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
   or "Beams OFF. Talk freely without attacking. Voice chat is unchanged.",false,"voice")
 end
@@ -518,7 +472,7 @@ local function releaseCapture(source)
  captureSource=nil
  if beamBlocked() then cancelCapture();return end
  local power,reason=mic:Release();if power<.08 then action:FireServer("CancelCast");notify(reason or "Use your voice while holding attack.",true,"capture");return end
- local ray,hit=aimRay(power)
+ local ray,hit=aimRay()
  if not ray then action:FireServer("CancelCast");return end
  action:FireServer("Cast",{sequence=sequence,power=power,aim=hit and hit.Position or ray.Origin+ray.Direction*1000})
  nextCast=os.clock()+4
@@ -610,23 +564,6 @@ local function residentTargetInfo(model,humanoid,far,currentFar,covered)
  return string.format("%s\n%s",model:GetAttribute("DisplayName") or model.Name,status),not far and not currentFar and not covered
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
-local lockButton=button(controls,"LockTarget","LOCK [R]",UDim2.fromOffset(88,44),UDim2.fromOffset(0,52),toggleLock)
-lockButton.TextSize=12;lockButton.TextWrapped=true;lockButton.Selectable=true;academy.surface(lockButton)
-local lockMarker=label(aimGui,"",UDim2.fromOffset(108,28),UDim2.new(),13,gold)
-lockMarker.Name="LockedTarget";lockMarker.AnchorPoint=Vector2.new(.5,1);lockMarker.Visible=false
-lockMarker.TextXAlignment=Enum.TextXAlignment.Center
-lockMarker.BackgroundColor3=dark;lockMarker.BackgroundTransparency=0;lockMarker.Font=Enum.Font.GothamBold
-do
- local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,5);corner.Parent=lockMarker
- local edge=Instance.new("UIStroke");edge.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;edge.Color=gold;edge.Thickness=1;edge.Parent=lockMarker
- local words=label(lockMarker,"LOCKED",UDim2.new(1,-32,1,0),UDim2.fromOffset(28,0),13,gold)
- words.Name="LockText";words.Font=Enum.Font.GothamBold;words.TextXAlignment=Enum.TextXAlignment.Center
- local symbol=Instance.new("Frame");symbol.Name="LockSymbol";symbol.BackgroundTransparency=1;symbol.BorderSizePixel=0
- symbol.Position=UDim2.fromOffset(10,8);symbol.Size=UDim2.fromOffset(12,12);symbol.Parent=lockMarker
- local outline=Instance.new("UIStroke");outline.Color=gold;outline.Thickness=1;outline.Parent=symbol
- local dot=Instance.new("Frame");dot.Name="Center";dot.BackgroundColor3=gold;dot.BorderSizePixel=0;dot.Position=UDim2.fromOffset(5,5);dot.Size=UDim2.fromOffset(2,2);dot.Parent=symbol
-end
-
 local talkTarget
 local nextResidentUi=0
 local function refreshResidentLabels(root,camera,residents)
@@ -727,7 +664,7 @@ do
     local camera=workspace.CurrentCamera
     if not camera or camera.ViewportSize.X<2 or camera.ViewportSize.Y<2 then return nil end
     local ray=camera:ViewportPointToRay(camera.ViewportSize.X/2,camera.ViewportSize.Y/2)
-    -- No microphone, lock, or UI-position raycast. The server excludes the
+    -- No microphone or UI-position raycast. The server excludes the
     -- character and clips this far-point intent against authoritative cover.
     return ray.Origin+ray.Direction*1000
    end,
@@ -1277,7 +1214,6 @@ connectClient(UIS.InputBegan,function(input,processed)
  if processed or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() then return end
  local k=input.KeyCode
  if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
- elseif k==Enum.KeyCode.R or k==Enum.KeyCode.ButtonR3 then toggleLock()
  elseif k==Enum.KeyCode.M then toggleTab("Map")
  elseif k==Enum.KeyCode.LeftShift then setSprint(true)
  elseif k==Enum.KeyCode.T then requestTalk() end
@@ -1461,7 +1397,7 @@ connectClient(Run.RenderStepped,function(dt)
  academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and os.clock()<(academy.damageTakenUntil or 0)
  local showVoiceMeter=viewport.Y>=315
  local compactVoice=touch and not showVoiceMeter
- meter.Visible=gameplayVisible and showVoiceMeter;reticle.Visible=UIS.TouchEnabled and gameplayVisible
+ meter.Visible=gameplayVisible and showVoiceMeter;reticle.Visible=usesCenterAim() and gameplayVisible
  local power=academy.VoiceReactor.Power(captureSource and mic:CapturePower() or mic.power)
  academy.reactor:Step(power,dt,data.settings.reducedShake or platformReducedMotion,mic.ready and (not sustainedControl or sustainedControl.armed))
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).range
@@ -1518,7 +1454,7 @@ connectClient(Run.RenderStepped,function(dt)
  end
  -- Keep desktop controls compact; smaller displays retain readable button text.
  local tight=viewport.X<380
- shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "SHOP" or "SHOP [B]"
+ shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "MENU" or "MENU [B]"
  questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
  testButton.Size=UDim2.fromOffset(viewport.X<432 and 86 or 112,44)
  local miniLayout=CityMap.MiniLayout(viewport,touch,data.devAccess==true)
@@ -1633,8 +1569,11 @@ connectClient(Run.RenderStepped,function(dt)
  local nextNotice=notifications:Step(dt,noticeView:CanAdvance())
  if nextNotice~=notice then notice=nextNotice;noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active) end
  title.Visible=not (shortLandscape and modal.Visible and noticeView.visible)
- shop.Visible=not (modal.Visible and (noticeView.visible or shortLandscape));questsToggle.Visible=shop.Visible
+ shop.Visible=not GuiService.MenuIsOpen and not (conversationPanel and conversationPanel.Visible)
+  and not (modal.Visible and (noticeView.visible or shortLandscape))
  questsToggle.Text=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
+ -- Keep navigation in MENU. A pending claim or inaccessible notice gets a shortcut.
+ questsToggle.Visible=shop.Visible and not modal.Visible and questsToggle.Text~="QUESTS"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
  -- Preserve the interaction target; passive mic art must never sit under TALK.
  if not touch and viewport.X>=820 and talkButton.Visible then meter.Visible=false end
@@ -1652,20 +1591,6 @@ connectClient(Run.RenderStepped,function(dt)
   academy.damageReadout:Step(noticeNow,dt,gameplayVisible and windowFocused and alive and not devPanel.Visible,
    gui,hud,tracked,academy.guidePanel,miniMapButton,testButton,noticeView.root,talkButton,meter,controls,zone,saveNotice)
  end
- local lockedPoint=academy.resolveLock(lockContext())
- lockMarker.Visible=lockedPoint~=nil and gameplayVisible
- if lockedPoint then
-  -- Nudge only the caption inward at screen edges; aim still uses the exact target.
-  local view=workspace.CurrentCamera.ViewportSize
-  local insetX,insetY=lockMarker.Size.X.Offset/2+8,lockMarker.Size.Y.Offset+8
-  lockMarker.Visible=lockMarker.Visible and view.X>=insetX*2 and view.Y>=insetY+8
-  if lockMarker.Visible then
-   local screen=workspace.CurrentCamera:WorldToViewportPoint(lockedPoint)
-   lockMarker.Position=UDim2.fromOffset(math.clamp(screen.X,insetX,view.X-insetX),math.clamp(screen.Y-24,insetY,view.Y-8))
-  end
- end
- lockButton.Text=lockedPoint and "UNLOCK" or (os.clock()<academy.lockLostUntil and "LOCK LOST\n" or "AIM CENTER\n")..(touch and "LOCK" or UIS.GamepadEnabled and "LOCK [R3]" or "LOCK [R]")
- lockButton.BackgroundColor3=lockedPoint and gold or panel;lockButton.TextColor3=lockedPoint and dark or white
  beamScreenFeedback:Step(os.clock(),screenFeedbackAllowed(),data.settings.reducedShake or platformReducedMotion)
  cueContext();gameplayAudio:Step(os.clock(),dt)
  -- Audio consumes frame dt; keep ducking/calibration/fades outside the slow HUD gate.

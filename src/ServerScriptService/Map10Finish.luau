@@ -1,5 +1,4 @@
--- Server-owned, static finishing art. Never mark these props as world ground,
--- combat cover, quest targets or navigation blockers.
+-- Server-owned finishing art. Only authored structural pieces take part in collision.
 local Data=require(script.Parent.Map10FinishGeometry)
 local Finish={}
 local grades={
@@ -57,14 +56,14 @@ function Finish.Build(world)
  local root=Instance.new("Folder");root.Name="Map10Finishing";root.Parent=world
  local groups={}
  for _,row in ipairs(Data) do
-  local id,pos,size,color,rot,material,shape=table.unpack(row)
+  local id,pos,size,color,rot,material,shape,solid=table.unpack(row)
   local key=id:match("^Stadium") or id:match("^North") or id:match("^East") or id:match("^Coast") or id:match("^Landmark")
   local district=groups[key]
   if not district then
    district=Instance.new("Folder");district.Name=key;district.Parent=root;groups[key]=district
   end
   local p=Instance.new(shape=="Wedge" and "WedgePart" or "Part");p.Name=id;p.Anchored=true
-  p.CanCollide=false;p.CanTouch=false;p.CanQuery=false
+  p.CanCollide=solid==true;p.CanTouch=false;p.CanQuery=solid==true
   p.CastShadow=material~="Neon" and math.min(size.X,size.Y,size.Z)>=.6
   p.Size=size;p.Color=color;p.Material=Enum.Material[material]
   if shape~="Wedge" then p.Shape=Enum.PartType[shape] end

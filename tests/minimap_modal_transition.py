@@ -17,7 +17,7 @@ local modal={Visible=false};local conversationPanel={Visible=false};local devPan
 local miniMapButton={Visible=true};local miniMapHolder={Visible=true}
 local miniMapView={map={Parent=true},dot={Visible=true},nextUpdate=5,lastRoot={}}
 local miniMapAvailable=true;local windowFocused=true;local gameplayVisible=true
-local root={Parent=true};local selected='Shop';local lockController;local renderRevision=0;local renderedMenuKey
+local root={Parent=true};local selected='Shop';local renderRevision=0;local renderedMenuKey
 local function hidden(where)check(not miniMapButton.Visible and not miniMapView.dot.Visible,'Minimap leaked before '..where)end
 local function clearShop()end
 local function cancelCapture()hidden('conversation dispatch')end

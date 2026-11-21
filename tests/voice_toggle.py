@@ -8,7 +8,6 @@ s=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 respawn_line=next(line for line in s.splitlines() if line.startswith('connectClient(p.CharacterRemoving,') and 'hitFeedback:DiscardThrough' in line)
 setup='''
 local unavailable=false;local windowFocused=true
-local lockController={Clear=function()end}
 local academy={lockLostUntil=0,incomingHit={}} -- Presentation dependency; voice assertions remain unchanged.
 local blocked=function()return unavailable end
 local beamBlocked=blocked;local voiceEligibilityHint=function()return nil end

@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Free aim, grouped HUD and solid scenery
+
+- Removed target lock, acquired-target marker and touch/R/R3 lock controls. Mouse free aim follows the cursor, and touch and gamepad free aim share the centered reticle using Roblox preferred input. The world hit and target readout still use the same ray and respect solid cover. Critic found the parked-mouse controller issue in the first build and cleared the corrected implementation. Native Studio showed the touch reticle and the absence of lock UI. Active gamepad hardware remains unverified.
+- The idle HUD has one MENU launcher that toggles the existing Shop, Beams, Quests, Style, Map and Settings group. A quest claim or a notice that cannot fit may expose a temporary shortcut. A 567 × 241 native touch-emulator run opened the group via MENU and closed it with B. Minimap and core combat controls keep their existing access.
+- Enabled server collision on 74 authored Map 10 finishing pieces, including gate stonework, benches, planters, bollards and palm trunks. Cosmetic pieces remain non-solid. Before/after native walk probes with jumping and climbing disabled crossed the bench and gate stone in the baseline and stopped at their surfaces afterward. The same walk through the open gate still reached the other side. Three additional solid examples passed matched ray probes. This checks selected props and corridors, not traversal of every map object.
+- All 312 local commands and builds passed with matching input hashes. The retired lock suites were replaced by free-aim checks and the standalone historical review builders were updated. Next visual pass: redesign the combat HUD and grouped menu around clear combat, progress and navigation priorities. Compare desktop and short mobile states in Studio before expanding the redesign.
+
 ## One profile from opening to first gear
 
 - Locked Garden and Beach quest cards now offer **GUIDE TO MAR** in the City. The 44 px control uses the existing Gardens route and leaves quest discovery to Talk. The original MEET NPC button activated in Studio but left the menu open and selected no destination.
