@@ -294,7 +294,7 @@ stats.Name="LevelValue";stats.Font=Enum.Font.GothamBold;stats.TextXAlignment=Enu
 local coins=label(hud,"0 coins",UDim2.fromOffset(128,24),UDim2.fromOffset(102,8),13,white)
 coins.Name="CoinValue";coins.Font=Enum.Font.GothamBold;coins.TextXAlignment=Enum.TextXAlignment.Right;coins.TextWrapped=false
 coins.Active=false;coins.Selectable=false;coins.Interactable=false
-academy.mark(hud,"health",UDim2.fromOffset(12,36),10,Color3.fromRGB(130,211,174))
+academy.healthMark=academy.mark(hud,"health",UDim2.fromOffset(12,36),10,Color3.fromRGB(130,211,174))
 local health=label(hud,"100 HP",UDim2.fromOffset(204,18),UDim2.fromOffset(26,32),14)
 health.Name="HealthValue";health.Font=Enum.Font.GothamBold;health.TextWrapped=false
 academy.incomingHit=label(hud,"BEAM HIT YOU",UDim2.fromOffset(116,18),UDim2.fromOffset(114,32),13,Color3.fromRGB(255,157,146))
@@ -323,7 +323,26 @@ local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-38,0,19),UDim2.fromOffset(26,61
 xpText.TextScaled=true
 do local xpScale=Instance.new("UITextSizeConstraint");xpScale.Name="XPTextScale";xpScale.MaxTextSize=12;xpScale.MinTextSize=9;xpScale.Parent=xpText end
 local xf=frame(frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,82),panel),"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
-academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
+academy.progressMark=academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
+function academy.layoutStatusCard(compact)
+ hud.Size=UDim2.fromOffset(compact and 218 or 242,compact and 78 or 94)
+ levelBadge.Size=UDim2.fromOffset(compact and 68 or 82,compact and 20 or 24)
+ levelBadge.Position=UDim2.fromOffset(12,compact and 6 or 8)
+ coins.Size=UDim2.fromOffset(compact and 120 or 128,compact and 20 or 24)
+ coins.Position=UDim2.fromOffset(compact and 86 or 102,compact and 6 or 8)
+ health.Size=UDim2.fromOffset(compact and 82 or 204,18)
+ health.Position=UDim2.fromOffset(26,compact and 27 or 32)
+ academy.healthMark.Position=UDim2.fromOffset(12,compact and 31 or 36)
+ academy.incomingHit.Size=UDim2.fromOffset(compact and 94 or 116,18)
+ academy.incomingHit.Position=UDim2.fromOffset(compact and 112 or 114,compact and 27 or 32)
+ hf.Parent.Size=UDim2.new(1,-24,0,compact and 6 or 8)
+ hf.Parent.Position=UDim2.fromOffset(12,compact and 46 or 51)
+ xpText.Size=UDim2.new(1,-38,0,compact and 15 or 19)
+ xpText.Position=UDim2.fromOffset(26,compact and 53 or 61)
+ academy.progressMark.Position=UDim2.fromOffset(12,compact and 55 or 64)
+ xf.Parent.Size=UDim2.new(1,-24,0,4)
+ xf.Parent.Position=UDim2.fromOffset(12,compact and 70 or 82)
+end
 local zone=label(gui,"SAFE • PvP OFF",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.Name="ZoneStatus";zone.TextXAlignment=Enum.TextXAlignment.Center
 zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08
 do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=zone end
@@ -1595,6 +1614,7 @@ connectClient(Run.RenderStepped,function(dt)
  local testTop=miniLayout.available and 14+miniLayout.height+8 or (touch and math.clamp(viewport.Y-195-44,0,14) or 14)
  testButton.Position=UDim2.new(1,viewport.X<432 and -100 or -126,0,testTop)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,data.devAccess==true and viewport.X<356 and miniLayout.height+74 or 64) or UDim2.new(0,14,1,-108)
+ academy.layoutStatusCard(touch and shortLandscape)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
  talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)

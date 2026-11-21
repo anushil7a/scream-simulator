@@ -1,5 +1,10 @@
 # Scream Simulator development roadmap
 
+## More play space on short landscape screens
+
+- At 567 × 242 usable pixels, the passive status card shrank from 242 × 94 to 218 × 78 without moving its anchor. Native Studio reported that the level-100 badge, a staged 1,000,000,000-coin balance, 480/480 health, the incoming beam warning, and the recovery warning fit their labels. A staged server effect showed and then cleared the incoming-hit label through the normal client listener. Resizing restored the standard card at 750 × 323 landscape and 401 × 720 portrait, then restored compact mode on return to the short viewport.
+- Independent review found no blocker. The focused fixture passed 1,192 assertions and 15 negative controls; all 312 local checks and builds passed with matching inputs. Both disposable Studio sessions closed. Native evidence comes from device emulation and staged data. Check readability on a physical phone during real play.
+
 ## Combat HUD shows beam phases and stamina at a glance
 
 - The original 750 × 323 usable HUD drew the same gold Beam face and **Tap to turn off** label while armed, firing and cooling down. The updated control uses slate when OFF, amber when armed, green while firing and cool slate during cooldown. Firing and labeled cooldown text stays on the button when the full meter is visible. The existing attack gates also control whether the face looks ready, and the timer rails do not intercept input.

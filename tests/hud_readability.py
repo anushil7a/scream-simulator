@@ -39,14 +39,15 @@ STATE_UPDATE
   local viewport={X=width or 1000}
 FRAME_UPDATE
  end
- function f.place(width,touch,dev,height,visible)
-  local viewport={X=width};local miniLayout={height=height};local gameplayVisible=visible;data.devAccess=dev
+ function f.place(width,touch,dev,height,visible,viewportHeight)
+  local viewport={X=width,Y=viewportHeight or 700};local miniLayout={height=height};local gameplayVisible=visible;data.devAccess=dev
 POSITION
+STATUS_LAYOUT
 VISIBILITY
  end
  function f.humanoid(h,present)if present==false then p.Character=nil else p.Character={FindFirstChildOfClass=function()return h end}end end
  function f.refresh()refreshHealth()end
- f.hud=hud;f.health=health;f.hf=hf;f.xp=xpText;f.xf=xf;f.stats=stats;f.coins=coins
+ f.hud=hud;f.health=health;f.hf=hf;f.xp=xpText;f.xf=xf;f.stats=stats;f.coins=coins;f.incoming=academy.incomingHit
  return f
 end
 '''
@@ -100,7 +101,7 @@ for _,width in ipairs({320,355,356,819,820,1920})do
  local before=current.xp.writes.Text;current.frame(width);check(current.xp.writes.Text==before,'Unchanged frame XP rewrote UI')
 end
 local function rect(node)
- if node==current.hud then return {x=0,y=0,w=242,h=94}end
+ if node==current.hud then return {x=0,y=0,w=node.Size.X.Offset,h=node.Size.Y.Offset}end
  local parent=rect(node.Parent);local size,pos=node.Size,node.Position
  return {x=parent.x+pos.X.Scale*parent.w+pos.X.Offset,y=parent.y+pos.Y.Scale*parent.h+pos.Y.Offset,w=size.X.Scale*parent.w+size.X.Offset,h=size.Y.Scale*parent.h+size.Y.Offset}
 end
@@ -127,6 +128,23 @@ for _,node in ipairs(current.nodes)do
 end
 check(xpConstraint and xpConstraint.MaxTextSize==12 and xpConstraint.MinTextSize==9,'XP warning text size constraint missing or misbounded')
 check(equal(old.hf.BackgroundColor3,current.hf.BackgroundColor3) and equal(old.xf.BackgroundColor3,current.xf.BackgroundColor3),'Health/XP semantic colors changed')
+current.place(567,true,false,0,true,242)
+check(current.hud.Size.X.Offset==218 and current.hud.Size.Y.Offset==78,'Short touch card retained full footprint')
+compare(old,current)
+for _,node in ipairs(current.nodes) do
+ if node.ClassName=='Frame' or node.ClassName=='TextLabel' then
+  local r=rect(node)
+  check(r.x>=0 and r.y>=0 and r.x+r.w<=218.001 and r.y+r.h<=78.001,'Compact descendant outside status card')
+ end
+end
+level,coin,hp,track,xp,xpTrack=rect(badge),rect(current.coins),rect(current.health),rect(current.hf.Parent),rect(current.xp),rect(current.xf.Parent)
+local incoming=rect(current.incoming)
+check(coin.x>=level.x+level.w+6 and incoming.x>=hp.x+hp.w+4,'Compact header or HP overlaps another label')
+check(track.y>hp.y+hp.h and xp.y>track.y+track.h and xpTrack.y>xp.y+xp.h,'Compact rows overlap')
+for _,sample in ipairs({{567,true,300},{390,true,700},{567,false,242}}) do
+ current.place(sample[1],sample[2],false,0,true,sample[3])
+ check(current.hud.Size.X.Offset==242 and current.hud.Size.Y.Offset==94 and rect(current.coins).w==128,'Standard status card did not restore')
+end
 print('PASS',checks,'actual HUD/baseline/data/geometry/passive assertions; mocked replication/allocations, native fit separate')
 '''
 
@@ -149,7 +167,12 @@ def fixture(source, name):
     helpers = source[source.index('local function frame(parent,'):source.index('local function button(parent,')]
     art = source[source.index('local academy={}'):source.index('-- Original, static menu glyphs.')]
     colors = next(line for line in source.splitlines() if line.startswith('local dark='))
-    return SETUP.replace('local function fixture()', 'local function ' + name + '()') + colors + '\n' + helpers + art + hud + progress + TAIL.replace('STATE_UPDATE', update).replace('FRAME_UPDATE', frame).replace('POSITION', position).replace('VISIBILITY', visible)
+    status_layout = ''
+    layout_call = next((line for line in source.splitlines() if line.strip().startswith('academy.layoutStatusCard(')), None)
+    if layout_call:
+        short = next(line for line in source.splitlines() if 'local shortLandscape=' in line)
+        status_layout = short + '\n' + layout_call
+    return SETUP.replace('local function fixture()', 'local function ' + name + '()') + colors + '\n' + helpers + art + hud + progress + TAIL.replace('STATE_UPDATE', update).replace('FRAME_UPDATE', frame).replace('POSITION', position).replace('STATUS_LAYOUT',status_layout).replace('VISIBILITY', visible)
 
 
 def run(source, baseline, expected=None):
@@ -190,12 +213,13 @@ def main():
             ('data.level>=Config.MaxLevel and 1 or data.xp/data.xpNext', 'data.xp/data.xpNext', 'XP arithmetic/warning precedence changed'),
             ('if data.recoveryWarning and not data.testSession then', 'if false then', 'XP arithmetic/warning precedence changed'),
             ('levelBadge.Interactable=false', 'levelBadge.Interactable=true', 'New header is not passive'),
-            ('UDim2.fromOffset(218,8),UDim2.fromOffset(12,51)', 'UDim2.fromOffset(218,8),UDim2.fromOffset(12,45)', 'Health value/track lanes overlap or shrank'),
-            ('UDim2.new(1,-38,0,19),UDim2.fromOffset(26,61)', 'UDim2.new(1,-38,0,14),UDim2.fromOffset(26,61)', 'XP warning lane shrank or overlaps health'),
-            ('UDim2.fromOffset(128,24),UDim2.fromOffset(102,8)', 'UDim2.fromOffset(150,24),UDim2.fromOffset(102,8)', 'HUD descendant exceeds card bounds'),
+            ('compact and 46 or 51', 'compact and 46 or 45', 'Health value/track lanes overlap or shrank'),
+            ('compact and 15 or 19', 'compact and 15 or 14', 'XP warning lane shrank or overlaps health'),
+            ('compact and 120 or 128', 'compact and 120 or 150', 'HUD descendant exceeds card bounds'),
             ('xpText.TextScaled=true', 'xpText.TextScaled=false', 'XP warning label does not scale to fit'),
             ('xpScale.MaxTextSize=12;xpScale.MinTextSize=9', 'xpScale.MaxTextSize=10;xpScale.MinTextSize=9', 'XP warning text size constraint missing or misbounded'),
             ('xpScale.Parent=xpText', 'xpScale.Parent=hud', 'XP warning text size constraint missing or misbounded'),
+            ('academy.layoutStatusCard(touch and shortLandscape)', 'academy.layoutStatusCard(false)', 'Short touch card retained full footprint'),
         ]
         for old, new, expected in cases:
             assert source.count(old) == 1, old
