@@ -308,28 +308,32 @@ do
   end
  end
 end
--- Captain reskin retains slot and progression while changing the mechanical theme.
-local sirenBoss=byId.leviathan
-Rules.Reset(sirenBoss,sirenBoss.spec,4000)
-sirenBoss.turn=0;sirenBoss.nextAttack=0;service.nextStep=0
-local sirenTester=player(123,sirenBoss)
-contexts[123].position=sirenBoss.center+Vector3.new(0,3,23)
-service:Hit(sirenBoss,sirenTester,1,4000);service:Step(4000)
-local edgeCount=0
-for _,p in ipairs(created) do
- local marker=p.Parent
- if p.Name=="LaneEdge" and marker and marker.Parent==sirenBoss.warning then
-  edgeCount+=1
-  local offset=p.CFrame.LocalOffset
-  check(marker.Name=="Hazard" and not p.CanCollide and not p.CanTouch and not p.CanQuery and not p.CastShadow
-   and p.Material==Enum.Material.SmoothPlastic,"Sirens edge interferes with gameplay or casts a shadow")
-  check(math.abs(offset.X)+p.Size.X/2<=marker.Size.X/2+1e-6
-   and math.abs(offset.Z)+p.Size.Z/2<=marker.Size.Z/2+1e-6,"Sirens edge extends outside committed damage geometry")
-  check(offset.Y-p.Size.Y/2>marker.Size.Y/2,"Sirens edge submerged in warning fill")
+-- Both palettes outline committed bars without adding hazard markers.
+for i,case in ipairs({{"leviathan",2,{37,44,54}},{"ignis",3,{245,225,177}}}) do
+ local id,lanes,color=table.unpack(case)
+ local boss=byId[id];local now=4000+i*100
+ Rules.Reset(boss,boss.spec,now)
+ boss.turn=0;boss.nextAttack=0;service.nextStep=0
+ local tester=player(122+i,boss)
+ contexts[122+i].position=boss.center+Vector3.new(0,3,23)
+ service:Hit(boss,tester,1,now);service:Step(now)
+ local edgeCount=0
+ for _,p in ipairs(created) do
+  local marker=p.Parent
+  if p.Name=="LaneEdge" and marker and marker.Parent==boss.warning then
+   edgeCount+=1
+   local offset=p.CFrame.LocalOffset
+   check(marker.Name=="Hazard" and not p.CanCollide and not p.CanTouch and not p.CanQuery and not p.CastShadow
+    and p.Material==Enum.Material.SmoothPlastic,"Lane edge interferes with gameplay or casts a shadow")
+   check(math.abs(offset.X)+p.Size.X/2<=marker.Size.X/2+1e-6
+    and math.abs(offset.Z)+p.Size.Z/2<=marker.Size.Z/2+1e-6,"Lane edge extends outside committed damage geometry")
+   check(offset.Y-p.Size.Y/2>marker.Size.Y/2,"Lane edge submerged in warning fill")
+   check(p.Color[1]==color[1] and p.Color[2]==color[2] and p.Color[3]==color[3],"Wrong contrast palette for "..id)
+  end
  end
+ check(edgeCount==4*lanes and boss.warning:GetAttribute("BossMarkerCount")==lanes,"Lane borders missing or altered hazard roster for "..id)
 end
-check(edgeCount==8 and sirenBoss.warning:GetAttribute("BossMarkerCount")==2,"Twin Sirens borders altered hazard roster")
-local captain=sirenBoss.spec
+local captain=byId.leviathan.spec
 check(captain.name=="Seagull Siren Captain" and captain.level==70,"captain public name and exact level")
 check(captain.coins==95 and captain.xp==340,"captain unchanged reward pool")
 check(captain.x==420 and captain.y==0 and captain.z==420 and captain.radius==38,"captain existing pier arena")

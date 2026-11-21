@@ -18,10 +18,13 @@ local function part(parent,name,size,position,color)
  local p=Instance.new("Part");p.Name=name;p.Size=size;p.Position=position;p.Color=color
  p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.Parent=parent;return p
 end
-local function markSirenEdges(marker)
+local laneEdgeColors={
+ TwinSirens=Color3.fromRGB(37,44,54),
+ OrganFlames=Color3.fromRGB(245,225,177),
+}
+local function markLaneEdges(marker,color)
  local width,length=marker.Size.X,marker.Size.Z
  local thickness=.25
- local color=Color3.fromRGB(37,44,54)
  local function edge(x,z,w,l)
   local p=part(marker,"LaneEdge",Vector3.new(w,.05,l),marker.Position,color)
   p.CFrame=marker.CFrame*CFrame.new(x,marker.Size.Y/2+.035,z)
@@ -159,6 +162,7 @@ function Service.new(parent,callbacks)
     warning:SetAttribute("BossAttackSerial",strike.serial)
     warning:SetAttribute("BossMarkerCount",#strike.shapes)
     if strike.style=="BellCascade" then warning:SetAttribute("BossAttackHint",strike.name) end
+    local edgeColor=laneEdgeColors[strike.style]
     for _,shape in ipairs(strike.shapes) do
      local pos=b.center+Vector3.new(shape.x,.5,shape.z)
      local size=shape.kind=="disk" and Vector3.new(.12,shape.radius*2,shape.radius*2) or Vector3.new(shape.width,.12,shape.length)
@@ -166,7 +170,7 @@ function Service.new(parent,callbacks)
      if shape.kind=="disk" then marker.Shape=Enum.PartType.Cylinder;marker.CFrame=CFrame.new(pos)*CFrame.Angles(0,0,math.pi/2)
      else marker.CFrame=CFrame.new(pos)*CFrame.Angles(0,shape.angle,0) end
      marker.Material=Enum.Material.Neon;marker.Transparency=strike.kind=="Melee" and .27 or .45
-     if strike.style=="TwinSirens" then markSirenEdges(marker) end
+     if edgeColor then markLaneEdges(marker,edgeColor) end
     end
     warning.Parent=b.model;b.warning=warning
    end

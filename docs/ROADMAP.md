@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Ignis lane borders under overlapping beams
+
+- In disposable Studio at 750 × 381, three synthetic level-50 beam visuals crossed the three committed Organ Flames lanes. With the boss accent effects disabled, the blue warning fill and blue beam light were hard to separate. The updated warning has thin warm borders along the existing lane edges. Matched captures used a fixed camera and a client-only copy of the actual warning to inspect the look after impact. The rebuilt view retained all three hazards and 12 non-colliding, non-querying edges, and the live warning cleared after impact.
+- Native server checks kept the standing 35-damage hit at 205/240 HP. The new Ignis gap scenario began inside the center lane and walked 2.62 studs sideways before confirmed impact. It retained 240/240 HP with dodge immunity cleared. Boss damage geometry, cadence and the Captain's border remain as before.
+- Critic cleared the diff. Focused checks passed 8,310 boss-service assertions, 748 visual checks and 36 warning lifecycle checks. Removing the Ignis border or changing it to the Captain's palette triggered the expected failures. All 312 local checks and builds passed with matching input hashes. The disposable sessions closed. The overlap used staged effects, not player microphones or networked combat. Next, check recognition during actual multiplayer combat and on a physical device.
+
 ## Rookie Training sign clears the short-screen HUD
 
 - From the default spawn camera at 567 × 242 usable pixels, **TALK** obscured the left side of the old Rookie Training sign. The raised directory puts **← ROOKIE TRAINING** on the larger upper face and **ACADEMY PLAZA** below. The rebuilt native capture showed the full Rookie instruction above the visible TALK button. The sign uses the same four authored pieces and the posts are taller within their original ground footprints.

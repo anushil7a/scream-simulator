@@ -12,7 +12,7 @@ do
   assert(not busy,"A boss test is already active")
   local beamMode=mode=="beam" or mode=="beam-low"
   local bellGap=id=="conductor" and (mode=="gap" or mode=="gap-alt")
-  local gapMode=bellGap or mode=="gap" and id=="leviathan"
+  local gapMode=bellGap or mode=="gap" and (id=="leviathan" or id=="ignis")
   local ranged=mode=="ranged" or gapMode
   assert(mode=="melee" or ranged or mode=="dodge" or beamMode,"Unrecognized local diagnostic mode")
   local ps=Players:GetPlayers()
@@ -120,6 +120,10 @@ do
      if bellGap then
       assert(strike.style=="BellCascade" and #markers==6,"Expected six committed bell circles")
       target=chosen.center+Vector3.new(strike.x,0,strike.z)
+     elseif id=="ignis" then
+      assert(strike.style=="OrganFlames" and #markers==3,"Expected three committed organ lanes")
+      local angle=strike.shapes[2].angle
+      target=r.Position+Vector3.new(math.cos(angle)*4,0,-math.sin(angle)*4)
      else
       assert(strike.style=="TwinSirens" and #markers==2,"Expected two committed siren lanes")
       local center=(markers[1].Position+markers[2].Position)/2
