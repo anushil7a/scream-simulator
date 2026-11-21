@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## The first menu opening leads to earned gear
+
+- In a fresh temporary profile at 750 × 323, MENU opened directly on the Spectrum pass. The first tab is now **GEAR**, and the first opening shows the Academy Megaphone, its 100-coin price, and **GUIDE TO MAR**. The gear card and action also fit at 567 × 242. SHOP still opens from its tab, and MENU returns to the player's last tab.
+- In native Studio, an emulated touch opened Gear and selected Mar's route. One temporary profile talked to Mar, accepted and completed Garden and Beach, claimed 80 and 50 coins, then used **BUY & EQUIP** for the Academy Megaphone. The wallet showed 30 coins, the server mounted the existing procedural gear model, and it remounted after respawn. Travel was staged and the quest interactions used scripted holds. No Robux purchase was made.
+- Independent review and the full local build and check matrix passed. The separate legacy deferred-callback baseline still fails at the earlier Test Tools guard, as it did on the parent commit. Both disposable Studio sessions closed after restoring the default viewport. Real voice, physical touch, unassisted discovery and live persistence remain open. Next, inspect the existing Megaphone art and its native hand fit.
+
 ## Training guidance hands off to the first fight
 
 - At the Rookie pad, the selected guide previously showed **Arrived · 5 studs W**. It now says **Hit the fighter to spar**, with the fighter and level above it where the layout has room. Walking out of the arrival radius restores the direction and distance. Other destinations keep their arrival text, and the training guide still requires the player to select it.

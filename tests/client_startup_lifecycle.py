@@ -109,6 +109,7 @@ modules.VoiceReactor.new=function(parent)
  return {root=root,text=object('Status',root),fill=object('Fill',root),track=object('Track',root)}
 end
 modules.CityMap.create=function()return {}end
+modules.CityMap.MiniUpdate=function()end
 modules.Config.GetSound=function()return {effect='fixture',level=1}end
 modules.NavigationCatalog.Resolve=function()return nil end
 modules.AttackAudioConfig.Range=100
@@ -166,9 +167,13 @@ local sync=0;for _,verb in ipairs(commands)do if verb=='Sync'then sync+=1 end en
 if (pauseAt==0 and not string.find(variant,'late-',1,true)) or INVALIDATE=='reparent' then
  assert(frames==1 and sync==1,'Normal startup did not reach EOF exactly once')
  if variant=='used-shop' or variant=='used-style' or variant=='used-shop-switch' then
-  local modal;for _,o in ipairs(objects)do if o.Name=='Menu' then modal=o end end
-  assert(modal);modal.Visible=true
-  modal[variant=='used-style' and 'Style' or 'Shop'].Activated:Fire()
+  local modal,launcher
+  for _,o in ipairs(objects)do
+   if o.Name=='Menu' then modal=o elseif o.Name=='ShopToggle' then launcher=o end
+  end
+  assert(modal and launcher)
+  if variant=='used-style' then launcher.Activated:Fire()
+  else modal.Visible=true;modal.Shop.Activated:Fire() end
   assert(renders==1,'Actual registered tab did not use Shop module')
   if variant=='used-shop-switch' then modal.Style.Activated:Fire();assert(renders==2 and singletonClears.ShopUI==1,'Ordinary render Clear changed')end
   terminalShopClears=singletonClears.ShopUI or 0

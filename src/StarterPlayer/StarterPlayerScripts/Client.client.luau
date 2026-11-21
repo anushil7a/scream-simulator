@@ -253,7 +253,7 @@ end
 button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function() closeMenu() end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 do local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content end
-local selected="Shop";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
+local selected="Style";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local conversationPanel,showConversation,closeConversation
 local observedMicInterruption=0
 local function toggleTab(name,resetScroll)
@@ -1227,7 +1227,13 @@ render=function()
   content.CanvasPosition=Vector2.new(0,math.clamp(scroll.Y,0,math.max(0,content.AbsoluteCanvasSize.Y-content.AbsoluteWindowSize.Y)))
  end)
 end
-for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name=="Screams" and "BEAMS" or name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() if clientDestroyed or not modal.Visible then return end;selected=name;render() end)
+academy.menuTabs={"Style","Screams","Quests","Shop","Map","Settings"}
+for i,name in ipairs(academy.menuTabs) do
+ local tabText=name=="Style" and "GEAR" or name=="Screams" and "BEAMS" or name:upper()
+ tabs[name]=button(modal,name,tabText,UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function()
+  if clientDestroyed or not modal.Visible then return end
+  if selected~=name then toggleTab(name) end
+ end)
  local icon,padding=academy.tabIcon(tabs[name],name);academy.tabIcons[name]={icon=icon,padding=padding}
 end
 local conversationNPC,conversationUntil
@@ -1616,7 +1622,7 @@ connectClient(Run.RenderStepped,function(dt)
  local tabY=shortLandscape and 44 or short and 54 or width<620 and 102 or 88
  local columns=(width>=620 or shortLandscape and width>=500) and 6 or 3;local rows=6/columns
  local tabWidth=(width-40-(columns-1)*6)/columns
- for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do
+ for i,name in ipairs(academy.menuTabs) do
   local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(20+((i-1)%columns)*(tabWidth+6),tabY+math.floor((i-1)/columns)*50);b.TextSize=width<620 and 12 or 14
   local decoration=academy.tabIcons[name];academy.layoutTab(b,decoration.icon,decoration.padding,tabWidth)
  end

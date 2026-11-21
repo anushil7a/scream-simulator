@@ -28,8 +28,11 @@ def callbacks(c):
  elif 'local function closeMenu()' in c: state+=re.search(r'script.Destroying:Connect\(function\(\)[^\n]*gui:Destroy\(\) end\)',c).group(0)+'\n'
  key=c[c.index('local function menuKey()'):c.index('render=function()')]
  head=c[c.index('render=function()'):];head=head[:head.index(' if selected=="Shop" then')]
- tail=c[c.index(' -- Restore only after AutomaticCanvasSize'):c.index('\nfor i,name in ipairs({"Shop"')]
+ tail=c[c.index(' -- Restore only after AutomaticCanvasSize'):registration_start(c)]
  return x,toggle,dev,recal,convo,state,key,head,tail
+
+def registration_start(c):
+ return c.index('\nacademy.menuTabs=') if '\nacademy.menuTabs=' in c else c.index('\nfor i,name in ipairs(')
 
 def assemble(c):
  x,toggle,dev,recal,convo,state,key,head,tail=callbacks(c)
@@ -53,6 +56,8 @@ local function cancelCapture()end;local function setSprint()end;local mic={Calib
 local function closeConversation()end
 local openMicSetup;local micSetupOpen=false;local micPanel={Visible=false}
 '''
+ initial=re.search(r'\blocal selected\s*=\s*"([^"]+)"',c).group(1)
+ context=context.replace("local selected='Shop'",f"local selected={initial!r}")
  input_setup="local keyCallback;local textFocus;local UIS={InputBegan={},GetFocusedTextBox=function()return textFocus end};local GuiService={};Enum.KeyCode={B='B'};local function connectClient(_,fn)keyCallback=fn end\n"
  if 'local function clearShop()' in c:
   owner=c[c.index('local clientConnections={}'):c.index('local function loadClientDependency(')]
@@ -84,7 +89,8 @@ f.reply=function(index,result)local job=f.priceJobs()[index];assert(coroutine.re
 return f
 end
 '''.replace('XCLOSE',x).replace('DEVCLOSE',dev).replace('RECALCLOSE',recal).replace('CONVOCLOSE',convo)
- return setup+shop+tailSetup+context+owner+'\n'+state+'\n'+open_helper+'\nmodal.Visible=true;(function() '+x+' end)();check(not modal.Visible,"Early X close failed")\n'+key+toggle+'\n'+head+renderbody+tail+'\n'+input_setup+c[c.index('connectClient(UIS.InputBegan,function(input,processed)'):c.index('connectClient(UIS.InputEnded,function(input)')]+'\n'+c[c.index('for i,name in ipairs({"Shop"'):c.index('\nlocal conversationNPC',c.index('for i,name in ipairs({"Shop"'))]+'\n'+finish
+ register=registration_start(c)
+ return setup+shop+tailSetup+context+owner+'\n'+state+'\n'+open_helper+'\nmodal.Visible=true;(function() '+x+' end)();check(not modal.Visible,"Early X close failed")\n'+key+toggle+'\n'+head+renderbody+tail+'\n'+input_setup+c[c.index('connectClient(UIS.InputBegan,function(input,processed)'):c.index('connectClient(UIS.InputEnded,function(input)')]+'\n'+c[register:c.index('\nlocal conversationNPC',register)]+'\n'+finish
 checks=r'''
 for _,route in ipairs({'closeX','toggle','keyB','sameTab','closeConversation','destroy'})do
  local f=fixture();f.tab('Shop');check(#f.stats().views==4,'Opening did not render Shop')
@@ -129,6 +135,14 @@ for _,result in ipairs({'error','success'})do
  f.closeX();f.destroy();f.modal.Visible=true;f.activateTab('Style')
  check(#f.stats().connections==0 and f.selected()=='Shop','Destroyed tab callback rebuilt subscriptions')
 end
+local fresh=fixture();fresh.toggle()
+check(fresh.modal.Visible and fresh.selected()=='Style' and #fresh.priceJobs()==0 and fresh.sent==0,'Fresh menu did not open earned gear first')
+fresh.activateTab('Shop')
+check(fresh.modal.Visible and fresh.sent==1 and #fresh.priceJobs()==4,'Moving to Shop missed its refresh')
+fresh.activateTab('Shop')
+check(fresh.modal.Visible and fresh.sent==1,'Tapping selected Shop closed or refreshed it')
+fresh.toggle();fresh.toggle()
+check(fresh.modal.Visible and fresh.selected()=='Shop' and fresh.sent==2,'Reopening did not respect the last tab')
 print('PASS',n,'actual modal callback/cache + Shop price/style lifecycle assertions; mocked UI/API')
 '''
 def run(c,error=None):
@@ -144,6 +158,11 @@ else:
  assert client.index('local function closeMenu()')<client.index('button(modal,"Close","X"'), 'Close registered before helper initialization'
  run(client)
  if a.negative_controls:
-  mutants=[('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'selected=name;render()', 'Hidden tab callback rebuilt subscriptions or changed selection: Shop'),('if clientDestroyed or not modal.Visible then return end;selected=name;render()', 'if not modal.Visible then return end;selected=name;render()', 'Destroyed tab callback rebuilt subscriptions'),('elseif k==Enum.KeyCode.B then toggle()','elseif k==Enum.KeyCode.B then do end','Close wiring retained views: keyB'),(next(line for line in client.splitlines() if line.startswith('button(modal,"Close","X"')),next(line for line in client.splitlines() if line.startswith('button(modal,"Close","X"')).replace('closeMenu()','modal.Visible=false'),'Close wiring retained views: closeX'),('if modal.Visible then closeMenu() else','if modal.Visible then modal.Visible=false else','Close wiring retained views: toggle'),('if not opening then closeMenu();return end','if not opening then modal.Visible=false;return end','Close wiring retained views: sameTab'),('cancelCapture();closeMenu();if devPanel','cancelCapture();modal.Visible=false;if devPanel','Close wiring retained views: closeConversation'),('renderedMenuKey=nil;renderRevision+=1','renderRevision+=1','Unchanged key reopen lost subscriptions'),('renderedMenuKey=nil;renderRevision+=1','renderedMenuKey=nil','Pending scroll survived close'),('ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)','ownClient(function() modal.Visible=false;renderedMenuKey=nil end)','Pending scroll survived close: destroy')]
+  callback_guard='if clientDestroyed or not modal.Visible then return end\n  if selected~=name then toggleTab(name) end'
+  mutants=[(callback_guard, 'if selected~=name then toggleTab(name) end', 'Hidden tab callback rebuilt subscriptions or changed selection: Screams'),(callback_guard, 'if not modal.Visible then return end; if selected~=name then toggleTab(name) end', 'Destroyed tab callback rebuilt subscriptions'),('elseif k==Enum.KeyCode.B then toggle()','elseif k==Enum.KeyCode.B then do end','Close wiring retained views: keyB'),(next(line for line in client.splitlines() if line.startswith('button(modal,"Close","X"')),next(line for line in client.splitlines() if line.startswith('button(modal,"Close","X"')).replace('closeMenu()','modal.Visible=false'),'Close wiring retained views: closeX'),('if modal.Visible then closeMenu() else','if modal.Visible then modal.Visible=false else','Close wiring retained views: toggle'),('if not opening then closeMenu();return end','if not opening then modal.Visible=false;return end','Close wiring retained views: sameTab'),('cancelCapture();closeMenu();if devPanel','cancelCapture();modal.Visible=false;if devPanel','Close wiring retained views: closeConversation'),('renderedMenuKey=nil;renderRevision+=1','renderRevision+=1','Unchanged key reopen lost subscriptions'),('renderedMenuKey=nil;renderRevision+=1','renderedMenuKey=nil','Pending scroll survived close'),('ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)','ownClient(function() modal.Visible=false;renderedMenuKey=nil end)','Pending scroll survived close: destroy'),
+   ('local selected="Style";local render','local selected="Shop";local render','Fresh menu did not open earned gear first'),
+   ('if selected~=name then toggleTab(name) end','if selected~=name then selected=name;render() end','Moving to Shop missed its refresh'),
+   ('if selected~=name then toggleTab(name) end','toggleTab(name)','Tapping selected Shop closed or refreshed it'),
+  ]
   for old,new,error in mutants:
    assert client.count(old)==(2 if old=="renderedMenuKey=nil;renderRevision+=1" else 1),old;run(client.replace(old,new,1),error)

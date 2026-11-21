@@ -5,7 +5,7 @@ R=Path(__file__).resolve().parents[1]
 source=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 def build(c):
  helpers=c[c.index('local academy={}'):c.index('local top=frame(')]
- a=c.index('for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs')
+ a=c.index('academy.menuTabs=')
  register=c[a:c.index('local conversationNPC',a)]
  a=c.index(' local columns=', c.index(' local tabY='));layout=c[a:c.index(' content.Position=',a)]
  selection=next(x for x in c.splitlines() if 'for name,b in pairs(tabs) do b.BackgroundColor3=' in x)
@@ -22,16 +22,17 @@ local metrics=1;local TextService={GetTextSize=function(_,text,size,font,bounds)
 local gold='gold';local muted='muted';local panel='panel';local white='white'
 local modal={Visible=true};local tabs={};local selected='Shop';local clientDestroyed=false;local renders=0
 local function render()renders+=1 end
+local function toggleTab(name)selected=name;render() end
 local function button(parent,name,text,size,pos,callback)
  local b={Name=name,Text=text,Size=size,Position=pos,callback=callback,Font='font',TextSize=14,ZIndex=1,Parent=parent};return b
 end
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 '''
 CHECKS=r'''
-local names={'Shop','Screams','Quests','Style','Map','Settings'}
+local names={'Style','Screams','Quests','Shop','Map','Settings'}
 local signatures={};local totalFrames=0
 for _,name in ipairs(names)do
- local b=tabs[name];check(b~=nil and b.Text==(name=='Screams' and 'BEAMS' or string.upper(name)),'Tab label changed')
+ local b=tabs[name];check(b~=nil and b.Text==(name=='Style' and 'GEAR' or name=='Screams' and 'BEAMS' or string.upper(name)),'Tab label changed')
  local icons={};for _,o in ipairs(made)do if o.Parent==b and o.ClassName=='Frame' then table.insert(icons,o)end end
  check(#icons==1,'Missing or duplicate tab icon');local icon=icons[1]
  check(icon.Size.X.Offset==20 and icon.Size.Y.Offset==20,'Icon bounds changed')
@@ -59,7 +60,8 @@ for _,view in ipairs({{320,false},{390,false},{523,true},{524,true},{567,true},{
  local singleRow=viewport>=644 or shortLandscape and viewport>=524
  for _,metricScale in ipairs({1,3})do metrics=metricScale
  layout(width,shortLandscape)
- check((tabs.Settings.Position.Y.Offset==tabs.Shop.Position.Y.Offset)==singleRow,'Wrong compact tab row count')
+ check((tabs.Settings.Position.Y.Offset==tabs.Style.Position.Y.Offset)==singleRow,'Wrong compact tab row count')
+ check(tabs.Style.Position.X.Offset==20 and tabs.Style.Position.Y.Offset==88,'Gear not first in the navigation')
  for _,name in ipairs(names)do
   local b=tabs[name];local icon,padding
   for _,o in ipairs(made)do if o.Parent==b then if o.ClassName=='Frame'then icon=o elseif o.ClassName=='UIPadding'then padding=o end end end

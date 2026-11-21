@@ -60,7 +60,7 @@ These are source/integration milestones, not blanket verification of every devic
 - **Q** / **DODGE**: roll with cooldown; dodge cancels the active voice attack.
 - Hold **Shift** / tap **SPRINT**: up to ten seconds of sprint, then five seconds of recovery.
 - **T** / **TALK**: nearby NPC dialogue. Use world interaction prompts (**F** on keyboard; on-screen prompts on touch).
-- **B** / **SHOP**: toggle the menu; **BEAMS** opens the collection tab. **M**: map. Quests, Style and Settings are menu tabs.
+- **B** / **MENU**: toggle the menu. The first opening shows **GEAR**, where you spend earned coins and adjust beam color. **BEAMS** opens the collection. **M**: map.
 - **Camera**: third person only, with a six-stud minimum wheel/pinch zoom. Desktop aims at the mouse; touch aims at the centered reticle. There is no V/view toggle.
 
 A usable microphone and Roblox voice eligibility are required for microphone-driven attacks, not for movement or ordinary menus. There is no blocking microphone setup panel. Actual microphone sensitivity and comfortable-speech behavior remain unverified. Synthetic fixtures in `tests/` can exercise selected mechanics, but are not a substitute for live voice validation and must never be appended to production source.

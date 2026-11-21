@@ -10,7 +10,7 @@ owner=s[s.index('local clientConnections={}'):s.index('local function loadClient
 cleanup_source=re.search(r'ownClient\(function\(\) gui:Destroy\(\) end\)',s).group(0)+'\n'+re.search(r'ownClient\(function\(\) modal.Visible=false;renderedMenuKey=nil;renderRevision\+=1 end\)',s).group(0)
 shop=s[s.index('local shopUsed=false'):s.index('ownClient(clearShop)')]
 x=s.index(' task.spawn(function()',s.index('-- Restore only after AutomaticCanvasSize'))
-y=s.index('\nend\nfor i,name',x)
+y=s.index('\nend\nacademy.menuTabs=',x)
 setup='''
 local modal={Visible=true};local ShopUI={Clear=function()end};local renderedMenuKey
 local cleanup;local script={Destroying={Connect=function(_,fn)cleanup=fn;return {Disconnect=function()end}end}}

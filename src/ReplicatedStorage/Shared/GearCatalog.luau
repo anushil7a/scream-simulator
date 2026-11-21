@@ -35,7 +35,7 @@ function Gear.Act(data,id,toggle)
  if not item then return false,"Unknown gear." end
  if (data.level or 1)<item.level then return false,"Unlocks at level "..item.level.."." end
  local owned=Gear.Owned(data,id)
- if owned and not toggle then return false,"Already owned. Equip from Style." end
+ if owned and not toggle then return false,"Already owned. Equip from Gear." end
  if not owned and data.coins<item.price then return false,"Need "..(item.price-data.coins).." more coins." end
  -- No yield: validate everything before debit. Duplicate buy requests never debit again.
  local selected=Gear.Selected(data)

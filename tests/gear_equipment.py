@@ -65,6 +65,7 @@ style=client[start:client.index(' elseif selected=="Map" then',start)].split('\n
 coin_action=client[client.index('function academy.starterCoinAction('):client.index('local function menuKey()')]
 short_landscape=next(line for line in client.splitlines() if 'local shortLandscape=' in line)
 layout=client[client.index(' local short=viewport.Y<550'):client.index(' if width~=lastLayoutWidth')]
+menu_tabs=next(line for line in client.splitlines() if line.startswith('academy.menuTabs='))
 code=r'''
 local Gear=require('../src/ReplicatedStorage/Shared/GearCatalog')
 local function renderStyle(data,narrow,width)
@@ -140,9 +141,10 @@ local function view(w,h)
  local modal,title,subtitle,menuScale,content,tabs={},{},{},{},{},{}
  modal.Close={}
  local academy={tabIcons={},layoutTab=function()end}
- for _,name in ipairs({'Shop','Screams','Quests','Style','Map','Settings'}) do tabs[name]={};academy.tabIcons[name]={} end
+'''+menu_tabs+r'''
+ for _,name in ipairs(academy.menuTabs) do tabs[name]={};academy.tabIcons[name]={} end
 '''+short_landscape+'\n'+layout+r'''
- return modal.Size.y+content.Size.y,modal.Position.y,modal.Close.Position.y,tabs.Shop.Position.y
+ return modal.Size.y+content.Size.y,modal.Position.y,modal.Close.Position.y,tabs.Style.Position.y
 end
 local available,menuY,closeY,firstTabY=view(567,241)
 assert(available>=60 and menuY==8 and closeY+44<=firstTabY,'Short landscape clips the gear CTA or overlaps close/tab controls')

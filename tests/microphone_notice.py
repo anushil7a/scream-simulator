@@ -13,7 +13,9 @@ info_end='\nscript.Destroying:Connect(' if args.baseline else '\nownClient('
 info=src[info_start:src.index(info_end,info_start)]
 a=src.index('  title.Text="SETTINGS & CONTROLS"');b=src.index('\n end\n -- Restore only after AutomaticCanvasSize',a);settings=src[a:b]
 a=src.index(' local key=menuKey()',src.index('render=function()'));b=src.index(' if selected=="Shop" then',a);prefix=src[a:b]
-a=src.index(' -- Restore only after AutomaticCanvasSize');b=src.index('\nfor i,name in ipairs',a);tail=src[a:b]
+a=src.index(' -- Restore only after AutomaticCanvasSize')
+b=src.index('\nacademy.menuTabs=',a) if '\nacademy.menuTabs=' in src else src.index('\nfor i,name in ipairs',a)
+tail=src[a:b]
 a=b+1;b=src.index('\nlocal conversationNPC',a);tabs_source=src[a:b]
 setup=r'''
 local checks=0;local function check(ok,msg)assert(ok,msg);checks+=1 end
@@ -49,6 +51,7 @@ local gameplayAudio={enabled=true,SetEnabled=function(self,v)self.enabled=v end}
 local academy={damageReadout={available=false},tabIcons={},tabIcon=function()return {},{} end}
 local title,subtitle={},{};local tabs={};local ShopUI={Clear=function()end};local mapDot
 local selected='Settings';local renderedMenuKey,renderedTab;local renderRevision=0;local narrow;local render
+local function toggleTab(name)selected=name;render()end -- Modal navigation is covered by shop_modal_lifecycle.py.
 local function menuKey()return selected..':'..gui.AbsoluteSize.X..':'..tostring(sustainedControl)..':'..tostring(UIS.TouchEnabled)end
 local pending={};local task={spawn=function(fn)table.insert(pending,fn)end};local Run={Heartbeat={Wait=function()end}}
 local function flush()for _,fn in ipairs(pending)do fn()end;pending={}end
