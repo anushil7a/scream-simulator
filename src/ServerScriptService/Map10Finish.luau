@@ -20,6 +20,7 @@ local superseded={"Crystal","LavaFissure","BranchLava"}
 local names={
  StadiumMarquee="COASTAL ARENA",
  NorthAcademyMarquee="ACADEMY PLAZA",
+ NorthRookieDirection="←  ROOKIE TRAINING",
  NorthMusicMarquee="RESONANCE HALL",
  CoastDockMarquee="TIMBER PIER",
  EastShrineMarquee="ECLIPSE SHRINE",

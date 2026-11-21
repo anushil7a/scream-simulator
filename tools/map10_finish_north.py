@@ -66,6 +66,25 @@ def add(box, disk, line):
         rail(f'FountainPavingSpoke{i}', [-300 + math.sin(a)*32, 32.19, -300 + math.cos(a)*32],
              [-300 + math.sin(a)*37, 32.19, -300 + math.cos(a)*37], .7, .10, brass)
 
+    # The first route passes inside the west court, clear of the planter and boss.
+    route = [(-320, -268), (-360, -294), (-399, -332), (-420, -368)]
+    for index, ((ax, az), (bx, bz)) in enumerate(zip(route, route[1:])):
+        length = math.hypot(bx - ax, bz - az)
+        dx, dz = (bx - ax) / length, (bz - az) / length
+        lx, lz = -dz, dx
+
+        def point(along, across, y):
+            return [ax + along * dx + across * lx, y, az + along * dz + across * lz]
+
+        start, end = 1, length - 1
+        rail(f'RookiePathStone{index}', point(start, 0, 32.26),
+             point(end, 0, 32.26), 9, .05, [211, 200, 171])
+        for side in (-1, 1):
+            rail(f'RookiePathEdge{index}_{side}', point(start, side * 4, 32.30),
+                 point(end, side * 4, 32.30), .50, .03, deep_teal)
+            rail(f'RookiePathArrow{index}_{side}', point(length / 2 - 1.3, side * 1.8, 32.32),
+                 point(length / 2 + 1.3, 0, 32.32), .48, .035, brass)
+
     # Asymmetric courtyard planting, deliberately outside paths, trainers and boss ring.
     for i, (x, z, scale) in enumerate([(-500,-235,1),(-135,-350,.85),(-365,-330,.8),(-235,-330,.8)]):
         b(f'CourtPlanter{i}', [x, 33, z], [13, 2, 13], limestone, material='Marble')

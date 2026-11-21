@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Academy arrival and Rookie training approach
+
+- The direct spawn-to-Rookie route crossed NorthCourtPlanter2 in a native movement-height ray. Three low stone and teal inlay sections with brass chevrons mark the clear path west of the fountain to the Rookie pad. The mounted plaza directory now points left to Rookie Training. The directory was raised after the first phone-emulator view put its lower label behind the combat HUD.
+- The final 750 × 323 Studio phone view exposed the raised label between HUD controls. The 567 × 241 static view can still obscure it at the staged camera angle. A native automated avatar walked from spawn to the Rookie pad in 11.1 seconds with jumping and climbing disabled. Floor rays returned the original academy floor at y32 under all three inlays. Both sign posts blocked native rays. This does not measure human discovery or physical touch play.
+- The generator adds 16 parts without changing the existing landscape. The header and two supports are the only changed existing finishing parts, and the two supports are solid. Critic cleared the diff. The 1,044-part finish check and all 312 local checks and builds passed with matching inputs. Three disposable Studio sessions closed. Physical phone performance and real onboarding remain open.
+
 ## Quest guidance in short desktop windows
 
 - At 567 × 241, the native GUIDE target overlapped Beams by 140 square pixels. The revised 269 × 60 objective rail clears the combat group by 8 pixels. In Studio, clicking GUIDE replaced the idle objective with the selected route and CLEAR. Clicking CLEAR restored the idle objective and GUIDE.

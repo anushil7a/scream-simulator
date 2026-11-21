@@ -21,6 +21,7 @@ SOLID_PROP_IDS = {
     *(f'StadiumButtress{side}_{i}{part}' for side in (0, 1, 3, 4, 5, 6, 7)
       for i in range(2) for part in ('Base', 'Stem')),
     *(f'NorthCourtPlanter{i}' for i in range(4)),
+    'NorthAcademyMarqueePostL', 'NorthAcademyMarqueePostR',
     *(f'CoastBenchSlat{i}_{offset}' for i in range(4) for offset in (-1.3, 0, 1.3)),
     *(f'CoastBenchBack{i}' for i in range(4)),
     *(f'CoastBenchFoot{i}_{side}' for i in range(4) for side in (-1, 1)),
@@ -53,9 +54,10 @@ def collect(wip=False):
     def signs(key):
         ink=(34,57,60);sand=(223,204,166);bronze=(154,119,73)
         if key=='North':
-            box('NorthAcademyMarquee',(-282,35.7,-277),(12,1.75,.32),ink,(0,180,0),'Metal')
-            box('NorthAcademyMarqueePostL',(-287.05,33.5,-277),(.8,3.4,.8),bronze,material='Metal')
-            box('NorthAcademyMarqueePostR',(-276.95,33.5,-277),(.8,3.4,.8),bronze,material='Metal')
+            box('NorthAcademyMarquee',(-286,42.7,-277),(12,1.75,.32),ink,(0,180,0),'Metal')
+            box('NorthRookieDirection',(-286,40.92,-277),(10.6,1.42,.30),(35,91,94),(0,180,0),'Metal')
+            box('NorthAcademyMarqueePostL',(-291.05,37,-277),(.8,10.4,.8),bronze,material='Metal')
+            box('NorthAcademyMarqueePostR',(-280.95,37,-277),(.8,10.4,.8),bronze,material='Metal')
             box('NorthMusicMarquee',(112,38,-237),(18,2.1,.54),(52,43,67),(0,180,0),'Metal')
             box('NorthMusicMarqueePostL',(104,34.75,-237),(.95,5.7,.95),ink,material='Metal')
             box('NorthMusicMarqueePostR',(120,34.75,-237),(.95,5.7,.95),ink,material='Metal')

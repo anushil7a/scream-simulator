@@ -1,6 +1,6 @@
 {
  "groups": {
-  "North": 283,
+  "North": 299,
   "East": 219,
   "Coast": 240,
   "Stadium": 152,
@@ -2887,6 +2887,396 @@
    "rotation": [
     -0.0,
     -90.0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathStone0",
+   "position": [
+    -340.0,
+    32.26,
+    -281.0
+   ],
+   "size": [
+    9,
+    0.05,
+    45.707441767506225
+   ],
+   "color": [
+    211,
+    200,
+    171
+   ],
+   "rotation": [
+    -0.0,
+    -123.02386755579667,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge0_-1",
+   "position": [
+    -342.17995340238167,
+    32.3,
+    -277.64622553479745
+   ],
+   "size": [
+    0.5,
+    0.03,
+    45.707441767506225
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -123.02386755579667,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow0_-1",
+   "position": [
+    -340.49048951553584,
+    32.32,
+    -280.24540074532945
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.162277660168387
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -157.7190210870303,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge0_1",
+   "position": [
+    -337.82004659761833,
+    32.3,
+    -284.35377446520255
+   ],
+   "size": [
+    0.5,
+    0.03,
+    45.707441767506225
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -123.02386755579667,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow0_1",
+   "position": [
+    -339.50951048446416,
+    32.32,
+    -281.75459925467055
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.162277660168389
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -88.32871402456219,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathStone1",
+   "position": [
+    -379.5,
+    32.26,
+    -313.0
+   ],
+   "size": [
+    9,
+    0.05,
+    52.45181356024789
+   ],
+   "color": [
+    211,
+    200,
+    171
+   ],
+   "rotation": [
+    -0.0,
+    -134.2559407971113,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge1_-1",
+   "position": [
+    -382.2914589076417,
+    32.3,
+    -310.13508164742035
+   ],
+   "size": [
+    0.5,
+    0.03,
+    52.45181356024789
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -134.2559407971113,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow1_-1",
+   "position": [
+    -380.1280782542194,
+    32.32,
+    -312.3553933706696
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.162277660168359
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -168.9510943283453,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge1_1",
+   "position": [
+    -376.7085410923583,
+    32.3,
+    -315.86491835257965
+   ],
+   "size": [
+    0.5,
+    0.03,
+    52.45181356024789
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -134.2559407971113,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow1_1",
+   "position": [
+    -378.8719217457806,
+    32.32,
+    -313.6446066293304
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.1622776601683893
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -99.56078726587775,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathStone2",
+   "position": [
+    -409.5,
+    32.26,
+    -350.0
+   ],
+   "size": [
+    9,
+    0.05,
+    39.67733196834948
+   ],
+   "color": [
+    211,
+    200,
+    171
+   ],
+   "rotation": [
+    -0.0,
+    -149.74356283647072,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge2_-1",
+   "position": [
+    -412.95511560359375,
+    32.3,
+    -347.98451589790363
+   ],
+   "size": [
+    0.5,
+    0.03,
+    39.67733196834948
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -149.74356283647072,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow2_-1",
+   "position": [
+    -410.2774010108086,
+    32.32,
+    -349.5465160770283
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.162277660168354
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    175.56128363229578,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge2_1",
+   "position": [
+    -406.04488439640625,
+    32.3,
+    -352.01548410209637
+   ],
+   "size": [
+    0.5,
+    0.03,
+    39.67733196834948
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -149.74356283647072,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow2_1",
+   "position": [
+    -408.7225989891914,
+    32.32,
+    -350.4534839229717
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.162277660168429
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -115.04840930523528,
     0
    ],
    "material": "SmoothPlastic",
@@ -7212,8 +7602,8 @@
   {
    "id": "NorthAcademyMarquee",
    "position": [
-    -282,
-    35.7,
+    -286,
+    42.7,
     -277
    ],
    "size": [
@@ -7236,25 +7626,25 @@
    "collidable": false
   },
   {
-   "id": "NorthAcademyMarqueePostL",
+   "id": "NorthRookieDirection",
    "position": [
-    -287.05,
-    33.5,
+    -286,
+    40.92,
     -277
    ],
    "size": [
-    0.8,
-    3.4,
-    0.8
+    10.6,
+    1.42,
+    0.3
    ],
    "color": [
-    154,
-    119,
-    73
+    35,
+    91,
+    94
    ],
    "rotation": [
     0,
-    0,
+    180,
     0
    ],
    "material": "Metal",
@@ -7262,15 +7652,15 @@
    "collidable": false
   },
   {
-   "id": "NorthAcademyMarqueePostR",
+   "id": "NorthAcademyMarqueePostL",
    "position": [
-    -276.95,
-    33.5,
+    -291.05,
+    37,
     -277
    ],
    "size": [
     0.8,
-    3.4,
+    10.4,
     0.8
    ],
    "color": [
@@ -7285,7 +7675,33 @@
    ],
    "material": "Metal",
    "shape": null,
-   "collidable": false
+   "collidable": true
+  },
+  {
+   "id": "NorthAcademyMarqueePostR",
+   "position": [
+    -280.95,
+    37,
+    -277
+   ],
+   "size": [
+    0.8,
+    10.4,
+    0.8
+   ],
+   "color": [
+    154,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Metal",
+   "shape": null,
+   "collidable": true
   },
   {
    "id": "NorthMusicMarquee",
