@@ -33,8 +33,45 @@ for _,view in ipairs({{388,704,true,160},{567,315,true,160},{1024,768,false,64},
  local left,top,w,h=academy.trackerLayout({X=view[1],Y=view[2]},view[3],view[4])
  check(left==16 and top==view[4] and w==290 and h==50,'Layout changed outside verified compact lane')
 end
+for _,width in ipairs({510,567,587,588})do
+ local viewport={X=width,Y=241}
+ local left,top,w,h,shared=academy.trackerLayout(viewport,false,160)
+ check(shared and left==16 and top==160 and w==math.min(290,width-298) and h==60,'Short desktop tracker does not fit its rail')
+ check(left+w<=width-274-8 and top+h<=viewport.Y-8,'Short desktop tracker crosses combat or screen bounds')
+end
+local function visibility(active,selected,paused)
+ local viewport={X=567,Y=241}
+ local touch,showQuest,gameplayVisible=false,true,not paused
+ local data={activeQuest=active and 'sprint' or nil}
+ local devPanel={Visible=false}
+ local function offset(x,y)return {X={Offset=x},Y={Offset=y}}end
+ local UDim2={fromOffset=offset}
+ local left,top,w,h,shared=academy.trackerLayout(viewport,touch,160)
+ local tracked={Text='Boardwalk Dash\nRun east\n0/1 · 90s left',Position=offset(left,top),Size=offset(w,h)}
+ academy.guideMayUseTracker=shared
+ academy.guidePanel={}
+ academy.guideText={}
+ academy.guideTarget=selected and {label='Training courtyard'} or nil
+ academy.guide={GetStatus=function()return 'Follow the markers',42,'N' end}
+ academy.trainingGuideButton={}
+ academy.canGuideTraining=function()return not active and not selected end
+ local zone={}
+ __SHARED_RAIL__
+ return tracked.Visible,academy.guidePanel.Visible,academy.trainingGuideButton.Visible,academy.guideText.Text
+end
+local track,route,guide,text=visibility(false,true)
+check(route and not track and not guide and text=='Training courtyard\nFollow the markers · 42 studs N','Selected route does not replace idle progress')
+track,route,guide=visibility(true,true)
+check(track and not route and not guide,'Selected route covered an active quest timer')
+track,route,guide=visibility(false,false)
+check(track and not route and guide,'Clearing a route did not restore the idle Guide button')
+track,route,guide=visibility(false,true,true)
+check(not track and not route and not guide,'Selected route remained over a modal')
 print('PASS '..checks..' navigation layout checks; no native rendering claim')
 '''
+start=s.index(' local guideUsesTracker=false')
+stop=s.index(' local now=workspace:GetServerTimeNow();local protected=',start)
+code=code.replace('__SHARED_RAIL__',s[start:stop])
 def run(payload):
     with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='tmp_layout_',dir=root/'tests',delete=False) as f:
         f.write(payload)
@@ -48,10 +85,13 @@ for old,new,reason in [
     ('math.ceil(w*.4)+8','16','Tracker enters thumbstick lane'),
     ('w-103','w-80','Tracker enters Jump lane'),
     ('math.max(defaultY,h-91)','defaultY','Tracker enters combat lane'),
+    ('math.min(290,w-274-8-16)','290','Short desktop tracker does not fit its rail'),
+    ('and not data.activeQuest and showQuest','and showQuest','Selected route covered an active quest timer'),
+    ('and not (guideUsesTracker and academy.guidePanel.Visible)','and true','Selected route does not replace idle progress'),
 ]:
     assert code.count(old)==1,old
     result=run(code.replace(old,new))
     assert result.returncode and reason in result.stderr,result.stderr
-print('PASS 3 tracker lane negative controls')
+print('PASS 6 tracker lane and priority negative controls')
 assert 'or noticeView:Overlaps(passive,gui,talkButton)' in s and 'meter,academy.guidePanel}' in s
 assert 'if academy.guideText.Text~=text' in s

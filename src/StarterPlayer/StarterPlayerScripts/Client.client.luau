@@ -839,6 +839,10 @@ function academy.trackerLayout(viewport,touch,defaultY)
    return math.floor((left+right-width)/2),math.max(defaultY,h-91),width,60
   end
  end
+ if not touch and h>=defaultY+68 and defaultY+50>h-102 then
+  local width=math.min(290,w-274-8-16)
+  if width>=212 then return 16,defaultY,width,60,true end
+ end
  return 16,defaultY,290,50
 end
 academy.guideLayout=function(viewport,touch,trackedY)
@@ -1480,7 +1484,8 @@ connectClient(Run.RenderStepped,function(dt)
  talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
  local trackerY=(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64
- local trackerX,trackerTop,trackerWidth,trackerHeight=academy.trackerLayout(viewport,touch,trackerY)
+ local trackerX,trackerTop,trackerWidth,trackerHeight,canShare=academy.trackerLayout(viewport,touch,trackerY)
+ academy.guideMayUseTracker=canShare==true
  tracked.Position=UDim2.fromOffset(trackerX,trackerTop)
  tracked.Size=UDim2.fromOffset(trackerWidth,trackerHeight)
  dodgeButton.Size=UDim2.fromOffset(108,touch and 44 or 32)
@@ -1502,8 +1507,15 @@ connectClient(Run.RenderStepped,function(dt)
  -- Keep the fight readable without hiding a running quest deadline.
  local combatQuest=data.activeQuest=="arena" or data.activeQuest=="dodge" or data.activeQuest=="crowd" or data.activeQuest=="practice_beams" or data.activeQuest=="arena_assist"
  local showQuest=not data.inWarZone or combatQuest or (data.questTime or 0)>0
+ local guideUsesTracker=false
  do
   local x,y,w,h,compact=academy.guideLayout(viewport,touch,tracked.Position.Y.Offset)
+  if not x and academy.guideMayUseTracker and not data.activeQuest and showQuest then
+   -- The selected route takes the idle objective's lane only while it needs it.
+   x,y=tracked.Position.X.Offset,tracked.Position.Y.Offset
+   w,h=tracked.Size.X.Offset,tracked.Size.Y.Offset
+   guideUsesTracker=true
+  end
   academy.guidePanel.Visible=x~=nil and gameplayVisible and not devPanel.Visible and academy.guideTarget~=nil
   if academy.guidePanel.Visible then
    academy.guidePanel.Position=UDim2.fromOffset(x,y);academy.guidePanel.Size=UDim2.fromOffset(w,h)
@@ -1514,7 +1526,9 @@ connectClient(Run.RenderStepped,function(dt)
    if academy.guideText.Text~=text then academy.guideText.Text=text end
   end
  end
- tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=gameplayVisible
+ tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest
+  and not (guideUsesTracker and academy.guidePanel.Visible)
+ zone.Visible=gameplayVisible
  academy.trainingGuideButton.Visible=tracked.Visible and not devPanel.Visible and academy.canGuideTraining()
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  if sustainedControl then

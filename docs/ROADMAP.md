@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Quest guidance in short desktop windows
+
+- At 567 × 241, the native GUIDE target overlapped Beams by 140 square pixels. The revised 269 × 60 objective rail clears the combat group by 8 pixels. In Studio, clicking GUIDE replaced the idle objective with the selected route and CLEAR. Clicking CLEAR restored the idle objective and GUIDE.
+- An active quest retains the rail when a route is selected. The actual visibility branch passed this priority check with synthetic state. Four staged quest messages fit the native 212 × 60 tracker at 510 × 241, including timed soccer, sprint and beach objectives. Real timed play and windows narrower than 510 pixels remain open.
+- Independent review passed. The navigation fixture passed 60 checks and six negative controls. All 312 checks and builds passed with matching input hashes. The Studio runs used unpublished places and temporary profiles. Both disposable sessions closed and both emulator profiles were removed.
+
 ## Beam audio across the range boundary
 
 - In an unpublished Studio fixture, staged server Effect pulses at 69 → 71 → 69 studs destroyed and recreated the baseline level-20 emitter. The verified client allocated nothing at the initial 71-stud sample. After admission at 69, one Sound instance advanced from .58s to 2.05s at zero gain at 71, then to 3.53s on returning to 69. The normal end packet removed the emitter.
