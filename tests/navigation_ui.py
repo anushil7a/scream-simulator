@@ -7,6 +7,7 @@ f=s[s.index('academy.clearGuide=function()'):s.index('academy.guideMenu=function
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local data={};local Config={CompactCity=true};local target=nil;local sets,clears=0,0
+local throttled
 local renderedMenuKey='old';local UDim2={fromOffset=function()end,new=function()end}
 local click,guideTraining
 local function button(_,name,_,_,_,callback)
@@ -14,7 +15,7 @@ local function button(_,name,_,_,_,callback)
  return {}
 end
 local academy={guidePanel={Visible=false},guide={
- Clear=function()clears+=1 end, SetTarget=function(_,v)sets+=1 end},
+ Clear=function()clears+=1 end, SetTarget=function(_,v,keepThrottle)sets+=1;throttled=keepThrottle end},
  NavigationCatalog={Resolve=function(kind,id,state)check(state==data,'Wrong state');return target end}}
 '''
 checks=r'''
@@ -41,6 +42,30 @@ check(academy.guideSelection.kind=='place' and academy.guideSelection.id=='train
 local selected=academy.guideSelection;guideTraining()
 check(academy.guideSelection==selected,'Training button replaced existing route')
 click();check(academy.canGuideTraining(),'Clear did not restore training eligibility')
+local function position(x)
+ return setmetatable({X=x},{__sub=function(a,b)return {Magnitude=math.abs(a.X-b.X)} end})
+end
+local r={Position=position(-492)}
+local h={Health=100}
+local mar={Parent={},GetAttribute=function(_,key)if key=="DisplayName" then return "Mar Soler" end end,
+ FindFirstChild=function()return r end,FindFirstChildOfClass=function()return h end}
+local center={Position=position(-460)}
+target={position=center.Position,label="Gardens"}
+academy.selectGuide("mar","gardens")
+check(academy.guideTarget.label=="Mar's work area" and not throttled,'Missing honest initial work-area destination')
+academy.refreshMarGuide(center,{mar})
+check(academy.guideTarget.label=="Mar Soler" and academy.guideTarget.position==r.Position and throttled,'Nearby Mar did not replace work-area waypoint')
+local saved=academy.guideTarget;local before=sets
+r.Position=position(-491);academy.refreshMarGuide(center,{mar})
+check(academy.guideTarget==saved and sets==before,'Small resident movement rebuilt the route')
+r.Position=position(-428);academy.refreshMarGuide(center,{mar})
+check(academy.guideTarget.position==r.Position and sets==before+1,'Route stayed at the old flowerbed')
+h.Health=0;academy.refreshMarGuide(center,{mar})
+check(academy.guideTarget.label=="Mar's work area" and academy.guideTarget.position==center.Position,'Unavailable resident retained stale destination')
+h.Health=100;academy.refreshMarGuide({Position=position(-200)},{mar})
+check(academy.guideTarget.label=="Mar's work area",'Distant motion replaced stable work-area destination')
+click();academy.refreshMarGuide(center,{mar})
+check(not academy.guideSelection and not academy.guideTarget,'Refresh restarted a cleared guide')
 print('PASS',n,'actual selection lifecycle checks')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=R/'tests',delete=False) as t:

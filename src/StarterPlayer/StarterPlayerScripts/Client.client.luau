@@ -800,22 +800,47 @@ academy.guidePanel=frame(gui,"SelectedGuide",UDim2.fromOffset(290,62),UDim2.from
 academy.surface(academy.guidePanel)
 academy.guideText=label(academy.guidePanel,"",UDim2.new(1,-86,1,-8),UDim2.fromOffset(6,4),12)
 academy.clearGuide=function()
- academy.guideSelection=nil;academy.guideTarget=nil;academy.guide:Clear();academy.guidePanel.Visible=false
+ academy.guideSelection=nil;academy.guideTarget=nil;academy.marPosition=nil;academy.guide:Clear();academy.guidePanel.Visible=false
  renderedMenuKey=nil
 end
 button(academy.guidePanel,"ClearGuide","CLEAR",UDim2.fromOffset(72,44),UDim2.new(1,-78,.5,-22),academy.clearGuide)
+function academy.resolveGuide(kind,id)
+ if kind~="mar" then return academy.NavigationCatalog.Resolve(kind,id,data) end
+ local area=academy.NavigationCatalog.Resolve("place","gardens",data)
+ if not area then return nil end
+ local position=academy.marPosition
+ return {position=position or area.position,label=position and "Mar Soler" or "Mar's work area"}
+end
 academy.refreshGuide=function()
  local selection=academy.guideSelection
  if not selection then return end
- local target=academy.NavigationCatalog.Resolve(selection.kind,selection.id,data)
+ local target=academy.resolveGuide(selection.kind,selection.id)
  if not target then academy.clearGuide();return end
  local previous=academy.guideTarget
+ local moving=selection.kind=="mar" and previous~=nil
+ if moving and previous.label==target.label and (previous.position-target.position).Magnitude<3 then return end
  if not previous or previous.position~=target.position or previous.label~=target.label then
-  academy.guideTarget=target;academy.guide:SetTarget(target)
+  academy.guideTarget=target;academy.guide:SetTarget(target,moving)
  end
 end
+function academy.refreshMarGuide(playerRoot,residents)
+ if not academy.guideSelection or academy.guideSelection.kind~="mar" then return end
+ academy.marPosition=nil
+ for _,resident in ipairs(residents) do
+  if resident.Parent and resident:GetAttribute("DisplayName")=="Mar Soler" and resident:GetAttribute("ResidentActive")~=false then
+   local root=resident:FindFirstChild("HumanoidRootPart")
+   local humanoid=resident:FindFirstChildOfClass("Humanoid")
+   if playerRoot and root and humanoid and humanoid.Health>0 and (root.Position-playerRoot.Position).Magnitude<=90 then
+    academy.marPosition=root.Position;break
+   end
+  end
+ end
+ academy.refreshGuide()
+end
 academy.selectGuide=function(kind,id)
- if not academy.NavigationCatalog.Resolve(kind,id,data) then return end
+ if not academy.resolveGuide(kind,id) then return end
+ if kind~="mar" then academy.marPosition=nil
+ elseif not academy.guideSelection or academy.guideSelection.kind~="mar" then academy.guideTarget=nil end
  academy.guideSelection={kind=kind,id=id};academy.refreshGuide();renderedMenuKey=nil
 end
 function academy.canGuideTraining()
@@ -846,7 +871,8 @@ function academy.trackerLayout(viewport,touch,defaultY)
   local width=math.min(290,w-274-8-16)
   if width>=212 then return 16,defaultY,width,60,true end
  end
- return 16,defaultY,290,50
+ local canShare=touch and w>h and h>=315 and h<346 and w-274>=314 and defaultY+50<=h-102
+ return 16,defaultY,290,50,canShare
 end
 academy.guideLayout=function(viewport,touch,trackedY)
  local w,h=viewport.X,viewport.Y
@@ -970,7 +996,7 @@ render=function()
     label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
     label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
     button(c,q.id,guideToMar and "GUIDE TO MAR" or not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "ACTIVE" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,guideToMar and 44 or 38),UDim2.new(1,-130,0,actionY),function()
-     if guideToMar then academy.selectGuide("place","gardens");closeMenu();return end
+     if guideToMar then academy.selectGuide("mar","gardens");closeMenu();return end
      if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
     end)
     if canGuide then
@@ -1125,6 +1151,7 @@ end
 button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
 showConversation=function(info)
  academy.testLauncherBlocked=true;if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end;academy.refreshTestLauncher();cancelCapture();closeMenu();if devPanel then devPanel.Visible=false end
+ if info.name=="Mar Soler" and academy.guideSelection and academy.guideSelection.kind=="mar" then academy.clearGuide() end
  conversationRevision+=1;local revision=conversationRevision
  conversationNPC=info.npc;conversationUntil=os.clock()+20;conversationName.Text=info.name
  for _,child in ipairs(conversationList:GetChildren()) do if child:IsA("GuiObject") then child:Destroy() end end
@@ -1413,7 +1440,9 @@ connectClient(Run.RenderStepped,function(dt)
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
  if os.clock()>=nextResidentUi then
   nextResidentUi=os.clock()+.1
-  talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
+  local residents=game:GetService("CollectionService"):GetTagged("CityResident")
+  talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,residents)
+  academy.refreshMarGuide(root,residents)
  end
  local confirmed=hitFeedback:Read(os.clock())
  hitText.Visible=gameplayVisible and confirmed~=nil

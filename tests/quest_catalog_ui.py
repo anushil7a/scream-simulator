@@ -111,7 +111,7 @@ for _,isNarrow in ipairs({false,true})do
   check(#calls==0,'Undiscovered quest action bypassed guard')
   if starter then
    check(b.height==44,'Mar guide is undersized for touch')
-   check(#routes==before+1 and routes[#routes][1]=='place' and routes[#routes][2]=='gardens' and menuCloses==closed+1,'Mar guide failed to select Gardens and close menu')
+   check(#routes==before+1 and routes[#routes][1]=='mar' and routes[#routes][2]=='gardens' and menuCloses==closed+1,'Mar guide failed to select Mar and close menu')
   else
    check(#routes==before and menuCloses==closed,'Other locked quest routed to Mar')
   end
@@ -241,7 +241,7 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    bypassed=code.replace('if available and not v.claimed and','if not v.claimed and')
    assert bypassed!=code
    run(bypassed,'Undiscovered quest action bypassed guard')
-   run(code.replace('academy.selectGuide("place","gardens");closeMenu();return','return'),'Mar guide failed to select Gardens and close menu')
+   run(code.replace('academy.selectGuide("mar","gardens");closeMenu();return','academy.selectGuide("place","gardens");closeMenu();return'),'Mar guide failed to select Mar and close menu')
    run(code.replace('guideToMar and 44 or 38','38'),'Mar guide is undersized for touch')
    menu=code.replace('q.menuAvailable==true or (data.availableQuests and data.availableQuests[q.id])','(data.availableQuests and data.availableQuests[q.id])')
    assert menu!=code

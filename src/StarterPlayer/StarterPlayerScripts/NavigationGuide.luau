@@ -41,10 +41,12 @@ function Guide:Clear()
  self.filterCharacter=nil;self.raycast.FilterDescendantsInstances={self.folder}
  self:_dropPath()
 end
-function Guide:SetTarget(target)
+function Guide:SetTarget(target,keepThrottle)
  if self.destroyed then return end
+ local lastRequest,root=self.lastRequest,self.root
  self:Clear()
  if type(target)~="table" or not validPosition(target.position) then return end
+ if keepThrottle then self.lastRequest=lastRequest;self.root=root end
  self.target={position=target.position,label=type(target.label)=="string" and string.sub(target.label,1,100) or "Destination"}
  self.status="Finding route"
 end

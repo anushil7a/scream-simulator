@@ -77,6 +77,14 @@ stable:Step(r,4,true);check(#tasks==0,'healthy route not recalculated each throt
 stable:Step(r,9,true);check(#tasks==1,'old routes revalidated');flush()
 r.Position=Vector3.new(0,2.5,40);stable:Step(r,12,true);check(#tasks==1 and stable.points==nil,'off-route invalidation');flush()
 stable:Destroy()
+local moving=Guide.new(nil)
+moving:SetTarget({position=Vector3.new(28,0,0)});moving:Step(root,0,true)
+moving:SetTarget({position=Vector3.new(32,0,0)},true);flush()
+check(not moving.points,'Old destination revived after Mar moved')
+moving:Step(root,.2,true);check(#tasks==0,'Moving destination bypassed the path retry limit')
+moving:Step(root,3,true);check(#tasks==1,'Moving destination did not retry')
+flush();check(moving.path.goal.X==32,'Retry aimed at stale destination')
+moving:Destroy()
 local bend=Guide.new(nil);local bendRoot={Position=Vector3.new(0,2.5,0),Parent={}}
 corner={{Position=Vector3.new(0,0,0)},{Position=Vector3.new(5,0,0)},{Position=Vector3.new(5,0,-15)}}
 bend:SetTarget({position=Vector3.new(5,0,-15)});bend:Step(bendRoot,0,true);flush()

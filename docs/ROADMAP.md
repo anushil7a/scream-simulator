@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Guide to Mar follows her work route
+
+- A fresh Studio profile pressed the actual locked Garden quest's **Guide to Mar** button. At the center flowerbed, it originally said **Gardens · Arrived** while Mar was 30 studs away and TALK was unavailable. The same Garden and Beach buttons now lead to Mar's current position when she is nearby and loaded, otherwise to the labeled work area. Meaningful movement updates the guidance while the existing three-second path request throttle stays in force.
+- In the 750 × 381 Studio phone emulator (750 × 323 usable HUD), the selected route remains visible in the idle objective's lane when it clears the touch controls. Active quest status retains its lane. A staged relocation changed the route from **30 studs W** to **30 studs E**. At seven studs it showed **Arrived** beside TALK. The actual Talk input opened Mar's dialogue and cleared its guide. Selecting **Accept** started the Garden objective at 0/3.
+- Focused checks passed 42 guide selection assertions, 43 guide lifecycle assertions, 66 layout assertions, eight layout mutations and 1,709 quest card assertions with 14 mutations. The old static routing was one of the rejected controls. Critic cleared the final changes, all 312 local checks and builds passed with matching input hashes, and both disposable Studio sessions closed. The native run used staged avatar/NPC positions, simulated input and a temporary profile. Unassisted walking, physical touch, streaming under real play and the full earning route were outside this pass.
+
 ## Clearer Garden PvP targeting messages
 
 - Two local Studio clients on opposite sides of the café boundary both read **SAFE · PvP OFF** when aiming at one another. The same readout now shows **YOU ARE OUTSIDE PvP**, **TARGET OUTSIDE PvP**, or **BOTH OUTSIDE PvP** using the two existing position checks. Both players inside the Garden still read **ARENA OPPONENT** when in range and clear of cover. The server's damage rules are unchanged.

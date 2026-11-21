@@ -39,9 +39,18 @@ for _,width in ipairs({510,567,587,588})do
  check(shared and left==16 and top==160 and w==math.min(290,width-298) and h==60,'Short desktop tracker does not fit its rail')
  check(left+w<=width-274-8 and top+h<=viewport.Y-8,'Short desktop tracker crosses combat or screen bounds')
 end
-local function visibility(active,selected,paused)
- local viewport={X=567,Y=241}
- local touch,showQuest,gameplayVisible=false,true,not paused
+for _,viewport in ipairs({{X=750,Y=323},{X=588,Y=315}})do
+ local left,top,w,h,shared=academy.trackerLayout(viewport,true,160)
+ check(shared and left+w+8<=viewport.X-274 and top+h<=viewport.Y-102,'Landscape phone tracker cannot share its clear rail')
+end
+local _,_,_,_,tooNarrow=academy.trackerLayout({X=587,Y=315},true,160)
+local _,_,_,_,tooLow=academy.trackerLayout({X=750,Y=323},true,178)
+check(not tooNarrow and not tooLow,'Landscape phone sharing ignores the combat and touch lanes')
+local _,_,_,_,talkOverlaps=academy.trackerLayout({X=588,Y=400},true,160)
+check(not talkOverlaps,'Landscape guide clear button overlaps Talk on taller narrow screens')
+local function visibility(active,selected,paused,touch)
+ local viewport=touch and {X=750,Y=323} or {X=567,Y=241}
+ local showQuest,gameplayVisible=true,not paused
  local data={activeQuest=active and 'sprint' or nil}
  local devPanel={Visible=false}
  local function offset(x,y)return {X={Offset=x},Y={Offset=y}}end
@@ -67,6 +76,10 @@ track,route,guide=visibility(false,false)
 check(track and not route and guide,'Clearing a route did not restore the idle Guide button')
 track,route,guide=visibility(false,true,true)
 check(not track and not route and not guide,'Selected route remained over a modal')
+track,route,guide,text=visibility(false,true,false,true)
+check(route and not track and not guide and text=='Training courtyard\nFollow the markers · 42 studs N','Selected route hidden on landscape phone')
+track,route,guide=visibility(true,true,false,true)
+check(track and not route and not guide,'Landscape phone route covered active quest status')
 print('PASS '..checks..' navigation layout checks; no native rendering claim')
 '''
 start=s.index(' local guideUsesTracker=false')
@@ -88,10 +101,12 @@ for old,new,reason in [
     ('math.min(290,w-274-8-16)','290','Short desktop tracker does not fit its rail'),
     ('and not data.activeQuest and showQuest','and showQuest','Selected route covered an active quest timer'),
     ('and not (guideUsesTracker and academy.guidePanel.Visible)','and true','Selected route does not replace idle progress'),
+    ('w-274>=314 and defaultY+50<=h-102','true','Landscape phone sharing ignores the combat and touch lanes'),
+    (' and h<346 and w-274>=314',' and w-274>=314','Landscape guide clear button overlaps Talk on taller narrow screens'),
 ]:
     assert code.count(old)==1,old
     result=run(code.replace(old,new))
     assert result.returncode and reason in result.stderr,result.stderr
-print('PASS 6 tracker lane and priority negative controls')
+print('PASS 8 tracker lane and priority negative controls')
 assert 'or noticeView:Overlaps(passive,gui,talkButton)' in s and 'meter,academy.guidePanel}' in s
 assert 'if academy.guideText.Text~=text' in s
