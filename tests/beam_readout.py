@@ -8,7 +8,7 @@ start = client.index('  local nextStyle', client.index('title.Text="BEAM COLLECT
 render = client[start:client.index(' elseif selected=="Quests"',start)]
 assert 'for _,s in ipairs(Config.Sounds)' in render
 endfn = server[server.index('local function sustainedEnd('):server.index('local function cancelSustained(')]
-bar = client[client.index(' local fraction\n',client.index('voiceTimeTrack.Visible=')):client.index('\n end\n castButton.BackgroundColor3=',client.index('voiceTimeTrack.Visible='))]
+bar = client[client.index(' local fraction\n',client.index('voiceTimeTrack.Visible=')):client.index('\n end\n if academy.setBeamFace then',client.index('voiceTimeTrack.Visible='))]
 setup = '''
 local Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat')
 local Attack=require('../src/ReplicatedStorage/Shared/SustainedAttack')

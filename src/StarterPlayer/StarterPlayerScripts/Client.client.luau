@@ -509,10 +509,35 @@ local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-
 local castButton=button(controls,"Cast","BEAM  [E]",UDim2.fromOffset(260,44),UDim2.fromOffset(0,0),toggleVoice,gold);castButton.TextColor3=dark
 castButton.TextWrapped=true;castButton.Selectable=true
 academy.surface(castButton,gold)
-academy.beamMark=academy.mark(castButton,"voice",UDim2.fromOffset(14,12),20,dark)
-academy.beamMark.Visible=sustainedControl~=nil
-local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-12,0,3),UDim2.new(0,6,1,-6),panel)
+do
+ local mark=academy.mark(castButton,"voice",UDim2.fromOffset(15,12),20,muted)
+ mark.Visible=sustainedControl~=nil
+ if sustainedControl then
+  castButton.TextColor3=white
+  local edge=castButton.AcademyEdge
+  local glyphs=mark:GetChildren()
+  local faces={
+   off={panel,muted},
+   armed={Color3.fromRGB(62,48,30),gold},
+   firing={Color3.fromRGB(22,60,49),Color3.fromRGB(104,222,157)},
+   cooldown={Color3.fromRGB(38,49,60),Color3.fromRGB(158,191,207)},
+  }
+  local current
+  function academy.setBeamFace(armed,firing,cooldown)
+   local mode=not armed and "off" or firing and "firing" or cooldown and "cooldown" or "armed"
+   if mode==current then return end
+   current=mode
+   local face,accent=table.unpack(faces[mode])
+   castButton.BackgroundColor3=face;edge.Color=accent
+   for _,bar in ipairs(glyphs) do bar.BackgroundColor3=accent end
+  end
+  academy.setBeamFace(false,false,false)
+ end
+end
+local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-60,0,3),UDim2.new(0,48,1,-6),dark)
+voiceTimeTrack.Active=false;voiceTimeTrack.Interactable=false;voiceTimeTrack.Selectable=false
 local voiceTimeFill=frame(voiceTimeTrack,"RemainingOrRecovery",UDim2.fromScale(0,1),UDim2.new(),muted)
+voiceTimeFill.Active=false;voiceTimeFill.Interactable=false;voiceTimeFill.Selectable=false
 voiceTimeTrack.Visible=false
 castButton.InputBegan:Connect(function(input)
  if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then beginCapture(input) end
@@ -578,6 +603,13 @@ local function residentTargetInfo(model,humanoid,far,currentFar,covered)
  return string.format("%s\n%s",model:GetAttribute("DisplayName") or model.Name,status),not far and not currentFar and not covered
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(144,32),UDim2.fromOffset(116,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
+do
+ local track=frame(sprintButton,"StaminaTrack",UDim2.new(1,-18,0,3),UDim2.new(0,9,1,-6),dark)
+ local fill=frame(track,"Stamina",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(130,211,174))
+ track.Active=false;track.Interactable=false;track.Selectable=false
+ fill.Active=false;fill.Interactable=false;fill.Selectable=false
+ academy.staminaFill=fill
+end
 local talkTarget
 local nextResidentUi=0
 local function refreshResidentLabels(root,camera,residents)
@@ -1513,7 +1545,7 @@ connectClient(Run.RenderStepped,function(dt)
    or compactVoice and devPanel.Visible and "Close Test Tools"
    or (data.micReady~=true or compactVoice and not mic.ready) and (compactVoice and "Connecting mic" or "Connecting microphone…")
    or not sustainedControl.armed and (compactVoice and (touch and "Tap to turn on" or "[E] to turn on") or touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
-   or voiceCooldown>0 and string.format("%.1fs · go quiet",voiceCooldown)
+   or voiceCooldown>0 and string.format("Cooldown %.1fs · go quiet",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format(compactVoice and "Firing · %.1fs" or "Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
    or os.clock()<(sustainedControl.unconfirmedUntil or 0) and (compactVoice and "Go quiet, then retry" or "Not confirmed • quiet, then retry")
    or sustainedControl.gate.needsQuiet and "Go quiet"
@@ -1617,7 +1649,7 @@ connectClient(Run.RenderStepped,function(dt)
  if sustainedControl then
   -- Keep the next voice action on the toggle when the meter has no lane.
   local status
-  if compactVoice then
+  if compactVoice or inputMuted or sustainedControl.armed and (voiceActive or voiceCooldown>0) then
    status=captureHint
    if inputMuted then
     status="Unmute in Roblox"
@@ -1644,9 +1676,16 @@ connectClient(Run.RenderStepped,function(dt)
   end
   voiceTimeFill.Size=UDim2.fromScale(math.clamp(fraction,0,1),1)
  end
- castButton.BackgroundColor3=(sustainedControl and not sustainedControl.armed or protected>0) and muted or gold
+ if academy.setBeamFace then
+  local armed=sustainedControl.armed and windowFocused and data.micReady==true and not beamBlocked()
+  academy.setBeamFace(armed,voiceActive and sustainedControl.attack~=nil,voiceCooldown>0)
+ else
+  castButton.BackgroundColor3=protected>0 and muted or gold
+ end
  local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or (touch and "DODGE" or "DODGE [Q]")
- local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",p:GetAttribute("SprintCharge") or 10)..(touch and "" or " [SHIFT]")
+ local rest=p:GetAttribute("SprintCooldown") or 0;local charge=p:GetAttribute("SprintCharge") or Config.SprintDuration
+ sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",charge)..(touch and "" or " [SHIFT]")
+ academy.staminaFill.Size=UDim2.fromScale(math.clamp(charge/Config.SprintDuration,0,1),1)
  aimInfo.Visible=gameplayVisible
  if sustainedBeams then
   local now=os.clock();sustainedBeams:Expire(now)

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Combat HUD shows beam phases and stamina at a glance
+
+- The original 750 × 323 usable HUD drew the same gold Beam face and **Tap to turn off** label while armed, firing and cooling down. The updated control uses slate when OFF, amber when armed, green while firing and cool slate during cooldown. Firing and labeled cooldown text stays on the button when the full meter is visible. The existing attack gates also control whether the face looks ready, and the timer rails do not intercept input.
+- With simulated microphone power and normal client/server combat, the 567 × 242 HUD showed all four faces with fitting text inside the actual 260 × 44 button. The shot reduced Rookie's health from 80 to 74. The 750 × 323 follow-up repeated the label and timer checks; its staged shot missed. Under normal desktop sprint keys and movement, server stamina fell from 10 to 9.47, the new rail read 94.66%, and stamina refilled to 10 after release. The device layouts are native Studio emulation, without physical touch or microphone validation.
+- Critic cleared the final state gates. Focused checks passed 252 voice presentation assertions, eight negative controls, 1,180 combat readout assertions and 69 presentation assertions. All 312 local checks and builds passed with matching inputs. The disposable sessions closed. Next, test the redesigned controls through a fresh session on a physical phone.
+
 ## The beam HUD explains microphone mute
 
 - With eligibility allowed and a muted input attached, the short Studio HUD previously stayed on **Connecting mic**. It now says **Unmute in Roblox** and the full mic meter names the mute. The instruction fits at 567 × 242 usable pixels. A blocked tap at 750 × 323 gives the same recovery step while beams remain OFF. Eligibility failures retain their existing copy and precedence.

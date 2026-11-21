@@ -64,7 +64,7 @@ local function cue(voiceCooldown,quiet,voiceActive,attack,onset,armed,state)
  __STATUS_CODE__
 end
 local text,color=cue(4.9,true,false,false,0,true)
-check(text=='4.9s · go quiet' and color=='muted','Cooldown hides the reset instruction or looks charged')
+check(text=='Cooldown 4.9s · go quiet' and color=='muted','Cooldown hides the reset instruction or looks charged')
 text,color=cue(0,true,false,false,0,true)
 check(text=='Go quiet' and color=='muted','Reset state encourages speech or looks ready')
 text,color=cue(0,false,false,false,0,true)
@@ -80,7 +80,7 @@ local function short(state,cooldown,quiet,active,attack,onset,armed)
  local _,_,button=cue(cooldown or 0,quiet or false,active or false,attack or false,onset or 0,armed~=false,state)
  return button
 end
-check(short({},4.9,true,false,false,0,true)=='BEAMS: ON\n4.9s · go quiet','Short cooldown hides the quiet cue')
+check(short({},4.9,true,false,false,0,true)=='BEAMS: ON\nCooldown 4.9s · go quiet','Short cooldown hides the quiet cue')
 check(short({},0,true)=='BEAMS: ON\nGo quiet','Short reset hides the quiet cue')
 check(short({},0,false)=='BEAMS: ON\nAim and speak','Short ready cue lost')
 check(short({height=314},0,false)=='BEAMS: ON\nAim and speak','Short cue disappears one pixel early')
@@ -107,7 +107,7 @@ check(short({unconfirmed=true},0,true)=='BEAMS: ON\nGo quiet, then retry','Short
 local _,_,desktop,meter=cue(0,true,false,false,0,true,{width=820,nearNpc=true})
 check(not meter and desktop=='BEAMS: ON\nGo quiet','Desktop TALK hides the quiet cue')
 _,_,desktop,meter=cue(4.9,true,false,false,0,true,{nearNpc=true})
-check(not meter and desktop=='BEAMS: ON\n4.9s · go quiet','Desktop TALK hides cooldown guidance')
+check(not meter and desktop=='BEAMS: ON\nCooldown 4.9s · go quiet','Desktop TALK hides cooldown guidance')
 _,_,desktop,meter=cue(0,false,false,false,0,false,{nearNpc=true})
 check(not meter and desktop=='BEAMS: OFF\n[E] to turn on','Desktop compact OFF shows the wrong input')
 _,_,desktop,meter=cue(0,true,false,false,0,true,{nearNpc=false})
@@ -116,6 +116,10 @@ _,_,desktop,meter=cue(0,true,false,false,0,true,{width=819,nearNpc=true})
 check(meter and desktop=='BEAMS: ON\n[E] to turn off','Desktop TALK hid the separate narrow meter')
 _,_,desktop,meter=cue(0,true,false,false,0,true,{width=567,height=314})
 check(not meter and desktop=='BEAMS: ON\nGo quiet','Short desktop lost the quiet cue')
+local _,_,wideFiring=cue(0,false,true,true,0,true)
+check(wideFiring=='BEAMS: ON\nAttacking • 3.0s left','Wide beam button hides firing phase')
+local _,_,wideCooldown=cue(4.9,true,false,false,0,true)
+check(wideCooldown=='BEAMS: ON\nCooldown 4.9s · go quiet','Wide beam button hides cooldown phase')
 print('PASS '..n..' VoiceReactor contracts with UI doubles; no Studio or live mic')
 '''
 s=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
@@ -171,6 +175,7 @@ if '--negative-controls' in sys.argv:
   ('and not (not touch and viewport.X>=820 and talkTarget~=nil)','', 'Desktop TALK hides the quiet cue'),
   ('if eligibilityHint then', 'if false then','Denied short cue suggests arming'),
   ('if inputMuted then','if false then','Muted short cue omitted the recovery action'),
+  (' or sustainedControl.armed and (voiceActive or voiceCooldown>0)','', 'Wide beam button hides firing phase'),
  ]:
   assert payload.count(old)==1,old
   run(payload.replace(old,new),expected)
