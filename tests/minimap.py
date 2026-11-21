@@ -132,7 +132,7 @@ print('PASS '..checks..' actual minimap module/client assertions; synthetic layo
  tracker_size=re.search(r'local tracked=label\(gui,"",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  hud_size=re.search(r'local hud=frame\(gui,"CompactHUD",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  controls_size=re.search(r'local controls=frame\(gui,"Actions",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
- positions='\n'.join(next(line for line in client.splitlines() if line.startswith(' '+key+'.Position=')) for key in ['tracked','hud','controls','talkButton'])+'\n'+next(line for line in client.splitlines() if line.startswith(' controls.Size='))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
+ positions='\n'.join(next(line for line in client.splitlines() if line.startswith(' '+key+'.Position=')) for key in ['tracked','hud','controls'])+'\n'+next(line for line in client.splitlines() if line.lstrip().startswith('talkButton.Position=UDim2.new('))+'\n'+next(line for line in client.splitlines() if line.startswith(' controls.Size='))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
  nav=client[client.index(' local tight=viewport.X<380'):client.index(' testButton.Size=')]
  nav_origin=re.search(r'local top=frame\(gui,"Navigation",UDim2.fromOffset\(\d+,\d+\),(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  notice_source=read('src/StarterPlayer/StarterPlayerScripts/NoticeLayout.luau')
@@ -174,7 +174,8 @@ __TOAST__
      check(not overlaps(rectangle(shop,viewport),notice) and not overlaps(rectangle(questsToggle,viewport),notice),'Notice overlaps navigation')
      if touch then check(not overlaps(rectangle(controls,viewport),notice),'Notice overlaps touch controls')end
      local talk=rectangle(talkButton,viewport)
-     if layout.moveTalk then talk.x=layout.talkX;talk.y=layout.talkY end
+     if layout.moveTalk then talk.x=layout.talkX;talk.y=layout.talkY
+     elseif layout.baseTalkX then talk.x=layout.baseTalkX;talk.y=layout.baseTalkY end
      check(not overlaps(talk,notice),'Notice overlaps resolved TALK')
      check(not overlaps(talk,m),'Resolved TALK overlaps MAP')
      if testAccess then check(not overlaps(talk,rectangle(testButton,viewport)),'Resolved TALK overlaps tools')end

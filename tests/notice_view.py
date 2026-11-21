@@ -166,6 +166,29 @@ check(noticeView.scroll.Size.Y.Offset>=44,'Modal scroll target below44px')
 noticeView.scroll.CanvasPosition=Vector2.new(0,noticeView.contentHeight-noticeView.visibleHeight);frame();check(noticeView.text.Position.Y.Offset+noticeView.text.Size.Y.Offset-noticeView.scroll.CanvasPosition.Y<=noticeView.visibleHeight,'Modal last line remains beneath cue')
 modal.Visible=false;viewport=Vector2.new(640,360);frame();check(questsToggle.Text=='QUESTS' and noticeView.root.Visible,'Fitting resize retained fallback disclosure')
 notifications:Remove('save');frame();check(questsToggle.Text=='QUESTS' and questsToggle.Visible,'Recovered notice retained disclosure launcher')
+-- The baseline safe HUD measured 567 × 242 even though the camera was taller.
+viewport=Vector2.new(567,242);talkTarget={};notifications=Queue.new()
+local function checkShortTalk()
+ frame()
+ local position=talkButton.Position
+ local x=position.X.Scale*viewport.X+position.X.Offset
+ local y=position.Y.Scale*viewport.Y+position.Y.Offset
+ local target={x=x,y=y,width=120,height=44}
+ check(talkButton.Visible and y>=0 and y+44<=viewport.Y,'Short phone TALK extends outside the safe HUD')
+ local blockers={{x=14,y=12,width=229,height=44},{x=441,y=14,width=112,height=44},
+  {x=293,y=viewport.Y-195,width=260,height=96},{x=14,y=64,width=242,height=94}}
+ for _,b in ipairs(blockers)do check(not Layout.Overlaps(target,b),'Short phone TALK overlaps an existing HUD control')end
+ return x,y
+end
+local firstX,firstY=checkShortTalk()
+notifications:Push(samples[1],true,'save')
+local noticeX,noticeY=checkShortTalk()
+check(firstX==noticeX and firstY==noticeY and not noticeView.root.Visible,'Hidden notice moved or covered short phone TALK')
+viewport=Vector2.new(567,241);checkShortTalk()
+notifications=Queue.new();viewport=Vector2.new(390,844);frame()
+local portrait=talkButton.Position
+check(portrait.X.Scale*390+portrait.X.Offset==135 and portrait.Y.Scale*844+portrait.Y.Offset==595,'Portrait TALK moved out of its existing lane')
+notifications=Queue.new()
 local compact=Layout.Modal(567,241,true)
 check(compact.available and compact.x==20 and compact.x+compact.width<=499 and compact.y+compact.height<=52,
  'Short modal notice overlaps Close or the tab row')
@@ -223,6 +246,8 @@ if a.negative_controls:
  for old,new,error in [('h>=44','h>=1','Tiny viewport claimed safe access'),('width-map.width-22','width-14','Notice overlaps actionable target'),('result.talkY=14','result.talkY=height-143','TALK moved into native thumbstick zone')]:
   assert old in sources['NoticeLayout'];run(sources['NoticeLayout'].replace(old,new),sources['NoticeView'],error=error)
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('or questLauncherText()', 'or "QUESTS"'),'Frame erased actual receiver reward count')
+ run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('elseif noticeLayout.baseTalkX then','elseif noticeView.visible and noticeLayout.baseTalkX then'),'Short phone TALK extends outside the safe HUD')
+ run(sources['NoticeLayout'].replace('talk.x=x;talk.y=','talk.x=navRight-24;talk.y='),sources['NoticeView'],error='Short phone TALK overlaps an existing HUD control')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('(gameplayVisible or modal.Visible)','gameplayVisible'),'Shop error hidden or covers modal navigation')
 print('Actual warning lengths:',[len(t)for t in texts])
 

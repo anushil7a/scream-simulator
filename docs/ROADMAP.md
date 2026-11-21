@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## TALK on short phone screens
+
+- In the touch emulator with a 567 × 242 safe HUD, the original TALK control began at (223.5, −7), above the safe HUD and over the QUESTS launcher. The new lane begins at (251, 3), with the full 120 × 44 target between the launchers and the right column, above the action row. At 567 × 241, an undisplayable queued notice still left TALK at (251, 2) and exposed NOTICE separately.
+- Matched native views near Mar Soler verified the overlap and the corrected lane. Automated pointer input in the touch-enabled emulator opened his dialogue, scrolled to A Little More Color, and accepted it through the normal quest flow. The tracker showed 0/3 beds. The measured portrait safe HUD was 388 × 704. TALK retained its centered lane at (134, 455). The staged avatar, automated pointer and local profile do not establish physical touch or player discovery.
+- Independent Critic reran 649 notice assertions, 138 minimap module assertions, 987,779 minimap integration assertions and all 45 negative controls. All 314 local checks and builds passed with matching inputs. The new lane needs at least 239 safe pixels of height and enough space between the launchers and right column. The full mic meter remains hidden below 315 usable pixels. Next: make essential voice guidance readable on short screens and validate a real-device run from spawn through the first upgrade.
+
 ## Defender feedback for a beam hit
 
 - The health card now displays **BEAM HIT YOU** for 1.4 seconds after the first nonfatal hit from an opposing sustained cast. The server sends the cue privately to the damaged player after actual health loss. It binds to the current Humanoid and clears on character removal or spawn protection. Subsequent ticks from the same cast leave the timer alone. The existing knockout notice and the attacker's damage readout remain separate. The cue uses steady text and works with Beams OFF.

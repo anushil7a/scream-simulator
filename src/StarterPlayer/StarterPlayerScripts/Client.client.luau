@@ -1522,7 +1522,6 @@ connectClient(Run.RenderStepped,function(dt)
  testButton.Position=UDim2.new(1,viewport.X<432 and -100 or -126,0,miniLayout.available and 14+miniLayout.height+8 or 14)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,data.devAccess==true and viewport.X<356 and miniLayout.height+74 or 64) or UDim2.new(0,14,1,-108)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
- talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
  talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
  tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64)
@@ -1626,8 +1625,13 @@ connectClient(Run.RenderStepped,function(dt)
  talkButton.Visible=talkTarget~=nil and gameplayVisible
  -- Preserve the interaction target; passive mic art must never sit under TALK.
  if not touch and viewport.X>=820 and talkButton.Visible then meter.Visible=false end
- talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
- if noticeView.visible and noticeLayout.moveTalk then talkButton.Position=UDim2.fromOffset(noticeLayout.talkX,noticeLayout.talkY) end
+ if noticeView.visible and noticeLayout.moveTalk then
+  talkButton.Position=UDim2.fromOffset(noticeLayout.talkX,noticeLayout.talkY)
+ elseif noticeLayout.baseTalkX then
+  talkButton.Position=UDim2.fromOffset(noticeLayout.baseTalkX,noticeLayout.baseTalkY)
+ else
+  talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
+ end
  for _,passive in ipairs({hud,tracked,zone,saveNotice,meter,academy.guidePanel})do
   if noticeView:Overlaps(passive,gui) or noticeView:Overlaps(passive,gui,talkButton) then passive.Visible=false end
  end

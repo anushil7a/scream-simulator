@@ -8,10 +8,20 @@ function Layout.Get(width,height,touch,map,testTools,talkVisible)
  local h=math.floor(math.min(height*.35,bottom-66))
  local w=math.floor(math.min(640,right-14))
  local result={x=14,y=66,width=math.max(0,w),height=math.max(0,h),available=w>=120 and h>=44 and (not touch or width>=312)}
- if touch and talkVisible and Layout.Overlaps(result,{x=width/2-60,y=height-249,width=120,height=44}) then
-  -- Never move TALK into the native bottom-left thumbstick exclusion zone.
-  local x=(width<380 and 190 or 243)+8
-  if x+120<=right then result.moveTalk=true;result.talkX=x;result.talkY=14 else result.available=false end
+ if touch and talkVisible then
+  local navRight=width<380 and 190 or 243
+  local x=navRight+8
+  local talk={x=width/2-60,y=height-249,width=120,height=44}
+  -- The short safe area can put the default target above the HUD or on the launchers.
+  -- Move above the action row when the top lane fits between the nav and right column.
+  if (talk.y<0 or (talk.y<56 and talk.x<navRight)) and x+talk.width<=right and height>=239 then
+   talk.x=x;talk.y=math.min(14,height-239)
+   result.baseTalkX=talk.x;result.baseTalkY=talk.y
+  end
+  if Layout.Overlaps(result,talk) then
+   -- Never move TALK into the native bottom-left thumbstick exclusion zone.
+   if x+120<=right then result.moveTalk=true;result.talkX=x;result.talkY=14 else result.available=false end
+  end
  end
  return result
 end
