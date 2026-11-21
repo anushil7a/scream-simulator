@@ -79,11 +79,16 @@ for x=-320,320,5 do for z=-180,190,5 do
  end
 end end
 local zoneValues={Text=''};local zoneWrites=0
-local zone=setmetatable({},{__index=zoneValues,__newindex=function(_,key,value)zoneWrites+=1;zoneValues[key]=value end});local white='white';local academy={};local root={Position=Vector3.new(0,20,0)}
-local p={Character={FindFirstChild=function()return root end}}
+local zone=setmetatable({},{__index=zoneValues,__newindex=function(_,key,value)zoneWrites+=1;zoneValues[key]=value end});local white,gold='white','gold';local academy={};local root={Position=Vector3.new(0,20,0)}
+local bossHint
+local p={Character={FindFirstChild=function()return root end},GetAttribute=function()return bossHint end}
 '''
 POST2=r'''
 academy.refreshZone();check(zone.Text=='GARDEN • PvP ON','Current local garden cue missing')
+bossHint='Step off the circles';academy.refreshZone();check(zone.Text=='GARDEN • PvP ON','Boss hint must not obscure active PvP')
+root.Position=Vector3.new(0,20,110);academy.refreshZone()
+check(zone.Text==bossHint and zone.TextColor3==gold,'Boss hint did not use existing safe status lane')
+bossHint=nil
 root.Position=Vector3.new(0,20,110);academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','Cafe path HUD unsafe')
 root.Position=Vector3.new(0,35,0);academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','HUD ignores height band')
 root.Position=Vector3.new((Layout.ZoneMin.X+Layout.ZoneMax.X)/2,(Layout.ZoneMin.Y+Layout.ZoneMax.Y)/2,(Layout.ZoneMin.Z+Layout.ZoneMax.Z)/2)

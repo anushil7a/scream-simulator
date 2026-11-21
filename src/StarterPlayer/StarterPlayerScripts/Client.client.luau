@@ -323,7 +323,7 @@ xpText.TextScaled=true
 do local xpScale=Instance.new("UITextSizeConstraint");xpScale.Name="XPTextScale";xpScale.MaxTextSize=12;xpScale.MinTextSize=9;xpScale.Parent=xpText end
 local xf=frame(frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,82),panel),"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
-local zone=label(gui,"SAFE • PvP OFF",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
+local zone=label(gui,"SAFE • PvP OFF",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.Name="ZoneStatus";zone.TextXAlignment=Enum.TextXAlignment.Center
 zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08
 do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=zone end
 academy.surface(zone)
@@ -334,9 +334,10 @@ function academy.refreshZone()
  local position=root and root.Position
  local enabled=position and Config.InArena(position)==true or false
  local garden=enabled and Config.InGardenPvp and Config.InGardenPvp(position)==true
- local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or "SAFE • PvP OFF"
+ local bossHint=not enabled and position and p:GetAttribute("BossCombatHint")
+ local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or bossHint or "SAFE • PvP OFF"
  if zone.Text~=value then
-  zone.Text=value;zone.TextColor3=enabled and Color3.fromRGB(255,140,139) or white
+  zone.Text=value;zone.TextColor3=enabled and Color3.fromRGB(255,140,139) or bossHint and gold or white
  end
 end
 function academy.layoutZone(viewport,touch)

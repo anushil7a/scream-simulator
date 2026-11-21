@@ -63,26 +63,29 @@ print('PASS visibility/reduced/cancel/stale/teardown and server-only impact sour
 pre2='''
 local n=0;local function check(v)assert(v);n+=1 end
 local now=0;local callback;local destroy;local built=0;local cleared=0;local lastMarkerCount
-local pos=setmetatable({},{__sub=function()return {Magnitude=10}end})
+local delta={Magnitude=10,X=10,Y=-10,Z=0}
+local pos=setmetatable({},{__sub=function()return delta end})
 local FX={Distance=140,Lifetime=.45,Build=function(_,id,markers,impact)
  built+=1;lastMarkerCount=#markers;return {Destroy=function()cleared+=1 end,Step=function()end}
 end}
 local attrs={BossReducedEffects=false}
-local player={Character={FindFirstChild=function()return {Position=pos}end},GetAttribute=function(_,k)return attrs[k]end}
+local player={Character={FindFirstChild=function()return {Position=pos}end},GetAttribute=function(_,k)return attrs[k]end,
+ SetAttribute=function(_,k,v)attrs[k]=v end}
 local Enum={PartType={Cylinder='Cylinder'}}
 local marker={Name='Hazard',Position=pos,IsA=function(_,class)return class=='Part' end}
 local a={BossAttackSerial=1,BossState='Windup',BossAttackAt=2}
 local children={marker, marker}
-local expected,warningSerial=2,1
+local expected,warningSerial,hint=2,1,nil
 local function newWarning()
  return {GetChildren=function()return children end,GetAttribute=function(_,key)
   if key=='BossMarkerCount' then return expected end
   if key=='BossAttackSerial' then return warningSerial end
+  if key=='BossAttackHint' then return hint end
  end}
 end
 local warning=newWarning()
 local model={Name='metronome',GetAttribute=function(_,k)return a[k]end,FindFirstChild=function(_,k)if k=='Core'then return {Position=pos} elseif k=='DodgeWarning'then return warning end end}
-local bosses={GetChildren=function()return {model}end}
+local bosses={GetChildren=function()return {model}end,FindFirstChild=function(_,name)if model.Name==name then return model end end}
 local world={FindFirstChild=function()return bosses end}
 local workspace={GetServerTimeNow=function()return now end,FindFirstChild=function()return world end}
 local disconnected=false
@@ -115,7 +118,25 @@ a.BossAttackAt=now;warning=nil;callback(.05);check(cleared==6 and built==6)
 a.BossAttackImpactSerial=3;a.BossAttackImpactAt=now;callback(.05);check(built==7 and cleared==6)
 now+=1;callback(.05);check(cleared==7)
 warning=newWarning();warningSerial=4;a.BossAttackSerial=4;a.BossAttackAt=now+2;callback(.05);check(built==8)
-destroy();check(cleared==8 and disconnected)
+local savedCharacter=player.Character
+model.Name='conductor';attrs.BossReducedEffects=true;hint='Step off the circles'
+expected=6;callback(.05);check(not attrs.BossCombatHint and cleared==8)
+children={marker,marker,marker,marker,marker,marker};warningSerial=3
+callback(.05);check(not attrs.BossCombatHint)
+warningSerial=4;callback(.05)
+check(attrs.BossCombatHint==hint and built==8)
+delta.Y=15;callback(.05);check(not attrs.BossCombatHint);delta.Y=-10
+delta.X=31;callback(.05);check(not attrs.BossCombatHint);delta.X=10
+callback(.05);check(attrs.BossCombatHint==hint)
+player.Character=nil;callback(.05);check(not attrs.BossCombatHint);player.Character=savedCharacter
+callback(.05);check(attrs.BossCombatHint==hint)
+now=a.BossAttackAt;callback(.05);check(not attrs.BossCombatHint)
+a.BossAttackAt=now+2;callback(.05);check(attrs.BossCombatHint==hint)
+a.BossAttackImpactSerial=4;callback(.05);check(not attrs.BossCombatHint)
+local active=warning
+a.BossAttackImpactSerial=nil;warning=nil;callback(.05);check(not attrs.BossCombatHint)
+warning=active;callback(.05);check(attrs.BossCombatHint==hint)
+destroy();check(cleared==8 and disconnected and not attrs.BossCombatHint)
 callback(.05);check(built==8)
 print('PASS '..n..' actual client warning/impact/cancel/reduced/respawn/teardown checks')
 '''
@@ -127,6 +148,7 @@ for name,source in [
  ('partial warning admission',pre2+client.replace('if #children==expected then','if #children>0 then').replace('if #markers==expected then','if #markers>0 then')+post2),
  ('stale warning folder',pre2+client.replace('warning:GetAttribute("BossAttackSerial")==serial and ','')+post2),
  ('stale-warning admission',pre2+client.replace('and model:GetAttribute("BossState")=="Windup"','')+post2),
+ ('reduced effects hiding the hint',pre2+client.replace(' updateHint(player,root,bosses,now)',' if not reduced() then updateHint(player,root,bosses,now) end')+post2),
  ('captain siren motif',pre+module.replace('and width<length then','and false then')+post),
 ]:
  with tempfile.NamedTemporaryFile('w',dir=R/'tests',suffix='.luau',delete=False) as f:

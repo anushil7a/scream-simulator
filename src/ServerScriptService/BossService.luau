@@ -158,6 +158,7 @@ function Service.new(parent,callbacks)
     local warning=Instance.new("Folder");warning.Name="DodgeWarning"
     warning:SetAttribute("BossAttackSerial",strike.serial)
     warning:SetAttribute("BossMarkerCount",#strike.shapes)
+    if strike.style=="BellCascade" then warning:SetAttribute("BossAttackHint",strike.name) end
     for _,shape in ipairs(strike.shapes) do
      local pos=b.center+Vector3.new(shape.x,.5,shape.z)
      local size=shape.kind=="disk" and Vector3.new(.12,shape.radius*2,shape.radius*2) or Vector3.new(shape.width,.12,shape.length)

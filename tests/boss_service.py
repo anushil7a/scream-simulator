@@ -209,6 +209,8 @@ for _,spec in ipairs(Catalog.Entries) do
  check(service:CanHit(boss,attacker,2002),"inclusive exact limits")
  service:Hit(boss,attacker,1,2002);service.nextStep=0;service:Step(2002)
  local warning=boss.warning
+ local hint=warning:GetAttribute("BossAttackHint")
+ check(hint==(spec.id=="conductor" and "Step off the circles" or nil),"only Bell Cascade gives the escape instruction")
  contexts[90].position=boss.center+Vector3.new(spec.radius+1,3,0)
  service:Step(2002.2)
  check(not boss.strike and not boss.warning and warning.destroyed,"empty encounter cancels before impact")

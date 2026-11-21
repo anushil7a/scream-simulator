@@ -11,6 +11,27 @@ local function reduced()
  local ok,value=pcall(function()return Gui.ReducedMotionEnabled end)
  return not ok or value==true or Players.LocalPlayer:GetAttribute("BossReducedEffects")~=false
 end
+local visibleHint
+local function updateHint(player,root,bosses,now)
+ local model=root and bosses and bosses:FindFirstChild("conductor")
+ local core=model and model:FindFirstChild("Core")
+ local warning=core and model:FindFirstChild("DodgeWarning")
+ local message
+ if warning and model:GetAttribute("BossState")=="Windup" then
+  local serial=model:GetAttribute("BossAttackSerial")
+  local deadline=model:GetAttribute("BossAttackAt")
+  local delta=root.Position-core.Position
+  if type(serial)=="number" and warning:GetAttribute("BossAttackSerial")==serial
+   and model:GetAttribute("BossAttackImpactSerial")~=serial and type(deadline)=="number" and deadline>now
+   and math.abs(delta.Y)<=14 and delta.X^2+delta.Z^2<=30^2
+   and #warning:GetChildren()==warning:GetAttribute("BossMarkerCount") then
+   message=warning:GetAttribute("BossAttackHint")
+  end
+ end
+ if type(message)~="string" then message=nil end
+ if message==visibleHint then return end
+ player:SetAttribute("BossCombatHint",message);visibleHint=message
+end
 local elapsed=0
 connection=Run.Heartbeat:Connect(function(dt)
  if stopped then return end
@@ -18,6 +39,7 @@ connection=Run.Heartbeat:Connect(function(dt)
  local player=Players.LocalPlayer;local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
  local world=workspace:FindFirstChild("ScreamSimulatorWorld");local bosses=world and world:FindFirstChild("BossEncounters")
  local now=workspace:GetServerTimeNow();local seen={};local count=0
+ updateHint(player,root,bosses,now)
  if root and bosses and not reduced() then
   for _,model in ipairs(bosses:GetChildren()) do
    local core=model:FindFirstChild("Core")
@@ -73,4 +95,5 @@ end)
 script.Destroying:Connect(function()
  stopped=true;if connection then connection:Disconnect() end
  for model in pairs(states) do clear(model) end
+ if visibleHint then Players.LocalPlayer:SetAttribute("BossCombatHint",nil)end
 end)

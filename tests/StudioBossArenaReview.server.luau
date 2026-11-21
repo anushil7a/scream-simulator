@@ -11,7 +11,8 @@ do
  invoke.OnInvoke=function(id,mode)
   assert(not busy,"A boss test is already active")
   local beamMode=mode=="beam" or mode=="beam-low"
-  local gapMode=mode=="gap" and id=="leviathan"
+  local bellGap=id=="conductor" and (mode=="gap" or mode=="gap-alt")
+  local gapMode=bellGap or mode=="gap" and id=="leviathan"
   local ranged=mode=="ranged" or gapMode
   assert(mode=="melee" or ranged or mode=="dodge" or beamMode,"Unrecognized local diagnostic mode")
   local ps=Players:GetPlayers()
@@ -30,7 +31,8 @@ do
    b.motion=motion.New()
   end
   local distance=beamMode and 13 or ranged and (id=="conductor" and chosen.spec.radius-9 or math.min(23,chosen.spec.radius-3)) or 7
-  local point=chosen.center+Vector3.new(0,0,distance)
+  local angle=mode=="gap-alt" and math.pi/6 or 0
+  local point=chosen.center+Vector3.new(math.sin(angle)*distance,0,math.cos(angle)*distance)
   local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c};params.RespectCanCollide=true
   local floor=workspace:Raycast(point+Vector3.new(0,3,0),Vector3.new(0,-6,0),params)
   -- Ignis's authored crater pad intentionally rises .30 studs above the home.
@@ -49,7 +51,7 @@ do
   print("BOSSQA_BALANCE",id,"level",s.data.level,"playerHP",h.MaxHealth,"bossHP",chosen.spec.health,"ranged",chosen.spec.damage,"melee",chosen.spec.meleeDamage)
   c:PivotTo(CFrame.lookAt(start,Vector3.new(chosen.center.X,start.Y,chosen.center.Z)))
   r.AssemblyLinearVelocity=Vector3.zero
-  chosen.turn=(ranged and 0 or 1);chosen.nextAttack=os.clock()+1.3;chosen.recoverUntil=0
+  chosen.turn=(mode=="gap-alt" and 2 or ranged and 0 or 1);chosen.nextAttack=os.clock()+1.3;chosen.recoverUntil=0
   if beamMode then
    -- Solo budget endpoint: no retaliation, no human aim or audio claims.
    -- Actual server clock, adapter, beam/cover resolver, boss health and rewards.
@@ -112,12 +114,18 @@ do
     if gapMode then
      gapHealth=h.Health
      local markers=chosen.warning:GetChildren()
-     assert(strike.style=="TwinSirens" and #markers==2,"Expected two committed siren lanes")
      local initial=r.Position-chosen.center
-     assert(patterns.Hits(strike,initial.X,initial.Z),"Gap scenario did not begin inside a damaging lane")
-     local center=(markers[1].Position+markers[2].Position)/2
-     local along=markers[1].CFrame.LookVector
-     local target=center+along*(r.Position-center):Dot(along)
+     assert(patterns.Hits(strike,initial.X,initial.Z),"Gap scenario did not begin inside the damage area")
+     local target
+     if bellGap then
+      assert(strike.style=="BellCascade" and #markers==6,"Expected six committed bell circles")
+      target=chosen.center+Vector3.new(strike.x,0,strike.z)
+     else
+      assert(strike.style=="TwinSirens" and #markers==2,"Expected two committed siren lanes")
+      local center=(markers[1].Position+markers[2].Position)/2
+      local along=markers[1].CFrame.LookVector
+      target=center+along*(r.Position-center):Dot(along)
+     end
      r:SetNetworkOwner(nil)
      target=Vector3.new(target.X,r.Position.Y,target.Z)
      h:MoveTo(target)

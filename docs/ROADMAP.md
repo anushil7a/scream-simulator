@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Eclipse Conductor escape guidance
+
+- In the native baseline, the six damage circles appeared with only the boss identity label. The attack instruction never reached the HUD. A world-space candidate went above the short phone viewport at the sampled camera angle. Moving it down brought it behind the level HUD. The final cue reuses the existing status line, says **Step off the circles**, and keeps active PvP status higher priority.
+- In the 750 × 381 Studio phone simulation with reduced effects enabled and three synthetic beams active, the instruction occupied 86 × 11 pixels in the existing 190 × 14 status lane. The screenshot confirmed the cue stayed clear of neighboring HUD items. It returned to **SAFE • PvP OFF** at impact. No extra HUD button or panel was added.
+- The standing probe took 58 damage both before and after the change. In the final fixture the staged avatar started inside a damage circle and walked inward without dash or immunity. The two rotations took 14.79 and 13.73 studs of movement and both inflicted zero damage at confirmed impact. Attack timing and footprints remain unchanged.
+- Critic cleared the final design. Focused checks passed 8,253 mocked boss-service assertions, 36 client lifecycle checks, five VFX negative controls and 14,870 garden/zone assertions. All 312 local checks and builds passed with matching input hashes. The disposable Studio sessions closed. This verifies staged native movement and one emulated layout, with synthetic beam overlap. Human readability, physical devices and multiplayer timing remain open.
+
 ## Accurate boss victory rewards and native beam performance
 
 - Boss victories previously claimed a reward with no credit at the XP and coin caps. The message now uses the actual credited deltas after boost, share and cap calculations. Grant order, eligibility and amounts are unchanged. A disposable native Studio session staged two boss defeats with the actual server service. The client State event reported no XP or coins for the Captain at both caps and +0 XP / +2 coins for the Conductor with the balance two coins below the cap. The session used a temporary profile and a staged final hit. It did not exercise real voice, remote players or live saves. The payload was verified without measuring rendered toast fit.
