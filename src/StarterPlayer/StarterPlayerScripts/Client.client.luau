@@ -829,6 +829,18 @@ academy.guideMenu=function()
  button(c,"ClearGuide","CLEAR GUIDE",UDim2.fromOffset(140,44),UDim2.fromOffset(14,58),function() academy.clearGuide();render() end)
 end
 -- On landscape phones the left rail may have no room above touch controls.
+function academy.trackerLayout(viewport,touch,defaultY)
+ local w,h=viewport.X,viewport.Y
+ if touch and h>=239 and h<315 and w>h then
+  -- Keep the Guide target out of the stock movement frame and clear of Jump.
+  local left,right=math.ceil(w*.4)+8,w-103
+  local width=math.min(290,right-left)
+  if width>=212 then
+   return math.floor((left+right-width)/2),math.max(defaultY,h-91),width,60
+  end
+ end
+ return 16,defaultY,290,50
+end
 academy.guideLayout=function(viewport,touch,trackedY)
  local w,h=viewport.X,viewport.Y
  if w>=230 and trackedY+118<h-(touch and 260 or 120) then
@@ -1468,7 +1480,10 @@ connectClient(Run.RenderStepped,function(dt)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
  talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
- tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64)
+ local trackerY=(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64
+ local trackerX,trackerTop,trackerWidth,trackerHeight=academy.trackerLayout(viewport,touch,trackerY)
+ tracked.Position=UDim2.fromOffset(trackerX,trackerTop)
+ tracked.Size=UDim2.fromOffset(trackerWidth,trackerHeight)
  dodgeButton.Size=UDim2.fromOffset(108,touch and 44 or 32)
  sprintButton.Size=UDim2.fromOffset(144,touch and 44 or 32)
  local testBottom=testTop+44

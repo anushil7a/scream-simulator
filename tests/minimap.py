@@ -132,7 +132,11 @@ print('PASS '..checks..' actual minimap module/client assertions; synthetic layo
  tracker_size=re.search(r'local tracked=label\(gui,"",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  hud_size=re.search(r'local hud=frame\(gui,"CompactHUD",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  controls_size=re.search(r'local controls=frame\(gui,"Actions",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
- positions='\n'.join(next(line for line in client.splitlines() if line.startswith(' '+key+'.Position=')) for key in ['tracked','hud','controls'])+'\n'+next(line for line in client.splitlines() if line.lstrip().startswith('talkButton.Position=UDim2.new('))+'\n'+next(line for line in client.splitlines() if line.startswith(' controls.Size='))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
+ tracker_layout=client[client.index('function academy.trackerLayout('):client.index('academy.guideLayout=function(')]
+ tracker_rect=client[client.index(' local trackerY='):client.index(' dodgeButton.Size=')]
+ client_setup+='\n'+tracker_layout+'\n'
+ positions='\n'.join(next(line for line in client.splitlines() if line.startswith(' '+key+'.Position=')) for key in ['hud','controls'])+'\n'+next(line for line in client.splitlines() if line.lstrip().startswith('talkButton.Position=UDim2.new('))+'\n'+next(line for line in client.splitlines() if line.startswith(' controls.Size='))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
+ positions=tracker_rect+positions
  nav=client[client.index(' local tight=viewport.X<380'):client.index(' testButton.Size=')]
  nav_origin=re.search(r'local top=frame\(gui,"Navigation",UDim2.fromOffset\(\d+,\d+\),(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  notice_source=read('src/StarterPlayer/StarterPlayerScripts/NoticeLayout.luau')

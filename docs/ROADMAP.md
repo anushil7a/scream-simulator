@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Objective tracker on short touch screens
+
+- At 567 × 241 the original objective card covered the visible thumbstick from x29 to x103. The new 229 × 60 card begins at (235, 160), beyond the stock movement frame's right edge at x226.8 and 8 pixels left of Jump. At 567 × 279 it begins at (235, 188), 8 pixels below the combat group. The existing left-rail placement remains on portrait, desktop, and layouts too narrow for this lane.
+- A Studio emulator pointer activated GUIDE and created the local training route. Staged Garden, Beach, Boardwalk Dash and Nick messages all fit the native card, including each applicable timer line. This verifies rendered text and simulated input in an unpublished fixture, without physical phone reach or natural timed quest execution.
+- Critic cleared the change. The layout test passed 48 assertions and three negative controls. The minimap sweep passed 1,158,198 integration assertions and 17 negative controls. All 312 local commands passed with matching inputs. Next, verify phone handling during an actual timed objective and check the narrow desktop TALK overlap separately. Both disposable sessions closed.
+
 ## Combat HUD layout
 
 - Beams has a full-width action with a passive waveform marker. Dodge and Sprint share the lower row. The 567 × 241 Studio touch emulator reported 260 × 44, 108 × 44 and 144 × 44 targets with no text clipping. The same buttons and short-screen voice guidance also fit on desktop and at 388 × 704 portrait.
