@@ -1110,7 +1110,7 @@ render=function()
   info(attackHelp,touch and 130 or 100)
   info("VOICE SAFETY\nAvoid profanity. Roblox's profanity rules depend on the game's rating and settings; harassment, threats and hate speech are not allowed. Rule violations may restrict voice or your account.\nRoblox records voice for moderation. The beam mechanic reads volume, not words. Stopping attacks does not mute voice. Use Roblox's mic control to mute, or Report Abuse for violations.",100)
   info(string.format("Third-person camera\n%s: dodge (W/A/S/D) · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
-  info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
+  info(touch and "Tap TALK near a resident. Follow the on-screen quest prompts. Tap MENU to open the tabs or X to close them." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
   info("MICROPHONE\n"..mic.status,60)
   if not mic.eligible and not mic.checkPending then
    local accessCard=card(64)

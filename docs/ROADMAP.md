@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Muted reward check and touch menu guidance
+
+- Applied the mute-playtest idea from the Oddblock video notes in the project vault. A new disposable player accepted the Garden quest, performed three staged prompt holds and claimed with the actual HUD button. With the four game audio groups confirmed at zero around the claim, the reward button retired and the coin counter rose from 0 to 80. This checks the visual confirmation of one reward, without establishing other feedback events, real voice or listening balance.
+- Current touch Settings now names **MENU** and **X**, replacing the obsolete **SHOP** instruction. In the 750 × 323 usable landscape emulator, the guidance fit its 644 × 60 label and the close button measured 44 × 44. Critic cleared the change; 402 focused assertions, four negative controls and all 312 local checks and builds passed with matching inputs. The temporary Studio session closed.
+- Audio setup remains owner-controlled. Hit, dodge, break and level-up cue IDs are empty in `GameplayAudioConfig`. The original WAVs are under `assets/audio/gameplay`. Assign IDs only after approved import and experience access; start the playback check with hit, dodge and level-up in the current city.
+
 ## Solid Resonance Hall posts and easier quest claiming
 
 - The grouped MENU and manual aim from `8eb05f8` remain in place. The current free-aim fixture covers mouse, touch and gamepad with input doubles. A native straight walk from z=-245 passed through both Resonance Hall marquee posts on the baseline and reached z=-229.8. With both visible posts solid, the avatar stopped at z=-238.1 on both sides and still reached z=-229.8 through the center opening. The native probe used staged server-owned avatar movement with jumping and climbing disabled.

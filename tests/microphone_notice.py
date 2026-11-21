@@ -80,6 +80,10 @@ for _,automatic in ipairs({false,true})do
    check(not string.find(text,'automatically banned',1,true) and not string.find(text,'we record',1,true),'Safety notice invents enforcement or recording')
    check(safety.height>=measured[text]+24,'Safety card fails measured height growth')
    check(safety.labels[1].Size.Y.Scale==1 and safety.labels[1].Size.Y.Offset==-20,'Safety label no longer fills dynamic card')
+   local navigation=touch and 'Tap MENU to open the tabs or X to close them.' or 'B: toggle menu'
+   local navigationShown=false
+   for _,item in ipairs(labels) do if string.find(item.Text,navigation,1,true) then navigationShown=true;break end end
+   check(navigationShown,'Settings control help disagrees with the menu launcher')
    for _,id in ipairs({'RetryVoiceAccess','Volume','AttackAudio','GameplayAudio','ReducedFX'})do check(buttons[id]~=nil,'Existing settings control removed')end
    local old=#cards;render();flush();check(#cards==old,'Unchanged menu duplicated safety notice')
    content.CanvasPosition={X=0,Y=220};renderedMenuKey=nil;render();flush();check(content.CanvasPosition.Y==220,'Same-tab rebuild lost scroll')
@@ -108,7 +112,7 @@ if args.baseline:run(code,'VoiceSafety card missing')
 else:
  run(code)
  if args.negative_controls:
-  cases=[(assemble(settings_text=settings.replace('VOICE SAFETY','OTHER NOTICE')),'VoiceSafety card missing'),(assemble(settings_text=settings.replace('Stopping attacks does not mute voice','Stopping attacks mutes voice')),'Safety notice missing required distinction: Stopping attacks does not mute voice'),(assemble(info_text=info.replace('math.max(height or 70,fit)','height or 70')),'Safety card fails measured height growth')]
+  cases=[(assemble(settings_text=settings.replace('VOICE SAFETY','OTHER NOTICE')),'VoiceSafety card missing'),(assemble(settings_text=settings.replace('Stopping attacks does not mute voice','Stopping attacks mutes voice')),'Safety notice missing required distinction: Stopping attacks does not mute voice'),(assemble(info_text=info.replace('math.max(height or 70,fit)','height or 70')),'Safety card fails measured height growth'),(assemble(settings_text=settings.replace('Tap MENU to open the tabs or X to close them.','SHOP opens and closes the menu.')),'Settings control help disagrees with the menu launcher')]
   for changed,message in cases:
    assert changed!=code,'Mutation missing: '+message
    run(changed,message)
