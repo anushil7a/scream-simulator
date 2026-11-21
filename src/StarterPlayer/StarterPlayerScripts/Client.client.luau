@@ -1440,14 +1440,14 @@ connectClient(Run.RenderStepped,function(dt)
    or UIS:GetFocusedTextBox()~=nil and "Typing • attack paused"
    or data.micReady~=true and "Connecting microphone…"
    or not sustainedControl.armed and (touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
-   or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
+   or voiceCooldown>0 and string.format("%.1fs · go quiet",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
    or os.clock()<(sustainedControl.unconfirmedUntil or 0) and "Not confirmed • quiet, then retry"
-   or sustainedControl.gate.needsQuiet and "Armed • quiet before speaking"
+   or sustainedControl.gate.needsQuiet and "Go quiet"
    or sustainedControl.gate.onset>0 and "Voice detected • keep speaking"
-   or "ON · normal speech can attack"
+   or "Aim and speak"
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
-   or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
+   or (not sustainedControl.armed or voiceCooldown>0 or sustainedControl.gate.needsQuiet or blocked()) and muted or gold
  end
  meterText.Text=academy.VoiceReactor.Status(
   string.format("%s %d%%\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),captureHint),

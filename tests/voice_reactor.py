@@ -60,13 +60,45 @@ for width=344,451 do
  check((w-20)/28-3>0,'Portrait waveform has negative-width bars')
 end
 check(r.text.TextSize>=12,'Unreadable status')
+local function cue(voiceCooldown,quiet,voiceActive,attack,onset,armed)
+ __STATUS_CODE__
+end
+local text,color=cue(4.9,true,false,false,0,true)
+check(text=='4.9s · go quiet' and color=='muted','Cooldown hides the reset instruction or looks charged')
+text,color=cue(0,true,false,false,0,true)
+check(text=='Go quiet' and color=='muted','Reset state encourages speech or looks ready')
+text,color=cue(0,false,false,false,0,true)
+check(text=='Aim and speak' and color=='gold','Ready cue does not give the next action')
+text=cue(0,false,false,false,.1,true)
+check(text=='Voice detected • keep speaking','Onset cue changed')
+text,color=cue(0,false,true,true,0,true)
+check(text=='Attacking • 3.0s left' and color~='muted','Active status lost')
+text=cue(4.9,true,false,false,0,false)
+check(text=='Beams OFF • E to turn on','Cooldown hides explicit OFF')
 print('PASS '..n..' VoiceReactor contracts with UI doubles; no Studio or live mic')
 '''
+s=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
+start=s.index('  captureHint=not alive')
+end=s.index('\n end\n meterText.Text=',start)
+status_code=r'''
+ local alive,windowFocused,protectionRemaining,knocked,rolling,touch=true,true,0,false,false,false
+ local UIS={GetFocusedTextBox=function()end}
+ local humanoid={PlatformStand=false}
+ local data={micReady=true}
+ local p={GetAttribute=function() return 3 end}
+ local serverNow=0
+ local sustainedControl={armed=armed,attack=attack,gate={needsQuiet=quiet,onset=onset}}
+ local muted,gold='muted','gold'
+ local meterFill={}
+ local function blocked() return false end
+ local captureHint
+'''+s[start:end]+'''
+ return captureHint,meterFill.BackgroundColor3
+'''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.reactor-',dir=R/'tests',delete=False) as f:
- f.write(setup+module+checks);p=Path(f.name)
+ f.write(setup+module+checks.replace('__STATUS_CODE__',status_code));p=Path(f.name)
 try:subprocess.run(['luau',str(p)],check=True,cwd=R)
 finally:p.unlink()
-s=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 targets=s[s.index('local function playerTargetInfo'):s.index('local sprintButton=')]
 assert ' HP' not in targets and 'humanoid.MaxHealth' not in targets
 assert 'hf.Size=UDim2.fromScale(current/maximum,1)' in s, 'Player health was removed'
