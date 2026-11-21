@@ -111,5 +111,8 @@ check(next(Nav.QuestTargets(session,givers))==nil,'legacy targets')
 check(Nav.Resolve('boss','golem',data)==nil and Nav.Resolve('place','spawn',data)==nil,'legacy resolve')
 print('Navigation catalog assertions passed')
 '''
-with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=ROOT/'tests') as f:
- f.write(source);f.flush();subprocess.run(['luau',f.name],cwd=ROOT,check=True)
+with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=ROOT/'tests',delete=False) as f:
+ f.write(source)
+ path=Path(f.name)
+try: subprocess.run(['luau',str(path)],cwd=ROOT,check=True)
+finally: path.unlink()

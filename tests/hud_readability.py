@@ -135,7 +135,8 @@ def pieces(source):
     hud = source[source.index('local hud=frame('):source.index('local zone=label(', source.index('local hud=frame('))]
     progress = source[source.index('local function progressLabel('):source.index('connectClient(remotes.State', source.index('local function progressLabel('))]
     start = source.index(' refreshQuestObjects();stats.Text=')
-    update = source[start:source.index(' zone.Text=', start)]
+    xp_update = source.index(' xpText.Text=progressLabel(', start)
+    update = source[start:source.index('\n', xp_update)]
     position = next(line for line in source.splitlines() if line.strip().startswith('hud.Position='))
     visible = next(line for line in source.splitlines() if line.strip().startswith('hud.Visible='))
     start = source.index(' local progress=progressLabel(viewport.X<820)')

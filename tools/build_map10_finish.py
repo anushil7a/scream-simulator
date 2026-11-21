@@ -87,7 +87,9 @@ def main():
     data=json.dumps({'groups':groups,'parts':parts},indent=1)+'\n'
     if args.check:
         assert MODULE.read_text()==src,'server art differs from reproducible source'
-        assert OUT.read_text()==data,'preview art differs from reproducible source'
+        # OS math libraries can differ in the last floating-point digits.
+        precision = lambda value: round(float(value), 9)
+        assert json.loads(OUT.read_text(),parse_float=precision)==json.loads(data,parse_float=precision),'preview art differs from reproducible source'
     else:
         OUT.write_text(data)
         MODULE.write_text(src)
