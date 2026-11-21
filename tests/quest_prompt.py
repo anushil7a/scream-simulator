@@ -80,3 +80,78 @@ try:
     subprocess.run(['luau',str(path)],cwd=root,check=True)
 finally:
     path.unlink()
+
+client=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text(encoding='utf-8')
+refresh=client[client.index('local function refreshQuestObject('):client.index('local function saveStatus()')]
+client_setup=r'''
+local shown
+local game={GetService=function(_,name)
+ assert(name=="ProximityPromptService");return {PromptShown={}}
+end}
+local function connectClient(_,callback)shown=callback end
+local data={}
+local folder={children={}};function folder:GetChildren()return self.children end
+local world={FindFirstChild=function(_,name)if name=="QuestObjects" then return folder end end}
+local workspace={FindFirstChild=function(_,name)if name=="ScreamSimulatorWorld" then return world end end}
+local function marker(name,action,parent)
+ local part={Name=name,Parent=parent,LocalTransparencyModifier=.2}
+ local prompt={Enabled=true,Parent=part}
+ function part:IsA(class)return class=="BasePart" end
+ function part:GetAttribute(attr)if attr=="QuestAction" then return action end end
+ function part:FindFirstChildOfClass()return prompt end
+ return part,prompt
+end
+'''
+client_checks=r'''
+local checks=0;local function check(v,msg)assert(v,msg);checks+=1 end
+local bed,bedPrompt=marker("Bed1","Garden",folder)
+local otherBed,otherPrompt=marker("Bed2","Garden",folder)
+local bottle,bottlePrompt=marker("Bottle1","Litter",folder)
+local race,racePrompt=marker("RaceStart","RaceStart",folder)
+folder.children={bed,otherBed,bottle,race}
+refreshQuestObjects()
+check(bedPrompt.Enabled and otherPrompt.Enabled and bottlePrompt.Enabled,"Initial prompts became unavailable")
+data.collected={Bed1=true,Bottle1=true,RaceStart=true}
+refreshQuestObjects()
+check(not bedPrompt.Enabled and otherPrompt.Enabled,"Only the watered bed should retire its prompt")
+check(bed.LocalTransparencyModifier==.2 and otherBed.LocalTransparencyModifier==.2,"Flowerbeds lost their world appearance")
+check(not bottlePrompt.Enabled and bottle.LocalTransparencyModifier==1,"Collected bottle no longer hides")
+check(racePrompt.Enabled and race.LocalTransparencyModifier==.2,"Unrelated quest prompt mutated")
+data.collected={}
+refreshQuestObjects()
+check(bedPrompt.Enabled and otherPrompt.Enabled,"Restart left a bed disabled")
+check(bottlePrompt.Enabled and bottle.LocalTransparencyModifier==0,"Restart left a bottle hidden")
+data.collected={Bed1=true}
+local streamed,streamedPrompt=marker("Bed1","Garden",folder)
+shown(streamedPrompt)
+check(not streamedPrompt.Enabled and streamed.LocalTransparencyModifier==.2,"Late-loaded watered bed showed a prompt")
+local unrelated,unrelatedPrompt=marker("Bed1","Garden",{})
+shown(unrelatedPrompt)
+check(unrelatedPrompt.Enabled,"A similarly named prompt outside QuestObjects was mutated")
+shown(otherPrompt)
+check(otherPrompt.Enabled,"Unwatered nearby bed stopped being available")
+print("PASS "..checks.." local quest prompt presentation checks")
+'''
+
+def run_client(source, failure=None):
+    with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False,encoding='utf-8') as f:
+        path=Path(f.name)
+        f.write(client_setup+source+client_checks)
+    try:
+        result=subprocess.run(['luau',str(path)],cwd=root,capture_output=True,text=True,timeout=15)
+        if failure:
+            assert result.returncode and failure in result.stderr, result.stdout+result.stderr
+            print('PASS negative control: '+failure)
+        else:
+            assert result.returncode==0,result.stderr
+            print(result.stdout,end='')
+    finally:
+        path.unlink()
+
+run_client(refresh)
+for old,new,failure in [
+    ('action~="Litter" and action~="Garden"','action~="Litter"','Only the watered bed should retire its prompt'),
+    ('if objects and object.Parent==objects then refreshQuestObject(object) end','if false then refreshQuestObject(object) end','Late-loaded watered bed showed a prompt'),
+]:
+    assert refresh.count(old)==1,old
+    run_client(refresh.replace(old,new),failure)

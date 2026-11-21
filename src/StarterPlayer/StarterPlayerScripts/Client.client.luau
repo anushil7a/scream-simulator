@@ -1194,19 +1194,29 @@ showConversation=function(info)
  conversationList.CanvasPosition=Vector2.zero;conversationPanel.Visible=true
  academy.testLauncherBlocked=false;academy.refreshTestLauncher()
 end
+local function refreshQuestObject(object)
+ if not object:IsA("BasePart") then return end
+ local action=object:GetAttribute("QuestAction")
+ if action~="Litter" and action~="Garden" then return end
+ local collected=data.collected and data.collected[object.Name]==true
+ if action=="Litter" then object.LocalTransparencyModifier=collected and 1 or 0 end
+ local prompt=object:FindFirstChildOfClass("ProximityPrompt")
+ if prompt then prompt.Enabled=not collected end
+end
 local function refreshQuestObjects()
  local world=workspace:FindFirstChild("ScreamSimulatorWorld")
  local objects=world and world:FindFirstChild("QuestObjects")
  if not objects then return end
- for _,object in objects:GetChildren() do
-  if object:IsA("BasePart") and object:GetAttribute("QuestAction")=="Litter" then
-   local hidden=data.collected and data.collected[object.Name]==true
-   object.LocalTransparencyModifier=hidden and 1 or 0
-   local prompt=object:FindFirstChildOfClass("ProximityPrompt")
-   if prompt then prompt.Enabled=not hidden end
-  end
- end
+ for _,object in objects:GetChildren() do refreshQuestObject(object) end
 end
+-- Reapply this player's collection state if a marker loads after its state packet.
+connectClient(game:GetService("ProximityPromptService").PromptShown,function(prompt)
+ local object=prompt.Parent
+ if not object or not data.collected or data.collected[object.Name]~=true then return end
+ local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+ local objects=world and world:FindFirstChild("QuestObjects")
+ if objects and object.Parent==objects then refreshQuestObject(object) end
+end)
 local function saveStatus()
  if data.testSession then return "TEST SESSION · progress is temporary" end
  if data.recoveryWarning then

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Watered flowerbeds retire their interaction prompt
+
+- A fresh temporary player watered the first bed using the real 1.5-second hold and reached **1/3**. The old live prompt offered a second full hold, which the server rejected. The fixed client hides each collected bed's prompt from the player who watered it, leaving the bed visible and the other player's prompt enabled. It uses the existing collection state and reapplies it if a collected quest prompt is shown after loading.
+- In two-client Studio play, the first prompt disabled only for Player 1, and abandoning and accepting again restored it at **0/3**. Forcing the collected prompt to show again triggered the fallback and disabled it. After three distinct holds, the tracker said **Complete · claim in Quests**, with **QUESTS 1** visible. The temporary profile reached 80 coins after claiming and stayed at 80 after a repeat request. Server collection, duplicate protection and payouts are unchanged.
+- Focused checks passed 23 server and 10 presentation assertions, two presentation negative controls, quest acceptance/claim checks and the full Client startup lifecycle fixture. Critic cleared the change, all 312 local checks and builds passed with matching input hashes, and the disposable Studio sessions closed. The native test staged positions and used simulated key input plus the normal quest actions. Actual streaming transitions, physical touch and live saves were outside this pass.
+
 ## Guide to Mar follows her work route
 
 - A fresh Studio profile pressed the actual locked Garden quest's **Guide to Mar** button. At the center flowerbed, it originally said **Gardens · Arrived** while Mar was 30 studs away and TALK was unavailable. The same Garden and Beach buttons now lead to Mar's current position when she is nearby and loaded, otherwise to the labeled work area. Meaningful movement updates the guidance while the existing three-second path request throttle stays in force.

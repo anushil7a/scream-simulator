@@ -66,7 +66,8 @@ local game=object('game');local workspace=object('Workspace',game)
 workspace.CurrentCamera=object('Camera',workspace);workspace.CurrentCamera.ViewportSize={X=640,Y=360}
 function workspace:GetServerTimeNow()return 100 end
 local services={};function game:GetService(n)assert(services[n],'Missing service '..n);return services[n] end
-for _,n in ipairs({'Players','ReplicatedStorage','UserInputService','RunService','TweenService','Debris','TextService','GuiService','HttpService','CollectionService'})do services[n]=object(n,game)end
+for _,n in ipairs({'Players','ReplicatedStorage','UserInputService','RunService','TweenService','Debris','TextService','GuiService','HttpService','CollectionService','ProximityPromptService'})do services[n]=object(n,game)end
+services.ProximityPromptService.PromptShown=signal('PromptShown')
 local player=object('Player',services.Players);services.Players.LocalPlayer=player
 player.CameraMode='original';player.CameraMinZoomDistance=.5;player.CameraMaxZoomDistance=12
 player.PlayerGui=object('PlayerGui',player);player.Character=nil
