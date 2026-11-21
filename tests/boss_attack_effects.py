@@ -58,20 +58,29 @@ service=(R/'src/ServerScriptService/BossService.luau').read_text()
 impact=service.index('SetAttribute("BossAttackImpactSerial"')
 assert service.rfind('if now>=b.strike.at then',0,impact)>service.rfind('if #targets==0',0,impact)
 assert service.count('SetAttribute("BossAttackImpactSerial"')==1
+assert service.index('warning:SetAttribute("BossMarkerCount",#strike.shapes)')<service.index('marker.CFrame=')<service.index('warning.Parent=b.model')
 print('PASS visibility/reduced/cancel/stale/teardown and server-only impact source contracts')
 pre2='''
 local n=0;local function check(v)assert(v);n+=1 end
-local now=0;local callback;local destroy;local built=0;local cleared=0
+local now=0;local callback;local destroy;local built=0;local cleared=0;local lastMarkerCount
 local pos=setmetatable({},{__sub=function()return {Magnitude=10}end})
 local FX={Distance=140,Lifetime=.45,Build=function(_,id,markers,impact)
- built+=1;return {Destroy=function()cleared+=1 end,Step=function()end}
+ built+=1;lastMarkerCount=#markers;return {Destroy=function()cleared+=1 end,Step=function()end}
 end}
 local attrs={BossReducedEffects=false}
 local player={Character={FindFirstChild=function()return {Position=pos}end},GetAttribute=function(_,k)return attrs[k]end}
 local Enum={PartType={Cylinder='Cylinder'}}
-local marker={Position=pos,IsA=function()return true end}
-local warning={GetChildren=function()return {marker}end}
+local marker={Name='Hazard',Position=pos,IsA=function(_,class)return class=='Part' end}
 local a={BossAttackSerial=1,BossState='Windup',BossAttackAt=2}
+local children={marker, marker}
+local expected,warningSerial=2,1
+local function newWarning()
+ return {GetChildren=function()return children end,GetAttribute=function(_,key)
+  if key=='BossMarkerCount' then return expected end
+  if key=='BossAttackSerial' then return warningSerial end
+ end}
+end
+local warning=newWarning()
 local model={Name='metronome',GetAttribute=function(_,k)return a[k]end,FindFirstChild=function(_,k)if k=='Core'then return {Position=pos} elseif k=='DodgeWarning'then return warning end end}
 local bosses={GetChildren=function()return {model}end}
 local world={FindFirstChild=function()return bosses end}
@@ -87,13 +96,17 @@ post2='''
 a.BossState='Recovery';callback(.05);check(built==0)
 a.BossState='Windup';a.BossAttackAt=-1;callback(.05);check(built==0)
 a.BossAttackAt=2;a.BossAttackImpactSerial=1;callback(.05);check(built==0)
-a.BossAttackImpactSerial=nil;callback(.05);check(built==1 and cleared==0)
+a.BossAttackImpactSerial=nil;children={marker};callback(.05);check(built==0 and cleared==0)
+children={marker,marker};warningSerial=0;callback(.05);check(built==0)
+warningSerial=1;children={marker,{Name='Other',IsA=function()return false end}}
+callback(.05);check(built==0)
+children={marker,marker};callback(.05);check(built==1 and cleared==0 and lastMarkerCount==2)
 callback(.05);check(built==1)
 warning=nil;callback(.05);check(cleared==1 and built==1)
-warning={GetChildren=function()return {marker}end};a.BossAttackSerial=2;callback(.05);check(built==2)
-a.BossAttackImpactSerial=2;a.BossAttackImpactAt=0;warning=nil;callback(.05);check(built==3 and cleared==2)
+warning=newWarning();warningSerial=2;a.BossAttackSerial=2;callback(.05);check(built==2)
+a.BossAttackImpactSerial=2;a.BossAttackImpactAt=0;warning=nil;callback(.05);check(built==3 and cleared==2 and lastMarkerCount==2)
 now=1;callback(.05);check(cleared==3)
-warning={GetChildren=function()return {marker}end};a.BossAttackSerial=3;callback(.05);check(built==4)
+warning=newWarning();warningSerial=3;a.BossAttackSerial=3;callback(.05);check(built==4)
 attrs.BossReducedEffects=true;callback(.05);check(cleared==4)
 attrs.BossReducedEffects=false;callback(.05);check(built==5)
 player.Character=nil;callback(.05);check(cleared==5)
@@ -101,7 +114,7 @@ player.Character={FindFirstChild=function()return {Position=pos}end};callback(.0
 a.BossAttackAt=now;warning=nil;callback(.05);check(cleared==6 and built==6)
 a.BossAttackImpactSerial=3;a.BossAttackImpactAt=now;callback(.05);check(built==7 and cleared==6)
 now+=1;callback(.05);check(cleared==7)
-warning={GetChildren=function()return {marker}end};a.BossAttackSerial=4;a.BossAttackAt=now+2;callback(.05);check(built==8)
+warning=newWarning();warningSerial=4;a.BossAttackSerial=4;a.BossAttackAt=now+2;callback(.05);check(built==8)
 destroy();check(cleared==8 and disconnected)
 callback(.05);check(built==8)
 print('PASS '..n..' actual client warning/impact/cancel/reduced/respawn/teardown checks')
@@ -111,6 +124,8 @@ with tempfile.NamedTemporaryFile('w',dir=R/'tests',suffix='.luau',delete=False) 
 try:subprocess.run(['luau',str(p)],check=True,cwd=R)
 finally:p.unlink()
 for name,source in [
+ ('partial warning admission',pre2+client.replace('if #children==expected then','if #children>0 then').replace('if #markers==expected then','if #markers>0 then')+post2),
+ ('stale warning folder',pre2+client.replace('warning:GetAttribute("BossAttackSerial")==serial and ','')+post2),
  ('stale-warning admission',pre2+client.replace('and model:GetAttribute("BossState")=="Windup"','')+post2),
  ('captain siren motif',pre+module.replace('and width<length then','and false then')+post),
 ]:

@@ -31,12 +31,21 @@ connection=Run.Heartbeat:Connect(function(dt)
     if not s and type(serial)=="number" and warning and model:GetAttribute("BossState")=="Windup"
      and type(deadline)=="number" and deadline>now and deadline-now<=4
      and model:GetAttribute("BossAttackImpactSerial")~=serial then
-     local markers={}
-     for _,p in ipairs(warning:GetChildren()) do
-      if p:IsA("BasePart") and #markers<16 then table.insert(markers,{position=p.Position,frame=p.CFrame,size=p.Size,disk=p.Shape==Enum.PartType.Cylinder}) end
-     end
-     if #markers>0 then
-      s={serial=serial,markers=markers,mode="warning",effect=Effects.Build(workspace,model.Name,markers,false)};states[model]=s
+     -- Replication can expose the folder before all of its committed parts.
+     local expected=warning:GetAttribute("BossMarkerCount")
+     if warning:GetAttribute("BossAttackSerial")==serial and type(expected)=="number" and expected>=1 and expected<=16 then
+      local children=warning:GetChildren()
+      if #children==expected then
+       local markers={}
+       for _,p in ipairs(children) do
+        if p:IsA("Part") and p.Name=="Hazard" then
+         table.insert(markers,{position=p.Position,frame=p.CFrame,size=p.Size,disk=p.Shape==Enum.PartType.Cylinder})
+        end
+       end
+       if #markers==expected then
+        s={serial=serial,markers=markers,mode="warning",effect=Effects.Build(workspace,model.Name,markers,false)};states[model]=s
+       end
+      end
      end
     end
     if s then

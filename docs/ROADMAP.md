@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Complete later-game boss warnings
+
+- A staggered native Studio Conductor warning delivered one bell, then the other five under the same serial. The original client drew four accents and never updated. The revised client waited for all six and drew 24. The server configures its warning parts before parenting the folder and includes the committed serial and part count so the client can reject a partial or stale set.
+- In the production boss diagnostic, Captain Twin Sirens showed both lanes and 24 accents. Conductor Bell Cascade showed six discs and 24 accents. The actual ranged hits dealt the expected 47 and 58 damage without shoving. These are staged local results with a stationary player. Human readability, active-beam overlap, reduced-effects visual comparison, intentional gap dodges and network timing remain open.
+- Independent review cleared the diff. The effects fixture passed 748 renderer assertions, 23 client lifecycle assertions and four negative controls. All 312 checks and builds passed with matching input hashes. Base warning geometry, damage shapes, timing, and confirmed-impact cleanup retain their existing rules. Both disposable Studio sessions closed.
+
 ## Voice reset guidance while TALK is visible
 
 - The matched desktop Rookie fight reproduced a quiet gate waiting for silence while TALK hid the mic meter. BEAMS showed only [E] to turn off, leaving the next step on the hidden meter. When the desktop TALK lane hides the meter, or when the screen is too short for the meter, BEAMS now carries the current voice instruction.

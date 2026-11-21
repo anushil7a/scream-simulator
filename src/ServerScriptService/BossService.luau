@@ -141,7 +141,9 @@ function Service.new(parent,callbacks)
     b.model:SetAttribute("BossAttackSerial",strike.serial)
     phase(b,"Windup",startAt)
     strike.at=now+b.spec.windup;b.strike=strike;b.nextAttack=now+b.spec.interval
-    local warning=Instance.new("Folder");warning.Name="DodgeWarning";warning.Parent=b.model;b.warning=warning
+    local warning=Instance.new("Folder");warning.Name="DodgeWarning"
+    warning:SetAttribute("BossAttackSerial",strike.serial)
+    warning:SetAttribute("BossMarkerCount",#strike.shapes)
     for _,shape in ipairs(strike.shapes) do
      local pos=b.center+Vector3.new(shape.x,.5,shape.z)
      local size=shape.kind=="disk" and Vector3.new(.12,shape.radius*2,shape.radius*2) or Vector3.new(shape.width,.12,shape.length)
@@ -150,6 +152,7 @@ function Service.new(parent,callbacks)
      else marker.CFrame=CFrame.new(pos)*CFrame.Angles(0,shape.angle,0) end
      marker.Material=Enum.Material.Neon;marker.Transparency=strike.kind=="Melee" and .27 or .45
     end
+    warning.Parent=b.model;b.warning=warning
    end
   end
  end
