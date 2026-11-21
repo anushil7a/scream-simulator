@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Captain Twin Sirens lane readability
+
+- Against the pale boardwalk in the local Studio fixture, the gold lanes had low-contrast edges. Each lane now has a dark inset border that marks its exact footprint. The border remains visible when reduced effects hides accent geometry.
+- The matched native standing probes took 47 damage before and after the change. A staged avatar started inside a damaging lane and walked 4.63 studs into the center gap before confirmed impact. It took zero damage without dodge immunity. This was a single-client Studio fixture. Readability during overlapping player beams and on physical devices remains open.
+- Critic cleared the corrected fixture and implementation. The boss fixture passed 8,248 assertions, with 14 bootstrap and 169 knockback and dodge checks also passing. All 312 local checks and builds passed with matching input hashes. Both disposable Studio sessions closed.
+
 ## Complete later-game boss warnings
 
 - A staggered native Studio Conductor warning delivered one bell, then the other five under the same serial. The original client drew four accents and never updated. The revised client waited for all six and drew 24. The server configures its warning parts before parenting the folder and includes the committed serial and part count so the client can reject a partial or stale set.

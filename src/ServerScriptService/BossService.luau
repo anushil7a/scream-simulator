@@ -18,6 +18,20 @@ local function part(parent,name,size,position,color)
  local p=Instance.new("Part");p.Name=name;p.Size=size;p.Position=position;p.Color=color
  p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.Parent=parent;return p
 end
+local function markSirenEdges(marker)
+ local width,length=marker.Size.X,marker.Size.Z
+ local thickness=.25
+ local color=Color3.fromRGB(37,44,54)
+ local function edge(x,z,w,l)
+  local p=part(marker,"LaneEdge",Vector3.new(w,.05,l),marker.Position,color)
+  p.CFrame=marker.CFrame*CFrame.new(x,marker.Size.Y/2+.035,z)
+  p.Material=Enum.Material.SmoothPlastic;p.CastShadow=false
+ end
+ for _,side in ipairs({-1,1}) do
+  edge(side*(width-thickness)/2,0,thickness,length)
+  edge(0,side*(length-thickness)/2,width-2*thickness,thickness)
+ end
+end
 function Service.new(parent,callbacks)
  local self={bosses={},callbacks=callbacks,cooldowns={}}
  local folder=Instance.new("Folder");folder.Name="BossEncounters";folder.Parent=parent
@@ -151,6 +165,7 @@ function Service.new(parent,callbacks)
      if shape.kind=="disk" then marker.Shape=Enum.PartType.Cylinder;marker.CFrame=CFrame.new(pos)*CFrame.Angles(0,0,math.pi/2)
      else marker.CFrame=CFrame.new(pos)*CFrame.Angles(0,shape.angle,0) end
      marker.Material=Enum.Material.Neon;marker.Transparency=strike.kind=="Melee" and .27 or .45
+     if strike.style=="TwinSirens" then markSirenEdges(marker) end
     end
     warning.Parent=b.model;b.warning=warning
    end

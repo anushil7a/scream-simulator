@@ -17,18 +17,18 @@ V.__mul=function(a,b)return Vector3.new(a.X*b,a.Y*b,a.Z*b)end
 V.__div=function(a,b)return Vector3.new(a.X/b,a.Y/b,a.Z/b)end
 Vector3={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},V)end}
 Color3={fromRGB=function(...)return {...}end};UDim2={new=function(...)return {...}end,fromOffset=function(...)return {...}end,fromScale=function(...)return {...}end}
-local CF={};CF.__mul=function(a,b)return a end
-CFrame={new=function(pos)return setmetatable({Position=pos},CF)end,Angles=function(...)return setmetatable({},CF)end}
-Enum={Material={Neon=1},PartType={Cylinder=1}}
-local labelWrites=0
+local CF={};CF.__mul=function(a,b)return setmetatable({Position=a.Position,LocalOffset=b and b.Position},CF) end
+CFrame={new=function(pos,y,z)return setmetatable({Position=type(pos)=="number" and Vector3.new(pos,y,z) or pos},CF)end,Angles=function(...)return setmetatable({},CF)end}
+Enum={Material={Neon=1,SmoothPlastic=2},PartType={Cylinder=1}}
+local labelWrites=0;local created={}
 Instance={new=function(class)
  local attrs={}
  local values={SetAttribute=function(_,k,v)attrs[k]=v end,GetAttribute=function(_,k)return attrs[k]end,ClassName=class,Destroy=function(self)self.destroyed=true end}
- return setmetatable({}, {__index=values,__newindex=function(_,key,value)
+ local node=setmetatable({}, {__index=values,__newindex=function(_,key,value)
   if class=="TextLabel" and key=="Text" then labelWrites+=1 end
   if key=="CFrame" and value.Position then values.Position=value.Position end
   values[key]=value
- end})
+ end});table.insert(created,node);return node
 end}
 '''
 tests=r'''
@@ -307,7 +307,27 @@ do
  end
 end
 -- Captain reskin retains slot and progression while changing the mechanical theme.
-local captain=byId.leviathan.spec
+local sirenBoss=byId.leviathan
+Rules.Reset(sirenBoss,sirenBoss.spec,4000)
+sirenBoss.turn=0;sirenBoss.nextAttack=0;service.nextStep=0
+local sirenTester=player(123,sirenBoss)
+contexts[123].position=sirenBoss.center+Vector3.new(0,3,23)
+service:Hit(sirenBoss,sirenTester,1,4000);service:Step(4000)
+local edgeCount=0
+for _,p in ipairs(created) do
+ local marker=p.Parent
+ if p.Name=="LaneEdge" and marker and marker.Parent==sirenBoss.warning then
+  edgeCount+=1
+  local offset=p.CFrame.LocalOffset
+  check(marker.Name=="Hazard" and not p.CanCollide and not p.CanTouch and not p.CanQuery and not p.CastShadow
+   and p.Material==Enum.Material.SmoothPlastic,"Sirens edge interferes with gameplay or casts a shadow")
+  check(math.abs(offset.X)+p.Size.X/2<=marker.Size.X/2+1e-6
+   and math.abs(offset.Z)+p.Size.Z/2<=marker.Size.Z/2+1e-6,"Sirens edge extends outside committed damage geometry")
+  check(offset.Y-p.Size.Y/2>marker.Size.Y/2,"Sirens edge submerged in warning fill")
+ end
+end
+check(edgeCount==8 and sirenBoss.warning:GetAttribute("BossMarkerCount")==2,"Twin Sirens borders altered hazard roster")
+local captain=sirenBoss.spec
 check(captain.name=="Seagull Siren Captain" and captain.level==70,"captain public name and exact level")
 check(captain.coins==95 and captain.xp==340,"captain unchanged reward pool")
 check(captain.x==420 and captain.y==0 and captain.z==420 and captain.radius==38,"captain existing pier arena")
