@@ -17,7 +17,7 @@ def fragments(client):
     render_start = client.rfind(' if sustainedBeams then', 0, render_end)
     render = client[render_start:render_end]
     hud_start = client.index(' local confirmed=hitFeedback:Read(')
-    hud = client[hud_start:client.index(' meter.Visible=', hud_start)]
+    hud = client[hud_start:client.index(' local showVoiceMeter=', hud_start)]
     assert event.count('BeamVisuals.Contact(') == render.count('BeamVisuals.Animate(') == 1
     return helpers, event, render, hud
 

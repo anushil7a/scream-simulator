@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Voice guidance on short phone screens
+
+- In the 567 × 241 safe HUD, the original BEAMS button showed generic toggle copy even with voice denied, while connecting, during cooldown and after ready. When the full meter is hidden on touch layouts, the same 144 × 44 button still says BEAMS ON/OFF and now shows the current instruction, including access, mic readiness, cooldown, quiet reset, confirmed firing and aim-and-speak. Taller layouts retain the full meter and ordinary toggle label. The legacy hold-to-beam branch and server combat are unchanged.
+- Matched native Studio captures show the cooldown countdown and quiet instruction. All 11 staged states fit at 241 safe pixels, with the longest text measuring 116 × 24. The short cue also rendered at 242 and 313 pixels, and the full meter returned at 315. The earlier tester layout placed its 44 px launcher at y14 across the upper 12 px of BEAMS. The rebuilt tester launcher sits at y2–46 and BEAMS begins at y46. Automated pointer input on BEAMS switched it OFF. The tester clearance check covers safe heights from 239 pixels. These are Studio emulator checks with synthetic state and input, without live voice or phone hardware.
+- Critic reran 240 voice presentation assertions and controls, the production contact integration regression, and the minimap sweep across short tester widths. The full aggregate passed all 314 commands with unchanged input hashes. Next: capture a continuous first-session run from spawn to first earned equipment with human voice and a physical phone, and measure live combat readability before advancing to the dedicated PvP world.
+
 ## TALK on short phone screens
 
 - In the touch emulator with a 567 × 242 safe HUD, the original TALK control began at (223.5, −7), above the safe HUD and over the QUESTS launcher. The new lane begins at (251, 3), with the full 120 × 44 target between the launchers and the right column, above the action row. At 567 × 241, an undisplayable queued notice still left TALK at (251, 2) and exposed NOTICE separately.

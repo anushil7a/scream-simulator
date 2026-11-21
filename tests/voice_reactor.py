@@ -1,6 +1,6 @@
 """Presentation module with UI doubles. No microphone/device or Studio evidence."""
 from pathlib import Path
-import subprocess,tempfile
+import subprocess,tempfile,sys
 R=Path(__file__).resolve().parents[1]
 module=(R/'src/StarterPlayer/StarterPlayerScripts/VoiceReactor.luau').read_text()
 setup='''
@@ -60,7 +60,7 @@ for width=344,451 do
  check((w-20)/28-3>0,'Portrait waveform has negative-width bars')
 end
 check(r.text.TextSize>=12,'Unreadable status')
-local function cue(voiceCooldown,quiet,voiceActive,attack,onset,armed)
+local function cue(voiceCooldown,quiet,voiceActive,attack,onset,armed,state)
  __STATUS_CODE__
 end
 local text,color=cue(4.9,true,false,false,0,true)
@@ -75,30 +75,84 @@ text,color=cue(0,false,true,true,0,true)
 check(text=='Attacking • 3.0s left' and color~='muted','Active status lost')
 text=cue(4.9,true,false,false,0,false)
 check(text=='Beams OFF • E to turn on','Cooldown hides explicit OFF')
+local function short(state,cooldown,quiet,active,attack,onset,armed)
+ state.touch=true;state.height=state.height or 241
+ local _,_,button=cue(cooldown or 0,quiet or false,active or false,attack or false,onset or 0,armed~=false,state)
+ return button
+end
+check(short({},4.9,true,false,false,0,true)=='BEAMS: ON\n4.9s · go quiet','Short cooldown hides the quiet cue')
+check(short({},0,true)=='BEAMS: ON\nGo quiet','Short reset hides the quiet cue')
+check(short({},0,false)=='BEAMS: ON\nAim and speak','Short ready cue lost')
+check(short({height=314},0,false)=='BEAMS: ON\nAim and speak','Short cue disappears one pixel early')
+check(short({height=315},0,false)=='BEAMS: ON\nTap to turn off','Short cue leaks into full meter layout')
+check(short({},0,false,false,false,.1)=='BEAMS: ON\nKeep speaking','Short onset cue lost')
+check(short({},0,false,true,true)=='BEAMS: ON\nFiring · 3.0s','Short firing cue lost')
+check(short({},0,false,false,true)=='BEAMS: ON\nStarting attack…','Short pending acknowledgement claims firing')
+check(short({},0,false,true,true,0,false)=='BEAMS: OFF\nTap to turn on','Stale firing masks OFF')
+check(short({},4.9,true,false,false,0,false)=='BEAMS: OFF\nTap to turn on','Stale cooldown masks OFF')
+check(short({voiceStatus='denied'},0,false,false,false,0,false)=='BEAMS: OFF\nCheck voice settings','Denied short cue suggests arming')
+check(short({voiceStatus='unavailable'},0,false,false,false,0,false)=='BEAMS: OFF\nVoice check delayed','Delayed short cue missing')
+check(short({voiceStatus='checking'},0,false,false,false,0,false)=='BEAMS: OFF\nChecking voice','Checking short cue missing')
+check(short({voiceStatus='checking',voiceEligible=true})=='BEAMS: ON\nAim and speak','Eligible player was treated as still checking')
+check(short({localReady=false},0,false,false,false,0,false)=='BEAMS: OFF\nConnecting mic','Local mic unavailable reported ready')
+check(short({serverReady=false},0,false)=='BEAMS: ON\nConnecting mic','Server mic unavailable reported ready')
+check(short({tools=true},0,false)=='BEAMS: ON\nClose Test Tools','Blocked test tools reported ready')
+check(short({protection=1.6},0,false)=='BEAMS: ON\nProtected 1.6s','Protection reported ready')
+check(short({unconfirmed=true},0,true)=='BEAMS: ON\nGo quiet, then retry','Short rejected attempt hides recovery')
 print('PASS '..n..' VoiceReactor contracts with UI doubles; no Studio or live mic')
 '''
 s=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 start=s.index('  captureHint=not alive')
 end=s.index('\n end\n meterText.Text=',start)
 status_code=r'''
- local alive,windowFocused,protectionRemaining,knocked,rolling,touch=true,true,0,false,false,false
+ state=state or {}
+ local viewport={Y=state.height or 381}
+ local alive,windowFocused,protectionRemaining,knocked,rolling,touch=true,true,state.protection or 0,false,false,state.touch==true
+ local mic={ready=state.localReady~=false}
+ local devPanel={Visible=state.tools==true}
  local UIS={GetFocusedTextBox=function()end}
  local humanoid={PlatformStand=false}
- local data={micReady=true}
+ local data={micReady=state.serverReady~=false,voiceStatus=state.voiceStatus,voiceEligible=state.voiceEligible==true or state.voiceStatus==nil}
+''' + s[s.index('local function voiceEligibilityHint('):s.index('-- Process every server transition')] + '''
+ local eligibilityHint=voiceEligibilityHint(true)
  local p={GetAttribute=function() return 3 end}
  local serverNow=0
- local sustainedControl={armed=armed,attack=attack,gate={needsQuiet=quiet,onset=onset}}
+ local sustainedControl={armed=armed,attack=attack,gate={needsQuiet=quiet,onset=onset},unconfirmedUntil=state.unconfirmed and os.clock()+10 or nil}
  local muted,gold='muted','gold'
  local meterFill={}
  local function blocked() return false end
  local captureHint
-'''+s[start:end]+'''
- return captureHint,meterFill.BackgroundColor3
+ local castButton={}
+''' + s[s.index(' local showVoiceMeter='):s.index(' meter.Visible=gameplayVisible and showVoiceMeter')] + s[start:end] + s[s.index(' if sustainedControl then\n  -- Short touch layouts'):s.index(' -- Keep attack duration/cooldown distinct')] + '''
+ return captureHint,meterFill.BackgroundColor3,castButton.Text
 '''
-with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.reactor-',dir=R/'tests',delete=False) as f:
- f.write(setup+module+checks.replace('__STATUS_CODE__',status_code));p=Path(f.name)
-try:subprocess.run(['luau',str(p)],check=True,cwd=R)
-finally:p.unlink()
+toggle_label=s[s.index('local function screamToggleLabel('):s.index('local function releaseCapture(')]
+payload=setup+module+checks.replace('local function cue(',toggle_label+'local function cue(').replace('__STATUS_CODE__',status_code)
+
+def run(source, expected=None):
+ with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.reactor-',dir=R/'tests',delete=False,encoding='utf-8') as f:
+  f.write(source);p=Path(f.name)
+ try:
+  result=subprocess.run(['luau',str(p)],cwd=R,capture_output=True,text=True)
+ finally:p.unlink()
+ if expected:
+  assert result.returncode and expected in result.stderr,result.stdout+result.stderr
+  print('PASS control: '+expected)
+ else:
+  assert result.returncode==0,result.stderr
+  print(result.stdout,end='')
+
+run(payload)
+if '--negative-controls' in sys.argv:
+ for old,new,expected in [
+  ('status=captureHint','status=nil','Short cooldown hides the quiet cue'),
+  ('viewport.Y>=315','viewport.Y>=314','Short cue disappears one pixel early'),
+  ('viewport.Y>=315','viewport.Y>=316','Short cue leaks into full meter layout'),
+  ('or compactVoice and not mic.ready','', 'Local mic unavailable reported ready'),
+  ('if eligibilityHint then', 'if false then','Denied short cue suggests arming'),
+ ]:
+  assert payload.count(old)==1,old
+  run(payload.replace(old,new),expected)
 targets=s[s.index('local function playerTargetInfo'):s.index('local sprintButton=')]
 assert ' HP' not in targets and 'humanoid.MaxHealth' not in targets
 assert 'hf.Size=UDim2.fromScale(current/maximum,1)' in s, 'Player health was removed'

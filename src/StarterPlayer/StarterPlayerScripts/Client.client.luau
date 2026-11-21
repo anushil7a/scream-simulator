@@ -510,8 +510,8 @@ local function toggleVoice()
  notify(sustainedControl.armed and "Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
   or "Beams OFF. Talk freely without attacking. Voice chat is unchanged.",false,"voice")
 end
-local function screamToggleLabel(armed,touch)
- return (armed and "BEAMS: ON" or "BEAMS: OFF").."\n"..(touch and "Tap" or "[E]")..(armed and " to turn off" or " to turn on")
+local function screamToggleLabel(armed,touch,status)
+ return (armed and "BEAMS: ON" or "BEAMS: OFF").."\n"..(status or (touch and "Tap" or "[E]")..(armed and " to turn off" or " to turn on"))
 end
 local function releaseCapture(source)
  if captureSource~=source then return end
@@ -1457,26 +1457,29 @@ connectClient(Run.RenderStepped,function(dt)
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
  if protectionRemaining>0 then academy.damageTakenUntil=nil end
  academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and os.clock()<(academy.damageTakenUntil or 0)
- meter.Visible=gameplayVisible and viewport.Y>=315;reticle.Visible=UIS.TouchEnabled and gameplayVisible
+ local showVoiceMeter=viewport.Y>=315
+ local compactVoice=touch and not showVoiceMeter
+ meter.Visible=gameplayVisible and showVoiceMeter;reticle.Visible=UIS.TouchEnabled and gameplayVisible
  local power=academy.VoiceReactor.Power(captureSource and mic:CapturePower() or mic.power)
  academy.reactor:Step(power,dt,data.settings.reducedShake or platformReducedMotion,mic.ready and (not sustainedControl or sustainedControl.armed))
  local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
  if sustainedControl then
-  captureHint=not alive and "Respawning • beams OFF"
-   or not windowFocused and "Window inactive • attack paused"
-   or protectionRemaining>0 and string.format("Spawn protection • %.1fs",protectionRemaining)
-   or (knocked or humanoid.PlatformStand) and "Recovering • attack unavailable"
-   or rolling and "Rolling • attack cancelled"
-   or UIS:GetFocusedTextBox()~=nil and "Typing • attack paused"
-   or data.micReady~=true and "Connecting microphone…"
-   or not sustainedControl.armed and (touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
+  captureHint=not alive and (compactVoice and "Respawning" or "Respawning • beams OFF")
+   or not windowFocused and (compactVoice and "Attack paused" or "Window inactive • attack paused")
+   or protectionRemaining>0 and string.format(compactVoice and "Protected %.1fs" or "Spawn protection • %.1fs",protectionRemaining)
+   or (knocked or humanoid.PlatformStand) and (compactVoice and "Recovering" or "Recovering • attack unavailable")
+   or rolling and (compactVoice and "Rolling" or "Rolling • attack cancelled")
+   or UIS:GetFocusedTextBox()~=nil and (compactVoice and "Typing · paused" or "Typing • attack paused")
+   or compactVoice and devPanel.Visible and "Close Test Tools"
+   or (data.micReady~=true or compactVoice and not mic.ready) and (compactVoice and "Connecting mic" or "Connecting microphone…")
+   or not sustainedControl.armed and (compactVoice and "Tap to turn on" or touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
    or voiceCooldown>0 and string.format("%.1fs · go quiet",voiceCooldown)
-   or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
-   or os.clock()<(sustainedControl.unconfirmedUntil or 0) and "Not confirmed • quiet, then retry"
+   or sustainedControl.attack and (voiceActive and string.format(compactVoice and "Firing · %.1fs" or "Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
+   or os.clock()<(sustainedControl.unconfirmedUntil or 0) and (compactVoice and "Go quiet, then retry" or "Not confirmed • quiet, then retry")
    or sustainedControl.gate.needsQuiet and "Go quiet"
-   or sustainedControl.gate.onset>0 and "Voice detected • keep speaking"
+   or sustainedControl.gate.onset>0 and (compactVoice and "Keep speaking" or "Voice detected • keep speaking")
    or "Aim and speak"
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
    or (not sustainedControl.armed or voiceCooldown>0 or sustainedControl.gate.needsQuiet or blocked()) and muted or gold
@@ -1519,14 +1522,14 @@ connectClient(Run.RenderStepped,function(dt)
  local miniLayout=CityMap.MiniLayout(viewport,touch,data.devAccess==true)
  miniMapButton.Size=UDim2.fromOffset(miniLayout.width,miniLayout.height);miniMapButton.Position=UDim2.new(1,-miniLayout.width-14,0,14)
  miniMapHolder.Visible=miniLayout.expanded;miniMapAvailable=miniLayout.available
- testButton.Position=UDim2.new(1,viewport.X<432 and -100 or -126,0,miniLayout.available and 14+miniLayout.height+8 or 14)
+ local testTop=miniLayout.available and 14+miniLayout.height+8 or (touch and math.clamp(viewport.Y-195-44,0,14) or 14)
+ testButton.Position=UDim2.new(1,viewport.X<432 and -100 or -126,0,testTop)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,data.devAccess==true and viewport.X<356 and miniLayout.height+74 or 64) or UDim2.new(0,14,1,-108)
  controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
  talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
  tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64)
  sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
- local testTop=miniLayout.available and 14+miniLayout.height+8 or 14
  local testBottom=testTop+44
  local bottomReserve=(touch and 189 or 96)+14
  local belowHeight=viewport.Y-(testBottom+8)-bottomReserve
@@ -1559,12 +1562,20 @@ connectClient(Run.RenderStepped,function(dt)
  tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=gameplayVisible
  academy.trainingGuideButton.Visible=tracked.Visible and not devPanel.Visible and academy.canGuideTraining()
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
- castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
  if sustainedControl then
-  -- Keep the toggle state visible even during protection/cooldown; those gates
-  -- still control attacks, but never disguise an OFF choice as a mic mute.
-  castButton.Text=screamToggleLabel(sustainedControl.armed,touch)
+  -- Short touch layouts hide the meter, so keep its next action on the toggle.
+  local status
+  if compactVoice then
+   status=captureHint
+   if eligibilityHint then
+    status=data.voiceStatus=="denied" and "Check voice settings"
+     or data.voiceStatus=="unavailable" and "Voice check delayed" or "Checking voice"
+   end
+  end
+  castButton.Text=screamToggleLabel(sustainedControl.armed,touch,status)
   castButton.TextSize=12
+ else
+  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
  end
  -- Keep attack duration/cooldown distinct from live microphone loudness.
  voiceTimeTrack.Visible=sustainedControl~=nil and alive and protected<=0 and (voiceActive or (voiceCooldown or 0)>0)

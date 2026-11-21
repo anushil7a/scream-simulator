@@ -147,7 +147,7 @@ local function rectangle(o,viewport)
 end
 local function overlaps(a,b)return a.x<b.x+b.w and b.x<a.x+a.w and a.y<b.y+b.h and b.y<a.y+a.h end
 for width=320,1280 do
- for _,height in ipairs({167,168,240,261,314,315,320,360,390,568,640,844})do
+ for _,height in ipairs({167,168,239,240,241,242,261,314,315,320,360,390,568,640,844})do
   for _,touch in ipairs({false,true})do
    for _,testAccess in ipairs({false,true})do
    local data={devAccess=testAccess};local testButton={}
@@ -160,6 +160,14 @@ __LAYOUT__
 __POSITIONS__
    local m=rectangle(miniMapButton,viewport)
    check(miniLayout.available==(width>=280 and height>=(touch and 315 or 168)),'Minimap availability boundary wrong')
+   if touch and testAccess and not miniLayout.available and height>=239 then
+    local tools=rectangle(testButton,viewport)
+    check(tools.y>=0 and not overlaps(tools,rectangle(controls,viewport)),'Tools overlap short touch controls')
+    local talk=NoticeLayout.Get(width,height,touch,miniLayout,testAccess,true)
+    if talk.baseTalkX then
+     check(not overlaps(tools,{x=talk.baseTalkX,y=talk.baseTalkY,w=120,h=44}),'Tools overlap relocated short TALK')
+    end
+   end
    if miniLayout.available then
    check(not overlaps(m,rectangle(tracked,viewport)),'Minimap overlaps quest tracker')
    check(not overlaps(m,rectangle(hud,viewport)),'Minimap overlaps actual HUD')
@@ -212,6 +220,7 @@ else:
   cases.append((code.replace('width-map.width-22','width-14'),'Resolved TALK overlaps MAP'))
   cases.extend([(code.replace(" for i,v in ipairs(compact and {} or landmarks)"," box(map,'North',.04,.025,.25,.075,cream)\n for i,v in ipairs(compact and {} or landmarks)"),'Retired north decoration retained'),(code.replace("if not compact then arrow=text","if true then arrow=text"),'Compact facing arrow retained')])
   cases.extend([(code.replace('viewport.X<432 and -100 or -126','viewport.X<432 and -104 or -126'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
+  cases.append((code.replace('math.clamp(viewport.Y-195-44,0,14)','14'),'Tools overlap short touch controls'))
   for changed,message in cases:
    assert changed!=code,'Mutation did not match: '+message
    run(changed,message)
