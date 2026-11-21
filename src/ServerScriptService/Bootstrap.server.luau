@@ -1119,11 +1119,17 @@ local function stepTraining(now)
  for _,bot in ipairs(World.Bots) do
   if not bot.training or not bot.alive then continue end
   if now-(bot.lastTrainingHit or now)>TrainingRules.ResetAfter and bot.health<bot.maxHealth then restoreBot(bot) end
-  local p=bot.trainingTarget;local s=p and sessions[p];local c,r,h
+  -- Hits during a windup select the next target, not the strike already on the ground.
+  local p=if bot.strike then bot.strike.target else bot.trainingTarget
+  local s=p and sessions[p];local c,r,h
   if p then c,r,h=parts(p) end
   local valid=s and not s.flight and r and s.micReady and not Config.InArena(r.Position) and (r.Position-bot.start).Magnitude<=TrainingRules.Radius
    and now>=s.protectedUntil and now>=(s.knockedUntil or 0) and audible(bot.model,bot.root.Position,r.Position,c)
-  if not valid then clearTrainingStrike(bot);bot.trainingTarget=nil;continue end
+  if not valid then
+   clearTrainingStrike(bot)
+   if bot.trainingTarget==p then bot.trainingTarget=nil end
+   continue
+  end
   if bot.strike then
    if now>=bot.strike.at then
     local strike=clearTrainingStrike(bot)
@@ -1144,7 +1150,7 @@ local function stepTraining(now)
    local warningY=(bot.training.y or 0)+1.4
    disc.Size=Vector3.new(.1,8,8);disc.CFrame=CFrame.new(r.Position.X,warningY,r.Position.Z)*CFrame.Angles(0,0,math.pi/2)
    disc.Color=Color3.fromRGB(255,90,70);disc.Material=Enum.Material.Neon;disc.Transparency=.65;disc.CastShadow=false;disc.Parent=workspace
-   bot.strike={at=now+TrainingRules.Windup,position=r.Position,warning=disc}
+   bot.strike={at=now+TrainingRules.Windup,position=r.Position,warning=disc,target=p}
    game:GetService("Debris"):AddItem(disc,TrainingRules.Windup+.5)
   end
  end

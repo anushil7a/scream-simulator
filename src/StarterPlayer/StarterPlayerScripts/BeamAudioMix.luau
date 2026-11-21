@@ -58,7 +58,7 @@ function Mix:Step(now,dt,voiceActive,calibrating)
    local release=math.clamp((now-entry.stopped)/self.settings.FadeOut,0,1)
    envelope*=1-release
   end
-  self.update(entry.sound,entry.position,gain*envelope*(entry.isLocal and self.settings.LocalMultiplier or 1),pitch)
+  self.update(entry.sound,entry.position,gain*envelope*(entry.isLocal and self.settings.LocalMultiplier or 1),pitch,entry.stopped~=nil)
  end
 end
 function Mix:Destroy()

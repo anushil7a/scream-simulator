@@ -15,11 +15,17 @@ function Audio.new()
   sound.Looped=false;sound.Volume=0;sound.PlaybackSpeed=1;sound.PlayOnRemove=false
   sound.RollOffMode=Enum.RollOffMode.InverseTapered
   sound.RollOffMinDistance=Settings.NearDistance;sound.RollOffMaxDistance=Settings.Range
-  sound.SoundGroup=group;sound.Parent=anchor;sound:Play()
+  sound.SoundGroup=group;sound.Parent=anchor
   return {anchor=anchor,sound=sound}
  end
- local mix=Mix.new(Settings,create,function(handle,position,volume,pitch)
-  handle.anchor.Position=position;handle.sound.Volume=volume;handle.sound.PlaybackSpeed=pitch
+ local mix=Mix.new(Settings,create,function(handle,position,volume,pitch,fading)
+  local sound=handle.sound
+  handle.anchor.Position=position;sound.Volume=volume;sound.PlaybackSpeed=pitch
+  -- Roblox can queue Play on an unloaded sound and start it during the fade.
+  if not handle.started and not fading and volume>0 and sound.IsLoaded then
+   handle.started=true
+   sound:Play()
+  end
  end,function(handle) handle.sound:Stop();handle.anchor:Destroy() end)
  local destroy=mix.Destroy
  function mix:Destroy() destroy(self);group:Destroy() end

@@ -1,20 +1,17 @@
 """Run the server's training strike against a fake clock and geometry."""
+import argparse
 from pathlib import Path
 import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-source = (ROOT / 'src/ServerScriptService/Bootstrap.server.luau').read_text(encoding='utf-8')
-start = source.index('local function stepTraining(')
-end = source.index('local function stepSprint(', start)
-helper = ''
-if 'local function clearTrainingStrike(' in source:
-    start_helper = source.index('local function clearTrainingStrike(')
-    helper = source[start_helper:source.index('local function restoreBot(', start_helper)]
+SOURCE_PATH = 'src/ServerScriptService/Bootstrap.server.luau'
 setup = r'''
 local player={}
 local session={micReady=true,protectedUntil=0,dodgingUntil=0}
-local sessions={[player]=session}
+local other={}
+local otherSession={micReady=true,protectedUntil=0,dodgingUntil=0}
+local sessions={[player]=session,[other]=otherSession}
 local vector={}
 vector.__index=function(v,k)
  if k=="Magnitude" then return math.sqrt(v.X*v.X+v.Y*v.Y+v.Z*v.Z) end
@@ -24,7 +21,12 @@ local Vector3={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},vector)end}
 local pos=Vector3.new(8,35,12)
 local root={Position=pos}
 local health={Health=100}
-local function parts()return {},root,health end
+local otherRoot={Position=pos}
+local otherHealth={Health=100}
+local function parts(who)
+ if who==other then return {},otherRoot,otherHealth end
+ return {},root,health
+end
 local function audible()return true end
 local Config={HealQuietSeconds=4,InArena=function()return false end}
 local partsCreated={}
@@ -64,12 +66,71 @@ assert(health.Health==100,"Strike hit before windup")
 stepTraining(14+TrainingRules.Windup)
 assert(mark.destroyed and health.Health==92 and not bot.strike,"Resolved strike did not clear exactly once")
 assert(strikeTime==10+TrainingRules.Windup,"Windup changed")
-print("PASS training strike warning, cancellation, progress and authoritative resolution")
+
+-- Both players initially overlap. A later hit changes the next target,
+-- but must not transfer damage for a strike already telegraphed at player.
+stepTraining(18)
+mark=assert(partsCreated[3])
+bot.trainingTarget=other
+stepTraining(18+TrainingRules.Windup)
+assert(health.Health==84 and otherHealth.Health==100,"Strike retargeted during windup")
+assert(mark.destroyed and bot.trainingTarget==other,"Resolution lost the next target")
+stepTraining(21.9)
+assert(#partsCreated==3,"Retarget shortened the attack interval")
+otherRoot.Position=Vector3.new(15,35,12)
+stepTraining(22)
+mark=assert(partsCreated[4])
+assert(mark.CFrame.X==15,"Next strike did not aim at the latest target")
+stepTraining(22+TrainingRules.Windup)
+assert(health.Health==84 and otherHealth.Health==92,"Next strike ignored the latest target")
+
+-- If the original target loses eligibility, clear their strike and keep
+-- the newer target for the next interval instead of silently substituting.
+bot.trainingTarget=player
+stepTraining(26)
+mark=assert(partsCreated[5])
+bot.trainingTarget=other
+session.flight=true
+stepTraining(26.1)
+assert(mark.destroyed and not bot.strike,"Original target cancellation was ignored")
+assert(bot.trainingTarget==other,"Cancellation lost the next target")
+stepTraining(26+TrainingRules.Windup)
+assert(health.Health==84 and otherHealth.Health==92,"Cancelled strike still dealt damage")
+stepTraining(30)
+assert(#partsCreated==6 and bot.strike,"New target could not begin the next strike")
+print("PASS training strike visibility, cancellation, stable target and retarget cadence")
 '''
-with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix='.luau', dir=ROOT / 'tests', delete=False) as file:
-    file.write(setup + helper + source[start:end] + checks)
-    path = Path(file.name)
-try:
-    subprocess.run(['luau', str(path)], check=True)
-finally:
-    path.unlink()
+
+
+def run(source, expected=None):
+    start = source.index('local function stepTraining(')
+    end = source.index('local function stepSprint(', start)
+    start_helper = source.index('local function clearTrainingStrike(')
+    helper = source[start_helper:source.index('local function restoreBot(', start_helper)]
+    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix='.luau', dir=ROOT / 'tests', delete=False) as file:
+        file.write(setup + helper + source[start:end] + checks)
+        path = Path(file.name)
+    try:
+        result = subprocess.run(['luau', str(path)], text=True, capture_output=True)
+    finally:
+        path.unlink()
+    output = result.stdout + result.stderr
+    if expected:
+        assert result.returncode and expected in output, output
+        print('PASS negative control:', expected)
+    else:
+        assert not result.returncode, output
+        print(output.strip())
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--negative-controls', action='store_true')
+args = parser.parse_args()
+source = (ROOT / SOURCE_PATH).read_text(encoding='utf-8')
+run(source)
+if args.negative_controls:
+    baseline = subprocess.check_output(['git', 'show', f'b97f944:{SOURCE_PATH}'], cwd=ROOT, text=True, encoding='utf-8')
+    run(baseline, 'Strike retargeted during windup')
+    clear_if_current = 'if bot.trainingTarget==p then bot.trainingTarget=nil end'
+    assert source.count(clear_if_current) == 1
+    run(source.replace(clear_if_current, 'bot.trainingTarget=nil'), 'Cancellation lost the next target')
