@@ -7753,7 +7753,7 @@
    ],
    "material": "Metal",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "NorthMusicMarqueePostR",
@@ -7779,7 +7779,7 @@
    ],
    "material": "Metal",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "EastLava0Shoulder",

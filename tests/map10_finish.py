@@ -15,6 +15,7 @@ expected_groups = {
     r'StadiumButtress[0134567]_[01](?:Base|Stem)': 28,
     r'NorthCourtPlanter[0-3]': 4,
     r'NorthAcademyMarqueePost[LR]': 2,
+    r'NorthMusicMarqueePost[LR]': 2,
     r'CoastBench(?:Slat[0-3]_(?:-1[.]3|0|1[.]3)|Back[0-3]|Foot[0-3]_(?:-1|1))': 24,
     r'CoastPlanter[0-5]': 6,
     r'CoastBollard[01]': 2,
@@ -46,6 +47,7 @@ def assert_clear(name, x0, x1, z0, z1):
 assert_clear('stadium east gate', -260, -170, 108, 132)
 assert_clear('academy spawn approach', -340, -260, -274, -247)
 assert_clear('academy training corridor', -475, -125, -413, -387)
+assert_clear('Resonance Hall marquee centre', 107, 117, -243, -231)
 assert_clear('coastal walkway centre', -480, 480, 410, 430)
 assert_clear('coastal pitch', 254, 366, 257.5, 342.5)
 assert_clear('dock centre', -227, -213, 430, 589)
@@ -121,7 +123,7 @@ for _,p in ipairs(nodes)do
 end
 assert(count==#Data and count>600 and count<=1100,'Total finishing props outside budget')
 assert(labels==6,'Expected six world signs including training direction')
-assert(solids==76,'Expected the authored collision parts')
+assert(solids==78,'Expected the authored collision parts')
 print('PASS '..count..' actual finishing props, original collision material retained, six occluded world signs')
 '''
 with tempfile.NamedTemporaryFile('w',suffix='.luau',prefix='tmp_map_finish_',dir=R/'tests',delete=False,encoding='utf-8') as f:

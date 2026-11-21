@@ -22,6 +22,7 @@ SOLID_PROP_IDS = {
       for i in range(2) for part in ('Base', 'Stem')),
     *(f'NorthCourtPlanter{i}' for i in range(4)),
     'NorthAcademyMarqueePostL', 'NorthAcademyMarqueePostR',
+    'NorthMusicMarqueePostL', 'NorthMusicMarqueePostR',
     *(f'CoastBenchSlat{i}_{offset}' for i in range(4) for offset in (-1.3, 0, 1.3)),
     *(f'CoastBenchBack{i}' for i in range(4)),
     *(f'CoastBenchFoot{i}_{side}' for i in range(4) for side in (-1, 1)),

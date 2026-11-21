@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Solid Resonance Hall posts and easier quest claiming
+
+- The grouped MENU and manual aim from `8eb05f8` remain in place. The current free-aim fixture covers mouse, touch and gamepad with input doubles. A native straight walk from z=-245 passed through both Resonance Hall marquee posts on the baseline and reached z=-229.8. With both visible posts solid, the avatar stopped at z=-238.1 on both sides and still reached z=-229.8 through the center opening. The native probe used staged server-owned avatar movement with jumping and climbing disabled.
+- The Quests menu now puts the first eligible earned reward above guidance and training cards. In the same iPhone 17 Pro landscape emulator, the Garden claim moved from 408 to 8 pixels below the top of the 125-pixel content window, and the full button and text fit. On desktop, normal MENU reopened at scroll 350 and the reward shortcut reopened at zero. Three simulated F holds finished the Garden quest. The actual Claim button credited 80 coins, and replaying the request left the total at 80.
+- Critic cleared both changes after a discovery-gate correction. Tests passed 1,729 quest renderer assertions and 16 negative controls, 678 notice assertions and 33 negative controls, all 1,044 finish instance checks with the passage check, and all 312 local commands and builds with matching inputs. Closed the disposable Studio windows. No physical phone, controller or live profile was used.
+
 ## Watered flowerbeds retire their interaction prompt
 
 - A fresh temporary player watered the first bed using the real 1.5-second hold and reached **1/3**. The old live prompt offered a second full hold, which the server rejected. The fixed client hides each collected bed's prompt from the player who watered it, leaving the bed visible and the other player's prompt enabled. It uses the existing collection state and reapplies it if a collected quest prompt is shown after loading.

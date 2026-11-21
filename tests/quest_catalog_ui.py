@@ -125,6 +125,12 @@ for _,isNarrow in ipairs({false,true})do
  -- Even a stale completed progress packet must not bypass discovery.
  for _,q in ipairs(Config.Quests)do value.quests[q.id]={progress=q.goal}end
  renderChecked(value,isNarrow);check(not buttons.nick,'Hidden quest exposed by progress alone')
+ if buttons.ReadyQuestAction then
+  buttons.ReadyQuestAction.call()
+  local promoted=Config.GetQuest(calls[1][2])
+  check(promoted.retired or promoted.menuAvailable,'Stale progress promoted an undiscovered reward')
+  calls={}
+ end
  for _,q in ipairs(Config.Quests)do if not q.retired and not q.hidden and q.menuAvailable~=true then buttons[q.id].call();check(#calls==0,'Locked completed quest bypassed discovery')end end
  -- Discovery reveals every original quest, preserving acceptance and hiding unlock instructions.
  for _,q in ipairs(Config.Quests)do value.availableQuests[q.id]=true;value.quests[q.id]={progress=0}end
@@ -176,8 +182,17 @@ for _,isNarrow in ipairs({false,true})do
  restartValue.quests.garden.progress=3;renderChecked(restartValue,isNarrow);check(buttons.garden.text=='CLAIM','Completed partial falsely called restart')
  restartValue.quests.garden.claimed=true;renderChecked(restartValue,isNarrow);check(buttons.garden.text=='CLAIMED','Claimed partial falsely called restart')
  renderChecked(value,isNarrow)
+ check(order[1].card==buttons.ActiveQuestAction.card,'Ready reward does not render first')
+ check(buttons.ActiveQuestAction.height==44,'Ready reward tap target is shorter than 44 pixels')
  local old=#calls;buttons.ActiveQuestAction.call()
  check(#calls==old+1 and calls[#calls][1]=='ClaimQuest' and calls[#calls][2]=='garden','Active completed quest no longer claimable')
+ local inactive=copy(value);inactive.activeQuest=nil;inactive.quests={garden=copy(value.quests.garden)}
+ renderChecked(inactive,isNarrow)
+ check(order[1].card==buttons.ReadyQuestAction.card,'Inactive ready reward does not render first')
+ buttons.ReadyQuestAction.call()
+ check(#calls==1 and calls[1][1]=='ClaimQuest' and calls[1][2]=='garden','Inactive ready shortcut sends wrong claim')
+ inactive.quests.garden.claimed=true;renderChecked(inactive,isNarrow)
+ check(not buttons.ReadyQuestAction,'Already claimed reward was promoted')
  check(value.combatChallenges.cover==4 and value.combatChallenges.elite==1,'Renderer mutated dormant counters')
  -- Retired data remains durable but only an earned, unclaimed reward is actionable.
  for _,state in ipairs({{}, {progress=0}, {progress=1}, {progress=2}, {progress=3}, {progress=3,claimed=true}})do
@@ -262,6 +277,12 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    earned=code.replace('local available=q.retired==true or','local available=')
    assert earned!=code
    run(earned,'Retired earned card is not claim-only')
-   active=code.replace('if data.activeQuest and not (Config.GetQuest(data.activeQuest) and Config.GetQuest(data.activeQuest).retired==true) then','if data.activeQuest then')
+   active=code.replace('if data.activeQuest and not (current and current.retired==true) and (not reward or current~=reward) then','if data.activeQuest and (not reward or current~=reward) then')
    assert active!=code
    run(active,'Retired active objective exposed')
+   below=code.replace('  if reward then\n   local c=card(60)','  info("Before claim")\n  if reward then\n   local c=card(60)',1)
+   assert below!=code
+   run(below,'Ready reward does not render first')
+   undiscovered=code.replace('local progress=available and data.quests[quest.id]','local progress=data.quests[quest.id]',1)
+   assert undiscovered!=code
+   run(undiscovered,'Stale progress promoted an undiscovered reward')

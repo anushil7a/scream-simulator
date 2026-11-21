@@ -123,6 +123,7 @@ local modal={Visible=false};local title={Visible=true};local talkTarget
 local selected='Shop';local function closeMenu()modal.Visible=false end;local function render()end
 local devPanel={Visible=false};local closeConversation;local action={FireServer=function()end}
 local academy={damageReadout={}} -- The extracted tab handler shares the Client UI namespace.
+local renderedTab,renderedMenuKey
 TOGGLE
 local top={};local dark,gold={},{};local function button(_,_,text,_,_,fn)return {Visible=true,callback=fn,Text=text}end
 MENU_BUTTON
@@ -161,8 +162,15 @@ check(noticeView.root.Visible and noticeView.layout.y+noticeView.layout.height<=
 modal.Visible=false;gameplayVisible=true;frame();check(shop.Visible and not questsToggle.Visible,'Modal exit failed to restore grouped navigation')
 notifications=Queue.new();selected="Style";frame()
 check(shop.Text=="MENU [B]" and shop.Visible and not questsToggle.Visible,'Ordinary HUD retained separate menu buttons')
+renderedTab,renderedMenuKey="Style","previous position"
 shop.callback();check(modal.Visible and selected=="Style",'Menu toggle did not reopen the last tab')
+check(renderedTab=="Style" and renderedMenuKey=="previous position",'Ordinary menu reopen discarded scroll')
 shop.callback();check(not modal.Visible,'Menu toggle did not close its group')
+renderedTab,renderedMenuKey="Quests","below ready reward"
+selected="Quests";data.quests={a={progress=3}};frame()
+questsToggle.callback()
+check(modal.Visible and renderedTab==nil and renderedMenuKey==nil,'Ready reward shortcut preserved stale scroll')
+shop.callback();data.quests={}
 notifications=Queue.new();notifications:Push(samples[3],true,'save');talkTarget={};modal.Visible=false;gameplayVisible=true;frame()
 check(not noticeView.root.Visible and questsToggle.Text=='NOTICE' and questsToggle.Visible,'Unavailable notice has no reachable disclosure')
 windowFocused=false;frame();check(questsToggle.Text=='QUESTS','Unfocused fallback launcher not restored');windowFocused=true;frame()
@@ -266,6 +274,7 @@ if a.negative_controls:
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('or questLauncherText()', 'or "QUESTS"'),'Frame erased actual receiver reward count')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace(' and questsToggle.Text~="QUESTS"',''),'Modal exit failed to restore grouped navigation')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('),toggle,gold);shop.TextColor3', '),function()toggleTab("Shop")end,gold);shop.TextColor3'),'Menu toggle did not reopen the last tab')
+ run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('toggleTab("Quests",true)','toggleTab("Quests")'),'Ready reward shortcut preserved stale scroll')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('elseif noticeLayout.baseTalkX then','elseif noticeView.visible and noticeLayout.baseTalkX then'),'Short phone TALK extends outside the safe HUD')
  run(sources['NoticeLayout'].replace('talk.x=x;talk.y=','talk.x=navRight-24;talk.y='),sources['NoticeView'],error='Short phone TALK overlaps an existing HUD control')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('(gameplayVisible or modal.Visible)','gameplayVisible'),'Shop error hidden or covers modal navigation')

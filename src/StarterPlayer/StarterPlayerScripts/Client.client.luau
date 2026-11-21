@@ -256,12 +256,13 @@ do local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.Sort
 local selected="Shop";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local conversationPanel,showConversation,closeConversation
 local observedMicInterruption=0
-local function toggleTab(name)
+local function toggleTab(name,resetScroll)
  local opening=not modal.Visible or selected~=name
  selected=name;if not opening then closeMenu();return end;modal.Visible=true
  if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end
  if academy.refreshTestLauncher then academy.refreshTestLauncher() end
  if opening then
+  if resetScroll then renderedTab=nil;renderedMenuKey=nil end
   if name=="Shop" then action:FireServer("ShopRefresh") end
   if closeConversation then closeConversation() end
   if devPanel then devPanel.Visible=false end
@@ -272,7 +273,7 @@ local function toggle()
  if modal.Visible then closeMenu() else toggleTab(selected) end
 end
 local shop=button(top,"ShopToggle","MENU [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),toggle,gold);shop.TextColor3=dark
-local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests") end)
+local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests",true) end)
 questsToggle.Visible=false
 academy.surface(shop);academy.surface(questsToggle)
 local function questLauncherText()
@@ -953,6 +954,27 @@ render=function()
   end
  elseif selected=="Quests" then
   title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
+  local current=Config.GetQuest(data.activeQuest)
+  local function readyToClaim(quest)
+   if not quest then return false end
+   local available=quest==current or quest.retired==true or quest.menuAvailable==true or (data.availableQuests and data.availableQuests[quest.id])
+   local progress=available and data.quests[quest.id]
+   return progress and not progress.claimed and progress.progress>=quest.goal
+  end
+  local reward=readyToClaim(current) and current or nil
+  if not reward then
+   for _,quest in ipairs(Config.Quests) do
+    if readyToClaim(quest) then reward=quest;break end
+   end
+  end
+  if reward then
+   local c=card(60)
+   label(c,reward.name,UDim2.new(1,-158,0,44),UDim2.fromOffset(14,8),15,gold)
+   local actionName=reward==current and not reward.retired and "ActiveQuestAction" or "ReadyQuestAction"
+   button(c,actionName,"CLAIM",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,8),function()
+    action:FireServer("ClaimQuest",reward.id)
+   end)
+  end
   academy.guideMenu()
   info("COURTYARD TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads in the west courtyard. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
   for _,spec in ipairs(Config.Progression.Challenges) do
@@ -960,13 +982,11 @@ render=function()
    info(spec.name.." · "..((data.combatChallenges or {})[spec.id] or 0).."/"..spec.goal.."\n"..rewardText.." · renews automatically",68)
   end
   info("Training: contribute at least 10% damage. You must be no more than 20 levels above the fighter's reward band (Rookie 1-24, Brawler 25-59, Elite 60-100). Each qualifying KO or assist counts once. Environment cover is static. PvP XP is shared by damage; weak and repeated opponents pay less.")
-  if data.activeQuest and not (Config.GetQuest(data.activeQuest) and Config.GetQuest(data.activeQuest).retired==true) then
-   local current=Config.GetQuest(data.activeQuest);local c=card(96)
-   local progress=current and data.quests[current.id]
-   local rewardReady=progress and not progress.claimed and progress.progress>=current.goal
-   label(c,(rewardReady and "COMPLETE: " or "CURRENT: ")..(current and current.name or data.activeQuest),UDim2.new(1,-28,0,38),UDim2.fromOffset(14,6),14,gold)
-   button(c,"ActiveQuestAction",rewardReady and "CLAIM" or "ABANDON",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,50),function()
-    if rewardReady then action:FireServer("ClaimQuest",current.id) else action:FireServer("AbandonQuest") end
+  if data.activeQuest and not (current and current.retired==true) and (not reward or current~=reward) then
+   local c=card(96)
+   label(c,"CURRENT: "..(current and current.name or data.activeQuest),UDim2.new(1,-28,0,38),UDim2.fromOffset(14,6),14,gold)
+   button(c,"ActiveQuestAction","ABANDON",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,50),function()
+    action:FireServer("AbandonQuest")
    end)
   end
   local combatEvents={Crowd=true,Evade=true,Underdog=true,PracticeBeam=true,ArenaAssist=true}
