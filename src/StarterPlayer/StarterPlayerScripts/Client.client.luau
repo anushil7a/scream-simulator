@@ -923,8 +923,8 @@ function academy.trackerLayout(viewport,touch,defaultY)
   -- Keep the Guide target out of the stock movement frame and clear of Jump.
   local left,right=math.ceil(w*.4)+8,w-103
   local width=math.min(290,right-left)
-  if width>=212 then
-   return math.floor((left+right-width)/2),math.max(defaultY,h-91),width,60
+  if width>=196 then
+   return math.floor((left+right-width)/2),math.max(defaultY,h-91),width,60,true
   end
  end
  if not touch and h>=defaultY+68 and defaultY+50>h-102 then

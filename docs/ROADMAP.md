@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Training guidance clears movement on short landscape screens
+
+- At 529 × 242 usable pixels, the old tracker covered the thumbstick and tapping GUIDE hid the button without showing route status. The new 206 × 60 card clears the movement frame and Jump by eight pixels each. GUIDE showed the Rookie Training direction and distance, and CLEAR restored the idle tracker.
+- A staged Boardwalk Dash quest displayed a fitting countdown and took priority over the selected guide, which returned when the quest ended. The timer also fit at 512 × 239; 750 × 323 kept its wider left layout. The thumbstick overlap at 567 × 315 still needs a layout that leaves room for the full microphone meter. Studio used device emulation, pointer input and temporary profiles.
+- Independent review cleared the change. Focused checks passed 79 layout assertions, 10 negative controls and 42 guide lifecycle assertions. All 312 local checks and builds passed with matching inputs. Both disposable Studio sessions closed. Verify with physical touch during the first training route and a timed quest.
+
 ## More play space on short landscape screens
 
 - At 567 × 242 usable pixels, the passive status card shrank from 242 × 94 to 218 × 78 without moving its anchor. Native Studio reported that the level-100 badge, a staged 1,000,000,000-coin balance, 480/480 health, the incoming beam warning, and the recovery warning fit their labels. A staged server effect showed and then cleared the incoming-hit label through the normal client listener. Resizing restored the standard card at 750 × 323 landscape and 401 × 720 portrait, then restored compact mode on return to the short viewport.

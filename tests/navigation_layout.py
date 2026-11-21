@@ -20,14 +20,15 @@ check(x==16 and y==216 and w==290 and h==62 and compact==false,'portrait guide m
 local a,b,c,d,e=academy.guideLayout({X=1280,Y=720},false,64)
 check(a==16 and b==120 and c==290 and d==62 and e==false,'desktop guide moved')
 check(not academy.guideLayout({X=320,Y=315},true,160),'cramped viewport should use clear in menu')
-for _,view in ipairs({{541,239},{567,241},{567,280},{600,314},{784,296}})do
+for _,view in ipairs({{529,242},{541,239},{567,241},{567,280},{600,314},{784,296}})do
  local width,height=view[1],view[2]
- local left,top,cardWidth,cardHeight=academy.trackerLayout({X=width,Y=height},true,160)
+ local left,top,cardWidth,cardHeight,shared=academy.trackerLayout({X=width,Y=height},true,160)
  check(left>=math.ceil(width*.4)+8,'Tracker enters thumbstick lane')
  check(left+cardWidth<=width-103,'Tracker enters Jump lane')
  check(top>=height-91,'Tracker enters combat lane')
  check(top+cardHeight<=height-12,'Tracker crosses bottom safe margin')
- check(cardWidth>=212 and cardHeight==60,'Compact objective has no room for timer/Guide')
+ check(cardWidth>=196 and cardHeight==60,'Compact objective has no room for timer/Guide')
+ check(shared,'Short touch route cannot use the idle objective lane')
 end
 for _,view in ipairs({{388,704,true,160},{567,315,true,160},{1024,768,false,64},{320,240,true,160}})do
  local left,top,w,h=academy.trackerLayout({X=view[1],Y=view[2]},view[3],view[4])
@@ -48,8 +49,8 @@ local _,_,_,_,tooLow=academy.trackerLayout({X=750,Y=323},true,178)
 check(not tooNarrow and not tooLow,'Landscape phone sharing ignores the combat and touch lanes')
 local _,_,_,_,talkOverlaps=academy.trackerLayout({X=588,Y=400},true,160)
 check(not talkOverlaps,'Landscape guide clear button overlaps Talk on taller narrow screens')
-local function visibility(active,selected,paused,touch)
- local viewport=touch and {X=750,Y=323} or {X=567,Y=241}
+local function visibility(active,selected,paused,touch,view)
+ local viewport=view or (touch and {X=750,Y=323} or {X=567,Y=241})
  local showQuest,gameplayVisible=true,not paused
  local data={activeQuest=active and 'sprint' or nil}
  local devPanel={Visible=false}
@@ -80,6 +81,10 @@ track,route,guide,text=visibility(false,true,false,true)
 check(route and not track and not guide and text=='Training courtyard\nFollow the markers · 42 studs N','Selected route hidden on landscape phone')
 track,route,guide=visibility(true,true,false,true)
 check(track and not route and not guide,'Landscape phone route covered active quest status')
+track,route,guide,text=visibility(false,true,false,true,{X=529,Y=242})
+check(route and not track and not guide and text=='Training courtyard\nFollow the markers · 42 studs N','Short touch route disappeared after Guide')
+track,route,guide=visibility(true,true,false,true,{X=529,Y=242})
+check(track and not route and not guide,'Short touch route covered an active quest timer')
 print('PASS '..checks..' navigation layout checks; no native rendering claim')
 '''
 start=s.index(' local guideUsesTracker=false')
@@ -97,6 +102,8 @@ print(result.stdout.strip())
 for old,new,reason in [
     ('math.ceil(w*.4)+8','16','Tracker enters thumbstick lane'),
     ('w-103','w-80','Tracker enters Jump lane'),
+    ('if width>=196 then','if width>=212 then','Tracker enters thumbstick lane'),
+    ('math.max(defaultY,h-91),width,60,true','math.max(defaultY,h-91),width,60,false','Short touch route cannot use the idle objective lane'),
     ('math.max(defaultY,h-91)','defaultY','Tracker enters combat lane'),
     ('math.min(290,w-274-8-16)','290','Short desktop tracker does not fit its rail'),
     ('and not data.activeQuest and showQuest','and showQuest','Selected route covered an active quest timer'),
@@ -107,6 +114,6 @@ for old,new,reason in [
     assert code.count(old)==1,old
     result=run(code.replace(old,new))
     assert result.returncode and reason in result.stderr,result.stderr
-print('PASS 8 tracker lane and priority negative controls')
+print('PASS 10 tracker lane and priority negative controls')
 assert 'or noticeView:Overlaps(passive,gui,talkButton)' in s and 'meter,academy.guidePanel}' in s
 assert 'if academy.guideText.Text~=text' in s
