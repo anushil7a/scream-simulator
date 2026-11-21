@@ -411,10 +411,19 @@ end
 function Visuals.IsCrowded(entries,viewer)
  local nearby=0
  for _,entry in pairs(entries) do
-  local origin=entry.visual.origin
-  if origin and (viewer-origin).Magnitude<=Style.FarDistance then
-   nearby+=1
-   if nearby==3 then return true end
+  local rig=entry.visual
+  if rig.origin then
+   local offset=viewer-rig.origin
+   local distance=offset.Magnitude
+   local near=distance<=Style.FarDistance
+   if not near and distance<=Style.DrawDistance then
+    local along=math.clamp(offset:Dot(rig.direction),0,rig.length)
+    near=(offset-rig.direction*along).Magnitude<=Style.FarDistance
+   end
+   if near then
+    nearby+=1
+    if nearby==3 then return true end
+   end
   end
  end
  return false

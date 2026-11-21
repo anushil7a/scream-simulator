@@ -174,6 +174,23 @@ send('TestBeamEnd',nil,7);send('SustainedBeamEnd',nil,9);frame(1/30)
 check(#sustainedBeams.entries[8].visual.parts>5,'Secondary geometry did not restore after overlap')
 clock+=.29;beam();frame(1/30)
 check(rig.parts[4].Transparency==.18 and #rig.contact.parts==0,'Endpoint lens did not restore after hit expiry')
+rig,id=make()
+send('SustainedBeam',vec(0,0,10),7,'Gold',Vector3.zAxis,50,7,nil,100)
+send('SustainedBeam',vec(20,0,60),8,'Gold',vec(-1,0,0),20,7,nil,100)
+local function farBeam(origin,direction,length)
+ send('SustainedBeam',vec(0,0,origin),9,'Gold',vec(0,0,direction),length,7,nil,100)
+ frame(1/30)
+end
+farBeam(113,-1,53)
+check(#sustainedBeams.entries[8].visual.parts==5,'Converging far beam missed the crowd count')
+check(#rig.parts>5 and #sustainedBeams.entries[9].visual.parts==4,'Convergence changed local detail or far LOD')
+farBeam(113,1,53)
+check(#sustainedBeams.entries[8].visual.parts>5,'Beam pointing away still counted as nearby')
+farBeam(113,-1,2)
+check(#sustainedBeams.entries[8].visual.parts>5,'Ray extension beyond the endpoint counted as nearby')
+root.Position=vec(0,0,10) -- Player range admits the packet, but camera still culls it.
+farBeam(181,-1,80)
+check(#sustainedBeams.entries[8].visual.parts>5 and #sustainedBeams.entries[9].visual.parts==0,'Culled beam counted as nearby')
 sustainedBeams:Destroy();sustainedControl:Destroy();BeamVisuals.Clear();check(BeamVisuals.Budget()==0 and made==dead,'Integrated cleanup leaked')
 print('PASS',checks,'actual Client contact integration checks; real acknowledgement/hit/manager/renderer, mocked transport/HUD/audio')
 '''
@@ -233,6 +250,13 @@ def main():
             assert fragment.count(old) == 1, old
             assert client.count(fragment) == 1
             run(client.replace(fragment, fragment.replace(old, new)), visual, expected)
+        for old, new, expected in [
+            ('if not near and distance<=Style.DrawDistance then', 'if false then', 'Converging far beam missed the crowd count'),
+            ('math.clamp(offset:Dot(rig.direction),0,rig.length)', 'math.max(0,offset:Dot(rig.direction))', 'Ray extension beyond the endpoint counted as nearby'),
+            ('if not near and distance<=Style.DrawDistance then', 'if not near then', 'Culled beam counted as nearby'),
+        ]:
+            assert visual.count(old) == 1, old
+            run(client, visual.replace(old, new), expected)
 
 
 if __name__ == '__main__':

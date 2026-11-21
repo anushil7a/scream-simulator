@@ -16,7 +16,8 @@ V.__add=function(a,b)return vec(a.X+b.X,a.Y+b.Y,a.Z+b.Z)end
 V.__sub=function(a,b)return vec(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end
 V.__mul=function(a,b)if type(a)=='number'then a,b=b,a end return vec(a.X*b,a.Y*b,a.Z*b)end
 V.__div=function(a,b)return a*(1/b)end
-V.__index=function(a,k)if k=='Magnitude'then return math.sqrt(a.X*a.X+a.Y*a.Y+a.Z*a.Z)elseif k=='Unit'then return a/a.Magnitude end end
+function V:Dot(b)return self.X*b.X+self.Y*b.Y+self.Z*b.Z end
+V.__index=function(a,k)if k=='Magnitude'then return math.sqrt(a.X*a.X+a.Y*a.Y+a.Z*a.Z)elseif k=='Unit'then return a/a.Magnitude end return V[k] end
 local function typeof(v)return getmetatable(v)==V and 'Vector3' or type(v)end
 local Vector3={new=vec,one=vec(1,1,1),zero=vec(0,0,0),yAxis=vec(0,1,0),zAxis=vec(0,0,1)}
 -- Orientation is deliberately a stub; this is allocation/lifecycle, not geometry fidelity.

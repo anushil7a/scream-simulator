@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Converging beams from the far detail band
+
+- Three level-100 segments of 50, 20 and 53 studs converged at the same point 60 studs from the viewer. The third origin was 113 studs from the viewer. Origin-only crowding left 77 parts on the nearer remote beam. Counting the closest point on the finite segment now uses five parts for that remote beam, with the local beam at 77 parts and the far beam at four in both runs.
+- The matched unpublished Studio probe used the actual Roblox renderer module and real Parts in the local server DataModel, with the candidate loaded as a disposable module. Both pools cleared. It did not measure screenshots or client GPU cost. A separate native server fixture passed all eight PvP boundary cases with two local clients and a synthetic power tick. Three valid cases removed three HP on the server, and the other five caused zero damage. Temporary client observers each received all eight beam and end packets. The attacker received three hit confirmations and the defender received zero. The synchronous fixture restored health before a client health decrement was observed, so it does not establish defender HUD readability or human voice behavior.
+- Independent Critic passed 320 client integration assertions and 20 negative controls plus 115,412 pool assertions and seven negative controls. The full verifier passed all 314 commands with matching input hashes. Integration tests cover both directions, finite length and camera culling. Next: capture matched defender-view combat and test human voice/physical devices.
+
 ## Overlapping beam audio
 
 - An unloaded remote clip previously halved a loaded remote clip's normal gain from .40 to .20 before group gain and spatial rolloff. The adapter now admits only loaded active clips and previously started fades to the shared gain calculation. Clips canceled before first playback stay silent and consume no gain. The four-handle limit, voice ceiling and calibration mute still apply.
