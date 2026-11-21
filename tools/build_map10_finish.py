@@ -55,10 +55,10 @@ def collect(wip=False):
     def signs(key):
         ink=(34,57,60);sand=(223,204,166);bronze=(154,119,73)
         if key=='North':
-            box('NorthAcademyMarquee',(-286,42.7,-277),(12,1.75,.32),ink,(0,180,0),'Metal')
-            box('NorthRookieDirection',(-286,40.92,-277),(10.6,1.42,.30),(35,91,94),(0,180,0),'Metal')
-            box('NorthAcademyMarqueePostL',(-291.05,37,-277),(.8,10.4,.8),bronze,material='Metal')
-            box('NorthAcademyMarqueePostR',(-280.95,37,-277),(.8,10.4,.8),bronze,material='Metal')
+            box('NorthAcademyMarquee',(-286,44.68,-277),(10.6,1.42,.30),ink,(0,180,0),'Metal')
+            box('NorthRookieDirection',(-286,46.7,-277),(12.8,2.06,.34),(35,91,94),(0,180,0),'Metal')
+            box('NorthAcademyMarqueePostL',(-291.05,39,-277),(.8,14.4,.8),bronze,material='Metal')
+            box('NorthAcademyMarqueePostR',(-280.95,39,-277),(.8,14.4,.8),bronze,material='Metal')
             box('NorthMusicMarquee',(112,38,-237),(18,2.1,.54),(52,43,67),(0,180,0),'Metal')
             box('NorthMusicMarqueePostL',(104,34.75,-237),(.95,5.7,.95),ink,material='Metal')
             box('NorthMusicMarqueePostR',(120,34.75,-237),(.95,5.7,.95),ink,material='Metal')

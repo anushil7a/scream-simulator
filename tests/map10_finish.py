@@ -46,11 +46,21 @@ def assert_clear(name, x0, x1, z0, z1):
 
 assert_clear('stadium east gate', -260, -170, 108, 132)
 assert_clear('academy spawn approach', -340, -260, -274, -247)
+assert_clear('academy directory passage', -290, -282, -278, -276)
 assert_clear('academy training corridor', -475, -125, -413, -387)
 assert_clear('Resonance Hall marquee centre', 107, 117, -243, -231)
 assert_clear('coastal walkway centre', -480, 480, 410, 430)
 assert_clear('coastal pitch', 254, 366, 257.5, 342.5)
 assert_clear('dock centre', -227, -213, 430, 589)
+directory = {part['id']: part for part in doc['parts'] if part['id'].startswith(('NorthAcademyMarquee', 'NorthRookieDirection'))}
+rookie = directory['NorthRookieDirection']
+plaza = directory['NorthAcademyMarquee']
+assert rookie['position'][1] - rookie['size'][1] / 2 > plaza['position'][1] + plaza['size'][1] / 2
+assert rookie['size'][0] > plaza['size'][0] and rookie['size'][1] > plaza['size'][1]
+for suffix in 'LR':
+    post = directory['NorthAcademyMarqueePost' + suffix]
+    assert post['position'][1] - post['size'][1] / 2 == 31.8
+    assert post['position'][1] + post['size'][1] / 2 > rookie['position'][1] - rookie['size'][1] / 2
 trail=[part for part in doc['parts'] if part['id'].startswith('NorthRookiePath')]
 assert len(trail)==15 and all(not part['collidable'] and part['size'][1]<=.05 for part in trail)
 for part in (p for p in trail if 'Stone' in p['id']):

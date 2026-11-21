@@ -1,5 +1,10 @@
 # Scream Simulator development roadmap
 
+## Rookie Training sign clears the short-screen HUD
+
+- From the default spawn camera at 567 × 242 usable pixels, **TALK** obscured the left side of the old Rookie Training sign. The raised directory puts **← ROOKIE TRAINING** on the larger upper face and **ACADEMY PLAZA** below. The rebuilt native capture showed the full Rookie instruction above the visible TALK button. The sign uses the same four authored pieces and the posts are taller within their original ground footprints.
+- A staged native Humanoid walk completed the spawn-to-Rookie route in 12.11 seconds with jumping and climbing disabled. Walk-height rays hit both posts and cleared the center. Critic cleared the four-part change, all 1,044 finish checks passed, and the old layout failed the priority assertion. All 312 local checks and builds passed with matching inputs. Disposable Studio sessions closed. The emulator and scripted route leave physical touch and unassisted discovery open. Next, sample later-game combat readability with overlapping effects while the current-world polish continues.
+
 ## First gear purchase shows the price and remaining coins
 
 - In disposable Studio, buying the Academy Megaphone mounted it and spent 100 coins. The old Style card continued to show **100 earned coins** while the normal wallet HUD was hidden. The updated purchase action includes the catalog price. The card reflects the replicated wallet balance and shows when gear is owned or equipped. The player who needs more coins still gets the existing shortfall and training guidance.
