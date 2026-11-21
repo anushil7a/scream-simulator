@@ -10,9 +10,9 @@ local RealMix=require("../src/StarterPlayer/StarterPlayerScripts/BeamAudioMix")
 local settings=require("../src/ReplicatedStorage/Shared/AttackAudioConfig")
 local nodes={}
 local Instance={new=function(class)
- local node={class=class,plays=0,stops=0,IsLoaded=class=="Sound"}
- function node:Play()self.plays+=1 end
- function node:Stop()self.stops+=1 end
+ local node={class=class,plays=0,stops=0,IsLoaded=class=="Sound",IsPlaying=false}
+ function node:Play()self.plays+=1;self.IsPlaying=true end
+ function node:Stop()self.stops+=1;self.IsPlaying=false end
  function node:Destroy()self.destroyed=true;self.Parent=nil end
  table.insert(nodes,node);return node
 end}
@@ -84,6 +84,15 @@ mixer:Step(3.16,.02,false)
 check(canceled.plays==0 and canceled.Volume==0 and math.abs(audible.Volume+loading.Volume-settings.TotalVolume)<1e-6,"Stopped unplayed beam took a share of the mix")
 mixer:Step(3.17,.01,true)
 check(audible.Volume+loading.Volume<=settings.LowVolume*mixer.duck+1e-6,"Loaded beams exceeded the voice-active ceiling")
+audible.IsPlaying=false -- natural completion does not stop the beam pulse stream
+check(mixer:Pulse(4,3.18,14,false,10) and mixer:Pulse(5,3.18,20,false,20),"Live casts lost their entries")
+mixer:Step(3.18,.01,true)
+check(audible.Volume==0 and math.abs(loading.Volume-settings.LowVolume*mixer.duck)<1e-6,"Completed beam still took a share of the mix")
+mixer:Step(3.19,.01,false)
+check(audible.plays==1 and not audible.IsPlaying and loading.plays==1,"Natural completion or mix recovery restarted a recording")
+check(math.abs(loading.Volume-settings.TotalVolume*mixer.duck)<1e-6,"Remaining beam did not regain its normal budget")
+mixer:Step(3.20,.01,false,true)
+check(loading.Volume==0 and loading.IsPlaying,"Calibration did not mute current playback")
 mixer:Destroy();check(nodes[1].destroyed,"Teardown leaked SoundGroup")
 check(not mixer:Pulse(2,1,10,true),"Destroyed adapter recreated audio")
 print("PASS "..checks.." actual attack audio adapter checks with mocked instances")

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Beam audio gain after a clip ends
+
+- In matched local Studio runs with the owner-approved level-10 and level-20 assets, both clips received .20 NORMAL gain before group and distance attenuation. The 2.112-second level-10 clip ended naturally while the 4.113-second clip was still playing. Synthetic pulses continued for both casts. The old mixer left the second sound at .20. The corrected mixer gave it the available .40 and set the completed sound to zero without replaying it.
+- A started sound now contributes to the mix only while Roblox reports playback. The native probe also verified the voice-duck ceiling and calibration mute with synthetic flags. The four-entry lifecycle cap and the configured assets stay in place. Both audio groups were muted for the probe, so this measures playback state and gain properties without establishing listening quality, real voice behavior, or a networked cast.
+- Independent review cleared the change. The adapter passed 34 checks and the new regression failed against the old source. Level and cadence suites passed with 12 controls. All 312 checks and builds passed with matching input hashes. Next, check whether crossing the range boundary restarts a still-active cue, and validate the mix with two people on eligible devices. Both disposable Studio sessions closed.
+
 ## TALK in narrow desktop windows
 
 - Desktop Studio at 567 × 416 reproduced 1,414 square pixels of overlap between TALK and Beams. The corrected 120 × 34 target moved left to (165, 308), leaving 8 pixels before the combat group. Clicking TALK opened the actual NPC dialogue. At 567 × 241, TALK moved to (251, 12) between MENU and MAP, with zero combat overlap.

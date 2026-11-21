@@ -27,7 +27,9 @@ function Audio.new()
    sound:Play()
   end
  end,function(handle) handle.sound:Stop();handle.anchor:Destroy() end,function(handle,fading)
-  return handle.started or not fading and handle.sound.IsLoaded
+  -- Keep a completed one-shot from replaying without reserving mix gain.
+  if handle.started then return handle.sound.IsPlaying end
+  return not fading and handle.sound.IsLoaded
  end)
  local destroy=mix.Destroy
  function mix:Destroy() destroy(self);group:Destroy() end
