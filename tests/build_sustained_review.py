@@ -40,7 +40,13 @@ def main():
                         help="Build the unpublished two-client middle-green PvP diagnostic place")
     parser.add_argument("--test-beam-damage-local-qa", action="store_true",
                         help="Build the unpublished manual two-player Test Beam damage review")
+    parser.add_argument("--resonance-local-qa", action="store_true",
+                        help="Build the unpublished Resonance Hall combat playtest")
     args = parser.parse_args()
+    if args.resonance_local_qa and any((args.test_beam_damage_local_qa, args.central_pvp_local_qa,
+                                      args.combat_readouts_local_qa, args.boss_arena_local_qa,
+                                      args.transport_mutation, args.test_tools_local)):
+        parser.error("Resonance Hall combat playtest is a separate fixture")
     if args.test_beam_damage_local_qa and (args.central_pvp_local_qa or args.combat_readouts_local_qa or args.boss_arena_local_qa or args.transport_mutation or args.test_tools_local):
         parser.error("Test Beam damage review is a separate local-only fixture")
     if args.central_pvp_local_qa and (args.combat_readouts_local_qa or args.boss_arena_local_qa or args.transport_mutation or args.test_tools_local):
@@ -100,9 +106,18 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         fingerprint_paths = sorted(set(fingerprint_paths) | {ROOT / "tests/StudioCombatReadoutsReview.server.luau"})
     if args.boss_arena_local_qa:
         fingerprint_paths = sorted(set(fingerprint_paths) | {ROOT / "tests/StudioBossArenaReview.server.luau"})
+    if args.resonance_local_qa:
+        arena = ROOT / "prototypes/resonance-arena"
+        arena_cases = ROOT / "tests/StudioResonanceCombat.server.luau"
+        fingerprint_paths = sorted(set(fingerprint_paths) | set(arena.glob("*.luau")) | {arena_cases})
+        # Use the real combat code with only this generated place's city setup replaced.
+        assert bootstrap.count("BeachVolley.Start(workspace.ScreamSimulatorWorld)") == 1
+        bootstrap = bootstrap.replace("BeachVolley.Start(workspace.ScreamSimulatorWorld)",
+            'assert(Config.MovementPassId == 0, "Local arena has no movement pass")\n'
+            'for _, item in ipairs(ShopCatalog.Items) do assert(item.id == 0, "Local arena has no paid products") end')
     def source_fingerprint():
         digest = hashlib.sha256()
-        digest.update(("test-beam-damage-local-qa" if args.test_beam_damage_local_qa else "central-pvp-local-qa" if args.central_pvp_local_qa else "combat-readouts-local-qa" if args.combat_readouts_local_qa else "boss-arena-local-qa" if args.boss_arena_local_qa else "test-tools-local" if args.test_tools_local else args.transport_mutation or "none").encode() + b"\0")
+        digest.update(("resonance-local-qa" if args.resonance_local_qa else "test-beam-damage-local-qa" if args.test_beam_damage_local_qa else "central-pvp-local-qa" if args.central_pvp_local_qa else "combat-readouts-local-qa" if args.combat_readouts_local_qa else "boss-arena-local-qa" if args.boss_arena_local_qa else "test-tools-local" if args.test_tools_local else args.transport_mutation or "none").encode() + b"\0")
         for path in fingerprint_paths:
             digest.update(path.relative_to(ROOT).as_posix().encode() + b"\0")
             digest.update(path.read_bytes() + b"\0")
@@ -114,7 +129,9 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         temp = Path(temp)
         transport_fixture = (ROOT / "tests/StudioVoiceTransport.server.luau").read_text()
         builds = [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", transport_fixture), ("TrainingRoamReview", (ROOT / "tests/StudioTrainingRoam.server.luau").read_text())]
-        if args.test_beam_damage_local_qa:
+        if args.resonance_local_qa:
+            builds = [("ResonanceCombatLocalReview", arena_cases.read_text())]
+        elif args.test_beam_damage_local_qa:
             builds = [("TestBeamDamageLocalReview", (ROOT / "tests/StudioTestBeamDamageReview.server.luau").read_text())]
         elif args.central_pvp_local_qa:
             appendix = "\n".join((ROOT / "tests" / file).read_text() for file in
@@ -139,6 +156,38 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
             script.write_text(guard + stamp + bootstrap + "\n" + appendix)
             subprocess.run([compiler, str(script)], check=True, stdout=subprocess.DEVNULL)
             server["Bootstrap"] = {"$path": str(script)}
+            if args.resonance_local_qa:
+                server["Arena"] = {"$path": str(arena / "Arena.server.luau")}
+                server["World"] = {"$path": str(arena / "CombatWorld.luau")}
+                profiles = (source / "Profiles.luau").read_text()
+                store_call = 'return DataStoreService:GetDataStore(RunService:IsStudio() and "ScreamSimulator_Studio_v2" or "ScreamSimulator_v1")'
+                assert profiles.count(store_call) == 1
+                profile_copy = temp / "Profiles.luau"
+                profile_copy.write_text(profiles.replace(store_call, 'return nil -- This arena has no persistence'))
+                server["Profiles"] = {"$path": str(profile_copy)}
+                shared = project["tree"]["ReplicatedStorage"]["Shared"]
+                shared_directory = Path(shared.pop("$path"))
+                shared["$className"] = "Folder"
+                for shared_path in shared_directory.glob("*.luau"):
+                    shared[shared_path.stem] = {"$path": str(shared_path)}
+                config = (shared_directory / "Config.luau").read_text()
+                assert config.count("\nreturn Config") == 1
+                config_copy = temp / "Config.luau"
+                config_copy.write_text(config.replace("\nreturn Config", '''
+Config.CompactCity=false
+Config.Quests={}
+Config.MapMin=Vector3.new(-88,-20,-76)
+Config.MapMax=Vector3.new(88,120,272)
+Config.ZoneMin=Vector3.new(-86,0,-74)
+Config.ZoneMax=Vector3.new(86,16,74)
+local inHall=Config.InArena
+function Config.InArena(p)
+ return inHall(p) and not (p.Z>=50 and math.abs(p.X)<=11)
+end
+return Config'''))
+                shared["Config"] = {"$path": str(config_copy)}
+                for arena_source in (arena / "Arena.server.luau", arena / "CombatWorld.luau", config_copy, profile_copy):
+                    subprocess.run([compiler, str(arena_source)], check=True, stdout=subprocess.DEVNULL)
             if name.startswith("VoiceTransport"):
                 clients = project["tree"]["StarterPlayer"]["StarterPlayerScripts"]
                 del clients["$path"]
@@ -189,7 +238,9 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
                 "scope": "Compiled disposable local fixture; not executed or published",
                 **({"proceduralFallback": ["FireBeam", "StarterBeam"]} if args.test_tools_local else {}),
             }, indent=2) + "\n")
-    if args.test_beam_damage_local_qa:
+    if args.resonance_local_qa:
+        print("Built unpublished Resonance Hall combat review; no Studio test was run.")
+    elif args.test_beam_damage_local_qa:
         print("Built unpublished Test Beam damage review; no Studio test was run.")
     elif args.central_pvp_local_qa:
         print("Built unpublished central PvP diagnostic; no Studio test was run.")

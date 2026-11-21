@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Resonance Hall local combat preview
+
+- `python tests/build_sustained_review.py --resonance-local-qa` builds `build/ResonanceCombatLocalReview.rbxl`. Run Studio Server & Clients with two players, then invoke `game.ServerStorage.ResonanceCombatReview:Invoke()` in the server session. The diagnostic stages power, positions, and time directly on the existing server combat controller. Start a fresh session for manual play after running it.
+- Eight cases passed in native Studio. Open fire damaged the target, two solid covers blocked it, the portal apron blocked fire in both directions, dodge and spawn protection prevented damage, and a knockout relocated the target to protected ground. Both clients received all eight beam events. A scripted hold on each client prompt took a player to the training landing at Z=240 and back to the hall at Z=51. Both prompts advertise F, leaving E for arming beams.
+- The preview runs only in an unpublished Studio file with temporary profiles and zero commerce IDs. It uses the existing yellow base across all beam tiers. Reference colors may guide arena art, but beam references guide shape, motion, and effects. The imported client may make its normal Roblox voice eligibility query. City status labels and the city map are still inherited in the preview.
+- Real microphone activation, physical touch, internet multiplayer, a live cross-place portal and profile transfer still need playtesting. The production city and its Rojo project are separate from this preview.
+
 ## Resonance Hall arena draft
 
 - The unpublished 176 × 152-stud hall has four sheltered spawns, eight speaker-cover blocks, two central flanks, a mixing desk on a record motif, and a cyan Training City portal. The alternate Rojo project runs only in an unpublished Studio session; the production city project is independent. The preview portal moves players between the hall and an isolated training landing in the same file.
