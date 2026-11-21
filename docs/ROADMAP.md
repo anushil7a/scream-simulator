@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Clearer Garden PvP targeting messages
+
+- Two local Studio clients on opposite sides of the café boundary both read **SAFE · PvP OFF** when aiming at one another. The same readout now shows **YOU ARE OUTSIDE PvP**, **TARGET OUTSIDE PvP**, or **BOTH OUTSIDE PvP** using the two existing position checks. Both players inside the Garden still read **ARENA OPPONENT** when in range and clear of cover. The server's damage rules are unchanged.
+- I staged the avatars across, outside, and inside the boundary and aimed the two real client cameras through the normal center-reticle path in the 750 × 381 iPhone landscape simulator. All six sampled labels fit. The widest boundary label took 133 × 26 pixels inside the existing 290 × 48 label. A capture showed the pale text blending into the lawn, and a matched live preview confirmed that the light fill with a dark outline improves contrast without any new panel.
+- Critic cleared the change. Focused tests passed 25 readout and 60 cover assertions, and a wrong-side label negative control failed as expected. All eight existing stationary Garden damage samples passed natively. All 312 local checks and builds passed with matching input hashes. The disposable Studio sessions closed. Staged camera input and device emulation leave physical touch and live play unverified.
+
 ## Defender feedback when an active beam reconnects
 
 - In a disposable two-client Studio session, a Garden beam reduced the defender from 100 to 97 HP, dealt no damage on the safe café paving, and reduced health to 94 on re-entry under the same cast. The baseline showed **BEAM HIT YOU** for the first hit only. It expired on the safe paving and stayed hidden after return damage. The fixed build showed the cue for both hits. Moving the attacker across the boundary and back produced the same damage and feedback results. The attacker's client received no defender cue.

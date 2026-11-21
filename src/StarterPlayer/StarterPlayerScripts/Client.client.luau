@@ -525,6 +525,7 @@ local hitFeedback=loadClientDependency(script.Parent,"HitFeedback");if not clien
 hitFeedback=hitFeedback.new();if not clientCheckpoint() then return end
 local hitText=label(aimGui,"",UDim2.fromOffset(210,26),UDim2.new(.5,-105,.5,-48),16,gold);hitText.Name="ConfirmedDamage";hitText.TextXAlignment=Enum.TextXAlignment.Center;hitText.Visible=false
 local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
+aimInfo.TextStrokeColor3=dark;aimInfo.TextStrokeTransparency=.12
 local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,32),UDim2.fromOffset(0,52),dodge);academy.surface(dodgeButton)
 local sprinting=false
@@ -548,17 +549,18 @@ local function targetCovered(root,targetRoot,targetModel)
  params.FilterDescendantsInstances={character,targetModel};params.RespectCanCollide=true
  return workspace:Raycast(origin,targetRoot.Position-origin,params)~=nil
 end
-local function playerTargetInfo(target,humanoid,canFight,far,now,currentFar,covered)
+local function playerTargetInfo(target,humanoid,inPvp,targetInPvp,far,now,currentFar,covered)
  if humanoid.Health<=0 then return nil,false end
  local protection=math.max(0,(target:GetAttribute("ProtectionEnds") or 0)-now)
  local rolling=now<(target:GetAttribute("DodgeEnds") or 0)
- local status=not canFight and "SAFE · PvP OFF"
+ local status=not inPvp and (targetInPvp and "YOU ARE OUTSIDE PvP" or "BOTH OUTSIDE PvP")
+  or not targetInPvp and "TARGET OUTSIDE PvP"
   or protection>0 and string.format("PROTECTED · %.1fs",protection)
   or rolling and "DODGING" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "ARENA OPPONENT"
  local level=target:GetAttribute("ScreamLevel")
  local name=target.DisplayName..(type(level)=="number" and string.format(" · LV %d",level) or "")
  return string.format("%s\n%s",name,status),
-  canFight and protection<=0 and not rolling and not far and not currentFar and not covered
+  inPvp and targetInPvp and protection<=0 and not rolling and not far and not currentFar and not covered
 end
 local function residentTargetInfo(model,humanoid,far,currentFar,covered)
  if model:GetAttribute("ResidentActive")==false then return nil,false end
@@ -1636,11 +1638,12 @@ connectClient(Run.RenderStepped,function(dt)
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
    local targetRoot=object:FindFirstChild("HumanoidRootPart");local humanoid=object:FindFirstChildOfClass("Humanoid")
    if root and targetRoot and humanoid then
-    local canFight=Config.InArena(root.Position) and Config.InArena(targetRoot.Position)
+    local inPvp,targetInPvp=Config.InArena(root.Position),Config.InArena(targetRoot.Position)
+    local canFight=inPvp and targetInPvp
     local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).maxRange+2
     local currentFar=(targetRoot.Position-root.Position).Magnitude>range+2
-    local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(root,targetRoot,object))
-    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
+    local text,available=playerTargetInfo(targetPlayer,humanoid,inPvp,targetInPvp,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(root,targetRoot,object))
+    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or white
    end
   elseif object and object~=workspace and object:IsA("Model") and object:GetAttribute("NpcId") then
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
