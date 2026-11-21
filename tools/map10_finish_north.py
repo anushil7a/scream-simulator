@@ -44,7 +44,6 @@ def add(box, disk, line):
             b(f'Pavilion{i}FriezeX{side}', [x + side * width * .40, 57, z], [1.4, 2, width * .88], ivory)
         ridge_y = 66 + math.sin(math.radians(22)) * width * .295
         b(f'Pavilion{i}Ridge', [x, ridge_y + .45, z], [2.0, 1.1, width + 12], deep_teal)
-        b(f'Pavilion{i}Entablature', [x, 59.6, z + width * .50 + 2], [width + 6, .7, 1], brass)
         # An acoustic crest suspended on the existing front frieze.
         b(f'Pavilion{i}Crest', [x, 56.9, z + width * .40 + .85], [5, 3.2, .22], deep_teal)
         b(f'Pavilion{i}CrestInlay', [x, 56.9, z + width * .40 + 1], [.7, 2.5, .10], brass)

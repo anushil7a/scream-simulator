@@ -3,7 +3,7 @@ import math
 
 def add(box, disk, line):
     limestone=(201,180,146); highlight=(237,221,191); dark=(53,68,71)
-    tile=(37,102,104); bronze=(163,123,69); amber=(255,218,151)
+    tile=(37,102,104); bronze=(163,123,69)
     # Build contrasting continuous seat caps on the existing seven bowl faces.
     for seat in range(5):
         r=112+seat*7
@@ -36,9 +36,6 @@ def add(box, disk, line):
         box(name+'Plinth',(x,.65,z),(12,1.3,12),dark,material='Slate')
         box(name+'Stone',(x,10,z),(9,19,8),limestone,material='Sandstone')
         box(name+'Seat',(x,19.9,z),(12,1.3,12),highlight,material='Concrete')
-        box(name+'Lantern',(x-5.2,11,z),(1.4,4.9,4),dark,material='Metal')
-        box(name+'LanternLens',(x-6,11,z),(.24,3.65,2.75),amber,material='Neon')
-        box(name+'GlazedPanel',(x+4.6,9,z),(.2,9,4.5),tile,material='Metal')
     box('StadiumEntryLintel',(-215,21.15,120),(10,3.4,78),dark,material='Concrete')
     box('StadiumEntryBronzeEdge',(-220.13,22.15,120),(.15,.45,76),bronze,material='Metal')
     box('StadiumEntryStoneEdge',(-215,23.1,120),(13,.6,80),highlight,material='Concrete')
@@ -51,4 +48,6 @@ def add(box, disk, line):
         for z in (36,204):
             name=f'StadiumCorner{x}_{z}'
             box(name+'X',(x,.207,z),(8,.03,.28),highlight)
-            box(name+'Z',(x,.206,z),(.28,.03,8),highlight)
+            # The east Z ticks sit inside the raised garden terraces.
+            if x == -414:
+                box(name+'Z',(x,.206,z),(.28,.03,8),highlight)

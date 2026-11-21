@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Map10 skips invisible scenery
+
+- The live Map10 build created 17 superseded lava and crystal parts and immediately hid them. Finished Map10 now skips their allocation. The standalone base builder still creates its own visible scenery when the finish pass is absent. The generator also drops 12 stadium and pavilion details that were completely inside opaque terrain or roofs. Native baseline checks placed every corner of each buried detail inside its host, with at least .191 studs of clearance.
+- In disposable Studio the direct-world and finishing groups fell from 617 + 1,044 parts to 600 + 1,032. Fingerprints of all 1,632 retained parts matched for transforms, dimensions, material, color, transparency, shadow and collision/query/touch flags. Both builds had 416 solid parts in those groups. Matched Academy and Coastal Arena captures preserved the visible scenery. This measures fewer instances, without measuring frame-rate or memory gains.
+- Critic caught a missing finish flag in the City dispatcher, then cleared the corrected production path. The regression failed when that flag was removed again, and all 312 local checks and builds passed with matching input hashes. Disposable Studio sessions closed. Next, measure larger rendering costs on a representative device and continue current-world polish before the separate PvP arena.
+
 ## Escape cues for Ignis and the Captain
 
 - The existing status lane previously showed **SAFE • PvP OFF** throughout both ranged lane attacks. In disposable Studio it now shows **Step between lanes** during Organ Flames and **Find the center gap** during Twin Sirens, then restores the normal zone cue. Bell Cascade retains **Step off the circles**. Active PvP still gets priority. The server attaches guidance to complete warnings and the local display checks the matching cast, time and range even with boss accents disabled.

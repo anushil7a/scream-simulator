@@ -9,6 +9,7 @@ import tempfile
 R=Path(__file__).resolve().parents[1]; S=R/'src/ServerScriptService'
 doc=json.loads((R/'prototypes/map10/finish_geometry.json').read_text())
 assert set(doc['groups'])=={'Stadium','North','East','Coast','Landmark'}
+assert not any(re.fullmatch(r'NorthPavilion[0-3]Entablature|StadiumEntry(?:-1|1)(?:Lantern|LanternLens|GlazedPanel)|StadiumCorner-246_(?:36|204)Z', part['id']) for part in doc['parts'])
 solid_parts = [part for part in doc['parts'] if part['collidable']]
 expected_groups = {
     r'StadiumEntry(?:-1|1)(?:Plinth|Stone)': 4,
@@ -79,8 +80,10 @@ workers=(S/'World.luau').read_text().split('local function workerFinish',1)[1].s
 assert len(roles)==7 and all(role+'={{' in workers for role in roles),'Missing Map 10 authored worker role'
 assert 'not job.supporting' in (S/'World.luau').read_text()
 subprocess.run([sys.executable,str(R/'tools/build_map10_finish.py'),'--check'],check=True)
+city_dispatch=(S/'City.luau').read_text().split('function City.Build(',1)[1].split(' rng=',1)[0]
 script='''
 local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}
+Vector3.zero=Vector3.new(0,0,0)
 local Color3={fromRGB=function(r,g,b)return {R=r,G=g,B=b}end}
 local Data=(function()
 '''+(S/'Map10FinishGeometry.luau').read_text()+'''
@@ -97,6 +100,7 @@ local nodes={}
 local Instance={new=function(class)
  local o={ClassName=class}
  function o:IsA(k)return k==self.ClassName or k=='BasePart' and self.ClassName=='Part'end
+ function o:SetAttribute(k,v)self[k]=v end
  table.insert(nodes,o)
  return o
 end}
@@ -105,14 +109,11 @@ local Finish=(function()
 end)()
 local fixed=Instance.new('Part');fixed.Name='IslandCore0';fixed.CanCollide=true
 fixed.CanQuery=true;fixed.Material='SmoothPlastic';fixed.Position=Vector3.new(2,4,8)
-local old=Instance.new('Part');old.Name='Crystal0';old.CanCollide=false;old.CanQuery=false;old.CanTouch=false
-local solidCrystal=Instance.new('Part');solidCrystal.Name='CrystalCollision';solidCrystal.CanCollide=true;solidCrystal.Transparency=0
 local unaffected=Instance.new('Part');unaffected.Name='Other'
-local world={GetChildren=function()return {fixed,old,solidCrystal,unaffected}end}
+local world={GetChildren=function()return {fixed,unaffected}end}
 local folder=Finish.Build(world)
 assert(folder.Parent==world and folder.Name=='Map10Finishing')
 assert(fixed.CanCollide and fixed.CanQuery and fixed.Material=='SmoothPlastic' and fixed.Position.Y==4,'Base collision material or position changed')
-assert(old.Transparency==1 and old.CastShadow==false and solidCrystal.Transparency==0,'Only old decorative bars may hide')
 assert(unaffected.Color==nil and unaffected.Material==nil,'Non-map part changed')
 local expected={}
 for _,row in ipairs(Data) do expected[row[1]]=row[8]==true end
@@ -135,6 +136,40 @@ assert(count==#Data and count>600 and count<=1100,'Total finishing props outside
 assert(labels==6,'Expected six world signs including training direction')
 assert(solids==78,'Expected the authored collision parts')
 print('PASS '..count..' actual finishing props, original collision material retained, six occluded world signs')
+local Layout=(function()
+'''+(R/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text()+'''
+end)()
+local CompactCity=(function()
+local game={GetService=function()return {Shared={CompactLayout='layout'}}end}
+local function require(k)assert(k=='layout');return Layout end
+'''+(S/'CompactCity.luau').read_text()+'''
+end)()
+local Config={CompactCity=true}
+local City={}
+function City.Build('''+city_dispatch+'''end
+local baseParent,finishedParent={},{}
+City.Build(baseParent)
+City.Build(finishedParent,true)
+local standalone,finished={},{}
+for _,node in ipairs(nodes) do
+ if node.Parent==baseParent then standalone[node.Name]=node
+ elseif node.Parent==finishedParent then finished[node.Name]=node end
+end
+local omitted=0
+for _,spec in ipairs(Layout.PartSpecs) do
+ local id=spec.id
+ local replaced=id:match("^Crystal%d+$") or id:match("^LavaFissure%d+$") or id:match("^BranchLava%d+$")
+ assert(standalone[id]~=nil,"Base preview lost "..id)
+ if replaced then
+  assert(not spec.collidable and finished[id]==nil,"Finished Map10 allocated replaced scenery "..id)
+  omitted+=1
+ else
+  local p=assert(finished[id],"Finished Map10 lost "..id)
+  assert(p.Position==standalone[id].Position and p.Size==standalone[id].Size and p.CanCollide==standalone[id].CanCollide and p.CanQuery==standalone[id].CanQuery)
+ end
+end
+assert(omitted==17,"Unexpected Map10 replacement count")
+print('PASS 17 replaced props omitted only when finishing is enabled')
 '''
 with tempfile.NamedTemporaryFile('w',suffix='.luau',prefix='tmp_map_finish_',dir=R/'tests',delete=False,encoding='utf-8') as f:
     f.write(script)

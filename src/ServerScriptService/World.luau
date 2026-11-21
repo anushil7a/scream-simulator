@@ -947,8 +947,9 @@ function World.Build()
     PhysicsService:CollisionGroupSetCollidable("Residents","Residents",false)
     atmosphere()
     local parent=Instance.new("Model");parent.Name="ScreamSimulatorWorld";parent.Parent=workspace
-    local layout=City.Build(parent);World.WalkPoints=layout.walk;World.ActivityPoints=layout.activities;World.SafeSpawn=layout.spawn
-    if Config.CityLayout and Config.CityLayout.MapId == "Map10" then
+    local finishMap10=Config.CityLayout and Config.CityLayout.MapId=="Map10"
+    local layout=City.Build(parent,finishMap10);World.WalkPoints=layout.walk;World.ActivityPoints=layout.activities;World.SafeSpawn=layout.spawn
+    if finishMap10 then
         require(script.Parent.Map10Finish).Build(parent)
     end
     table.clear(World.Seats);for _,item in ipairs(parent:GetDescendants()) do if item:IsA("Seat") then table.insert(World.Seats,item) end end

@@ -16,7 +16,6 @@ local grades={
  {"FootballLawn","Grass",Color3.fromRGB(87,146,77)},
  {"ShrineUnderFacet","Slate",nil},
 }
-local superseded={"Crystal","LavaFissure","BranchLava"}
 local names={
  StadiumMarquee="COASTAL ARENA",
  NorthAcademyMarquee="ACADEMY PLAZA",
@@ -44,13 +43,6 @@ function Finish.Build(world)
     if not p.CanCollide then p.Material=Enum.Material[spec[2]] end
     if spec[3] then p.Color=spec[3] end
     break
-   end
-  end
-  -- Old flat glow bars duplicate the finished custom channels/crystals.
-  -- Their existing nonphysical flags remain unchanged.
-  if not p.CanCollide and not p.CanQuery and not p.CanTouch then
-   for _,prefix in ipairs(superseded) do
-    if starts(p.Name,prefix) then p.Transparency=1;p.CastShadow=false;break end
    end
   end
  end

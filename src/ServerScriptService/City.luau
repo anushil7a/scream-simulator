@@ -842,8 +842,8 @@ local function workplaces(parent)
   {role="Vendor",name="Pau Vidal",quests={"delivery"},stations={{position=V(85,4,-52),lookAt=V(85,4,-60)},{position=V(91,4,-52),lookAt=V(91,4,-60)}}},
  }
 end
-function City.Build(parent)
- if Config.CompactCity then return CompactCity.Build(parent) end
+function City.Build(parent,withMap10Finish)
+ if Config.CompactCity then return CompactCity.Build(parent,withMap10Finish) end
  rng=Random.new(230926)
  local walk,activities={},{}
  local ground=part(parent,"CityLand",V(1440,3,1200),V(0,-1.6,0),Color3.fromRGB(126,139,108),Enum.Material.Ground)

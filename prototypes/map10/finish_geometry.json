@@ -1,9 +1,9 @@
 {
  "groups": {
-  "North": 299,
+  "North": 295,
   "East": 219,
   "Coast": 240,
-  "Stadium": 152,
+  "Stadium": 144,
   "Landmark": 134
  },
  "parts": [
@@ -439,32 +439,6 @@
     35,
     91,
     94
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "NorthPavilion0Entablature",
-   "position": [
-    -450,
-    59.6,
-    -436.0
-   ],
-   "size": [
-    50,
-    0.7,
-    1
-   ],
-   "color": [
-    187,
-    137,
-    62
    ],
    "rotation": [
     0,
@@ -970,32 +944,6 @@
    "collidable": false
   },
   {
-   "id": "NorthPavilion1Entablature",
-   "position": [
-    -300,
-    59.6,
-    -429.0
-   ],
-   "size": [
-    64,
-    0.7,
-    1
-   ],
-   "color": [
-    187,
-    137,
-    62
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
    "id": "NorthPavilion1Crest",
    "position": [
     -300,
@@ -1490,32 +1438,6 @@
    "collidable": false
   },
   {
-   "id": "NorthPavilion2Entablature",
-   "position": [
-    -140,
-    59.6,
-    -436.0
-   ],
-   "size": [
-    50,
-    0.7,
-    1
-   ],
-   "color": [
-    187,
-    137,
-    62
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
    "id": "NorthPavilion2Crest",
    "position": [
     -140,
@@ -1999,32 +1921,6 @@
     35,
     91,
     94
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "NorthPavilion3Entablature",
-   "position": [
-    -490,
-    59.6,
-    -160.0
-   ],
-   "size": [
-    42,
-    0.7,
-    1
-   ],
-   "color": [
-    187,
-    137,
-    62
    ],
    "rotation": [
     0,
@@ -23070,84 +22966,6 @@
    "collidable": false
   },
   {
-   "id": "StadiumEntry-1Lantern",
-   "position": [
-    -220.2,
-    11,
-    86
-   ],
-   "size": [
-    1.4,
-    4.9,
-    4
-   ],
-   "color": [
-    53,
-    68,
-    71
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Metal",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumEntry-1LanternLens",
-   "position": [
-    -221,
-    11,
-    86
-   ],
-   "size": [
-    0.24,
-    3.65,
-    2.75
-   ],
-   "color": [
-    255,
-    218,
-    151
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Neon",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumEntry-1GlazedPanel",
-   "position": [
-    -210.4,
-    9,
-    86
-   ],
-   "size": [
-    0.2,
-    9,
-    4.5
-   ],
-   "color": [
-    37,
-    102,
-    104
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Metal",
-   "shape": null,
-   "collidable": false
-  },
-  {
    "id": "StadiumEntry1Plinth",
    "position": [
     -215,
@@ -23222,84 +23040,6 @@
     0
    ],
    "material": "Concrete",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumEntry1Lantern",
-   "position": [
-    -220.2,
-    11,
-    154
-   ],
-   "size": [
-    1.4,
-    4.9,
-    4
-   ],
-   "color": [
-    53,
-    68,
-    71
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Metal",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumEntry1LanternLens",
-   "position": [
-    -221,
-    11,
-    154
-   ],
-   "size": [
-    0.24,
-    3.65,
-    2.75
-   ],
-   "color": [
-    255,
-    218,
-    151
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Neon",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumEntry1GlazedPanel",
-   "position": [
-    -210.4,
-    9,
-    154
-   ],
-   "size": [
-    0.2,
-    9,
-    4.5
-   ],
-   "color": [
-    37,
-    102,
-    104
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Metal",
    "shape": null,
    "collidable": false
   },
@@ -23590,32 +23330,6 @@
    "collidable": false
   },
   {
-   "id": "StadiumCorner-246_36Z",
-   "position": [
-    -246,
-    0.206,
-    36
-   ],
-   "size": [
-    0.28,
-    0.03,
-    8
-   ],
-   "color": [
-    237,
-    221,
-    191
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
    "id": "StadiumCorner-246_204X",
    "position": [
     -246,
@@ -23626,32 +23340,6 @@
     8,
     0.03,
     0.28
-   ],
-   "color": [
-    237,
-    221,
-    191
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumCorner-246_204Z",
-   "position": [
-    -246,
-    0.206,
-    204
-   ],
-   "size": [
-    0.28,
-    0.03,
-    8
    ],
    "color": [
     237,
