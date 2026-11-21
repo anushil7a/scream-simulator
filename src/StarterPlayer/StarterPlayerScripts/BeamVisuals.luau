@@ -262,7 +262,7 @@ local function buildVfxForStyle(styleId)
  local t=templates:FindFirstChild("StarterBeam")
  return t and buildStarterVfx(t) or nil
 end
-local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet,distance,spec)
+local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet,distance,spec,suppressSecondary)
  local styleId=spec.id
  local vfx=rig.vfx
  if vfx and vfx.styleId~=styleId then destroyVfx(rig);vfx=nil end
@@ -302,6 +302,7 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
   sScale=pScale
  end
  local far=quiet or distance>Style.FarDistance
+ local showSecondary=not far and not suppressSecondary
  local scale=Style.WidthScale(rig.level,far)
  -- Normalize against the actual selected recipe, not a guessed pack width.
  -- Family switches at 40/80 must not shrink a newly earned milestone.
@@ -316,7 +317,7 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
  if rescale then vfx.lastBucket=bucket end
  for _,entry in ipairs(vfx.beams) do
   local b=entry.inst
-  b.Enabled=not far or entry.isCore
+  b.Enabled=showSecondary or entry.isCore
    b.TextureSpeed=far and 0 or entry.baseTextureSpeed
   if rescale then
    local factor=entry.isCore and wScale or (styleId=="hollow_purple" and entry.baseCurve0~=0 and wScale*.58 or wScale)
@@ -326,10 +327,10 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
  end
  for _,entry in ipairs(vfx.emitters) do
   local em=entry.inst
-  if far and em.Enabled then em:Clear() end
+  if not showSecondary and em.Enabled then em:Clear() end
    -- Endpoint particle clusters read as the rejected firing spheres. Only
    -- reviewed column emitters remain; lightning is original pooled geometry.
-   em.Enabled=not far and vfx.midAnchor~=nil and em.Parent==vfx.midAnchor
+   em.Enabled=showSecondary and vfx.midAnchor~=nil and em.Parent==vfx.midAnchor
    em.Rate=math.min(entry.baseRate,60/math.max(1,#vfx.emitters))
   if rescale then
    em.Size=scaleNumberSequence(entry.baseSize,pScale)
@@ -407,7 +408,18 @@ local function line(rig,a,b,thickness,color,alpha,material,kind)
  draw(rig,Enum.PartType.Cylinder,Vector3.new(length,thickness,thickness),
   CFrame.lookAt((a+b)*.5,b,math.abs(direction.Y)>.98 and Vector3.zAxis or Vector3.yAxis)*CFrame.Angles(0,math.pi/2,0),color,alpha,material,kind)
 end
-function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
+function Visuals.IsCrowded(entries,viewer)
+ local nearby=0
+ for _,entry in pairs(entries) do
+  local origin=entry.visual.origin
+  if origin and (viewer-origin).Magnitude<=Style.FarDistance then
+   nearby+=1
+   if nearby==3 then return true end
+  end
+ end
+ return false
+end
+function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,suppressSecondary)
  if not rig.origin then return end
  local distance=(viewer-rig.origin).Magnitude
  rig.used=0
@@ -436,11 +448,14 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
   else
    -- An energy termination lens, not a hit-confirmation flash. Stay within range.
    local depth=math.min(length,radius*.22)
-   line(rig,finish-dir*depth,finish,radius*1.25,color,.18,Enum.Material.SmoothPlastic)
+   local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .18
+   line(rig,finish-dir*depth,finish,radius*1.25,color,endAlpha,Enum.Material.SmoothPlastic)
   end
   if not quiet and distance<=Style.FarDistance then
    -- Thin axial ignition streak, never a launch sphere.
    line(rig,origin,origin+dir*math.min(length,1.5),radius*.12,color,.18,Enum.Material.SmoothPlastic)
+  end
+  if detailed and not suppressSecondary then
    local function offset(angle,r) return (right*math.cos(angle)+up*math.sin(angle))*r end
    local function collarOffset(angle,r)
     if spec.collar=="diamond" then r/=math.abs(math.cos(angle))+math.abs(math.sin(angle))
@@ -510,7 +525,7 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
    local styleSpec=Style.StyleForLevel(rig.level)
    local pCol=styleColor(styleSpec.primary,color)
    local sCol=styleColor(styleSpec.secondary,white)
-   syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet or contactReduced,distance,styleSpec)
+   syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet or contactReduced,distance,styleSpec,suppressSecondary)
    local hasVfx=rig.vfx~=nil
    for i=1,rig.used do
     local p=rig.parts[i]

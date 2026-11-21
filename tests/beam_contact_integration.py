@@ -42,7 +42,8 @@ local gate={Cancel=function(self)self.next=nil end,Step=function(self)local n=se
 local sent={};local sustainedControl=Controls.new(gate,function(verb,arg)table.insert(sent,{verb,arg})end,function()return {}end)
 local callbacks={};local function connectClient(signal,callback)callbacks[signal]=callback end
 local remotes={Effect={OnClientEvent={}}};local gold=color
-local Players={GetPlayerByUserId=function(_,id)return (id==7 or id==8) and {} or nil end}
+local Players={GetPlayerByUserId=function(_,id)return (id==7 or id==8 or id==9) and {} or nil end}
+local academy={testToolsAllowed=function()return true end}
 local Config={Auras={Gold=color},GetSound=function()return nil end}
 local attackAudioSettings={Range=100};local stops,pulses,cues,screenHits,screenClears=0,0,0,0,0
 local attackAudio={Stop=function()stops+=1 end,Remove=function()end,Pulse=function()pulses+=1 end}
@@ -157,6 +158,22 @@ for _,level in ipairs({1,10,20,30,40,50,60,70,80,90,100})do
   check(#visual.parts==5+spec.rings*10+spec.strands*12+spec.sparks,'Packet milestone recipe lost')
  end
 end
+rig,id=make()
+beam(8)
+send('SustainedBeam',vec(111,0,0),9,'Gold',Vector3.zAxis,40,7,'TinyAah',100)
+frame(1/30)
+check(#sustainedBeams.entries[8].visual.parts>5,'Far rig incorrectly triggered secondary suppression')
+beam(9);hit(id,10,anchor);frame(1/30)
+check(#rig.parts>5 and #rig.contact.parts==16,'Crowded mode removed local detail or hit confirmation')
+check(rig.parts[4].Transparency==.86,'Local endpoint lens obscured confirmed hit')
+check(#sustainedBeams.entries[8].visual.parts==5 and #sustainedBeams.entries[9].visual.parts==5,'Crowded mode kept remote secondary geometry')
+send('TestBeam',Vector3.zero,7,color,Vector3.zAxis,40,7,nil,100)
+frame(1/30)
+check(#sustainedBeams.entries['test:7'].visual.parts>5,'Crowded mode removed local tool detail')
+send('TestBeamEnd',nil,7);send('SustainedBeamEnd',nil,9);frame(1/30)
+check(#sustainedBeams.entries[8].visual.parts>5,'Secondary geometry did not restore after overlap')
+clock+=.29;beam();frame(1/30)
+check(rig.parts[4].Transparency==.18 and #rig.contact.parts==0,'Endpoint lens did not restore after hit expiry')
 sustainedBeams:Destroy();sustainedControl:Destroy();BeamVisuals.Clear();check(BeamVisuals.Budget()==0 and made==dead,'Integrated cleanup leaked')
 print('PASS',checks,'actual Client contact integration checks; real acknowledgement/hit/manager/renderer, mocked transport/HUD/audio')
 '''
@@ -208,7 +225,9 @@ def main():
             (render, 'and p:GetAttribute("SustainedActive")==true', '', 'Current-state frame gate retained contact: inactive'),
             (render, 'and p:GetAttribute("SustainedSequence")==attack.sequence', '', 'Current-state frame gate retained contact: mismatch'),
             (render, 'entry.visual.contactSequence==attack.sequence', 'true', 'Current-state frame gate retained contact: contact owner mismatch'),
-            (render, 'platformReducedMotion)', 'false)', 'OS quiet contact or beam missed quiet mode'),
+            (render, 'platformReducedMotion,crowded', 'false,crowded', 'OS quiet contact or beam missed quiet mode'),
+            (render, 'crowded and id~=p.UserId and id~=ownTestKey', 'crowded', 'Crowded mode removed local detail or hit confirmation'),
+            (render, 'crowded and id~=p.UserId and id~=ownTestKey', 'false', 'Crowded mode kept remote secondary geometry'),
         ]
         for fragment, old, new, expected in cases:
             assert fragment.count(old) == 1, old

@@ -87,6 +87,24 @@ for _,width in ipairs({1,7})do
    for _,o in ipairs(v.root:GetDescendants())do check(not o:IsA('Script'),'script cloned')end
    if level>=80 then check(#v.beams==5 and #v.emitters==4,'wrong hollow demo selected')end
    local root=v.root
+   local widths,sizes={},{}
+   for i,entry in ipairs(v.beams)do widths[i]={entry.inst.Width0,entry.inst.Width1}end
+   for i=1,5 do sizes[i]=r.parts[i].Size end
+   Visuals.Animate(r,r.born+.6,Vector3.zero,false,true,false,true)
+   check(#r.parts==5 and r.vfx.root==root,'Crowded mode lost the core rig or retained decoration')
+   for i,entry in ipairs(v.beams)do
+    check(entry.inst.Enabled==entry.isCore,'Crowded mode hid a core or kept a secondary template')
+    check(near(entry.inst.Width0,widths[i][1]) and near(entry.inst.Width1,widths[i][2])
+     and entry.inst.TextureSpeed==entry.baseTextureSpeed,'Crowded mode changed core width or motion')
+   end
+   for i=1,5 do
+    check(near(r.parts[i].Size.X,sizes[i].X) and near(r.parts[i].Size.Y,sizes[i].Y)
+     and near(r.parts[i].Size.Z,sizes[i].Z),'Crowded mode changed pooled beam dimensions')
+   end
+   for _,entry in ipairs(v.emitters)do check(not entry.inst.Enabled,'Crowded mode kept particles')end
+   check(r.parts[4].Transparency==.95,'Crowded mode retained the opaque endpoint lens')
+   Visuals.Animate(r,r.born+.6,Vector3.zero,false,true,false)
+   check(#r.parts>5 and r.parts[4].Transparency==.18,'Crowded mode did not restore after overlap')
    -- Each observer comfort source, far LOD, and restoration on the SAME rig.
    for _,mode in ipairs({{true,false,0},{false,true,0},{false,false,111}})do
     Visuals.Animate(r,r.born+.7,vec(0,0,mode[3]),mode[1],true,mode[2])
@@ -129,7 +147,9 @@ for old,new,message in [
  ('wScale=width*.6*scale/widest','wScale=width*.6/widest','native milestone width lost'),
  ('local quiet=reduced or rig.reduced or contactReduced','local quiet=reduced or rig.reduced','quiet native retained dynamic parts'),
  ('b.TextureSpeed=far and 0 or entry.baseTextureSpeed','b.TextureSpeed=entry.baseTextureSpeed','quiet template motion'),
+ ('local showSecondary=not far and not suppressSecondary','local showSecondary=not far','Crowded mode kept particles'),
+ ('local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .18','local endAlpha=.18','Crowded mode retained the opaque endpoint lens'),
 ]:
  assert old in s
  result=run(s.replace(old,new));assert result.returncode and message in result.stderr,result.stdout+result.stderr
-print('PASS 4 native-path negative controls (old hidden progression, lost scale, OS motion, texture motion)')
+print('PASS 6 native-path negative controls (progression, scale, motion and crowded secondary effects)')

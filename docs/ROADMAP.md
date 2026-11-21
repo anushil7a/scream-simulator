@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Target visibility during overlapping beams
+
+- When three sustained beam origins are within the existing 110-stud detail radius, remote beams drop secondary collars, strands, sparks, template ribbons and particles. Remote core dimensions and motion stay the same. The local regular beam and local Test Beam retain their detail. Remote endpoint lenses fade during overlap and a confirmed hit briefly fades its own endpoint lens so the hit strokes can show through.
+- Matched native captures in the current City stadium used six level-100 beams, the actual Hollow Purple template, the same camera and a staged hit anchor. The target outline and 16 hit strokes became visible as active pooled beam pieces fell from 406 to 102, enabled template Beams from 30 to 15, and emitters from 24 to four. The client integration and template doubles also cover restoration after a beam ends, the 0.28-second hit expires, the detailed range changes, and reduced effects take precedence.
+- The exact 24-beam local Studio benchmark recorded 496 regular versus 192 crowded active pooled beam pieces, 120 versus 51 enabled template Beams and 96 versus four emitters. The measured script-section p95 fell from 5.63 ms to 2.05 ms; all phases stayed near the same 67 ms frame interval. These are synthetic native rendering measurements, not GPU, production multiplayer, or physical-phone performance. Independent Critic cleared the change.
+- Next: run a native multi-client combat/readability pass with a defender’s view and collect real microphone and physical-device evidence. Finish the current-world pass before the sound-themed PvP world and return portal.
+
 ## Confirmed hits in overlapping beams
 
 - Six nearby level-100 beams exhausted secondary geometry on the previous native renderer. A valid simulated contact was accepted but allocated zero strokes. The renderer now reserves 16 of the 512 pooled Parts for the local confirmed-hit effect and limits secondary geometry to 376. All 24 admitted beams still have five core slots each. On matched local Studio builds with the actual Hollow Purple template, contact allocated 0 strokes before and 16 after. The expiry and teardown probe returned the slots and cleared the pool. The matched captures still show dense visual overlap at the target, so allocation alone does not establish readability.

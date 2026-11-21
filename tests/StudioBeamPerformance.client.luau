@@ -16,7 +16,7 @@ local manager=Beams.new(Visuals.Create,Visuals.Update,Visuals.Destroy)
 local beamFrame=0;local tracked={};local connection,destruction,watchdog
 local done=false;local checks=0;local phase=1;local phaseStart=nil;local nextPulse=0
 local sampleFirst,sampleLast
-local names={"baseline","regular24","reduced24"};local frames,costs={},{};local rows={}
+local names={"baseline","regular24","crowded24","reduced24"};local frames,costs={},{};local rows={}
 local function check(v,m)assert(v,m);checks+=1 end
 local function summary(values)
  table.sort(values);local n=#values;assert(n>0,"No samples")
@@ -74,7 +74,7 @@ connection=Run.RenderStepped:Connect(function(dt)
   if not fixedViewport and not settleCamera(now) then return end
   check(camera.ViewportSize==fixedViewport,"Viewport changed; comparison invalid")
   check(workspace.CurrentCamera==camera and camera.CameraType==Enum.CameraType.Scriptable and camera.CFrame==fixedFrame and camera.FieldOfView==fixedFov,"Camera changed; comparison invalid")
-  if phase==4 then
+  if phase>#names then
    manager:Expire(now)
    if manager.count==0 then finish(true)end
    return
@@ -86,14 +86,16 @@ connection=Run.RenderStepped:Connect(function(dt)
     for id=1,24 do
      local x=((id-1)%6-2.5)*2
      local z=math.floor((id-1)/6)*2
-     check(manager:Update(id,now,Vector3.new(x,8,z),Vector3.new(-x*.24,0,-40),40,7,Color3.fromRGB(70,220,255),100,phase==3),"Admission rejected")
+     check(manager:Update(id,now,Vector3.new(x,8,z),Vector3.new(-x*.24,0,-40),40,7,Color3.fromRGB(70,220,255),100,phase==4),"Admission rejected")
     end
    end
    manager:Expire(now)
    beamFrame+=dt
    if beamFrame>=1/30 then
     beamFrame=0
-    for _,entry in pairs(manager.entries)do Visuals.Animate(entry.visual,now,camera.CFrame.Position,phase==3)end
+    local viewer=camera.CFrame.Position
+    local crowded=phase==3 and Visuals.IsCrowded(manager.entries,viewer)
+    for id,entry in pairs(manager.entries)do Visuals.Animate(entry.visual,now,viewer,phase==4,false,false,crowded and id~=1)end
    end
   end
   local cost=os.clock()-started
@@ -101,11 +103,13 @@ connection=Run.RenderStepped:Connect(function(dt)
   if now-phaseStart>=7 then
    local allocated,cached=Visuals.Budget();local visible,enabledBeams,enabledEmitters=0,0,0
    check(allocated<=Style.MaxParts,"Allocation cap exceeded")
-   for _,entry in pairs(manager.entries)do
+   for id,entry in pairs(manager.entries)do
     local vfx=entry.visual.vfx
     check(vfx and vfx.styleId=="hollow_purple","Production Hollow Purple template missing")
+    local detailed=phase==2 or (phase==3 and id==1)
     local cores,emitters=0,0
     for _,beam in ipairs(vfx.beams)do
+     check(beam.inst.Enabled==(beam.isCore or detailed),"Unexpected template visibility")
      if beam.inst.Enabled then
       enabledBeams+=1
       if beam.isCore then cores+=1 end
@@ -113,16 +117,17 @@ connection=Run.RenderStepped:Connect(function(dt)
     end
     for _,emitter in ipairs(vfx.emitters)do if emitter.inst.Enabled then emitters+=1 end end
     check(cores==2,"Template core missing on one or more rigs")
-    check((phase==2 and emitters>0) or (phase==3 and emitters==0),"Unexpected template emission")
+    check((detailed and emitters>0) or (not detailed and emitters==0),"Unexpected template emission")
+    if phase==3 then check(detailed and #entry.visual.parts>5 or not detailed and #entry.visual.parts==5,"Crowded geometry wrong")end
     enabledEmitters+=emitters
     for _,part in ipairs(entry.visual.parts)do
      tracked[part]=true;visible+=1
      check(part.Parent==workspace and not part.CanCollide and not part.CanQuery and not part.CanTouch,"Invalid cosmetic part")
     end
-    check(#entry.visual.parts>=(phase==3 and 4 or 5),"Core starved")
+    check(#entry.visual.parts>=(phase==4 and 4 or 5),"Core starved")
    end
    check(manager.count==(phase==1 and 0 or 24),"Manager cardinality")
-   if phase==3 then check(visible==96,"Reduced geometry count")end
+   if phase==4 then check(visible==96,"Reduced geometry count")end
    if phase>1 then check(not manager:Update(25,now,Vector3.zero,Vector3.xAxis,40,7,Color3.new(1,1,1),100,false),"25th admission accepted")end
    local row={buildIdentity=buildIdentity,phase=names[phase],sampleSpanSeconds=sampleLast-sampleFirst,sampledFrameSeconds=0,frame=summary(frames),script=summary(costs),allocated=allocated,cached=cached,visible=visible,count=manager.count,enabledBeams=enabledBeams,enabledEmitters=enabledEmitters}
    for _,value in ipairs(frames)do row.sampledFrameSeconds+=value end

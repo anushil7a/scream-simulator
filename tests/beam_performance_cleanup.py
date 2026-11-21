@@ -63,7 +63,7 @@ print('PASS builder cadence/identity contracts and 4 rejection controls')
 
 # Actual readiness helper and actual callback preamble; no phase/performance simulation.
 settle=s[s.index('local function settleCamera('):s.index('connection=Run.RenderStepped:Connect')]
-preamble=s[s.index('connection=Run.RenderStepped:Connect'):s.index('  if phase==4 then')]
+preamble=s[s.index('connection=Run.RenderStepped:Connect'):s.index('  if phase>#names then')]
 ready_setup=r"""
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 for _,case in ipairs({'initial-small','initial-nil','resize','replace','timeout','destroy','drift'})do

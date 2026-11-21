@@ -1577,8 +1577,11 @@ connectClient(Run.RenderStepped,function(dt)
    if camera then
     local attack=sustainedControl.attack
     local contactAllowed=windowFocused and not beamBlocked() and attack and attack.acknowledged and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==attack.sequence
-    for _,entry in pairs(sustainedBeams.entries) do
-     BeamVisuals.Animate(entry.visual,now,camera.CFrame.Position,data.settings.reducedShake,(contactAllowed and entry.visual.contactSequence==attack.sequence)==true,platformReducedMotion)
+    local viewer=camera.CFrame.Position
+    local crowded=BeamVisuals.IsCrowded(sustainedBeams.entries,viewer)
+    local ownTestKey="test:"..p.UserId
+    for id,entry in pairs(sustainedBeams.entries) do
+     BeamVisuals.Animate(entry.visual,now,viewer,data.settings.reducedShake,(contactAllowed and entry.visual.contactSequence==attack.sequence)==true,platformReducedMotion,crowded and id~=p.UserId and id~=ownTestKey)
     end
    end
   end
