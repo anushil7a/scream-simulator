@@ -22,6 +22,11 @@ local laneEdgeColors={
  TwinSirens=Color3.fromRGB(37,44,54),
  OrganFlames=Color3.fromRGB(245,225,177),
 }
+local escapeHints={
+ BellCascade="Step off the circles",
+ OrganFlames="Step between lanes",
+ TwinSirens="Find the center gap",
+}
 local function markLaneEdges(marker,color)
  local width,length=marker.Size.X,marker.Size.Z
  local thickness=.25
@@ -161,7 +166,12 @@ function Service.new(parent,callbacks)
     local warning=Instance.new("Folder");warning.Name="DodgeWarning"
     warning:SetAttribute("BossAttackSerial",strike.serial)
     warning:SetAttribute("BossMarkerCount",#strike.shapes)
-    if strike.style=="BellCascade" then warning:SetAttribute("BossAttackHint",strike.name) end
+    local hint=escapeHints[strike.style]
+    if hint then
+     warning:SetAttribute("BossAttackHint",hint)
+     -- The visible Core can patrol away from someone still inside the arena.
+     warning:SetAttribute("BossHintRange",b.spec.radius+b.spec.moveLeash+1)
+    end
     local edgeColor=laneEdgeColors[strike.style]
     for _,shape in ipairs(strike.shapes) do
      local pos=b.center+Vector3.new(shape.x,.5,shape.z)

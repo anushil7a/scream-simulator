@@ -210,7 +210,9 @@ for _,spec in ipairs(Catalog.Entries) do
  service:Hit(boss,attacker,1,2002);service.nextStep=0;service:Step(2002)
  local warning=boss.warning
  local hint=warning:GetAttribute("BossAttackHint")
- check(hint==(spec.id=="conductor" and "Step off the circles" or nil),"only Bell Cascade gives the escape instruction")
+ local expectedHints={BellCascade="Step off the circles",OrganFlames="Step between lanes",TwinSirens="Find the center gap"}
+ check(hint==expectedHints[boss.strike.style],"Wrong escape instruction for the committed pattern")
+ check(warning:GetAttribute("BossHintRange")== (hint and spec.radius+spec.moveLeash+1 or nil),"Escape range should include patrol reach")
  contexts[90].position=boss.center+Vector3.new(spec.radius+1,3,0)
  service:Step(2002.2)
  check(not boss.strike and not boss.warning and warning.destroyed,"empty encounter cancels before impact")
@@ -317,6 +319,7 @@ for i,case in ipairs({{"leviathan",2,{37,44,54}},{"ignis",3,{245,225,177}}}) do
  local tester=player(122+i,boss)
  contexts[122+i].position=boss.center+Vector3.new(0,3,23)
  service:Hit(boss,tester,1,now);service:Step(now)
+ check(boss.warning:GetAttribute("BossAttackHint")== (id=="ignis" and "Step between lanes" or "Find the center gap"),"Lane warning omitted its escape instruction")
  local edgeCount=0
  for _,p in ipairs(created) do
   local marker=p.Parent

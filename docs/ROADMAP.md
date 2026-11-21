@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Escape cues for Ignis and the Captain
+
+- The existing status lane previously showed **SAFE • PvP OFF** throughout both ranged lane attacks. In disposable Studio it now shows **Step between lanes** during Organ Flames and **Find the center gap** during Twin Sirens, then restores the normal zone cue. Bell Cascade retains **Step off the circles**. Active PvP still gets priority. The server attaches guidance to complete warnings and the local display checks the matching cast, time and range even with boss accents disabled.
+- Ignis fit with three staged overlapping beams. The Captain fit inside the 190 × 14 label at a 567 × 242 usable viewport. The native standing Ignis probe took 35 damage. The Captain and Conductor gap probes took zero damage after walking out of the warning without dodge immunity. These were temporary profiles with scripted movement and device emulation.
+- Critic cleared the source. Focused checks passed 8,317 service assertions, 46 warning lifecycle checks, six effect negative controls and 14,870 map/PvP cue assertions. All 312 local checks and builds passed with matching inputs, and the disposable Studio sessions closed. Next, assess real-player recognition on physical devices and continue checking current-world combat before the separate PvP arena.
+
 ## Ignis lane borders under overlapping beams
 
 - In disposable Studio at 750 × 381, three synthetic level-50 beam visuals crossed the three committed Organ Flames lanes. With the boss accent effects disabled, the blue warning fill and blue beam light were hard to separate. The updated warning has thin warm borders along the existing lane edges. Matched captures used a fixed camera and a client-only copy of the actual warning to inspect the look after impact. The rebuilt view retained all three hazards and 12 non-colliding, non-querying edges, and the live warning cleared after impact.

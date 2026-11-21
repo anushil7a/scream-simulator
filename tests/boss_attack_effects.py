@@ -76,11 +76,13 @@ local marker={Name='Hazard',Position=pos,IsA=function(_,class)return class=='Par
 local a={BossAttackSerial=1,BossState='Windup',BossAttackAt=2}
 local children={marker, marker}
 local expected,warningSerial,hint=2,1,nil
+local hintRange=30
 local function newWarning()
  return {GetChildren=function()return children end,GetAttribute=function(_,key)
   if key=='BossMarkerCount' then return expected end
   if key=='BossAttackSerial' then return warningSerial end
   if key=='BossAttackHint' then return hint end
+  if key=='BossHintRange' then return hintRange end
  end}
 end
 local warning=newWarning()
@@ -136,6 +138,16 @@ a.BossAttackImpactSerial=4;callback(.05);check(not attrs.BossCombatHint)
 local active=warning
 a.BossAttackImpactSerial=nil;warning=nil;callback(.05);check(not attrs.BossCombatHint)
 warning=active;callback(.05);check(attrs.BossCombatHint==hint)
+for _,case in ipairs({{'ignis','Step between lanes',3},{'leviathan','Find the center gap',2}}) do
+ model.Name,hint,expected=table.unpack(case);hintRange=43
+ children={marker,marker}
+ if expected==3 then table.insert(children,marker) end
+ delta.X=42;callback(.05);check(attrs.BossCombatHint==hint)
+ delta.X=44;callback(.05);check(not attrs.BossCombatHint)
+ delta.X=42;callback(.05);check(attrs.BossCombatHint==hint)
+ table.remove(children);callback(.05);check(not attrs.BossCombatHint)
+ table.insert(children,marker);callback(.05);check(attrs.BossCombatHint==hint)
+end
 destroy();check(cleared==8 and disconnected and not attrs.BossCombatHint)
 callback(.05);check(built==8)
 print('PASS '..n..' actual client warning/impact/cancel/reduced/respawn/teardown checks')
@@ -148,7 +160,8 @@ for name,source in [
  ('partial warning admission',pre2+client.replace('if #children==expected then','if #children>0 then').replace('if #markers==expected then','if #markers>0 then')+post2),
  ('stale warning folder',pre2+client.replace('warning:GetAttribute("BossAttackSerial")==serial and ','')+post2),
  ('stale-warning admission',pre2+client.replace('and model:GetAttribute("BossState")=="Windup"','')+post2),
- ('reduced effects hiding the hint',pre2+client.replace(' updateHint(player,root,bosses,now)',' if not reduced() then updateHint(player,root,bosses,now) end')+post2),
+ ('reduced effects hiding the hint',pre2+client.replace(' updateHint(player,root,models,now)',' if not reduced() then updateHint(player,root,models,now) end')+post2),
+ ('fixed 30-stud hint radius',pre2+client.replace('distance<=range^2','distance<=30^2')+post2),
  ('captain siren motif',pre+module.replace('and width<length then','and false then')+post),
 ]:
  with tempfile.NamedTemporaryFile('w',dir=R/'tests',suffix='.luau',delete=False) as f:

@@ -12,23 +12,29 @@ local function reduced()
  return not ok or value==true or Players.LocalPlayer:GetAttribute("BossReducedEffects")~=false
 end
 local visibleHint
-local function updateHint(player,root,bosses,now)
- local model=root and bosses and bosses:FindFirstChild("conductor")
- local core=model and model:FindFirstChild("Core")
- local warning=core and model:FindFirstChild("DodgeWarning")
+local function updateHint(player,root,models,now)
  local message
- if warning and model:GetAttribute("BossState")=="Windup" then
-  local serial=model:GetAttribute("BossAttackSerial")
-  local deadline=model:GetAttribute("BossAttackAt")
-  local delta=root.Position-core.Position
-  if type(serial)=="number" and warning:GetAttribute("BossAttackSerial")==serial
-   and model:GetAttribute("BossAttackImpactSerial")~=serial and type(deadline)=="number" and deadline>now
-   and math.abs(delta.Y)<=14 and delta.X^2+delta.Z^2<=30^2
-   and #warning:GetChildren()==warning:GetAttribute("BossMarkerCount") then
-   message=warning:GetAttribute("BossAttackHint")
+ if root and models then
+  local nearest=math.huge
+  for _,model in ipairs(models) do
+   local core=model:FindFirstChild("Core")
+   local warning=core and model:FindFirstChild("DodgeWarning")
+   local hint=warning and warning:GetAttribute("BossAttackHint")
+   if type(hint)~="string" or model:GetAttribute("BossState")~="Windup" then continue end
+   local serial=model:GetAttribute("BossAttackSerial")
+   local deadline=model:GetAttribute("BossAttackAt")
+   local range=warning:GetAttribute("BossHintRange")
+   local delta=root.Position-core.Position
+   local distance=delta.X^2+delta.Z^2
+   local expected=warning:GetAttribute("BossMarkerCount")
+   if type(serial)=="number" and warning:GetAttribute("BossAttackSerial")==serial
+    and model:GetAttribute("BossAttackImpactSerial")~=serial and type(deadline)=="number" and deadline>now
+    and type(range)=="number" and math.abs(delta.Y)<=14 and distance<=range^2 and distance<nearest
+    and type(expected)=="number" and expected>=1 and expected<=16 and #warning:GetChildren()==expected then
+    message=hint;nearest=distance
+   end
   end
  end
- if type(message)~="string" then message=nil end
  if message==visibleHint then return end
  player:SetAttribute("BossCombatHint",message);visibleHint=message
 end
@@ -39,9 +45,10 @@ connection=Run.Heartbeat:Connect(function(dt)
  local player=Players.LocalPlayer;local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
  local world=workspace:FindFirstChild("ScreamSimulatorWorld");local bosses=world and world:FindFirstChild("BossEncounters")
  local now=workspace:GetServerTimeNow();local seen={};local count=0
- updateHint(player,root,bosses,now)
- if root and bosses and not reduced() then
-  for _,model in ipairs(bosses:GetChildren()) do
+ local models=root and bosses and bosses:GetChildren()
+ updateHint(player,root,models,now)
+ if models and not reduced() then
+  for _,model in ipairs(models) do
    local core=model:FindFirstChild("Core")
    if core and (core.Position-root.Position).Magnitude<=Effects.Distance and count<5 then
     count+=1;seen[model]=true
