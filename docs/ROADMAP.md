@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Beam endpoints leave more of the target visible
+
+- The nearby level-100 yellow beam ended in a 12.915-stud-wide disc that washed out a staged character just beyond the endpoint. A matched oblique Studio view showed the character more clearly after the cap shrank to 4.55 studs wide and 0.819 studs deep. Idle transparency moved from .18 to .58. The level-1 endpoint remained visible at the same 1.20-stud diameter.
+- The endpoint stays within the rendered beam and still fades on confirmed contact (.86) and during crowding (.95). The native fixture counted 16 retained contact strokes, five crowded core parts, and four reduced-mode parts, and reported a cleared pool after teardown. It used actual Studio Parts and staged visuals with a stationary avatar. It did not exercise real combat, voice, or a physical phone.
+- Independent review found a stale hit-expiry expectation, which was corrected and rerun. The silhouette, contact, high-tier, milestone and client integration suites passed with their negative controls. All 312 local checks and builds passed with matching inputs. Both disposable sessions closed.
+
 ## Yellow base across all beam tiers
 
 - The renderer previously replaced the server's resolved color with reference palettes. A staged level-100 green packet rendered purple. All tier recipes now use the existing yellow base (`#FFCB63`) or the server-resolved saved color. The tier shapes and motion continue to come from the existing recipes. Template colors update when the color value changes, without rebuilding the active effect.

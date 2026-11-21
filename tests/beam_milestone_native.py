@@ -109,7 +109,7 @@ for _,width in ipairs({1,7})do
    for _,entry in ipairs(v.emitters)do check(not entry.inst.Enabled,'Crowded mode kept particles')end
    check(r.parts[4].Transparency==.95,'Crowded mode retained the opaque endpoint lens')
    Visuals.Animate(r,r.born+.6,Vector3.zero,false,true,false)
-   check(#r.parts>5 and r.parts[4].Transparency==.18,'Crowded mode did not restore after overlap')
+   check(#r.parts>5 and r.parts[4].Transparency==.58,'Crowded mode did not restore after overlap')
    -- Each observer comfort source, far LOD, and restoration on the SAME rig.
    for _,mode in ipairs({{true,false,0},{false,true,0},{false,false,111}})do
     Visuals.Animate(r,r.born+.7,vec(0,0,mode[3]),mode[1],true,mode[2])
@@ -228,7 +228,7 @@ for old,new,message in [
  ('local quiet=reduced or rig.reduced or contactReduced','local quiet=reduced or rig.reduced','quiet native retained dynamic parts'),
  ('b.TextureSpeed=far and 0 or entry.baseTextureSpeed','b.TextureSpeed=entry.baseTextureSpeed','quiet template motion'),
  ('local showSecondary=not far and not suppressSecondary','local showSecondary=not far','Crowded mode kept particles'),
- ('local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .18','local endAlpha=.18','Crowded mode retained the opaque endpoint lens'),
+ ('local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .58','local endAlpha=.58','Crowded mode retained the opaque endpoint lens'),
  ('local visibilityChanged=vfx.showSecondary~=showSecondary','local visibilityChanged=true','Steady mode rewrote template properties'),
  ('math.min(entry.baseRate,60/#vfx.emitters)','entry.baseRate','Initial aggregate particle rate cap missing'),
  ('entry.inst.Color=entry.isCore and core or accent','entry.inst.Color=entry.inst.Color','Explicit tint did not reach the cloned beam'),

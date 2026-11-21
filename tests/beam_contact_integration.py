@@ -206,7 +206,7 @@ check(#sustainedBeams.entries['test:7'].visual.parts>5,'Crowded mode removed loc
 send('TestBeamEnd',nil,7);send('SustainedBeamEnd',nil,9);frame(1/30)
 check(#sustainedBeams.entries[8].visual.parts>5,'Secondary geometry did not restore after overlap')
 clock+=.29;beam();frame(1/30)
-check(rig.parts[4].Transparency==.18 and #rig.contact.parts==0,'Endpoint lens did not restore after hit expiry')
+check(rig.parts[4].Transparency==.58 and #rig.contact.parts==0,'Endpoint lens did not restore after hit expiry')
 rig,id=make()
 send('SustainedBeam',vec(0,0,10),7,'Gold',Vector3.zAxis,50,7,nil,100)
 send('SustainedBeam',vec(20,0,60),8,'Gold',vec(-1,0,0),20,7,nil,100)

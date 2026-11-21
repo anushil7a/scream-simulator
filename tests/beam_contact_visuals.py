@@ -38,7 +38,7 @@ local function equal(a,b)
  if a.R~=nil then return a.R==b.R and a.G==b.G and a.B==b.B end
  return (not a.Position and not b.Position or vector(a.Position,b.Position)) and (not a.Target and not b.Target or vector(a.Target,b.Target)) and vector(a.RightVector,b.RightVector) and vector(a.UpVector,b.UpVector)
 end
-local function unchanged(a,b,highSpec,hitLens)
+local function unchanged(a,b,highSpec,lensAlpha)
  check(#a==#b,'Original beam geometry count changed')
  for i,p in ipairs(a)do
   local collarEnd=highSpec and 5+highSpec.rings*10 or 0
@@ -48,7 +48,13 @@ local function unchanged(a,b,highSpec,hitLens)
   local spark=highSpec and i>ribbonEnd
   for _,key in ipairs({'Name','Anchored','CanCollide','CanTouch','CanQuery','CastShadow','Material','TopSurface','BottomSurface','Shape','Size','CFrame','Color','Transparency','Parent'})do
    local styled=highSpec and i<=2 and key=='Transparency' or (support or ribbon or spark) and (key=='Material' or key=='Transparency') or (support or ribbon) and key=='Color'
-   if hitLens and i==4 and key=='Transparency' then check(b[i].Transparency==.86,'Confirmed hit did not fade the endpoint lens')
+   if lensAlpha and i==4 and key=='Transparency' then
+    check(b[i].Transparency==lensAlpha,lensAlpha==.86 and 'Confirmed hit did not fade the endpoint lens' or 'Idle termination lens obscures the target')
+   elseif lensAlpha and i==4 and key=='Size' then
+    local diameter=math.min(p.Size.Y,7*.65)
+    check(near(b[i].Size.Y,diameter) and near(b[i].Size.Z,diameter) and near(b[i].Size.X,math.min(p.Size.X,diameter*.18)),'Unexpected endpoint lens size')
+   elseif lensAlpha and i==4 and key=='CFrame' then
+    check(equal(p.CFrame.Target,b[i].CFrame.Target) and near(b[i].CFrame.Position.Z,b[i].CFrame.Target.Z-b[i].Size.X*.5),'Endpoint lens was moved off the beam')
    elseif support and key=='Size' then check(p.Size.X==b[i].Size.X,'Original supporting collar length changed')
    elseif not styled then check(equal(p[key],b[i][key]),'Original beam property changed: '..i..' '..key)end
   end
@@ -84,9 +90,10 @@ for _,level in ipairs({1,9,10,19,20,29,30,39,40,49,50,59,60,69,70,79,80,89,90,99
    local time=clock+.6;local viewer=vec(0,0,mode[2])
    local highSpec=level>=80 and not mode[1] and mode[2]==0 and StyleSource.Detail(level,false,0) or nil
    Baseline.Animate(old,time,viewer,mode[1]);Visuals.Animate(r,time,viewer,mode[1])
-   unchanged(old.parts,r.parts,highSpec);check(#r.contact.parts==0,'Endpoint alone produced contact')
+   local regular=not mode[1] and mode[2]==0
+   unchanged(old.parts,r.parts,highSpec,regular and .58);check(#r.contact.parts==0,'Endpoint alone produced contact')
    check(Visuals.Contact(r,vec(2,1,24),time,level),'Valid contact rejected')
-   Visuals.Animate(r,time,viewer,mode[1]);unchanged(old.parts,r.parts,highSpec,not mode[1] and mode[2]==0)
+   Visuals.Animate(r,time,viewer,mode[1]);unchanged(old.parts,r.parts,highSpec,regular and .86)
    check(#r.contact.parts==(mode[2]>180 and 0 or (mode[1] or mode[2]>110) and 8 or 16),'Contact complexity changed')
    Baseline.Destroy(old);Visuals.Destroy(r)
   end
@@ -232,7 +239,7 @@ def main():
             ('local coreLimit,contactLimit=24*5,16', 'local coreLimit,contactLimit=24*5,0', 'Contact complexity changed'),
             ('detail=Style.MaxParts-coreLimit-contactLimit', 'detail=Style.MaxParts-coreLimit', 'Contact pressure starved beam core'),
             ('partKind[part]=nil;inUse[kind]-=1', 'partKind[part]=nil', 'Contact complexity changed'),
-            ('rig.contactPosition and .86 or .18', 'rig.contactPosition and .18 or .18', 'Confirmed hit did not fade the endpoint lens'),
+            ('rig.contactPosition and .86 or .58', 'rig.contactPosition and .58 or .58', 'Confirmed hit did not fade the endpoint lens'),
             ('for _,part in ipairs(rig.contact.parts) do release(part) end', 'for _,part in ipairs(rig.contact.parts) do end', 'Contact complexity changed'),
             ('local from=center+radial*inner;local to=center+radial*extent', 'local from=center;local to=center+radial*extent', 'Contact stroke lost open center'),
             ('local to=center+radial*extent', 'local to=center-radial*extent', 'Contact stroke not radial/outward'),

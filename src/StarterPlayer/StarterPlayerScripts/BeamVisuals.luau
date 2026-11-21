@@ -477,10 +477,11 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,su
   if quiet or distance>Style.FarDistance then
    line(rig,finish-dir*math.min(length,.12),finish,radius*.8,color,.55)
   else
-   -- An energy termination lens, not a hit-confirmation flash. Stay within range.
-   local depth=math.min(length,radius*.22)
-   local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .18
-   line(rig,finish-dir*depth,finish,radius*1.25,color,endAlpha,Enum.Material.SmoothPlastic)
+   -- Keep the endpoint close to the spine so large beams don't hide the defender.
+   local diameter=math.min(radius*1.25,width*.65)
+   local depth=math.min(length,radius*.22,diameter*.18)
+   local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .58
+   line(rig,finish-dir*depth,finish,diameter,color,endAlpha,Enum.Material.SmoothPlastic)
   end
   if not quiet and distance<=Style.FarDistance then
    -- Thin axial ignition streak, never a launch sphere.

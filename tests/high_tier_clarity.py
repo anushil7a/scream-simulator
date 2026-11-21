@@ -45,7 +45,7 @@ for _,level in ipairs({79,80,89,90,99,100})do
    Visuals.Update(current,Vector3.zero,Vector3.zAxis,40,7,tint,level,false)
    Baseline.Update(old,Vector3.zero,Vector3.zAxis,40,7,tint,level,false)
    local time=clock+age;Visuals.Animate(current,time,Vector3.zero,false);Baseline.Animate(old,time,Vector3.zero,false)
-   unchanged(old.parts,current.parts,level>=80 and spec or nil)
+   unchanged(old.parts,current.parts,level>=80 and spec or nil,.58)
    if level>=80 then hierarchy(current,spec,tint,age)end
    check(Visuals.Contact(current,vec(2,1,24),time,7) and Baseline.Contact(old,vec(2,1,24),time,7),'Contact differential setup failed')
    for _,mode in ipairs({{false,0,false},{false,0,true},{true,0,false},{false,0,false,true},{false,111,false},{false,181,false}})do
@@ -55,7 +55,7 @@ for _,level in ipairs({79,80,89,90,99,100})do
     Visuals.Animate(current,time+.07,viewer,mode[1],true,mode[3]);Baseline.Animate(old,time+.07,viewer,mode[1],true,mode[3])
     local nearRegular=not mode[1] and not mode[3] and not mode[4] and mode[2]==0
     local highSpec=level>=80 and not mode[1] and not mode[4] and mode[2]==0 and spec or nil
-    unchanged(old.parts,current.parts,highSpec,nearRegular)
+    unchanged(old.parts,current.parts,highSpec,nearRegular and .86)
     if mode[1] or mode[3] or mode[4] or mode[2]>110 then
      unchanged(old.contact.parts,current.contact.parts)
     else

@@ -37,8 +37,10 @@ for _,level in ipairs({1,40,100})do
   check(same(r.parts[2].Color,tint) and near(r.parts[2].Size.Y,radius*.85),'Semantic body tint/diameter changed')
   check(r.parts[2].Transparency==(level>=80 and .7 or .18),'Body transparency tier boundary changed')
   check(near(r.parts[3].Size.Y,radius*.1) and same(r.parts[3].Color,tint:Lerp(white,.72)),'Hot spine lost hierarchy/tint')
-  check(r.parts[4].Shape==Enum.PartType.Cylinder and near(r.parts[4].Size.X,radius*.22) and near(r.parts[4].Size.Y,radius*1.25),'Termination lens missing')
-  check(near(r.parts[4].CFrame.Position.Z,40-radius*.11) and near(r.parts[4].CFrame.Target.Z,40),'Lens exceeds endpoint')
+  local diameter=math.min(radius*1.25,7*.65);local depth=math.min(radius*.22,diameter*.18)
+  check(r.parts[4].Shape==Enum.PartType.Cylinder and near(r.parts[4].Size.X,depth) and near(r.parts[4].Size.Y,diameter),'Termination lens has the wrong size')
+  check(r.parts[4].Transparency==.58,'Idle termination lens obscures the target')
+  check(near(r.parts[4].CFrame.Position.Z,40-depth*.5) and near(r.parts[4].CFrame.Target.Z,40),'Lens exceeds endpoint')
   check(r.parts[5].Shape==Enum.PartType.Cylinder and near(r.parts[5].Size.X,1.5) and same(r.parts[5].Color,tint),'Emitter obscures origin')
   local travel=(age*(.6+spec.tier*.025)+1/spec.rings)%1;local rr=radius*(.85+.2*math.sin(travel*math.pi))*(spec.tier>=1 and 1.25 or 1)
   local angleA=age*.9+.6;local angleB=.72*math.pi/5+angleA
@@ -92,9 +94,10 @@ def main():
  if a.negative_controls:
   cases=[('detailed and 1.35 or 1.65','detailed and 1.65 or 1.65','Regular body not slim'),('color:Lerp(white,.72)','white','Hot spine lost'),('finish-dir*depth,finish','finish,finish+dir*depth','Lens exceeds endpoint'),('(i-.28)*math.pi/5','i*math.pi/5','Collar has no open channel')]
   cases=cases+[('detailed and .10 or .28','detailed and .10 or .20','Reduced spine changed')]
+  cases += [('math.min(radius*1.25,width*.65)','radius*1.25','Termination lens has the wrong size'),('math.min(length,radius*.22,diameter*.18)','math.min(length,radius*.22)','Termination lens has the wrong size'),('rig.contactPosition and .86 or .58','rig.contactPosition and .86 or .18','Idle termination lens obscures the target')]
   for old,new,diagnostic in cases:
    assert s.count(old)==1,old;r=run(s.replace(old,new));assert r.returncode and diagnostic in r.stderr,r.stdout+r.stderr
   for old,new,diagnostic in [('part.Material=material or Enum.Material.Neon','part.Material=Enum.Material.Neon','Wide regular body still emissive'),('part.Material=material or Enum.Material.Neon','if material then part.Material=material end','Reused quiet/far material not reset')]:
    assert s.count(old)==1;r=run(s.replace(old,new));assert r.returncode and diagnostic in r.stderr,r.stdout+r.stderr
-  print('PASS 7 targeted negative controls')
+  print('PASS 10 targeted negative controls')
 if __name__=='__main__':main()
