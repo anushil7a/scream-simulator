@@ -1,0 +1,237 @@
+{
+  "baselineCommit": "1ff001e47400c565cc51f3c1bf9d4c35d2d37ae5",
+  "baselineArtifactSha256": "a5b13fbe0773c501e819b4e989760bda9bcb0c65a6c3f14f97be70d00ddbf098",
+  "candidateArtifactSha256": "38d28ab4227bf0e7d2965e7a3c14bb139d0107c47803256a78442ca4a3504431",
+  "candidateBeamVisualsSha256": "7c0b442e52fe1716b7773cd86094770c410ee506f2a51af80b0509e19a16945d",
+  "scope": "Unpublished Studio, one local player, Academy fixed camera within a running Map10 client, synthetic level-100 Hollow Purple beams on the production visual and lifetime modules. Milliseconds. No GPU, physical device, live multiplayer or microphone measurement.",
+  "setup": {
+    "camera": [
+      -320,
+      56,
+      -234
+    ],
+    "cameraTarget": [
+      -300,
+      48,
+      -312
+    ],
+    "fieldOfView": 65,
+    "origin": [
+      -320,
+      35,
+      -255
+    ],
+    "beamWidth": 7,
+    "beamLength": 64,
+    "beamCount": 24,
+    "warmFrames": 35,
+    "sampleFrames": 90,
+    "pulseSeconds": 0.125,
+    "animationMinIntervalSeconds": 0.03333333333333333,
+    "rendererQualityControlled": false
+  },
+  "baseline": {
+    "ok": true,
+    "cached": 0,
+    "screen": "2042.40002, 872",
+    "rows": [
+      {
+        "beams": 0,
+        "sceneDescendants": 1912,
+        "script": {
+          "p50": 0.002,
+          "max": 0.005,
+          "p95": 0.003,
+          "n": 90
+        },
+        "emitters": 0,
+        "phase": "empty",
+        "frame": {
+          "p50": 66.665,
+          "max": 68.519,
+          "p95": 67.849,
+          "n": 90
+        },
+        "parts": 0
+      },
+      {
+        "beams": 51,
+        "sceneDescendants": 1912,
+        "script": {
+          "p50": 1.172,
+          "max": 1.405,
+          "p95": 1.291,
+          "n": 90
+        },
+        "emitters": 4,
+        "phase": "crowded",
+        "frame": {
+          "p50": 66.64,
+          "max": 68.384,
+          "p95": 67.777,
+          "n": 90
+        },
+        "animate": {
+          "p50": 1.168,
+          "max": 1.402,
+          "p95": 1.279,
+          "n": 90
+        },
+        "parts": 192
+      },
+      {
+        "beams": 120,
+        "sceneDescendants": 1912,
+        "script": {
+          "p50": 4.086,
+          "max": 6.927,
+          "p95": 4.689,
+          "n": 90
+        },
+        "emitters": 96,
+        "phase": "regular",
+        "frame": {
+          "p50": 66.629,
+          "max": 69.172,
+          "p95": 68.025,
+          "n": 90
+        },
+        "animate": {
+          "p50": 4.083,
+          "max": 6.925,
+          "p95": 4.687,
+          "n": 90
+        },
+        "parts": 496
+      },
+      {
+        "beams": 51,
+        "sceneDescendants": 1912,
+        "script": {
+          "p50": 1.137,
+          "max": 1.327,
+          "p95": 1.226,
+          "n": 90
+        },
+        "emitters": 4,
+        "phase": "crowdedRepeat",
+        "frame": {
+          "p50": 66.71,
+          "max": 68.327,
+          "p95": 67.723,
+          "n": 90
+        },
+        "animate": {
+          "p50": 1.134,
+          "max": 1.314,
+          "p95": 1.214,
+          "n": 90
+        },
+        "parts": 192
+      }
+    ],
+    "allocated": 0
+  },
+  "candidate": {
+    "ok": true,
+    "cached": 0,
+    "screen": "2042.40002, 872",
+    "rows": [
+      {
+        "beams": 0,
+        "sceneDescendants": 1912,
+        "script": {
+          "p50": 0.003,
+          "max": 0.005,
+          "p95": 0.005,
+          "n": 90
+        },
+        "emitters": 0,
+        "phase": "empty",
+        "frame": {
+          "p50": 66.631,
+          "max": 68.653,
+          "p95": 68.221,
+          "n": 90
+        },
+        "parts": 0
+      },
+      {
+        "beams": 51,
+        "sceneDescendants": 1912,
+        "script": {
+          "p50": 1.15,
+          "max": 2.179,
+          "p95": 1.347,
+          "n": 90
+        },
+        "emitters": 4,
+        "phase": "crowded",
+        "frame": {
+          "p50": 66.643,
+          "max": 68.383,
+          "p95": 67.836,
+          "n": 90
+        },
+        "animate": {
+          "p50": 1.144,
+          "max": 2.15,
+          "p95": 1.341,
+          "n": 90
+        },
+        "parts": 192
+      },
+      {
+        "beams": 120,
+        "sceneDescendants": 1912,
+        "script": {
+          "p50": 4.111,
+          "max": 6.597,
+          "p95": 4.501,
+          "n": 90
+        },
+        "emitters": 96,
+        "phase": "regular",
+        "frame": {
+          "p50": 66.79,
+          "max": 68.467,
+          "p95": 67.883,
+          "n": 90
+        },
+        "animate": {
+          "p50": 4.106,
+          "max": 6.593,
+          "p95": 4.483,
+          "n": 90
+        },
+        "parts": 496
+      },
+      {
+        "beams": 51,
+        "sceneDescendants": 1912,
+        "script": {
+          "p50": 1.148,
+          "max": 2.467,
+          "p95": 1.337,
+          "n": 90
+        },
+        "emitters": 4,
+        "phase": "crowdedRepeat",
+        "frame": {
+          "p50": 66.569,
+          "max": 68.932,
+          "p95": 67.991,
+          "n": 90
+        },
+        "animate": {
+          "p50": 1.141,
+          "max": 2.44,
+          "p95": 1.317,
+          "n": 90
+        },
+        "parts": 192
+      }
+    ],
+    "allocated": 0
+  }
+}

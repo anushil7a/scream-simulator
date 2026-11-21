@@ -50,7 +50,8 @@ local p=make('Part','Part',starter);beam(p,1.5);beam(p,.7)
 local a=make('Attachment','Attachment',p);emitter(a)
 local e=make('Part','Part1',starter);emitter(make('Attachment','Attachment',e))
 local fire=make('Folder','FireBeam',templates)
-local f=make('MeshPart','Beam',fire);beam(f,15);beam(f,8);emitter(f)
+local f=make('MeshPart','Beam',fire);beam(f,15);beam(f,8)
+for i=1,4 do emitter(f) end
 local hollow=make('Folder','HollowPurpleBeam',templates)
 local h=make('Part','Hollow Purple',hollow)
 -- Actual selected XML width sequence (two tapered cores, three outer ribbons).
@@ -127,6 +128,45 @@ for _,width in ipairs({1,7})do
  end
  manager:Clear()
 end
+local writes=0
+local function countWrites(object,keys)
+ local values,watched={},{}
+ for _,key in ipairs(keys) do
+  watched[key]=true;values[key]=object[key];rawset(object,key,nil)
+ end
+ local original=getmetatable(object)
+ setmetatable(object,{
+  __index=function(self,k)
+   if watched[k] then return values[k] end
+   return original.__index(self,k)
+  end,
+  __newindex=function(self,k,v)
+   if watched[k] then writes+=1;values[k]=v else original.__newindex(self,k,v) end
+  end,
+ })
+end
+manager:Update(1,0,Vector3.zero,Vector3.zAxis,40,7,color,100,false)
+local r=manager.entries[1].visual
+Visuals.Animate(r,r.born+.6,Vector3.zero,false,false,false)
+local v=r.vfx
+for _,e in ipairs(v.beams) do countWrites(e.inst,{'Enabled','TextureSpeed'}) end
+for _,e in ipairs(v.emitters) do countWrites(e.inst,{'Enabled','Rate'}) end
+for _,mode in ipairs({{false,false},{false,true},{true,false},{false,false}}) do
+ local reduced,crowded=table.unpack(mode)
+ Visuals.Animate(r,r.born+.7,Vector3.zero,reduced,false,false,crowded)
+ writes=0
+ local clears=v.emitters[1].inst.clearCount
+ Visuals.Animate(r,r.born+.8,Vector3.zero,reduced,false,false,crowded)
+ check(writes==0,'Steady mode rewrote template properties')
+ check(v.emitters[1].inst.clearCount==clears,'Steady mode cleared particles again')
+end
+check(v.emitters[1].inst.clearCount==1 and v.emitters[1].inst.Enabled,'Particle transition failed to clear or restore')
+manager:Update(1,1,Vector3.zero,Vector3.zAxis,40,7,color,50,false)
+Visuals.Animate(r,r.born+1,Vector3.zero,false,false,false)
+check(#r.vfx.emitters==4,'Rate cap case needs four FireBeam emitters')
+for _,entry in ipairs(r.vfx.emitters) do
+ check(entry.baseRate==18 and entry.inst.Rate==15,'Initial aggregate particle rate cap missing')
+end
 manager:Destroy();Visuals.Clear();check(Visuals.Budget()==0,'cleanup')
 print('PASS '..checks..' native-builder/manager milestone checks; Instance doubles, NOT native Studio')
 '''
@@ -149,7 +189,9 @@ for old,new,message in [
  ('b.TextureSpeed=far and 0 or entry.baseTextureSpeed','b.TextureSpeed=entry.baseTextureSpeed','quiet template motion'),
  ('local showSecondary=not far and not suppressSecondary','local showSecondary=not far','Crowded mode kept particles'),
  ('local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .18','local endAlpha=.18','Crowded mode retained the opaque endpoint lens'),
+ ('local visibilityChanged=vfx.showSecondary~=showSecondary','local visibilityChanged=true','Steady mode rewrote template properties'),
+ ('math.min(entry.baseRate,60/#vfx.emitters)','entry.baseRate','Initial aggregate particle rate cap missing'),
 ]:
  assert old in s
  result=run(s.replace(old,new));assert result.returncode and message in result.stderr,result.stdout+result.stderr
-print('PASS 6 native-path negative controls (progression, scale, motion and crowded secondary effects)')
+print('PASS 8 native-path negative controls (progression, scale, motion, crowding, redundant writes and rate cap)')

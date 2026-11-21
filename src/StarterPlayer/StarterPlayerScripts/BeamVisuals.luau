@@ -315,28 +315,37 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
  local bucket=wScale
  local rescale=vfx.lastBucket~=bucket
  if rescale then vfx.lastBucket=bucket end
- for _,entry in ipairs(vfx.beams) do
-  local b=entry.inst
-  b.Enabled=showSecondary or entry.isCore
-   b.TextureSpeed=far and 0 or entry.baseTextureSpeed
-  if rescale then
-   local factor=entry.isCore and wScale or (styleId=="hollow_purple" and entry.baseCurve0~=0 and wScale*.58 or wScale)
-   b.Width0=entry.baseW0*factor
-   b.Width1=entry.baseW1*factor
+ local visibilityChanged=vfx.showSecondary~=showSecondary
+ local motionChanged=vfx.far~=far
+ if visibilityChanged or motionChanged or rescale then
+  for _,entry in ipairs(vfx.beams) do
+   local b=entry.inst
+   if visibilityChanged then b.Enabled=showSecondary or entry.isCore end
+   if motionChanged then b.TextureSpeed=far and 0 or entry.baseTextureSpeed end
+   if rescale then
+    local factor=entry.isCore and wScale or (styleId=="hollow_purple" and entry.baseCurve0~=0 and wScale*.58 or wScale)
+    b.Width0=entry.baseW0*factor
+    b.Width1=entry.baseW1*factor
+   end
   end
  end
- for _,entry in ipairs(vfx.emitters) do
-  local em=entry.inst
-  if not showSecondary and em.Enabled then em:Clear() end
-   -- Endpoint particle clusters read as the rejected firing spheres. Only
-   -- reviewed column emitters remain; lightning is original pooled geometry.
-   em.Enabled=showSecondary and vfx.midAnchor~=nil and em.Parent==vfx.midAnchor
-   em.Rate=math.min(entry.baseRate,60/math.max(1,#vfx.emitters))
-  if rescale then
-   em.Size=scaleNumberSequence(entry.baseSize,pScale)
-   em.Speed=scaleNumberRange(entry.baseSpeed,sScale)
+ if visibilityChanged or rescale then
+  for _,entry in ipairs(vfx.emitters) do
+   local em=entry.inst
+   if visibilityChanged then
+    if not showSecondary and em.Enabled then em:Clear() end
+    -- Only reviewed column emitters remain; lightning uses pooled geometry.
+    em.Enabled=showSecondary and vfx.midAnchor~=nil and em.Parent==vfx.midAnchor
+    if vfx.showSecondary==nil then em.Rate=math.min(entry.baseRate,60/#vfx.emitters) end
+   end
+   if rescale then
+    em.Size=scaleNumberSequence(entry.baseSize,pScale)
+    em.Speed=scaleNumberRange(entry.baseSpeed,sScale)
+   end
   end
  end
+ vfx.showSecondary=showSecondary
+ vfx.far=far
  for _,off in ipairs(vfx.attOffsets) do
   if off.midFrac then
    off.att.Position=Vector3.new((off.midFrac-.5)*length,width*(off.ySide or 0),width*(off.side or 0))

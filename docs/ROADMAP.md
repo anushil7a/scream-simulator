@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Beam templates skip repeated settings writes in the city
+
+- The beam renderer now updates template visibility and motion on mode changes instead of assigning the same values on every animation update. Particle rates are capped when the template initializes, and transitions still clear hidden particles once. A 24-beam Hollow Purple overlap can avoid up to 432 unchanged property writes per steady animation update. Building, moving, resizing and rendering the beams use the existing paths.
+- In a fixed Academy scene with 1,912 streamed city descendants, both native runs showed 192 pooled parts, 51 enabled template beams and four enabled emitters while crowded. Regular mode showed 496 parts, 120 template beams and 96 emitters in both. Both paths released all allocations. Frame medians remained about 67 ms, and animation p95 moved from 4.687 to 4.483 ms in the regular control and from 1.279 to 1.341 ms in the first crowded phase. The samples show no clear timing improvement. They used one temporary player and staged visuals on desktop Studio. [Measurements](../tests/evidence/beam-performance-populated-2026-11-21.json)
+- Critic cleared the implementation. Focused tests passed 7,273 template assertions, eight negative controls and 115,412 pool assertions. All 312 local checks and builds passed with matching inputs. The disposable sessions closed. Next, profile the live city on physical hardware during representative multiplayer overlap.
+
 ## Map10 skips invisible scenery
 
 - The live Map10 build created 17 superseded lava and crystal parts and immediately hid them. Finished Map10 now skips their allocation. The standalone base builder still creates its own visible scenery when the finish pass is absent. The generator also drops 12 stadium and pavilion details that were completely inside opaque terrain or roofs. Native baseline checks placed every corner of each buried detail inside its host, with at least .191 studs of clearance.
