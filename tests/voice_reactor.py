@@ -99,6 +99,18 @@ check(short({serverReady=false},0,false)=='BEAMS: ON\nConnecting mic','Server mi
 check(short({tools=true},0,false)=='BEAMS: ON\nClose Test Tools','Blocked test tools reported ready')
 check(short({protection=1.6},0,false)=='BEAMS: ON\nProtected 1.6s','Protection reported ready')
 check(short({unconfirmed=true},0,true)=='BEAMS: ON\nGo quiet, then retry','Short rejected attempt hides recovery')
+local _,_,desktop,meter=cue(0,true,false,false,0,true,{width=820,nearNpc=true})
+check(not meter and desktop=='BEAMS: ON\nGo quiet','Desktop TALK hides the quiet cue')
+_,_,desktop,meter=cue(4.9,true,false,false,0,true,{nearNpc=true})
+check(not meter and desktop=='BEAMS: ON\n4.9s · go quiet','Desktop TALK hides cooldown guidance')
+_,_,desktop,meter=cue(0,false,false,false,0,false,{nearNpc=true})
+check(not meter and desktop=='BEAMS: OFF\n[E] to turn on','Desktop compact OFF shows the wrong input')
+_,_,desktop,meter=cue(0,true,false,false,0,true,{nearNpc=false})
+check(meter and desktop=='BEAMS: ON\n[E] to turn off','Desktop meter or normal hint did not return')
+_,_,desktop,meter=cue(0,true,false,false,0,true,{width=819,nearNpc=true})
+check(meter and desktop=='BEAMS: ON\n[E] to turn off','Desktop TALK hid the separate narrow meter')
+_,_,desktop,meter=cue(0,true,false,false,0,true,{width=567,height=314})
+check(not meter and desktop=='BEAMS: ON\nGo quiet','Short desktop lost the quiet cue')
 print('PASS '..n..' VoiceReactor contracts with UI doubles; no Studio or live mic')
 '''
 s=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
@@ -106,7 +118,8 @@ start=s.index('  captureHint=not alive')
 end=s.index('\n end\n meterText.Text=',start)
 status_code=r'''
  state=state or {}
- local viewport={Y=state.height or 381}
+ local viewport={X=state.width or 1280,Y=state.height or 381}
+ local talkTarget=state.nearNpc and {} or nil
  local alive,windowFocused,protectionRemaining,knocked,rolling,touch=true,true,state.protection or 0,false,false,state.touch==true
  local mic={ready=state.localReady~=false}
  local devPanel={Visible=state.tools==true}
@@ -123,8 +136,8 @@ status_code=r'''
  local function blocked() return false end
  local captureHint
  local castButton={}
-''' + s[s.index(' local showVoiceMeter='):s.index(' meter.Visible=gameplayVisible and showVoiceMeter')] + s[start:end] + s[s.index(' if sustainedControl then\n  -- Short touch layouts'):s.index(' -- Keep attack duration/cooldown distinct')] + '''
- return captureHint,meterFill.BackgroundColor3,castButton.Text
+''' + s[s.index(' local showVoiceMeter='):s.index(' meter.Visible=gameplayVisible and showVoiceMeter')] + s[start:end] + s[s.index(' if sustainedControl then\n  -- Keep the next voice action'):s.index(' -- Keep attack duration/cooldown distinct')] + '''
+ return captureHint,meterFill.BackgroundColor3,castButton.Text,showVoiceMeter
 '''
 toggle_label=s[s.index('local function screamToggleLabel('):s.index('local function releaseCapture(')]
 payload=setup+module+checks.replace('local function cue(',toggle_label+'local function cue(').replace('__STATUS_CODE__',status_code)
@@ -149,6 +162,7 @@ if '--negative-controls' in sys.argv:
   ('viewport.Y>=315','viewport.Y>=314','Short cue disappears one pixel early'),
   ('viewport.Y>=315','viewport.Y>=316','Short cue leaks into full meter layout'),
   ('or compactVoice and not mic.ready','', 'Local mic unavailable reported ready'),
+  ('and not (not touch and viewport.X>=820 and talkTarget~=nil)','', 'Desktop TALK hides the quiet cue'),
   ('if eligibilityHint then', 'if false then','Denied short cue suggests arming'),
  ]:
   assert payload.count(old)==1,old

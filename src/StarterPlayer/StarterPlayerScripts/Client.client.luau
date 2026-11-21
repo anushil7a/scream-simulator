@@ -1407,13 +1407,18 @@ connectClient(Run.RenderStepped,function(dt)
  if GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
  local eligibilityHint=voiceEligibilityHint(true)
  tracked.Text=trackedQuestText
+ local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+ if os.clock()>=nextResidentUi then
+  nextResidentUi=os.clock()+.1
+  talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
+ end
  local confirmed=hitFeedback:Read(os.clock())
  hitText.Visible=gameplayVisible and confirmed~=nil
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
  if protectionRemaining>0 then academy.damageTakenUntil=nil end
  academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and os.clock()<(academy.damageTakenUntil or 0)
- local showVoiceMeter=viewport.Y>=315
- local compactVoice=touch and not showVoiceMeter
+ local showVoiceMeter=viewport.Y>=315 and not (not touch and viewport.X>=820 and talkTarget~=nil)
+ local compactVoice=not showVoiceMeter
  meter.Visible=gameplayVisible and showVoiceMeter;reticle.Visible=usesCenterAim() and gameplayVisible
  local power=academy.VoiceReactor.Power(captureSource and mic:CapturePower() or mic.power)
  academy.reactor:Step(power,dt,data.settings.reducedShake or platformReducedMotion,mic.ready and (not sustainedControl or sustainedControl.armed))
@@ -1429,7 +1434,7 @@ connectClient(Run.RenderStepped,function(dt)
    or UIS:GetFocusedTextBox()~=nil and (compactVoice and "Typing · paused" or "Typing • attack paused")
    or compactVoice and devPanel.Visible and "Close Test Tools"
    or (data.micReady~=true or compactVoice and not mic.ready) and (compactVoice and "Connecting mic" or "Connecting microphone…")
-   or not sustainedControl.armed and (compactVoice and "Tap to turn on" or touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
+   or not sustainedControl.armed and (compactVoice and (touch and "Tap to turn on" or "[E] to turn on") or touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
    or voiceCooldown>0 and string.format("%.1fs · go quiet",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format(compactVoice and "Firing · %.1fs" or "Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
    or os.clock()<(sustainedControl.unconfirmedUntil or 0) and (compactVoice and "Go quiet, then retry" or "Not confirmed • quiet, then retry")
@@ -1532,7 +1537,7 @@ connectClient(Run.RenderStepped,function(dt)
  academy.trainingGuideButton.Visible=tracked.Visible and not devPanel.Visible and academy.canGuideTraining()
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  if sustainedControl then
-  -- Short touch layouts hide the meter, so keep its next action on the toggle.
+  -- Keep the next voice action on the toggle when the meter has no lane.
   local status
   if compactVoice then
    status=captureHint
@@ -1586,11 +1591,6 @@ connectClient(Run.RenderStepped,function(dt)
  if screenAttack and screenAttack.acknowledged and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==screenAttack.sequence then
   beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),Config.Auras.Gold,screenFeedbackAllowed())
  end
- local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
- if os.clock()>=nextResidentUi then
-  nextResidentUi=os.clock()+.1
-  talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
- end
  -- Pause queue time while covered, too small, interacting, or overflow remains unseen.
  local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,CityMap.MiniLayout(viewport,touch,data.devAccess==true),data.devAccess==true,talkTarget~=nil)
  if modal.Visible then noticeLayout=NoticeLayout.Modal(viewport.X,viewport.Y,shortLandscape) end
@@ -1606,8 +1606,6 @@ connectClient(Run.RenderStepped,function(dt)
  -- Keep navigation in MENU. A pending claim or inaccessible notice gets a shortcut.
  questsToggle.Visible=shop.Visible and not modal.Visible and questsToggle.Text~="QUESTS"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
- -- Preserve the interaction target; passive mic art must never sit under TALK.
- if not touch and viewport.X>=820 and talkButton.Visible then meter.Visible=false end
  if noticeView.visible and noticeLayout.moveTalk then
   talkButton.Position=UDim2.fromOffset(noticeLayout.talkX,noticeLayout.talkY)
  elseif noticeLayout.baseTalkX then
@@ -1678,8 +1676,6 @@ connectClient(Run.RenderStepped,function(dt)
  CityMap.MiniUpdate(miniMapView,root,os.clock(),miniVisible and miniMapHolder.Visible)
  talkButton.Text=touch and "TALK" or "TALK [T]"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
- -- Preserve the interaction target; passive mic art must never sit under TALK.
- if not touch and viewport.X>=820 and talkButton.Visible then meter.Visible=false end
 end)
 end)()
 if not clientCheckpoint() then return end

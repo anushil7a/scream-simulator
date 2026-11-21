@@ -148,7 +148,7 @@ if args.negative_controls:
  ('ownClient(function() beamScreenFeedback:Destroy() end)','ownClient(function() end)','Destroy retained'),
  ]
  hook_start=c.index(' -- A current local acknowledgement,',c.index('connectClient(Run.RenderStepped'))
- hook_end=c.index(' local root=',hook_start);hook=c[hook_start:hook_end]
+ hook_end=c.index(' -- Pause queue time',hook_start);hook=c[hook_start:hook_end]
  for old,new,error in cases:
   # Contact has its own acknowledgement fence; mutate only the screen hook here.
   if old in hook:

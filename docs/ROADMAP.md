@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Voice reset guidance while TALK is visible
+
+- The matched desktop Rookie fight reproduced a quiet gate waiting for silence while TALK hid the mic meter. BEAMS showed only [E] to turn off, leaving the next step on the hidden meter. When the desktop TALK lane hides the meter, or when the screen is too short for the meter, BEAMS now carries the current voice instruction.
+- Native desktop Studio at 2042 × 814 showed BEAMS: ON and Go quiet while TALK was available. It switched to Aim and speak after the synthetic mic went quiet, then displayed the same first win at 48 XP and 5 coins. Moving the staged avatar away from the NPC restored the mic meter. Existing arm/disarm behavior, quiet gating, and attack timing are unchanged.
+- Critic cleared the fix. The voice presentation fixture passed 246 assertions and six negative controls. All 312 checks and builds passed with matching input hashes. This run used a staged avatar, temporary profiles and synthetic mic/aim with the production remotes. Neither physical-device input nor live proximity voice was tested. Both disposable Studio sessions closed.
+
 ## First training win feedback
 
 - A fresh temporary Rookie fight in Studio originally displayed **KO · +48 XP** while increasing the coin balance to 5. The matching candidate displayed **Rookie defeated · +48 XP · +5 coins** on one line in the 750 × 323 phone emulator. The first hit granted neither XP nor coins, and the first win still credited 48 XP, 5 coins and one Fighter challenge count after two casts.
