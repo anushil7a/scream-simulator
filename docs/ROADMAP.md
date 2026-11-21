@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Fit the authored Megaphone on R6 and R15
+
+- The original authored horn intruded .060 studs into the standard R6 palm and .074 into the standard R15 palm. The tagged template follows the front of each hand, putting the enamel body .130 studs clear on both native mannequins. Untagged templates retain their existing offsets.
+- In a separate R15 player trial, all five meshes stayed on the hand over 42 walk frames, 49 sprint frames, 12 dodge frames and 38 staged attack-pose frames. Maximum measured handle drift was .000029 studs. The staged pose put the hand behind the avatar, from Z −.31 at rest to Z +1.44 relative to its root. Correct the equipped attack pose in the next animation pass. These samples establish attachment stability, without proving absence of body intersections throughout motion.
+- Each collaborator can recreate the template from the checked-in FBX, with **Upload to Roblox** unchecked and **Set Pivot to Scene Origin** checked. In a disposable city place, run `assets/drafts/academy-megaphone/PrepareLocalTemplate.luau` in the Studio command bar to size, color and install it. Native preparation blocked a duplicate destination and a wrong part name before changing the import. The preconfigured local file is `build/MegaphoneMotionLocalReview.rbxl`. Production keeps the procedural model, and cross-machine playback of preconfigured mesh references remains unverified.
+- Focused gear checks, three fit mutation controls, and the full local suite and builds passed. Both disposable Studio sessions closed. Real microphone play and physical-phone checks remain open.
+
 ## The Academy Megaphone clears the palm
 
 - The stock horn collar extended about .254 studs inside the sampled R15 hand. The procedural horn now sits .04 studs clear in a native R15 avatar and a rotated, one-stud R6-sized arm fixture. The leather grip stays in place and the bracket spans the gap. Both cases retained 13 massless, noncolliding parts with 13 hand welds. Three mocked hand depths and two fit-specific mutation controls passed.

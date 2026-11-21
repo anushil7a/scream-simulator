@@ -73,7 +73,8 @@ function Equipment.SyncGear(player,item)
  local mount=item.mount=="back" and (character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")) or (character:FindFirstChild("RightHand") or character:FindFirstChild("Right Arm"))
  if template and template:IsA("Model") and mount and template:FindFirstChildWhichIsA("BasePart",true) then
   local model=template:Clone();model.Name="ProgressionGear";model:SetAttribute("GearId",id);model:SetAttribute("MountKind",item.mount=="back" and "back" or "hand")
-  local offset=item.mount=="back" and CFrame.new(0,0,.8) or CFrame.new(0,-mount.Size.Y/2+.15,-.25)
+  local palmDepth=template:GetAttribute("PalmSurfaceGrip")==true and (-mount.Size.Z/2+.06) or -.25
+  local offset=item.mount=="back" and CFrame.new(0,0,.8) or CFrame.new(0,-mount.Size.Y/2+.15,palmDepth)
   model:PivotTo(mount.CFrame*offset)
   for _,part in ipairs(model:GetDescendants()) do
    if part:IsA("BasePart") then

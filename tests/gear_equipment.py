@@ -47,6 +47,22 @@ for _,item in ipairs(G.Items)do
  Equipment.SyncGear(player,nil);assert(not character:FindFirstChild('ProgressionGear'))
  template:Destroy()
 end
+local megaphone=G.Get('Megaphone')
+local prepared=node('Model',megaphone.template)
+local enamel=node('MeshPart','Warm enamel');enamel.Parent=prepared;prepared.Parent=templates
+prepared:SetAttribute('PalmSurfaceGrip',true)
+for _,size in ipairs({.6275,1,1.5}) do
+ hand.Size.Z=size
+ Equipment.SyncGear(player,megaphone)
+ local fitted=character:FindFirstChild('ProgressionGear')
+ assert(math.abs(fitted.pivot.Z+size/2-.06)<.0001,'Prepared palm grip does not follow hand depth')
+ Equipment.SyncGear(player,nil)
+end
+prepared:SetAttribute('PalmSurfaceGrip',false)
+Equipment.SyncGear(player,megaphone)
+assert(character:FindFirstChild('ProgressionGear').pivot.Z==-.25,'Untagged gear lost its legacy grip')
+Equipment.SyncGear(player,nil)
+prepared:Destroy()
 Equipment.SyncGear(player,G.Get('CelestialOrgan'))
 local fallback=character:FindFirstChild('ProgressionGear');assert(fallback:GetAttribute('FallbackVisual') and fallback:GetAttribute('MountKind')=='hand')
 Equipment.SyncGear(player,nil);assert(fallback.destroyed)
@@ -82,6 +98,7 @@ if '--negative-controls' in sys.argv:
  for old,new,reason in [
   ('math.max(0,hand.Size.Z/2-.02)','0','Megaphone mouthpiece crosses the palm'),
   ('Vector3.new(.16,.18,.24+forward)','Vector3.new(.16,.18,.24)','Megaphone bracket no longer spans mouthpiece and grip'),
+  ('template:GetAttribute("PalmSurfaceGrip")==true and (-mount.Size.Z/2+.06) or -.25','-.25','Prepared palm grip does not follow hand depth'),
  ]:
   assert code.count(old)==1,old
   run_equipment(code.replace(old,new),reason)
