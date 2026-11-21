@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Held gear faces forward during beams
+
+- On the original R15 build, a staged hold moved the hand from Z −.26 to Z +1.51 relative to the avatar and pointed the horn downward. The revised pose brings the equipped right arm forward and keeps the R15 horn near level. R6 uses a shorter reach. The brace blends out on release and yields to dodge. It uses the existing attack state and does not change beam direction, damage, gear bonuses, timing, or the yellow default color.
+- Fixing only the resting pose still allowed the default sprint swing to turn the horn backward. In the final R15 run using normal sprint input and staged sustained state, the horn stayed forward across 53 frames, with a minimum forward dot product of .924 and maximum vertical component of .317. The hand remained at least 1.13 studs in front of the root. A staged legacy release restored the resting hand position, and the production procedural Megaphone also faced forward in the held pose.
+- The native R6/R15 mannequin fixture passed 16 checks for axes, reach, simulated competing animation and dodge cleanup. It rejected the previous and idle-only poses. The disposable art build is `build/BeamPoseLocalReview.rbxl`; the production build applies the same pose to its procedural gear. Real microphone, physical-phone, R6 locomotion with default Animate, and remote-player movement remain open.
+- Independent review and the full local checks and builds passed. Both disposable Studio sessions closed. Next, check the held silhouette from an opponent's camera while the beam is visibly active.
+
 ## Fit the authored Megaphone on R6 and R15
 
 - The original authored horn intruded .060 studs into the standard R6 palm and .074 into the standard R15 palm. The tagged template follows the front of each hand, putting the enamel body .130 studs clear on both native mannequins. Untagged templates retain their existing offsets.

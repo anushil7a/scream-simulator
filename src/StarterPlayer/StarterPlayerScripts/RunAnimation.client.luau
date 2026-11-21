@@ -57,7 +57,7 @@ end))
 table.insert(connections,Run.PreSimulation:Connect(function(dt)
  for player,rig in pairs(rigs) do
   if not rig.character.Parent then continue end
-  local function pose(name,offset,jointSpace)
+  local function pose(name,offset,jointSpace,weight)
    local j=rig.joints[name]
    if j and j.Parent then
     if not jointSpace then
@@ -65,6 +65,10 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
      -- parent part's axes so forward motion stays forward on both rig types.
      local basis=j:IsA("Motor6D") and j.C0.Rotation or j.Attachment0 and j.Attachment0.CFrame.Rotation or CFrame.identity
      offset=basis:Inverse()*offset*basis
+    end
+    if weight then
+     local animated=j.Transform
+     offset=animated:ToObjectSpace(animated:Lerp(CFrame.new(animated.Position)*offset,weight))
     end
     j.Transform=j.Transform*offset;rig.offsets[j]=(rig.offsets[j] or CFrame.identity)*offset
    end
@@ -117,7 +121,22 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
   for _,name in ipairs({"Left Shoulder","LeftShoulder"}) do pose(name,CFrame.Angles(-.65*charge-.9*recoil,0,-.32*charge)) end
   local gear=rig.character:FindFirstChild("ProgressionGear")
   local equipped=rig.character:FindFirstChild("MicroSpeakerAccessory")~=nil or (gear~=nil and gear:GetAttribute("MountKind")=="hand")
-  for _,name in ipairs({"Right Shoulder","RightShoulder"}) do pose(name,CFrame.Angles(-(equipped and 1.15 or .65)*charge-.9*recoil,0,(equipped and -.15 or .32)*charge)) end
+  local bracing=equipped and charge>.002
+  local wrist=rig.joints.RightWrist
+  local braceWrist=equipped and wrist and wrist.Parent
+  for _,name in ipairs({"Right Shoulder","RightShoulder"}) do
+   if equipped then
+    if bracing then pose(name,CFrame.Angles(braceWrist and .95 or .6,0,-.15),false,charge) end
+    if recoil>0 then pose(name,CFrame.Angles(-.3*recoil,0,0)) end
+   else
+    pose(name,CFrame.Angles(-.65*charge-.9*recoil,0,.32*charge))
+   end
+  end
+  -- Brace the equipment arm against the locomotion swing while the beam holds.
+  if braceWrist and bracing then
+   pose("RightElbow",CFrame.identity,false,charge)
+   pose("RightWrist",CFrame.Angles(-.85,0,0),false,charge)
+  end
   pose("Waist",CFrame.Angles(.12*charge-.28*recoil,0,0))
   pose("Neck",CFrame.Angles(-.12*charge+.1*recoil,0,0))
   if not grounded and rig.humanoid:GetState()~=Enum.HumanoidStateType.Swimming then
@@ -134,7 +153,8 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
   end
   if rig.blend<.01 then continue end
   rig.phase+=dt*13;local swing=math.sin(rig.phase)*.32*rig.blend
-  for _,spec in ipairs({{"Left Shoulder",swing},{"Right Shoulder",-swing},{"Left Hip",-swing},{"Right Hip",swing},{"LeftShoulder",swing},{"RightShoulder",-swing},{"LeftHip",-swing},{"RightHip",swing},{"LeftKnee",math.max(0,swing)*.7},{"RightKnee",math.max(0,-swing)*.7}}) do pose(spec[1],CFrame.Angles(spec[2],0,0)) end
+  local rightSwing=equipped and -swing*(1-charge) or -swing
+  for _,spec in ipairs({{"Left Shoulder",swing},{"Right Shoulder",rightSwing},{"Left Hip",-swing},{"Right Hip",swing},{"LeftShoulder",swing},{"RightShoulder",rightSwing},{"LeftHip",-swing},{"RightHip",swing},{"LeftKnee",math.max(0,swing)*.7},{"RightKnee",math.max(0,-swing)*.7}}) do pose(spec[1],CFrame.Angles(spec[2],0,0)) end
   pose("Waist",CFrame.Angles(-.14*rig.blend,math.sin(rig.phase)*.04*rig.blend,0));rig.character:SetAttribute("SprintAnimationBlend",rig.blend)
  end
 end))
