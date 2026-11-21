@@ -869,6 +869,14 @@ academy.selectGuide=function(kind,id)
  if not academy.NavigationCatalog.Resolve(kind,id,data) then return end
  academy.guideSelection={kind=kind,id=id};academy.refreshGuide();renderedMenuKey=nil
 end
+function academy.canGuideTraining()
+ return Config.CompactCity==true and not data.activeQuest and not academy.guideSelection
+end
+academy.trainingGuideButton=button(tracked,"GuideTraining","GUIDE",UDim2.fromOffset(78,44),UDim2.new(1,-78,.5,-22),function()
+ if academy.trainingGuideButton.Visible and academy.canGuideTraining() then academy.selectGuide("place","training") end
+end)
+academy.trainingGuideButton.TextColor3=gold
+academy.trainingGuideButton.Visible=false
 academy.guideMenu=function()
  local c=card(110)
  label(c,academy.guideTarget and ("GUIDING: "..academy.guideTarget.label) or "Choose a guide below. Nothing is selected automatically.",UDim2.new(1,-28,0,48),UDim2.fromOffset(14,6),14,gold)
@@ -1227,7 +1235,9 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  academy.refreshZone()
  academy.refreshTestLauncher()
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
- tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west courtyard\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
+ local trainingHint=Config.CompactCity==true and "" or " · west courtyard"
+ local challengeHint=Config.CompactCity==true and "" or " · Quests for challenges"
+ tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie")..trainingHint.."\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3"..challengeHint)
  trackedQuestText=tracked.Text
  if data.savingAvailable==true and not data.savingDelayed then notifications:Remove("save") end
  local newMilestone=data.milestone and data.milestone~=lastMilestone
@@ -1512,6 +1522,7 @@ connectClient(Run.RenderStepped,function(dt)
   end
  end
  tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=gameplayVisible
+ academy.trainingGuideButton.Visible=tracked.Visible and not devPanel.Visible and academy.canGuideTraining()
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
  if sustainedControl then
