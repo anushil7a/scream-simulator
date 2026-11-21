@@ -74,7 +74,7 @@ s=reset(10,0,0);multiplier=2;once=true;s.data.combatChallenges.fighters=2
 ledger={};recordCredit(ledger,p,100,100,150)
 awardCombatKO(ledger,p,10,100,100,150,nil,TrainingRules.Tiers[1])
 local actual=s.data.xp;for level=10,s.data.level-1 do actual+=Progression.XPToNext(level) end
-check(notices[#notices]=='KO · +'..actual..' XP · challenge completed & renewed','Expiring boost KO notice differs from cumulative awarded progression')
+check(notices[#notices]:find('+'..actual..' XP',1,true) and notices[#notices]:find('challenge completed & renewed',1,true),'Expiring boost KO notice differs from cumulative awarded progression')
 check(calls.xp==2 and calls.coins==1,'Expiring boost feedback reread multiplier or skipped grant')
 check(s.data.combatChallenges.fighters==0 and actual>200 and s.data.level<100,'Expiring boost challenge renewal or uncapped setup invalid')
 s=reset(100,0,0);s.activeQuest='test';s.data.quests.test.progress=0
@@ -122,8 +122,13 @@ check(observed[1]==0 and s.data.xp==0 and s.data.coins==0,'Full history payout c
 check(rewardHistory.pairs['1:2']==nil,'Full history created extra pair')
 check(notices[#notices]=='KO · no reward awarded','Full history new pair falsely labeled repeat-limited')
 s=fresh();bot={health=80,maxHealth=80,training=rookie,credit={}};hitBot(p,bot,80,900)
-check(s.data.xp==48 and s.data.coins==5 and notices[#notices]=='KO · +48 XP','Positive first NPC changed')
+check(s.data.xp==48 and s.data.coins==5 and notices[#notices]=='Rookie defeated · +48 XP · +5 coins','Rookie win omitted actual reward')
 check(s.canSave==false and s.testBaseline==nil,'Keep Playing ordinary session changed')
+s=fresh();s.data.coins=999999998;multiplier=2
+bot={health=80,maxHealth=80,training=rookie,credit={}}
+hitBot(p,bot,80,900)
+check(s.data.level==2 and s.data.xp==96-Progression.XPToNext(1) and s.data.coins==1000000000 and notices[#notices]=='Rookie defeated · +96 XP · +2 coins','Rookie win showed nominal coins at cap')
+check(calls.coins==1 and calls.xp==1,'Rookie feedback recomputed payout')
 print('PASS '..checks..' actual reward credit assertions')
 '''
 def run(source):
@@ -146,6 +151,7 @@ if __name__=='__main__':
         if '--negative-controls' in sys.argv:
             mutations=[('return s.data.coins-before','return reward','Claim feedback not actual credit'),('credited-=d.xp;d.xp=0','d.xp=0','Cap overflow credit'),('return reward,credited','return credited,credited','Zero credit erased completion'),('(credited+bonusXP)','(reward+bonus)','KO nominal base/bonus displayed'),('..xpCredit..','..(q.xp*Commerce.Multiplier(p,"xp"))..','Claim feedback not actual credit')]
             mutations.append(('KO · no reward awarded','KO · repeat-opponent reward limited','Tiny first NPC falsely labeled repeat-limited'))
+            mutations.append(('..coinCredit..','..5 ..','Rookie win showed nominal coins at cap'))
             for old,new,expected in mutations:
                 assert old in s,old
                 r=run(s.replace(old,new,1));assert r.returncode and expected in r.stderr,r.stdout+r.stderr

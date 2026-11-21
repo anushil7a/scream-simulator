@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## First training win feedback
+
+- A fresh temporary Rookie fight in Studio originally displayed **KO · +48 XP** while increasing the coin balance to 5. The matching candidate displayed **Rookie defeated · +48 XP · +5 coins** on one line in the 750 × 323 phone emulator. The first hit granted neither XP nor coins, and the first win still credited 48 XP, 5 coins and one Fighter challenge count after two casts.
+- Training defeat and assist messages use the credited coin delta from the existing grant, including boosts and the balance cap. XP, payout order, player combat notices and eligibility are unchanged. The review passed 47 credit assertions, seven negative controls, 20 PvP/training payout assertions and 57 synthetic test-isolation assertions. All 312 checks and builds passed with matching input hashes.
+- Studio verification used a staged avatar, synthetic mic values and aim, the production client/server remotes, and a temporary profile. It observed the phone cooldown and quiet reset and the rendered reward. An initial desktop run stopped because the quiet-reset cue did not display in that setup. Investigate that separately. Both disposable sessions closed and device emulation was reset.
+
 ## Guide markers above Academy paving
 
 - In matched Studio samples along the Rookie approach, up to five GUIDE markers from the real pathfinder were below the opaque paving. The client now offsets markers .45 studs above the physical ground sample. Their bottoms measured y32.39 over the y32.285 stone inlay. All 12 overlaps across the three matched samples cleared the paving, and the markers were visible in the native approach view.

@@ -21,7 +21,7 @@ for _,p in pairs(players) do sessions[p]={rewardIdentity={},data={level=20,xp=0,
 local notices={};local updates={};local quests={};local ejections=0
 local function state(p,message)notices[p]=message;updates[p]=(updates[p] or 0)+1 end
 local Commerce={Multiplier=function()return 1 end}
-local function coins(p,amount)sessions[p].data.coins+=amount end
+local function coins(p,amount)sessions[p].data.coins+=amount;return amount end
 local function xp(p,amount)sessions[p].data.xp+=amount;return amount end
 local function questProgress(_,event)quests[event]=(quests[event] or 0)+1 end
 local function eject(_,h)ejections+=1;h.Health=h.MaxHealth end
@@ -57,11 +57,12 @@ sessions[one].data.level=100;local before=sessions[one].data.xp
 recordCredit(ledger,one,378,420,900);recordCredit(ledger,two,42,420,900)
 awardCombatKO(ledger,two,60,420,420,900,nil,tier)
 check(sessions[one].data.xp==before+378 and sessions[one].data.combatChallenges.fighters==1 and sessions[one].data.combatChallenges.elite==nil,'Elite assist advanced duplicate retired challenge')
+check(notices[one]=='Elite assist · +378 XP · +4 coins','Training assist misreported credit')
 sessions[one].data.level=60;sessions[one].data.combatChallenges={fighters=2,elite=1}
 ledger={};recordCredit(ledger,one,420,420,901);local sent=updates[one];before=sessions[one].data.xp
 awardCombatKO(ledger,one,60,420,420,901,nil,tier)
 check(sessions[one].data.xp==before+570,'KO must award exactly one training challenge')
-check(updates[one]==sent+1 and notices[one]=='KO · +570 XP · challenge completed & renewed','Challenge feedback overwritten or emitted redundant state updates')
+check(updates[one]==sent+1 and notices[one]=='Elite defeated · +570 XP · +5 coins · challenge completed & renewed','Challenge feedback overwritten or emitted redundant state updates')
 check(sessions[one].data.combatChallenges.fighters==0 and sessions[one].data.combatChallenges.elite==1,'Retired elite counter changed or active challenge did not reset')
 -- No lower-level exclusion: difficult fighters still count for meaningful credit.
 sessions[one].data.level=1;sessions[one].data.combatChallenges.fighters=0

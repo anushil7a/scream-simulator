@@ -287,14 +287,18 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
   local reward=math.floor(pool*share*factor*repeatFactor)
   if reward>0 then
    local underdog=targetLevel>=rs.data.level
-   local credited=xp(recipient,reward);coins(recipient,math.floor((victim and 20 or 5)*share*factor*repeatFactor))
+   local credited=xp(recipient,reward)
+   local coinCredit=coins(recipient,math.floor((victim and 20 or 5)*share*factor*repeatFactor))
    if victim and recipient==finisher and underdog then questProgress(recipient,"Underdog") end
    if victim and recipient~=finisher and underdog and meaningful[id] then questProgress(recipient,"ArenaAssist") end
    local bonus,bonusXP=0,0
    if tier and factor>=.5 and meaningful[id] then
     bonus,bonusXP=combatChallenge(recipient,"fighters",true)
    end
-   state(recipient,(recipient==finisher and "KO" or "Assist").." · +"..(credited+bonusXP).." XP"..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
+   local summary=recipient==finisher and "KO" or "Assist"
+   if tier then summary=tier.name..(recipient==finisher and " defeated" or " assist") end
+   state(recipient,summary.." · +"..(credited+bonusXP).." XP"..(tier and " · +"..coinCredit.." coins" or "")
+    ..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
   elseif recipient==finisher then state(recipient,"KO · no reward awarded") end
  end
 end
