@@ -133,7 +133,7 @@ print('PASS '..checks..' actual minimap module/client assertions; synthetic layo
  hud_size=re.search(r'local hud=frame\(gui,"CompactHUD",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  controls_size=re.search(r'local controls=frame\(gui,"Actions",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  tracker_layout=client[client.index('function academy.trackerLayout('):client.index('academy.guideLayout=function(')]
- tracker_rect=client[client.index(' local trackerY='):client.index(' dodgeButton.Size=')]
+ tracker_rect=client[client.index(' local trackerY='):client.index(' local meterWidth,meterHeight=')]
  client_setup+='\n'+tracker_layout+'\n'
  positions='\n'.join(next(line for line in client.splitlines() if line.startswith(' '+key+'.Position=')) for key in ['hud','controls'])+'\n'+next(line for line in client.splitlines() if line.lstrip().startswith('talkButton.Position=UDim2.new('))+'\n'+next(line for line in client.splitlines() if line.startswith(' controls.Size='))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
  positions=tracker_rect+positions

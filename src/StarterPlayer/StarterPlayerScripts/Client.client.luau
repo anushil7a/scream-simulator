@@ -919,19 +919,19 @@ end
 -- On landscape phones the left rail may have no room above touch controls.
 function academy.trackerLayout(viewport,touch,defaultY)
  local w,h=viewport.X,viewport.Y
- if touch and h>=239 and h<315 and w>h then
+ local canShare=touch and w>h and h>=315 and h<346 and w-274>=314 and defaultY+50<=h-102
+ if touch and h>=239 and h<346 and w>h and not canShare then
   -- Keep the Guide target out of the stock movement frame and clear of Jump.
   local left,right=math.ceil(w*.4)+8,w-103
   local width=math.min(290,right-left)
   if width>=196 then
-   return math.floor((left+right-width)/2),math.max(defaultY,h-91),width,60,true
+   return math.floor((left+right-width)/2),math.max(defaultY,h-91),width,60,true,true
   end
  end
  if not touch and h>=defaultY+68 and defaultY+50>h-102 then
   local width=math.min(290,w-274-8-16)
   if width>=212 then return 16,defaultY,width,60,true end
  end
- local canShare=touch and w>h and h>=315 and h<346 and w-274>=314 and defaultY+50<=h-102
  return 16,defaultY,290,50,canShare
 end
 academy.guideLayout=function(viewport,touch,trackedY)
@@ -1579,8 +1579,6 @@ connectClient(Run.RenderStepped,function(dt)
  local shortLandscape=viewport.Y<300 and viewport.X>viewport.Y
  if layoutChanged then
  academy.layoutZone(viewport,touch)
- local meterWidth,meterHeight=academy.VoiceReactor.Layout(viewport.X,touch,viewport.Y)
- meter.Size=UDim2.fromOffset(meterWidth,meterHeight);meter.Position=UDim2.new(.5,-meterWidth/2,1,-meterHeight-((not touch and viewport.X<820) and 116 or 12))
  local short=viewport.Y<550
  menuScale.Scale=1
  local width=math.min(720,viewport.X-24)
@@ -1619,10 +1617,21 @@ connectClient(Run.RenderStepped,function(dt)
  talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
  controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
  local trackerY=(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64
- local trackerX,trackerTop,trackerWidth,trackerHeight,canShare=academy.trackerLayout(viewport,touch,trackerY)
+ local trackerX,trackerTop,trackerWidth,trackerHeight,canShare,centerTracker=academy.trackerLayout(viewport,touch,trackerY)
  academy.guideMayUseTracker=canShare==true
  tracked.Position=UDim2.fromOffset(trackerX,trackerTop)
  tracked.Size=UDim2.fromOffset(trackerWidth,trackerHeight)
+ local meterWidth,meterHeight=academy.VoiceReactor.Layout(viewport.X,touch,viewport.Y)
+ local slimMeter=centerTracker and viewport.Y>=315
+ meter.RecentAmplitude.Visible=not slimMeter
+ if slimMeter then
+  -- Keep live power under the status card while the guide occupies the bottom center.
+  meter.Size=UDim2.fromOffset(math.min(meterWidth,trackerX-22),56)
+  meter.Position=UDim2.fromOffset(14,trackerY+4)
+ else
+  meter.Size=UDim2.fromOffset(meterWidth,meterHeight)
+  meter.Position=UDim2.new(.5,-meterWidth/2,1,-meterHeight-((not touch and viewport.X<820) and 116 or 12))
+ end
  dodgeButton.Size=UDim2.fromOffset(108,touch and 44 or 32)
  sprintButton.Size=UDim2.fromOffset(144,touch and 44 or 32)
  local testBottom=testTop+44

@@ -1,9 +1,15 @@
 # Scream Simulator development roadmap
 
+## Guide and microphone feedback share midsize landscape layouts
+
+- At 567 × 315 usable pixels, GUIDE overlapped Dodge by seven pixels horizontally and selecting Rookie Training hid the button without showing directions. The new center card clears the combat controls and stock movement and Jump areas. A slim left meter keeps the current input level and guidance visible. The waveform history is hidden in this layout and restores at 588 × 315, 750 × 323 and 567 × 346.
+- Native Studio displayed the training direction and distance. A staged 25-second Boardwalk Dash countdown preempted the route and the route returned afterward. A Studio touch drag starting over the mic text was unprocessed and moved the character 13.47 studs. Staged microphone, cooldown and firing text fit. Actual microphone and physical touch play remain open.
+- Independent review caught a minimap fixture that picked up unrelated meter code. The corrected fixture passed 1,158,198 integration assertions. Navigation passed 101 checks and 12 negative controls, and voice presentation passed 252 and eight negative controls. All 312 local checks and builds passed with matching inputs. Both disposable Studio sessions closed. Next, verify training and mic feedback together during an unassisted opening session on a physical phone.
+
 ## Training guidance clears movement on short landscape screens
 
 - At 529 × 242 usable pixels, the old tracker covered the thumbstick and tapping GUIDE hid the button without showing route status. The new 206 × 60 card clears the movement frame and Jump by eight pixels each. GUIDE showed the Rookie Training direction and distance, and CLEAR restored the idle tracker.
-- A staged Boardwalk Dash quest displayed a fitting countdown and took priority over the selected guide, which returned when the quest ended. The timer also fit at 512 × 239; 750 × 323 kept its wider left layout. The thumbstick overlap at 567 × 315 still needs a layout that leaves room for the full microphone meter. Studio used device emulation, pointer input and temporary profiles.
+- A staged Boardwalk Dash quest displayed a fitting countdown and took priority over the selected guide, which returned when the quest ended. The timer also fit at 512 × 239; 750 × 323 kept its wider left layout. The 567 × 315 layout became the subject of the next pass. Studio used device emulation, pointer input and temporary profiles.
 - Independent review cleared the change. Focused checks passed 79 layout assertions, 10 negative controls and 42 guide lifecycle assertions. All 312 local checks and builds passed with matching inputs. Both disposable Studio sessions closed. Verify with physical touch during the first training route and a timed quest.
 
 ## More play space on short landscape screens

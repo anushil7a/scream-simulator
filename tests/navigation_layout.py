@@ -20,17 +20,18 @@ check(x==16 and y==216 and w==290 and h==62 and compact==false,'portrait guide m
 local a,b,c,d,e=academy.guideLayout({X=1280,Y=720},false,64)
 check(a==16 and b==120 and c==290 and d==62 and e==false,'desktop guide moved')
 check(not academy.guideLayout({X=320,Y=315},true,160),'cramped viewport should use clear in menu')
-for _,view in ipairs({{529,242},{541,239},{567,241},{567,280},{600,314},{784,296}})do
+for _,view in ipairs({{529,242},{541,239},{567,241},{567,280},{600,314},{784,296},{567,315},{587,345}})do
  local width,height=view[1],view[2]
- local left,top,cardWidth,cardHeight,shared=academy.trackerLayout({X=width,Y=height},true,160)
+ local left,top,cardWidth,cardHeight,shared,center=academy.trackerLayout({X=width,Y=height},true,160)
  check(left>=math.ceil(width*.4)+8,'Tracker enters thumbstick lane')
  check(left+cardWidth<=width-103,'Tracker enters Jump lane')
  check(top>=height-91,'Tracker enters combat lane')
  check(top+cardHeight<=height-12,'Tracker crosses bottom safe margin')
  check(cardWidth>=196 and cardHeight==60,'Compact objective has no room for timer/Guide')
  check(shared,'Short touch route cannot use the idle objective lane')
+ check(center,'Center tracker did not request its own meter layout')
 end
-for _,view in ipairs({{388,704,true,160},{567,315,true,160},{1024,768,false,64},{320,240,true,160}})do
+for _,view in ipairs({{388,704,true,160},{567,346,true,160},{1024,768,false,64},{320,240,true,160}})do
  local left,top,w,h=academy.trackerLayout({X=view[1],Y=view[2]},view[3],view[4])
  check(left==16 and top==view[4] and w==290 and h==50,'Layout changed outside verified compact lane')
 end
@@ -44,11 +45,27 @@ for _,viewport in ipairs({{X=750,Y=323},{X=588,Y=315}})do
  local left,top,w,h,shared=academy.trackerLayout(viewport,true,160)
  check(shared and left+w+8<=viewport.X-274 and top+h<=viewport.Y-102,'Landscape phone tracker cannot share its clear rail')
 end
-local _,_,_,_,tooNarrow=academy.trackerLayout({X=587,Y=315},true,160)
-local _,_,_,_,tooLow=academy.trackerLayout({X=750,Y=323},true,178)
-check(not tooNarrow and not tooLow,'Landscape phone sharing ignores the combat and touch lanes')
+local _,_,_,_,_,tooNarrow=academy.trackerLayout({X=587,Y=315},true,160)
+local _,_,_,_,_,tooLow=academy.trackerLayout({X=750,Y=323},true,178)
+check(tooNarrow and tooLow,'Landscape phone sharing ignores the combat and touch lanes')
 local _,_,_,_,talkOverlaps=academy.trackerLayout({X=588,Y=400},true,160)
 check(not talkOverlaps,'Landscape guide clear button overlaps Talk on taller narrow screens')
+local meter={RecentAmplitude={}}
+local function meterLayout(w,h,touch)
+ local viewport={X=w,Y=h}
+ local trackerY=160
+ local trackerX,_,_,_,_,centerTracker=academy.trackerLayout(viewport,touch,trackerY)
+ local UDim2={fromOffset=function(x,y)return {x=x,y=y} end,new=function(_,x,_,y)return {x=x,y=y} end}
+ academy.VoiceReactor={Layout=function()return 230,84 end}
+ __METER_LAYOUT__
+ return trackerX
+end
+local centerX=meterLayout(567,315,true)
+check(meter.Position.x==14 and meter.Position.y==164 and meter.Position.x+meter.Size.x+8<=centerX
+ and meter.Size.y==56 and not meter.RecentAmplitude.Visible,'Slim meter overlaps the center tracker or cannot fit its history')
+meterLayout(750,323,true)
+check(meter.Position.x==-115 and meter.Position.y==-96 and meter.Size.y==84 and meter.RecentAmplitude.Visible,
+ 'Full meter did not restore after resize')
 local function visibility(active,selected,paused,touch,view)
  local viewport=view or (touch and {X=750,Y=323} or {X=567,Y=241})
  local showQuest,gameplayVisible=true,not paused
@@ -90,6 +107,9 @@ print('PASS '..checks..' navigation layout checks; no native rendering claim')
 start=s.index(' local guideUsesTracker=false')
 stop=s.index(' local now=workspace:GetServerTimeNow();local protected=',start)
 code=code.replace('__SHARED_RAIL__',s[start:stop])
+start=s.index(' local meterWidth,meterHeight=')
+stop=s.index(' dodgeButton.Size=',start)
+code=code.replace('__METER_LAYOUT__',s[start:stop])
 def run(payload):
     with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='tmp_layout_',dir=root/'tests',delete=False) as f:
         f.write(payload)
@@ -103,17 +123,19 @@ for old,new,reason in [
     ('math.ceil(w*.4)+8','16','Tracker enters thumbstick lane'),
     ('w-103','w-80','Tracker enters Jump lane'),
     ('if width>=196 then','if width>=212 then','Tracker enters thumbstick lane'),
-    ('math.max(defaultY,h-91),width,60,true','math.max(defaultY,h-91),width,60,false','Short touch route cannot use the idle objective lane'),
+    ('math.max(defaultY,h-91),width,60,true,true','math.max(defaultY,h-91),width,60,false,true','Short touch route cannot use the idle objective lane'),
+    ('h<346 and w>h and not canShare','h<315 and w>h and not canShare','Tracker enters thumbstick lane'),
+    ('local slimMeter=centerTracker and viewport.Y>=315','local slimMeter=false','Slim meter overlaps the center tracker or cannot fit its history'),
     ('math.max(defaultY,h-91)','defaultY','Tracker enters combat lane'),
     ('math.min(290,w-274-8-16)','290','Short desktop tracker does not fit its rail'),
     ('and not data.activeQuest and showQuest','and showQuest','Selected route covered an active quest timer'),
     ('and not (guideUsesTracker and academy.guidePanel.Visible)','and true','Selected route does not replace idle progress'),
-    ('w-274>=314 and defaultY+50<=h-102','true','Landscape phone sharing ignores the combat and touch lanes'),
+    ('w-274>=314 and defaultY+50<=h-102','true','Tracker enters thumbstick lane'),
     (' and h<346 and w-274>=314',' and w-274>=314','Landscape guide clear button overlaps Talk on taller narrow screens'),
 ]:
     assert code.count(old)==1,old
     result=run(code.replace(old,new))
-    assert result.returncode and reason in result.stderr,result.stderr
-print('PASS 10 tracker lane and priority negative controls')
+    assert result.returncode and reason in result.stderr,(old,result.stderr)
+print('PASS 12 tracker lane, priority and meter negative controls')
 assert 'or noticeView:Overlaps(passive,gui,talkButton)' in s and 'meter,academy.guidePanel}' in s
 assert 'if academy.guideText.Text~=text' in s
