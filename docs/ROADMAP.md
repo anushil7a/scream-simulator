@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## TALK in narrow desktop windows
+
+- Desktop Studio at 567 × 416 reproduced 1,414 square pixels of overlap between TALK and Beams. The corrected 120 × 34 target moved left to (165, 308), leaving 8 pixels before the combat group. Clicking TALK opened the actual NPC dialogue. At 567 × 241, TALK moved to (251, 12) between MENU and MAP, with zero combat overlap.
+- Critic cleared the focused change. The notice fixture passed 676 assertions and 32 negative controls, including a disabled desktop placement check. It verified a queued save warning has its own lane on the sampled sizes. All 312 checks and builds passed with matching inputs. Validation used temporary profiles, a staged avatar and automated Studio input.
+- Desktop widths below 416 can still lack room. In very short windows where the upper lane cannot fit, TALK can cross passive HUD space. At 567 × 241 the active quest/Guide rail still shares a narrow strip with the combat group independently of TALK. Removed both custom emulator configurations and closed both disposable Studio sessions.
+
 ## Objective tracker on short touch screens
 
 - At 567 × 241 the original objective card covered the visible thumbstick from x29 to x103. The new 229 × 60 card begins at (235, 160), beyond the stock movement frame's right edge at x226.8 and 8 pixels left of Jump. At 567 × 279 it begins at (235, 188), 8 pixels below the combat group. The existing left-rail placement remains on portrait, desktop, and layouts too narrow for this lane.

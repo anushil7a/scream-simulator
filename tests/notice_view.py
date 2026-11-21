@@ -136,7 +136,7 @@ RECEIVER_COUNT
 end
 local gameplayVisible=true;local windowFocused=true;local GuiService={MenuIsOpen=false};local gui={AbsolutePosition=Vector2.zero};local dt=.05
 local function rect(x,y,w,h)return {Visible=true,AbsolutePosition=Vector2.new(x,y),AbsoluteSize=Vector2.new(w,h),Position={}}end
-academy.guidePanel=rect(16,270,290,62)
+academy.guidePanel=rect(16,270,290,62);local meter=rect(490,612,300,96)
 local talkButton=rect(100,66,120,44);local hud=rect(14,118,240,88);local tracked=rect(16,214,290,50);local zone=rect(40,12,240,28);local saveNotice=rect(35,40,250,28)
 local function frame()
  local notice=notifications:Step(0,false)
@@ -194,6 +194,19 @@ notifications=Queue.new();viewport=Vector2.new(390,844);frame()
 local portrait=talkButton.Position
 check(portrait.X.Scale*390+portrait.X.Offset==135 and portrait.Y.Scale*844+portrait.Y.Offset==595,'Portrait TALK moved out of its existing lane')
 notifications=Queue.new()
+touch=false
+for _,desktop in ipairs({{416,416,14,308},{567,416,165,308},{567,241,251,12},{683,416,281,308},{684,416,282,308},{1280,720,580,612}})do
+ local w,h,x,y=table.unpack(desktop)
+ viewport=Vector2.new(w,h);notifications=Queue.new();frame()
+ local pos=talkButton.Position
+ check(pos.X.Scale*w+pos.X.Offset==x and pos.Y.Scale*h+pos.Y.Offset==y,'Desktop TALK left its clear lane')
+ local target={x=x,y=y,width=120,height=34}
+ check(not Layout.Overlaps(target,{x=w-274,y=h-102,width=260,height=88}),'Desktop TALK covers combat')
+ notifications:Push(samples[1],true,'save');frame()
+ check(noticeView.root.Visible,'Desktop TALK hides the save warning')
+ check(not Layout.Overlaps(target,noticeView.layout),'Desktop save warning covers TALK')
+end
+touch=true;notifications=Queue.new()
 local compact=Layout.Modal(567,241,true)
 check(compact.available and compact.x==20 and compact.x+compact.width<=499 and compact.y+compact.height<=52,
  'Short modal notice overlaps Close or the tab row')
@@ -256,6 +269,7 @@ if a.negative_controls:
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('elseif noticeLayout.baseTalkX then','elseif noticeView.visible and noticeLayout.baseTalkX then'),'Short phone TALK extends outside the safe HUD')
  run(sources['NoticeLayout'].replace('talk.x=x;talk.y=','talk.x=navRight-24;talk.y='),sources['NoticeView'],error='Short phone TALK overlaps an existing HUD control')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('(gameplayVisible or modal.Visible)','gameplayVisible'),'Shop error hidden or covers modal navigation')
+ run(sources['NoticeLayout'].replace('if not touch and talkVisible then','if false then'),sources['NoticeView'],error='Desktop TALK left its clear lane')
 print('Actual warning lengths:',[len(t)for t in texts])
 
 assert client.index('local nextNotice=notifications:Step(dt,noticeView:CanAdvance())')<client.index('elapsed+=dt;if elapsed<.15'), 'Notice dwell behind throttled gate'

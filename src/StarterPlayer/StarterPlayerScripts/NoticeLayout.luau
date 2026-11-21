@@ -8,6 +8,19 @@ function Layout.Get(width,height,touch,map,testTools,talkVisible)
  local h=math.floor(math.min(height*.35,bottom-66))
  local w=math.floor(math.min(640,right-14))
  local result={x=14,y=66,width=math.max(0,w),height=math.max(0,h),available=w>=120 and h>=44 and (not touch or width>=312)}
+ if not touch and talkVisible then
+  local talkX=width/2-60
+  local lastX=width-274-8-120 -- leave space to the left of the combat controls
+  if talkX>lastX then
+   local topX=(width<380 and 190 or 243)+8
+   if height>=156 and height<318 and topX+120<=right then
+    -- The bottom lane crosses the status and quest rail at this height.
+    result.baseTalkX=topX;result.baseTalkY=12
+   elseif lastX>=14 then
+    result.baseTalkX=lastX;result.baseTalkY=height-108
+   end
+  end
+ end
  if touch and talkVisible then
   local navRight=width<380 and 190 or 243
   local x=navRight+8
