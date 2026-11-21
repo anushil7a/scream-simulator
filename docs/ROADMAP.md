@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Accurate boss victory rewards and native beam performance
+
+- Boss victories previously claimed a reward with no credit at the XP and coin caps. The message now uses the actual credited deltas after boost, share and cap calculations. Grant order, eligibility and amounts are unchanged. A disposable native Studio session staged two boss defeats with the actual server service. The client State event reported no XP or coins for the Captain at both caps and +0 XP / +2 coins for the Conductor with the balance two coins below the cap. The session used a temporary profile and a staged final hit. It did not exercise real voice, remote players or live saves. The payload was verified without measuring rendered toast fit.
+- The rebuilt 24-beam fixture ran in native desktop Studio and passed 5,033 assertions with successful teardown. The instrumented script section measured p95 of 5.59 ms at regular detail, 1.36 ms with crowding and 1.05 ms with reduced effects. Median frame intervals were about 66.7 ms across all phases, including the empty baseline. The fixture measured one isolated scene with synthetic L100 beams and no controlled render quality. Physical-phone profiling, populated-map multiplayer and warning visibility under live beam overlap remain open. Raw rows and build hashes are in [native performance evidence](../tests/evidence/beam-performance-native-2026-11-21.json).
+- Focused tests passed 52 reward assertions, eight negative controls, both historical reward baselines and 8,248 boss service assertions. Critic cleared the final change. All 312 local checks and builds passed with matching input hashes. Both disposable Studio sessions closed. Next playtest the Conductor's bell-ring warning and use the active-beam overlap scenario to evaluate readability.
+
 ## Captain Twin Sirens lane readability
 
 - Against the pale boardwalk in the local Studio fixture, the gold lanes had low-contrast edges. Each lane now has a dark inset border that marks its exact footprint. The border remains visible when reduced effects hides accent geometry.

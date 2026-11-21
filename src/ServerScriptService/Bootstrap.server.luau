@@ -1102,7 +1102,12 @@ if Config.CompactCity then
     or now<s.protectedUntil or now<(s.knockedUntil or 0) then return nil end
    return {position=r.Position,level=s.data.level,identity=s.rewardIdentity}
   end,
-  reward=function(p,spec,share) coins(p,math.floor(spec.coins*share));xp(p,math.floor(spec.xp*share));state(p,spec.name.." defeated · boss reward earned") end,
+  reward=function(p,spec,share)
+   local coinCredit=coins(p,math.floor(spec.coins*share))
+   local xpCredit=xp(p,math.floor(spec.xp*share))
+   local reward=if xpCredit==0 and coinCredit==0 then "no XP or coins credited" else "+"..xpCredit.." XP · +"..coinCredit.." coins"
+   state(p,spec.name.." defeated · "..reward)
+  end,
   damage=function(p,amount,now,boss,strike)
    local s=sessions[p];local c,r,h=parts(p)
    if not s or not r or not h or now<s.dodgingUntil or now<s.protectedUntil then return end

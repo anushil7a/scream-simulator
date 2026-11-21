@@ -1,0 +1,141 @@
+{
+  "baseCommit": "d031ef09873950b81d4061e8522a4c645dd88661",
+  "nativeExecuted": true,
+  "artifactSha256": "1707d24eca722b6c428106014951a671989a020c3b90ab0e1455f92e01fddc5a",
+  "start": {
+    "limitations": "Studio frame intervals and instrumented script section elapsed duration only; no GPU/phone/network claim",
+    "animationCadence": "accumulated dt >=1/30 then reset0 (Client)",
+    "buildIdentity": "983c3e127d00e2fcc9bc04dbdd169d0c26ad2e4cbc387f636e7548b414adbaa0",
+    "units": "ms",
+    "clock": "os.clock",
+    "maxBeams": 24,
+    "warmSeconds": 2,
+    "viewport": [
+      2042.4000244140625,
+      872
+    ],
+    "sampleSeconds": 5,
+    "rendererQualityControlled": false,
+    "savedQualityPreference": "Enum.SavedQualitySetting.Automatic"
+  },
+  "rows": [
+    {
+      "visible": 0,
+      "script": {
+        "p50": 0.000100000761449337,
+        "p95": 0.0002999986463692039,
+        "p99": 0.0005000001692678779,
+        "max": 0.0005000001692678779,
+        "n": 76
+      },
+      "phase": "baseline",
+      "allocated": 0,
+      "buildIdentity": "983c3e127d00e2fcc9bc04dbdd169d0c26ad2e4cbc387f636e7548b414adbaa0",
+      "sampleSpanSeconds": 5.000679700002365,
+      "cached": 0,
+      "count": 0,
+      "enabledBeams": 0,
+      "frame": {
+        "p50": 66.68990105390549,
+        "p95": 67.65930354595184,
+        "p99": 67.95769929885864,
+        "max": 67.95769929885864,
+        "n": 76
+      },
+      "enabledEmitters": 0,
+      "sampledFrameSeconds": 5.066073767840862
+    },
+    {
+      "visible": 496,
+      "script": {
+        "p50": 4.07900000209338,
+        "p95": 5.592600002273684,
+        "p99": 7.71810000151163,
+        "max": 7.71810000151163,
+        "n": 75
+      },
+      "phase": "regular24",
+      "allocated": 496,
+      "buildIdentity": "983c3e127d00e2fcc9bc04dbdd169d0c26ad2e4cbc387f636e7548b414adbaa0",
+      "sampleSpanSeconds": 4.933767899998202,
+      "cached": 0,
+      "count": 24,
+      "enabledBeams": 120,
+      "frame": {
+        "p50": 66.67160242795944,
+        "p95": 67.45140254497528,
+        "p99": 69.41299885511398,
+        "max": 69.41299885511398,
+        "n": 75
+      },
+      "enabledEmitters": 96,
+      "sampledFrameSeconds": 5.00037282705307
+    },
+    {
+      "visible": 192,
+      "script": {
+        "p50": 1.2232999979460146,
+        "p95": 1.3608000008389354,
+        "p99": 2.238299999589799,
+        "max": 2.238299999589799,
+        "n": 76
+      },
+      "phase": "crowded24",
+      "allocated": 496,
+      "buildIdentity": "983c3e127d00e2fcc9bc04dbdd169d0c26ad2e4cbc387f636e7548b414adbaa0",
+      "sampleSpanSeconds": 4.999132299999474,
+      "cached": 304,
+      "count": 24,
+      "enabledBeams": 51,
+      "frame": {
+        "p50": 66.55959784984589,
+        "p95": 67.93449819087982,
+        "p99": 68.3756023645401,
+        "max": 68.3756023645401,
+        "n": 76
+      },
+      "enabledEmitters": 4,
+      "sampledFrameSeconds": 5.065616346895695
+    },
+    {
+      "visible": 96,
+      "script": {
+        "p50": 0.5640999988827389,
+        "p95": 1.0452000024088193,
+        "p99": 1.1153000014019199,
+        "max": 1.1153000014019199,
+        "n": 76
+      },
+      "phase": "reduced24",
+      "allocated": 496,
+      "buildIdentity": "983c3e127d00e2fcc9bc04dbdd169d0c26ad2e4cbc387f636e7548b414adbaa0",
+      "sampleSpanSeconds": 5.0001664999981585,
+      "cached": 400,
+      "count": 24,
+      "enabledBeams": 48,
+      "frame": {
+        "p50": 66.67490303516388,
+        "p95": 67.88080185651779,
+        "p99": 68.35559755563736,
+        "max": 68.35559755563736,
+        "n": 76
+      },
+      "enabledEmitters": 0,
+      "sampledFrameSeconds": 5.0655974969267845
+    }
+  ],
+  "result": {
+    "ok": true,
+    "checks": 5033,
+    "rows": 4,
+    "buildIdentity": "983c3e127d00e2fcc9bc04dbdd169d0c26ad2e4cbc387f636e7548b414adbaa0",
+    "studioOnly": true,
+    "gpuTiming": false,
+    "disconnected": true,
+    "cleanupErrors": []
+  },
+  "scope": "One desktop Studio session, synthetic level-100 beams in an isolated client scene. No production-map, GPU, physical phone, voice or network measurements.",
+  "warnings": [
+    "Existing ContentId rbxassetid://203785492 asset-type mismatch also appeared in the fixture. Source was not identified."
+  ]
+}

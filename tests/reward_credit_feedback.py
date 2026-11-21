@@ -6,7 +6,7 @@ import subprocess, tempfile, sys
 ROOT=Path(__file__).resolve().parents[1]
 PATH='src/ServerScriptService/Bootstrap.server.luau'
 BASE='b0099a0'
-def build(s):
+def build(s, *, include_boss):
     helpers=s[s.index('local function coins('):s.index('local function stopQuest(')]
     a=s.index(' elseif verb=="ClaimQuest" then')+len(' elseif verb=="ClaimQuest" then')
     claim=s[a:s.index(' elseif verb=="SetSettings"',a)]
@@ -16,7 +16,11 @@ def build(s):
     pvp='local function hitPlayer(p,target,damage,now) local s=sessions[p];local dealt=0;local hit={damage=damage};local intent={level=s.data.level}\n'+s[a:b]+'\n end\nend\n'
     a=s.index('   local bot=target.bot',s.index('local function stepSustained'));b=s.index('   if not bot.training then',a)
     bot='local function hitBot(p,bot,damage,now) local target={bot=bot};local hit={damage=damage,firstHit=false};local dealt=0;local context={};local World={UpdateBot=function()end,ReactToScream=function()end};local function knockOutBot()end\n'+s[a:b]+'\nend\n'
-    return SETUP+helpers+pvp+bot+'\nlocal function claim(p,s,arg)\n'+claim+'\nend\nlocal function nick(p) local s=sessions[p];local b={name="Nick Booty"};local message="hello"\n'+nick+'\nreturn message end\n'+CHECKS
+    boss=''
+    if include_boss:
+        a=s.index('  reward=function(p,spec,share)')
+        boss='local '+s[a:s.index('  damage=function(',a)].strip().removesuffix(',')+'\n'
+    return SETUP+helpers+pvp+bot+boss+'\nlocal function claim(p,s,arg)\n'+claim+'\nend\nlocal function nick(p) local s=sessions[p];local b={name="Nick Booty"};local message="hello"\n'+nick+'\nreturn message end\n'+CHECKS+(BOSS_CHECKS if include_boss else '')+"\nprint('PASS '..checks..' actual reward credit assertions')\n"
 SETUP=r'''
 local Progression=require('../src/ReplicatedStorage/Shared/Progression')
 local Credit=require('../src/ReplicatedStorage/Shared/CombatCredit')
@@ -129,22 +133,33 @@ bot={health=80,maxHealth=80,training=rookie,credit={}}
 hitBot(p,bot,80,900)
 check(s.data.level==2 and s.data.xp==96-Progression.XPToNext(1) and s.data.coins==1000000000 and notices[#notices]=='Rookie defeated · +96 XP · +2 coins','Rookie win showed nominal coins at cap')
 check(calls.coins==1 and calls.xp==1,'Rookie feedback recomputed payout')
-print('PASS '..checks..' actual reward credit assertions')
 '''
-def run(source):
+BOSS_CHECKS=r'''
+local captain={name='Seagull Siren Captain',xp=103,coins=23}
+s=reset(100,0,1000000000);reward(p,captain,1)
+check(s.data.xp==0 and s.data.coins==1000000000,'Boss zero-credit grant changed')
+check(notices[#notices]=='Seagull Siren Captain defeated · no XP or coins credited','Boss victory claimed a reward at both caps')
+s=reset(100,0,999999998);multiplier=2;reward(p,captain,.5)
+check(s.data.coins==1000000000 and notices[#notices]=='Seagull Siren Captain defeated · +0 XP · +2 coins','Boss victory displayed nominal capped coins')
+s=reset(70,0,0);multiplier=2;once=true;reward(p,captain,.5)
+check(s.data.xp==102 and s.data.coins==22 and notices[#notices]=='Seagull Siren Captain defeated · +102 XP · +22 coins','Boss victory lost the credited share or boost')
+check(calls.xp==1 and calls.coins==1,'Boss victory feedback repeated a grant or multiplier lookup')
+'''
+def run(source, *, include_boss=True):
+    fixture=build(source,include_boss=include_boss)
     with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=ROOT/'tests',delete=False,encoding='utf-8') as f:
-        path=Path(f.name);f.write(build(source))
+        path=Path(f.name);f.write(fixture)
     try:return subprocess.run(['luau',str(path)],cwd=ROOT,text=True,capture_output=True,timeout=20)
     finally:path.unlink()
 if __name__=='__main__':
     s=(ROOT/PATH).read_text(encoding='utf-8')
     if '--zero-baseline' in sys.argv:
         old=subprocess.check_output(['git','show','befa611:'+PATH],cwd=ROOT).decode()
-        result=run(old);assert result.returncode and 'Tiny first NPC falsely labeled repeat-limited' in result.stderr,result.stdout+result.stderr
+        result=run(old,include_boss=False);assert result.returncode and 'Tiny first NPC falsely labeled repeat-limited' in result.stderr,result.stdout+result.stderr
         print('PASS befa611 baseline: actual tiny first NPC KO mislabeled repeat-limited')
     elif '--baseline' in sys.argv:
         old=subprocess.check_output(['git','show',BASE+':'+PATH],cwd=ROOT).decode()
-        result=run(old);assert result.returncode and 'Claim feedback not actual credit' in result.stderr,result.stdout+result.stderr
+        result=run(old,include_boss=False);assert result.returncode and 'Claim feedback not actual credit' in result.stderr,result.stdout+result.stderr
         print('PASS historical baseline: actual claim credited10coins/0XP but displayed50coins/120XP')
     else:
         result=run(s);print(result.stdout,end='');assert result.returncode==0,result.stderr
@@ -152,6 +167,7 @@ if __name__=='__main__':
             mutations=[('return s.data.coins-before','return reward','Claim feedback not actual credit'),('credited-=d.xp;d.xp=0','d.xp=0','Cap overflow credit'),('return reward,credited','return credited,credited','Zero credit erased completion'),('(credited+bonusXP)','(reward+bonus)','KO nominal base/bonus displayed'),('..xpCredit..','..(q.xp*Commerce.Multiplier(p,"xp"))..','Claim feedback not actual credit')]
             mutations.append(('KO · no reward awarded','KO · repeat-opponent reward limited','Tiny first NPC falsely labeled repeat-limited'))
             mutations.append(('..coinCredit..','..5 ..','Rookie win showed nominal coins at cap'))
+            mutations.append(('then "no XP or coins credited"','then "boss reward earned"','Boss victory claimed a reward at both caps'))
             for old,new,expected in mutations:
                 assert old in s,old
                 r=run(s.replace(old,new,1));assert r.returncode and expected in r.stderr,r.stdout+r.stderr

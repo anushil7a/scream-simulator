@@ -388,7 +388,7 @@ local sessions={};local fixture=false
 local Players={GetPlayerByUserId=function(_,id)return id end}
 local function canDamageBots(s)return s~=nil and (s.testBaseline==nil or fixture)end
 local function parts(p)return {},p.root,p.h end
-local rewards={coins=0,xp=0};local function coins(_,n)rewards.coins+=n end;local function xp(_,n)rewards.xp+=n end
+local rewards={coins=0,xp=0};local function coins(_,n)rewards.coins+=n;return n end;local function xp(_,n)rewards.xp+=n;return n end
 local function state()end
 local ejected=0;local function eject()ejected+=1 end
 local bosses
