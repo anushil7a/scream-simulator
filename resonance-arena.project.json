@@ -1,0 +1,14 @@
+{
+  "name": "ResonanceArena_LOCAL_ONLY",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "ResonanceArena": { "$path": "prototypes/resonance-arena/Arena.server.luau" }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "$properties": { "CameraMinZoomDistance": 6 }
+    }
+  }
+}

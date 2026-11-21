@@ -1,0 +1,75 @@
+-- Run in the Server DataModel of the local Resonance Arena place during Play.
+assert(game:GetService("RunService"):IsStudio() and game.PlaceId==0 and game.GameId==0)
+local world=workspace:WaitForChild("ResonanceArena",5)
+assert(world and world.Hall and world.TrainingPreview)
+local player=assert(game.Players:GetPlayers()[1])
+local character=assert(player.Character)
+local humanoid=assert(character:FindFirstChildOfClass("Humanoid"))
+local root=character:WaitForChild("HumanoidRootPart",5)
+local ray=RaycastParams.new()
+ray.FilterType=Enum.RaycastFilterType.Include
+ray.FilterDescendantsInstances={world}
+ray.RespectCanCollide=true
+local function cast(origin,direction)
+ return workspace:Raycast(origin,direction,ray)
+end
+local function floorAt(point,name)
+ local hit=cast(point+Vector3.yAxis*10,Vector3.new(0,-25,0))
+ assert(hit and hit.Instance.Name==name and math.abs(hit.Position.Y)<.01,"Missing or uneven walking surface")
+end
+local parts,solid=0,0
+for _,item in ipairs(world:GetDescendants()) do
+ if item:IsA("BasePart") then
+  parts+=1
+  if item.CanCollide then solid+=1 end
+  assert(item.Anchored and not item.CanTouch and item.CanCollide==item.CanQuery,"Unexpected contact/query flags")
+ end
+end
+assert(parts<=200 and solid<=28,"The draft exceeded its simple geometry budget")
+assert(world.Hall.ArenaFloor.Size==Vector3.new(176,3,152))
+local cover=cast(Vector3.new(0,3.5,-25),Vector3.new(0,0,50))
+assert(cover and cover.Instance.Name=="MixingDesk","Central obstacle does not block chest-height line of sight")
+for _,side in ipairs({-1,1}) do
+ assert(not cast(Vector3.new(side*18,3.5,-24),Vector3.new(0,0,48)),"Central flank obstructed")
+end
+floorAt(Vector3.new(0,3.5,51),"ArenaFloor")
+floorAt(Vector3.new(0,3.5,240),"TrainingDeck")
+local limit=54.75
+local exits={}
+for _,sx in ipairs({-1,1}) do
+ for _,sz in ipairs({-1,1}) do
+  local spawn=world.Hall["Spawn_"..sx.."_"..sz]
+  local start=Vector3.new(spawn.Position.X,3.5,spawn.Position.Z)
+  floorAt(start,"ArenaFloor")
+  local combatPeek=Vector3.new(sx*34,3.5,sz*20)
+  local line=start-combatPeek
+  local shelter=cast(combatPeek,line)
+  assert(line.Magnitude<limit and shelter and shelter.Instance.Name=="SpeakerCover","An in-range lane sees into the spawn")
+  for _,finish in ipairs({Vector3.new(sx*69,3.5,sz*23),Vector3.new(sx*33,3.5,sz*55)}) do
+   local offset=finish-start
+   for _,margin in ipairs({-2,0,2}) do
+    local pad=offset.Unit:Cross(Vector3.yAxis)*margin
+    assert(not cast(start+pad,offset),"A spawn exit is obstructed")
+    for step=0,4 do floorAt(start+pad+offset*(step/4),"ArenaFloor") end
+   end
+   exits[#exits+1]={start,finish}
+  end
+ end
+end
+-- Each movement leg is independent; no jump or teleport through its corridor.
+local walkSpeed=humanoid.WalkSpeed
+local previousJump=humanoid:GetStateEnabled(Enum.HumanoidStateType.Jumping)
+humanoid.WalkSpeed=16
+humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
+for i,exit in ipairs(exits) do
+ character:PivotTo(CFrame.new(exit[1]))
+ root.AssemblyLinearVelocity=Vector3.zero
+ task.wait(.15)
+ humanoid:MoveTo(exit[2])
+ local deadline=os.clock()+5
+ repeat task.wait(.05) until (root.Position-exit[2]).Magnitude<2 or os.clock()>=deadline
+ assert((root.Position-exit[2]).Magnitude<2,"Humanoid failed to walk spawn exit "..i)
+end
+humanoid.WalkSpeed=walkSpeed
+humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,previousJump)
+return {parts=parts,solid=solid,walked=#exits,normalRange=limit}

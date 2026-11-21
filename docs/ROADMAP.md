@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Resonance Hall arena draft
+
+- The unpublished 176 × 152-stud hall has four sheltered spawns, eight speaker-cover blocks, two central flanks, a mixing desk on a record motif, and a cyan Training City portal. The alternate Rojo project runs only in an unpublished Studio session; the production city project is independent. The preview portal moves players between the hall and an isolated training landing in the same file.
+- Native checks walked both exits from each spawn using the standard 16-stud/s speed. Four sampled in-range spawn sightlines hit speaker cover; the desk blocked the central ray and both flanks were open. The hall and landing contain 178 anchored parts, 25 solid. The training sign was readable in a 567 × 300 emulated view. A far keyboard hold left the avatar in place; the near portal and return worked. On the final file, the avatar walked both portal approaches, used scripted prompt holds, and respawned on a marked pad. No physical phone or PvP match was tested.
+- Compile and standalone Rojo build passed, and the existing production regression passed 312 checks and builds. Independent review cleared the draft. Open `build/ResonanceHall-LOCAL-ONLY.rbxl` in Studio and press Play, or rebuild with `rojo build resonance-arena.project.json --output build/ResonanceHall-LOCAL-ONLY.rbxl`. Run `tests/StudioResonanceArena.luau` on the Server in the draft Play session to repeat the walk and cover checks.
+- Next, finish the current-world playtest and then exercise authoritative beam PvP in the hall with multiple players. Validate spawn pressure, the transition to the actual Training City, and safe profile handoff in an approved test environment before any release.
+
 ## Beam endpoints leave more of the target visible
 
 - The nearby level-100 yellow beam ended in a 12.915-stud-wide disc that washed out a staged character just beyond the endpoint. A matched oblique Studio view showed the character more clearly after the cap shrank to 4.55 studs wide and 0.819 studs deep. Idle transparency moved from .18 to .58. The level-1 endpoint remained visible at the same 1.20-stud diameter.
