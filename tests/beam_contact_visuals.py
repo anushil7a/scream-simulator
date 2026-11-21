@@ -7,8 +7,8 @@ import beam_silhouette as support
 
 ROOT = Path(__file__).resolve().parents[1]
 VISUAL = ROOT / 'src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau'
-# Milestone geometry intentionally supersedes the old sphere-based silhouette.
-BASE = '760b257984edce31e46d8cfb7bb2928410185ec2'
+# Published Map 10 renderer contains the milestone silhouettes and contact curve.
+BASE = '0f0ddbe2c8aa788cdb4499d77fa17a62f855fe83'
 ENV = """
 local clock=20;local os={clock=function()return clock end}
 local function typeof(v)return getmetatable(v)==V and 'Vector3' or type(v)end
@@ -38,7 +38,7 @@ local function equal(a,b)
  if a.R~=nil then return a.R==b.R and a.G==b.G and a.B==b.B end
  return (not a.Position and not b.Position or vector(a.Position,b.Position)) and (not a.Target and not b.Target or vector(a.Target,b.Target)) and vector(a.RightVector,b.RightVector) and vector(a.UpVector,b.UpVector)
 end
-local function unchanged(a,b,highSpec)
+local function unchanged(a,b,highSpec,hitLens)
  check(#a==#b,'Original beam geometry count changed')
  for i,p in ipairs(a)do
   local collarEnd=highSpec and 5+highSpec.rings*10 or 0
@@ -48,7 +48,8 @@ local function unchanged(a,b,highSpec)
   local spark=highSpec and i>ribbonEnd
   for _,key in ipairs({'Name','Anchored','CanCollide','CanTouch','CanQuery','CastShadow','Material','TopSurface','BottomSurface','Shape','Size','CFrame','Color','Transparency','Parent'})do
    local styled=highSpec and i<=2 and key=='Transparency' or (support or ribbon or spark) and (key=='Material' or key=='Transparency') or (support or ribbon) and key=='Color'
-   if support and key=='Size' then check(p.Size.X==b[i].Size.X,'Original supporting collar length changed')
+   if hitLens and i==4 and key=='Transparency' then check(b[i].Transparency==.86,'Confirmed hit did not fade the endpoint lens')
+   elseif support and key=='Size' then check(p.Size.X==b[i].Size.X,'Original supporting collar length changed')
    elseif not styled then check(equal(p[key],b[i][key]),'Original beam property changed: '..i..' '..key)end
   end
  end
@@ -85,7 +86,7 @@ for _,level in ipairs({1,9,10,19,20,29,30,39,40,49,50,59,60,69,70,79,80,89,90,99
    Baseline.Animate(old,time,viewer,mode[1]);Visuals.Animate(r,time,viewer,mode[1])
    unchanged(old.parts,r.parts,highSpec);check(#r.contact.parts==0,'Endpoint alone produced contact')
    check(Visuals.Contact(r,vec(2,1,24),time,level),'Valid contact rejected')
-   Visuals.Animate(r,time,viewer,mode[1]);unchanged(old.parts,r.parts,highSpec)
+   Visuals.Animate(r,time,viewer,mode[1]);unchanged(old.parts,r.parts,highSpec,not mode[1] and mode[2]==0)
    check(#r.contact.parts==(mode[2]>180 and 0 or (mode[1] or mode[2]>110) and 8 or 16),'Contact complexity changed')
    Baseline.Destroy(old);Visuals.Destroy(r)
   end
@@ -152,13 +153,13 @@ Visuals.Animate(r,clock+.1,vec(0,0,181),false);check(#r.parts==0 and #r.contact.
 Visuals.Animate(r,clock+.15,Vector3.zero,false);check(#r.contact.parts==0 and not r.contactPosition,'Cull replayed old contact')
 Visuals.Destroy(r);Visuals.Clear()
 local edge=create();check(Visuals.Contact(edge,vec(180,0,0),clock),'Draw-distance contact boundary rejected');Visuals.Destroy(edge);Visuals.Clear()
--- Contact uses the existing optional allowance, including slots one through five.
+-- Rendering pressure preserves the independent core, detail and confirmed-hit budgets.
 local rigs={}
 local function audit(coreCount)
- local seen={};local active,optional=0,0
+ local seen={};local active,detail,contact=0,0,0
  for _,rig in ipairs(rigs)do
   check(#rig.parts>=coreCount,'Contact pressure starved beam core')
-  optional+=math.max(0,#rig.parts-coreCount)+#rig.contact.parts
+  detail+=math.max(0,#rig.parts-coreCount);contact+=#rig.contact.parts
   for _,parts in ipairs({rig.parts,rig.contact.parts})do for _,p in ipairs(parts)do
    check(not seen[p] and not p.dead and p.Parent==workspace,'Duplicate/stale contact pool part');seen[p]=true;active+=1
    check(p.Material==Enum.Material.Neon or p.Material==Enum.Material.SmoothPlastic,'Pooled material uninitialized')
@@ -166,12 +167,12 @@ local function audit(coreCount)
  end
  local allocated,cached=Visuals.Budget()
  check(allocated<=512 and allocated==made-dead and active+cached==allocated,'Contact pool cap/accounting leaked')
- check(optional<=392,'Contact exceeded optional allowance')
- return active,optional
+ check(detail<=376 and contact<=16,'Detail/contact exceeded reserved allowances')
+ return active,detail,contact
 end
 for i=1,24 do rigs[i]=create();check(Visuals.Contact(rigs[i],anchor,clock,i),'Crowded contact rejected');Visuals.Animate(rigs[i],clock,Vector3.zero,false)end
-local peak=Visuals.Budget();local active,optional=audit(5)
-check(peak==512 and active==512 and optional==392,'Optional budget not fully reusable')
+local peak=Visuals.Budget();local active,detail,contact=audit(5)
+check(peak==512 and active==512 and detail==376 and contact==16,'Confirmed hit reserve unavailable under full detail pressure')
 local extra=create();Visuals.Animate(extra,clock,Vector3.zero,false)
 check(#extra.parts==0 and Visuals.Budget()==512,'Global contact pool cap exceeded');Visuals.Destroy(extra)
 for cycle=1,4 do
@@ -182,7 +183,7 @@ for cycle=1,4 do
  for _,rig in ipairs(rigs)do Visuals.Animate(rig,clock+.04,vec(0,0,181),false)end
  local n,cached=Visuals.Budget();check(n==cached and n==peak,'Culled contact pool leaked/grew')
  for _,rig in ipairs(rigs)do Visuals.Animate(rig,clock+.06,Vector3.zero,false)end
- active,optional=audit(5);check(active==512 and optional==392,'Released contact/detail budget not reusable')
+ active,detail,contact=audit(5);check(active==496 and detail==376 and contact==0,'Released detail did not return or culled contact replayed')
 end
 for _,rig in ipairs(rigs)do Visuals.Destroy(rig)end
 local n,cached=Visuals.Budget();check(n==cached,'Destroy orphaned contact parts')
@@ -228,10 +229,11 @@ def main():
             ('contactAllowed==false', 'false', 'Blocked contact retained'),
             ('local quiet=reduced or rig.reduced or contactReduced', 'local quiet=reduced or rig.reduced', 'Quiet/far contact budget'),
             ('local contactDir=rig.contactDirection', 'local contactDir=dir', 'Quiet contact moved/flashed'),
-            ('take(detail or nextIndex>5)', 'take(nextIndex>5)', 'Contact pressure starved beam core'),
-            ('if allocated>=Style.MaxParts then return end', 'if false then return end', 'Global contact pool cap exceeded'),
-            ('decoration[part]=nil;detailCount-=1', 'decoration[part]=nil', 'Contact complexity changed'),
-            ('for _,part in ipairs(rig.contact.parts) do release(part) end', 'for _,part in ipairs(rig.contact.parts) do end', 'Original beam geometry count changed'),
+            ('local coreLimit,contactLimit=24*5,16', 'local coreLimit,contactLimit=24*5,0', 'Contact complexity changed'),
+            ('detail=Style.MaxParts-coreLimit-contactLimit', 'detail=Style.MaxParts-coreLimit', 'Contact pressure starved beam core'),
+            ('partKind[part]=nil;inUse[kind]-=1', 'partKind[part]=nil', 'Contact complexity changed'),
+            ('rig.contactPosition and .86 or .18', 'rig.contactPosition and .18 or .18', 'Confirmed hit did not fade the endpoint lens'),
+            ('for _,part in ipairs(rig.contact.parts) do release(part) end', 'for _,part in ipairs(rig.contact.parts) do end', 'Contact complexity changed'),
             ('local from=center+radial*inner;local to=center+radial*extent', 'local from=center;local to=center+radial*extent', 'Contact stroke lost open center'),
             ('local to=center+radial*extent', 'local to=center-radial*extent', 'Contact stroke not radial/outward'),
             ('rig.contactPosition-contactDir*.7', 'rig.contactPosition-contactDir*.4', 'Contact stroke left target front plane'),

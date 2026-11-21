@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Restored HUD and beam verification
+
+- The repaired HUD fixture passes 1,160 assertions and 14 negative controls. The full gate previously stopped in two beam renderer suites at unavailable ref `760b257`. Both now use the tracked Map 10 milestone `0f0ddbe`, compare unchanged geometry to that snapshot, and assert the approved contact lens fade and pool reserves explicitly.
+- Independent Critic reran 107,139 contact and 102,333 high-tier assertions and all 35 negative controls. The full local verifier passed 29 pure/synthetic suites, 165 mocked suites, 98 production script compiles and disposable builds with matching input hashes. This run did not measure native rendering or audio playback.
+- Next: check defender-view combat in a disposable two-client session, and check beam mixing while clips load and players speak.
+
 ## Target visibility during overlapping beams
 
 - When three sustained beam origins are within the existing 110-stud detail radius, remote beams drop secondary collars, strands, sparks, template ribbons and particles. Remote core dimensions and motion stay the same. The local regular beam and local Test Beam retain their detail. Remote endpoint lenses fade during overlap and a confirmed hit briefly fades its own endpoint lens so the hit strokes can show through.
