@@ -204,6 +204,11 @@ for _,status in ipairs({'checking','denied','unavailable'})do
  check(full:find('Voice chat is unchanged',1,true),'Eligibility hint implies microphone mute')
 end
 data=ready;check(voiceEligibilityHint()==nil and not beamBlocked(),'Eligible status retained beam lock')
+mic.input={Parent={},Muted=true}
+local muteHint,isMuted=voiceEligibilityHint(false)
+check(isMuted and muteHint:find('Unmute in Roblox',1,true),'Muted toggle notice omitted the recovery action')
+mic.input.Parent=nil
+check(voiceEligibilityHint()==nil,'Detached input retained the mute notice')
 print('PASS',n,'actual client eligibility transition assertions; no native text-fit claim')
 """
 def run(code):

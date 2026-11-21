@@ -95,6 +95,11 @@ check(short({voiceStatus='unavailable'},0,false,false,false,0,false)=='BEAMS: OF
 check(short({voiceStatus='checking'},0,false,false,false,0,false)=='BEAMS: OFF\nChecking voice','Checking short cue missing')
 check(short({voiceStatus='checking',voiceEligible=true})=='BEAMS: ON\nAim and speak','Eligible player was treated as still checking')
 check(short({localReady=false},0,false,false,false,0,false)=='BEAMS: OFF\nConnecting mic','Local mic unavailable reported ready')
+check(short({localReady=false,mutedInput=true},0,false,false,false,0,false)=='BEAMS: OFF\nUnmute in Roblox','Muted short cue omitted the recovery action')
+check(short({localReady=false,mutedInput=true,detachedInput=true},0,false,false,false,0,false)=='BEAMS: OFF\nConnecting mic','Detached input retained stale mute guidance')
+check(short({voiceStatus='denied',localReady=false,mutedInput=true},0,false,false,false,0,false)=='BEAMS: OFF\nCheck voice settings','Mute cue masked denied access')
+local _,_,_,_,mutedMeter=cue(0,false,false,false,0,false,{mutedInput=true,localReady=false})
+check(mutedMeter=='MIC MUTED\nUnmute in Roblox','Visible meter omitted mute guidance')
 check(short({serverReady=false},0,false)=='BEAMS: ON\nConnecting mic','Server mic unavailable reported ready')
 check(short({tools=true},0,false)=='BEAMS: ON\nClose Test Tools','Blocked test tools reported ready')
 check(short({protection=1.6},0,false)=='BEAMS: ON\nProtected 1.6s','Protection reported ready')
@@ -121,13 +126,13 @@ status_code=r'''
  local viewport={X=state.width or 1280,Y=state.height or 381}
  local talkTarget=state.nearNpc and {} or nil
  local alive,windowFocused,protectionRemaining,knocked,rolling,touch=true,true,state.protection or 0,false,false,state.touch==true
- local mic={ready=state.localReady~=false}
+ local mic={ready=state.localReady~=false,input=state.mutedInput and {Muted=true,Parent=not state.detachedInput} or nil}
  local devPanel={Visible=state.tools==true}
  local UIS={GetFocusedTextBox=function()end}
  local humanoid={PlatformStand=false}
  local data={micReady=state.serverReady~=false,voiceStatus=state.voiceStatus,voiceEligible=state.voiceEligible==true or state.voiceStatus==nil}
 ''' + s[s.index('local function voiceEligibilityHint('):s.index('-- Process every server transition')] + '''
- local eligibilityHint=voiceEligibilityHint(true)
+ local eligibilityHint,inputMuted=voiceEligibilityHint(true)
  local p={GetAttribute=function() return 3 end}
  local serverNow=0
  local sustainedControl={armed=armed,attack=attack,gate={needsQuiet=quiet,onset=onset},unconfirmedUntil=state.unconfirmed and os.clock()+10 or nil}
@@ -136,8 +141,9 @@ status_code=r'''
  local function blocked() return false end
  local captureHint
  local castButton={}
-''' + s[s.index(' local showVoiceMeter='):s.index(' meter.Visible=gameplayVisible and showVoiceMeter')] + s[start:end] + s[s.index(' if sustainedControl then\n  -- Keep the next voice action'):s.index(' -- Keep attack duration/cooldown distinct')] + '''
- return captureHint,meterFill.BackgroundColor3,castButton.Text,showVoiceMeter
+ local meterText,power,academy={},0,{VoiceReactor=Reactor}
+''' + s[s.index(' local showVoiceMeter='):s.index(' meter.Visible=gameplayVisible and showVoiceMeter')] + s[start:end] + s[s.index('\n meterText.Text=',end):s.index(' local shortLandscape=',end)] + s[s.index(' if sustainedControl then\n  -- Keep the next voice action'):s.index(' -- Keep attack duration/cooldown distinct')] + '''
+ return captureHint,meterFill.BackgroundColor3,castButton.Text,showVoiceMeter,meterText.Text
 '''
 toggle_label=s[s.index('local function screamToggleLabel('):s.index('local function releaseCapture(')]
 payload=setup+module+checks.replace('local function cue(',toggle_label+'local function cue(').replace('__STATUS_CODE__',status_code)
@@ -164,6 +170,7 @@ if '--negative-controls' in sys.argv:
   ('or compactVoice and not mic.ready','', 'Local mic unavailable reported ready'),
   ('and not (not touch and viewport.X>=820 and talkTarget~=nil)','', 'Desktop TALK hides the quiet cue'),
   ('if eligibilityHint then', 'if false then','Denied short cue suggests arming'),
+  ('if inputMuted then','if false then','Muted short cue omitted the recovery action'),
  ]:
   assert payload.count(old)==1,old
   run(payload.replace(old,new),expected)

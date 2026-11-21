@@ -440,7 +440,13 @@ if remotes:GetAttribute("AutomaticVoice")==true then
  ownClient(function() sustainedControl:Destroy() end);if not clientCheckpoint() then return end
 end
 local function voiceEligibilityHint(compact)
- if data.voiceEligible==true then return nil end
+ if data.voiceEligible==true then
+  local input=mic.input
+  if input and input.Parent and input.Muted then
+   return compact and "MIC MUTED\nUnmute in Roblox" or "Beams stay OFF. Unmute in Roblox, then turn Beams on.",true
+  end
+  return nil
+ end
  if data.voiceStatus=="denied" then
   return compact and "VOICE ACCESS REQUIRED\nCheck Roblox voice settings" or "Beams OFF: Roblox voice access is not enabled. Check Roblox voice settings; server checks repeat. Voice chat is unchanged."
  end
@@ -460,7 +466,9 @@ local function toggleVoice()
  if not sustainedControl then return end
  -- Pausing is always allowed; arming must be an available gameplay action.
  if not sustainedControl.armed and (not windowFocused or beamBlocked()) then
-  notify(voiceEligibilityHint() or "Beams stay OFF. Wait for live microphone input and gameplay to be ready, then turn them on.",true,"voice");return
+  local hint,inputMuted=voiceEligibilityHint()
+  if inputMuted then academy.muteNoticePending=true end
+  notify(hint or "Beams stay OFF. Wait for live microphone input and gameplay to be ready, then turn them on.",true,inputMuted and "micMuted" or "voice");return
  end
  sustainedControl:SetArmed(not sustainedControl.armed)
  notify(sustainedControl.armed and "Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
@@ -1469,7 +1477,11 @@ connectClient(Run.RenderStepped,function(dt)
 
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
- local eligibilityHint=voiceEligibilityHint(true)
+ local eligibilityHint,inputMuted=voiceEligibilityHint(true)
+ if academy.muteNoticePending and not inputMuted then
+  notifications:Remove("micMuted")
+  academy.muteNoticePending=false
+ end
  tracked.Text=trackedQuestText
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
  if os.clock()>=nextResidentUi then
@@ -1510,7 +1522,7 @@ connectClient(Run.RenderStepped,function(dt)
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
    or (not sustainedControl.armed or voiceCooldown>0 or sustainedControl.gate.needsQuiet or blocked()) and muted or gold
  end
- meterText.Text=academy.VoiceReactor.Status(
+ meterText.Text=inputMuted and eligibilityHint or academy.VoiceReactor.Status(
   string.format("%s %d%%\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),captureHint),
   eligibilityHint,sustainedControl and not sustainedControl.armed,viewport.X,viewport.Y,touch)
  local shortLandscape=viewport.Y<300 and viewport.X>viewport.Y
@@ -1607,7 +1619,9 @@ connectClient(Run.RenderStepped,function(dt)
   local status
   if compactVoice then
    status=captureHint
-   if eligibilityHint then
+   if inputMuted then
+    status="Unmute in Roblox"
+   elseif eligibilityHint then
     status=data.voiceStatus=="denied" and "Check voice settings"
      or data.voiceStatus=="unavailable" and "Voice check delayed" or "Checking voice"
    end

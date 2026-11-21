@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## The beam HUD explains microphone mute
+
+- With eligibility allowed and a muted input attached, the short Studio HUD previously stayed on **Connecting mic**. It now says **Unmute in Roblox** and the full mic meter names the mute. The instruction fits at 567 × 242 usable pixels. A blocked tap at 750 × 323 gives the same recovery step while beams remain OFF. Eligibility failures retain their existing copy and precedence.
+- Removing the muted input clears the active mute notice. Simulated readiness with the input unmuted restored **Tap to turn on**, and a fresh pointer tap changed the button to **BEAMS: ON** without firing on silence. The native fixture used an unassigned Studio AudioDeviceInput and staged eligibility/readiness. It did not capture audio or verify a physical mic.
+- Critic cleared the change. Focused tests passed 250 presentation and 1,219 notice lifecycle assertions, including negative controls for hidden or stale mute guidance. All 312 local checks and builds passed with matching inputs. All disposable sessions closed. Next, verify the same instructions with a real voice-eligible account, a physical phone and actual Roblox mute controls.
+
 ## Beam templates skip repeated settings writes in the city
 
 - The beam renderer now updates template visibility and motion on mode changes instead of assigning the same values on every animation update. Particle rates are capped when the template initializes, and transitions still clear hidden particles once. A 24-beam Hollow Purple overlap can avoid up to 432 unchanged property writes per steady animation update. Building, moving, resizing and rendering the beams use the existing paths.
