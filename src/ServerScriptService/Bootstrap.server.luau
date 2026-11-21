@@ -462,14 +462,22 @@ local function resolveSustained(ctx,direction,stats,now)
  end
  return ids,details,{origin=ctx.origin,direction=direction,length=length,width=stats.width,power=stats.power,obstruction=obstruction,dodged=dodged}
 end
+local function clearTrainingStrike(bot)
+ local strike=bot.strike
+ bot.strike=nil
+ if strike and strike.warning then strike.warning:Destroy() end
+ return strike
+end
 local function restoreBot(bot)
  if not bot.model.Parent then return end
  bot.recoveryVersion=(bot.recoveryVersion or 0)+1
- bot.health=bot.maxHealth or Config.BotMaxHealth;bot.alive=true;bot.credit={};bot.trainingTarget=nil;bot.strike=nil;World.UpdateBot(bot)
+ clearTrainingStrike(bot)
+ bot.health=bot.maxHealth or Config.BotMaxHealth;bot.alive=true;bot.credit={};bot.trainingTarget=nil;World.UpdateBot(bot)
 end
 local function knockOutBot(bot)
  if not bot.alive then return end
- bot.trainingTarget=nil;bot.strike=nil;bot.alive=false;bot.recoveryVersion=(bot.recoveryVersion or 0)+1
+ clearTrainingStrike(bot)
+ bot.trainingTarget=nil;bot.alive=false;bot.recoveryVersion=(bot.recoveryVersion or 0)+1
  local version=bot.recoveryVersion
  task.delay(Config.BotRespawnSeconds,function()
   if bot.model.Parent and not bot.alive and bot.recoveryVersion==version then restoreBot(bot) end
@@ -1115,26 +1123,29 @@ local function stepTraining(now)
   if p then c,r,h=parts(p) end
   local valid=s and not s.flight and r and s.micReady and not Config.InArena(r.Position) and (r.Position-bot.start).Magnitude<=TrainingRules.Radius
    and now>=s.protectedUntil and now>=(s.knockedUntil or 0) and audible(bot.model,bot.root.Position,r.Position,c)
-  if not valid then bot.strike=nil;bot.trainingTarget=nil;continue end
+  if not valid then clearTrainingStrike(bot);bot.trainingTarget=nil;continue end
   if bot.strike then
    if now>=bot.strike.at then
-    local strike=bot.strike;bot.strike=nil
+    local strike=clearTrainingStrike(bot)
     local delta=r.Position-strike.position
     if TrainingRules.Hits(Vector3.new(delta.X,0,delta.Z).Magnitude,now<s.protectedUntil,now<s.dodgingUntil) then
      s.nextHeal=now+Config.HealQuietSeconds
      if h.Health<=bot.training.damage then eject(p,h) else h.Health-=bot.training.damage;state(p) end
     end
+   else
+    local remaining=math.clamp((bot.strike.at-now)/TrainingRules.Windup,0,1)
+    bot.strike.warning.Transparency=.24+.41*remaining
    end
   elseif now>=(bot.nextStrike or 0) then
    bot.nextStrike=now+TrainingRules.AttackInterval
-   bot.strike={at=now+TrainingRules.Windup,position=r.Position}
    -- Replicated, bounded warning disc; never collides or blocks the player's beam.
    local disc=Instance.new("Part");disc.Name="TrainingStrikeWarning";disc.Anchored=true
    disc.CanCollide=false;disc.CanTouch=false;disc.CanQuery=false;disc.Shape=Enum.PartType.Cylinder
    local warningY=(bot.training.y or 0)+1.4
    disc.Size=Vector3.new(.1,8,8);disc.CFrame=CFrame.new(r.Position.X,warningY,r.Position.Z)*CFrame.Angles(0,0,math.pi/2)
-   disc.Color=Color3.fromRGB(255,90,70);disc.Material=Enum.Material.Neon;disc.Transparency=.45;disc.Parent=workspace
-   game:GetService("Debris"):AddItem(disc,TrainingRules.Windup)
+   disc.Color=Color3.fromRGB(255,90,70);disc.Material=Enum.Material.Neon;disc.Transparency=.65;disc.CastShadow=false;disc.Parent=workspace
+   bot.strike={at=now+TrainingRules.Windup,position=r.Position,warning=disc}
+   game:GetService("Debris"):AddItem(disc,TrainingRules.Windup+.5)
   end
  end
 end

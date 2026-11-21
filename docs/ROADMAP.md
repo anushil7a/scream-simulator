@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Training strike feedback
+
+- The strike marker brightens over the existing 1.1-second windup. The warning's eight-stud diameter stays fixed and it clears on resolution, lost eligibility, trainer reset, or knockout. Damage and dodge rules stay on the existing server path.
+- Reproduced the lingering marker on base `382b5bf` using the actual strike step with simulated time. Fixed revision passed focused warning, trainer-lifecycle, NPC recovery and map grounding checks. A disposable Studio place exercised the extracted strike step using real Roblox Parts and simulated time/participants. Physical-device visibility, real-voice play and multiplayer are pending.
+- Built five sustained review places and compiled all 98 production scripts. Updated the join test's mocked authorization and cleanup mutation after reproducing its failure on clean `382b5bf`; all 22 assertions and five controls passed. The aggregate then stopped at `hud_readability.py` extracting the retired inline `zone.Text=` assignment, also reproduced on clean `382b5bf`. Next: align the HUD fixture with the current HUD and compare warning visibility on real desktop and touch hardware.
+
 ## Beam, player health and boss pacing (unpublished balance candidate)
 
 - Smoothed mid-tier sustained damage and raised mid-/late-player HP. Same-level and ±5 matchups retain a two-cast window under synthetic full-power contact. Lv100 vs Lv1 still reaches the existing 1.0s full-power endpoint on the actual mocked server path. Keep the 4s maximum / 5s cooldown, power gate, gear and PvP boundaries.

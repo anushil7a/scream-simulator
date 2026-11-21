@@ -26,6 +26,8 @@ local Color3={fromRGB=function(...)return {...} end}
 local transform={__mul=function(a)return a end}
 local CFrame={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},transform) end,Angles=function()return {}end}
 local workspace={}
+local TrainingRules={Windup=1.1}
+local now=0
 local function train(ground)
  local r={Position={X=5,Y=(ground or 0)+3,Z=-8}}
  local bot={training={y=ground}}

@@ -33,6 +33,7 @@ local VoiceEligibility={New=function()return {}end}
 local Config={HealQuietSeconds=12,SprintDuration=4,HealthForLevel=function()return 100 end}
 local function state()stateCalls+=1 end
 local function closeConversation()end
+local function toolAuthorized()return false end
 local function cancelSustained()cancels+=1 end
 local function protect()protects+=1 end
 local function stepVoiceEligibility()end;local function dispatchVoiceEligibility()end
@@ -136,7 +137,7 @@ if __name__=='__main__':
  if r.returncode:sys.exit(r.returncode)
  if '--negative-controls' in sys.argv:
   for name,mutation,expected in [
-   ('leave cleanup',lambda b:b.replace(' disconnectSessionSignals(s)\n cancelSustained',' -- removed cleanup\n cancelSustained',1),'Leave save yielded with retained'),
+   ('leave cleanup',lambda b:b[:b.index('local function leaving(p)')]+b[b.index('local function leaving(p)'):].replace('disconnectSessionSignals(s)','',1),'Leave save yielded with retained'),
    ('CharacterAdded disconnect',lambda b:b.replace('added:Disconnect()','do end',1),'Leave save yielded with retained'),
    ('CharacterRemoving disconnect',lambda b:b.replace('removing:Disconnect()','do end',1),'Leave save yielded with retained'),
    ('post-yield spawn fence',lambda b:b.replace(' or sessions[p]~=s or p.Character~=c or s.character==c',' or s.character==c',1),'Stale callback changed replacement'),
