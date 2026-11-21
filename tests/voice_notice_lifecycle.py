@@ -7,7 +7,7 @@ constructor=client[client.index(' sustainedControl=sustainedControl.new('):clien
 constructor=constructor.replace('sustainedControl=sustainedControl.new(', 'sustainedControl=Controls.new(',1)
 
 toggle=client[client.index('local function toggleVoice()'):client.index('local function releaseCapture(')]
-removal=next(line for line in client.splitlines() if line.startswith('connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough'))
+removal=next(line for line in client.splitlines() if line.startswith('connectClient(p.CharacterRemoving,') and 'hitFeedback:DiscardThrough' in line)
 start=client.index('local function suspendGameplay()')
 suspend=client[start:client.index('connectClient(UIS.WindowFocusReleased',start)]
 assert 'sustainedControl:SetArmed(false)' in suspend
@@ -17,7 +17,7 @@ local Controls=require('../src/StarterPlayer/StarterPlayerScripts/SustainedContr
 local VoiceActivation=require('../src/ReplicatedStorage/Shared/VoiceActivation')
 local clientDestroyed=false
 local lockController={Clear=function()end}
-local academy={lockLostUntil=0} -- Presentation dependency; voice-notice assertions remain unchanged.
+local academy={lockLostUntil=0,incomingHit={}} -- Presentation dependency; voice-notice assertions remain unchanged.
 local notifications=Queue.new();local sustainedControl;local windowFocused=true
 local action={FireServer=function()end};local unavailable=false
 local function blocked()return unavailable end

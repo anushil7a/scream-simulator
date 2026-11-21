@@ -298,6 +298,13 @@ coins.Active=false;coins.Selectable=false;coins.Interactable=false
 academy.mark(hud,"health",UDim2.fromOffset(12,36),10,Color3.fromRGB(130,211,174))
 local health=label(hud,"100 HP",UDim2.fromOffset(204,18),UDim2.fromOffset(26,32),14)
 health.Name="HealthValue";health.Font=Enum.Font.GothamBold;health.TextWrapped=false
+academy.incomingHit=label(hud,"BEAM HIT YOU",UDim2.fromOffset(116,18),UDim2.fromOffset(114,32),13,Color3.fromRGB(255,157,146))
+academy.incomingHit.Name="IncomingBeamHit"
+academy.incomingHit.Font=Enum.Font.GothamBold
+academy.incomingHit.TextXAlignment=Enum.TextXAlignment.Right
+academy.incomingHit.TextWrapped=false
+academy.incomingHit.Visible=false
+academy.incomingHit.Active=false;academy.incomingHit.Selectable=false;academy.incomingHit.Interactable=false
 local hf=frame(frame(hud,"HealthTrack",UDim2.fromOffset(218,8),UDim2.fromOffset(12,51),panel),"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
 local displayedHealth,displayedMaximum
 local function refreshHealth()
@@ -1278,7 +1285,7 @@ connectClient(UIS.InputEnded,function(input)
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
  if input.KeyCode==Enum.KeyCode.LeftShift then setSprint(false) end
 end)
-connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
+connectClient(p.CharacterRemoving,function() academy.damageTakenUntil=nil;academy.incomingHit.Visible=false;hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
 connectClient(UIS.WindowFocused,function() windowFocused=true end)
 local function suspendGameplay()
  if sustainedControl then sustainedControl:SetArmed(false) end
@@ -1323,6 +1330,13 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
   if not Players:GetPlayerByUserId(id) or not root or (root.Position-pos).Magnitude>180 or length<.05 then sustainedBeams:Remove(key);return end
   sustainedBeams:Update(key,os.clock(),pos,direction,length,beamWidth,(typeof(aura)=="Color3" and aura or gold),attackLevel or 1,data.settings.reducedShake)
+  return
+ end
+ if kind=="SustainedDamageTaken" then
+  local character=p.Character
+  if pos and character and character:FindFirstChildOfClass("Humanoid")==pos then
+   academy.damageTakenUntil=os.clock()+1.4
+  end
   return
  end
  if kind=="SustainedHit" then
@@ -1441,6 +1455,8 @@ connectClient(Run.RenderStepped,function(dt)
  local confirmed=hitFeedback:Read(os.clock())
  hitText.Visible=gameplayVisible and confirmed~=nil
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
+ if protectionRemaining>0 then academy.damageTakenUntil=nil end
+ academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and os.clock()<(academy.damageTakenUntil or 0)
  meter.Visible=gameplayVisible and viewport.Y>=315;reticle.Visible=UIS.TouchEnabled and gameplayVisible
  local power=academy.VoiceReactor.Power(captureSource and mic:CapturePower() or mic.power)
  academy.reactor:Step(power,dt,data.settings.reducedShake or platformReducedMotion,mic.ready and (not sustainedControl or sustainedControl.armed))

@@ -5,11 +5,11 @@ import sys
 import tempfile
 root=Path(__file__).resolve().parents[1]
 s=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text();a=s.index('local function toggleVoice()');b=s.index('local function releaseCapture(',a)
-respawn_line=next(line for line in s.splitlines() if line.startswith('connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough'))
+respawn_line=next(line for line in s.splitlines() if line.startswith('connectClient(p.CharacterRemoving,') and 'hitFeedback:DiscardThrough' in line)
 setup='''
 local unavailable=false;local windowFocused=true
 local lockController={Clear=function()end}
-local academy={lockLostUntil=0} -- Presentation dependency; voice assertions remain unchanged.
+local academy={lockLostUntil=0,incomingHit={}} -- Presentation dependency; voice assertions remain unchanged.
 local blocked=function()return unavailable end
 local beamBlocked=blocked;local voiceEligibilityHint=function()return nil end
 local calls=0;local sustainedControl={armed=false}

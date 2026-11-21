@@ -43,13 +43,14 @@ local sent={};local sustainedControl=Controls.new(gate,function(verb,arg)table.i
 local callbacks={};local function connectClient(signal,callback)callbacks[signal]=callback end
 local remotes={Effect={OnClientEvent={}}};local gold=color
 local Players={GetPlayerByUserId=function(_,id)return (id==7 or id==8 or id==9) and {} or nil end}
-local academy={testToolsAllowed=function()return true end}
+local academy={testToolsAllowed=function()return true end,incomingHit={}}
 local Config={Auras={Gold=color},GetSound=function()return nil end}
 local attackAudioSettings={Range=100};local stops,pulses,cues,screenHits,screenClears=0,0,0,0,0
 local attackAudio={Stop=function()stops+=1 end,Remove=function()end,Pulse=function()pulses+=1 end}
 local beamScreenFeedback={Hit=function()screenHits+=1 end,Begin=function()end,Clear=function()screenClears+=1 end}
 local function playGameplayCue(kind)check(kind=='Hit','Hit changed sound cue');cues+=1 end
 local beamFrame=0;local gameplayVisible=true;local hitText={}
+local protectionRemaining=0;local alive=true
 '''
 
 CHECKS = r'''
@@ -63,6 +64,7 @@ local function make(ack)
  mic.ready=true;data.voiceEligible=true;data.settings.reducedShake=false;workspace.CurrentCamera.CFrame.Position=Vector3.zero
  attrs={SustainedActive=false};cues=0;screenHits=0
  gate.next='start';sustainedControl:Step(.001,clock,0,true,true,false,0)
+ academy.damageTakenUntil=nil;protectionRemaining=0;alive=true
  local id=sustainedControl.attack.sequence;attrs.SustainedActive=true;attrs.SustainedSequence=id
  if ack~=false then sustainedControl:Step(.001,clock,0,true,true,true,id)end
  beam();local rig=sustainedBeams.entries[7].visual;frame(1/30)
@@ -73,8 +75,23 @@ local function hit(id,total,pos)send('SustainedHit',pos,id,total);hud()end
 local function retained(total)
  check(cues==1 and screenHits==1 and hitFeedback:Read(clock)==total and hitText.Visible and hitText.Text==total..' DAMAGE','Accepted hit lost retained sound/HUD')
 end
+make()
+send('SustainedDamageTaken',{});hud()
+check(not academy.incomingHit.Visible,'Foreign Humanoid showed defender cue')
+send('SustainedDamageTaken',nil);hud()
+check(not academy.incomingHit.Visible,'Nil Humanoid showed defender cue')
+mic.ready=false;data.voiceEligible=false;sustainedControl:SetArmed(false)
+send('SustainedDamageTaken',h);hud()
+check(academy.incomingHit.Visible and cues==0 and screenHits==0 and not hitText.Visible,'Defender cue needs confirmed damage but no local microphone or outgoing cast')
+windowFocused=false;hud();check(not academy.incomingHit.Visible,'Defender cue escaped inactive window')
+windowFocused=true;gameplayVisible=false;hud();check(not academy.incomingHit.Visible,'Defender cue escaped covered gameplay')
+gameplayVisible=true;hud();check(academy.incomingHit.Visible,'Defender cue failed to restore before expiry')
+clock+=1.5;hud();check(not academy.incomingHit.Visible,'Defender cue outlived its duration')
+send('SustainedDamageTaken',h);protectionRemaining=1;hud();protectionRemaining=0;hud()
+check(not academy.incomingHit.Visible,'Defender cue replayed after protection')
 local rig,id=make();check(sustainedControl.attack.acknowledged,'Real Controls did not acknowledge')
-hit(id,10,anchor);retained(10);frame(1/30)
+hit(id,10,anchor);send('SustainedDamageTaken',h);hud();retained(10);frame(1/30)
+check(academy.incomingHit.Visible and hitText.Visible,'Outgoing damage replaced defender cue')
 check(rig.contactPosition==anchor and rig.contactSequence==id and #rig.contact.parts==16,'Current accepted hit missing contact')
 local born=rig.contactBorn;clock+=.1;hit(id,11,vec(3,2,25));frame(1/30)
 check(cues==2 and hitText.Text=='11 DAMAGE' and rig.contactBorn==born and rig.contactPosition==anchor,'Increasing total extended contact cooldown')
@@ -236,6 +253,8 @@ def main():
             (event, 'now<entry.expires', 'true', 'Ineligible hit decorated new rig: expired entry'),
             (event, 'and windowFocused and not beamBlocked()', '', 'Blocked hit created contact'),
             (event, 'playGameplayCue("Hit");', '', 'Accepted hit lost retained sound/HUD'),
+            (event, 'character:FindFirstChildOfClass("Humanoid")==pos', 'true', 'Foreign Humanoid showed defender cue'),
+            (hud, 'if protectionRemaining>0 then academy.damageTakenUntil=nil end', '', 'Defender cue replayed after protection'),
             (hud, 'hitText.Visible=gameplayVisible and confirmed~=nil', 'hitText.Visible=false', 'Accepted hit lost retained sound/HUD'),
             (render, 'windowFocused and not beamBlocked() and attack', 'attack', 'Blocked frame retained contact'),
             (render, 'attack and attack.acknowledged', 'attack', 'Current-state frame gate retained contact: lost acknowledgement'),

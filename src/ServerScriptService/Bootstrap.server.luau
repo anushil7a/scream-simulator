@@ -536,7 +536,13 @@ local function stepSustained(p,s,now)
    if h.Health<=hit.damage then
     awardCombatKO(ts.credit,p,ts.data.level,h.MaxHealth,Config.PlayerKOXP(ts.data.level),now,target.player)
     eject(target.player,h)
-   else h.Health-=hit.damage end
+   else
+    local previous=h.Health
+    h.Health-=hit.damage
+    if hit.firstHit and h.Health<previous then
+     effect:FireClient(target.player,"SustainedDamageTaken",h)
+    end
+   end
   elseif target.boss then
    dealt+=bosses:Hit(target.boss,p,hit.damage,now)
   elseif target.object then

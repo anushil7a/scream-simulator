@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Defender feedback for a beam hit
+
+- The health card now displays **BEAM HIT YOU** for 1.4 seconds after the first nonfatal hit from an opposing sustained cast. The server sends the cue privately to the damaged player after actual health loss. It binds to the current Humanoid and clears on character removal or spawn protection. Subsequent ticks from the same cast leave the timer alone. The existing knockout notice and the attacker's damage readout remain separate. The cue uses steady text and works with Beams OFF.
+- In matched native two-client Studio captures, the same synthetic server-side strike reduced the defender from 100 to 97 HP. The baseline showed only the health change. The candidate displayed the label beside 97/100 with Beams OFF. Native text bounds were 88 × 13 within a 116 × 18 lane. The defender received three confirmations for three damaging cases, and the attacker received none of the defender event. All eight boundary cases passed. The cue was hidden again after the hold. The fixture stages players and power in an unpublished local place. Human voice, phone and live persistence remain unverified.
+- Independent Critic reran 148 server and 330 client integration assertions with 32 negative controls. The full local verifier passed 314 commands after updating the voice tests' callback locators for the shared respawn handler. Next: test the opening through first equipment with a real microphone, test phone controls and assess defender readability during consecutive casts.
+
 ## Converging beams from the far detail band
 
 - Three level-100 segments of 50, 20 and 53 studs converged at the same point 60 studs from the viewer. The third origin was 113 studs from the viewer. Origin-only crowding left 77 parts on the nearer remote beam. Counting the closest point on the finite segment now uses five parts for that remote beam, with the local beam at 77 parts and the far beam at four in both runs.
