@@ -148,7 +148,8 @@ function Guide:Step(root,now,visible)
   end
   local ground=Workspace:Raycast(point+Vector3.new(0,3,0),Vector3.new(0,-9,0),self.raycast)
   if not ground or ground.Normal.Y<.6 then break end
-  count+=1;self.visibleDots=count;self.dots[count].Position=ground.Position+Vector3.new(0,.1,0);self.dots[count].Transparency=.22
+  -- Ground rays ignore decorative paving, so place markers above its shallow inlays.
+  count+=1;self.visibleDots=count;self.dots[count].Position=ground.Position+Vector3.new(0,.45,0);self.dots[count].Transparency=.22
   distance+=step;from=point
   if step>=length then index+=1 end
  end

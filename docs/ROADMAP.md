@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Guide markers above Academy paving
+
+- In matched Studio samples along the Rookie approach, up to five GUIDE markers from the real pathfinder were below the opaque paving. The client now offsets markers .45 studs above the physical ground sample. Their bottoms measured y32.39 over the y32.285 stone inlay. All 12 overlaps across the three matched samples cleared the paving, and the markers were visible in the native approach view.
+- An automated walk reached the Rookie pad. The selected route showed Arrived and hid its markers. Pathfinding, ground queries, obstacle checks, redraw cadence and the marker count are unchanged. The result verifies the sampled approach in an unpublished fixture with a staged avatar, without physical-phone or streaming validation.
+- Critic cleared the change. The navigation fixture passed 39 assertions including one that failed against the prior offset. All 312 checks and builds passed with matching inputs. Both disposable Studio sessions closed.
+
 ## Academy arrival and Rookie training approach
 
 - The direct spawn-to-Rookie route crossed NorthCourtPlanter2 in a native movement-height ray. Three low stone and teal inlay sections with brass chevrons mark the clear path west of the fountain to the Rookie pad. The mounted plaza directory now points left to Rookie Training. The directory was raised after the first phone-emulator view put its lower label behind the combat HUD.

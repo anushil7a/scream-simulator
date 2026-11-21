@@ -49,6 +49,8 @@ g:Step(root,0,true);check(#tasks==0,'no automatic target')
 g:SetTarget({position=Vector3.new(100,0,0),label='Boss'});g:Step(root,0,true)
 check(#tasks==1,'first computation');g:Step(root,1,true);check(#tasks==1,'single in-flight');flush()
 g:Step(root,1.2,true);check(g.dots[1].Transparency<1,'route shown');check(g.status=='Follow the markers','route status')
+local lowestEdge=g.dots[1].Position.Y-g.dots[1].Size.Y/2
+check(lowestEdge>.3375 and g.dots[1].Position.Y<.6,'Guide dot intersects low paving or floats above the route')
 g:Step(root,1.4,false);check(g.dots[1].Transparency==1,'modal hide')
 wall=true;g:Step(root,1.6,true);check(g.points==nil and g.dots[1].Transparency==1,'new wall fails closed');wall=false
 g:Step(root,2,true);check(#tasks==0,'retry throttle');g:Step(root,3,true);check(#tasks==1,'retry after throttle')
