@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## First earned equipment
+
+- Baseline Studio Style put the 38 px starter button at y457 in a 464 px scroll window, behind the color picker. Beams now links to gear, and Style starts with the Academy Megaphone. The 44 px action shows coins still needed, Buy & Equip, Equip or Unequip as applicable. Prices, bonuses and save schema retain their existing rules.
+- A fresh temporary Studio profile earned 80 coins from the three garden markers and 50 from six beach markers. The fixture staged the avatar and invoked the authoritative NPC/prompt functions; quest acceptance and claims used the normal remote. A repeat garden claim left the balance at 80. The actual desktop Buy & Equip button spent 100 of 130 coins and mounted the existing fallback megaphone. Unequip/re-equip kept 30 coins and switched the multiplier between 1.00 and 1.06. The equipped model remounted after same-session respawn. No Robux or live saves were involved. This supplements the earlier separate Rookie-to-Level-2 fixture, rather than proving one end-to-end human session.
+- The nominal 568 × 320 touch emulator gave the HUD a 567 × 241 effective viewport. Compact tabs now leave 63 px of content height, with the starter action ending at y50. A native server denial displayed above the tab row with six pixels clear of Close. Independent review caught both compact constraints and cleared the fix. The emulator does not establish physical touch or human discovery.
+- Equipment, style, menu lifecycle and notice checks pass. Next: unassisted microphone/device play through first equipment, validate overlapping combat and higher-tier readability, then finish the current-world pass before the dedicated sound-themed PvP world and return portal.
+
 ## First training route
 
 - On fresh level 1 in disposable Studio, the HUD recommended Rookie while Map → Training guided 140 studs north to Brawler. Brawler's pad is 120 studs from Rookie's. The training destination now follows the existing recommended tier and appears first in Map with the fighter name and level.
@@ -11,7 +18,7 @@
 - HUD navigation passed 28 selection assertions and the full build/check run passed 312 of 314 commands, with the same historical-ref blockers. The independent critic identified lost legacy challenge guidance; its original wording was restored.
 - The live mic meter now tells players to go quiet during cooldown, keeps that cue until the quiet gate clears, then says “Aim and speak.” The input fill is muted during cooldown/reset. The BEAMS toggle and Settings still warn that normal speech can fire attacks. The previous native build showed a bare cooldown countdown before the reset message. Argon reviewed the copy, and the independent critic cleared the scoped HUD change.
 - In the iPhone 17 Pro landscape emulator (750 × 381), all three cues fit the actual label. Full synthetic input through cooldown expiry left the first cast sequence unchanged; quiet cleared the gate, a new onset hit Rookie, and the temporary profile reached Level 2 with 10 coins at 51.9 seconds. No real mic, physical touch, player comprehension or live saves were exercised. Checked the three new strings with native font measurements at the narrowest 102 px text width as well.
-- Next opening pass: validate the guidance with real players and follow the reward into the first equipment upgrade. Reserve the dedicated sound-themed PvP world and its return portal for after the current-world pass. No Roblox publication.
+- The first equipment handoff is recorded above. Unassisted discovery and real-voice play still need players.
 
 ## Training strike feedback
 

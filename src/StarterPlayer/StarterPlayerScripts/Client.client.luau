@@ -932,6 +932,9 @@ render=function()
   shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow,compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
  elseif selected=="Screams" then
   title.Text="BEAM COLLECTION"
+  local gearCard=card(60)
+  label(gearCard,"Gear for earned coins",UDim2.new(1,-150,0,44),UDim2.fromOffset(14,8),14,gold)
+  button(gearCard,"OpenBeamGear","VIEW GEAR",UDim2.fromOffset(112,44),UDim2.new(1,-126,0,8),function() toggleTab("Style") end)
   local nextStyle
   for _,style in ipairs(Config.Sounds) do
    if style.level>data.level and (not nextStyle or style.level<nextStyle.level) then nextStyle=style end
@@ -1011,19 +1014,32 @@ render=function()
    end
   end
  elseif selected=="Style" then
-  title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your beam effects."
+  title.Text="GEAR & BEAM COLOR";subtitle.Text="Earn gear with coins from training and quests."
+  local selectedGear=Config.Gear.Selected(data)
+  local function gearCard(item,starter)
+   local owned=Config.Gear.Owned(data,item.id)
+   local locked=data.level<item.level
+   local remaining=owned and 0 or math.max(0,item.price-data.coins)
+   local canAct=not locked and remaining==0
+   local stateText=locked and ("LEVEL "..item.level) or selectedGear and selectedGear.id==item.id and "UNEQUIP" or owned and "EQUIP"
+    or remaining>0 and ("NEED "..remaining.." COINS") or "BUY & EQUIP"
+   local c=card(narrow and 116 or 110)
+   label(c,string.upper(item.name),UDim2.new(1,narrow and -168 or -28,0,narrow and 44 or 28),UDim2.fromOffset(15,6),16,gold)
+   local detail=string.format("Level %d · +%d%% mic power\n%d earned coins",item.level,math.floor(item.bonus*100+.5),item.price)
+   if starter and not owned then detail..=" · train or do quests" end
+   label(c,detail,UDim2.new(1,narrow and -28 or -170,0,48),UDim2.fromOffset(15,narrow and 57 or 34),13)
+   local control=button(c,item.id,stateText,UDim2.fromOffset(135,44),UDim2.new(1,-149,0,narrow and 6 or 50),function()
+    if canAct then action:FireServer("Gear",item.id) end
+   end)
+   control.Interactable=canAct
+   if not canAct then control.TextColor3=muted end
+  end
+  local starter=Config.Gear.Get("Megaphone")
+  if starter then gearCard(starter,true) end
   shopUsed=true;ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
   info("Earned-coin gear · one active bonus · normalized power capped at 100%. Buy once, then equip freely.",90)
   for _,item in ipairs(Config.Gear.Items) do
-   local selectedGear=Config.Gear.Selected(data)
-   local owned=Config.Gear.Owned(data,item.id)
-   local locked=data.level<item.level
-   local c=card(narrow and 166 or 116)
-   label(c,string.upper(item.name),UDim2.new(1,-28,0,30),UDim2.fromOffset(15,8),16,gold)
-   label(c,string.format("Level %d · +%d%% mic power\n%d earned coins · one-time purchase",item.level,math.floor(item.bonus*100+.5),item.price),UDim2.new(1,narrow and -28 or -174,0,62),UDim2.fromOffset(15,42),13)
-   button(c,item.id,locked and ("LEVEL "..item.level) or selectedGear and selectedGear.id==item.id and "UNEQUIP" or owned and "EQUIP" or tostring(item.price).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,narrow and 116 or 55),function()
-    if not locked then action:FireServer("Gear",item.id) end
-   end)
+   if item~=starter then gearCard(item,false) end
   end
   info("Movement pass: repeated jumps (24-stud height limit) and consecutive rolls only in safe areas. Arena cooldowns always apply."..(Config.MovementPassId==0 and " Purchase setup is not available yet." or ""),70)
   local base=card(76)
@@ -1452,6 +1468,7 @@ connectClient(Run.RenderStepped,function(dt)
  meterText.Text=academy.VoiceReactor.Status(
   string.format("%s %d%%\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),captureHint),
   eligibilityHint,sustainedControl and not sustainedControl.armed,viewport.X,viewport.Y,touch)
+ local shortLandscape=viewport.Y<300 and viewport.X>viewport.Y
  if layoutChanged then
  academy.layoutZone(viewport,touch)
  local meterWidth,meterHeight=academy.VoiceReactor.Layout(viewport.X,touch,viewport.Y)
@@ -1459,10 +1476,13 @@ connectClient(Run.RenderStepped,function(dt)
  local short=viewport.Y<550
  menuScale.Scale=1
  local width=math.min(720,viewport.X-24)
- modal.Size=UDim2.fromOffset(width,math.min(620,viewport.Y-76));modal.Position=UDim2.new(.5,0,0,64)
+ modal.Size=UDim2.fromOffset(width,math.min(620,viewport.Y-(shortLandscape and 16 or 76)))
+ modal.Position=UDim2.new(.5,0,0,shortLandscape and 8 or 64)
+ modal.Close.Position=UDim2.new(1,-56,0,shortLandscape and 0 or 10)
+ title.Position=UDim2.fromOffset(22,shortLandscape and 4 or 15)
  title.TextSize=width<620 and 20 or 23
  subtitle.Visible=not short;subtitle.Size=UDim2.new(1,-44,0,width<620 and 42 or 25)
- local tabY=short and 54 or width<620 and 102 or 88
+ local tabY=shortLandscape and 44 or short and 54 or width<620 and 102 or 88
  local columns=width<620 and 3 or 6;local rows=math.ceil(6/columns)
  local tabWidth=(width-40-(columns-1)*6)/columns
  for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do
@@ -1575,13 +1595,14 @@ connectClient(Run.RenderStepped,function(dt)
  end
  -- Pause queue time while covered, too small, interacting, or overflow remains unseen.
  local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,CityMap.MiniLayout(viewport,touch,data.devAccess==true),data.devAccess==true,talkTarget~=nil)
- if modal.Visible then noticeLayout=NoticeLayout.Modal(viewport.X,viewport.Y) end
+ if modal.Visible then noticeLayout=NoticeLayout.Modal(viewport.X,viewport.Y,shortLandscape) end
  local noticeVisible=(gameplayVisible or modal.Visible) and windowFocused and not GuiService.MenuIsOpen
  local noticeNow=os.clock()
  noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active)
  local nextNotice=notifications:Step(dt,noticeView:CanAdvance())
  if nextNotice~=notice then notice=nextNotice;noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active) end
- shop.Visible=not (modal.Visible and noticeView.visible);questsToggle.Visible=shop.Visible
+ title.Visible=not (shortLandscape and modal.Visible and noticeView.visible)
+ shop.Visible=not (modal.Visible and (noticeView.visible or shortLandscape));questsToggle.Visible=shop.Visible
  questsToggle.Text=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
  talkButton.Visible=talkTarget~=nil and gameplayVisible
  -- Preserve the interaction target; passive mic art must never sit under TALK.

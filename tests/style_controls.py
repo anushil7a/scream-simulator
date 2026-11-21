@@ -205,7 +205,7 @@ for _,small in ipairs({false,true})do
  narrow=small
  for _,aura in ipairs({'Gold','Blue'})do
   for _,custom in ipairs({false,true})do
-   local d={level=1,aura=aura,useCustomColor=custom,customColor='123456'};renderStyle(d)
+   local d={level=1,coins=0,aura=aura,useCustomColor=custom,customColor='123456'};renderStyle(d)
    local count=0;for _ in pairs(buttons)do count+=1 end
    check(count==#Config.Gear.Items+1 and buttons.BaseColor and buttons.Megaphone and buttons.MicroSpeaker,'Free palette cards remain')
    check(buttons.BaseColor.Text==((aura=='Gold' and not custom) and 'EQUIPPED' or 'USE YELLOW'),'Base selection status incorrect')

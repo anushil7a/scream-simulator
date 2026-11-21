@@ -119,7 +119,7 @@ check(v.headerHeight==0 and not v.hint.Visible and v.text.Position.Y.Offset==4 a
 v:Destroy()
 -- Execute the actual per-frame Client queue/layout block with real helper/queue.
 local NoticeLayout=Layout;local noticeView=make();local notifications=Queue.new();local viewport=Vector2.new(320,315);local touch=true;local data={devAccess=true}
-local modal={Visible=false};local shop={Visible=true};local talkTarget
+local modal={Visible=false};local shop={Visible=true};local title={Visible=true};local talkTarget
 local selected='Shop';local function closeMenu()modal.Visible=false end;local function render()end
 local devPanel={Visible=false};local closeConversation;local action={FireServer=function()end}
 local academy={damageReadout={}} -- The extracted tab handler shares the Client UI namespace.
@@ -139,6 +139,7 @@ academy.guidePanel=rect(16,270,290,62)
 local talkButton=rect(100,66,120,44);local hud=rect(14,118,240,88);local tracked=rect(16,214,290,50);local zone=rect(40,12,240,28);local saveNotice=rect(35,40,250,28)
 local function frame()
  local notice=notifications:Step(0,false)
+ local shortLandscape=viewport.Y<300 and viewport.X>viewport.Y
  INTEGRATION
 end
 notifications:Push(samples[1],true,'save');local saved=notifications.active.remaining
@@ -165,6 +166,14 @@ check(noticeView.scroll.Size.Y.Offset>=44,'Modal scroll target below44px')
 noticeView.scroll.CanvasPosition=Vector2.new(0,noticeView.contentHeight-noticeView.visibleHeight);frame();check(noticeView.text.Position.Y.Offset+noticeView.text.Size.Y.Offset-noticeView.scroll.CanvasPosition.Y<=noticeView.visibleHeight,'Modal last line remains beneath cue')
 modal.Visible=false;viewport=Vector2.new(640,360);frame();check(questsToggle.Text=='QUESTS' and noticeView.root.Visible,'Fitting resize retained fallback disclosure')
 notifications:Remove('save');frame();check(questsToggle.Text=='QUESTS' and questsToggle.Visible,'Recovered notice retained disclosure launcher')
+local compact=Layout.Modal(567,241,true)
+check(compact.available and compact.x==20 and compact.x+compact.width<=499 and compact.y+compact.height<=52,
+ 'Short modal notice overlaps Close or the tab row')
+viewport=Vector2.new(567,241);modal.Visible=true;notifications:Push(samples[1],true,'save');frame()
+check(not title.Visible and not shop.Visible and noticeView.root.Visible,
+ 'Short modal hides the warning or leaves header and launch buttons over it')
+notifications:Remove('save');frame()
+check(title.Visible and not shop.Visible,'Short modal title did not return when the notice cleared')
 local v=make();local id={};v:Update('Short',Layout.Modal(1024,720),true,1,16,id);local before=measured
 v:Update('Short',Layout.Modal(1280,720),true,2,16,id);check(v.root.Position.X.Offset==320 and measured==before,'Same-size reposition used stale drawn bounds');v:Destroy()
 modal.Visible=false;talkTarget=nil;viewport=Vector2.new(640,360);notifications=Queue.new()

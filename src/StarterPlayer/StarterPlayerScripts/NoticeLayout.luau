@@ -15,7 +15,12 @@ function Layout.Get(width,height,touch,map,testTools,talkVisible)
  end
  return result
 end
-function Layout.Modal(width,height)
+function Layout.Modal(width,height,shortLandscape)
+ if shortLandscape then
+  local menuWidth=math.min(720,width-24)
+  local w=menuWidth-70
+  return {x=(width-menuWidth)/2+8,y=8,width=math.max(0,w),height=44,available=w>=120 and height>=128}
+ end
  local w=math.min(640,width-28)
  return {x=(width-w)/2,y=8,width=math.max(0,w),height=48,available=w>=120 and height>=128}
 end
