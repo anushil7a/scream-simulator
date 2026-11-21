@@ -1029,18 +1029,22 @@ render=function()
  elseif selected=="Style" then
   title.Text="GEAR & BEAM COLOR";subtitle.Text="Earn gear with coins from training and quests."
   local selectedGear=Config.Gear.Selected(data)
+  local compactGear=narrow and gui.AbsoluteSize.X>=500
   local function gearCard(item,starter)
    local owned=Config.Gear.Owned(data,item.id)
    local locked=data.level<item.level
    local remaining=owned and 0 or math.max(0,item.price-data.coins)
    local canAct=not locked and remaining==0
-   local stateText=locked and ("LEVEL "..item.level) or selectedGear and selectedGear.id==item.id and "UNEQUIP" or owned and "EQUIP"
-    or remaining>0 and ("NEED "..remaining.." COINS") or "BUY & EQUIP"
-   local c=card(narrow and 116 or 110)
-   label(c,string.upper(item.name),UDim2.new(1,narrow and -168 or -28,0,narrow and 44 or 28),UDim2.fromOffset(15,6),16,gold)
-   local detail=string.format("Level %d · +%d%% mic power\n%d earned coins",item.level,math.floor(item.bonus*100+.5),item.price)
-   if starter and not owned then detail..=" · train or do quests" end
-   label(c,detail,UDim2.new(1,narrow and -28 or -170,0,48),UDim2.fromOffset(15,narrow and 57 or 34),13)
+   local equipped=selectedGear and selectedGear.id==item.id
+   local canBuy=canAct and not owned
+   local stateText=locked and ("LEVEL "..item.level) or equipped and "UNEQUIP" or owned and "EQUIP"
+    or remaining>0 and ("NEED "..remaining.." COINS") or ("BUY & EQUIP\n"..item.price.." COINS")
+   local c=card(compactGear and 72 or narrow and 116 or 110)
+   label(c,string.upper(item.name),UDim2.new(1,narrow and -168 or -28,0,compactGear and 20 or narrow and 44 or 28),UDim2.fromOffset(15,6),16,gold)
+   local status=equipped and "Equipped · " or owned and "Owned · " or not canBuy and (item.price.." coins · ") or ""
+   local detail=string.format("Level %d · +%d%% mic power\n%s%d coins in wallet",item.level,math.floor(item.bonus*100+.5),status,data.coins)
+   if starter and not canAct then detail..="\nEarn coins from training or quests" end
+   label(c,detail,UDim2.new(1,narrow and not compactGear and -28 or -170,0,compactGear and 42 or 48),UDim2.fromOffset(15,compactGear and 26 or narrow and 57 or 34),13)
    local control=button(c,item.id,stateText,UDim2.fromOffset(135,44),UDim2.new(1,-149,0,narrow and 6 or 50),function()
     if canAct then action:FireServer("Gear",item.id) end
    end)

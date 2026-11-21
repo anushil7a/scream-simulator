@@ -192,6 +192,7 @@ if not args.baseline:
  style=client[client.index('\n',a)+1:client.index(' elseif selected=="Map" then',a)]
  style_setup=r"""
 local title,subtitle={},{};local gold=accent;local infoTexts={};local narrow=false
+local gui={AbsoluteSize={X=390}}
 local card,frame,label,button=ui.card,ui.frame,ui.label,ui.button
 local function info(text)table.insert(infoTexts,text)end
 local ShopUI={ColorMixer=function(data,ui,action)end}

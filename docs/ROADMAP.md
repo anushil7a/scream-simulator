@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## First gear purchase shows the price and remaining coins
+
+- In disposable Studio, buying the Academy Megaphone mounted it and spent 100 coins. The old Style card continued to show **100 earned coins** while the normal wallet HUD was hidden. The updated purchase action includes the catalog price. The card reflects the replicated wallet balance and shows when gear is owned or equipped. The player who needs more coins still gets the existing shortfall and training guidance.
+- In the 567 × 321 usable phone emulator, the first layout clipped the wallet line in a 73-pixel content window. With the text beside the action, all of the Megaphone card's information fits through pixel 68. Measured text fit and horizontal separation for all six gear cards. With game audio groups at zero, a temporary test grant supplied 1,000 coins, the actual purchase button spent 100, and unequipping and re-equipping both left 900 coins.
+- Critic cleared the change. Focused equipment, layout and Style checks passed, as did all 312 local commands and builds with matching input hashes. Removing the buy price or reverting the compact card each failed its regression. All three temporary Studio sessions closed. Smaller two-row windows can still require scrolling. Physical touch, the natural full earning route and real persistence remain outside this check. Next, observe the complete earn-and-equip route on a physical device and continue the current-world polish before the separate PvP world.
+
 ## Muted reward check and touch menu guidance
 
 - Applied the mute-playtest idea from the Oddblock video notes in the project vault. A new disposable player accepted the Garden quest, performed three staged prompt holds and claimed with the actual HUD button. With the four game audio groups confirmed at zero around the claim, the reward button retired and the coin counter rose from 0 to 80. This checks the visual confirmation of one reward, without establishing other feedback events, real voice or listening balance.

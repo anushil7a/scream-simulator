@@ -66,14 +66,17 @@ short_landscape=next(line for line in client.splitlines() if 'local shortLandsca
 layout=client[client.index(' local short=viewport.Y<550'):client.index(' if width~=lastLayoutWidth')]
 code=r'''
 local Gear=require('../src/ReplicatedStorage/Shared/GearCatalog')
-local function renderStyle(data,narrow)
+local function renderStyle(data,narrow,width)
  local Config={Gear=Gear,MovementPassId=0,Auras={Gold='gold'}}
+ local gui={AbsoluteSize={X=width or (narrow and 390 or 1280)}}
  local title,subtitle={},{}
  local gold,muted='gold','muted'
  local cards,buttons,sent={},{},{}
  local UDim2={new=function(_,x,_,y)return {x=x,y=y}end,fromOffset=function(w,h)return {w=w,h=h}end}
  local function card()local c={};table.insert(cards,c);return c end
- local function label(c,text)c.text=c.text or text end
+ local function label(c,text,size,pos)
+  if c.text then c.detail=text;c.detailBottom=pos.h+size.y else c.text=text end
+ end
  local function info(text)table.insert(cards,{text=text})end
  local function button(c,name,text,size,position,callback)
   local b={text=text,size=size,position=position,press=callback}
@@ -91,16 +94,20 @@ for _,narrow in ipairs({false,true}) do
  assert(cards[1].text=='ACADEMY MEGAPHONE' and cards[2].text=='Color Mixer','Starter gear below color controls')
  local starter=buttons.Megaphone
  assert(starter.size.h>=44 and starter.text=='NEED 20 COINS' and not starter.Interactable)
+ assert(cards[1].detail:find('100 coins · 80 coins in wallet',1,true),'Unaffordable gear obscures the price or balance')
  if narrow then assert(starter.position.y+starter.size.h<=72,'Starter CTA clipped at 568 × 320') end
  starter.press();assert(#sent==0,'Unaffordable gear sent a request')
  buttons.MosaicMic.press();assert(not buttons.MosaicMic.Interactable and #sent==0,'Locked gear sent a request')
- _,buttons,sent=renderStyle({level=1,coins=100,aura='Gold'},narrow)
- assert(buttons.Megaphone.text=='BUY & EQUIP' and buttons.Megaphone.Interactable)
+ cards,buttons,sent=renderStyle({level=1,coins=1000,aura='Gold'},narrow)
+ assert(buttons.Megaphone.text=='BUY & EQUIP\n100 COINS' and buttons.Megaphone.Interactable,'Buy action missing the actual price')
+ assert(cards[1].detail:find('1000 coins in wallet',1,true),'Displayed balance differs before purchase')
  buttons.Megaphone.press();assert(#sent==1 and sent[1][1]=='Gear' and sent[1][2]=='Megaphone')
- _,buttons=renderStyle({level=1,coins=0,aura='Gold',megaphoneOwned=true,megaphoneEquipped=true},narrow)
+ cards,buttons=renderStyle({level=1,coins=900,aura='Gold',megaphoneOwned=true,megaphoneEquipped=true},narrow)
  assert(buttons.Megaphone.text=='UNEQUIP' and buttons.Megaphone.Interactable)
- _,buttons=renderStyle({level=1,coins=0,aura='Gold',megaphoneOwned=true},narrow)
+ assert(cards[1].detail:find('Equipped · 900 coins in wallet',1,true) and not cards[1].detail:find('100 coins',1,true),'Equipped gear shows stale price or balance')
+ cards,buttons=renderStyle({level=1,coins=900,aura='Gold',megaphoneOwned=true},narrow)
  assert(buttons.Megaphone.text=='EQUIP' and buttons.Megaphone.Interactable)
+ assert(cards[1].detail:find('Owned · 900 coins in wallet',1,true),'Unequipped gear obscures ownership or balance')
 end
 print('PASS starter gear placement, eligibility and action on narrow and wide layouts; mocked UI')
 local function view(w,h)
@@ -115,6 +122,9 @@ local function view(w,h)
 end
 local available,menuY,closeY,firstTabY=view(567,241)
 assert(available>=60 and menuY==8 and closeY+44<=firstTabY,'Short landscape clips the gear CTA or overlaps close/tab controls')
+local smallerWindow=view(567,321)
+local cards,buttons=renderStyle({level=1,coins=900,aura='Gold',megaphoneOwned=true,megaphoneEquipped=true},true,567)
+assert(cards[1].detailBottom<=smallerWindow and buttons.Megaphone.position.y+buttons.Megaphone.size.h<=smallerWindow,'Short two-row menu clips equipped balance or action')
 local _,desktopY=view(1280,720)
 assert(desktopY==64,'Desktop menu moved for compact landscape change')
 print('PASS short landscape content clearance and desktop layout')
