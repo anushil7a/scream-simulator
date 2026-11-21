@@ -26,13 +26,20 @@ local Config=(function()
 """
 between="""
 end)()
-local academy={guideMenu=function()end,NavigationCatalog={Resolve=function()return nil end}}
+local routes,menuCloses={},0
+local function closeMenu()menuCloses+=1 end
+local hasGardens=Config.CompactCity==true
+local academy={
+ guideMenu=function()end,
+ NavigationCatalog={Resolve=function(kind,id)if hasGardens and kind=="place" and id=="gardens" then return {} end end},
+ selectGuide=function(kind,id)table.insert(routes,{kind,id})end,
+}
 local data,narrow;local title,subtitle={},{};local gui={AbsoluteSize={X=390}};local gold,muted={},{}
 local messages,buttons,calls,cards,order={},{},{},{},{}
 local function info(text)table.insert(messages,text);table.insert(order,{kind="info",text=text})end
 local function card()local c={labels={}};table.insert(cards,c);table.insert(order,{kind="card",card=c});return c end
 local function label(c,text)table.insert(messages,text);table.insert(c.labels,text);return {}end
-local function button(c,id,text,_,_,fn)buttons[id]={text=text,call=fn,card=c};c.button=id;return {}end
+local function button(c,id,text,size,_,fn)buttons[id]={text=text,call=fn,card=c,height=size.Y};c.button=id;return {}end
 local action={FireServer=function(_,verb,id)table.insert(calls,{verb,id})end}
 local function render(value,isNarrow)
  data=value;narrow=isNarrow;gui.AbsoluteSize.X=isNarrow and 390 or 1280;messages={};buttons={};calls={};cards={};order={}
@@ -97,8 +104,17 @@ for _,isNarrow in ipairs({false,true})do
  for _,q in ipairs(Config.Quests)do if not q.retired and not q.hidden and q.menuAvailable~=true then
   local b=buttons[q.id];local cardText=table.concat(b.card.labels,' | ')
   check(cardText:find(q.description,1,true) and cardText:find('To unlock:',1,true) and cardText:find(q.giver,1,true),'Locked card lacks objective or discovery instructions')
-  check(b.text=='MEET NPC','Undiscovered button bypasses meet requirement');b.call()
+  local starter=hasGardens and (q.id=='garden' or q.id=='beach')
+  local before,closed=#routes,menuCloses
+  check(b.text==(starter and 'GUIDE TO MAR' or 'MEET NPC'),'Wrong undiscovered quest action')
+  b.call()
   check(#calls==0,'Undiscovered quest action bypassed guard')
+  if starter then
+   check(b.height==44,'Mar guide is undersized for touch')
+   check(#routes==before+1 and routes[#routes][1]=='place' and routes[#routes][2]=='gardens' and menuCloses==closed+1,'Mar guide failed to select Gardens and close menu')
+  else
+   check(#routes==before and menuCloses==closed,'Other locked quest routed to Mar')
+  end
  end end
  for _,id in ipairs({'arena_assist'})do
   local b=buttons[id];check(b and b.text=='ACCEPT','Direct-available combat quest locked')
@@ -149,7 +165,12 @@ for _,isNarrow in ipairs({false,true})do
  end
  check(buttons.delivery.text=='ACCEPT','Zero progress falsely called restart')
  restartValue.availableQuests.garden=nil;renderChecked(restartValue,isNarrow)
- check(buttons.garden.text=='MEET NPC','Partial counter bypassed discovery');buttons.garden.call();check(#calls==0,'Locked partial sends action')
+ check(buttons.garden.text==(hasGardens and 'GUIDE TO MAR' or 'MEET NPC'),'Partial counter bypassed discovery');buttons.garden.call();check(#calls==0,'Locked partial sends action')
+ local supported=hasGardens;hasGardens=false;renderChecked(restartValue,isNarrow)
+ local routeCount=#routes
+ check(buttons.garden.text=='MEET NPC','Missing route still offered guide')
+ buttons.garden.call();check(#routes==routeCount and #calls==0,'Missing route unexpectedly activated')
+ hasGardens=supported
  restartValue.availableQuests.garden=true;restartValue.activeQuest='garden';renderChecked(restartValue,isNarrow)
  check(buttons.garden.text=='ACTIVE','Active partial falsely called restart')
  restartValue.quests.garden.progress=3;renderChecked(restartValue,isNarrow);check(buttons.garden.text=='CLAIM','Completed partial falsely called restart')
@@ -220,6 +241,8 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    bypassed=code.replace('if available and not v.claimed and','if not v.claimed and')
    assert bypassed!=code
    run(bypassed,'Undiscovered quest action bypassed guard')
+   run(code.replace('academy.selectGuide("place","gardens");closeMenu();return','return'),'Mar guide failed to select Gardens and close menu')
+   run(code.replace('guideToMar and 44 or 38','38'),'Mar guide is undersized for touch')
    menu=code.replace('q.menuAvailable==true or (data.availableQuests and data.availableQuests[q.id])','(data.availableQuests and data.availableQuests[q.id])')
    assert menu!=code
    run(menu,'Direct-available combat quest locked')

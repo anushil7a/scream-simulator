@@ -1006,11 +1006,13 @@ render=function()
     local descriptionY=12+nameHeight;local rewardY=descriptionY+descriptionHeight+5
     local actionY=narrow and rewardY+34 or 32
     local canGuide=academy.NavigationCatalog.Resolve("quest",q.id,data)~=nil
-    local c=card(narrow and actionY+(canGuide and 100 or 48) or math.max(canGuide and 164 or 150,rewardY+35))
+    local guideToMar=not available and (q.id=="garden" or q.id=="beach") and academy.NavigationCatalog.Resolve("place","gardens",data)~=nil
+    local c=card(narrow and actionY+(canGuide and 100 or guideToMar and 54 or 48) or math.max(canGuide and 164 or 150,rewardY+35))
     label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
     label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
     label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
-    button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "ACTIVE" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
+    button(c,q.id,guideToMar and "GUIDE TO MAR" or not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "ACTIVE" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,guideToMar and 44 or 38),UDim2.new(1,-130,0,actionY),function()
+     if guideToMar then academy.selectGuide("place","gardens");closeMenu();return end
      if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
     end)
     if canGuide then

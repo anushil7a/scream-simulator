@@ -37,7 +37,9 @@ local ok,err=xpcall(function()
     for _,obj in ipairs(button.Parent:GetChildren())do if obj:IsA("TextLabel") and obj.Text:find(Config.GetQuest(id).description,1,true)then description=obj.Text end end
     check(description~="","Soler objective hidden")
     check(known or description:find("To unlock: meet",1,true)~=nil,"Locked giver instruction missing")
-    check(button.Text==(known and "CLAIM" or "MEET NPC"),"Quest state action changed")
+    local canReachMar=academy.NavigationCatalog.Resolve("place","gardens",data)~=nil
+    check(button.Text==(known and "CLAIM" or canReachMar and "GUIDE TO MAR" or "MEET NPC"),"Quest state action changed")
+    if not known and canReachMar then check(button.AbsoluteSize.Y>=44,"Mar guide falls below 44 pixels") end
    end
    table.sort(order,function(a,b)return a.y<b.y end)
    check(order[1].id=="crowd" and order[2].id=="dodge" and order[3].id=="arena","Combat tasks not first")

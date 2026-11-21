@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## One profile from opening to first gear
+
+- Locked Garden and Beach quest cards now offer **GUIDE TO MAR** in the City. The 44 px control uses the existing Gardens route and leaves quest discovery to Talk. The original MEET NPC button activated in Studio but left the menu open and selected no destination.
+- On a fresh temporary profile in the iPhone 17 Pro landscape emulator (750 × 323 safe HUD), the tool walked from spawn to Rookie. Synthetic mic power and aim through the normal client/server path reached level 2 and 10 coins in four casts. The garden button fit, closed the menu and drew Gardens breadcrumbs. The tool walked to Mar, opened Talk and accepted the quest. The fixture then staged the avatar near each marker and used normal keyboard prompts. Both claims used the actual menu buttons. The in-game coin ledger was 10 → 90 → 140 → 40 after buying and equipping the 100-coin Megaphone. The model remounted after same-session respawn and the multiplier stayed 1.06.
+- Critic and all 314 local commands passed. This is one continuous local profile with automated input and staged marker travel. It does not establish human discovery, real microphone or physical touch, travel time, or live persistence. Next: retain this route while simplifying the HUD and testing visible-object collision and free aim.
+
 ## Voice guidance on short phone screens
 
 - In the 567 × 241 safe HUD, the original BEAMS button showed generic toggle copy even with voice denied, while connecting, during cooldown and after ready. When the full meter is hidden on touch layouts, the same 144 × 44 button still says BEAMS ON/OFF and now shows the current instruction, including access, mic readiness, cooldown, quiet reset, confirmed firing and aim-and-speak. Taller layouts retain the full meter and ordinary toggle label. The legacy hold-to-beam branch and server combat are unchanged.
