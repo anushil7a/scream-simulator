@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Verify the first Rookie win below full power
+
+- Before recording, the Studio tester used the actual Guide, walked from spawn with keyboard input and turned Beams on. The fixture on `86da0c4` recorded a fresh level-one profile with zero XP and coins at the pad. It supplied normalized power 0.55 and tracked the live Rookie's position for aim. The server observed two cast starts and 56 pulse requests through the Action remote.
+- Rookie went from 80 to 37 HP on the first cast and retained that damage through cooldown. The second cast defeated Rookie 13.316 seconds after the trial started. The fixture observed 32 decreases in Rookie's server HP and no reset. The player earned 48 XP and five coins. Three warned return strikes landed for eight damage each while the player stood still, leaving 76 HP.
+- Independently, the fixed-target authority fixture predicted two casts and 12.4 simulated seconds at 0.55 with ideal aim and scheduled ticks. The existing authority, combat-quest and training-strike suites passed, including the authority and strike negative controls. The native evidence supports keeping the current Rookie balance for this case.
+- This is a local combat and reward check with scripted aim and synthetic input power. It leaves human beam tracking, comfortable voice levels, touch dodging, discovery and live persistence open. The disposable Studio session was closed. The next useful first-session observation is a voice-eligible new player encountering Rookie without a scripted aim or route.
+
 ## Match Rookie arrival guidance to beam readiness
 
 - The 491 × 150 Studio baseline at `bd72795` showed HIT TO SPAR at Rookie while the Beams control still said Connecting mic. The existing guide used only the fighter's active flag. A focused regression reproduced the mismatch.
