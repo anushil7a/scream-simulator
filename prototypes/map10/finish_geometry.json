@@ -1,6 +1,6 @@
 {
  "groups": {
-  "North": 298,
+  "North": 307,
   "East": 219,
   "Coast": 240,
   "Stadium": 144,
@@ -3303,6 +3303,240 @@
    "rotation": [
     -0.0,
     -145.3048464687661,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayRookie",
+   "position": [
+    -409.5,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    5.4,
+    0.04,
+    18
+   ],
+   "color": [
+    44,
+    67,
+    72
+   ],
+   "rotation": [
+    0,
+    -90,
+    0
+   ],
+   "material": "Slate",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayRookieTrim-1",
+   "position": [
+    -418.73,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    111,
+    196,
+    180
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayRookieTrim1",
+   "position": [
+    -400.27,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    111,
+    196,
+    180
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayBrawler",
+   "position": [
+    -289.5,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    5.4,
+    0.04,
+    18
+   ],
+   "color": [
+    44,
+    67,
+    72
+   ],
+   "rotation": [
+    0,
+    -90,
+    0
+   ],
+   "material": "Slate",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayBrawlerTrim-1",
+   "position": [
+    -298.73,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    219,
+    120,
+    94
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayBrawlerTrim1",
+   "position": [
+    -280.27,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    219,
+    120,
+    94
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayElite",
+   "position": [
+    -169.5,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    5.4,
+    0.04,
+    18
+   ],
+   "color": [
+    44,
+    67,
+    72
+   ],
+   "rotation": [
+    0,
+    -90,
+    0
+   ],
+   "material": "Slate",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayEliteTrim-1",
+   "position": [
+    -178.73,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    240,
+    192,
+    89
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayEliteTrim1",
+   "position": [
+    -160.27,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    240,
+    192,
+    89
+   ],
+   "rotation": [
+    0,
+    0,
     0
    ],
    "material": "SmoothPlastic",

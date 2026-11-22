@@ -161,6 +161,21 @@ half_length = last['size'][2] / 2
 tip_x, tip_z = x + math.sin(yaw) * half_length, z + math.cos(yaw) * half_length
 assert math.hypot(tip_x-home_x, tip_z-home_z) <= radius-10, 'Rookie trail ends before a usable position inside the sparring pad'
 assert len(trail)==20 and all(not part['collidable'] and part['size'][1]<=.05 for part in trail)
+tier_marks = [part for part in doc['parts'] if part['id'].startswith('NorthTrainingInlay')]
+assert len(tier_marks)==9, 'Missing the three training pad inlay sets'
+homes = [(int(x),int(z)) for x,z in re.findall(r'\{x=(-?\d+),y=32,z=(-?\d+)\}', layout.split('TrainingHomes=', 1)[1].splitlines()[0])]
+assert len(homes)==3
+for (x,z),tier in zip(homes,('Rookie','Brawler','Elite')):
+    marks = [part for part in tier_marks if part['id'].startswith('NorthTrainingInlay'+tier)]
+    assert len(marks)==3 and all(not part['collidable'] for part in marks)
+    plate = next(part for part in marks if part['id']=='NorthTrainingInlay'+tier)
+    assert plate['rotation']==[0,-90,0] and plate['size'][2]>plate['size'][0], 'Inlay text must read from the south'
+    assert plate['position'][0]-x==10.5, 'Training name is back under the centerline avatar'
+    for mark in marks:
+        left,right,near,far=footprint(mark)
+        assert max(math.hypot(px-x,pz-z) for px in (left,right) for pz in (near,far))<radius
+        assert far < z-18 and mark['position'][1]-mark['size'][1]/2 >= 32.26-1e-6
+        assert mark['position'][1]+mark['size'][1]/2 <= 32.32
 previous = next(part for part in stones if part['id']=='NorthRookiePathStone2')
 previous_yaw = math.radians(previous['rotation'][1])
 previous_north = previous['position'][2] - (
@@ -222,6 +237,8 @@ assert(unaffected.Color==nil and unaffected.Material==nil,'Non-map part changed'
 local expected={}
 for _,row in ipairs(Data) do expected[row[1]]=row[8]==true end
 local count,labels,solids=0,0,0
+local expectedInlays={NorthTrainingInlayRookie='ROOKIE',NorthTrainingInlayBrawler='BRAWLER',NorthTrainingInlayElite='ELITE'}
+local inlays=0
 for _,p in ipairs(nodes)do
  if (p.ClassName=='Part' or p.ClassName=='WedgePart') and p.Parent and p.Parent.Parent==folder then
   assert(expected[p.Name]~=nil and p.CanCollide==expected[p.Name] and p.CanQuery==expected[p.Name],
@@ -233,18 +250,24 @@ for _,p in ipairs(nodes)do
   count+=1
  elseif p.ClassName=='SurfaceGui' then
   assert(p.AlwaysOnTop==false and p.Parent,'Labels should not reveal through walls')
+  if expectedInlays[p.Parent.Name] then
+   assert(p.Face==Enum.NormalId.Top,'Training inlay label is not on the top face')
+   inlays+=1
+  end
   labels+=1
+ elseif p.ClassName=='TextLabel' and expectedInlays[p.Parent.Parent.Name] then
+  assert(p.Text==expectedInlays[p.Parent.Parent.Name],'Training inlay does not name its pad')
  end
 end
 assert(count==#Data and count>600 and count<=1100,'Total finishing props outside budget')
-assert(labels==6,'Expected six world signs including training direction')
+assert(labels==9 and inlays==3,'Expected three training inlays alongside six world signs')
 local amphitheatreSign
 for _,n in ipairs(nodes) do
  if n.ClassName=='TextLabel' and n.Parent.Parent.Name=='NorthMusicMarquee' then amphitheatreSign=n.Text end
 end
 assert(amphitheatreSign=='AMPHITHEATRE','City marquee disagrees with the Amphitheatre map pin')
 assert(solids==78,'Expected the authored collision parts')
-print('PASS '..count..' actual finishing props, original collision material retained, six occluded world signs')
+print('PASS '..count..' actual finishing props, original collision material retained, nine occluded world signs')
 local Layout=(function()
 '''+(R/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text()+'''
 end)()
@@ -406,6 +429,10 @@ try:
     subprocess.run(['luau', str(path)], cwd=R, check=True)
     if '--negative-controls' in sys.argv:
         for before, after, expected_error in (
+            ('mark(p,trainingNames[id],Enum.NormalId.Top)', 'mark(p,trainingNames[id],Enum.NormalId.Front)',
+             'Training inlay label is not on the top face'),
+            ('NorthTrainingInlayRookie="ROOKIE"', 'NorthTrainingInlayRookie="BRAWLER"',
+             'Training inlay does not name its pad'),
             ('model.Name=pavilion;model.ModelStreamingMode=Enum.ModelStreamingMode.Atomic',
              'model.Name=pavilion;model.ModelStreamingMode=Enum.ModelStreamingMode.Default', 'Pavilion must be Atomic'),
             ('p.Parent=(pavilion and pavilions["Academy"..pavilion]) or district',

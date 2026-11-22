@@ -1,5 +1,15 @@
 # Scream Simulator development roadmap
 
+## Give the Academy training pads permanent names
+
+- Native baseline walking views verified that the existing floating signs identify Rookie, Brawler and Elite on approach. All three pad surfaces used identical sage paint. Once the avatar stood inside the Rookie pad facing the trainer, the entrance sign was behind the view.
+- Rookie, Brawler and Elite now have a dark slate name inlay and two trim strips on the far inside edge. Their teal, coral and gold trim repeats the fighter outfits and map badges. The existing approach signs and the Rookie path still serve their original roles. The nine new surfaces are each 0.04 studs thick and do not affect collision or line-of-sight queries.
+- The initial native render exposed a sideways top-face projection. A disposable paired angle check showed -90° yaw with swapped local dimensions reads upright from the south. The upright centerline placement was then partly hidden by the avatar. Each inlay moved 10.5 studs east and 6.2 studs toward the pad center, keeping the name beside the avatar in the centered approach view. Automated checks cover the inlay names, top-face projection, orientation, offset, pad bounds and floor elevation.
+- The map generator reproduces 1,044 finishing props. Full verification passed 29 pure or synthetic suites, 168 mocked-service suites, 99 Luau compilations and Rojo builds. The finishing suite and 15 negative controls, Map 10 geometry and grounding checks, and 1,295 trainer roam assertions passed. Independent review cleared the footprints and collision flags.
+
+- In the exact rebuilt City, a normal Guide and keyboard walk reached Rookie at full health. All six letters were legible beside the avatar in the centered arrival frame, with a clear ray and a camera about 35 studs from the inlay. All three SurfaceGui labels fit their canvases. Downward rays still hit the original collidable pads at y32.20, beneath the nonphysical inlay surfaces at y32.30. The NPC can still cross the sightline.
+- The played candidate SHA-256 was `2f54f470dbfc18a89c31c7e91485303cf7ad28781130c08993aa440e800fb42c`. The disposable sessions closed. The visuals were checked in desktop Studio. Physical-phone readability and unassisted player discovery remain open.
+
 ## Show when another player blocks a beam
 
 - The matched Old Stadium replay showed a level-100 beam passing visually through two players even though the nearer player's torso blocked the far defender's damage sight ray. The existing hit resolver already distinguishes those targets.

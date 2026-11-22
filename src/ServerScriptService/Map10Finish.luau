@@ -24,10 +24,15 @@ local names={
  CoastDockMarquee="TIMBER PIER",
  EastShrineMarquee="ECLIPSE SHRINE",
 }
+local trainingNames={
+ NorthTrainingInlayRookie="ROOKIE",
+ NorthTrainingInlayBrawler="BRAWLER",
+ NorthTrainingInlayElite="ELITE",
+}
 local function starts(s,p) return string.sub(s,1,#p)==p end
-local function mark(part,title)
+local function mark(part,title,face)
  local gui=Instance.new("SurfaceGui");gui.Name="LandmarkSign"
- gui.Face=Enum.NormalId.Front;gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud
+ gui.Face=face or Enum.NormalId.Front;gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud
  gui.PixelsPerStud=30;gui.LightInfluence=.4;gui.AlwaysOnTop=false
  local text=Instance.new("TextLabel")
  text.Position=UDim2.fromScale(.065,.1);text.Size=UDim2.fromScale(.87,.8)
@@ -74,7 +79,8 @@ function Finish.Build(world)
   p.CFrame=CFrame.new(pos)*CFrame.Angles(0,math.rad(rot.Y),0)*CFrame.Angles(math.rad(rot.X),0,math.rad(rot.Z))
   local pavilion=id:match("^North(Pavilion[0-3])")
   p.Parent=(pavilion and pavilions["Academy"..pavilion]) or district
-  if names[id] then mark(p,names[id]) end
+  if names[id] then mark(p,names[id])
+  elseif trainingNames[id] then mark(p,trainingNames[id],Enum.NormalId.Top) end
  end
  -- Attach the finished columns, roofs and their trim as a single streaming unit.
  for _,model in pairs(pavilions) do model.Parent=world end

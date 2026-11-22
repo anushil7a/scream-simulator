@@ -86,6 +86,21 @@ def add(box, disk, line):
             rail(f'RookiePathArrow{index}_{side}', point(length / 2 - 1.3, side * 1.8, 32.32),
                  point(length / 2 + 1.3, 0, 32.32), .48, .035, brass)
 
+    # Slate inlays on the far edge stay visible when the approach billboard is behind the camera.
+    # Offset them from the approach centerline so the avatar does not hide the names.
+    for tier, x, accent in (
+        ('Rookie', -420, (111, 196, 180)),
+        ('Brawler', -300, (219, 120, 94)),
+        ('Elite', -180, (240, 192, 89)),
+    ):
+        name = f'TrainingInlay{tier}'
+        label_x = x + 10.5
+        # Top SurfaceGui reads along local Z. South approach needs -90° yaw.
+        b(name, [label_x, 32.28, -420.8], [5.4, .04, 18], slate, rot=[0, -90, 0], material='Slate')
+        for side in (-1, 1):
+            b(f'{name}Trim{side}', [label_x + side * 9.23, 32.28, -420.8],
+              [.38, .04, 5.4], accent, material='SmoothPlastic')
+
     # Asymmetric courtyard planting, deliberately outside paths, trainers and boss ring.
     for i, (x, z, scale) in enumerate([(-500,-235,1),(-135,-350,.85),(-365,-330,.8),(-235,-330,.8)]):
         soil_y, soil_depth = 34.05, .2
