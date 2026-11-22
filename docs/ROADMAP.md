@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Suppress exact duplicate periodic player snapshots
+
+- A native idle client on `0892c88` received 21 periodic `State` packets in 11.516 seconds. Nine exactly duplicated the preceding packet and 11 differed only in the shop clock. The periodic send now compares the whole payload with a copy of the last sent packet. Explicit syncs, action updates, conversations and notifications still send immediately. Changed payloads retain the full schema, including shop timing and quest countdowns. Collected markers keep their periodic refresh for streaming.
+- In the matched candidate, the idle client received 11 periodic packets in 11.500 seconds with zero identical neighbors. Ten packets changed only the shop clock. Three explicit `Action` sync requests still received replies even though the payloads matched the preceding packet. This measures packet counts in disposable local Studio. Server comparison costs, bytes on the wire and public-network behavior were outside the run.
+- Both fixtures delivered duplicate explicit messages, an urgent save-keyed notice and the subsequent clearing snapshot. A staged Boardwalk Dash timer delivered 6 through 1 and rendered its normal expiry. The combined notice layout temporarily covered the initial seconds of the timer on the candidate, and the remainder was visible. Both disposable Studio sessions closed. No live save or purchase ran.
+- The source-derived test reproduced the identical send before the fix. Focused verification passed 223 save/State assertions with 11 negative controls, plus boost status, quest prompt and notification checks. Independent review found no blocker. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 98 production compilations and Rojo builds.
+
 ## Publish dodge readiness only when the countdown changes
 
 - A single accepted arena Dodge triggered 65 `DodgeReady` changes in about seven seconds on the native baseline, including 28 after the four-second cooldown. The server now sends the original deadline once and updates it on PvP entry only if the normal cooldown extends the premium deadline and is still running. The server still applies the full cooldown on late entry and cancels premium rolls on PvP entry. The client counts down from the published timestamp.

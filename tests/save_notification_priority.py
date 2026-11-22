@@ -16,6 +16,7 @@ autosave=server[server.index('local function autosave('):server.index('local fun
 speaker=server[server.index('local function gearAction('):server.index('local function vendorPurchase(')]
 extra='''
 local VoiceEligibility=require('../src/ServerScriptService/VoiceEligibility')
+local StateSnapshot=require('../src/ServerScriptService/StateSnapshot')
 local Queue=require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue')
 local sessions={[p]=s};p.Parent=true;p.UserId=7
 function p:GetAttribute()return 10 end;function p:SetAttribute()end
@@ -84,7 +85,28 @@ local left=notifications.active.remaining;notify(saving,true,'save')
 check(notifications.active.remaining==left,'Duplicate save reset dwell')
 for _=1,150 do frame()end
 check(notifications.active==nil,'Save toast became permanently sticky')
-print('PASS '..checks..' save notification integration assertions; synthetic store/UI/time/coin changes')
+do
+ local packets={}
+ stateRemote.FireClient=function(_,_,packet)table.insert(packets,packet)end
+ local function periodic() state(p,nil,nil,nil,nil,true) end
+ local shopClock=1000;local boosts={xp=1050}
+ Commerce.Status=function()return {ends=boosts,serverNow=shopClock}end
+ s.collected={};s.data.quests={garden={progress=0}};s.activeQuest='garden';s.questDeadline=os.clock()+30
+ periodic();periodic();check(#packets==1,'Identical periodic State was transmitted')
+ s.data.quests.garden.progress=1;periodic();check(#packets==2,'In-place quest progress was suppressed')
+ s.data.quests.garden.progress=0;periodic();check(#packets==3,'Reverted quest progress was suppressed')
+ s.questDeadline-=2;periodic();check(#packets==4 and packets[4].questTime<packets[3].questTime,'Changed quest countdown was suppressed')
+ shopClock+=1;periodic();check(#packets==5 and packets[5].shop.serverNow==1001,'Shop clock update was suppressed')
+ boosts.xp=nil;periodic();check(#packets==6,'Nested field removal was suppressed')
+ state(p);state(p);check(#packets==8,'Explicit State requests were suppressed')
+ state(p,'Reward');state(p,'Reward');check(#packets==10 and packets[10].message=='Reward','Repeated explicit notices were suppressed')
+ state(p,'Saving is unavailable.',nil,true,'save');check(#packets==11 and packets[11].messageUrgent and packets[11].messageKey=='save','Urgent notice was suppressed')
+ state(p,nil,{hint='Resident reply'});check(#packets==12 and packets[12].conversation.hint=='Resident reply','Conversation was suppressed')
+ periodic();periodic();check(#packets==13 and not packets[13].conversation,'Transient State clearing packet was suppressed')
+ s.collected.Flowerbed228=true;periodic();periodic();check(#packets==15,'Collected markers lost their periodic refresh')
+ s.collected={};periodic();periodic();check(#packets==16,'Collection reset was suppressed')
+end
+print('PASS '..checks..' save notification and State integration assertions; synthetic store/UI/time/coin changes')
 '''
 # Keep the client HUD label separate from the reused server coins helper.
 payload=setup+'\ndo local coins={}\n'+receiver+'\nend\n'+extra+state+autosave+speaker+checks
@@ -100,6 +122,8 @@ def run(source,failure=None):
    print(result.stdout,end='');assert result.returncode==0,result.stderr
  finally:path.unlink()
 run(payload)
+assert 'if verb=="Sync" then state(p)' in server
+assert server.count('state(p,nil,nil,nil,nil,true)')==1 and 'if tick%5==0 then state(p,nil,nil,nil,nil,true) end' in server
 if '--negative-controls' in sys.argv:
  def mutate_queue(old,new,failure):
   queue=(root/'src/StarterPlayer/StarterPlayerScripts/NotificationQueue.luau').read_text()
@@ -120,3 +144,7 @@ if '--negative-controls' in sys.argv:
  run(payload.replace(needle,''),'Healthy snapshot retained stale save warning')
  mutate_queue('if #self.pending>Queue.Limit then','if false then','Mixed traffic exceeded queue bound')
  mutate_queue('if key then self:Remove(key) end','if key and key~="save" then self:Remove(key) end','Permanent failure did not replace delayed warning')
+ run(payload.replace('if changedOnly and not (s.collected and next(s.collected)) and StateSnapshot.Equal(packet,s.lastStatePacket) then return end',''), 'Identical periodic State was transmitted')
+ run(payload.replace('StateSnapshot.Copy(packet)','table.clone(packet)'),'In-place quest progress was suppressed')
+ run(payload.replace('if changedOnly and not (s.collected and next(s.collected))','if not (s.collected and next(s.collected))'),'Explicit State requests were suppressed')
+ run(payload.replace('and not (s.collected and next(s.collected)) ',''),'Collected markers lost their periodic refresh')
