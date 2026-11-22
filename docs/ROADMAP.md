@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Gear opens the already unlocked starter quest
+
+- On a fresh local profile, the Gear guide led to Mar. The player walked there, opened the real conversation, accepted Garden, walked to all three beds, and claimed 80 coins. Gear still said Guide to Mar even though talking once unlocked Beach and the regular Quests menu accepted it from the garden.
+- With an unlocked unstarted starter quest, the shortcut now says View Quest and temporarily promotes that quest. It keeps reward and active-objective priority and does not accept the task. In a separately staged iPhone 7 landscape run (666 x 316 safe pixels), a player with 80 coins opened Beach from Gear, found its Accept button visible and fitted, and remained idle until explicitly clicking it. Reopening the menu normally cleared focus.
+- The fresh baseline profile also walked the AcademyGarden and GardenCoast ramps to the beach with no avatar teleport. It collected all six bottles using the real prompt hold handlers, claimed the 50-coin reward, and bought and equipped the 100-coin Megaphone. The HUD showed 30 coins and Studio found ProgressionGear on the character. The coast walk followed scripted pathfinding and crossed Garden PvP near X = 80, Z = 149 according to the server. This establishes route reachability for the sampled walk, without establishing the route a new player will choose.
+- Independent review, focused gear and 1,773 quest checks, 31 focused mutation controls, and the full run passed (29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds). Both disposable Studio sessions closed and the viewport returned to default. Physical touch, real voice and live persistence remain open.
+
 ## The training guide shows Rookie's recovery and the earned counter
 
 - In matched iPhone 7 landscape Studio runs (666 x 316 safe pixels), the player selected the actual Guide button, walked the Academy route using Humanoid movement, and defeated an 80-HP Rookie through two full-power synthetic casts sent through the normal Action remote. The first cast left 21 HP. The server awarded 48 XP, 5 coins and one Fighter challenge point after the second cast.

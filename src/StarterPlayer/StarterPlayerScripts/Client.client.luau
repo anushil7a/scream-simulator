@@ -245,6 +245,7 @@ local renderedMenuKey,renderedTab
 local renderRevision=0
 local function closeMenu()
  modal.Visible=false
+ academy.menuQuestFocus=nil
  if academy.refreshTestLauncher then academy.refreshTestLauncher() end
  clearShop()
  -- Retain the previous tab/scroll position, but rebuild its subscriptions on reopen.
@@ -256,9 +257,10 @@ do local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.Sort
 local selected="Style";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local conversationPanel,showConversation,closeConversation
 local observedMicInterruption=0
-local function toggleTab(name,resetScroll)
+local function toggleTab(name,resetScroll,focusQuest)
  local opening=not modal.Visible or selected~=name
  selected=name;if not opening then closeMenu();return end;modal.Visible=true
+ academy.menuQuestFocus=name=="Quests" and focusQuest or nil
  if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end
  if academy.refreshTestLauncher then academy.refreshTestLauncher() end
  if opening then
@@ -1031,6 +1033,7 @@ end
 function academy.starterCoinAction(data)
  if not academy.NavigationCatalog.Resolve("place","gardens",data) then return end
  local canGuide=false
+ local unlocked
  for _,id in ipairs({"garden","beach"}) do
   local quest=Config.GetQuest(id)
   local progress=(data.quests or {})[id]
@@ -1038,17 +1041,23 @@ function academy.starterCoinAction(data)
    local active=data.activeQuest==id
    if (active or (data.availableQuests or {})[id]) and (progress and progress.progress or 0)>=quest.goal then return "claim" end
    canGuide=true
+   if not unlocked and (data.availableQuests or {})[id] then unlocked=id end
   end
  end
  local active=data.activeQuest
  if (active=="garden" or active=="beach") and academy.NavigationCatalog.Resolve("quest",active,data) then return "objective" end
- if canGuide and not active then return "guide" end
+ if canGuide and not active then
+  if unlocked then return "quest",unlocked end
+  return "guide"
+ end
 end
 local function menuKey()
  local fields
  if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped,megaphone=data.megaphoneEquipped}
  elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,navigation=data.questNavigation,challenges=data.combatChallenges,level=data.level}
- elseif selected=="Style" then fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=academy.starterCoinAction(data)}
+ elseif selected=="Style" then
+  local starterAction,starterQuest=academy.starterCoinAction(data)
+  fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=starterAction,starterQuest=starterQuest}
  elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil}
@@ -1178,6 +1187,7 @@ render=function()
     local canGuide=academy.NavigationCatalog.Resolve("quest",q.id,data)~=nil
     local guideToMar=not available and (q.id=="garden" or q.id=="beach") and academy.NavigationCatalog.Resolve("place","gardens",data)~=nil
     local c=card(narrow and actionY+(canGuide and 100 or guideToMar and 54 or 48) or math.max(canGuide and 164 or 150,rewardY+35))
+    if q.id==academy.menuQuestFocus then c.LayoutOrder=-1 end
     label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
     label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
     label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
@@ -1208,22 +1218,25 @@ render=function()
    local stateText=locked and ("LEVEL "..item.level) or equipped and "UNEQUIP" or owned and "EQUIP"
     or coinAction=="claim" and ("VIEW REWARDS\n"..shortfall) or coinAction=="guide" and ("GUIDE TO MAR\n"..shortfall)
     or coinAction=="objective" and ("GUIDE QUEST\n"..shortfall)
+    or coinAction=="quest" and ("VIEW QUEST\n"..shortfall)
     or remaining>0 and shortfall or ("BUY & EQUIP\n"..item.price.." COINS")
    local c=card(compactGear and 72 or narrow and 116 or 110)
    label(c,string.upper(item.name),UDim2.new(1,narrow and -168 or -28,0,compactGear and 20 or narrow and 44 or 28),UDim2.fromOffset(15,6),16,gold)
    local status=equipped and "Equipped · " or owned and "Owned · " or not canBuy and (item.price.." coins · ") or ""
    local detail=string.format("Level %d · +%d%% mic power\n%s%d coins in wallet",item.level,math.floor(item.bonus*100+.5),status,data.coins)
    if starter and not canAct then
-    detail..=coinAction=="claim" and "\nClaim coins in Quests" or coinAction=="guide" and "\nEarn coins with Mar's quests" or coinAction=="objective" and "\nFollow your current quest" or "\nEarn coins from training or quests"
+    detail..=coinAction=="claim" and "\nClaim coins in Quests" or coinAction=="guide" and "\nEarn coins with Mar's quests" or coinAction=="objective" and "\nFollow your current quest" or coinAction=="quest" and "\nOpen an unlocked quest" or "\nEarn coins from training or quests"
    end
    label(c,detail,UDim2.new(1,narrow and not compactGear and -28 or -170,0,compactGear and 42 or 48),UDim2.fromOffset(15,compactGear and 26 or narrow and 57 or 34),13)
    local control=button(c,item.id,stateText,UDim2.fromOffset(135,44),UDim2.new(1,-149,0,narrow and 6 or 50),function()
     if canAct then
      action:FireServer("Gear",{id=item.id,intent=canBuy and "buy" or equipped and "unequip" or "equip"});return
     end
-    if coinAction and academy.starterCoinAction(data)==coinAction then
+    local currentAction,questId=academy.starterCoinAction(data)
+    if coinAction and currentAction==coinAction then
      if coinAction=="claim" then toggleTab("Quests",true)
      elseif coinAction=="objective" then academy.selectGuide("quest",data.activeQuest);closeMenu()
+     elseif coinAction=="quest" then toggleTab("Quests",true,questId)
      else academy.selectGuide("mar","gardens");closeMenu() end
     end
    end)

@@ -188,7 +188,7 @@ if not args.baseline:
 
 if not args.baseline:
  client=read('src/StarterPlayer/StarterPlayerScripts/Client.client.luau')
- a=client.index(' elseif selected=="Style" then\n')
+ a=client.index(' elseif selected=="Style" then\n',client.index('render=function()'))
  style=client[client.index('\n',a)+1:client.index(' elseif selected=="Map" then',a)]
  style_setup=r"""
 local title,subtitle={},{};local gold=accent;local infoTexts={};local narrow=false

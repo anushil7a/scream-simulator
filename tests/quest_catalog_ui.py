@@ -140,6 +140,13 @@ for _,isNarrow in ipairs({false,true})do
   check(b.card.labels[2]==q.description,'Discovered objective still has lock text or changed description')
   local old=#calls;b.call();check(#calls==old+1 and calls[#calls][1]=='AcceptQuest' and calls[#calls][2]==q.id,'Accept command changed')
  end end
+ academy.menuQuestFocus='beach'
+ renderChecked(value,isNarrow)
+ check(buttons.beach.card.LayoutOrder==-1,'Focused quest stayed below unrelated cards')
+ check(buttons.garden.card.LayoutOrder~=-1,'Unexpected quest also promoted')
+ academy.menuQuestFocus=nil
+ renderChecked(value,isNarrow)
+ check(buttons.beach.card.LayoutOrder~=-1,'Ordinary menu retained quest focus')
  value.activeQuest='garden';value.quests.garden.progress=1
  renderChecked(value,isNarrow);grouped(9)
  check(buttons.ActiveQuestAction and buttons.ActiveQuestAction.text=='ABANDON','Current active quest card missing')
@@ -263,6 +270,9 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
  else:
   run(code)
   if args.negative_controls:
+   focus=code.replace('if q.id==academy.menuQuestFocus then c.LayoutOrder=-1 end','')
+   assert focus!=code
+   run(focus,'Focused quest stayed below unrelated cards')
    run(code.replace('local function render(value,isNarrow)','table.insert(Config.Progression.Challenges,{id="cover",name="Destroy 5 eligible cover objects",goal=5})\nlocal function render(value,isNarrow)'),'Retired challenge displayed')
    run(code.replace('if q.hidden and not available then continue end','if false then continue end'),'Hidden city quest exposed before discovery')
    generic=code.replace('local description=q.retired==true and "Earned reward available." or q.description','local description=available and q.description or "Meet "..(q.giver or "a resident")')

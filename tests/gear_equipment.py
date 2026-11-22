@@ -125,7 +125,7 @@ local function renderStyle(data,narrow,width)
   return true
  end}}
  academy.selectGuide=function(kind,id)table.insert(links,kind..':'..id) end
- local function toggleTab(tab,reset)table.insert(links,tab..':'..tostring(reset)) end
+ local function toggleTab(tab,reset,questId)table.insert(links,tab..':'..tostring(reset)..(questId and ':'..questId or '')) end
  local function closeMenu()table.insert(links,'close') end
  local UDim2={new=function(_,x,_,y)return {x=x,y=y}end,fromOffset=function(w,h)return {w=w,h=h}end}
  local function card()local c={};table.insert(cards,c);return c end
@@ -176,6 +176,14 @@ buttons.Megaphone.press()
 assert(#sent==0 and #links==1 and links[1]=='Quests:true','Reward shortcut did not open Quests without claiming')
 _,buttons=renderStyle({level=2,coins=5,aura='Gold',activeQuest='beach',availableQuests={garden=true},quests={garden={progress=3}}},true,567)
 assert(buttons.Megaphone.text=='VIEW REWARDS\nNEED 95 COINS','An earned reward vanished while another quest was active')
+local between={level=1,coins=80,aura='Gold',availableQuests={garden=true,beach=true},quests={garden={progress=3,claimed=true}}}
+cards,buttons,sent,links=renderStyle(between,true,567)
+assert(buttons.Megaphone.Interactable and buttons.Megaphone.text=='VIEW QUEST\nNEED 20 COINS','Unlocked Beach still points back to Mar')
+buttons.Megaphone.press()
+assert(#sent==0 and #links==1 and links[1]=='Quests:true:beach','Gear shortcut did not open exactly the unlocked Beach quest')
+between.availableQuests.beach=false
+buttons.Megaphone.press()
+assert(#sent==0 and #links==1,'Stale quest shortcut opened a locked objective')
 local active={level=1,coins=80,aura='Gold',activeQuest='garden',quests={garden={progress=1}},questNavigation={garden=true,beach=true}}
 cards,buttons,sent,links=renderStyle(active,true,567)
 assert(buttons.Megaphone.Interactable and buttons.Megaphone.text=='GUIDE QUEST\nNEED 20 COINS','Active starter quest has no gear shortcut')
@@ -231,6 +239,8 @@ run_style(code)
 if '--negative-controls' in sys.argv:
  for old,new,reason in [
   ('if canGuide and not active then','if canGuide then','Starter shortcut displaced an active quest'),
+  ('if unlocked then return "quest",unlocked end','if false then return "quest",unlocked end','Unlocked Beach still points back to Mar'),
+  ('toggleTab("Quests",true,questId)','toggleTab("Quests",true,"garden")','Gear shortcut did not open exactly the unlocked Beach quest'),
   ('then return "claim" end','then return "guide" end','A ready reward lost priority over Mar'),
   ('then return "objective" end','then return end','Active starter quest has no gear shortcut'),
   ('and academy.NavigationCatalog.Resolve("quest",active,data) then return "objective"', 'then return "objective"', 'Stale shortcut navigated or sent an action'),
