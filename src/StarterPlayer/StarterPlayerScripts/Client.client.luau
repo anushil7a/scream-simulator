@@ -594,7 +594,8 @@ local reticle=label(aimGui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),
 local hitFeedback=loadClientDependency(script.Parent,"HitFeedback");if not clientCheckpoint() then return end
 hitFeedback=hitFeedback.new();if not clientCheckpoint() then return end
 local hitText=label(aimGui,"",UDim2.fromOffset(210,26),UDim2.new(.5,-105,.5,-48),16,gold);hitText.Name="ConfirmedDamage";hitText.TextXAlignment=Enum.TextXAlignment.Center;hitText.Visible=false
-local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
+local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),14,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
+aimInfo.Font=Enum.Font.GothamBold
 aimInfo.TextStrokeColor3=dark;aimInfo.TextStrokeTransparency=.12
 local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,32),UDim2.fromOffset(0,52),dodge);academy.surface(dodgeButton)
@@ -1895,7 +1896,7 @@ connectClient(Run.RenderStepped,function(dt)
    if root and npcRoot then
     local far,currentFar,origin=beamTargetRange(root,npcRoot,hit.Position,beamStats,false)
     local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,currentFar,not far and not currentFar and targetCovered(origin,npcRoot,object,hit.Position),root.Position)
-    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
+    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or white
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then
    local required=object:GetAttribute("RequiredLevel");local hp=object:GetAttribute("ObjectHealth") or 0

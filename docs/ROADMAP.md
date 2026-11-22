@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Aim feedback is easier to read on short screens
+
+- In the actual desktop HUD, a staged fighter and narrow wall produced BEHIND COVER. Removing the wall restored TRAINING FIGHTER. Moving the target outside current and maximum reach showed the respective range messages. This checks the rendered-label path left open by the previous calculation probe.
+- On the iPhone 7 landscape emulator (666 x 316 safe pixels), the old 13-pixel outlined cover text was faint near the bottom of the view. The aimed readout now uses 14-pixel Gotham Bold and the same warm white for unavailable NPCs and opponents. Both captures used the same safe area, camera framing and staged target.
+- In the updated emulated HUD, the cover, training and two range labels fit. A long fighter name and a three-line legacy repair readout also fit. Independent review, 110 focused assertions and ten mutation controls passed. The full run passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. The emulator was reset to the default viewport and the disposable session closed. The native tests used staged geometry and scripted aim. Physical phones, real microphones and live network play remain open.
+
 ## Aim preview checks the beam path for cover
 
 - A native Studio probe used the existing aim helper and authoritative training resolver against a staged Rookie. With a narrow wall on the aimed line, the old preview reported clear because its ray to the fighter's root missed the wall. The server clipped the beam at 7.51 studs and rejected the hit. Moving the obstacle out of the path restored the hit.
