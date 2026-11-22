@@ -84,6 +84,10 @@ local function compare(a,b,trainer)
     if old.Name=='LeftSleeve' or old.Name=='RightSleeve' then check(old.CanCollide==false and old.CanQuery==false and old.CanTouch==false,'Recolored sleeve is not safe costume')end
     check(serial(new[k])==serial({R=31,G=48,B=67}),'Unexpected body palette')
    elseif hidden then check(new[k]==1 and old.CanCollide==false and old.CanQuery==false and old.CanTouch==false,'Hidden part is not safe costume')
+   elseif trainer and k=='attributes' and new==b.bot.model then
+    check(serial(new[k].TrainingHome)==serial(b.bot.start),'Replicated training home differs from server center')
+    local originalAttributes=table.clone(new[k]);originalAttributes.TrainingHome=nil
+    check(serial(old[k])==serial(originalAttributes),'Unrelated trainer attribute changed')
    else check(serial(old[k])==serial(new[k]),'Original property changed '..old.Name..'.'..k)end
   end
  end
@@ -137,6 +141,7 @@ def run(source):
 if __name__=='__main__':
  stripped=current[:current.index('-- Authored workers only:')]+current[current.index('local function faceToward('):]
  stripped=stripped.replace('    if job and not training and not job.supporting then workerFinish(model,torso,role) end\n','')
+ stripped=stripped.replace('    if training then model:SetAttribute("TrainingHome",home) end\n','')
  stripped=stripped.replace('    if training then trainerOutfit(model,torso,la,ra,ll,rl,training) end\n','')
  # Supporting residents are additive; independently executed by supporting_npcs.py.
  stripped=stripped.replace('local SupportingNPCs=require(script.Parent.SupportingNPCs)\n','')

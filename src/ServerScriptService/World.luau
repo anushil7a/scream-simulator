@@ -585,6 +585,7 @@ local function makeBot(parent, index, x, z, role, job, training, groundY)
     model:SetAttribute("Role", role)
     local avatarRng = Random.new(8044 + index * 479)
     local home=Vector3.new(x,training and (Config.CompactCity and (training.y or 0)+3.2 or 4.2) or job and job.stations[1].position.Y or (Config.CompactCity and (groundY or 0)+3 or 3.9),z)
+    if training then model:SetAttribute("TrainingHome",home) end
     local cf = CFrame.new(home)
     local skin = skinColors[avatarRng:NextInteger(1, #skinColors)]
     local shirt = shirtColors[avatarRng:NextInteger(1, #shirtColors)]

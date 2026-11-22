@@ -13,7 +13,7 @@ EXPECTED_COMMON = [
  'wait:PlayerScripts/BeamScreenFeedback','require:BeamScreenFeedback','wait:PlayerScripts/NotificationQueue','require:NotificationQueue',
  'wait:PlayerScripts/NoticeLayout','require:NoticeLayout','wait:PlayerScripts/NoticeView','require:NoticeView']
 EXPECTED_AUTO = ['wait:Shared/SustainedAttack','require:SustainedAttack','wait:Shared/VoiceActivation','require:VoiceActivation','wait:PlayerScripts/SustainedControls','require:SustainedControls']
-EXPECTED_TAIL = ['wait:PlayerScripts/VoiceReactor','require:VoiceReactor','wait:PlayerScripts/HitFeedback','require:HitFeedback','wait:Shared/NavigationCatalog','require:NavigationCatalog','wait:Shared/BossCatalog','require:BossCatalog','wait:PlayerScripts/NavigationGuide','require:NavigationGuide','wait:PlayerScripts/BeamVisuals','require:BeamVisuals']
+EXPECTED_TAIL = ['wait:PlayerScripts/VoiceReactor','require:VoiceReactor','wait:PlayerScripts/HitFeedback','require:HitFeedback','wait:Shared/NavigationCatalog','require:NavigationCatalog','wait:Shared/TrainingRules','require:TrainingRules','wait:Shared/BossCatalog','require:BossCatalog','wait:PlayerScripts/NavigationGuide','require:NavigationGuide','wait:PlayerScripts/BeamVisuals','require:BeamVisuals']
 SETUP=r'''
 local RealControls=require("../src/StarterPlayer/StarterPlayerScripts/SustainedControls")
 local RealTestBeamTools=require("../src/StarterPlayer/StarterPlayerScripts/TestBeamTools")
@@ -96,7 +96,7 @@ local function resource(name)
  function o:Pulse()end
  if name~='NotificationQueue' and name~='HitFeedback' and name~='VoiceActivation' then table.insert(owned,o)end;if variant=="late-"..name then script.Destroying:Fire()end;return o
 end
-for _,n in ipairs({'DodgeVisuals','CityMap','Config','DamageReadout','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','VoiceReactor','NavigationCatalog','BossCatalog','NavigationGuide','TestBeamTools'})do
+for _,n in ipairs({'DodgeVisuals','CityMap','Config','DamageReadout','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','VoiceReactor','NavigationCatalog','TrainingRules','BossCatalog','NavigationGuide','TestBeamTools'})do
  local node=object(n,shared);shared[n]=node;scriptParent[n]=node
  modules[n]={new=function(...)return resource(n)end,Clear=function()singletonClears[n]=(singletonClears[n] or 0)+1;table.insert(cleanupOrder,n)end}
 end
@@ -112,6 +112,7 @@ modules.CityMap.create=function()return {}end
 modules.CityMap.MiniUpdate=function()end
 modules.Config.GetSound=function()return {effect='fixture',level=1}end
 modules.NavigationCatalog.Resolve=function()return nil end
+modules.TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
 modules.AttackAudioConfig.Range=100
 modules.ShopUI.Render=function()renders+=1 end;modules.ShopUI.ColorMixer=function()renders+=1 end
 -- This lifecycle fixture only checks the desktop port, not Shop layout.
@@ -214,7 +215,7 @@ if __name__=='__main__':
  for auto in [False,True]:
   r=run(source,auto,fixed=not args.baseline);assert r.returncode==0,r.stdout+r.stderr
   boundaries=re.findall(r'^BOUNDARY (\d+) (.+)$',r.stdout,re.M)
-  expected=([name for name in EXPECTED_COMMON if args.baseline or name not in ('wait:Shared/FirstBeamGuide','require:FirstBeamGuide')])+(EXPECTED_AUTO if auto else [])+([name for name in EXPECTED_TAIL if not args.baseline or not any(module in name for module in ("VoiceReactor","NavigationCatalog","BossCatalog","NavigationGuide"))])+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
+  expected=([name for name in EXPECTED_COMMON if args.baseline or name not in ('wait:Shared/FirstBeamGuide','require:FirstBeamGuide')])+(EXPECTED_AUTO if auto else [])+([name for name in EXPECTED_TAIL if not args.baseline or not any(module in name for module in ("VoiceReactor","NavigationCatalog","TrainingRules","BossCatalog","NavigationGuide"))])+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
   if not args.baseline: expected[2:2]=['wait:PlayerScripts/DodgeVisuals','require:DodgeVisuals']
   if not args.baseline:
    insert=expected.index('require:NoticeView')+1;expected[insert:insert]=['wait:PlayerScripts/DamageReadout','require:DamageReadout']

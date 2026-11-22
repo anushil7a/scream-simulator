@@ -615,11 +615,13 @@ local function playerTargetInfo(target,humanoid,inPvp,targetInPvp,far,now,curren
  return string.format("%s\n%s",name,status),
   inPvp and targetInPvp and protection<=0 and not rolling and not far and not currentFar and not covered
 end
-local function residentTargetInfo(model,humanoid,far,currentFar,covered)
+local function residentTargetInfo(model,humanoid,far,currentFar,covered,position)
  if model:GetAttribute("ResidentActive")==false then return nil,false end
  if not humanoid or humanoid.Health<=0 then return nil,false end
- local status=far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "TRAINING RESIDENT"
- return string.format("%s\n%s",model:GetAttribute("DisplayName") or model.Name,status),not far and not currentFar and not covered
+ local home=model:GetAttribute("TrainingHome")
+ local outsidePad=typeof(home)=="Vector3" and (position-home).Magnitude>academy.TrainingRules.Radius
+ local status=outsidePad and "MOVE TOWARD PAD CENTER" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "TRAINING RESIDENT"
+ return string.format("%s\n%s",model:GetAttribute("DisplayName") or model.Name,status),not outsidePad and not far and not currentFar and not covered
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(144,32),UDim2.fromOffset(116,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
 do
@@ -852,6 +854,7 @@ local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)
 ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)
 -- Guidance is session-local and can only be selected by an explicit button.
 academy.NavigationCatalog=loadClientDependency(shared,"NavigationCatalog");if not clientCheckpoint() then return end
+academy.TrainingRules=loadClientDependency(shared,"TrainingRules");if not clientCheckpoint() then return end
 academy.BossCatalog=loadClientDependency(shared,"BossCatalog");if not clientCheckpoint() then return end
 academy.NavigationGuide=loadClientDependency(script.Parent,"NavigationGuide");if not clientCheckpoint() then return end
 academy.guide=academy.NavigationGuide.new(gui)
@@ -1838,7 +1841,7 @@ connectClient(Run.RenderStepped,function(dt)
    if root and npcRoot then
     local distance=(npcRoot.Position-root.Position).Magnitude
     local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).maxRange+2
-    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2,not far and targetCovered(root,npcRoot,object))
+    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2,not far and targetCovered(root,npcRoot,object),root.Position)
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then

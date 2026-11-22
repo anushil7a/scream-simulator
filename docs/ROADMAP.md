@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Aiming at Rookie explains the sparring boundary
+
+- Outside Rookie's pad, the aim readout previously said **BEYOND CURRENT RANGE** even if the server's full-power beam could reach the fighter. In local Studio the avatar was 34 studs from the pad center and about 19.17 studs from Rookie. The 30-stud beam reached the line of fire, but the server excluded the fighter because of the 32-stud sparring radius.
+- The fighter now replicates its actual spawn center to the aim readout. It says **MOVE TOWARD PAD CENTER** outside the same 3D radius the server uses. On desktop and an iPhone 7 landscape preview (666 × 316 safe pixels), the hint fit at 34 studs from center. At 28 studs the defender's status returned to **TRAINING RESIDENT**, and the resolver admitted the fighter. Cover and current range still apply inside the pad.
+- The native shared combat calculation returned 21.00 studs at 50% normalized input without the Megaphone and 21.54 with it. Both reached 30 studs at full input at level one. The fixture staged positions and used synthetic resolver inputs, with no live voice, physical phone, or live saves.
+- Focused tests passed 29 readout assertions and two mutation controls, plus 432 startup boundary scenarios and 19 lifecycle cases. The full local run passed 29 pure/synthetic suites, 164 mocked-service suites, production compilation and review builds. Studio reset its viewport and the disposable session closed.
+
 ## Repeating Buy & Equip keeps the first upgrade equipped
 
 - Before the fix, two accepted Gear requests in a disposable Studio playtest took a temporary wallet from 130 to 30 coins and left the owned Megaphone unequipped. Gear buttons now send the action displayed on the card: buy, equip or unequip. Repeating the same action cannot toggle the selection, and repeating a buy for owned gear is silent. Existing vendor purchases and legacy toggle callers retain their behavior.
