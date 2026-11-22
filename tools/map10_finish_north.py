@@ -129,7 +129,7 @@ def add(box, disk, line):
                   rot=[0,90,0],material='Metal' if k==0 else 'SmoothPlastic',shape='Cylinder')
         for side in (-1,1):
             b(f'Audio{i}Corner{side}',[x+side*12.7,64,z+9.4],[.8,60,.5],violet)
-    for i in range(1,8):
+    for i in (1, 2, 3, 4, 5, 7):
         a = i * math.pi/4
         x,z=90+math.sin(a)*126,-330+math.cos(a)*126
         b(f'MusicFacade{i}',[x,38,z],[64,10,1.0],plum,rot=[0,math.degrees(a),0])

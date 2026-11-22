@@ -277,8 +277,6 @@ return {
  {"NorthMusicFacadeInlay4",Vector3.new(90,41,-455.98),Vector3.new(48,0.75,1.2),Color3.fromRGB(113,62,154),Vector3.new(0,180,0),"SmoothPlastic","Block"},
  {"NorthMusicFacade5",Vector3.new(0.904546,38,-419.095454),Vector3.new(64,10,1),Color3.fromRGB(47,31,67),Vector3.new(0,225,0),"SmoothPlastic","Block"},
  {"NorthMusicFacadeInlay5",Vector3.new(0.904546,41,-419.075454),Vector3.new(48,0.75,1.2),Color3.fromRGB(113,62,154),Vector3.new(0,225,0),"SmoothPlastic","Block"},
- {"NorthMusicFacade6",Vector3.new(-36,38,-330),Vector3.new(64,10,1),Color3.fromRGB(47,31,67),Vector3.new(0,270,0),"SmoothPlastic","Block"},
- {"NorthMusicFacadeInlay6",Vector3.new(-36,41,-329.98),Vector3.new(48,0.75,1.2),Color3.fromRGB(113,62,154),Vector3.new(0,270,0),"SmoothPlastic","Block"},
  {"NorthMusicFacade7",Vector3.new(0.904546,38,-240.904546),Vector3.new(64,10,1),Color3.fromRGB(47,31,67),Vector3.new(0,315,0),"SmoothPlastic","Block"},
  {"NorthMusicFacadeInlay7",Vector3.new(0.904546,41,-240.884546),Vector3.new(48,0.75,1.2),Color3.fromRGB(113,62,154),Vector3.new(0,315,0),"SmoothPlastic","Block"},
  {"NorthStageMedallion0",Vector3.new(97.5,32.83,-302.009619),Vector3.new(1,0.12,15.529143),Color3.fromRGB(187,137,62),Vector3.new(-0,105,0),"SmoothPlastic","Block"},

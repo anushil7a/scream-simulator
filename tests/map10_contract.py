@@ -35,6 +35,27 @@ for index,(x,y,z) in enumerate(homes,1):
  for source in (layout,(R/'src/ReplicatedStorage/Shared/Map10Geometry.luau').read_text()):
   row=next(line for line in source.splitlines() if line.startswith('{id="'+name+'"'))
   check('shape="Cylinder"' in row and 'size=Vector3.new('+','.join(map(str,part['size']))+')' in row,name+' runtime and preview differ')
+tiers={part['id']:part for part in parts if part['id'].startswith('MusicTier')}
+check(set(tiers)=={f'MusicTier{row}{segment}' for row in range(5) for segment in (1,2,3,4,5,7)},
+      'Amphitheatre must leave the west and south bays open')
+runtime=(R/'src/ReplicatedStorage/Shared/Map10Geometry.luau').read_text()
+for name,part in tiers.items():
+ row,segment=map(int,name[-2:])
+ x,y,z=part['position']
+ width,height,depth=part['size']
+ yaw=math.radians(part['rotation'][1])
+ check(part['collidable'] and math.isclose(y-height/2,32,abs_tol=1e-6),name+' must meet the deck')
+ check(math.isclose(y+height/2,35+row*3+segment*.007,abs_tol=1e-6),name+' seat height changed')
+ yaw_x=abs(math.cos(yaw))*width/2+abs(math.sin(yaw))*depth/2
+ yaw_z=abs(math.sin(yaw))*width/2+abs(math.cos(yaw))*depth/2
+ check(x+yaw_x<-70 or x-yaw_x>90 or z+yaw_z<-346 or z-yaw_z>-314,
+       name+' blocks the Academy bridge')
+ for code in (layout,runtime):
+  text=next(line for line in code.splitlines() if line.startswith('{id="'+name+'"'))
+  check('position=Vector3.new('+','.join(map(str,part['position']))+')' in text and
+        'size=Vector3.new('+','.join(map(str,part['size']))+')' in text,name+' runtime and preview differ')
+for code in (layout,runtime):
+ check(not re.search(r'id="MusicTier[0-4][06]"',code),'runtime Amphitheatre entrance blocked')
 world=(R/'src/ServerScriptService/World.luau').read_text();check('(training.y or 0)+3.2' in world,'trainer grounding');check('nil,nil,spot.y' in world,'seed elevation');check('SupportingNPCs.AtHome' in world,'support placement adapter')
 nav=(R/'src/ReplicatedStorage/Shared/NavigationCatalog.luau').read_text();check('(boss.y or 0)+3' in nav and '(landmark.y or 0)+3' in nav,'elevated guides')
 check('home=Layout.BossHomes' in (R/'src/ReplicatedStorage/Shared/BossCatalog.luau').read_text(),'boss bindings')

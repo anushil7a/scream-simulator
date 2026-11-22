@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Open the Academy bridge into the Amphitheatre
+
+- The Academy bridge visually ended at a decorative wall, with collidable seating behind it. At walking height, the straight route hit MusicTier16. The native avatar stopped near X = −6.59. The no-jump pathfinder detoured 266.49 studs for a stage 156 studs away.
+- The west bay now opens directly from the bridge to the stage. It removes five blocking tier segments and two decorative panels. The remaining 30 seat sections meet the deck at their original top heights and use a softer purple palette. Matched Studio views show an open bridge into the venue and solid silhouettes from the south. An exposed east gap ray now meets the outer riser.
+- The native no-jump west path was 156.00 studs. From the matched camera staging point, a scripted avatar walked to within 1.28 studs of stage center in 8.50 seconds with full health. Pathfinding still reached the stage from the south, the existing Amphitheatre guide destination from Academy spawn, and the Volcano connector. The guide's sampled route was about six studs longer. Only the direct western walk was repeated physically in this pass.
+- The generated base inventory fell from 604 to 599; finishing props fell from 1,037 to 1,035. Independent review, 834 map contracts, the finishing test and two negative controls passed. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. Both disposable Studio sessions closed. Physical-device navigation, human wayfinding and populated-map performance remain open.
+
 ## Make the next beam sound visible when the collection opens
 
 - At 567 × 241 usable pixels, the old collection opened with a separate Gear card. The next-unlock label occupied pixels 80–130 of a 113-pixel scroll window. The first card now shows **NEXT SOUND**, its name and level, and the existing **VIEW GEAR** shortcut. The current full-power limit and next-level forecast follow below. Legacy uses **NEXT STYLE** and its forecast shows burst damage.

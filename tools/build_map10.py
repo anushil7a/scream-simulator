@@ -17,10 +17,17 @@ def ramp(n,a,b,width=32,c=cream):
  center=[(a[i]+b[i])/2-normal[i] for i in range(3)]
  if abs(dy)<1e-8:center[1]+=.08 # reveal flat bridge surface above coplanar land
  box(n,center,[width,2,l],c,True,[-math.degrees(math.atan2(dy,h)),math.degrees(math.atan2(dx,dz)),0])
-def ring(n,x,z,r,y,h,c,gaps=(),width=8):
+def ring(n,x,z,r,y,h,c,gaps=(),width=8,foundation=None):
  for i in range(8):
   if i in gaps:continue
-  a=i*math.pi/4;box(n+str(i),[x+math.sin(a)*r,y+h/2+i*.007,z+math.cos(a)*r],[2*r*math.tan(math.pi/8)+2,h,width],c,True,[0,math.degrees(a),0])
+  a=i*math.pi/4
+  center_y=y+h/2+i*.007
+  height=h
+  if foundation is not None:
+   height=center_y+h/2-foundation
+   center_y=foundation+height/2
+  box(n+str(i),[x+math.sin(a)*r,center_y,z+math.cos(a)*r],
+      [2*r*math.tan(math.pi/8)+2,height,width],c,True,[0,math.degrees(a),0])
 def pavilion(n,x,z,y,w=45):
  box(n+'Plinth',[x,y+.3,z],[w+6,.6,w+6],cream)
  for dx in [-w*.36,w*.36]:
@@ -77,8 +84,10 @@ for k in range(5):ring('ArenaTier'+str(k),-330,120,112+k*7,k*3,3,[166+k*9,166+k*
 box('ArenaFloor',[-330,.08,120],[180,.16,180],[190,178,141],False)
 for n,pos,sz in [('N',[-330,.2,30],[180,.15,2]),('S',[-330,.2,210],[180,.15,2]),('W',[-420,.2,120],[2,.15,180]),('E',[-240,.2,120],[2,.15,180])]:box('PvPBoundary'+n,pos,sz,[191,80,67],False)
 for i,(x,z) in enumerate([(-380,70),(-280,70),(-380,170),(-280,170)]):box('ArenaCover'+str(i),[x,3,z],[12,6,12],[126,120,102])
-# Purple amphitheatre bowl / speakers / equalizer panels, southern entrance.
-for k in range(5):ring('MusicTier'+str(k),90,-330,84+k*8,32+k*3,3,purple,gaps=(0,))
+# The southern opening and the Academy bridge both reach the stage.
+# Solid risers sit on the existing deck under the original seat tops.
+for k,color in enumerate(([92,68,114],[99,73,123],[106,78,132],[113,83,140],[120,88,148])):
+ ring('MusicTier'+str(k),90,-330,84+k*8,32+k*3,3,color,gaps=(0,6),foundation=32)
 disk('MusicStage',90,32.3,-330,50,.6,[51,43,72]);disk('MusicNeonRing',90,32.65,-330,26,.1,[179,105,240],False)
 for i,(x,z) in enumerate([(-30,-410),(90,-470),(210,-410)]):
  box('SpeakerTower'+str(i),[x,64,z],[28,64,18],dark)

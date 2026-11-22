@@ -50,7 +50,10 @@ assert_clear('academy spawn approach', -340, -260, -274, -247)
 assert_clear('academy directory passage', -290, -282, -278, -276)
 assert_clear('Amphitheatre arrival', 108, 116, -233, -225)
 assert_clear('academy training corridor', -475, -125, -413, -387)
-assert_clear('Resonance Hall marquee centre', 107, 117, -243, -231)
+assert_clear('Amphitheatre marquee centre', 107, 117, -243, -231)
+assert all(part['id'] not in {'NorthMusicFacade6','NorthMusicFacadeInlay6'} for part in doc['parts']), \
+    'A decorative wall masks the west entrance'
+assert_clear('Amphitheatre west bridge', -70, 90, -346, -314)
 assert_clear('coastal walkway centre', -480, 480, 410, 430)
 assert_clear('coastal pitch', 254, 366, 257.5, 342.5)
 assert_clear('dock centre', -227, -213, 430, 589)

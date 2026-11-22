@@ -1,6 +1,6 @@
 {
  "groups": {
-  "North": 300,
+  "North": 298,
   "East": 219,
   "Coast": 240,
   "Stadium": 144,
@@ -7203,58 +7203,6 @@
    "rotation": [
     0,
     225.0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "NorthMusicFacade6",
-   "position": [
-    -36.0,
-    38,
-    -330.0
-   ],
-   "size": [
-    64,
-    10,
-    1.0
-   ],
-   "color": [
-    47,
-    31,
-    67
-   ],
-   "rotation": [
-    0,
-    270.0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "NorthMusicFacadeInlay6",
-   "position": [
-    -36.0,
-    41,
-    -329.98
-   ],
-   "size": [
-    48,
-    0.75,
-    1.2
-   ],
-   "color": [
-    113,
-    62,
-    154
-   ],
-   "rotation": [
-    0,
-    270.0,
     0
    ],
    "material": "SmoothPlastic",
