@@ -243,6 +243,15 @@ local function questProgress(p,event,amount)
  local v=s.data.quests[q.id];if not v or v.claimed or v.progress>=q.goal then return end
  v.progress=math.min(q.goal,v.progress+(amount or 1));state(p,v.progress==q.goal and "Quest complete! Claim your reward in Quests." or nil)
 end
+local function confirmBeamDodge(target,now)
+ questProgress(target,"Evade")
+ local s=sessions[target]
+ if not s or now<(s.nextBeamDodgeCueAt or 0) then return end
+ local _,_,humanoid=parts(target)
+ if not humanoid then return end
+ s.nextBeamDodgeCueAt=now+1
+ effect:FireClient(target,"BeamDodged",humanoid)
+end
 local function combatChallenge(p,id,quiet)
  local s=sessions[p];if not s then return 0,0 end
  local reward,name=Config.Progression.Advance(s.data.combatChallenges,id,s.data.level)
@@ -512,7 +521,10 @@ local function stepSustained(p,s,now)
  if beam and not ended then
   intent.evaded=intent.evaded or {}
   for _,target in ipairs(beam.dodged) do
-   if not intent.evaded[target.UserId] then intent.evaded[target.UserId]=true;questProgress(target,"Evade") end
+   if not intent.evaded[target.UserId] then
+    intent.evaded[target.UserId]=true
+    confirmBeamDodge(target,now)
+   end
   end
   -- One successful impulse per activity per scream, not five impulses per second.
   if not intent.soccerHit then intent.soccerHit=Soccer.Hit(p,beam.origin,beam.direction,beam.length,beam.width,beam.power)==true end
@@ -656,7 +668,7 @@ local function cast(p,request)
   for _,target in ipairs(Players:GetPlayers()) do
    local ts=sessions[target];local tc,tr,th=parts(target)
    if target~=p and sameCombatMode(s,ts) and tr and Rules.CanTarget(r.Position,tr.Position,ts.protectedUntil,now,sound.range+2) and Rules.InBeam(origin,direction,tr.Position,length,sound.width,1) and audible(c,origin,tr.Position,tc) then
-    if now<ts.dodgingUntil and not ts.premiumRoll then evades+=1;questProgress(target,"Evade")
+    if now<ts.dodgingUntil and not ts.premiumRoll then evades+=1;confirmBeamDodge(target,now)
     else
      playerHits+=1;summaryDamage+=math.min(sound.damage,th.Health)
      ts.nextHeal=now+Config.HealQuietSeconds

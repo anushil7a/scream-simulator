@@ -1510,7 +1510,7 @@ connectClient(UIS.InputEnded,function(input)
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
  if input.KeyCode==Enum.KeyCode.LeftShift then setSprint(false) end
 end)
-connectClient(p.CharacterRemoving,function() academy.damageTakenUntil=nil;academy.incomingHit.Visible=false;hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
+connectClient(p.CharacterRemoving,function() academy.defenderCueUntil=nil;academy.incomingHit.Visible=false;hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
 connectClient(UIS.WindowFocused,function() windowFocused=true end)
 local function suspendGameplay()
  if sustainedControl then sustainedControl:SetArmed(false) end
@@ -1558,10 +1558,13 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   sustainedBeams:Update(key,os.clock(),pos,direction,length,beamWidth,color,attackLevel or 1,data.settings.reducedShake)
   return
  end
- if kind=="SustainedDamageTaken" then
+ if kind=="SustainedDamageTaken" or kind=="BeamDodged" then
   local character=p.Character
   if pos and character and character:FindFirstChildOfClass("Humanoid")==pos then
-   academy.damageTakenUntil=os.clock()+1.4
+   local dodged=kind=="BeamDodged"
+   academy.incomingHit.Text=dodged and "BEAM DODGED" or "BEAM HIT YOU"
+   academy.incomingHit.TextColor3=dodged and Color3.fromRGB(147,236,192) or Color3.fromRGB(255,157,146)
+   academy.defenderCueUntil=os.clock()+1.4
   end
   return
  end
@@ -1693,8 +1696,8 @@ connectClient(Run.RenderStepped,function(dt)
  local confirmed=hitFeedback:Read(os.clock())
  hitText.Visible=gameplayVisible and confirmed~=nil
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
- if protectionRemaining>0 then academy.damageTakenUntil=nil end
- academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and os.clock()<(academy.damageTakenUntil or 0)
+ if protectionRemaining>0 then academy.defenderCueUntil=nil end
+ academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and os.clock()<(academy.defenderCueUntil or 0)
  local showVoiceMeter=viewport.Y>=315 and not (not touch and viewport.X>=820 and talkTarget~=nil)
  local compactVoice=not showVoiceMeter
  meter.Visible=gameplayVisible and showVoiceMeter;reticle.Visible=usesCenterAim() and gameplayVisible

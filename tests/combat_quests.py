@@ -32,7 +32,9 @@ local function coins(p,amount)sessions[p].data.coins+=amount;return amount end
 local function xp(p,amount)earned+=amount;if reenter then local f=reenter;reenter=nil;f()end;return amount end
 local QuestLifecycle=realQuestLifecycle
 local function stopQuest(p)QuestLifecycle.Clear(sessions[p],Config.GetQuest) end
-local function parts()return nil,nil end
+local fixtureHumanoids={};local evadeCues={}
+local function parts(player)return nil,nil,fixtureHumanoids[player] end
+local effect={FireClient=function(_,player,kind,humanoid)table.insert(evadeCues,{player,kind,humanoid})end}
 local task={delay=function()end}
 local fixtureBeam,fixtureEnded
 local sustained={Step=function()return {},fixtureEnded,{},fixtureBeam end}
@@ -184,6 +186,28 @@ check(P.Save(7,restartData,true),'Restart fixture final release failed')
 local catalog=Config.Quests;local old={};for _,q in ipairs(catalog)do if legacy[q.id]then table.insert(old,q)end end
 Config.Quests=old;local rollback=P.Sanitize(seed);Config.Quests=catalog
 check(rollback.quests.practice_beams==nil and rollback.quests.arena_assist==nil,'Rollback sanitation assumption changed')
+if confirmBeamDodge then
+ local defender={UserId=21}
+ local ds=session(defender,nil)
+ local humanoid={};fixtureHumanoids[defender]=humanoid
+ local first={sustained={intent={}}}
+ local second={sustained={intent={}}}
+ fixtureBeam={dodged={}}
+ stepSustained(p,first,10)
+ check(#evadeCues==0,'Empty roll showed a dodge confirmation')
+ fixtureBeam.dodged={defender}
+ stepSustained(p,first,10)
+ check(#evadeCues==1 and evadeCues[1][1]==defender and evadeCues[1][2]=='BeamDodged' and evadeCues[1][3]==humanoid,
+  'Actual PvP evade did not send one private life-bound cue without a quest')
+ ds.activeQuest='dodge';ds.data.quests.dodge={progress=0,claimed=false}
+ stepSustained(p,second,10.25)
+ check(#evadeCues==1 and ds.data.quests.dodge.progress==1,'Rate limit changed the quest or allowed stacked dodge cues')
+ stepSustained(p,first,11.25)
+ stepSustained(p,second,11.3)
+ check(#evadeCues==1 and ds.data.quests.dodge.progress==1,'Cast replay renewed a dodge cue or quest')
+ stepSustained(p,{sustained={intent={}}},11.4)
+ check(#evadeCues==2 and ds.data.quests.dodge.progress==2,'Later cast failed to award its real evade')
+end
 print('PASS',n,'actual combat quest assertions; fake persistence and engine inputs only')
 """
 def run(code):
@@ -204,6 +228,9 @@ if __name__=='__main__':
     values[which]=values[which].replace(old,new,1);return tuple(values)
    return mutate
   controls=[
+   ('missing private dodge cue',change(2,'effect:FireClient(target,"BeamDodged",humanoid)',''),'Actual PvP evade did not send'),
+   ('dodge burst rate limit',change(2,'now<(s.nextBeamDodgeCueAt or 0)','false'),'Rate limit changed the quest'),
+   ('cast dodge deduplication',change(2,'if not intent.evaded[target.UserId] then','if true then'),'Cast replay renewed a dodge cue'),
    ('retired acceptance gate',change(2,'if q and q.retired==true then return end',''),'Retired restart altered dormant progress'),
    ('retired progress gate',change(2,' or q.retired==true',''),'Retired objective progressed'),
    ('assist finisher gate',change(2,'victim and recipient~=finisher and underdog and meaningful[id]','victim and underdog and meaningful[id]'),'Finisher counted as assist'),

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Confirmed beam dodges get a private HUD cue
+
+- In a guarded two-client Hall replay, an empty roll and an authoritative evade both left the defender at 100 HP and sent no feedback on the baseline. A standing control took 3 HP. The candidate sends one private defender confirmation for the actual evade. It sends none for the empty roll and continues to show the ordinary damage cue for the standing hit.
+- The automatic and legacy damage paths share the same dodge confirmation. It uses the existing eligibility and quest hooks, deduplicates sustained casts per defender and limits repeat presentation. The health card shows **BEAM DODGED** using the existing hit-cue lane. A new damage cue replaces it, and the current-character and protection checks clear stale feedback.
+- The two-client fixture verified delivery, health and privacy with staged synthetic power and a staged dodge window. The observer did not find the defender's HUD in that fixture. A separate iPhone 7 landscape Studio run rendered the actual client listener's dodge and hit text from staged packets. Both fit the 116-pixel lane. Dodge text also fit after assigning the compact lane's 94-pixel width, and protection cleared it. Real microphones, physical dodge timing and live network play remain open. Both disposable Studio sessions closed. Independent review cleared the change. Focused checks passed 174 quest, 349 client, 25 legacy/telemetry and 11,523 resolver assertions, with 42 negative controls. The full run passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+
 ## Resonance Hall keeps practice falls on the training landing
 
 - A scripted normal jump at WalkSpeed 16 and JumpPower 50 cleared the six-stud landing rail, crossed X = 42.22 and fell below Y = −20. The server recovered the player at the Hall, bypassing the return prompt. The landing now has twelve-stud visible rails with flush corners. Fall recovery on the practice side returns the same avatar to the protected training landing facing the return portal.

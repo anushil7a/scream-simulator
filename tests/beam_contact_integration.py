@@ -80,7 +80,7 @@ local function make(ack)
  mic.ready=true;data.voiceEligible=true;data.settings.reducedShake=false;workspace.CurrentCamera.CFrame.Position=Vector3.zero
  attrs={SustainedActive=false};cues=0;screenHits=0
  gate.next='start';sustainedControl:Step(.001,clock,0,true,true,false,0)
- academy.damageTakenUntil=nil;protectionRemaining=0;alive=true
+ academy.defenderCueUntil=nil;protectionRemaining=0;alive=true
  local id=sustainedControl.attack.sequence;attrs.SustainedActive=true;attrs.SustainedSequence=id
  if ack~=false then sustainedControl:Step(.001,clock,0,true,true,true,id)end
  beam();local rig=sustainedBeams.entries[7].visual;frame(1/30)
@@ -94,6 +94,13 @@ end
 make()
 send('SustainedDamageTaken',{});hud()
 check(not academy.incomingHit.Visible,'Foreign Humanoid showed defender cue')
+send('BeamDodged',{});hud()
+check(not academy.incomingHit.Visible,'Foreign Humanoid showed dodge cue')
+send('BeamDodged',h);hud()
+check(academy.incomingHit.Visible and academy.incomingHit.Text=='BEAM DODGED','Actual evade did not show the dodge label')
+send('SustainedDamageTaken',h);hud()
+check(academy.incomingHit.Visible and academy.incomingHit.Text=='BEAM HIT YOU','Damage did not replace old dodge cue')
+academy.defenderCueUntil=nil
 send('SustainedDamageTaken',nil);hud()
 check(not academy.incomingHit.Visible,'Nil Humanoid showed defender cue')
 mic.ready=false;data.voiceEligible=false;sustainedControl:SetArmed(false)
@@ -299,9 +306,10 @@ def main():
             (event, 'now<entry.expires', 'true', 'Ineligible hit decorated new rig: expired entry'),
             (event, 'and windowFocused and not beamBlocked()', '', 'Blocked hit created contact'),
             (event, 'playGameplayCue("Hit");', '', 'Accepted hit lost retained sound/HUD'),
+            (event, 'local dodged=kind=="BeamDodged"', 'local dodged=false', 'Actual evade did not show the dodge label'),
             (event, 'character:FindFirstChildOfClass("Humanoid")==pos', 'true', 'Foreign Humanoid showed defender cue'),
             (event, 'beamWidth,color,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'beamWidth,Config.Auras.Gold,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'Explicit Color3 lost its override'),
-            (hud, 'if protectionRemaining>0 then academy.damageTakenUntil=nil end', '', 'Defender cue replayed after protection'),
+            (hud, 'if protectionRemaining>0 then academy.defenderCueUntil=nil end', '', 'Defender cue replayed after protection'),
             (hud, 'hitText.Visible=gameplayVisible and confirmed~=nil', 'hitText.Visible=false', 'Accepted hit lost retained sound/HUD'),
             (render, 'windowFocused and not beamBlocked() and attack', 'attack', 'Blocked frame retained contact'),
             (render, 'attack and attack.acknowledged', 'attack', 'Current-state frame gate retained contact: lost acknowledgement'),

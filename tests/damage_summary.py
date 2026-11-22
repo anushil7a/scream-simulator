@@ -6,6 +6,7 @@ import tempfile
 root=Path(__file__).resolve().parents[1]
 server=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
 wire=server[server.index('local damageSummary=remote('):server.index('local sessions={}',server.index('local damageSummary=remote('))]
+evade=server[server.index('local function confirmBeamDodge('):server.index('local function combatChallenge(')]
 legacy=server[server.index('local function cast('):server.index('local function finishDodge(')]
 # None of the summary entry points reads client arguments or publishes health/state attributes.
 assert 'damageSummary.OnServerEvent' not in server
@@ -97,7 +98,10 @@ local function canCapture()return true end
 local function beamColor()end
 local object={health=100}
 local function beamObstruction()return {Instance=object,Distance=12}end
-local effect={FireAllClients=function()end}
+local dodgeCues={}
+local effect={FireAllClients=function()end,FireClient=function(_,player,kind,humanoid)
+ table.insert(dodgeCues,{player,kind,humanoid})
+end}
 local Soccer={Hit=function()end};local BeachVolley={Hit=function()end}
 local Destruction={Damage=function(o,_,d)o.health-=d;return {health=o.health,model={GetAttribute=function()return "fixture"end}}end}
 local resident={id=1,alive=true,health=2,root={Parent=true,Position=vector}}
@@ -131,12 +135,14 @@ oldTime+=5
 defense.dodgingUntil=oldTime+1
 bosses.bosses[1].accepted=0
 cast(owner,{aim=vector,power=1,sequence=2})
+check(#dodgeCues==1 and dodgeCues[1][1]==defended and dodgeCues[1][2]=='BeamDodged' and dodgeCues[1][3]==h,
+ "Confirmed legacy beam evade failed private defender cue")
 stepDamageSummary(owner,s,oldTime)
 amount(12,owner,"active",0,14)
 check(s.damageSummary.lastHit==50 and object.health==20,"legacy dodge, rejection or destruction wrongly extended telemetry")
 print("PASS "..n.." actual private damage summary/legacy cast assertions")
 '''
-code=setup+wire+timecases+legacy_setup+legacy+legacy_checks
+code=setup+wire+timecases+legacy_setup+evade+legacy+legacy_checks
 with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=root/'tests',delete=False) as f:
     f.write(code)
     path=Path(f.name)

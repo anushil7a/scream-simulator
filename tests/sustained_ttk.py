@@ -7,6 +7,7 @@ c=(R/'src/ReplicatedStorage/Shared/Config.luau').read_text()
 l=(R/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text()
 r=(R/'src/ServerScriptService/CombatRules.luau').read_text().split('\n',1)[1]
 helpers=b[b.index('local function audible('):b.index('local function restoreBot(')]
+evade=b[b.index('local function confirmBeamDodge('):b.index('local function combatChallenge(')]
 step=b[b.index('local function stepSustained('):b.index('local function cast(')]
 mode=b[b.index('local function sameCombatMode('):b.index('local function recordCredit(')]
 zone='\n'.join(x.replace('Layout.','Config.') for x in l.splitlines() if x.startswith('Layout.ZoneMin=') or x.startswith('Layout.ZoneMax='))
@@ -44,7 +45,10 @@ local workspace={Raycast=function(_,origin,delta,params)
 end}
 local VoiceEligibility={Allowed=function(s)return s==true end}
 local sustained=Adapter.new(Attack,VoiceCombat,function(origin,aim)return (aim-origin).Unit end)
-local effect={FireClient=function()end,FireAllClients=function()end}
+local dodgeCues={}
+local effect={FireClient=function(_,p,kind,humanoid)
+ if kind=='BeamDodged' then table.insert(dodgeCues,{p,humanoid}) end
+end,FireAllClients=function()end}
 local function sustainedEnd()end;local function beamColor()return nil end
 local Soccer={Hit=function()return false end};local BeachVolley=Soccer
 local function questProgress()end;local function state()end
@@ -57,6 +61,7 @@ local function knockOutBot(bot)bot.alive=false;koAt=clock end
 checks=r"""
 local n=0;local function check(x,m)assert(x,m);n+=1 end
 local function measure(level,targetLevel,power,kind,tier,phase,quiet,quantum)
+ table.clear(dodgeCues)
  clock=0;cover=kind=='cover';awards=0;koAt=nil;World.Bots={}
  local min,max=Config.ZoneMin,Config.ZoneMax
  local x,z=min.X+20,(min.Z+max.Z)*.5
@@ -95,6 +100,11 @@ local function measure(level,targetLevel,power,kind,tier,phase,quiet,quantum)
  elseif kind=='timeout'then check(not koAt and victim.h.Health==56 and not s.sustained.protocol.active,'Timeout continued damage')
  elseif kind=='bothTest' or kind=='capturedLevel'then check(koAt==1.0,'Same-mode or captured-level parity changed')
  elseif kind then check(not koAt and victim.h.Health==initial,'Guard allowed damage '..kind)else check(koAt~=nil and awards==1,'No authoritative KO')end
+ if kind=='dodge' then
+  check(#dodgeCues==1 and dodgeCues[1][1]==victim and dodgeCues[1][2]==victim.h,'Real resolver evade did not emit a single defender cue')
+ else
+  check(#dodgeCues==0,'Non-evade resolver branch showed a dodge cue')
+ end
  return koAt,begins
 end
 for _,level in ipairs({1,25,50,75,100})do for _,power in ipairs({1,.5,.08})do measure(level,1,power)end end
@@ -127,7 +137,7 @@ check(not sustained.Begin(state,5,{sequence=2,power=1,aim=v(10,0,0)},context),'C
 check(sustained.Begin(state,5.1,{sequence=3,power=1,aim=v(10,0,0)},context),'Cooldown boundary rejected')
 print('PASS '..n..' actual authority-path TTK/guard assertions; synthetic scheduling, geometry and humanoid endpoint')
 """
-code=setup+zone+'\n'+in_arena+'\nlocal Rules=(function()\n'+r+'\nend)()\n'+mode+helpers+step+checks
+code=setup+zone+'\n'+in_arena+'\nlocal Rules=(function()\n'+r+'\nend)()\n'+mode+helpers+evade+step+checks
 def run(payload):
  with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:f.write(payload);path=Path(f.name)
  try:return subprocess.run(['luau',str(path)],capture_output=True,text=True,timeout=15)
