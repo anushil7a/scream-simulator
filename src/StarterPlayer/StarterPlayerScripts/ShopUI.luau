@@ -1,7 +1,7 @@
 local Marketplace=game:GetService("MarketplaceService")
 local UIS=game:GetService("UserInputService")
-local Catalog=require(game:GetService("ReplicatedStorage").Shared.ShopCatalog)
-local Config=require(game:GetService("ReplicatedStorage").Shared.Config)
+local Catalog=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("ShopCatalog"))
+local Config=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config"))
 local Shop={}
 local connections,timers={},{}
 local prices,priceViews={},{}

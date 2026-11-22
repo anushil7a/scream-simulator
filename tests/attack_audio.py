@@ -22,7 +22,12 @@ end}
 local soundService={};local workspace={}
 local game={GetService=function(_,name)
  if name=="SoundService" then return soundService end
- return {Shared={AttackAudioConfig="settings"}}
+ return {
+  WaitForChild=function(_,child)
+   assert(child=="Shared")
+   return {WaitForChild=function(_,key)assert(key=="AttackAudioConfig");return "settings" end}
+  end,
+ }
 end}
 local script={Parent={WaitForChild=function()return "mix" end}}
 local require=function(name)return name=="settings" and settings or RealMix end

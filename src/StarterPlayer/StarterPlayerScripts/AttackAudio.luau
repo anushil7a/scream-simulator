@@ -1,5 +1,5 @@
 local SoundService=game:GetService("SoundService")
-local Settings=require(game:GetService("ReplicatedStorage").Shared.AttackAudioConfig)
+local Settings=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("AttackAudioConfig"))
 local Mix=require(script.Parent:WaitForChild("BeamAudioMix"))
 local Audio={}
 function Audio.new()

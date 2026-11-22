@@ -12,7 +12,11 @@ local function fixture()
  for _,item in ipairs(Catalog.Items)do item.tag='tag';item.name=item.key;item.description='description';item.boost=item.key=='XP' and 'xp' or 'coins'end
  local Config={MovementPassId=104}
  local Marketplace={GetProductInfoAsync=function(_,id,kind)if f.sync then return f.sync end;local result=coroutine.yield();if result=='error'then error('mock unavailable')end;return result end}
- local services={MarketplaceService=Marketplace,UserInputService={},ReplicatedStorage={Shared={ShopCatalog=Catalog,Config=Config}}}
+ local function children(nodes)
+  function nodes:WaitForChild(key)return assert(self[key],key) end
+  return nodes
+ end
+ local services={MarketplaceService=Marketplace,UserInputService={},ReplicatedStorage=children({Shared=children({ShopCatalog=Catalog,Config=Config})})}
  local game={GetService=function(_,name)return services[name]end};local require=function(v)return v end
  local Color3={fromRGB=function()return {}end,new=function()return {}end,fromHSV=function()return {}end};local UDim2={new=function(xs,x,ys,y)return {xs=xs,x=x,ys=ys,y=y}end,fromOffset=function(x,y)return {xs=0,x=x,ys=0,y=y}end,fromScale=function(xs,ys)return {xs=xs,x=0,ys=ys,y=0}end};local ColorSequence={new=function()return {}end};local ColorSequenceKeypoint={new=function()return {}end};local Instance={new=function()return {}end};local Enum={InfoType={GamePass='pass',Product='product'},Font={GothamBlack=1},TextXAlignment={Center=1}}
  local task={spawn=function(fn,...)

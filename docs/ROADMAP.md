@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## City HUD startup tolerates late audio and shop modules
+
+- In a guarded native three-client test, each client's probe held one dependency under a temporary local name for 0.7 seconds after the corresponding loader was reached. The baseline failed separately on AttackAudioConfig, GameplayAudioConfig and ShopCatalog, leaving each client without a HUD after the module returned. The city client modules now wait for their packaged shared dependencies.
+- All three clients created the HUD and defender label with the matched delays on the candidate. A repeat that retained the matched error text completed the same three cases with no matching startup errors. This tests deliberately staged availability in Studio. It does not measure how often the race occurs over a live connection.
+- An ordinary local desktop startup opened Menu then Shop through the actual UI. Its title and four Coming Soon tiles were visible and fit. All product IDs in the fixture were zero. Independent review, the focused audio and shop checks, 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds passed. Both disposable Studio sessions closed. Real voice, audio listening and live network behavior remain unverified.
+
 ## Resonance Hall waits for the replicated map modules
 
 - The earlier missing defender HUD was intermittent. A fresh three-client native run reproduced it on two clients: the Hall map read CityMapBase before it arrived in PlayerScripts, and Client stopped before creating ScreamUI. The Hall map now waits for the bundled Shared, Config and CityMapBase instances. The generated Hall Config waits for ResonanceLayout. The city source and combat rules are unchanged.
