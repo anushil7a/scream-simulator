@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Verify overlapping level-100 attacks in Old Stadium
+
+- Three local Studio clients ran the current City with temporary profiles and all four packaged assets. The fixture staged positions and level 100. Two attackers sent synthetic aim and power through the normal Action path. Both were acknowledged and delivered six beam packets per sender to each client, followed by each sender's end packet.
+- The server observed 1.484 seconds with both attacks active. Each attack contributed 155 confirmed damage to the same defender. All 310 damage occurred during the overlap, taking the defender from 480 to 170 HP. The defender received two private damage cues, and **BEAM HIT YOU** was visible and fit its label.
+- The off-axis defender client peaked at eight parented beam parts and zero imported beam roots. Each attacker peaked at 154 parts and two roots. All three clients returned to zero parented beam parts and roots after both attacks stopped. The count excludes detached pool capacity. The probe did not retain a synchronized combat screenshot.
+- A separate three-client replay confirmed a body-cover readability gap. The far target stayed 19.17 studs from the attacker. With the near player offset by 2.7 studs, each defender lost 100 HP. With the near player centered, their UpperTorso blocked the far target's sight ray. The near defender lost 75 HP and the far defender lost zero. Both casts replicated the same 54.75-stud beam. The clients observed four and three beam updates respectively, which limits the comparison to target eligibility and replicated beam length.
+- A single shortened beam would also change the visual cue for other targets with a clear sight ray. Use the matched replay to evaluate a target-specific cover cue before adjusting how players block attacks. [Native evidence](../tests/evidence/stadium-overlap-native-2026-11-22.json)
+- Independent review matched both fixture hashes and eight raw Studio log chunks to the evidence and confirmed the test-owned processes exited. The focused combat rendering suite passed 389 assertions and 44 negative controls. Full verification passed 29 pure or synthetic suites, 168 mocked-service suites, 99 Luau compilations and Rojo builds. Local Studio confirms target resolution, observers and cleanup in this staged case. Human combat readability, real voice, physical devices and live release behavior remain open.
+
 ## Keep the microphone status consistent near Rookie
 
 - In the full City baseline, the Beams button changed from **[E] to turn on** to **Connecting mic** every time the Talk prompt appeared in five sampled cycles. The reverse transition happened when Talk left the screen. No Roblox window focus event coincided with the changes. Talk temporarily reserves the meter's lane. The wide button offered the turn-on shortcut even though the client had no AudioDeviceInput and the server still reported the mic as unavailable.
