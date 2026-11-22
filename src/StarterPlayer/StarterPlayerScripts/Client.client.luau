@@ -605,6 +605,7 @@ local meterFill=academy.reactor.fill
 if sustainedControl then
  local threshold=frame(academy.reactor.track,"VoiceStartThreshold",UDim2.fromOffset(2,7),UDim2.new(sustainedControl.gate.OnPower,0,.5,0),white)
  threshold.AnchorPoint=Vector2.new(.5,.5);threshold.ZIndex=meterFill.ZIndex+1
+ threshold.Visible=false;academy.voiceThreshold=threshold
 end
 local aimGui=Instance.new("ScreenGui");aimGui.Name="ScreamAim";aimGui.ResetOnSpawn=false;aimGui.ScreenInsets=Enum.ScreenInsets.None;aimGui.Parent=p.PlayerGui
 ownClient(function() aimGui:Destroy() end);if not clientCheckpoint() then return end
@@ -1722,7 +1723,7 @@ connectClient(Run.RenderStepped,function(dt)
   voiceCooldown=math.max(0,(p:GetAttribute("SustainedReadyAt") or 0)-workspace:GetServerTimeNow())
   voiceActive=p:GetAttribute("SustainedActive")==true
   sustainedControl:Step(dt,os.clock(),mic.power,alive and windowFocused and not beamBlocked(),
-   voiceCooldown<=0 and data.micReady==true,voiceActive,p:GetAttribute("SustainedSequence"))
+   data.micReady==true,voiceActive,p:GetAttribute("SustainedSequence"),voiceCooldown>0)
  end
  if captureSource and beamBlocked() then cancelCapture() end
  if captureSource and mic.captureStarted and os.clock()-mic.captureStarted>Config.VoiceCombat.CaptureExpiry then
@@ -1775,7 +1776,7 @@ connectClient(Run.RenderStepped,function(dt)
    or compactVoice and devPanel.Visible and "Close Test Tools"
    or (data.micReady~=true or compactVoice and not mic.ready) and (compactVoice and "Connecting mic" or "Connecting microphone…")
    or not sustainedControl.armed and (compactVoice and (touch and "Tap to turn on" or "[E] to turn on") or touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
-   or voiceCooldown>0 and string.format("Cooldown %.1fs · go quiet",voiceCooldown)
+   or voiceCooldown>0 and string.format(sustainedControl.gate.needsQuiet and "Cooldown %.1fs · go quiet" or "Cooldown %.1fs",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format(compactVoice and "Firing · %.1fs" or "Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
    or os.clock()<(sustainedControl.unconfirmedUntil or 0) and (compactVoice and "Go quiet, then retry" or "Not confirmed • quiet, then retry")
    or sustainedControl.gate.needsQuiet and "Go quiet"
@@ -1783,6 +1784,8 @@ connectClient(Run.RenderStepped,function(dt)
    or "Aim and speak"
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
    or (not sustainedControl.armed or voiceCooldown>0 or sustainedControl.gate.needsQuiet or blocked()) and muted or gold
+  academy.voiceThreshold.Visible=sustainedControl.armed and voiceCooldown<=0 and windowFocused
+   and data.micReady==true and not inputMuted and not beamBlocked()
  end
  meterText.Text=inputMuted and eligibilityHint or academy.VoiceReactor.Status(
   string.format("%s %d%%\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),captureHint),

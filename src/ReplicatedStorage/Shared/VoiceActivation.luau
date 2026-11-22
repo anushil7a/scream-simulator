@@ -15,11 +15,15 @@ function Gate:Cancel()
  self.active=false;self.quiet=0;self.onset=0;self.needsQuiet=true
  return wasActive and "stop" or nil
 end
-function Gate:Step(dt,power,armed,allowed,ready)
+function Gate:Step(dt,power,armed,allowed,ready,coolingDown)
  if not finite(dt) or dt<=0 or not finite(power) or power<0 or power>1
   or armed~=true or allowed~=true or ready~=true then return self:Cancel() end
  -- A frame hitch cannot turn a one-frame sound into sustained voice/quiet.
  dt=math.min(dt,.1)
+ if coolingDown then
+  if self.active or power>Gate.OffPower then return self:Cancel() end
+  self.onset=0
+ end
  if self.active then
   self.quiet=power<=Gate.OffPower and self.quiet+dt or 0
   if self.quiet+1e-7>=Gate.QuietSeconds then
@@ -29,7 +33,7 @@ function Gate:Step(dt,power,armed,allowed,ready)
  elseif self.needsQuiet then
   self.quiet=power<=Gate.OffPower and self.quiet+dt or 0
   if self.quiet+1e-7>=Gate.QuietSeconds then self.needsQuiet=false;self.quiet=0 end
- else
+ elseif not coolingDown then
   self.onset=power>=Gate.OnPower and self.onset+dt or 0
   if self.onset+1e-7>=Gate.OnSeconds then
    self.active=true;self.onset=0;self.quiet=0

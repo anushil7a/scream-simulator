@@ -124,4 +124,38 @@ delayedRun(3,1,true,1)
 check(#delayedPackets==3 and not delayed.attack.acknowledged,"Old sequence acknowledged a newer attempt")
 delayedRun(1,1,true,2)
 check(delayed.attack.acknowledged and #delayedPackets==4 and delayedPackets[4][1]=="SustainedPulse" and delayedPackets[4][2].sequence==2,"Current acknowledgement did not resume correctly sequenced pulses")
+local cooldownMessages={}
+local cooling=Controls.new(Gate.new(),function(verb,arg)table.insert(cooldownMessages,{verb,arg})end,function()return 1 end)
+cooling:SetArmed(true)
+local cooldownNow=0
+local function cooldownFrames(n,power,allowed,ready,coolingDown)
+ for _=1,n do
+  cooldownNow+=.05
+  cooling:Step(.05,cooldownNow,power,allowed,ready,false,nil,coolingDown)
+ end
+end
+cooldownFrames(100,0,true,true,true)
+check(#cooldownMessages==0 and not cooling.gate.needsQuiet,"Five quiet seconds during cooldown did not satisfy rearm")
+cooldownFrames(4,1,true,true,false)
+check(#cooldownMessages==0,"First onset was shortened at cooldown expiry")
+cooldownFrames(1,1,true,true,false)
+check(#cooldownMessages==1 and cooldownMessages[1][1]=="SustainedBegin","Fresh onset after cooldown required a second quiet period")
+cooling:Cancel();table.clear(cooldownMessages)
+cooldownFrames(30,0,true,true,true)
+cooldownFrames(10,1,true,true,true)
+cooldownFrames(14,1,true,true,false)
+check(#cooldownMessages==0 and cooling.gate.needsQuiet,"Held voice from cooldown started at expiry")
+cooldownFrames(4,0,true,true,true)
+cooldownFrames(1,0,false,true,true)
+cooldownFrames(14,1,true,true,false)
+check(#cooldownMessages==0 and cooling.gate.needsQuiet,"UI interruption left cooldown quiet banked")
+cooldownFrames(4,0,true,true,true)
+cooldownFrames(1,0,true,false,true)
+cooldownFrames(14,1,true,true,false)
+check(#cooldownMessages==0 and cooling.gate.needsQuiet,"Lost mic readiness left cooldown quiet banked")
+cooldownFrames(4,0,true,true,true)
+cooldownNow+=.05
+cooling:Step(.05,cooldownNow,0,true,true,true,1,true)
+cooldownFrames(14,1,true,true,false)
+check(#cooldownMessages==0 and cooling.gate.needsQuiet,"Late server activity retained cooldown quiet or sent input")
 print("PASS "..checks.." synthetic sustained control checks")

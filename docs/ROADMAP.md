@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Let quiet time during beam cooldown count toward rearm
+
+- The current-city audit reproduced a second quiet requirement after the full five-second cooldown. In matched Studio sessions, both builds used the real Client controller, Action remote and server cooldown. After a quiet cooldown, the baseline kept **go quiet** and never began the second held onset. The candidate showed only the countdown with the start threshold hidden, stayed idle at expiry and acknowledged fresh sequence 2 about 0.30 seconds after the new onset.
+- The client accepts quiet time during cooldown only while armed, ready and allowed. Voice above the off threshold clears that quiet credit. A blocked screen, missing microphone readiness or late active server state also clears it. Onset time starts after cooldown. The existing server deadline remains authoritative.
+- Independent review, 46 sustained-control checks, 25 simulated client-to-server checks, 254 reactor assertions and the full 29 pure/synthetic and 167 mocked-service suites with review builds passed. Two early native attempts tripped over simulated microphone readiness. The final fixture staged readiness and injected power and aim, used normal combat remotes, and restored its temporary source before closing Studio. Real microphones, actual devices and live-network timing remain open.
+- Audit follow-up: the named OldTown and Market house parts in the skyline report are absent from current Map10 sources. A current viewpoint and streaming capture is needed before changing world geometry or haze. The optional legacy `coastal_art.py --baseline` still fails, but in its mocked builder with a nil call rather than the reported count-string mismatch. Continue triaging the remaining HUD, saves, training, scenery, audio and performance reports against the current branch.
+
 ## Show the reward beside the quick Claim button
 
 - At the top of Quests, the completed Garden card showed the title and **CLAIM** while the reward amounts were farther down the list. The first card now shows the catalog amount, **80 coins · 130 XP (base)** for Garden, and hides XP at level 100. The claim result still displays the actual server credit, which can differ with boosts and the level cap.

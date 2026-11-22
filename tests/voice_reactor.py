@@ -81,6 +81,12 @@ local function short(state,cooldown,quiet,active,attack,onset,armed)
  return button
 end
 check(short({},4.9,true,false,false,0,true)=='BEAMS: ON\nCooldown 4.9s · go quiet','Short cooldown hides the quiet cue')
+check(short({},4.9,false)=='BEAMS: ON\nCooldown 4.9s','Quiet cooldown still asks for silence')
+local _,_,_,_,_,thresholdReady=cue(0,false,false,false,0,true)
+local _,_,_,_,_,thresholdCooling=cue(4.9,false,false,false,0,true)
+local _,_,_,_,_,thresholdOff=cue(0,false,false,false,0,false)
+local _,_,_,_,_,thresholdUnavailable=cue(0,false,false,false,0,true,{serverReady=false})
+check(thresholdReady and not thresholdCooling and not thresholdOff and not thresholdUnavailable,'Start threshold must reflect beam availability')
 check(short({},0,true)=='BEAMS: ON\nGo quiet','Short reset hides the quiet cue')
 check(short({},0,false)=='BEAMS: ON\nAim and speak','Short ready cue lost')
 check(short({height=314},0,false)=='BEAMS: ON\nAim and speak','Short cue disappears one pixel early')
@@ -143,11 +149,12 @@ status_code=r'''
  local muted,gold='muted','gold'
  local meterFill={}
  local function blocked() return false end
+ local function beamBlocked() return not mic.ready or data.voiceEligible~=true or blocked() end
  local captureHint
  local castButton={}
- local meterText,power,academy={},0,{VoiceReactor=Reactor}
+ local meterText,power,academy={},0,{VoiceReactor=Reactor,voiceThreshold={}}
 ''' + s[s.index(' local showVoiceMeter='):s.index(' meter.Visible=gameplayVisible and showVoiceMeter')] + s[start:end] + s[s.index('\n meterText.Text=',end):s.index(' local shortLandscape=',end)] + s[s.index(' if sustainedControl then\n  -- Keep the next voice action'):s.index(' -- Keep attack duration/cooldown distinct')] + '''
- return captureHint,meterFill.BackgroundColor3,castButton.Text,showVoiceMeter,meterText.Text
+ return captureHint,meterFill.BackgroundColor3,castButton.Text,showVoiceMeter,meterText.Text,academy.voiceThreshold.Visible
 '''
 toggle_label=s[s.index('local function screamToggleLabel('):s.index('local function releaseCapture(')]
 payload=setup+module+checks.replace('local function cue(',toggle_label+'local function cue(').replace('__STATUS_CODE__',status_code)
