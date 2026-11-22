@@ -1,5 +1,17 @@
 # Scream Simulator development roadmap
 
+## Lead the first gear purchase from Garden to Beach
+
+- In the continuous desktop Studio replay on `a86db39`, a fresh player used Gear's Guide to find Mar. Talk unlocked both Garden and Beach. Three normal Garden prompt holds and the actual Claim button awarded 80 coins and 130 XP. At 80 coins, Gear's **VIEW QUEST** opened Leave Only Footprints. Its adjacent **GUIDE** button sent the player back toward Mar's work area, even though she was about 2.5 studs away and the quest could be accepted in place.
+- The Gear-focused card now has one immediate action for the available inactive quest. **ACCEPT** uses a 44-pixel target and sits beside the title on narrow screens. The description and reward remain below it. The objective **GUIDE** appears after the server confirms acceptance. Ordinary Quests browsing retains its giver guides and the existing accept, switch and restart rules.
+- The targeted renderer passed 1,820 assertions and 27 negative controls. The test reproduced the return guide before the fix and the compact action below the heading before the layout correction. Independent review cleared both the handoff and its compact layout.
+
+- The same offline player accepted Beach and the live Guide switched to the first bottle. The route crossed Garden PvP in the solo session. Near the coast ramp's west edge at about (59, 15, 182), the guide temporarily said **Route unavailable** after its automatic retry. A normal 21-stud eastward move toward the ramp center restored the markers without reselecting the quest.
+
+- One fresh level-one profile completed the whole earning route without repositioning, privileged commands or a profile grant. Six native bottle pickups and the actual Beach Claim awarded 50 coins and 100 XP. The wallet reached 130 at level 3. **BUY & EQUIP** spent 100, left 30, and the server confirmed owned and equipped. The Gear button changed to **UNEQUIP**. The player remained in the same desktop Studio session throughout.
+- A separate native client fixture rendered the revised card at 750×323, 567×242 and 1280×720. **ACCEPT** fit at a 44-pixel height above the fold, with the return guide hidden. A staged active state restored **GUIDE** at all three sizes; its position was not measured. All disposable Studio sessions were closed.
+- Full candidate verification passed 29 pure or synthetic suites, 168 mocked-service suites, 99 Luau compilations and Rojo builds. This route was operated with known objectives and temporary progress. Physical touch, unassisted discovery, real microphones, opponents on the Garden route and live persistence remain open.
+
 ## Give the Academy training pads permanent names
 
 - Native baseline walking views verified that the existing floating signs identify Rookie, Brawler and Elite on approach. All three pad surfaces used identical sage paint. Once the avatar stood inside the Rookie pad facing the trainer, the entrance sign was behind the view.

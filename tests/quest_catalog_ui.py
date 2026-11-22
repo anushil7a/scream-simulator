@@ -31,7 +31,10 @@ local function closeMenu()menuCloses+=1 end
 local hasGardens=Config.CompactCity==true
 local academy={
  guideMenu=function()end,
- NavigationCatalog={Resolve=function(kind,id)if hasGardens and kind=="place" and id=="gardens" then return {} end end},
+ NavigationCatalog={Resolve=function(kind,id,value)
+  if hasGardens and kind=="place" and id=="gardens" then return {} end
+  if kind=="quest" then return value.questNavigation and value.questNavigation[id] end
+ end},
  selectGuide=function(kind,id)table.insert(routes,{kind,id})end,
 }
 local data,narrow;local title,subtitle={},{};local gui={AbsoluteSize={X=390}};local gold,muted={},{}
@@ -152,13 +155,26 @@ for _,isNarrow in ipairs({false,true})do
   check(b.card.labels[2]==q.description,'Discovered objective still has lock text or changed description')
   local old=#calls;b.call();check(#calls==old+1 and calls[#calls][1]=='AcceptQuest' and calls[#calls][2]==q.id,'Accept command changed')
  end end
+ value.questNavigation={beach={label='Talk to Mar Soler'}}
  academy.menuQuestFocus='beach'
  renderChecked(value,isNarrow)
  check(buttons.beach.card.LayoutOrder==-1,'Focused quest stayed below unrelated cards')
  check(buttons.garden.card.LayoutOrder~=-1,'Unexpected quest also promoted')
- academy.menuQuestFocus=nil
+ check(buttons.Guide_beach==nil,'Gear-focused inactive Beach offered a return trip to Mar')
+ check(buttons.beach.text=='ACCEPT' and buttons.beach.height==44,'Gear-focused acceptance lost its 44-pixel target')
+ if isNarrow then check(buttons.beach.pos[4]<=10,'Gear-focused acceptance starts below the compact card header') end
+ buttons.beach.call()
+ check(#calls==1 and calls[1][1]=='AcceptQuest' and calls[1][2]=='beach','Gear-focused acceptance sent the wrong action')
+ value.activeQuest='beach';value.questNavigation.beach.label='Hold to pick up bottle'
+ renderChecked(value,isNarrow)
+ check(buttons.Guide_beach~=nil,'Focused Beach did not show its guide after acceptance')
+ local routesBefore=#routes;buttons.Guide_beach.call()
+ check(#routes==routesBefore+1 and routes[#routes][1]=='quest' and routes[#routes][2]=='beach','Active focused Beach guide selected the wrong route')
+ academy.menuQuestFocus=nil;value.activeQuest=nil;value.questNavigation.beach.label='Talk to Mar Soler'
  renderChecked(value,isNarrow)
  check(buttons.beach.card.LayoutOrder~=-1,'Ordinary menu retained quest focus')
+ check(buttons.Guide_beach~=nil,'Ordinary quest menu lost its separate giver guide')
+ value.questNavigation=nil
  value.activeQuest='garden';value.quests.garden.progress=1
  renderChecked(value,isNarrow);grouped(9)
  check(buttons.ActiveQuestAction and buttons.ActiveQuestAction.text=='ABANDON','Current active quest card missing')
@@ -307,6 +323,13 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    focus=code.replace('if q.id==academy.menuQuestFocus and not (academy.sidebarMenu and q==reward) then c.LayoutOrder=-1 end','')
    assert focus!=code
    run(focus,'Focused quest stayed below unrelated cards')
+   run(code.replace('canGuide=not focusedStart and academy', 'canGuide=academy'),
+       'Gear-focused inactive Beach offered a return trip to Mar')
+   run(code.replace('(switching or focusedStart) and 44','switching and 44'),
+       'Gear-focused acceptance lost its 44-pixel target')
+   run(code.replace('local actionY=headerAction and 6 or narrow and rewardY+34 or 32',
+                    'local actionY=narrow and rewardY+34 or 32'),
+       'Gear-focused acceptance starts below the compact card header')
    run(code.replace(' and not (academy.sidebarMenu and q==reward)', ''),'Compact quest focus pushed the matching reward below the fold')
    run(code.replace('local function render(value,isNarrow)','table.insert(Config.Progression.Challenges,{id="cover",name="Destroy 5 eligible cover objects",goal=5})\nlocal function render(value,isNarrow)'),'Retired challenge displayed')
    run(code.replace('if q.hidden and not available then continue end','if false then continue end'),'Hidden city quest exposed before discovery')
