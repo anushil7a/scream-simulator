@@ -92,7 +92,14 @@ disk('MusicStage',90,32.3,-330,50,.6,[51,43,72]);disk('MusicNeonRing',90,32.65,-
 for i,(x,z) in enumerate([(-30,-410),(90,-470),(210,-410)]):
  box('SpeakerTower'+str(i),[x,64,z],[28,64,18],dark)
  for h in [46,70,86]:disk('Speaker'+str(i)+str(h),x,h,z-9.3,8,1,purple,False);p[-1]['rotation']=[90,0,0]
-for i in range(12):box('Equalizer'+str(i),[18+i*12,58+(i%4)*3,-456],[5,12+(i%4)*6,2],teal,False)
+# Static level-meter artwork on the back of the circular stage.
+box('EqualizerHousing',[90,37.6,-369],[46,10,4],[43,39,58])
+box('EqualizerFace',[90,37.65,-366.93],[42.8,7.8,.14],[27,31,47],False)
+heights=(1.8,2.7,3.7,5.2,6.5,4.6,4.6,6.5,5.2,3.7,2.7,1.8)
+for i,height in enumerate(heights):
+ x=90+(i-(len(heights)-1)/2)*3.2
+ color=[230,190,112] if height==max(heights) else [101,195,177]
+ box(f'EqualizerBar{i}',[x,34.4+height/2,-366.78],[2.1,height,.16],color,False)
 # Lava crust with safe18-radius boss center reserved; cosmetic lava is not damage.
 for i in range(12):
  if i in (4,5):continue # Open southwest bridge gate, no rock over its landing.

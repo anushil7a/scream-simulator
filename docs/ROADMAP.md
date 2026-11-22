@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Mount the Amphitheatre display on the stage
+
+- Native pre-change inspection measured all 12 loose Equalizer bars with their bottoms at Y = 52. The matched stage camera showed the bars floating across the speaker skyline. The new stage display keeps twelve bars on a dark, 46 × 10 × 4-stud housing at the north edge of the circular stage. Teal bars and warm peaks pick up the speaker palette. The housing is the only new solid; the face and accents are cosmetic. The base inventory grows by two Parts.
+- Native raycasts showed the housing sits on the stage and blocks a straight path into the unit. The west bridge, south entrance, front and rear stage lanes, and east rim still pathfind. The baseline and candidate west paths both measured 156 studs. A scripted avatar reached the center, passed along the east side, and walked behind the unit with full health and all four waypoints reached.
+- Captures used a matched desktop Studio camera and temporary profiles. Both sessions closed. Physical-device framing, unassisted wayfinding and populated-scene performance remain open.
+- Independent review, 897 map contract checks and two focused negative controls passed. The controls caught a lifted housing and a solid accent. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+
 ## Open the Academy bridge into the Amphitheatre
 
 - The Academy bridge visually ended at a decorative wall, with collidable seating behind it. At walking height, the straight route hit MusicTier16. The native avatar stopped near X = −6.59. The no-jump pathfinder detoured 266.49 studs for a stage 156 studs away.

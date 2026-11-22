@@ -56,6 +56,38 @@ for name,part in tiers.items():
         'size=Vector3.new('+','.join(map(str,part['size']))+')' in text,name+' runtime and preview differ')
 for code in (layout,runtime):
  check(not re.search(r'id="MusicTier[0-4][06]"',code),'runtime Amphitheatre entrance blocked')
+housing=by_id['EqualizerHousing']
+face=by_id['EqualizerFace']
+stage=by_id['MusicStage']
+check(housing['collidable'] and not face['collidable'],'Only the housing should be solid')
+deck=stage['position'][1]+stage['size'][0]/2
+x,y,z=housing['position']
+width,height,depth=housing['size']
+check(math.isclose(y-height/2,deck,abs_tol=1e-6),'Equalizer housing must sit on the stage')
+check(z+depth/2<-346,'Equalizer housing blocks the west approach')
+for dx in (-width/2,width/2):
+ for dz in (-depth/2,depth/2):
+  check(math.hypot(x+dx-stage['position'][0],z+dz-stage['position'][2])<stage['size'][1]/2,
+        'Equalizer corner hangs off the stage')
+fx,fy,fz=face['position']
+fw,fh,fd=face['size']
+check(math.isclose(fz-fd/2,z+depth/2,abs_tol=1e-6),'Equalizer face is detached from its housing')
+check({p['id'] for p in parts if p['id'].startswith('Equalizer')}==
+      {'EqualizerHousing','EqualizerFace',*(f'EqualizerBar{i}' for i in range(12))},
+      'Unexpected equalizer geometry')
+for i in range(12):
+ name=f'EqualizerBar{i}'
+ bar=by_id[name]
+ bx,by,bz=bar['position']
+ bw,bh,bd=bar['size']
+ check(not bar['collidable'] and math.isclose(bz-bd/2,fz+fd/2,abs_tol=1e-6),name+' is solid or floating')
+ check(abs(bx-fx)+bw/2<fw/2 and abs(by-fy)+bh/2<fh/2,name+' exceeds its display face')
+for source in (layout,runtime):
+ for part in (housing,face,*(by_id[f'EqualizerBar{i}'] for i in range(12))):
+  entry=next(line for line in source.splitlines() if line.startswith('{id="'+part['id']+'"'))
+  check('position=Vector3.new('+','.join(map(str,part['position']))+')' in entry and
+        'size=Vector3.new('+','.join(map(str,part['size']))+')' in entry and
+        'collidable='+str(part['collidable']).lower() in entry,part['id']+' runtime and preview differ')
 world=(R/'src/ServerScriptService/World.luau').read_text();check('(training.y or 0)+3.2' in world,'trainer grounding');check('nil,nil,spot.y' in world,'seed elevation');check('SupportingNPCs.AtHome' in world,'support placement adapter')
 nav=(R/'src/ReplicatedStorage/Shared/NavigationCatalog.luau').read_text();check('(boss.y or 0)+3' in nav and '(landmark.y or 0)+3' in nav,'elevated guides')
 check('home=Layout.BossHomes' in (R/'src/ReplicatedStorage/Shared/BossCatalog.luau').read_text(),'boss bindings')
