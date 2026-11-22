@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Same-experience arrivals briefly retry the save lease
+
+- A simulated destination joined while the source still held the profile lease. Previously it admitted temporary play even when the source released its final save during the retry window. Roblox-identified arrivals from another place in the same experience now retry a confirmed competing lease using the existing one- and two-second delays. The destination rereads ownership on every attempt. Sustained contention still opens read-only progress, and ordinary joins keep their existing behavior.
+- Passed 23 simulated profile assertions, eight arrival classification checks and two negative controls. Independent review and the full run passed, including 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+- The local portal still connects areas of one file. Native travel and shared-profile handoff require two places in an isolated test experience. No live persistence was used.
+
 ## Resonance portal travel ends the departing cast
 
 - In a disposable combat preview, synthetic power sent through the real Action remote began a cast on the Hall apron. Holding the actual F prompt moved the player from Z=54 to Z=240. The baseline cast stayed active, sent two beam updates on the landing, and sent no end event during the sampled crossing.

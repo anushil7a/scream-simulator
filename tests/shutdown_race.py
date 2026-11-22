@@ -30,7 +30,7 @@ local Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLev
  GetSound=function()return {id='TinyAah',level=1} end}
 Config.GetQuest=function(id)for _,q in ipairs(Config.Quests)do if q.id==id then return q end end end
 local services={DataStoreService={GetDataStore=function()return store end},ReplicatedStorage={Shared={Config='Config',ProfileLease='Lease'}},RunService={IsStudio=function()return false end},HttpService={GenerateGUID=function()return 'test-owner' end}}
-local game={JobId='shutdown-test',GetService=function(_,name)return services[name]end}
+local game={GameId=0,JobId='shutdown-test',GetService=function(_,name)return services[name]end}
 local require=function(token)if token=='Config' then return Config elseif token=='Lease' then return Lease end;error(token)end
 local queue={};local task={spawn=function(fn,...)local args=table.pack(...);table.insert(queue,coroutine.create(function()fn(table.unpack(args,1,args.n))end))end,wait=function(dt)coroutine.yield(dt)end}
 local warnings={};local warn=function(...)table.insert(warnings,table.pack(...))end

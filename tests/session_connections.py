@@ -10,7 +10,8 @@ def read(baseline=False):
 def build(baseline=False,mutation=None):
  b=read(baseline)
  if mutation:b=mutation(b)
- joined=b[b.index('local function joined(p)'):b.index('local function joinTracked(p)')]
+ start='local function arrivedFromAnotherPlace(p)' if 'local function arrivedFromAnotherPlace(p)' in b else 'local function joined(p)'
+ joined=b[b.index(start):b.index('local function joinTracked(p)')]
  leaving=b[b.index('local function leaving(p)'):b.index('Players.PlayerRemoving:Connect(',b.index('local function leaving(p)'))]
  shutdown=b[b.index('local function shutdown()'):b.index('game:BindToClose(shutdown)')]
  helper=''
@@ -18,7 +19,7 @@ def build(baseline=False,mutation=None):
  return SETUP+helper+joined+leaving+shutdown+(BASELINE if baseline else CHECKS)
 SETUP=r"""
 local now=0;local os={clock=function()return now end};local closing=false;local joinsInFlight=0;local departuresInFlight=0
-local sessions={};local localFixture=false;local sustainedEnabled=false;local stateCalls=0;local cancels=0;local protects=0
+local game={GameId=0};local sessions={};local localFixture=false;local sustainedEnabled=false;local stateCalls=0;local cancels=0;local protects=0
 local saveHook;local saves=0;local workers={};local disconnects=0
 local task={spawn=function(f,...)
  local co=coroutine.create(f);local ok,err=coroutine.resume(co,...);assert(ok,err)

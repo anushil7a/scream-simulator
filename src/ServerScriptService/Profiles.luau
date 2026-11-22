@@ -127,7 +127,7 @@ local function usableAcquisition(record,token)
     return type(expires)=="number" and expires<math.huge and expires-os.time()>=MIN_ADMISSION_LIFETIME
 end
 
-function Profiles.Load(userId)
+function Profiles.Load(userId, fromOtherPlace)
     if not store then return Profiles.Default(),false,"Saving is unavailable. This session uses temporary progress." end
     while locks[userId] do task.wait(.05) end
     local previous=owned[userId]
@@ -158,14 +158,19 @@ function Profiles.Load(userId)
     local token=admission.token
     local observed,hadLease
     for attempt=1,3 do
+        local contended=false
         local success,result=pcall(function()
             return store:UpdateAsync("Player_"..userId,function(raw)
+                contended=false
                 observed=type(raw)=="table" and Profiles.Sanitize(raw) or nil
                 hadLease=type(raw)=="table" and type(raw._lease)=="table" and not Lease.Owns(raw,owner,token)
                 if not Lease.CanAcquire(raw,owner,os.time(),token) then
                     -- A terminal local release has finished its bounded retry.
                     -- Only its exact token may be replaced before expiry.
-                    if not (admission.terminalToken and Lease.Owns(raw,owner,admission.terminalToken)) then return nil end
+                    if not (admission.terminalToken and Lease.Owns(raw,owner,admission.terminalToken)) then
+                        contended=true
+                        return nil
+                    end
                 end
                 if Lease.Owns(raw,owner,token) then
                     if usableAcquisition(raw,token) then return raw end
@@ -194,7 +199,7 @@ function Profiles.Load(userId)
                 -- the next bounded attempt; no writable handle exists yet.
                 observed=Profiles.Sanitize(result)
                 warn("ScreamSimulator profile acquisition lifetime too short",userId,attempt)
-            else
+            elseif fromOtherPlace~=true or not contended or attempt==3 then
                 admissions[userId]=nil;locks[userId]=nil
                 return observed or confirmed or Profiles.Default(),false,
                     RECOVERY_NOTICE.." Another session owns this profile; progress here is temporary. Rejoin shortly.",true
@@ -202,6 +207,8 @@ function Profiles.Load(userId)
         else
             warn("ScreamSimulator profile load failed",userId,attempt)
         end
+        -- A place arrival can reach this server before the source has released
+        -- its lease. The existing retry budget still revalidates each attempt.
         -- A callback may have read a durable checkpoint before the write or
         -- response failed. It is safe to display, never to grant ownership.
         confirmed=observed or confirmed

@@ -66,7 +66,7 @@ if '--negative-controls' in sys.argv:
     ]:
         assert client[a:b].count(old)==1
         run(client[a:b].replace(old,''),expected)
-assert 'else data,save,loadMessage,recoveryWarning=Profiles.Load(p.UserId) end' in server
+assert 'else data,save,loadMessage,recoveryWarning=Profiles.Load(p.UserId,arrivedFromAnotherPlace(p)) end' in server
 assert 'canSave=save,recoveryWarning=recoveryWarning' in server
 assert 'recoveryWarning=s.recoveryWarning==true' in server
 assert 'saveNotice.Text=saveStatus()' in client

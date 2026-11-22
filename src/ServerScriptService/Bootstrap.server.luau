@@ -1025,12 +1025,18 @@ action.OnServerEvent:Connect(function(p,verb,arg)
   if type(arg.reducedShake)=="boolean" then s.data.settings.reducedShake=arg.reducedShake end;state(p)
  end
 end)
+local function arrivedFromAnotherPlace(p)
+ if game.GameId==0 then return false end
+ local join=p:GetJoinData()
+ local source=join.SourcePlaceId
+ return join.SourceGameId==game.GameId and type(source)=="number" and source>0 and source~=game.PlaceId
+end
 local function joined(p)
  if closing then return end
  task.spawn(Entitlements.Refresh,p)
  local data,save,loadMessage,recoveryWarning
  if localFixture then data,save,loadMessage=Profiles.Default(),false,"Local sustained prototype · saving disabled"
- else data,save,loadMessage,recoveryWarning=Profiles.Load(p.UserId) end
+ else data,save,loadMessage,recoveryWarning=Profiles.Load(p.UserId,arrivedFromAnotherPlace(p)) end
  if closing or not p.Parent then
   if save then
    local completed,ok,reason=pcall(Profiles.Save,p.UserId,data,true)
