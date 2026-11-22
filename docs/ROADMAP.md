@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Publish dodge readiness only when the countdown changes
+
+- A single accepted arena Dodge triggered 65 `DodgeReady` changes in about seven seconds on the native baseline, including 28 after the four-second cooldown. The server now sends the original deadline once and updates it on PvP entry only if the normal cooldown extends the premium deadline and is still running. The server still applies the full cooldown on late entry and cancels premium rolls on PvP entry. The client counts down from the published timestamp.
+- In the matched candidate, a regular arena dodge produced one server and one client `DodgeReady` change and no updates after expiry. The rendered HUD returned to **DODGE [Q]** at 4.083 seconds versus 4.085 seconds on baseline. The staged idle probe received 15 full `State` deliveries on baseline and 14 on the candidate, each over 8.016 seconds. The full snapshot cadence remains unchanged because it carries time-sensitive quest, commerce, protection and session values.
+- A native premium roll crossed into the arena 0.335 seconds after it began. Its deadline changed exactly once from 0.60 to 4.00 seconds, the premium roll ended, and leaving PvP kept the deadline. Entering after the normal deadline sent no new update. Both unpublished Studio fixtures used staged starting positions and the normal local Dodge action. Both closed. This measures attribute changes and HUD behavior in Studio. Physical input, live replication bytes and crowded server timing remain unmeasured.
+- Focused verification passed 66 server movement assertions with 13 negative controls, 106 dodge-math checks, 10 cleanup checks and 13 respawn checks. The historical movement fixture's source extraction was repaired and again produces its intended failure. Independent review cleared the deadline and lifecycle behavior. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds.
+
 ## Measure four-client beam overlap in populated City
 
 - Exact source `24c182d` ran in a disposable Studio place on one desktop with four local clients, 18 NPCs and 3,023 world instances. Clients staged on Academy safe paving, used synthetic power through normal Action remotes and cast four acknowledged level-100 beams each. The packaged Hollow Purple template was present. All four clients received 253 beam packets each in the active phase and none in idle. This exercised beam replication and client effects on the active map. The safe zone excluded PvP target resolution.

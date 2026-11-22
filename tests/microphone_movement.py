@@ -12,24 +12,30 @@ local Config={SprintDuration=10,SprintRecovery=5,SprintRegenDelay=1,DodgeDuratio
 local Enum={Material={Air='Air'}};local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}
 local workspace={Gravity=196.2,GetServerTimeNow=function()return now end}
 local premium=true;local arena=false;local Entitlements={CanUseMovement=function()return premium and not arena end}
-local s,r,h,c;local attrs={};local p={SetAttribute=function(_,k,v)attrs[k]=v end}
+local s,r,h,c;local attrs,writes={},{};local p={SetAttribute=function(_,k,v)attrs[k]=v;writes[k]=(writes[k] or 0)+1 end}
+Config.InArena=function()return arena end
 local sessions={};local cancel=0;local VoiceCombat={Cancel=function(v)v.capture=nil;cancel+=1 end};local function cancelSustained()cancel+=1 end
 local handler;local action={OnServerEvent={Connect=function(_,fn)handler=fn end}}
 local function reset()
  h={Health=100,MaxHealth=100,FloorMaterial='Ground',Jump=true};r={Position={Y=5},AssemblyLinearVelocity={X=25,Y=0,Z=0}}
  c={FindFirstChild=function()return r end,FindFirstChildOfClass=function()return h end};p.Character=c
- s={micReady=false,voice={},data={level=1},nextDodge=0,dodgingUntil=0,knockedUntil=0,jumpOriginY=0,jumpPower=47,jumpHeight=6.5,sprintCharge=10,sprintLockedUntil=0,sprintRegenAt=0,sprintRequested=false,sprintRunning=false};sessions[p]=s;premium=true;arena=false;attrs={};now=10
+ s={micReady=false,voice={},data={level=1},nextDodge=0,dodgingUntil=0,knockedUntil=0,jumpOriginY=0,jumpPower=47,jumpHeight=6.5,sprintCharge=10,sprintLockedUntil=0,sprintRegenAt=0,sprintRequested=false,sprintRunning=false};sessions[p]=s;premium=true;arena=false;attrs={};writes={};now=10
 end
 '''
 def assemble(src):
  parts=src[src.index('local function parts(p)'):src.index('local function sustainedEnd(')]
  sprint=src[src.index('local function stepSprint('):src.index('task.spawn(function()\n local tick=0')]
- dodge=src[src.index('local function dodge(p,sideIntent)'):src.index(' local direction,side,front=DodgeMotion.Direction',src.index('local function dodge(p,sideIntent)'))]+'end\n'
+ dodge_start=src.index('local function dodge(p')
+ dodge_end=re.search(r'^ local direction(?:[,=])',src[dodge_start:],re.M)
+ assert dodge_end,'Missing dodge direction boundary'
+ dodge=src[dodge_start:dodge_start+dodge_end.start()]+'end\n'
  handler=src[src.index('action.OnServerEvent:Connect('):src.index('local function joined(')]
  begin=src.index('    h.WalkSpeed=',src.index('local function stepSprint('));end=src.index('    local healed,',begin)
  apply='local function applyMovement(running)\n'+src[begin:end]+'end\n'
+ begin=src.index('   -- Crossing into PvP');end=src.index('   if s.sustained and s.sustained.protocol.active then stepSustained(',begin)
+ arena_dodge='local function updateArenaDodge()\n'+src[begin:end]+'end\n'
  spawn=next(line for line in src.splitlines()if 'h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=' in line)
- return setup+parts+sprint+dodge+handler+apply+'local function spawnSpeed()\n'+spawn+'\nend\n'
+ return setup+parts+sprint+dodge+handler+apply+arena_dodge+'local function spawnSpeed()\n'+spawn+'\nend\n'
 checks=r'''
 reset();spawnSpeed();check(h.WalkSpeed==16,'Unready spawn immobilized')
 applyMovement(false);check(h.WalkSpeed==16 and h.JumpPower==47 and h.JumpHeight==6.5 and h.Jump,'Unready walking/jumping immobilized')
@@ -46,6 +52,20 @@ for _,mode in ipairs({'dead','missing','anchored','seated','seat','ragdoll','kno
  r.Anchored=mode=='anchored';h.Sit=mode=='seated';h.SeatPart=mode=='seat' and {} or nil;h.PlatformStand=mode=='ragdoll';s.knockedUntil=mode=='knock' and 11 or 0;s.nextDodge=mode=='cooldown' and 11 or 0;h.FloorMaterial=mode=='air' and 'Air' or 'Ground'
  handler(p,'Dodge');check(s.dodgingUntil==0,'Dodge safeguard lost: '..mode)
 end
+reset();arena=true;handler(p,'Dodge')
+check(attrs.DodgeReady==13 and writes.DodgeReady==1,'Dodge did not publish initial deadline')
+for _,time in ipairs({10.1,12.9,13,15})do now=time;updateArenaDodge() end
+check(s.nextDodge==13 and attrs.DodgeReady==13 and writes.DodgeReady==1,'Arena rewrote the same dodge deadline')
+reset();handler(p,'Dodge');now=10.1;updateArenaDodge()
+check(writes.DodgeReady==1 and attrs.DodgeReady==10.4 and s.premiumRoll,'Safe zone changed premium roll')
+arena=true;now=10.2;updateArenaDodge()
+check(s.nextDodge==13 and attrs.DodgeReady==13 and writes.DodgeReady==2,'Arena failed to extend premium dodge once')
+check(not s.premiumRoll and s.dodgingUntil==0 and attrs.DodgeEnds==0,'Arena retained premium roll')
+arena=false;now=10.3;updateArenaDodge();arena=true;now=10.5;updateArenaDodge()
+check(writes.DodgeReady==2 and attrs.DodgeReady==13,'Reentry rewrote the extended deadline')
+reset();handler(p,'Dodge');now=15;arena=true;updateArenaDodge()
+check(s.nextDodge==13 and attrs.DodgeReady==10.4 and writes.DodgeReady==1,'Expired extension published a new countdown')
+handler(p,'Dodge');check(s.nextDodge==18 and attrs.DodgeReady==18 and writes.DodgeReady==2,'Expired dodge did not rearm')
 for _,mode in ipairs({'dead','missing','anchored','seated','seat','ragdoll','knock','cooldown','ground','height','noPremium','arena','rolling'})do
  reset();h.FloorMaterial='Air';h.Health=mode=='dead' and 0 or 100;if mode=='missing'then p.Character=nil end
  r.Anchored=mode=='anchored';h.Sit=mode=='seated';h.SeatPart=mode=='seat' and {} or nil;h.PlatformStand=mode=='ragdoll';s.knockedUntil=mode=='knock' and 11 or 0;s.nextExtraJump=mode=='cooldown' and 11 or 0
@@ -65,7 +85,8 @@ local stranger={};handler(stranger,'Sprint',true);check(sessions[stranger]==nil,
 print('PASS',n,'actual server movement source assertions; mocked avatar/dispatcher, no physics/network')
 '''
 def run(src,error=None):
- with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.mic_movement_',dir=R/'tests',encoding='utf-8',delete=False)as t:t.write(assemble(src)+checks);q=Path(t.name)
+ payload=assemble(src)+checks
+ with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.mic_movement_',dir=R/'tests',encoding='utf-8',delete=False)as t:t.write(payload);q=Path(t.name)
  try:r=subprocess.run(['luau',str(q)],capture_output=True,text=True,timeout=15)
  finally:q.unlink()
  out=r.stdout+r.stderr
@@ -91,6 +112,9 @@ else:
    ('or r.Anchored or h.Sit','or h.Sit','Dodge safeguard lost: anchored'),
    ('and Entitlements.CanUseMovement(p,root.Position)','and true','ExtraJump safeguard lost: noPremium'),
    ('root.Position.Y<s.jumpOriginY+24','true','ExtraJump safeguard lost: height'),
-   ('s.sprintCharge-dt','s.sprintCharge','Released interval not billed')]
+   ('s.sprintCharge-dt','s.sprintCharge','Released interval not billed'),
+   ('if deadline>s.nextDodge then','if deadline>=s.nextDodge then','Arena rewrote the same dodge deadline'),
+   ('if deadline>s.nextDodge then','if false then','Arena failed to extend premium dodge once'),
+   ('if deadline>now then p:SetAttribute("DodgeReady"','if true then p:SetAttribute("DodgeReady"','Expired extension published a new countdown')]
   for old,new,error in mutations:
    assert s.count(old)==1,old;run(s.replace(old,new),error)

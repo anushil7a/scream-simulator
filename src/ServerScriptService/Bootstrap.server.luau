@@ -1293,7 +1293,12 @@ task.spawn(function()
    -- Crossing into PvP immediately restores the full dodge cooldown.
    if r and Config.InArena(r.Position) and s.lastDodge then
     if s.premiumRoll then s.premiumRoll=false;s.dodgingUntil=0;p:SetAttribute("DodgeEnds",0) end
-    s.nextDodge=math.max(s.nextDodge,s.lastDodge+Config.DodgeCooldown);p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+math.max(0,s.nextDodge-now)) end
+    local deadline=s.lastDodge+Config.DodgeCooldown
+    if deadline>s.nextDodge then
+     s.nextDodge=deadline
+     if deadline>now then p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+(deadline-now)) end
+    end
+   end
    if s.sustained and s.sustained.protocol.active then stepSustained(p,s,os.clock()) end
    if s.damageSummary then
     if h and not s.flight then stepDamageSummary(p,s,os.clock()) else clearDamageSummary(p,s) end
