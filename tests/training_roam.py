@@ -23,6 +23,8 @@ V.__mul=function(a,b)if type(a)=='number' then a,b=b,a end;return Vector3.new(a.
 V.__div=function(a,b)return Vector3.new(a.X/b,a.Y/b,a.Z/b)end
 local CFrame={new=function(p)return {Position=p}end}
 local Config={BotMaxHealth=80,BotRespawnSeconds=10}
+local head={};local taggedHead
+local Collection={AddTag=function(_,part,tag)if tag=="TrainingAimHead" then taggedHead=part end end}
 local World={};local randomCalls=0
 local rng={NextNumber=function(_,a,b)randomCalls+=1;return a+(b-a)*.5 end,NextInteger=function(_,a,b)return a end}
 local function releaseSeat(bot)bot.released=(bot.released or 0)+1 end
@@ -46,7 +48,7 @@ spawn=world[a:world.index('    if RunService:IsRunning()',a)]
 spawn_code='local function spawnTrainer()local bot=make(true);local root,humanoid,model=bot.root,bot.humanoid,bot.model;local training=bot.training;local index=17;local nameLabel={Parent={}};'+spawn+'return bot end\n'
 tests=r'''
 check(type(World.StepTrainingRoam)=='function','Training roam missing')
-local spawned=spawnTrainer();check(not spawned.root.Anchored,'New trainer remains anchored');check(spawned.humanoid.WalkSpeed==7,'New trainer remains zero speed')
+local spawned=spawnTrainer();check(taggedHead==head,'Trainer head missing HUD tag');check(not spawned.root.Anchored,'New trainer remains anchored');check(spawned.humanoid.WalkSpeed==7,'New trainer remains zero speed')
 local b=make(true)
 World.StepTrainingRoam(b,0)
 check(#b.humanoid.moves>=1,'Trainer did not start moving')

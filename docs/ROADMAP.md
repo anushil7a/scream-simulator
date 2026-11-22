@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Rookie's head gives the same aim guidance as the torso
+
+- With the native desktop aim ray centered on Rookie's visible head, the old solid camera ray had no hit and the aim HUD was blank. From the same staged level-one firing position, the actual beam resolver admitted Rookie. The head was noncollidable and excluded from spatial queries.
+- The aim HUD now checks the visible heads of the three sparring fighters when the ordinary camera ray has no direct target. It keeps the original aim point and stops at the closest solid obstruction. Native Studio showed TRAINING FIGHTER with a clear ray and with a wall behind Rookie. A wall in front and an inactive target both suppressed the label. The head's original flags remained false, and the clear server resolver case still admitted Rookie.
+- Independent review passed. Free-aim checks covered the rotated head, nearest target, a tie with solid cover and inactive or missing targets. Five negative controls passed. The training lifecycle fixture passed 1,295 assertions and eleven controls. The trainer constructor differential and the full run passed, covering 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. The disposable Studio session closed. This used scripted camera aim and a staged local beam. Real voice, physical-phone input and live multiplayer remain open.
+
 ## Aim feedback is easier to read on short screens
 
 - In the actual desktop HUD, a staged fighter and narrow wall produced BEHIND COVER. Removing the wall restored TRAINING FIGHTER. Moving the target outside current and maximum reach showed the respective range messages. This checks the rendered-label path left open by the previous calculation probe.

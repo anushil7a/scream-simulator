@@ -84,6 +84,8 @@ local function compare(a,b,trainer)
     if old.Name=='LeftSleeve' or old.Name=='RightSleeve' then check(old.CanCollide==false and old.CanQuery==false and old.CanTouch==false,'Recolored sleeve is not safe costume')end
     check(serial(new[k])==serial({R=31,G=48,B=67}),'Unexpected body palette')
    elseif hidden then check(new[k]==1 and old.CanCollide==false and old.CanQuery==false and old.CanTouch==false,'Hidden part is not safe costume')
+   elseif trainer and k=='tag' and new.Name=='Head' then
+    check(old[k]==nil and new[k]=='TrainingAimHead','Trainer head tag incorrect')
    elseif trainer and k=='attributes' and new==b.bot.model then
     check(serial(new[k].TrainingHome)==serial(b.bot.start),'Replicated training home differs from server center')
     local originalAttributes=table.clone(new[k]);originalAttributes.TrainingHome=nil

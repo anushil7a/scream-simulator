@@ -742,6 +742,7 @@ local function makeBot(parent, index, x, z, role, job, training, groundY)
         humanoid.WalkSpeed=TrainingRules.RoamSpeed
         bot.trainingRoamStep=index
         model:SetAttribute("TrainingTier",training.id)
+        Collection:AddTag(head,"TrainingAimHead")
         nameLabel.Parent.MaxDistance=65
         return bot
     end

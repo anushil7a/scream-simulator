@@ -599,6 +599,29 @@ aimInfo.Font=Enum.Font.GothamBold
 aimInfo.TextStrokeColor3=dark;aimInfo.TextStrokeTransparency=.12
 local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,32),UDim2.fromOffset(0,52),dodge);academy.surface(dodgeButton)
+function academy.trainingHeadAt(ray,distance)
+ local picked
+ for _,head in ipairs(game:GetService("CollectionService"):GetTagged("TrainingAimHead")) do
+  local model=head.Parent
+  if not model or model:GetAttribute("ResidentActive")==false then continue end
+  local origin=head.CFrame:PointToObjectSpace(ray.Origin)
+  local direction=head.CFrame:VectorToObjectSpace(ray.Direction)
+  local half=head.Size/2
+  local enter,leave=0,distance
+  for _,axis in ipairs({"X","Y","Z"}) do
+   local start,speed,extent=origin[axis],direction[axis],half[axis]
+   if math.abs(speed)<.00001 then
+    if math.abs(start)>extent then enter=math.huge;break end
+   else
+    local a,b=(-extent-start)/speed,(extent-start)/speed
+    enter=math.max(enter,math.min(a,b));leave=math.min(leave,math.max(a,b))
+    if enter>leave then break end
+   end
+  end
+  if enter<=leave and enter<distance then picked=model;distance=enter end
+ end
+ return picked
+end
 local sprinting=false
 local nextSprintSend=0
 local function setSprint(requested)
@@ -1876,9 +1899,10 @@ connectClient(Run.RenderStepped,function(dt)
  elapsed+=dt;if elapsed<.15 then return end;elapsed=0
  aimInfo.Text=""
  if aimInfo.Visible then
-  local _,hit=aimRay();local object=hit and hit.Instance
+  local ray,hit=aimRay();local object=hit and hit.Instance
   while object and object~=workspace and not object:GetAttribute("RequiredLevel")
    and not (object:IsA("Model") and (Players:GetPlayerFromCharacter(object) or object:GetAttribute("NpcId"))) do object=object.Parent end
+  if ray and (not object or object==workspace) then object=academy.trainingHeadAt(ray,hit and hit.Distance or 1000) end
   local targetPlayer=object and object~=workspace and object:IsA("Model") and Players:GetPlayerFromCharacter(object)
   if targetPlayer and targetPlayer~=p then
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
@@ -1894,8 +1918,9 @@ connectClient(Run.RenderStepped,function(dt)
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
    local npcRoot=object:FindFirstChild("HumanoidRootPart")
    if root and npcRoot then
-    local far,currentFar,origin=beamTargetRange(root,npcRoot,hit.Position,beamStats,false)
-    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,currentFar,not far and not currentFar and targetCovered(origin,npcRoot,object,hit.Position),root.Position)
+    local aimPoint=hit and hit.Position or ray.Origin+ray.Direction*1000
+    local far,currentFar,origin=beamTargetRange(root,npcRoot,aimPoint,beamStats,false)
+    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,currentFar,not far and not currentFar and targetCovered(origin,npcRoot,object,aimPoint),root.Position)
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or white
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then
