@@ -26,7 +26,11 @@ local givers=Nav.IndexQuestGivers(bots)
 check(Nav.Resolve('quest','nick',data)==nil,'hidden revealed')
 check(Nav.Resolve('boss','invalid',data)==nil,'invalid boss')
 check(Nav.Resolve('boss','leviathan',data).label=='Seagull Siren Captain · Lv 70','captain navigation name/level')
-for _,b in ipairs(BossCatalog.Entries) do eq(Nav.Resolve('boss',b.id,data).position,Vector3.new(b.x,(b.y or 0)+3,b.z)) end
+for _,b in ipairs(BossCatalog.Entries) do
+ local guide=Nav.Resolve('boss',b.id,data)
+ eq(guide.position,Vector3.new(b.x,(b.y or 0)+3,b.z))
+ check(guide.minimumLevel==b.level,'Boss guide minimum differs from encounter catalog')
+end
 for _,place in ipairs(Nav.Places) do check(Nav.Resolve('place',place.id,data)~=nil,'place missing') end
 local function checkTraining(level,index,label)
  local home=Layout.TrainingHomes[index]

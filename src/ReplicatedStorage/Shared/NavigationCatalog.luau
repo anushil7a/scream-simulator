@@ -22,7 +22,9 @@ function Catalog.Resolve(kind,id,data)
  data=data or {}
  if kind=="boss" then
   for _,boss in ipairs(BossCatalog.Entries) do
-   if boss.id==id then return target(Vector3.new(boss.x,(boss.y or 0)+3,boss.z),boss.name.." · Lv "..boss.level) end
+   if boss.id==id then
+    return {position=Vector3.new(boss.x,(boss.y or 0)+3,boss.z),label=boss.name.." · Lv "..boss.level,minimumLevel=boss.level}
+   end
   end
  elseif kind=="place" then
   if id=="training" then

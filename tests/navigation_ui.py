@@ -80,3 +80,46 @@ state=s[s.index('connectClient(remotes.State.OnClientEvent'):s.index('local Beam
 assert 'selectGuide' not in state and 'academy.refreshGuide()' in state
 assert 'academy.guide:Step' in s
 print('PASS explicit-only wiring, stage refresh, ownership and HUD source contracts')
+
+# Render the actual HUD block with a selected guide and staged routing/level state.
+render=s[s.index(' local guideUsesTracker=false'):s.index(' tracked.Visible=gameplayVisible')]
+arrival=r'''
+local n=0
+local UDim2={fromOffset=function(...)return {...} end}
+local viewport,touch,tracked,devPanel={},true,{Position={Y={Offset=0}}},{Visible=false}
+local showQuest,gameplayVisible=true,true
+local data={level=9}
+local mode,compact,distance='Arrived',true,8
+local academy={
+ guideLayout=function()return 0,0,245,44,compact end,
+ guidePanel={},guideText={},
+ guideTarget={label="Whispering Metronome · Lv 10",minimumLevel=10},
+ guideSelection={kind="boss",id="metronome"},
+ guide={GetStatus=function()return mode,distance,distance==8 and 'NW' or nil end},
+}
+local function render()
+'''
+expected=r'''
+end
+local function check(text)
+ render()
+ assert(academy.guideText.Text==text, 'Guide showed '..academy.guideText.Text..' instead of '..text)
+ n+=1
+end
+check("Requires Lv 10")
+data.level=10
+check("Hit boss to join")
+compact=false
+check("Whispering Metronome · Lv 10\nHit boss to join")
+mode,compact,distance="Follow the markers",true,42
+check("Follow the markers · 42 studs")
+mode,distance="Arrived",nil
+academy.guideSelection={kind="place",id="coast"}
+academy.guideTarget={label="Coast"}
+check("Arrived")
+print("PASS",n,"actual guide HUD state checks")
+'''
+with tempfile.TemporaryDirectory() as directory:
+ p=Path(directory)/'guide-arrival.luau'
+ p.write_text(arrival+render+expected,encoding='utf-8')
+ subprocess.run(['luau',str(p)],check=True)

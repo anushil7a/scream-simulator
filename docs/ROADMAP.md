@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Explain how to join a boss fight when the guide arrives
+
+- At five studs from the Metronome waypoint, the native baseline showed **Arrived · 5 studs W** at both level 9 and 10. On a narrow HUD it gave no level requirement or way to join. Boss destinations now carry the encounter catalog's minimum. At arrival the existing panel shows **Requires Lv 10** below the gate and **Hit boss to join** at or above it. The stationary waypoint's distance and bearing clear on arrival. Route guidance elsewhere still shows distance.
+- A disposable Studio place rendered all three final samples with `TextFits` true. The 194-pixel panel showed the locked and eligible messages, and the 290-pixel panel also fit the boss name. The fixture used the real guide and HUD with a staged avatar position and forced panel widths. The first candidate fixture let a server State packet reset its staged level, so it did not prove eligible copy. The repeat held the staged level across State packets and verified both sides of the gate. No phone, human navigation or new combat validation in this check. The temporary scripts were restored and the Studio instance closed.
+- Independent review cleared the final diff. Five HUD state assertions and 42 selection lifecycle checks passed. The pre-change HUD and a separate restoration of the arrival distance both failed as expected. The catalog fixture checked every boss's minimum against the encounter catalog. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production source compilations and the review builds.
+
 ## Show a movement cue for the first boss
 
 - In a guarded Metronome fight, the short Studio phone viewport showed **SAFE • PvP OFF** during both committed warnings while the camera looked up. The sampled floor footprints were behind the camera. Standing impacts still dealt 19 damage for Pendulum Sweep and 23 for Resonance Kick.

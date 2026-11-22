@@ -1866,6 +1866,11 @@ connectClient(Run.RenderStepped,function(dt)
      status..="\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3"
     end
    end
+   if status=="Arrived" and academy.guideTarget.minimumLevel then
+    local minimumLevel=academy.guideTarget.minimumLevel
+    status=data.level<minimumLevel and ("Requires Lv "..minimumLevel) or "Hit boss to join"
+    distance=nil
+   end
    if compact and status=="Route unavailable" then status="No route" end
    local suffix=distance and (" · "..math.floor(distance).." studs"..(bearing and (" "..bearing) or "")) or ""
    local text=heading..status..suffix
