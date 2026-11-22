@@ -17,14 +17,23 @@ def add(box,disk,line):
                  1.1 if i%4==0 else .58,.07,ochre,'Marble')
     # Garden-like edges in quiet plaza pockets. Ground-level layers guide the eye
     # without making furniture look like an obstacle in the trainer or access lanes.
-    for x,z in [(-388,-326),(-216,-326),(-400,-369),(-205,-369),(-469,-218),(-128,-217)]:
+    for index,(x,z) in enumerate([(-388,-326),(-216,-326),(-400,-369),(-205,-369),(-469,-218),(-128,-217)]):
         n=f'LandmarkPlazaGarden{x}_{z}'
+        if index==0:
+            x,z=-379,-352  # Leave the painted Rookie route clear while retaining the part IDs.
         disk(n+'Stone',x,32.68,z,10.3,1.1,cream,'Sandstone')
         disk(n+'Soil',x,33.27,z,9.55,.18,(126,144,88),'Grass')
-        for i,(dx,dz,h) in enumerate([(-3,-1,8),(2,2,10),(3,-4,5)]):
-            if h==10:box(n+'Trunk'+str(i),(x+dx,36,z+dz),(.7,5.3,.7),(111,79,54),material='Wood')
-            box(n+'Cypress'+str(i),(x+dx,34+h*.42,z+dz),(h*.48,h,h*.49),
-                [(91,126,83),(62,108,79),(118,147,89)][i],(0,0,6 if i%2 else -4),'Grass','Ball')
+        # Two interlocking crown lobes share one planted trunk; the third lobe is groundcover.
+        side = -1 if index%2 else 1
+        soil_top = 33.27+.18/2
+        trunk_x, trunk_z = x+2*side, z+2
+        trunk_base, trunk_height = soil_top-.06, 5.3
+        crown_y = trunk_base+trunk_height+.55
+        box(n+'Cypress0',(x-.15*side,crown_y-.55,z+.4),(4.8,4.4,4.6),(91,126,83),material='Grass',shape='Ball')
+        box(n+'Trunk1',(trunk_x,trunk_base+trunk_height/2,trunk_z),(.85,trunk_height,.85),
+            (111,79,54),material='Wood')
+        box(n+'Cypress1',(trunk_x,crown_y,trunk_z),(6.4,6,6.2),(62,108,79),material='Grass',shape='Ball')
+        box(n+'Cypress2',(x-2.9*side,soil_top+3.8/2-.42,z-2.9),(4.4,3.8,4),(118,147,89),material='Grass',shape='Ball')
     # Polygonal crowns interlock with the old tall ridge silhouette. Keep all
     # original solid surfaces and their material so gameplay physics stays put.
     for i in range(12):

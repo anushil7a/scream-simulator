@@ -87,6 +87,42 @@ if '--negative-controls' in sys.argv:
             print('PASS negative control:', error)
         else:
             raise AssertionError('Mutation accepted: '+error)
+
+def assert_garden_structures(parts):
+    beds = [name.removesuffix('Soil') for name in parts if name.endswith('Soil')]
+    assert len(beds)==6
+    for bed in beds:
+        soil, trunk = parts[bed+'Soil'], parts[bed+'Trunk1']
+        side, crown, shrub = (parts[bed+f'Cypress{i}'] for i in range(3))
+        soil_top = soil['position'][1] + soil['size'][0]/2
+        for foliage in (side, crown, shrub):
+            assert foliage['shape']=='Ball' and not foliage['collidable']
+        assert shrub['position'][1] - min(shrub['size'])/2 < soil_top-.25, 'Pocket shrub floats above soil'
+        assert trunk['position'][1] - trunk['size'][1]/2 < soil_top, 'Pocket trunk floats above soil'
+        assert crown['position'][::2]==trunk['position'][::2] and (
+            crown['position'][1] - min(crown['size'])/2 < trunk['position'][1] + trunk['size'][1]/2
+        ), 'Pocket crown is disconnected from its trunk'
+        assert math.dist(side['position'], crown['position']) < (min(side['size']) + min(crown['size']))/2-.25, 'Pocket canopy lobe is detached'
+        for part in (side, crown, shrub, trunk):
+            assert math.dist(part['position'][::2], soil['position'][::2])+max(part['size'][::2])/2 < soil['size'][1]/2, 'Pocket foliage exceeds the bed footprint'
+
+garden_parts = {part['id']: part for part in doc['parts'] if part['id'].startswith('LandmarkPlazaGarden')}
+assert_garden_structures(garden_parts)
+if '--negative-controls' in sys.argv:
+    for suffix, offset, error in (
+        ('Cypress2', (0, 2, 0), 'Pocket shrub floats above soil'),
+        ('Cypress0', (-6, 0, 0), 'Pocket canopy lobe is detached'),
+    ):
+        name = 'LandmarkPlazaGarden-388_-326'+suffix
+        part = garden_parts[name]
+        lifted = [value+shift for value, shift in zip(part['position'], offset)]
+        try:
+            assert_garden_structures({**garden_parts, name: {**part, 'position': lifted}})
+        except AssertionError as exc:
+            assert error in str(exc), exc
+            print('PASS negative control:', error)
+        else:
+            raise AssertionError('Mutation accepted: '+error)
 directory = {part['id']: part for part in doc['parts'] if part['id'].startswith(('NorthAcademyMarquee', 'NorthRookieDirection'))}
 rookie = directory['NorthRookieDirection']
 plaza = directory['NorthAcademyMarquee']
@@ -98,6 +134,22 @@ for suffix in 'LR':
     assert post['position'][1] + post['size'][1] / 2 > rookie['position'][1] - rookie['size'][1] / 2
 trail=[part for part in doc['parts'] if part['id'].startswith('NorthRookiePath')]
 stones = [part for part in trail if 'Stone' in part['id']]
+def garden_path_clearance(bed, stone):
+    x, _, z = bed['position']
+    cx, _, cz = stone['position']
+    width, _, length = stone['size']
+    yaw = math.radians(stone['rotation'][1])
+    u = (x-cx)*math.cos(yaw) - (z-cz)*math.sin(yaw)
+    v = (x-cx)*math.sin(yaw) + (z-cz)*math.cos(yaw)
+    return math.hypot(max(0, abs(u)-width/2), max(0, abs(v)-length/2)) - bed['size'][1]/2
+
+for bed_name, bed in garden_parts.items():
+    if bed_name.endswith('Stone'):
+        assert all(garden_path_clearance(bed, stone)>2 for stone in stones), (bed_name, 'Garden bed covers the training route')
+if '--negative-controls' in sys.argv:
+    old_bed = {**garden_parts['LandmarkPlazaGarden-388_-326Stone'], 'position': [-388, 32.68, -326]}
+    assert any(garden_path_clearance(old_bed, stone)<0 for stone in stones), 'Baseline bed no longer reproduces the route overlap'
+    print('PASS negative control: Garden bed covers the training route')
 last = max(stones, key=lambda part: int(part['id'].removeprefix('NorthRookiePathStone')))
 layout = (R/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text()
 home_x, home_z = map(int, re.search(r'TrainingHomes=\{\{x=(-?\d+),y=-?\d+,z=(-?\d+)\}', layout).groups())

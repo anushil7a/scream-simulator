@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Rebuild the six Academy garden tree silhouettes
+
+- The floating foliage in the prior Academy close-up was `LandmarkPlazaGarden-388_-326Cypress2`. Native probes found the same problem in every garden pocket: the two unsupported foliage pieces had 2.08- and 1.54-stud gaps above the soil. Each bed now pairs overlapping canopy lobes on its planted trunk and puts the third, lower foliage mass into the soil. Alternating the tree side varies the silhouette along the route.
+- A matched close-up also showed the nearest stone bed covering the painted Rookie route. The bed moved as a unit from (−388, −326) to (−379, −352), with 12.55 studs of separation from the nearest route strip in the authored geometry. The deterministic generator changes 26 existing decorative pieces. All part IDs, the 1,035 finishing parts and their 78 collidable parts are preserved. The finish fixture rejects a raised tuft, a disconnected canopy lobe and a bed covering the ribbon.
+- Native Studio confirmed all six trunk, canopy and groundcover contacts. The final matched camera showed both arrow strokes clearly. Ten sightline rays, 63 ribbon coverage samples and 27 solid-route samples were clear. Independent review cleared geometry and collision scope. Final verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. All three disposable sessions closed after capture.
+
 ## Seat the Academy courtyard foliage in its planters
 
 - At the untouched Academy spawn camera, the two closest planters showed clear gaps beneath their foliage. The gaps were about 3.5 pixels each at the sampled desktop viewport, and the fixed close view showed a 17.9-pixel gap under planter 2. A native local ray through the soil and foliage confirmed the elevated bounds. The two foliage lobes per planter now overlap as a low cluster and are seated in the soil.
