@@ -175,18 +175,28 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
                 config_copy = temp / "Config.luau"
                 config_copy.write_text(config.replace("\nreturn Config", '''
 Config.CompactCity=false
+Config.ResonanceLayout=require(script.Parent.ResonanceLayout)
 Config.Quests={}
 Config.MapMin=Vector3.new(-88,-20,-76)
 Config.MapMax=Vector3.new(88,120,272)
-Config.ZoneMin=Vector3.new(-86,0,-74)
-Config.ZoneMax=Vector3.new(86,16,74)
+local combat=Config.ResonanceLayout.Combat
+Config.ZoneMin=Vector3.new(combat.minX,combat.minY,combat.minZ)
+Config.ZoneMax=Vector3.new(combat.maxX,combat.maxY,combat.maxZ)
 local inHall=Config.InArena
 function Config.InArena(p)
- return inHall(p) and not (p.Z>=50 and math.abs(p.X)<=11)
+ return inHall(p) and not Config.ResonanceLayout.IsSafeApron(p)
 end
 return Config'''))
                 shared["Config"] = {"$path": str(config_copy)}
-                for arena_source in (arena / "Arena.server.luau", arena / "CombatWorld.luau", config_copy, profile_copy):
+                shared["ResonanceLayout"] = {"$path": str(arena / "Layout.luau")}
+                clients = project["tree"]["StarterPlayer"]["StarterPlayerScripts"]
+                client_directory = Path(clients.pop("$path"))
+                for path in client_directory.glob("*.luau"):
+                    name_in_place = path.name.removesuffix(".client.luau").removesuffix(".luau")
+                    clients[name_in_place] = {"$path": str(path)}
+                clients["CityMapBase"] = clients["CityMap"]
+                clients["CityMap"] = {"$path": str(arena / "Map.luau")}
+                for arena_source in (*arena.glob("*.luau"), config_copy, profile_copy):
                     subprocess.run([compiler, str(arena_source)], check=True, stdout=subprocess.DEVNULL)
             if name.startswith("VoiceTransport"):
                 clients = project["tree"]["StarterPlayer"]["StarterPlayerScripts"]

@@ -64,7 +64,7 @@ def verify(args, report=None):
     mocked += ('beam_contact_anchor.py', 'beam_contact_visuals.py', 'beam_contact_integration.py', 'beam_native_budget.py', 'beam_milestone_native.py')
     mocked += ('high_tier_clarity.py', 'damage_summary.py', 'damage_readout.py', 'health_bar_presentation.py', 'boss_service.py', 'boss_attack_effects.py', 'boss_balance.py', 'boss_aim.py', 'boss_visuals.py', 'boss_pose.py', 'boss_spatial.py', 'navigation_catalog.py', 'navigation_guide.py')
     mocked += ('sustained_ttk.py', 'beam_tier_silhouettes.py', 'microphone_direct_ready.py', 'practice_retirement.py', 'cast_feedback_contract.py', 'ui_copy_cleanup.py', 'npc_nameplate.py', 'menu_icons.py', 'trainer_models.py', 'training_map.py')
-    mocked += ('test_beam.py', 'test_beam_damage.py', 'test_beam_ui.py', 'training_strike_warning.py')
+    mocked += ('test_beam.py', 'test_beam_damage.py', 'test_beam_ui.py', 'training_strike_warning.py', 'resonance_map.py')
     from preserved_compact import SUITES as compact_archival_suites
     map10 = 'MapId="Map10"' in (ROOT / 'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text(encoding='utf-8')
     if map10:

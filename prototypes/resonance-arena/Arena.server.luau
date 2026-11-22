@@ -2,6 +2,7 @@
 assert(game:GetService("RunService"):IsStudio() and game.PlaceId==0 and game.GameId==0,
  "Open the unpublished Resonance Arena draft in Studio")
 
+local Layout=require(game:GetService("ReplicatedStorage").Shared.ResonanceLayout)
 local Lighting=game:GetService("Lighting")
 Lighting.ClockTime=16.6
 Lighting.Brightness=2.1
@@ -70,13 +71,12 @@ local function sign(parent,name,x,y,z,w,h,title,body,accent,face)
  sub.Parent=gui
 end
 
-local function speaker(parent,x,z,face,wide)
- local depth=wide and 7 or 5
- local height=wide and 12 or 10
- box(parent,"SpeakerCover",x,height/2,z,wide and 16 or 13,height,depth,ink,true)
+local function speaker(parent,x,z,face,spec)
+ local width,height,depth=spec.width,spec.height,spec.depth
+ box(parent,"SpeakerCover",x,height/2,z,width,height,depth,ink,true)
  local front=z+face*(depth/2+.06)
  -- The visible baffles are flush with the solid cover and never catch the player.
- box(parent,"Baffle",x,height/2,front,wide and 14 or 11,height-1.1,.12,slate,false)
+ box(parent,"Baffle",x,height/2,front,width-2,height-1.1,.12,slate,false)
  for _,y in ipairs({height*.31,height*.69}) do
   local cone=block(parent,"SpeakerCone",Vector3.new(.16,height*.33,height*.33),
    CFrame.new(x,y,front+face*.15)*CFrame.Angles(0,math.pi/2,0),trim,false)
@@ -85,7 +85,7 @@ local function speaker(parent,x,z,face,wide)
    CFrame.new(x,y,front+face*.28)*CFrame.Angles(0,math.pi/2,0),ink,false)
   center.Shape=Enum.PartType.Cylinder
  end
- box(parent,"SpeakerHeader",x,height-.65,front+face*.19,wide and 11 or 8,.26,.16,gold,false,neon)
+ box(parent,"SpeakerHeader",x,height-.65,front+face*.19,width-5,.26,.16,gold,false,neon)
 end
 
 local function portal(parent,name,position,title,body,action,travelTo)
@@ -129,7 +129,8 @@ end
 local arena=Instance.new("Folder")
 arena.Name="Hall"
 arena.Parent=world
-box(arena,"ArenaFloor",0,-1.5,0,176,3,152,deck,true,Enum.Material.Concrete)
+local hall=Layout.Hall
+box(arena,"ArenaFloor",hall.x,-1.5,hall.z,hall.width,3,hall.depth,deck,true,Enum.Material.Concrete)
 for _,side in ipairs({-1,1}) do
  box(arena,"BackWall",0,8,side*75,176,16,2,ink,true)
  box(arena,"SideWall",side*87,8,0,2,16,150,ink,true)
@@ -145,7 +146,8 @@ disk(arena,"RecordOuter",Vector3.new(0,.035,0),67,.06,slate)
 disk(arena,"RecordGroove",Vector3.new(0,.067,0),55,.06,trim)
 disk(arena,"RecordInner",Vector3.new(0,.099,0),53.5,.06,slate)
 disk(arena,"RecordLabel",Vector3.new(0,.131,0),20,.06,deck)
-box(arena,"MixingDesk",0,4.5,0,28,9,8,ink,true)
+local console=Layout.Desk
+box(arena,"MixingDesk",console.x,4.5,console.z,console.width,9,console.depth,ink,true)
 box(arena,"ConsoleShell",0,8.15,0,29.5,1,8.5,trim,false)
 for _,side in ipairs({-1,1}) do
  for i=1,8 do
@@ -163,8 +165,9 @@ end
 for _,xSide in ipairs({-1,1}) do
  for _,zSide in ipairs({-1,1}) do
   local x,z=xSide*69,zSide*55
-  speaker(arena,xSide*53,zSide*42,zSide,true)
-  speaker(arena,xSide*27,zSide*24,zSide,false)
+  for _,cover in ipairs(Layout.Speakers) do
+   speaker(arena,xSide*cover.x,zSide*cover.z,zSide,cover)
+  end
   disk(arena,"SpawnMark",Vector3.new(x,.031,z),11,.06,slate)
   disk(arena,"SpawnRing",Vector3.new(x,.063,z),8,.06,gold)
   disk(arena,"SpawnCenter",Vector3.new(x,.095,z),7,.06,slate)
@@ -185,14 +188,15 @@ end
 local training=Instance.new("Folder")
 training.Name="TrainingPreview"
 training.Parent=world
-box(training,"TrainingDeck",0,-1.5,248,72,3,48,deck,true)
+local practice=Layout.Practice
+box(training,"TrainingDeck",practice.x,-1.5,practice.z,practice.width,3,practice.depth,deck,true)
 for _,side in ipairs({-1,1}) do
  box(training,"SideRail",side*35,3,248,2,6,46,ink,true)
  box(training,"EndRail",0,3,248+side*23,70,6,2,ink,true)
 end
 sign(training,"ArrivalSign",-20,10,258,25,4.8,"TRAINING CITY","LOCAL PREVIEW",blue)
-portal(arena,"TrainingPortal",Vector3.new(0,0,65),"TRAINING CITY","RETURN TO PRACTICE","Return to training",
+portal(arena,"TrainingPortal",Vector3.new(Layout.HallPortal.x,0,Layout.HallPortal.z),"TRAINING CITY","RETURN TO PRACTICE","Return to training",
  CFrame.lookAt(Vector3.new(0,3.5,240),Vector3.new(0,3.5,263)))
-portal(training,"ArenaPortal",Vector3.new(0,0,265),"RESONANCE HALL","RETURN TO THE ARENA","Return to arena",
+portal(training,"ArenaPortal",Vector3.new(Layout.PracticePortal.x,0,Layout.PracticePortal.z),"RESONANCE HALL","RETURN TO THE ARENA","Return to arena",
  CFrame.lookAt(Vector3.new(0,3.5,51),Vector3.new(0,3.5,0)))
 world.Parent=workspace

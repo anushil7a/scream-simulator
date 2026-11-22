@@ -20,7 +20,7 @@ local ColorSequence={new=function(a,b)return {a,b}end}
 local Enum={ApplyStrokeMode={Border='Border'},TextXAlignment={Right='Right',Center='Center',Left='Left'}}
 local metrics=1;local TextService={GetTextSize=function(_,text,size,font,bounds)return {X=#text*size*.55*metrics,Y=size}end}
 local gold='gold';local muted='muted';local panel='panel';local white='white'
-local modal={Visible=true};local tabs={};local selected='Shop';local clientDestroyed=false;local renders=0
+local Config={};local modal={Visible=true};local tabs={};local selected='Shop';local clientDestroyed=false;local renders=0
 local function render()renders+=1 end
 local function toggleTab(name)selected=name;render() end
 local function button(parent,name,text,size,pos,callback)

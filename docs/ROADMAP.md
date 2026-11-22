@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Resonance Hall has a local arena map and portal status
+
+- The old combat preview opened **CITY & COAST**, drew the Timber Pier, and sent players to a Rookie trainer that the Hall does not contain. The guarded preview now draws the speaker cover, mixing desk, PvP floor, protected apron and both cyan portals. The training landing has its own map panel. The position marker switches panels on portal use and disappears between the decks.
+- In desktop Studio and the iPhone 7 landscape emulator, the Hall map opened with fitting labels. On the 666 × 316 safe viewport, the 105.6 × 88 map was fully inside the menu on opening. The preview tab reads **RULES** and the city quest tracker is hidden. Scripted holds on the actual portal prompts moved a temporary player to Z=240 and back to Z=51, switching the position marker and the safe status label both ways. The resolver boundary samples confirmed that Z=50, X=11 is protected, with combat on the adjacent hall side and beyond the X=11 edge.
+- Both local Hall places build. The map geometry and projection suite passed nine checks. Independent review and the full local run passed, including 29 pure/synthetic suites, 165 mocked-service suites, production compilation and review builds. The disposable Studio windows closed with the viewport restored. The portal in this build connects two areas of the same local file. A live Training City destination, shared-profile transfer, physical-phone play and a current live PvP playtest remain open.
+
 ## Rookie's strike warning stays visible off-screen
 
 - In the iPhone 7 landscape emulator (666 × 316 safe pixels), a close camera aimed upward put the Rookie warning disc below the frame for all 71 sampled warning frames. The old status line said **SAFE • PvP OFF** throughout.
@@ -81,7 +87,7 @@
 
 - `python tests/build_sustained_review.py --resonance-local-qa` builds `build/ResonanceCombatLocalReview.rbxl`. Run Studio Server & Clients with two players, then invoke `game.ServerStorage.ResonanceCombatReview:Invoke()` in the server session. The diagnostic stages power, positions, and time directly on the existing server combat controller. Start a fresh session for manual play after running it.
 - Eight cases passed in native Studio. Open fire damaged the target, two solid covers blocked it, the portal apron blocked fire in both directions, dodge and spawn protection prevented damage, and a knockout relocated the target to protected ground. Both clients received all eight beam events. A scripted hold on each client prompt took a player to the training landing at Z=240 and back to the hall at Z=51. Both prompts advertise F, leaving E for arming beams.
-- The preview runs only in an unpublished Studio file with temporary profiles and zero commerce IDs. It uses the existing yellow base across all beam tiers. Reference colors may guide arena art, but beam references guide shape, motion, and effects. The imported client may make its normal Roblox voice eligibility query. City status labels and the city map are still inherited in the preview.
+- The preview runs only in an unpublished Studio file with temporary profiles and zero commerce IDs. It uses the existing yellow base across all beam tiers. Reference colors may guide arena art, but beam references guide shape, motion, and effects. The imported client may make its normal Roblox voice eligibility query. The local preview now shows its own arena map and status labels.
 - Real microphone activation, physical touch, internet multiplayer, a live cross-place portal and profile transfer still need playtesting. The production city and its Rojo project are separate from this preview.
 
 ## Resonance Hall arena draft

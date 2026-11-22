@@ -367,6 +367,12 @@ function academy.refreshZone()
   end
  end
  local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or bossHint or trainingHint and "MOVE OR DODGE" or "SAFE • PvP OFF"
+ local layout=Config.ResonanceLayout
+ if layout and position then
+  if enabled then value="RESONANCE HALL • PvP ON"
+  elseif layout.Contains(layout.Practice,position) then value="TRAINING LANDING • SAFE"
+  elseif layout.Contains(layout.Hall,position) and layout.IsSafeApron(position) then value="TRAINING PORTAL • SAFE" end
+ end
  if zone.Text~=value then
   zone.Text=value;zone.TextColor3=(enabled or trainingHint) and Color3.fromRGB(255,140,139) or bossHint and gold or white
  end
@@ -993,7 +999,7 @@ local function menuKey()
  elseif selected=="Style" then fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=academy.starterCoinAction(data)}
  elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
- elseif selected=="Map" then fields={level=data.level}
+ elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil}
  else fields={} end
  return selected..":"..gui.AbsoluteSize.X..":"..game:GetService("HttpService"):JSONEncode(fields)
 end
@@ -1052,6 +1058,9 @@ render=function()
    local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,sustainedRules and (narrow and 60 or 14) or (narrow and 102 or 21)),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
    if not unlocked then b.TextColor3=muted end
   end
+ elseif selected=="Quests" and Config.ResonanceLayout then
+  title.Text="RESONANCE HALL";subtitle.Text="Local PvP playtest"
+  info("Fight in the Hall. The cyan apron is safe. Use the Training City portal to leave and the return portal to come back.",98)
  elseif selected=="Quests" then
   title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
   local current=Config.GetQuest(data.activeQuest)
@@ -1179,14 +1188,16 @@ render=function()
    info("Your saved "..data.aura.." color is still equipped. Choosing yellow replaces this legacy selection; the old free palette is no longer selectable.")
   end
  elseif selected=="Map" then
-  title.Text="CITY & COAST";subtitle.Text="Red: PvP • Pale café path: safe."
+  title.Text=Config.ResonanceLayout and "RESONANCE HALL" or "CITY & COAST"
+  subtitle.Text=Config.ResonanceLayout and "Hall and training landing" or "Red: PvP • Pale café path: safe."
   local trainingTarget=academy.NavigationCatalog.Resolve("place","training",data)
   if trainingTarget then
    local trainingCard=card(narrow and 106 or 70)
    label(trainingCard,trainingTarget.label,UDim2.new(1,narrow and -28 or -160,0,44),UDim2.fromOffset(14,8),14,gold)
    button(trainingCard,"GuidePlace_training","GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,narrow and 54 or 13),function() academy.selectGuide("place","training");closeMenu() end)
   end
-  local c=card(300)
+  local height=Config.ResonanceLayout and math.clamp(content.AbsoluteWindowSize.Y-4,78,300) or 300
+  local c=card(height)
   local holder=frame(c,"MapHolder",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13));holder.BackgroundTransparency=1
   mapDot=CityMap.create(holder)
   CityMap.update(mapDot,p.Character and p.Character:FindFirstChild("HumanoidRootPart"))
@@ -1260,7 +1271,7 @@ render=function()
 end
 academy.menuTabs={"Style","Screams","Quests","Shop","Map","Settings"}
 for i,name in ipairs(academy.menuTabs) do
- local tabText=name=="Style" and "GEAR" or name=="Screams" and "BEAMS" or name:upper()
+ local tabText=name=="Style" and "GEAR" or name=="Screams" and "BEAMS" or name=="Quests" and Config.ResonanceLayout and "RULES" or name:upper()
  tabs[name]=button(modal,name,tabText,UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function()
   if clientDestroyed or not modal.Visible then return end
   if selected~=name then toggleTab(name) end
@@ -1659,7 +1670,7 @@ connectClient(Run.RenderStepped,function(dt)
   local decoration=academy.tabIcons[name];academy.layoutTab(b,decoration.icon,decoration.padding,tabWidth)
  end
  content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
- if width~=lastLayoutWidth or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) then
+ if width~=lastLayoutWidth or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) or (Config.ResonanceLayout and selected=="Map" and layoutChanged) then
   lastLayoutWidth=width
   academy.shopCompactLandscape=ShopUI.CompactLandscape(viewport.X,viewport.Y)
   if modal.Visible then render() end
@@ -1737,7 +1748,7 @@ connectClient(Run.RenderStepped,function(dt)
    if academy.guideText.Text~=text then academy.guideText.Text=text end
   end
  end
- tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest
+ tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest and not Config.ResonanceLayout
   and not (guideUsesTracker and academy.guidePanel.Visible)
  zone.Visible=gameplayVisible
  academy.trainingGuideButton.Visible=tracked.Visible and not devPanel.Visible and academy.canGuideTraining()

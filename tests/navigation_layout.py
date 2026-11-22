@@ -66,7 +66,8 @@ check(meter.Position.x==14 and meter.Position.y==164 and meter.Position.x+meter.
 meterLayout(750,323,true)
 check(meter.Position.x==-115 and meter.Position.y==-96 and meter.Size.y==84 and meter.RecentAmplitude.Visible,
  'Full meter did not restore after resize')
-local function visibility(active,selected,paused,touch,view,selection,routeStatus)
+local function visibility(active,selected,paused,touch,view,selection,routeStatus,preview)
+ local Config={ResonanceLayout=preview and {} or nil}
  local viewport=view or (touch and {X=750,Y=323} or {X=567,Y=241})
  local showQuest,gameplayVisible=true,not paused
  local data={activeQuest=active and 'sprint' or nil}
@@ -114,6 +115,8 @@ _,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},{kind='place',id='g
 check(arrival=='Training courtyard\nArrived · 42 studs N','Another destination showed fight instructions')
 _,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},{kind='quest',id='training'},'Arrived')
 check(arrival=='Training courtyard\nArrived · 42 studs N','Another guide type showed fight instructions')
+track,route,guide=visibility(false,false,false,true,{X=666,Y=316},nil,nil,true)
+check(not track and not guide,'Arena preview displayed the city training tracker')
 print('PASS '..checks..' navigation layout checks; no native rendering claim')
 '''
 start=s.index(' local guideUsesTracker=false')
