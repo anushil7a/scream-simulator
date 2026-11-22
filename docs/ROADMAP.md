@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Attackers see when their beam was dodged
+
+- In a guarded two-client Hall baseline the defender saw **BEAM DODGED** with 100 HP, while the attacker saw no outcome. The sustained beam now gives the attacker one private **OPPONENT DODGED** cue per cast when the server resolves a real evade without damage or an activity hit. The existing defender cue and quest credit are independent of the new display.
+- A matched native repeat showed both private cues with the defender at 100 HP. Empty rolls produced neither cue. A standing hit and a later hit during the same cast both showed **3 DAMAGE** to the attacker. The cue was rendered and fit in a separate iPhone 7 landscape run (666 × 316) using a staged packet. Both local sessions were closed and the device viewport restored.
+- Focused coverage includes mixed hits and evades, earlier damage, duplicate cues, and the defender display throttle. Independent review, 177 quest assertions, 15,428 resolver assertions, 361 client assertions and 49 focused negative controls passed. The full run passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. Native timing and power were staged. Physical dodge input, real microphones and live network delivery remain unverified.
+
 ## Beam cover feedback during the first training fight
 
 - In the guarded native baseline, a wall clipped two sustained beam samples aimed at Rookie. Rookie took no damage, and the attacker saw no result. The same setup with the wall out of the way produced six damage and the usual numeric feedback.

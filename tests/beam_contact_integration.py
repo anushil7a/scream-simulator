@@ -80,7 +80,7 @@ local function make(ack)
  mic.ready=true;data.voiceEligible=true;data.settings.reducedShake=false;workspace.CurrentCamera.CFrame.Position=Vector3.zero
  attrs={SustainedActive=false};cues=0;screenHits=0
  gate.next='start';sustainedControl:Step(.001,clock,0,true,true,false,0)
- academy.defenderCueUntil=nil;academy.coverCueUntil=nil;protectionRemaining=0;alive=true
+ academy.defenderCueUntil=nil;academy.attackCueUntil=nil;protectionRemaining=0;alive=true
  local id=sustainedControl.attack.sequence;attrs.SustainedActive=true;attrs.SustainedSequence=id
  if ack~=false then sustainedControl:Step(.001,clock,0,true,true,true,id)end
  beam();local rig=sustainedBeams.entries[7].visual;frame(1/30)
@@ -93,7 +93,7 @@ local function retained(total)
 end
 local _,coverId=make()
 send('SustainedCover',nil,coverId+1);hud()
-check(not hitText.Visible and academy.coverCueUntil==nil,'Stale sequence showed cover')
+check(not hitText.Visible and academy.attackCueUntil==nil,'Stale sequence showed cover')
 send('SustainedCover',nil,coverId);hud()
 check(hitText.Visible and hitText.Text=='BEAM HIT COVER','Confirmed cover was not shown')
 attrs.SustainedActive=false;hud()
@@ -103,6 +103,14 @@ hit(coverId,3,anchor)
 check(hitText.Visible and hitText.Text=='3 DAMAGE','Cover hid confirmed damage')
 clock+=.75;send('SustainedCover',nil,coverId);hud()
 check(not hitText.Visible,'Old cover resurfaced after damage')
+local _,evadeId=make()
+send('SustainedCover',nil,evadeId);hud()
+send('SustainedEvaded',nil,evadeId);hud()
+check(hitText.Visible and hitText.Text=='OPPONENT DODGED' and cues==0 and screenHits==0,'Opponent dodge cue missing or played a hit effect')
+hit(evadeId,4,anchor)
+check(hitText.Visible and hitText.Text=='4 DAMAGE','Opponent dodge cue hid confirmed damage')
+clock+=.75;send('SustainedEvaded',nil,evadeId);hud()
+check(not hitText.Visible,'Old dodge resurfaced after damage')
 make()
 send('SustainedDamageTaken',{});hud()
 check(not academy.incomingHit.Visible,'Foreign Humanoid showed defender cue')
@@ -320,12 +328,13 @@ def main():
             (event, 'and windowFocused and not beamBlocked()', '', 'Blocked hit created contact'),
             (event, 'playGameplayCue("Hit");', '', 'Accepted hit lost retained sound/HUD'),
             (event, ' and id==p:GetAttribute("SustainedSequence") and id~=hitFeedback.sequence', ' and id~=hitFeedback.sequence', 'Stale sequence showed cover'),
-            (event, '   if id==academy.coverCueSequence then academy.coverCueUntil=nil end', '', 'Old cover resurfaced after damage'),
+            (event, '   if id==academy.attackCueSequence then academy.attackCueUntil=nil end', '', 'Old cover resurfaced after damage'),
+            (event, '"OPPONENT DODGED" or "BEAM HIT COVER"', '"BEAM HIT COVER" or "BEAM HIT COVER"', 'Opponent dodge cue missing or played a hit effect'),
             (event, 'local dodged=kind=="BeamDodged"', 'local dodged=false', 'Actual evade did not show the dodge label'),
             (event, 'character:FindFirstChildOfClass("Humanoid")==pos', 'true', 'Foreign Humanoid showed defender cue'),
             (event, 'beamWidth,color,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'beamWidth,Config.Auras.Gold,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'Explicit Color3 lost its override'),
             (hud, 'if protectionRemaining>0 then academy.defenderCueUntil=nil end', '', 'Defender cue replayed after protection'),
-            (hud, 'hitText.Visible=gameplayVisible and (confirmed~=nil or coverCue)', 'hitText.Visible=gameplayVisible and coverCue', 'Cover hid confirmed damage'),
+            (hud, 'hitText.Visible=gameplayVisible and (confirmed~=nil or attackCue)', 'hitText.Visible=gameplayVisible and attackCue', 'Cover hid confirmed damage'),
             (render, 'windowFocused and not beamBlocked() and attack', 'attack', 'Blocked frame retained contact'),
             (render, 'attack and attack.acknowledged', 'attack', 'Current-state frame gate retained contact: lost acknowledgement'),
             (render, 'and p:GetAttribute("SustainedActive")==true', '', 'Current-state frame gate retained contact: inactive'),

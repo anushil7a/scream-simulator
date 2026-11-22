@@ -529,9 +529,12 @@ local function stepSustained(p,s,now)
   -- One successful impulse per activity per scream, not five impulses per second.
   if not intent.soccerHit then intent.soccerHit=Soccer.Hit(p,beam.origin,beam.direction,beam.length,beam.width,beam.power)==true end
   if not intent.volleyHit then intent.volleyHit=BeachVolley.Hit(p,beam.origin,beam.direction,beam.length,beam.width,beam.power)==true end
-  if not intent.coverReported then
-   local blocked=beam.obstruction and #hits==0 and #beam.dodged==0 and not intent.damageTotal
-    and not intent.soccerHit and not intent.volleyHit
+  local noHit=#hits==0 and not intent.damageTotal and not intent.soccerHit and not intent.volleyHit
+  if noHit and #beam.dodged>0 and not intent.evadeReported then
+   intent.evadeReported=true
+   effect:FireClient(p,"SustainedEvaded",nil,p:GetAttribute("SustainedSequence"))
+  elseif not intent.coverReported and not intent.evadeReported then
+   local blocked=beam.obstruction and noHit and #beam.dodged==0
    intent.coverTicks=blocked and (intent.coverTicks or 0)+1 or nil
    if intent.coverTicks==2 then
     intent.coverReported=true

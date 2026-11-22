@@ -1513,7 +1513,7 @@ connectClient(UIS.InputEnded,function(input)
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
  if input.KeyCode==Enum.KeyCode.LeftShift then setSprint(false) end
 end)
-connectClient(p.CharacterRemoving,function() academy.defenderCueUntil=nil;academy.coverCueUntil=nil;academy.incomingHit.Visible=false;hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
+connectClient(p.CharacterRemoving,function() academy.defenderCueUntil=nil;academy.attackCueUntil=nil;academy.incomingHit.Visible=false;hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
 connectClient(UIS.WindowFocused,function() windowFocused=true end)
 local function suspendGameplay()
  if sustainedControl then sustainedControl:SetArmed(false) end
@@ -1571,16 +1571,17 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   end
   return
  end
- if kind=="SustainedCover" then
+ if kind=="SustainedCover" or kind=="SustainedEvaded" then
   if type(id)=="number" and p:GetAttribute("SustainedActive")==true and id==p:GetAttribute("SustainedSequence") and id~=hitFeedback.sequence then
-   academy.coverCueSequence=id;academy.coverCueUntil=os.clock()+.9
+   academy.attackCueSequence=id;academy.attackCueUntil=os.clock()+.9
+   academy.attackCueText=kind=="SustainedEvaded" and "OPPONENT DODGED" or "BEAM HIT COVER"
   end
   return
  end
  if kind=="SustainedHit" then
   if hitFeedback:Accept(id,aura,os.clock()) then
    playGameplayCue("Hit");beamScreenFeedback:Hit(os.clock(),screenFeedbackAllowed())
-   if id==academy.coverCueSequence then academy.coverCueUntil=nil end
+   if id==academy.attackCueSequence then academy.attackCueUntil=nil end
    if sustainedBeams and typeof(pos)=="Vector3" then
     local attack=sustainedControl and sustainedControl.attack
     local entry=sustainedBeams.entries[p.UserId];local now=os.clock()
@@ -1704,11 +1705,11 @@ connectClient(Run.RenderStepped,function(dt)
   academy.refreshTrainingGuide(residents)
  end
  local confirmed=hitFeedback:Read(os.clock())
- local coverCue=alive and windowFocused and p:GetAttribute("SustainedActive")==true
-  and p:GetAttribute("SustainedSequence")==academy.coverCueSequence and os.clock()<(academy.coverCueUntil or 0)
- hitText.Visible=gameplayVisible and (confirmed~=nil or coverCue)
+ local attackCue=alive and windowFocused and p:GetAttribute("SustainedActive")==true
+  and p:GetAttribute("SustainedSequence")==academy.attackCueSequence and os.clock()<(academy.attackCueUntil or 0)
+ hitText.Visible=gameplayVisible and (confirmed~=nil or attackCue)
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed)
- elseif coverCue then hitText.Text="BEAM HIT COVER" end
+ elseif attackCue then hitText.Text=academy.attackCueText end
  if protectionRemaining>0 then academy.defenderCueUntil=nil end
  academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and os.clock()<(academy.defenderCueUntil or 0)
  local showVoiceMeter=viewport.Y>=315 and not (not touch and viewport.X>=820 and talkTarget~=nil)
