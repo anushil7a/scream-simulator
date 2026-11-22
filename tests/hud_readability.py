@@ -183,6 +183,19 @@ for _,size in ipairs({{479,162},{510,149}}) do
  local controls,_,_,_,_,stacked=current.actions(size[1],size[2],true)
  check(not stacked and controls.Size.X.Offset==260,'Compact layout was forced below its supported dimensions')
 end
+for _,height in ipairs({150,156,161,167,168,180,211,219,220}) do
+ local root={x=0,y=0,w=491,h=height}
+ local group,beam,_,_,test=current.actions(491,height,false)
+ local beamRect=relative(beam,relative(group,root))
+ local testRect=relative(test,root)
+ check(not overlaps(beamRect,testRect),'Compact desktop Test Tools overlaps Beams')
+ if height>=168 and height<220 then
+  check(test.Text=='TEST' and testRect.w==44 and testRect.x+testRect.w<=491-104-8 and testRect.y==14,
+   'Compact desktop Test Tools lost its mini-map rail')
+ elseif height==220 then
+  check(test.Text=='TEST TOOLS' and testRect.y==66,'Desktop Test Tools did not restore under MAP')
+ end
+end
 local desktop,_,dodge,sprint,_,stacked=current.actions(567,242,false)
 check(not stacked and desktop.Position.X.Offset==-274 and desktop.Position.Y.Offset==-102 and dodge.Size.Y.Offset==32 and sprint.Size.X.Offset==144,'Desktop action geometry changed')
 print('PASS',checks,'actual HUD/baseline/data/geometry/passive assertions; mocked replication/allocations, native fit separate')
@@ -226,11 +239,12 @@ def fixture(source, name):
  local dodgeButton,sprintButton,testButton,sustainedControl={},{},{},{}
  local miniMapButton,miniMapHolder,miniMapAvailable={},{},false
  local talkButton,noticeView,noticeLayout={}, {visible=false}, {}
+ local NoticeLayout=require('../src/StarterPlayer/StarterPlayerScripts/NoticeLayout')
 ''' + layout + '''
  function f.actions(width,height,touch)
   local viewport={X=width,Y=height}
   local stackedActions=academy.layoutActions(viewport,touch,height<300 and width>height)
-  local CityMap={MiniLayout=function()return {available=height>=315,width=90,height=44}end}
+  local CityMap={MiniLayout=function()return {available=height>=(touch and 315 or 168),width=90,height=44}end}
 ''' + '\n do\n' + launcher + '\n' + talk_size + '\n end\n' + talk_layout + '''
   return controls,castButton,dodgeButton,sprintButton,testButton,stackedActions,mark,talkButton
  end
@@ -290,6 +304,8 @@ def main():
             ('UDim2.new(1,-102,0,0)', 'UDim2.new(1,-102,0,60)', 'Compact TALK has no safe target'),
             ('talkButton.Position=viewport.Y<205 and', 'talkButton.Position=splitTalkLane and', 'Compact TALK has no safe target'),
             ('academy.stackedTouchActions and (viewport.Y<205 and 44 or 84) or noticeLayout.baseTalkWidth or 120', 'academy.stackedTouchActions and (viewport.Y<205 and 40 or 84) or noticeLayout.baseTalkWidth or 120', 'Compact TALK has no safe target'),
+            ('else testTop=math.clamp(viewport.Y-148,0,14) end', 'else testTop=14 end', 'Compact desktop Test Tools overlaps Beams'),
+            ('local toolsBesideMap=not touch and NoticeLayout.DesktopTestBesideMap(viewport.X,viewport.Y,miniLayout)', 'local toolsBesideMap=false', 'Compact desktop Test Tools overlaps Beams'),
             ('stackedActions and 84 or viewport.X<432', 'stackedActions and 112 or viewport.X<432', 'Test Tools overlaps a combat control'),
         ]
         for old, new, expected in cases:

@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Keep Test Tools clear of Beams in short desktop windows
+
+- In desktop Studio at 491 × 150 safe pixels, the two buttons shared a 112 × 10 strip. An actual click at (399, 52) opened Test Tools from inside Beams. The launcher now ends two pixels above Beams in that viewport, and the same click activates Beams. A separate Test Tools click still opens its panel. The fixture used normal local click callbacks and temporary profiles, without real microphone input.
+- When the minimap appears in a short desktop viewport of at least 480 pixels wide, Test Tools uses a 44-pixel-wide Test button beside the map until height 220. The existing below-map placement resumes once there is room. Talk shares the remaining top rail and uses its short label at the narrowest sizes. The gameplay buttons and Test Tools access checks retain their existing behavior.
+- The small desktop wallet still partially sits behind Beams. The next HUD check should address that separately and verify the wallet can display earned progress at the shortest supported height.
+
+- The final native replay also checked the 480 × 168 safe-pixel boundary with Mar in range. Talk, Test and Map all fit, with eight-pixel gaps between their targets. Independent review cleared the transition plan. Focused checks passed 1,418 HUD assertions with 25 negative controls and 745 notice assertions with 39 controls, plus the minimap matrix. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds.
+
 ## Separate Talk from Passes on the shortest desktop HUD
 
 - At 491 × 150 safe pixels in desktop Studio, Talk overlapped Passes by 64 × 6 pixels. A pointer click in that strip opened Game Passes while Mar was in reach. The same overlapping rectangles appeared with Test Tools hidden. The older offscreen Talk clipping did not reproduce in the sampled desktop run.

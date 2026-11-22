@@ -250,6 +250,22 @@ for _,tester in ipairs({true,false})do
  end
 end
 data.devAccess=true
+for _,width in ipairs({480,491,567}) do
+ for _,height in ipairs({168,180,219,220}) do
+  local map={available=true,width=90,height=44}
+  local layout=Layout.Get(width,height,false,map,true,true)
+  local beside=height<220
+  local test=beside and {x=width-156,y=14,width=44,height=44}
+   or {x=width-126,y=66,width=112,height=44}
+  local talk={x=layout.baseTalkX or width/2-60,y=layout.baseTalkY or height-108,width=layout.baseTalkWidth or 120,height=34}
+  check(not Layout.Overlaps(talk,test),'Desktop TALK overlaps Test next to MAP')
+  check(not Layout.Overlaps(talk,{x=width-104,y=14,width=90,height=44}),'Desktop TALK overlaps MAP')
+  check(not Layout.Overlaps(talk,{x=164,y=2,width=78,height=36}),'Desktop TALK overlaps navigation after MAP appears')
+  if beside then
+   check(talk.y==12 and talk.width>=64,'Short desktop TALK fell onto the status card when MAP appeared')
+  end
+ end
+end
 for _,desktop in ipairs({{416,416,14,308},{567,416,165,308},{567,241,251,12},{683,416,281,308},{684,416,282,308},{1280,720,580,612}})do
  local w,h,x,y=table.unpack(desktop)
  hud=rect(14,w<820 and 64 or h-108,242,94)
@@ -340,6 +356,8 @@ if a.negative_controls:
  run(sources['NoticeLayout'].replace('talk.x=x;talk.y=','talk.x=navRight-24;talk.y='),sources['NoticeView'],error='Short phone TALK overlaps an existing HUD control')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('(gameplayVisible or modal.Visible)','gameplayVisible'),'Shop error hidden or covers modal navigation')
  run(sources['NoticeLayout'].replace('if height>=150 and height<318','if height>=156 and height<318'),sources['NoticeView'],error='491 × 150 desktop TALK overlaps Passes')
+ run(sources['NoticeLayout'].replace('width-map.width-74','width-map.width-22'),sources['NoticeView'],error='Desktop TALK overlaps Test next to MAP')
+ run(sources['NoticeLayout'].replace('topWidth>=(toolsBesideMap and 64 or 72)','topWidth>=72'),sources['NoticeView'],error='Short desktop TALK fell onto the status card when MAP appeared')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('academy.stackedTouchActions and (viewport.Y<205 and 44 or 84) or noticeLayout.baseTalkWidth or 120','splitTalkLane and 44 or stackedActions and 84 or noticeLayout.baseTalkWidth or 120'),'Compact touch TALK did not keep its allocated width across frames')
  run(sources['NoticeLayout'].replace('if not touch and talkVisible then','if false then'),sources['NoticeView'],error='Short desktop TALK lost its compact target')
 print('Actual warning lengths:',[len(t)for t in texts])

@@ -1,9 +1,14 @@
 -- Bounded notice geometry; coordinates share the existing HUD ScreenGui inset.
 local Layout={}
+function Layout.DesktopTestBesideMap(width,height,map)
+ return width>=480 and height<220 and map and map.available
+end
 function Layout.Get(width,height,touch,map,testTools,talkVisible,statusPosition,statusSize,objectiveBottom)
  local right=width-14
  if map and map.available then right=math.min(right,width-map.width-22) end
- if testTools then right=math.min(right,width-(width<432 and 100 or 126)-8) end
+ local toolsBesideMap=not touch and testTools and Layout.DesktopTestBesideMap(width,height,map)
+ if toolsBesideMap then right=math.min(right,width-map.width-74)
+ elseif testTools then right=math.min(right,width-(width<432 and 100 or 126)-8) end
  local bottom=height-(touch and 203 or 110)
  local h=math.floor(math.min(height*.35,bottom-66))
  local w=math.floor(math.min(640,right-14))
@@ -25,8 +30,8 @@ function Layout.Get(width,height,touch,map,testTools,talkVisible,statusPosition,
   local lastX=width-274-8-120 -- leave space to the left of the combat controls
   if talkX>lastX then
    local topX=(width<380 and 190 or 243)+8
-   local topWidth=height<156 and 84 or 120
-   if height>=150 and height<318 and topX+topWidth<=right then
+   local topWidth=(height<156 or toolsBesideMap) and math.min(84,right-topX) or 120
+   if height>=150 and height<318 and topWidth>=(toolsBesideMap and 64 or 72) and topX+topWidth<=right then
     -- The bottom lane crosses the status and quest rail at this height.
     result.baseTalkX=topX;result.baseTalkY=12;result.baseTalkWidth=topWidth
    elseif lastX>=14 then

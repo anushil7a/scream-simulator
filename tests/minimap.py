@@ -204,10 +204,11 @@ __TOAST__
    end
    if testAccess then
     local t=rectangle(testButton,viewport)
-    check(t.y>=m.y+m.h+8 and not overlaps(m,t),'Tools overlap minimap')
+    check((t.y>=m.y+m.h+8 or t.x+t.w<=m.x-8) and not overlaps(m,t),'Tools overlap minimap')
     check(not overlaps(t,rectangle(hud,viewport)),'Tools overlap HUD '..width..'x'..height..' touch='..tostring(touch))
     check(not overlaps(t,rectangle(tracked,viewport)),'Tools overlap quest tracker '..width..'x'..height..' touch='..tostring(touch))
     if touch then check(not overlaps(t,rectangle(controls,viewport)),'Tools overlap touch controls')end
+    if not touch and width>=480 then check(not overlaps(t,rectangle(controls,viewport)),'Tools overlap desktop controls')end
     check(not overlaps(t,rectangle(talkButton,viewport)),'Tools overlap Talk button')
    end
    end
@@ -227,7 +228,7 @@ else:
   cases=[(code.replace('compact and {} or landmarks','{}'),'Modal landmark missing'),(code.replace('compact and {} or landmarks','landmarks'),'Compact landmark clutter'),(code.replace('if view.lastRoot==root and view.nextUpdate and now<view.nextUpdate', 'if false and view.lastRoot==root and view.nextUpdate and now<view.nextUpdate'),'Minimap throttle missing'),(code.replace('view.dot.Visible=false;view.nextUpdate=nil','view.dot.Visible=true;view.nextUpdate=nil'),'Hidden minimap marker retained'),(code.replace('viewport.X-278','viewport.X-200'),'Minimap overlaps left HUD'),(code.replace('miniMapAvailable and gameplayVisible and windowFocused','miniMapAvailable and gameplayVisible and windowFocused and not toast.Visible'),'MAP visibility gate failed'),(code.replace('width=math.min(width,math.max(119,viewport.X-328))',''),'Minimap overlaps quest tracker'),(code.replace('view.lastRoot==root and view.nextUpdate','view.nextUpdate'),'Replacement root throttled'),(code.replace('miniMapAvailable and gameplayVisible','gameplayVisible'),'MAP visibility gate failed'),(code.replace('touch and 315 or 168','touch and 314 or 167',1),'Minimap availability boundary wrong'),(code.replace('touch and 315 or 168','touch and 261 or 168'),'Minimap overlaps Talk button')]
   cases.append((code.replace('width-map.width-22','width-14'),'Resolved TALK overlaps MAP'))
   cases.extend([(code.replace(" for i,v in ipairs(compact and {} or landmarks)"," box(map,'North',.04,.025,.25,.075,cream)\n for i,v in ipairs(compact and {} or landmarks)"),'Retired north decoration retained'),(code.replace("if not compact then arrow=text","if true then arrow=text"),'Compact facing arrow retained')])
-  cases.extend([(code.replace('-testWidth-(splitTalkLane and 10 or 14),0,testTop','-testWidth-(splitTalkLane and 10 or viewport.X<432 and 18 or 14),0,testTop'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
+  cases.extend([(code.replace('or splitTalkLane and 10 or 14','or splitTalkLane and 10 or viewport.X<432 and 18 or 14'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
   cases.append((code.replace('math.clamp(viewport.Y-195-44,0,14)','14'),'Tools overlap short touch controls'))
   for changed,message in cases:
    assert changed!=code,'Mutation did not match: '+message

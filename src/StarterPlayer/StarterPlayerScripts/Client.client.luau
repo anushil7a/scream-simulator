@@ -2016,15 +2016,21 @@ connectClient(Run.RenderStepped,function(dt)
  local stackedActions=academy.layoutActions(viewport,touch,shortLandscape)
  academy.layoutObjectiveNav(viewport,touch,stackedActions)
  local splitTalkLane=stackedActions and viewport.Y<205
- local testWidth=splitTalkLane and 44 or stackedActions and 84 or viewport.X<432 and 86 or 112
+ local miniLayout=CityMap.MiniLayout(viewport,touch,data.devAccess==true)
+ local toolsBesideMap=not touch and NoticeLayout.DesktopTestBesideMap(viewport.X,viewport.Y,miniLayout)
+ local testWidth=(splitTalkLane or toolsBesideMap) and 44 or stackedActions and 84 or viewport.X<432 and 86 or 112
  testButton.Size=UDim2.fromOffset(testWidth,44)
  testButton.TextSize=stackedActions and 12 or 14
- testButton.Text=splitTalkLane and "TEST" or "TEST TOOLS"
- local miniLayout=CityMap.MiniLayout(viewport,touch,data.devAccess==true)
+ testButton.Text=(splitTalkLane or toolsBesideMap) and "TEST" or "TEST TOOLS"
  miniMapButton.Size=UDim2.fromOffset(miniLayout.width,miniLayout.height);miniMapButton.Position=UDim2.new(1,-miniLayout.width-14,0,14)
  miniMapHolder.Visible=miniLayout.expanded;miniMapAvailable=miniLayout.available
- local testTop=miniLayout.available and 14+miniLayout.height+8 or (touch and math.clamp(viewport.Y-195-44,0,14) or 14)
- testButton.Position=UDim2.new(1,-testWidth-(splitTalkLane and 10 or 14),0,testTop)
+ local testTop
+ if toolsBesideMap then testTop=14
+ elseif miniLayout.available then testTop=14+miniLayout.height+8
+ elseif touch then testTop=math.clamp(viewport.Y-195-44,0,14)
+ else testTop=math.clamp(viewport.Y-148,0,14) end
+ local testInset=toolsBesideMap and miniLayout.width+22 or splitTalkLane and 10 or 14
+ testButton.Position=UDim2.new(1,-testWidth-testInset,0,testTop)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,data.devAccess==true and viewport.X<356 and miniLayout.height+74 or 64) or UDim2.new(0,14,1,-108)
  academy.layoutStatusCard(touch and shortLandscape)
  local trackerY=(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64
@@ -2283,7 +2289,7 @@ connectClient(Run.RenderStepped,function(dt)
  miniMapButton.Visible=miniVisible
  academy.refreshTestLauncher()
  CityMap.MiniUpdate(miniMapView,root,os.clock(),miniVisible and miniMapHolder.Visible)
- talkButton.Text=touch and "TALK" or "TALK [T]"
+ talkButton.Text=(touch or talkButton.Size.X.Offset<72) and "TALK" or "TALK [T]"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
 end)
 end)()
