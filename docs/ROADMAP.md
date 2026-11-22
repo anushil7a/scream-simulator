@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep Talk reachable on the shortest supported touch layout
+
+- At 509 × 162 safe pixels, the Talk button started at y = −87. The compact touch layout below 205 safe pixels now places Talk and the developer-only Test launcher side by side in 44 × 44 targets. The two targets clear the right combat column and stock Jump button. The layout at 205 pixels and above retains its wider Talk target.
+- Studio at 493 × 150 and 509 × 162 verified both rendered labels fit and neither target overlapped Jump or the combat column. At 509 × 162, Test opened its panel. After staging the player near Mar, a click on Talk opened her conversation through the existing server interaction, with both launchers hidden while the dialogue was open. The emulated input used a disposable local place. At 491 × 150 the pre-existing unsupported layout still clips Talk.
+- Independent review caught an early layout-scope error. The production branch and regression now use matching separate scopes. The focused suite passed 1,372 geometry and state assertions and 23 negative controls. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. Three disposable Studio sessions were closed and their two temporary device profiles removed. Physical touch and real microphones remain untested.
+- Audit follow-up: the reported cooldown rearm, notice/health overlap, autosave burst, shutdown deadline and marked training strike issues have earlier checkpoints on this branch. Current-map streaming still needs a matching repro, and the archived coastal test is a separate fixture. A next release check is the shortest dialogue and touchscreen objective flow, including device sizes outside the current compact layout.
+
 ## Keep Gear and Quests usable in short landscape menus
 
 - At 509 × 162 safe pixels in Studio, the old Gear scroller measured negative 16 pixels tall and Guide to Mar sat below the menu. The compact layout puts six 60 × 44 tabs beside the cards, reserves the top strip for notices and gives the scroller 98 pixels at that height. At 492 × 162 all six gear titles fit. At 666 × 162 the Gear action and nine Settings labels fit. Opening a completed matching quest leaves its quick Claim visible at scroll position zero.

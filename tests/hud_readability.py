@@ -153,7 +153,7 @@ end
 local function overlaps(a,b)
  return a.x<b.x+b.w and b.x<a.x+a.w and a.y<b.y+b.h and b.y<a.y+a.h
 end
-for _,size in ipairs({{509,162},{509,220},{566,238},{566,239},{566,244},{620,259},{620,298},{666,374},{390,700}}) do
+for _,size in ipairs({{492,150},{509,162},{509,204},{509,205},{509,220},{566,238},{566,239},{566,244},{620,259},{620,298},{666,374},{390,700}}) do
  local width,height=table.unpack(size)
  local root={x=0,y=0,w=width,h=height}
  local controls,cast,dodge,sprint,test,stacked,glyph,talk=current.actions(width,height,true)
@@ -163,9 +163,9 @@ for _,size in ipairs({{509,162},{509,220},{566,238},{566,239},{566,244},{620,259
  local typicalJump={x=width-95,y=height-90,w=70,h=70}
  local guideStart=160
  local guide={x=16,y=guideStart,w=290,h=50}
- if height>=205 and height<239 then
+ if stacked then
   talk=relative(talk,root)
-  check(talk.x>=0 and talk.y>=0 and talk.y+talk.h<=height and not overlaps(talk,typicalJump) and not overlaps(talk,test),'Compact TALK has no safe target')
+  check(talk.x>=0 and talk.y>=0 and talk.x+talk.w<=width and talk.y+talk.h<=height and talk.w>=44 and talk.h>=44 and not overlaps(talk,typicalJump) and not overlaps(talk,test),'Compact TALK has no safe target')
  end
  for _,item in ipairs({cast,dodge,sprint}) do
   check(item.x>=0 and item.y>=0 and item.x+item.w<=width and item.y+item.h<=height and item.h==44 and item.w>=44,'Touch action clipped or undersized')
@@ -173,8 +173,8 @@ for _,size in ipairs({{509,162},{509,220},{566,238},{566,239},{566,244},{620,259
   check(not overlaps(item,test),'Test Tools overlaps a combat control')
   if stacked and height>=205 then
    check(not overlaps(item,guide),'Stack overlaps the training guide')
-   check(not overlaps(item,talk),'Stack overlaps the compact TALK button')
   end
+  if stacked then check(not overlaps(item,talk),'Stack overlaps the compact TALK button') end
  end
  check(not overlaps(cast,dodge) and not overlaps(cast,sprint) and not overlaps(dodge,sprint),'Touch combat buttons overlap')
  check(cluster.w==(stacked and 140 or height<300 and 196 or 260),'Compact touch controls occupy the ordinary combat width')
@@ -216,9 +216,9 @@ def fixture(source, name):
     if 'function academy.layoutActions(' in source:
         start = source.index('function academy.layoutActions(')
         layout = source[start:source.index('\nlocal talkTarget', start)]
-        launcher = source[source.index(' local testWidth=stackedActions'):source.index('\n hud.Position=', source.index(' local testWidth=stackedActions'))]
+        launcher = source[source.index(' local splitTalkLane='):source.index('\n hud.Position=', source.index(' local splitTalkLane='))]
         talk_size = next(line for line in source.splitlines() if line.startswith(' talkButton.Size='))
-        talk_start = source.index(' if academy.stackedTouchActions and viewport.Y>=205')
+        talk_start = source.index(' if academy.stackedTouchActions then')
         talk_layout = source[talk_start:source.index('\n for _,passive',talk_start)]
         actions = '''
  local mark={}
@@ -231,7 +231,7 @@ def fixture(source, name):
   local viewport={X=width,Y=height}
   local stackedActions=academy.layoutActions(viewport,touch,height<300 and width>height)
   local CityMap={MiniLayout=function()return {available=height>=315,width=90,height=44}end}
-''' + launcher + '\n' + talk_size + '\n' + talk_layout + '''
+''' + '\n do\n' + launcher + '\n' + talk_size + '\n end\n' + talk_layout + '''
   return controls,castButton,dodgeButton,sprintButton,testButton,stackedActions,mark,talkButton
  end
 '''
@@ -286,7 +286,10 @@ def main():
             ('stacked and UDim2.new(1,-width-106,0,6)', 'stacked and UDim2.new(1,-width-106,1,-195)', 'Touch action clipped or undersized'),
             (' and viewport.X>=492 and viewport.Y>=150', '', 'Compact layout was forced below its supported dimensions'),
             ('stacked and UDim2.new(1,-width-106,0,6)', 'stacked and UDim2.new(1,-width-106,0,math.max(0,viewport.Y-156))', 'Stack overlaps the training guide'),
-            ('talkButton.Position=UDim2.new(1,-98,0,50)', 'talkButton.Position=UDim2.new(1,-246,0,50)', 'Stack overlaps the compact TALK button'),
+            ('or UDim2.new(1,-98,0,50)', 'or UDim2.new(1,-246,0,50)', 'Stack overlaps the compact TALK button'),
+            ('UDim2.new(1,-102,0,0)', 'UDim2.new(1,-102,0,60)', 'Compact TALK has no safe target'),
+            ('talkButton.Position=viewport.Y<205 and', 'talkButton.Position=splitTalkLane and', 'Compact TALK has no safe target'),
+            ('splitTalkLane and 44 or stackedActions and 84 or 120', 'splitTalkLane and 40 or stackedActions and 84 or 120', 'Compact TALK has no safe target'),
             ('stackedActions and 84 or viewport.X<432', 'stackedActions and 112 or viewport.X<432', 'Test Tools overlaps a combat control'),
         ]
         for old, new, expected in cases:
