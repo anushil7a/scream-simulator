@@ -55,6 +55,16 @@ end
 local function gradient(parent,colors,rotation)
  local g=Instance.new("UIGradient");g.Color=ColorSequence.new(colors);g.Rotation=rotation or 0;g.Parent=parent;return g
 end
+function Shop.PulseFrame(button,frame)
+ local trim=frame(button,"PulseFrameTrim",UDim2.fromScale(1,1),UDim2.new(),ink)
+ trim.BackgroundTransparency=1;trim.Visible=false
+ trim.Active=false;trim.Interactable=false;trim.Selectable=false
+ for _,side in ipairs({0,1}) do
+  local rail=frame(trim,"PulseEdge",UDim2.new(0,2,1,-16),UDim2.new(side,side==0 and 5 or -7,0,8),violet)
+  rail.Active=false;rail.Interactable=false;rail.Selectable=false
+ end
+ return trim
+end
 function Shop.SignalDeckSkin(card)
  card.BackgroundColor3=Color3.fromRGB(19,34,62)
  stroke(card,accent,2)
@@ -112,7 +122,7 @@ local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
  table.insert(priceViews,view);updatePrice(view)
 end
 function Shop.CompactLandscape(width,height)
- return width>=644 and height>=326 and height<=430
+ return width>=644 and height>=316 and height<=430
 end
 function Shop.Render(data,ui,action)
  Shop.Clear()
@@ -129,7 +139,7 @@ function Shop.Render(data,ui,action)
   local jump=ui.button(c,"Browse"..target,link,UDim2.fromOffset(70,44),UDim2.new(1,-78,0,10),function() ui.jump(target) end,ink)
   jump.TextSize=12;jump.TextColor3=tint
  end
- local hero=ui.card(compact and 124 or narrow and 300 or 260);hero.Name="SpectrumFeature";hero.LayoutOrder=10
+ local hero=ui.card(compact and 112 or narrow and 300 or 260);hero.Name="SpectrumFeature";hero.LayoutOrder=10
  local textScale,textOffset=compact and .48 or 1,compact and -24 or -32
  local function heroLabel(text,height,y,size,color)
   return ui.label(hero,text,UDim2.new(textScale,textOffset,0,height),UDim2.fromOffset(16,y),size,color)
@@ -150,13 +160,13 @@ function Shop.Render(data,ui,action)
  end
  heroLabel("Yellow base. Saved colors are kept.",compact and 24 or narrow and 42 or 30,compact and 86 or 167,13,soft)
  purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,UDim2.new(compact and .52 or 1,-32,0,44),compact and UDim2.new(.48,16,0,66) or UDim2.fromOffset(16,narrow and 238 or 206))
- section("PassesSection","GAME PASSES","One-time unlocks",accent,15,"BOOSTS ↓","BoostsSection")
+ section("PassesSection","PERMANENT PERKS","Unlock once",accent,15,"BOOSTS ↓","BoostsSection")
  local movement=ui.card(narrow and 202 or 170);movement.Name="MovementFeature";movement.LayoutOrder=20
  movement.BackgroundColor3=Color3.new(1,1,1)
  gradient(movement,{ColorSequenceKeypoint.new(0,Color3.fromRGB(22,44,68)),ColorSequenceKeypoint.new(1,Color3.fromRGB(16,26,44))},25)
  stroke(movement,accent)
  ui.label(movement,"FREERUNNER",UDim2.new(1,-32,0,28),UDim2.fromOffset(16,12),20,accent)
- ui.label(movement,"Chain jumps and dodges through the safe city. Standard movement rules apply inside the PvP arena.",UDim2.new(1,-32,0,narrow and 70 or 48),UDim2.fromOffset(16,48),14,soft)
+ ui.label(movement,"Chain jumps and dodges through the safe city. Standard movement rules apply in PvP areas.",UDim2.new(1,-32,0,narrow and 70 or 48),UDim2.fromOffset(16,48),14,soft)
  purchaseButton(Catalog.Get("Movement"),movement,data.movementPass,data,ui,action,UDim2.new(1,-32,0,44),UDim2.fromOffset(16,narrow and 142 or 110))
  local cosmeticOffers={
   {key="Encore",owned=data.encorePass,tint=gold,preview="ENCORE"},
@@ -164,6 +174,8 @@ function Shop.Render(data,ui,action)
   {key="CityGlow",owned=data.cityGlowPass,tint=gold,preview="GLOW"},
   {key="SignalDeck",owned=data.signalDeckPass,tint=accent,preview="BEAMS"},
   {key="CityCrest",owned=data.cityCrestPass,tint=gold,preview="MAP"},
+  {key="PulseFrame",owned=data.pulseFramePass,tint=violet,preview="[ PULSE ]"},
+  {key="RouteLights",owned=data.routeLightsPass,tint=accent,preview="●  ●  ●"},
  }
  for index,pass in ipairs(cosmeticOffers) do
   local item=Catalog.Get(pass.key)
@@ -171,6 +183,8 @@ function Shop.Render(data,ui,action)
   c.BackgroundColor3=Color3.new(1,1,1)
   gradient(c,{ColorSequenceKeypoint.new(0,Color3.fromRGB(28,43,75)),ColorSequenceKeypoint.new(1,Color3.fromRGB(44,27,65))},25)
   stroke(c,pass.tint)
+  local trim=ui.frame(c,"CardTrim",UDim2.fromOffset(3,76),UDim2.fromOffset(6,12),pass.tint)
+  trim.Active=false;trim.Interactable=false;trim.Selectable=false
   ui.label(c,"COSMETIC PASS",UDim2.new(1,-118,0,24),UDim2.fromOffset(16,8),11,pass.tint)
   local name=ui.label(c,item.name,UDim2.new(1,-32,0,28),UDim2.fromOffset(16,31),18)
   name.Font=Enum.Font.GothamBlack
@@ -181,7 +195,7 @@ function Shop.Render(data,ui,action)
   ui.label(c,item.description,UDim2.new(1,-32,0,40),UDim2.fromOffset(16,61),14,soft)
   purchaseButton(item,c,pass.owned,data,ui,action,UDim2.new(1,-32,0,46),UDim2.fromOffset(16,108))
  end
- section("BoostsSection","TIMED BOOSTS","30 min · Counts down offline",violet,75,"PASSES ↑","SpectrumFeature")
+ section("BoostsSection","TIMED BOOSTS","30 min · Counts down offline",violet,(#cosmeticOffers+2)*10+5,"PASSES ↑","SpectrumFeature")
  for index,key in ipairs({"XP","Coins"}) do
   local item=Catalog.Get(key);local tint=key=="XP" and violet or gold
   local c=ui.card(narrow and 262 or 242);c.Name="Boost"..key;c.LayoutOrder=(index+2+#cosmeticOffers)*10;stroke(c,tint)

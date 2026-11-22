@@ -171,7 +171,7 @@ local Controls=require('../src/StarterPlayer/StarterPlayerScripts/SustainedContr
 local Gate=require('../src/ReplicatedStorage/Shared/VoiceActivation')
 local p={SetAttribute=function()end} -- Local cosmetic preference publication, independent of eligibility.
 local data={voiceEligible=false,voiceStatus='checking'};local voiceAccessInterrupted=false
-local academy={refreshGuide=function()end,lockLostUntil=0} -- Presentation dependency; eligibility assertions remain unchanged.
+local academy={refreshGuide=function()end,lockLostUntil=0,pulseFrame={Visible=false}} -- Presentation dependency; eligibility assertions remain unchanged.
 local unavailable=false;local function blocked()return unavailable end
 local alive=true;local mic={ready=true};local windowFocused=true;local GuiService={MenuIsOpen=false}
 local sends=0;local captureSource;local canceled=0
@@ -203,6 +203,10 @@ for _,status in ipairs({'checking','denied','unavailable'})do
  local _,lines=compact:gsub('\n','');check(lines<=1,'Compact voice status exceeds two logical lines')
  check(full:find('Voice chat is unchanged',1,true),'Eligibility hint implies microphone mute')
 end
+receive({voiceEligible=true,voiceStatus='eligible',pulseFramePass=true})
+check(academy.pulseFrame.Visible,'Confirmed Pulse Frame did not show the trim')
+receive({voiceEligible=true,voiceStatus='eligible',pulseFramePass=false})
+check(not academy.pulseFrame.Visible,'Pulse Frame trim stayed after access was removed')
 data=ready;check(voiceEligibilityHint()==nil and not beamBlocked(),'Eligible status retained beam lock')
 mic.input={Parent={},Muted=true}
 local muteHint,isMuted=voiceEligibilityHint(false)

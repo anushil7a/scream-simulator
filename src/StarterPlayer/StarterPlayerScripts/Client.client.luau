@@ -294,13 +294,13 @@ local shop=button(top,"ShopToggle","MENU [B]",UDim2.fromOffset(125,36),UDim2.fro
 local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests",true) end)
 questsToggle.Visible=false
 academy.surface(shop);academy.surface(questsToggle)
-academy.passesToggle=button(top,"PassesToggle","STORE",UDim2.fromOffset(64,46),UDim2.fromOffset(80,0),function()
+academy.passesToggle=button(top,"PassesToggle","PASSES",UDim2.fromOffset(64,46),UDim2.fromOffset(80,0),function()
  if academy.passesToggle.Visible and not modal.Visible and not GuiService.MenuIsOpen then toggleTab("Shop",true) end
-end,Color3.fromRGB(22,55,70))
-academy.passesToggle.TextColor3=Color3.fromRGB(198,247,255);academy.passesToggle.Visible=false
-academy.surface(academy.passesToggle,Color3.fromRGB(93,212,230))
+end,Color3.fromRGB(43,33,55))
+academy.passesToggle.TextColor3=gold;academy.passesToggle.Visible=false
+academy.surface(academy.passesToggle,gold)
 do
- local signal=frame(academy.passesToggle,"StoreSignal",UDim2.fromOffset(18,2),UDim2.new(.5,-9,1,-7),Color3.fromRGB(104,225,240))
+ local signal=frame(academy.passesToggle,"StoreSignal",UDim2.fromOffset(18,2),UDim2.new(.5,-9,1,-7),gold)
  signal.Interactable=false;signal.Active=false;signal.Selectable=false
 end
 local function questLauncherText()
@@ -606,6 +606,7 @@ do
   academy.setBeamFace(false,false,false)
  end
 end
+academy.pulseFrame=ShopUI.PulseFrame(castButton,frame)
 local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-60,0,3),UDim2.new(0,48,1,-6),dark)
 voiceTimeTrack.Active=false;voiceTimeTrack.Interactable=false;voiceTimeTrack.Selectable=false
 local voiceTimeFill=frame(voiceTimeTrack,"RemainingOrRecovery",UDim2.fromScale(0,1),UDim2.new(),muted)
@@ -1000,6 +1001,8 @@ academy.guide=academy.NavigationGuide.new(gui,function(ground)
  return data.activeQuest=="beach" and selection and selection.kind=="quest" and selection.id=="beach"
   -- Project a standing avatar over the validated ground sample.
   and Config.InGardenPvp(ground+Vector3.new(0,3,0))
+end,function(ground)
+ return not Config.InArena(ground+Vector3.new(0,3,0))
 end)
 ownClient(function() academy.guide:Destroy() end);if not clientCheckpoint() then return end
 academy.guidePanel=frame(gui,"SelectedGuide",UDim2.fromOffset(290,62),UDim2.fromOffset(16,120));academy.guidePanel.Visible=false
@@ -1148,7 +1151,7 @@ function academy.layoutObjectiveNav(viewport,touch,stacked)
  shop.TextSize=narrowNav and 12 or 14
  academy.passesToggle.Size=UDim2.fromOffset(passesWidth,46)
  academy.passesToggle.Position=UDim2.fromOffset(menuWidth+6,0)
- academy.passesToggle.TextSize=narrowNav and 12 or 14
+ academy.passesToggle.TextSize=narrowNav and 11 or 13
  local nextX=menuWidth+passesWidth+12
  local shortcutWidth=compact and 45 or narrowNav and 54 or 78
  questsToggle.Size=UDim2.fromOffset(shortcutWidth,touch and 46 or 36)
@@ -1219,7 +1222,7 @@ local function menuKey()
  elseif selected=="Style" then
   local starterAction,starterQuest=academy.starterCoinAction(data)
   fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=starterAction,starterQuest=starterQuest}
- elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,signalDeck=data.signalDeckPass,cityCrest=data.cityCrestPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
+ elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,signalDeck=data.signalDeckPass,cityCrest=data.cityCrestPass,pulseFrame=data.pulseFramePass,routeLights=data.routeLightsPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil,cityCrest=data.cityCrestPass}
  else fields={} end
@@ -1248,7 +1251,7 @@ render=function()
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Shop" then
-  title.Text="CITY STORE";subtitle.Text="Cosmetics, safe-area perks and timed boosts"
+  title.Text="GAME PASSES";subtitle.Text="Permanent perks and 30-minute boosts"
   local function jump(to)
    local target=content:FindFirstChild(to)
    if not target then return end
@@ -1714,6 +1717,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  observeVoiceEligibility(nextData)
  cueContext();gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())
  data=nextData
+ academy.pulseFrame.Visible=data.pulseFramePass==true
  if academy.refreshTesterTools then academy.refreshTesterTools() end
  p:SetAttribute("BossReducedEffects",not data.settings or data.settings.reducedShake~=false)
  academy.refreshGuide() -- Update only a destination the player already chose.
@@ -1961,7 +1965,11 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if sprinting then setSprint(true) end
  local gameplayVisible=not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
- academy.guide:Step(p.Character and p.Character:FindFirstChild("HumanoidRootPart"),os.clock(),gameplayVisible and alive and not devPanel.Visible)
+ do
+  local root=character and character:FindFirstChild("HumanoidRootPart")
+  local routeLights=data.routeLightsPass==true and root~=nil and not Config.InArena(root.Position)
+  academy.guide:Step(root,os.clock(),gameplayVisible and alive and not devPanel.Visible,routeLights)
+ end
  academy.refreshZone()
 
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible

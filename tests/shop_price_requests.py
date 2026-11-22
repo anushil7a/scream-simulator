@@ -7,7 +7,7 @@ setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
  local f={now=0,jobs={},buttons={},links={},sent=0,labels={},cards={}};local os={clock=function()return f.now end,time=function()return 100 end}
- local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement','Encore','Afterimage','CityGlow','SignalDeck','CityCrest'})do table.insert(Catalog.Items,{key=key,id=i<=4 and 100+i or 0,suggestedPrice=i==5 and 79 or 99,kind=(i==1 or i>=4) and 'pass' or 'product'})end
+ local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement','Encore','Afterimage','CityGlow','SignalDeck','CityCrest','PulseFrame','RouteLights'})do table.insert(Catalog.Items,{key=key,id=i<=4 and 100+i or 0,suggestedPrice=i==5 and 79 or 99,kind=(i==1 or i>=4) and 'pass' or 'product'})end
  function Catalog.Get(key)for _,v in ipairs(Catalog.Items)do if v.key==key then return v end end end
  for _,item in ipairs(Catalog.Items)do item.tag='tag';item.name=item.key;item.description='description';item.boost=item.key=='XP' and 'xp' or 'coins'end
  local Config={MovementPassId=104}
@@ -51,15 +51,15 @@ end
 local visual=fixture()
 if visual.shop.CompactLandscape then
  check(not visual.shop.CompactLandscape(388,762) and not visual.shop.CompactLandscape(1024,720),'Portrait or desktop compact')
- for _,xy in ipairs({{644,326},{749,388},{749,330},{844,390}})do
+ for _,xy in ipairs({{644,316},{750,323},{644,326},{749,388},{749,330},{844,390}})do
   check(visual.shop.CompactLandscape(xy[1],xy[2]),'Supported landscape not compact')
   visual.render(false,true)
   local feature=visual.cards[1];local cta=visual.buttons[1]
   local scrollY=math.min(620,xy[2]-76)-(54+50+18)
   check(feature.height<=scrollY and cta.pos.y+cta.size.y<=feature.height and cta.size.y==44,'Spectrum action below first fold or shortened')
-  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==9,'Hierarchy or action count changed')
+  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==11,'Hierarchy or action count changed')
  end
- check(not visual.shop.CompactLandscape(643,388) and not visual.shop.CompactLandscape(749,325) and not visual.shop.CompactLandscape(749,431),'Breakpoint leaked')
+ check(not visual.shop.CompactLandscape(643,388) and not visual.shop.CompactLandscape(749,315) and not visual.shop.CompactLandscape(749,431),'Breakpoint leaked')
  visual.render(false,false);check(visual.cards[1].height==260 and visual.buttons[1].pos.y==206,'Desktop hero changed')
  visual.render(true,false);check(visual.cards[1].height==300 and visual.buttons[1].pos.y==238,'Portrait hero changed')
 end
@@ -130,20 +130,20 @@ f=fixture();f.items[2].id=0;b=f.draw();check(#f.jobs==0 and b.Text=='COMING SOON
 if visual.shop.CompactLandscape and visual.buttons[3].Name=="BuyEncore" then
  local f=fixture()
  f.render(false,false)
- local order={"BuySpectrum","BuyMovement","BuyEncore","BuyAfterimage","BuyCityGlow","BuySignalDeck","BuyCityCrest","BuyXP","BuyCoins"}
+ local order={"BuySpectrum","BuyMovement","BuyEncore","BuyAfterimage","BuyCityGlow","BuySignalDeck","BuyCityCrest","BuyPulseFrame","BuyRouteLights","BuyXP","BuyCoins"}
  for i,name in ipairs(order)do check(f.buttons[i].Name==name and f.buttons[i].holder.LayoutOrder==i*10,'Permanent passes must appear before timed boosts')end
  check(#f.links==2 and f.links[1].size.y==44 and f.links[2].size.y==44,'Missing section shortcuts or touch target')
- check(f.links[1].holder.LayoutOrder==15 and f.links[2].holder.LayoutOrder==75,'Sections are out of order')
+ check(f.links[1].holder.LayoutOrder==15 and f.links[2].holder.LayoutOrder==95,'Sections are out of order')
  f.links[1].callback();check(f.destination=='BoostsSection','Boosts shortcut did not open boost section')
  f.links[2].callback();check(f.destination=='SpectrumFeature','Passes shortcut did not return to featured pass')
- for i=3,7 do
+ for i=3,9 do
   local b=f.buttons[i]
   check(b.Text=="COMING SOON" and not b.Interactable and b.size.y>=45,'Unconfigured pass needs a disabled state and full target')
   b.callback()
  end
  check(f.sent==0 and #f.jobs==4,'Unconfigured pass attempted price lookup or purchase')
- f.render(true,false,{encorePass=true,afterimagePass=true,cityGlowPass=true,signalDeckPass=true,cityCrestPass=true,savingAvailable=true})
- for i=3,7 do
+ f.render(true,false,{encorePass=true,afterimagePass=true,cityGlowPass=true,signalDeckPass=true,cityCrestPass=true,pulseFramePass=true,routeLightsPass=true,savingAvailable=true})
+ for i=3,9 do
   local b=f.buttons[i];check(b.Text=="OWNED" and not b.Interactable,'Owned cosmetic state was lost')
   b.callback()
  end
@@ -152,6 +152,19 @@ if visual.shop.CompactLandscape and visual.buttons[3].Name=="BuyEncore" then
  check(f.buttons[6].Text=='OWNED' and f.buttons[7].Text=='COMING SOON','Ownership of the new passes must remain independent')
  f.render(true,false,{cityCrestPass=true,savingAvailable=true})
  check(f.buttons[6].Text=='COMING SOON' and f.buttons[7].Text=='OWNED','Ownership of the new passes must remain independent')
+ f.render(false,false,{pulseFramePass=true,savingAvailable=true})
+ check(f.buttons[8].Text=='OWNED' and f.buttons[9].Text=='COMING SOON','Pulse Frame and Route Lights ownership were conflated')
+ f.render(false,false,{routeLightsPass=true,savingAvailable=true})
+ check(f.buttons[8].Text=='COMING SOON' and f.buttons[9].Text=='OWNED','Pulse Frame entitlement did not clear independently')
+ local parts={}
+ local trim=f.shop.PulseFrame({},function(parent,name,size,pos)
+  local part={Parent=parent,Name=name,Size=size,Position=pos};table.insert(parts,part);return part
+ end)
+ check(#parts==3 and parts[1]==trim and trim.Visible==false,'Pulse trim must start hidden and allocate two rails')
+ for _,part in ipairs(parts) do
+  check(part.Active==false and part.Interactable==false and part.Selectable==false,'Pulse trim captured beam input')
+ end
+ check(parts[2].Parent==trim and parts[3].Parent==trim,'Pulse rails must hide with their frame')
  f=fixture()
  for i=1,4 do f.items[i].id=0 end;f.config.MovementPassId=0;f.items[7].id=107
  f.render(false,false)
@@ -161,7 +174,7 @@ if visual.shop.CompactLandscape and visual.buttons[3].Name=="BuyEncore" then
  check(glow.Text=='R$ 47' and glow.Interactable,'City Glow did not display its runtime price')
  glow.callback()
  check(f.sent==1,'Available City Glow did not request checkout')
- for offset,key in ipairs({'SignalDeck','CityCrest'}) do
+ for offset,key in ipairs({'SignalDeck','CityCrest','PulseFrame','RouteLights'}) do
   f=fixture()
   for i=1,4 do f.items[i].id=0 end
   f.config.MovementPassId=0;f.items[7+offset].id=107+offset
@@ -185,7 +198,7 @@ print('PASS',n,'actual price-path assertions; coroutine API and GUI mocks only')
 '''
 # Historical lifecycle repros retain their original UI copy and intended failure oracle.
 if a.baseline or a.callback_baseline or a.disabled_baseline:
- checks='\n'.join(line for line in checks.split('\n') if not any(message in line for message in ('Spectrum concise copy missing','Repeated hue instruction retained','Hierarchy or action count changed')))
+ checks='\n'.join(line for line in checks.split('\n') if not any(message in line for message in ('Spectrum concise copy missing','Repeated hue instruction retained','Hierarchy or action count changed','Supported landscape not compact')))
 
 def run(source,error=None,baseline=False):
  tail="local f=fixture();for i=1,120 do f.draw()end;assert(#f.jobs==120);print('REPRO120 rerenders create120 pending price calls')" if baseline else checks
@@ -206,6 +219,11 @@ else:
    assert s.count(old)==1,old;run(s.replace(old,new),error)
   run(s.replace('"BOOSTS ↓","BoostsSection"','"BOOSTS ↓","SpectrumFeature"'),'Boosts shortcut did not open boost section')
   run(s.replace('owned=data.signalDeckPass','owned=data.cityCrestPass'), 'Ownership of the new passes must remain independent')
+
+  run(s.replace('height>=316','height>=326'),'Supported landscape not compact')
+  run(s.replace('(#cosmeticOffers+2)*10+5','75'),'Sections are out of order')
+  run(s.replace('owned=data.pulseFramePass','owned=data.routeLightsPass'),'Pulse Frame and Route Lights ownership were conflated')
+  run(s.replace('rail.Interactable=false','rail.Interactable=true'),'Pulse trim captured beam input')
 
   worker=s[s.index('local function fetchPrice('):s.index('local function updatePrice(')]
   assert all(word not in worker for word in ['view.','apply(','button','data.']), 'Worker captures GUI context'

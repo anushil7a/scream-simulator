@@ -10,14 +10,15 @@ local REPATH_DRIFT,MAX_TARGET_DRIFT=3,8
 local LOW_RAY,HIGH_RAY=Vector3.new(0,.5,0),Vector3.new(0,2.5,0)
 local GROUND_RAY=Vector3.new(0,-9,0)
 local ROUTE_COLOR,PVP_COLOR=Color3.fromRGB(213,186,122),Color3.fromRGB(255,140,139)
+local ROUTE_LIGHTS_COLOR=Color3.fromRGB(135,212,255)
 local BEARINGS={"N","NE","E","SE","S","SW","W","NW"}
 local function validPosition(p)
  return typeof(p)=="Vector3" and p.X==p.X and p.Y==p.Y and p.Z==p.Z
   and math.abs(p.X)<1e7 and math.abs(p.Y)<1e7 and math.abs(p.Z)<1e7
 end
-function Guide.new(ownerGui,isPvP)
+function Guide.new(ownerGui,isPvP,allowsRouteLights)
  local folder=Instance.new("Folder");folder.Name="LocalNavigationGuide";folder.Parent=Workspace
- local self=setmetatable({folder=folder,dots={},visibleDots=0,isPvP=isPvP,generation=0,busy=false,lastRequest=-math.huge,lastDraw=-math.huge,status="",destroyed=false},Guide)
+ local self=setmetatable({folder=folder,dots={},visibleDots=0,isPvP=isPvP,allowsRouteLights=allowsRouteLights,generation=0,busy=false,lastRequest=-math.huge,lastDraw=-math.huge,status="",destroyed=false},Guide)
  self.raycast=RaycastParams.new();self.raycast.FilterType=Enum.RaycastFilterType.Exclude
  self.raycast.RespectCanCollide=true
  for i=1,MAX_DOTS do
@@ -143,7 +144,7 @@ local function floorClearance(raycast,from,point,lowHit,previousGround)
   or Workspace:Raycast(start.Position+HIGH_RAY,delta,raycast) then return end
  return finish
 end
-function Guide:Step(root,now,visible)
+function Guide:Step(root,now,visible,routeLights)
  if self.destroyed or not self.target then return end
  if type(now)~="number" or now~=now or math.abs(now)==math.huge then return end
  -- Use the latest client clock when asynchronous computation completes, not its start.
@@ -204,7 +205,9 @@ function Guide:Step(root,now,visible)
   local dot=self.dots[count]
   local pvp=self.isPvP and self.isPvP(ground.Position)==true
   self.pvpAhead=self.pvpAhead or pvp==true
-  local color=pvp and PVP_COLOR or ROUTE_COLOR
+  local color=ROUTE_COLOR
+  if pvp then color=PVP_COLOR
+  elseif routeLights and self.allowsRouteLights and self.allowsRouteLights(ground.Position) then color=ROUTE_LIGHTS_COLOR end
   if dot.Color~=color then dot.Color=color end
   dot.Position=ground.Position+Vector3.new(0,.45,0);dot.Transparency=.22
   distance+=step;from=recovered and ground.Position or point;previousGround=ground

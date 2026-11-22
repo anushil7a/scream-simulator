@@ -33,7 +33,8 @@ local function fixture(seed)
  local services={MarketplaceService=market,Players={GetPlayerByUserId=function()return f.live end,PlayerRemoving={Connect=function(_,fn)f.removing=fn end}},RunService={IsStudio=function()return f.studio end},HttpService={GenerateGUID=function()f.guid+=1;return 'operation-'..f.guid end},DataStoreService={GetDataStore=function()return db end}}
  local Config={MovementPassId=0};local Entitlements={HasSpectrum=function()return false end,HasMovement=function()return false end,
   HasEncore=function()return f.encore==true end,HasAfterimage=function()return f.afterimage==true end,HasCityGlow=function()return f.cityglow==true end,
-  HasSignalDeck=function()return f.signalDeck==true end,HasCityCrest=function()return f.cityCrest==true end}
+  HasSignalDeck=function()return f.signalDeck==true end,HasCityCrest=function()return f.cityCrest==true end,
+  HasPulseFrame=function()return f.pulseFrame==true end,HasRouteLights=function()return f.routeLights==true end}
  services.ReplicatedStorage={Shared={ShopCatalog=Catalog,BoostLedger=Ledger,Config=Config}}
  local game={GetService=function(_,name)return services[name]end}
  local script={Parent={Entitlements=Entitlements}}
@@ -118,7 +119,7 @@ f.load();f.commerce.Prompt(f.player,'XP');check(f.prompts==0 and f.urgent==true,
 f=fixture({inventory={xp=1000000}});f.load();f.commerce.Prompt(f.player,'XP')
 check(f.prompts==1,'Legacy inventory capacity blocked automatic purchase')
 f.commerce.Prompt(f.player,'Spectrum');check(f.prompts==1 and f.urgent==true,'Unconfigured pass prompted')
-for _,entry in ipairs({{'Encore','encore',103,79},{'Afterimage','afterimage',104,99},{'CityGlow','cityglow',105,59},{'SignalDeck','signalDeck',106,69},{'CityCrest','cityCrest',107,49}})do
+for _,entry in ipairs({{'Encore','encore',103,79},{'Afterimage','afterimage',104,99},{'CityGlow','cityglow',105,59},{'SignalDeck','signalDeck',106,69},{'CityCrest','cityCrest',107,49},{'PulseFrame','pulseFrame',108,49},{'RouteLights','routeLights',109,39}})do
  local key,field,id,price=table.unpack(entry)
  local item=Catalog.Get(key)
  f=fixture()
@@ -161,4 +162,6 @@ if __name__=='__main__':
   run(code.replace('or item.key=="Afterimage" and Entitlements.HasAfterimage(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
   run(code.replace('or item.key=="CityGlow" and Entitlements.HasCityGlow(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
   run(code.replace('or item.key=="SignalDeck" and Entitlements.HasSignalDeck(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
-  run(code.replace('or item.key=="CityCrest" and Entitlements.HasCityCrest(player) then return end','then return end'),'Confirmed cosmetic ownership prompted duplicate purchase')
+  run(code.replace('or item.key=="CityCrest" and Entitlements.HasCityCrest(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
+  run(code.replace('or item.key=="PulseFrame" and Entitlements.HasPulseFrame(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
+  run(code.replace('or item.key=="RouteLights" and Entitlements.HasRouteLights(player) then return end','then return end'),'Confirmed cosmetic ownership prompted duplicate purchase')

@@ -1,5 +1,16 @@
 # Scream Simulator development roadmap
 
+## Make Game Passes easy to find and compare
+
+- The gold **Passes** launcher opens **Game Passes**. Spectrum is featured with its full action in the first fold of shorter landscape screens. Permanent perks appear before timed boosts. Both section shortcuts retain 44-pixel targets, and boost cards keep their offline countdown and saved inventory.
+- **Pulse Frame** (49 Robux suggested) adds violet side trim to the owner's Beams control. The trim leaves attack-state colors, timing, and input targets intact. **Route Lights** (39 Robux suggested) tints the owner's guide markers on safe ground. It uses the existing marker pool and gives red PvP warnings precedence. The blue tint is suppressed while the owner's local avatar is in PvP.
+- All seven earlier passes and both timed boosts remain in the store. Suggested defaults are Spectrum 149, Freerunner 99, Encore 79, Afterimage 99, City Glow 59, Signal Deck 69, City Crest 49, Double XP 39, and Double Coins 29 Robux. Freerunner's offer now refers to all PvP areas. The other perks and boost delivery continue through the existing ownership and receipt paths.
+- All eleven IDs are currently zero. The store shows disabled **Coming Soon** actions and uses Roblox's returned price for configured offers. Before enabling checkout, the owner must create the matching passes and developer products for the target experience and provide distinct IDs. Verify actual regional prices, confirmed ownership, and receipts in a separately authorized release test.
+
+- In guarded Studio, the actual launcher opened the store on desktop and in the iPhone 17 Pro landscape emulator. At 750 × 323 safe pixels the scroll window ran from y172 to y297. The baseline Spectrum action was entirely below it at y378–422. The candidate action fit at y238–282 with all Spectrum labels fitting. The desktop test showed all eleven disabled actions, jumped to timed boosts and back, and staged independent server-owned attributes to show both new passes as owned and enable the owner's Pulse trim.
+- Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. Independent review identified two stale test doubles and the need to use the current local PvP boundary for Route Lights. The updated fixtures and final build passed. Focused runs covered 181 storefront assertions, 199 navigation assertions, 81 commerce assertions and 102 entitlement refresh assertions, with 60 combined negative controls. Both disposable Studio sessions closed after restoring the emulator setting.
+- Native checks used disposable places and staged ownership. The final Route Lights copy and local-avatar PvP suppression were added after the native storefront snapshot. The mocked guide checked tint removal, red PvP priority and PvP ground on routes without an existing red warning. Live checkout, peer-client isolation and physical-phone checks remain open.
+
 ## Show what earned gear actually boosts
 
 - The former Gear card called the Megaphone bonus mic power. The real voice gate reads calibrated input before gear is applied. The card and vendor now share a beam-power label with the percentage and 100% cap. The Gear explanation describes the bonus after activation and its benefit to reach and damage below full power.

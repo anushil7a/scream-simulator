@@ -178,7 +178,7 @@ local crossing=true
 local route=Guide.new(nil,function(ground)
  check(ground.Y==0,'PvP classifier received the dot offset instead of its support')
  return crossing and ground.X>=10
-end)
+end,function(ground) return ground.X<10 or ground.X>=20 end)
 local goldColor=route.dots[1].Color
 route:SetTarget({position=Vector3.new(100,0,0)});route:Step(slowRoot,0,true);flush()
 route:Step(slowRoot,.2,true)
@@ -193,6 +193,15 @@ laterWall=nil;route:Step(slowRoot,1,true)
 check(route:HasPvPAhead(),'Clear route did not restore the PvP warning')
 route:Clear()
 check(not route:HasPvPAhead(),'A cleared guide retained its PvP warning')
+route:SetTarget({position=Vector3.new(100,0,0)});route:Step(slowRoot,2,true);flush()
+route:Step(slowRoot,2.2,true)
+local dangerColor=route.dots[2].Color
+route:Step(slowRoot,2.4,true,true)
+check(route.dots[1].Color~=goldColor and route.dots[2].Color==dangerColor and route.dots[4].Color==dangerColor and route:HasPvPAhead(),'Route Lights overrode the red warning or missed the safe tint')
+crossing=false;route:Step(slowRoot,2.6,true,true)
+check(route.dots[1].Color~=goldColor and route.dots[2].Color==goldColor and not route:HasPvPAhead(),'Route Lights painted PvP ground on a route without a warning')
+route:Step(slowRoot,2.8,true,false)
+check(route.dots[1].Color==goldColor,'Route Lights tint persisted after access was removed')
 route:Destroy()
 print('PASS '..count..' NavigationGuide mocked lifecycle checks; native pathfinding/streaming unverified')
 '''
@@ -219,7 +228,12 @@ if parser.parse_args().negative_controls:
   ('or not mildDescent(start.Position,middle.Position)\n  or not mildDescent(middle.Position,finish.Position)','', 'Floor recovery showed a route across steep'),
   ('if Workspace:Raycast(start.Position+LOW_RAY,delta,raycast)\n  or Workspace:Raycast(start.Position+HIGH_RAY,delta,raycast) then return end','', 'Floor recovery showed a route across wall'),
   ('self.visibleDots=0;self.pvpAhead=false','self.visibleDots=0','A hidden guide retained its PvP warning'),
-  ('local color=pvp and PVP_COLOR or ROUTE_COLOR','local color=ROUTE_COLOR','Dangerous and safe dots did not show distinct states'),
+  ('if pvp then color=PVP_COLOR','if pvp then color=ROUTE_COLOR','Dangerous and safe dots did not show distinct states'),
+  (' and self.allowsRouteLights(ground.Position)','', 'Route Lights painted PvP ground on a route without a warning'),
+  ('elseif routeLights and self.allowsRouteLights', 'elseif self.allowsRouteLights', 'Dangerous and safe dots did not show distinct states'),
+  ('if pvp then color=PVP_COLOR\n  elseif routeLights and self.allowsRouteLights and self.allowsRouteLights(ground.Position) then color=ROUTE_LIGHTS_COLOR end',
+   'if routeLights and self.allowsRouteLights and self.allowsRouteLights(ground.Position) then color=ROUTE_LIGHTS_COLOR elseif pvp then color=PVP_COLOR end',
+   'Route Lights overrode the red warning or missed the safe tint'),
   ('self.isPvP(ground.Position)==true','self.isPvP(ground.Position+Vector3.new(0,.45,0))==true','PvP classifier received the dot offset instead of its support'),
  ):
   assert source.count(old)==1,old

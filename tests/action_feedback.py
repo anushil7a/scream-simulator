@@ -13,7 +13,7 @@ start = server.index(' elseif verb=="ClaimQuest" then') + len(' elseif verb=="Cl
 claim = server[start:server.index(' elseif verb=="SetSettings"', start)]
 setup = '''
 local now=100;local os={clock=function()return now end}
-local academy={refreshGuide=function()end,refreshZone=function()end,refreshTestLauncher=function()end}
+local academy={refreshGuide=function()end,refreshZone=function()end,refreshTestLauncher=function()end,pulseFrame={Visible=false}}
 local notifications={Remove=function()end}
 local notices={};local urgentNotices={};local receiver;local data;local p={SetAttribute=function()end};local earned=0;local stops=0
 local function notify(message,urgent)table.insert(notices,message);table.insert(urgentNotices,urgent==true)end
