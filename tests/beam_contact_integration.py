@@ -124,6 +124,9 @@ aimGui.AbsoluteSize.Y=240;hud()
 check(hitText.Position.Y.Scale==0 and hitText.Position.Y.Offset==10,'Short combat cue overlapped the Beams control')
 aimGui.AbsoluteSize.Y=374;hud()
 check(hitText.Position.Y.Scale==.5 and hitText.Position.Y.Offset==-82,'Combat cue did not return to its standard lane')
+academy.shortObjective=true;aimGui.AbsoluteSize.Y=316;hud()
+check(hitText.Position.Y.Scale==0 and hitText.Position.Y.Offset==10,'Combat cue covered the compact objective row')
+academy.shortObjective=false;aimGui.AbsoluteSize.Y=374
 attrs.SustainedActive=false;hud()
 check(not hitText.Visible,'Inactive cast showed cover')
 attrs.SustainedActive=true
@@ -377,6 +380,7 @@ def main():
             (event, 'beamWidth,color,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'beamWidth,Config.Auras.Gold,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'Explicit Color3 lost its override'),
             (hud, 'if protectionRemaining>0 then academy.defenderCueUntil=nil end', '', 'Defender cue replayed after protection'),
             (hud, 'aimGui.AbsoluteSize.Y<300', 'false', 'Short combat cue overlapped the Beams control'),
+            (hud, 'academy.shortObjective or aimGui.AbsoluteSize.Y<300', 'aimGui.AbsoluteSize.Y<300', 'Combat cue covered the compact objective row'),
             (hud, 'hitText.Visible=gameplayVisible and (confirmed~=nil or attackCue)', 'hitText.Visible=gameplayVisible and attackCue', 'Cover hid confirmed damage'),
             (render, 'windowFocused and not beamBlocked() and attack', 'attack', 'Blocked frame retained contact'),
             (render, 'attack and attack.acknowledged', 'attack', 'Current-state frame gate retained contact: lost acknowledgement'),

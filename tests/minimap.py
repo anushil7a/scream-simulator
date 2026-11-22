@@ -88,7 +88,8 @@ if not args.baseline:
  a=client.index(' local miniVisible=');visibility=client[a:client.index(' talkButton.Text=',a)]
  client_setup=r'''
 local gui={};local activated;local opens={};local allocations=0
-local testButton={};local tight=false;local data={devAccess=false}
+local testButton={};local data={devAccess=false}
+local Config={CompactCity=true};local top,shop,questsToggle={}, {}, {}
 local controls,castButton,dodgeButton,sprintButton={}, {FindFirstChild=function()end}, {}, {}
 local GuiService={MenuIsOpen=false};local modal={Visible=false};local micPanel={Visible=false};local conversationPanel={Visible=false}
 local function toggleTab(tab)table.insert(opens,tab)end
@@ -98,6 +99,8 @@ local function frame(parent,name,size,pos)allocations+=1;return {Parent=parent,N
  client_setup+='\nlocal academy={};local clientDestroyed=false\n'+client[client.index('function academy.canShowTestLauncher()'):client.index('\n-- Flight controls exist only',client.index('function academy.canShowTestLauncher()'))]+'\n'
  action_start=client.index('function academy.layoutActions(')
  client_setup+=client[action_start:client.index('\nlocal talkTarget',action_start)]+'\n'
+ nav_start=client.index('function academy.layoutObjectiveNav(')
+ client_setup+=client[nav_start:client.index('\nacademy.guideMenu=',nav_start)]+'\n'
  client_end=r'''
 check(miniMapButton.Name=="MiniMap" and miniMapButton.Text=="MAP",'MAP launcher missing')
 activated();check(#opens==1 and opens[1]=='Map','MAP launcher opens wrong tab')
@@ -140,8 +143,6 @@ print('PASS '..checks..' actual minimap module/client assertions; synthetic layo
  client_setup+='\n'+tracker_layout+'\n'
  positions=next(line for line in client.splitlines() if line.startswith(' hud.Position='))+'\n'+next(line for line in client.splitlines() if line.lstrip().startswith('talkButton.Position=UDim2.new(.5'))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
  positions=tracker_rect+positions
- nav=client[client.index(' local tight=viewport.X<380'):client.index(' local stackedActions=academy.layoutActions')]
- nav_origin=re.search(r'local top=frame\(gui,"Navigation",UDim2.fromOffset\(\d+,\d+\),(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  notice_source=read('src/StarterPlayer/StarterPlayerScripts/NoticeLayout.luau')
  notice_view=read('src/StarterPlayer/StarterPlayerScripts/NoticeView.luau')
  height_expression=re.search(r'self.panelHeight=([^;]+);self.overflow',notice_view)[1].replace('self.textHeight','(textHeight+8)')
@@ -161,10 +162,9 @@ for width=320,1280 do
    local viewport={X=width,Y=height}
    local shortLandscape=height<300 and width>height
    local tracked={Size=__TRACKER__};local hud={Size=__HUD__};local talkButton={}
-   local top={Position=__NAVORIGIN__};local shop={Position=UDim2.fromOffset(0,0)};local questsToggle={}
-__NAV__
-   for _,child in ipairs({shop,questsToggle})do child.Position.X.Offset+=top.Position.X.Offset;child.Position.Y.Offset+=top.Position.Y.Offset end
+   shop.Position=UDim2.fromOffset(0,0)
 __LAYOUT__
+   for _,child in ipairs({shop,questsToggle})do child.Position.X.Offset+=top.Position.X.Offset;child.Position.Y.Offset+=top.Position.Y.Offset end
 __POSITIONS__
    local m=rectangle(miniMapButton,viewport)
    check(miniLayout.available==(width>=280 and height>=(touch and 315 or 168)),'Minimap availability boundary wrong')
@@ -216,7 +216,7 @@ __TOAST__
  end
 end
 '''
- sweep=sweep.replace('__TOAST__',toast_geometry).replace('__NAVORIGIN__',nav_origin).replace('__NAV__',nav).replace('__TRACKER__',tracker_size).replace('__HUD__',hud_size).replace('__POSITIONS__',positions).replace('__LAYOUT__',layout)
+ sweep=sweep.replace('__TOAST__',toast_geometry).replace('__TRACKER__',tracker_size).replace('__HUD__',hud_size).replace('__POSITIONS__',positions).replace('__LAYOUT__',layout)
  client_end=client_end.replace("print('PASS '..checks..' actual minimap",sweep+"print('PASS '..checks..' actual minimap")
  client_checks=client_setup+creation+client_end.replace('__LAYOUT__',layout).replace('__VISIBILITY__',visibility)
 code=setup+source+tests+client_checks

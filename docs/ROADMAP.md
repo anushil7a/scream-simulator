@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Restore the first-spar objective on short landscape screens
+
+- In Studio at 509 × 162 safe canvas, the previous objective started at y160 and the Guide button started at y163, fully below the safe canvas. The compact navigation now holds the first-spar goal, progress and Guide action in a 104 × 44 button beside Menu and the Notice or Reward shortcut. It works throughout the supported stacked touch layout and restores the ordinary tracker at 566 × 244.
+- Emulated input at 509 × 162 drew 18 visible guide markers from spawn. Staging arrival changed the label to **HIT TO SPAR**, and clearing the guide restored the idle objective. The real server's temporary **Team Effort** quest took priority and the objective button opened its Quests card. Compact timer formatting and priority passed the staged-data fixture.
+- At 509 × 238, a staged damage packet initially produced an 864-square-pixel overlap with Notice. The final rebuild placed that feedback above the compact row and measured zero overlap. Critic cleared the change. Focused verification passed 128 guide and layout assertions with 19 negative controls, 375 beam contact assertions with 38 controls, and 684 notice assertions. The full run passed 29 pure/synthetic suites, 167 mocked-service suites, compilation and Rojo builds. Four temporary device profiles were removed and all disposable sessions closed. Unassisted walking, authentic mic input and physical-device variants remain open.
+
 ## Keep the compact sparring controls on-screen
 
 - At 509 × 162 safe canvas, Beams began 33 pixels above the HUD bounds and its measured rectangle overlapped Test Tools by 1,232 square pixels. The rebuilt 140-pixel column keeps Beams, Dodge and Sprint inside the safe canvas with 44-pixel targets, clear of Test Tools, Jump, health and zone status. The widest sampled Beams status measured 136 pixels. Studio emulated the three action buttons and the Test Tools launcher on the matching layout.

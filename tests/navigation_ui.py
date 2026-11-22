@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess, tempfile
 R=Path(__file__).resolve().parents[1]
 s=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
-f=s[s.index('academy.clearGuide=function()'):s.index('academy.guideMenu=function()')]
+f=s[s.index('academy.clearGuide=function()'):s.index('academy.compactObjective=button(')]
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local data={};local Config={CompactCity=true};local target=nil;local sets,clears=0,0
@@ -82,7 +82,7 @@ assert 'academy.guide:Step' in s
 print('PASS explicit-only wiring, stage refresh, ownership and HUD source contracts')
 
 # Render the actual HUD block with a selected guide and staged routing/level state.
-render=s[s.index(' local guideUsesTracker=false'):s.index(' tracked.Visible=gameplayVisible')]
+render=s[s.index(' local guideUsesTracker=false'):s.index('\n tracked.Visible=')]
 arrival=r'''
 local n=0
 local UDim2={fromOffset=function(...)return {...} end}

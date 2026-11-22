@@ -250,6 +250,13 @@ receiveQuests({a={progress=3,claimed=true},b={progress=2,claimed=false}});frame(
 notifications:Remove(nil);notifications=Queue.new();frame();check(questsToggle.Text=='QUESTS 1','Recovery restored stale reward count')
 notifications:Push(samples[1],true,'save');frame();viewport=Vector2.new(640,360);frame();check(questsToggle.Text=='QUESTS 1','Resize restored stale reward count')
 receiveQuests({a={progress=3,claimed=true},b={progress=2,claimed=true}});frame();check(questsToggle.Text=='QUESTS' and not questsToggle.Visible,'Claimed reward count persisted')
+notifications=Queue.new();academy.shortObjective=true;viewport=Vector2.new(509,162);talkTarget=nil
+receiveQuests({a={progress=3,claimed=false}});frame()
+check(questsToggle.Text=='REWARD' and questsToggle.Visible,'Compact reward shortcut does not fit its role')
+notifications:Push(samples[1],true,'save');frame()
+check(questsToggle.Text=='NOTICE' and questsToggle.Visible,'Compact reward displaced the urgent notice')
+notifications=Queue.new();academy.shortObjective=false;viewport=Vector2.new(640,360)
+receiveQuests({a={progress=3,claimed=true}});frame()
 -- Native fractional-height reproduction modeled at the actual allocation boundary.
 local oldMeasure=TextService.GetTextSize
 TextService.GetTextSize=function(_,text)measured+=1;return {Y=text=='Scroll for full notice' and 16.2000008 or 81.5999985}end

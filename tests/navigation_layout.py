@@ -132,6 +132,62 @@ code=code.replace('__SHARED_RAIL__',s[start:stop])
 start=s.index(' local meterWidth,meterHeight=')
 stop=s.index(' local testBottom=',start)
 code=code.replace('__METER_LAYOUT__',s[start:stop])
+start=s.index('academy.compactObjective=button(')
+compact_ui=s[start:s.index('\nacademy.guideMenu=',start)]
+start=s.index(' academy.compactObjective.Visible=academy.shortObjective and')
+compact_render=s[start:s.index('\n local guideUsesTracker=false',start)]
+code+=r'''
+do
+local top,shop,questsToggle={},{},{}
+local data={training='Rookie',quests={},combatChallenges={fighters=1}}
+local quest={id='sprint',goal=3}
+local Config={CompactCity=true,GetQuest=function(id)return id=='sprint' and quest or nil end}
+local GuiService={MenuIsOpen=false};local modal,devPanel,conversationPanel={},{},{}
+local gold={}
+local showQuest=true
+local tracked={Text='Only draw this once state arrives'}
+local function toggleTab(tab,reset,focus)check(tab=='Quests' and reset and focus=='sprint','Compact quest opened the wrong task');modal.Visible=true end
+local function button(_,_,_,size,pos,callback)return {Size=size,Position=pos,Activated=callback}end
+local UDim2={fromOffset=function(x,y)return {x=x,y=y}end}
+academy.surface=function()end
+academy.canGuideTraining=function()return not data.activeQuest and not academy.guideSelection end
+academy.selectGuide=function(kind,id)check(kind=='place' and id=='training','Compact Guide picked the wrong route');academy.guideSelection={kind=kind,id=id}end
+academy.clearGuide=function()academy.guideSelection=nil end
+local status='Follow the markers'
+academy.guide={GetStatus=function()return status end}
+''' + compact_ui + r'''
+local function refresh(gameplayVisible)
+''' + compact_render + r'''
+end
+academy.layoutObjectiveNav({X=492,Y=150},true,true)
+local b=academy.compactObjective
+check(top.Position.y==0 and shop.Size.x==56 and b.Size.x==104 and b.Size.y==44,'Compact navigation lacks a safe touch row')
+check(b.Position.x>=shop.Size.x+6 and questsToggle.Position.x>=b.Position.x+b.Size.x+6,'Compact objective overlaps a navigation sibling')
+check(top.Position.x+questsToggle.Position.x+questsToggle.Size.x<492-246,'Compact navigation overlaps the action stack')
+refresh(true);check(b.Visible and b.Text=='ROOKIE GUIDE\n1/3 fighters','Compact idle objective lost the first-spar goal')
+b.Activated();refresh(true)
+check(b.Text=='FOLLOW GUIDE\n1/3 · Clear','Compact training route missing progress or Clear')
+status='Arrived';academy.trainingGuideFighter={Parent={},GetAttribute=function()return true end};refresh(true)
+check(b.Text=='HIT TO SPAR\n1/3 · Clear','Compact arrival lost its instruction')
+academy.trainingGuideFighter.GetAttribute=function()return false end;refresh(true)
+check(b.Text=='FIGHTER RESTING\n1/3 · Clear','Compact arrival masked recovery')
+data.activeQuest='sprint';data.quests.sprint={progress=2};data.questTime=37
+refresh(true);check(b.Text=='VIEW QUEST\n2/3 · 37s','Compact guide covered the active quest timer')
+b.Activated();check(modal.Visible and academy.guideSelection~=nil,'Quest click cleared the selected guide')
+modal.Visible=false;data.activeQuest=nil
+b.Activated();refresh(true);check(b.Text=='ROOKIE GUIDE\n1/3 fighters','Clearing the compact guide did not restore the goal')
+refresh(false);b.Activated();check(not b.Visible and not academy.guideSelection,'A hidden compact objective accepted a click')
+refresh(true);modal.Visible=true;b.Activated();check(not academy.guideSelection,'A stale compact click bypassed the menu')
+modal.Visible=false;devPanel.Visible=true;refresh(true);check(not b.Visible,'Compact objective covered the tester panel');devPanel.Visible=false
+academy.layoutObjectiveNav({X=509,Y=220},true,true);refresh(true)
+check(b.Visible,'The compact objective disappeared inside the stacked band')
+academy.layoutObjectiveNav({X=566,Y=244},true,false);refresh(true)
+check(not b.Visible and top.Position.y==12 and shop.Size.x==125 and questsToggle.Size.x==95,'Standard navigation layout did not restore')
+Config.ResonanceLayout={};academy.layoutObjectiveNav({X=509,Y=162},true,true);refresh(true)
+check(not b.Visible,'PvP place exposed the Academy objective')
+end
+print('PASS '..checks..' total navigation and compact objective assertions')
+'''
 def run(payload):
     with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='tmp_layout_',dir=root/'tests',delete=False) as f:
         f.write(payload)
@@ -158,10 +214,13 @@ for old,new,reason in [
     ('status=="Arrived" and selection.kind=="place" and selection.id=="training"', 'selection and selection.kind=="place" and selection.id=="training"', 'Training arrival cue appears before reaching the pad'),
     ('ready==false and "Fighter recovering"', 'false and "Fighter recovering"', 'Recovery or progress is missing on the shared tracker'),
     ('or "Sparring pad"', 'or "Fighter recovering"', 'An unobserved fighter was reported alive or recovering'),
+    ('compact and 172 or tight', 'compact and 134 or tight', 'Compact objective overlaps a navigation sibling'),
+    ('timer>0 and string.format(" · %ds",timer)', 'false and string.format(" · %ds",timer)', 'Compact guide covered the active quest timer'),
+    ('if not academy.shortObjective or not academy.compactObjective.Visible', 'if not academy.shortObjective', 'A hidden compact objective accepted a click'),
 ]:
     assert code.count(old)==1,old
     result=run(code.replace(old,new))
     assert result.returncode and reason in result.stderr,(old,result.stderr)
-print('PASS 16 tracker lane, priority, meter and arrival negative controls')
+print('PASS 19 tracker, guide, menu and timer negative controls')
 assert 'or noticeView:Overlaps(passive,gui,talkButton)' in s and 'meter,academy.guidePanel}' in s
 assert 'if academy.guideText.Text~=text' in s

@@ -1040,6 +1040,49 @@ academy.trainingGuideButton=button(tracked,"GuideTraining","GUIDE",UDim2.fromOff
 end)
 academy.trainingGuideButton.TextColor3=gold
 academy.trainingGuideButton.Visible=false
+academy.compactObjective=button(top,"CompactObjective","",UDim2.fromOffset(104,44),UDim2.fromOffset(62,0),function()
+ if not academy.shortObjective or not academy.compactObjective.Visible
+  or GuiService.MenuIsOpen or modal.Visible or devPanel.Visible or conversationPanel.Visible then return end
+ if data.activeQuest then toggleTab("Quests",true,data.activeQuest)
+ elseif academy.guideSelection then academy.clearGuide()
+ elseif academy.canGuideTraining() then academy.selectGuide("place","training") end
+end)
+academy.compactObjective.Visible=false
+academy.compactObjective.TextSize=12
+academy.surface(academy.compactObjective,gold)
+function academy.compactObjectiveText()
+ local quest=Config.GetQuest(data.activeQuest)
+ if quest then
+  local saved=data.quests[quest.id]
+  local timer=data.questTime or 0
+  return string.format("VIEW QUEST\n%d/%d%s",saved and saved.progress or 0,quest.goal,timer>0 and string.format(" · %ds",timer) or "")
+ end
+ local count=(data.combatChallenges or {}).fighters or 0
+ local selection=academy.guideSelection
+ if not selection then return string.upper(data.training or "Rookie").." GUIDE\n"..count.."/3 fighters" end
+ local status=academy.guide:GetStatus()
+ local heading=status=="Route unavailable" and "NO ROUTE" or status=="Arrived" and "ARRIVED" or "FOLLOW GUIDE"
+ if selection.kind=="place" and selection.id=="training" then
+  if status=="Arrived" then
+   local fighter=academy.trainingGuideFighter
+   local ready=fighter and fighter.Parent and fighter:GetAttribute("ResidentActive")
+   heading=ready==false and "FIGHTER RESTING" or ready==true and "HIT TO SPAR" or "SPARRING PAD"
+  end
+  return heading.."\n"..count.."/3 · Clear"
+ end
+ return heading.."\nClear guide"
+end
+function academy.layoutObjectiveNav(viewport,touch,stacked)
+ local tight=viewport.X<380
+ local compact=stacked and Config.CompactCity==true and not Config.ResonanceLayout
+ academy.shortObjective=compact
+ top.Position=UDim2.fromOffset(14,compact and 0 or 12)
+ shop.Size=UDim2.fromOffset(compact and 56 or tight and 90 or 125,touch and 44 or 36)
+ shop.Text=(tight or touch) and "MENU" or "MENU [B]"
+ questsToggle.Size=UDim2.fromOffset(compact and 56 or tight and 78 or 95,touch and 44 or 36)
+ questsToggle.Position=UDim2.fromOffset(compact and 172 or tight and 98 or 134,0)
+ questsToggle.TextSize=compact and 12 or 14
+end
 academy.guideMenu=function()
  local c=card(110)
  label(c,academy.guideTarget and ("GUIDING: "..academy.guideTarget.label) or "Choose a guide below. Nothing is selected automatically.",UDim2.new(1,-28,0,48),UDim2.fromOffset(14,6),14,gold)
@@ -1781,7 +1824,7 @@ connectClient(Run.RenderStepped,function(dt)
   and p:GetAttribute("SustainedSequence")==academy.attackCueSequence and os.clock()<(academy.attackCueUntil or 0)
  hitText.Visible=gameplayVisible and (confirmed~=nil or attackCue)
  if hitText.Visible then
-  hitText.Position=aimGui.AbsoluteSize.Y<300 and UDim2.new(.5,0,0,10) or UDim2.new(.5,0,.5,-82)
+  hitText.Position=(academy.shortObjective or aimGui.AbsoluteSize.Y<300) and UDim2.new(.5,0,0,10) or UDim2.new(.5,0,.5,-82)
  end
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed)
  elseif attackCue then hitText.Text=academy.attackCueText end
@@ -1846,10 +1889,8 @@ connectClient(Run.RenderStepped,function(dt)
   if modal.Visible then render() end
  end
  -- Keep desktop controls compact; smaller displays retain readable button text.
- local tight=viewport.X<380
- shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "MENU" or "MENU [B]"
- questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
  local stackedActions=academy.layoutActions(viewport,touch,shortLandscape)
+ academy.layoutObjectiveNav(viewport,touch,stackedActions)
  local testWidth=stackedActions and 84 or viewport.X<432 and 86 or 112
  testButton.Size=UDim2.fromOffset(testWidth,44)
  testButton.TextSize=stackedActions and 12 or 14
@@ -1894,6 +1935,9 @@ connectClient(Run.RenderStepped,function(dt)
  -- Keep the fight readable without hiding a running quest deadline.
  local combatQuest=data.activeQuest=="arena" or data.activeQuest=="dodge" or data.activeQuest=="crowd" or data.activeQuest=="practice_beams" or data.activeQuest=="arena_assist"
  local showQuest=not data.inWarZone or combatQuest or (data.questTime or 0)>0
+ academy.compactObjective.Visible=academy.shortObjective and gameplayVisible and showQuest
+  and not devPanel.Visible and (tracked.Text~="" or academy.guideTarget~=nil)
+ if academy.compactObjective.Visible then academy.compactObjective.Text=academy.compactObjectiveText() end
  local guideUsesTracker=false
  do
   local x,y,w,h,compact=academy.guideLayout(viewport,touch,tracked.Position.Y.Offset)
@@ -1903,7 +1947,7 @@ connectClient(Run.RenderStepped,function(dt)
    w,h=tracked.Size.X.Offset,tracked.Size.Y.Offset
    guideUsesTracker=true
   end
-  academy.guidePanel.Visible=x~=nil and gameplayVisible and not devPanel.Visible and academy.guideTarget~=nil
+  academy.guidePanel.Visible=not academy.shortObjective and x~=nil and gameplayVisible and not devPanel.Visible and academy.guideTarget~=nil
   if academy.guidePanel.Visible then
    academy.guidePanel.Position=UDim2.fromOffset(x,y);academy.guidePanel.Size=UDim2.fromOffset(w,h)
    local status,distance,bearing=academy.guide:GetStatus()
@@ -1945,7 +1989,7 @@ connectClient(Run.RenderStepped,function(dt)
    if academy.guideText.Text~=text then academy.guideText.Text=text end
   end
  end
- tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest and not Config.ResonanceLayout
+ tracked.Visible=not academy.shortObjective and gameplayVisible and tracked.Text~="" and showQuest and not Config.ResonanceLayout
   and not (guideUsesTracker and academy.guidePanel.Visible)
  zone.Visible=gameplayVisible
  academy.trainingGuideButton.Visible=tracked.Visible and not devPanel.Visible and academy.canGuideTraining()
@@ -2029,9 +2073,10 @@ connectClient(Run.RenderStepped,function(dt)
  title.Visible=not (shortLandscape and modal.Visible and noticeView.visible)
  shop.Visible=not GuiService.MenuIsOpen and not (conversationPanel and conversationPanel.Visible)
   and not (modal.Visible and (noticeView.visible or shortLandscape))
- questsToggle.Text=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
+ local questShortcut=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
  -- Keep navigation in MENU. A pending claim or inaccessible notice gets a shortcut.
- questsToggle.Visible=shop.Visible and not modal.Visible and questsToggle.Text~="QUESTS"
+ questsToggle.Text=academy.shortObjective and questShortcut~="NOTICE" and questShortcut~="QUESTS" and "REWARD" or questShortcut
+ questsToggle.Visible=shop.Visible and not modal.Visible and questShortcut~="QUESTS"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
  if academy.stackedTouchActions and viewport.Y>=205 then
   talkButton.Position=UDim2.new(1,-98,0,50)
