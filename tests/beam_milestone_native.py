@@ -114,15 +114,20 @@ for _,width in ipairs({1,7})do
    for _,mode in ipairs({{true,false,0},{false,true,0},{false,false,111}})do
     Visuals.Animate(r,r.born+.7,vec(0,0,mode[3]),mode[1],true,mode[2])
     check(#r.parts==4,'quiet native retained dynamic parts')
-    for _,entry in ipairs(v.beams)do check(entry.inst.TextureSpeed==0 and entry.inst.Enabled==entry.isCore,'quiet template motion')end
-    for _,entry in ipairs(v.emitters)do check(not entry.inst.Enabled,'quiet particles')end
-    local widestQuiet=0;for _,entry in ipairs(v.beams)do if entry.inst.Enabled then widestQuiet=math.max(widestQuiet,entry.inst.Width0,entry.inst.Width1)end end
-    check(near(widestQuiet,width*.6*StyleSource.WidthScale(level,true)),'quiet milestone width lost')
+    if mode[3]==0 then
+     check(root.Parent==nil and r.parts[2].LocalTransparencyModifier<1,'Quiet comfort retained template glare or hid the shaft')
+    else
+     check(root.Parent==workspace,'Distance LOD lost its template')
+     for _,entry in ipairs(v.beams)do check(entry.inst.TextureSpeed==0 and entry.inst.Enabled==entry.isCore,'distance template motion')end
+     for _,entry in ipairs(v.emitters)do check(not entry.inst.Enabled,'distance particles')end
+     local widestFar=0;for _,entry in ipairs(v.beams)do if entry.inst.Enabled then widestFar=math.max(widestFar,entry.inst.Width0,entry.inst.Width1)end end
+     check(near(widestFar,width*.6*StyleSource.WidthScale(level,true)),'distance milestone width lost')
+    end
     local first=r.parts[1].Size.Y
     Visuals.Animate(r,r.born+1.4,vec(0,0,mode[3]),mode[1],true,mode[2])
     check(near(first,r.parts[1].Size.Y),'quiet silhouette pulses')
     Visuals.Animate(r,r.born+1.5,Vector3.zero,false,true,false)
-    check(r.vfx.root==root and #r.parts>4,'restore rebuild/leak')
+    check(r.vfx.root==root and root.Parent==workspace and #r.parts>4,'restore rebuild/leak')
     for _,entry in ipairs(v.beams)do check(entry.inst.TextureSpeed==entry.baseTextureSpeed,'texture did not restore')end
    end
    for _,entry in ipairs(v.emitters)do
@@ -149,8 +154,11 @@ local function countWrites(object,keys)
   end,
  })
 end
-manager:Update(1,0,Vector3.zero,Vector3.zAxis,40,7,color,100,false)
+manager:Update(1,0,Vector3.zero,Vector3.zAxis,40,7,color,100,true)
 local r=manager.entries[1].visual
+Visuals.Animate(r,r.born+.59,Vector3.zero,false,false,false)
+check(r.vfx==nil and #r.parts==4,'A quiet cast allocated an imported template at birth')
+manager:Update(1,.6,Vector3.zero,Vector3.zAxis,40,7,color,100,false)
 Visuals.Animate(r,r.born+.6,Vector3.zero,false,false,false)
 local v=r.vfx
 for _,e in ipairs(v.beams) do countWrites(e.inst,{'Enabled','TextureSpeed'}) end
@@ -188,9 +196,7 @@ for _,level in ipairs({100,50,10}) do
  Visuals.Animate(r,r.born+1.2,Vector3.zero,false,false,false)
  check(writes==0 and r.vfx==tintedVfx,'Steady tint rewrote or reallocated template')
  Visuals.Animate(r,r.born+1.3,Vector3.zero,true,false,false)
- for _,entry in ipairs(tintedVfx.beams)do
-  if entry.isCore then check(entry.inst.Enabled and sameColor(entry.inst.Color.Keypoints[1].Value,tint),'Reduced effects lost the selected color') end
- end
+ check(tintedVfx.root.Parent==nil and sameColor(r.parts[2].Color,tint),'Reduced effects lost the selected color')
  manager:Update(1,1.4,Vector3.zero,Vector3.zAxis,40,7,base,level,false)
  Visuals.Animate(r,r.born+1.4,Vector3.zero,false,false,false)
  check(r.vfx==tintedVfx,'Restoring default rebuilt the template')
@@ -226,7 +232,9 @@ for old,new,message in [
  ('if i==1 or (i==2 and hasVfx) then','if i==1 or partKind[p]=="detail" or (i==2 and hasVfx) then','native hides milestone decoration'),
  ('wScale=width*.6*scale/widest','wScale=width*.6/widest','native milestone width lost'),
  ('local quiet=reduced or rig.reduced or contactReduced','local quiet=reduced or rig.reduced','quiet native retained dynamic parts'),
- ('b.TextureSpeed=far and 0 or entry.baseTextureSpeed','b.TextureSpeed=entry.baseTextureSpeed','quiet template motion'),
+ ('b.TextureSpeed=far and 0 or entry.baseTextureSpeed','b.TextureSpeed=entry.baseTextureSpeed','distance template motion'),
+ ('if rig.vfx and rig.vfx.root.Parent then rig.vfx.root.Parent=nil end','if false then end','Quiet comfort retained template glare'),
+ ('local hasVfx=not quiet and rig.vfx~=nil','local hasVfx=rig.vfx~=nil','Quiet comfort retained template glare'),
  ('local showSecondary=not far and not suppressSecondary','local showSecondary=not far','Crowded mode kept particles'),
  ('local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .58','local endAlpha=.58','Crowded mode retained the opaque endpoint lens'),
  ('local visibilityChanged=vfx.showSecondary~=showSecondary','local visibilityChanged=true','Steady mode rewrote template properties'),

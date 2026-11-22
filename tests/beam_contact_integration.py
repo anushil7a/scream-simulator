@@ -206,7 +206,7 @@ for _,case in ipairs({
 end
 rig,id=make();hit(id,10,anchor);frame(1/30)
 local before=#rig.parts;platformReducedMotion=true;clock+=.02;frame(1/30)
-check(#rig.contact.parts==8 and #rig.parts==4 and rig.level==100 and rig.parts[1].Material==Enum.Material.Neon,'OS quiet contact or beam missed quiet mode')
+check(#rig.contact.parts==8 and #rig.parts==4 and rig.level==100 and rig.parts[1].Material==Enum.Material.SmoothPlastic and rig.parts[3].Material==Enum.Material.Neon,'OS quiet contact or beam missed quiet mode')
 data.settings.reducedShake=true;clock+=.02;frame(1/30);check(#rig.contact.parts==8 and #rig.parts==4,'Game reduced mode missed contact/core policy')
 data.settings.reducedShake=false;platformReducedMotion=false;workspace.CurrentCamera.CFrame.Position=vec(0,0,111);frame(1/30)
 check(#rig.contact.parts==8 and #rig.parts==4,'Far contact/core policy changed')

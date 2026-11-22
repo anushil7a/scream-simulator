@@ -55,8 +55,9 @@ for _,level in ipairs({79,80,89,90,99,100})do
     Visuals.Animate(current,time+.07,viewer,mode[1],true,mode[3]);Baseline.Animate(old,time+.07,viewer,mode[1],true,mode[3])
     local nearRegular=not mode[1] and not mode[3] and not mode[4] and mode[2]==0
     local highSpec=level>=80 and not mode[1] and not mode[4] and mode[2]==0 and spec or nil
-    unchanged(old.parts,current.parts,highSpec,nearRegular and .86)
-    if mode[1] or mode[3] or mode[4] or mode[2]>110 then
+    local quiet=mode[1] or mode[3] or mode[4]
+    if not quiet then unchanged(old.parts,current.parts,highSpec,nearRegular and .86) end
+    if quiet or mode[2]>110 then
      unchanged(old.contact.parts,current.contact.parts)
     else
      local progress=.25;local ease=1-(1-progress)^3;local heat=(1-progress)^2;local fade=progress*progress
@@ -79,7 +80,7 @@ print('PASS',checks,'high-tier hierarchy/frozen-property/contact/profile asserti
 
 
 def run(source, baseline, expected=None):
-    prefix = support.CHECKS[:support.CHECKS.index('-- Preserve the original oracle')]
+    prefix = support.CHECKS[:support.CHECKS.index('-- Compare ordinary/distance rendering')]
     body = support.fixture(source, baseline + prefix + CHECKS)
     with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix='.luau', prefix='tmp_high_tier_', dir=ROOT / 'tests', delete=False) as f:
         path = Path(f.name)

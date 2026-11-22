@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Reduced effects keep the Conductor's warning readable
+
+- The disposable City baseline showed a strong texture halo around two crossing yellow level-100 beams with Reduced Effects enabled. Each template still drew two textured cores. In a matched Studio camera, the final version left more of the nearest Bell Cascade circle and the avatar visible. The quiet beam uses a translucent matte yellow shaft with a thin lit spine and hides imported overlays. Standard effects restored both existing detailed templates after two setting changes.
+- The actual Conductor cast still created six nine-stud warning discs. The separate standing impact dealt 58 damage with zero shove. The screenshots used a temporary copy of the real warning and staged beam packets. They do not measure player recognition, physical-device performance, microphones or live transport.
+- The isolated 24-beam fixture passed 7,659 checks in the iPhone 7 Studio emulator (666 × 374). Reduced effects drew 96 pooled parts, zero enabled template beams and zero emitters. Standard effects drew 496 parts, 120 enabled template beams and 96 emitters. The instrumented script p95 was 0.446 ms in the reduced phase and 4.354 ms in the standard phase. These are measurements of different modes in one Studio run. Two desktop starts aborted on changing viewports before collecting comparable samples. The stabilized emulator run completed and cleaned up.
+- Independent review, the focused render, contact and lifecycle checks, and the full local matrix passed. Full verification covered 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. All disposable instances closed and the emulator reset.
+
 ## Tell players when they can afford their first gear
 
 - In the disposable City baseline, claiming a prepared Beach quest through the real Action remote raised a temporary wallet from 80 to 130 coins. The HUD rendered Level 2 and the 50-coin payout. It gave no indication that the 100-coin Academy Megaphone was now affordable.

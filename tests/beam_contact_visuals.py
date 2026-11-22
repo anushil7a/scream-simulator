@@ -80,7 +80,8 @@ local function spokes(parts,anchor,count,extent,inner,backingThickness,coreThick
   end
  end
 end
--- Preserve the original oracle except the authorized L80+ near-detail styling.
+-- Compare ordinary/distance rendering against the historical oracle.
+-- Quiet geometry has its own silhouette oracle; compare before/after contact here.
 for _,level in ipairs({1,9,10,19,20,29,30,39,40,49,50,59,60,69,70,79,80,89,90,99,100})do
  for _,tint in ipairs({color,Color3.fromRGB(35,150,105),Color3.fromRGB(85,60,225)})do
   for _,mode in ipairs({{false,0},{true,0},{false,111},{false,181}})do
@@ -91,9 +92,14 @@ for _,level in ipairs({1,9,10,19,20,29,30,39,40,49,50,59,60,69,70,79,80,89,90,99
    local highSpec=level>=80 and not mode[1] and mode[2]==0 and StyleSource.Detail(level,false,0) or nil
    Baseline.Animate(old,time,viewer,mode[1]);Visuals.Animate(r,time,viewer,mode[1])
    local regular=not mode[1] and mode[2]==0
-   unchanged(old.parts,r.parts,highSpec,regular and .58);check(#r.contact.parts==0,'Endpoint alone produced contact')
+   local reference=old.parts
+   if mode[1] then
+    reference={}
+    for i,part in ipairs(r.parts)do reference[i]=table.clone(part) end
+   end
+   unchanged(reference,r.parts,highSpec,regular and .58);check(#r.contact.parts==0,'Endpoint alone produced contact')
    check(Visuals.Contact(r,vec(2,1,24),time,level),'Valid contact rejected')
-   Visuals.Animate(r,time,viewer,mode[1]);unchanged(old.parts,r.parts,highSpec,regular and .86)
+   Visuals.Animate(r,time,viewer,mode[1]);unchanged(reference,r.parts,highSpec,regular and .86)
    check(#r.contact.parts==(mode[2]>180 and 0 or (mode[1] or mode[2]>110) and 8 or 16),'Contact complexity changed')
    Baseline.Destroy(old);Visuals.Destroy(r)
   end

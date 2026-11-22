@@ -274,7 +274,7 @@ local function applyTemplateTint(vfx,tint)
   entry.inst.Color=accent
  end
 end
-local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet,distance,spec,suppressSecondary)
+local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,distance,spec,suppressSecondary)
  local styleId=spec.id
  local vfx=rig.vfx
  if vfx and vfx.styleId~=styleId then destroyVfx(rig);vfx=nil end
@@ -314,7 +314,7 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
   pScale=math.clamp(wScale*.85,.45,1.6)
   sScale=pScale
  end
- local far=quiet or distance>Style.FarDistance
+ local far=distance>Style.FarDistance
  local showSecondary=not far and not suppressSecondary
  local scale=Style.WidthScale(rig.level,far)
  -- Normalize against the actual selected recipe, not a guessed pack width.
@@ -480,19 +480,25 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,su
   local pulse=(quiet or distance>Style.FarDistance) and 1 or 1+.035*math.sin(age*9)
   local detailed=not quiet and distance<=Style.FarDistance
   local high=tier>=8
-  -- Quiet mode retains its simple silhouette. Regular energy has a slim hot spine
-  -- inside a non-emissive tinted body: Neon is reserved for the thin spine/details.
-  line(rig,origin,finish,radius*(detailed and 1.35 or 1.65)*pulse,detailed and color:Lerp(Color3.fromRGB(0,0,0),.35) or color,quiet and .72 or detailed and (high and .78 or .55) or .68,detailed and Enum.Material.SmoothPlastic or nil)
-  line(rig,origin,finish,radius*.85,color,quiet and .32 or detailed and (high and .7 or .18) or .12,detailed and Enum.Material.SmoothPlastic or nil)
-  line(rig,origin,finish,radius*(detailed and .10 or .28),detailed and color:Lerp(white,.72) or white,quiet and .45 or .08)
-  if quiet or distance>Style.FarDistance then
-   line(rig,finish-dir*math.min(length,.12),finish,radius*.8,color,.55)
+  if quiet then
+   -- A matte shaft and thin lit spine leave floor warnings readable.
+   line(rig,origin,finish,radius*.72,color,.83,Enum.Material.SmoothPlastic)
+   line(rig,origin,finish,radius*.42,color,.48,Enum.Material.SmoothPlastic)
+   line(rig,origin,finish,radius*.13,color:Lerp(white,.35),.45)
+   line(rig,finish-dir*math.min(length,.12),finish,radius*.34,color,.78,Enum.Material.SmoothPlastic)
   else
-   -- Keep the endpoint close to the spine so large beams don't hide the defender.
-   local diameter=math.min(radius*1.25,width*.65)
-   local depth=math.min(length,radius*.22,diameter*.18)
-   local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .58
-   line(rig,finish-dir*depth,finish,diameter,color,endAlpha,Enum.Material.SmoothPlastic)
+   line(rig,origin,finish,radius*(detailed and 1.35 or 1.65)*pulse,detailed and color:Lerp(Color3.fromRGB(0,0,0),.35) or color,detailed and (high and .78 or .55) or .68,detailed and Enum.Material.SmoothPlastic or nil)
+   line(rig,origin,finish,radius*.85,color,detailed and (high and .7 or .18) or .12,detailed and Enum.Material.SmoothPlastic or nil)
+   line(rig,origin,finish,radius*(detailed and .10 or .28),detailed and color:Lerp(white,.72) or white,.08)
+   if detailed then
+    -- Keep the endpoint close to the spine so large beams don't hide the defender.
+    local diameter=math.min(radius*1.25,width*.65)
+    local depth=math.min(length,radius*.22,diameter*.18)
+    local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .58
+    line(rig,finish-dir*depth,finish,diameter,color,endAlpha,Enum.Material.SmoothPlastic)
+   else
+    line(rig,finish-dir*math.min(length,.12),finish,radius*.8,color,.55)
+   end
   end
   if not quiet and distance<=Style.FarDistance then
    -- Thin axial ignition streak, never a launch sphere.
@@ -567,8 +573,13 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,su
   if isRoblox then
    local styleSpec=Style.StyleForLevel(rig.level)
    local accent=color:Lerp(white,.32)
-   syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet or contactReduced,distance,styleSpec,suppressSecondary)
-   local hasVfx=rig.vfx~=nil
+   if quiet then
+    -- Imported core textures still bloom even when their motion is stopped.
+    if rig.vfx and rig.vfx.root.Parent then rig.vfx.root.Parent=nil end
+   else
+    syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,distance,styleSpec,suppressSecondary)
+   end
+   local hasVfx=not quiet and rig.vfx~=nil
    for i=1,rig.used do
     local p=rig.parts[i]
     if i==1 or (i==2 and hasVfx) then

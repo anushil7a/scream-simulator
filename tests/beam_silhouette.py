@@ -61,10 +61,13 @@ for _,level in ipairs({1,40,100})do
   for _,v in ipairs(r.parts)do check(not v.CanQuery and not v.CanCollide and not v.CanTouch and not v.CastShadow,'Cosmetic physics changed')end
   radius=7*(.24+StyleSource.Tier(level)*.012)*StyleSource.WidthScale(level,true)
   Visuals.Animate(r,r.born+age,Vector3.zero,true)
-  for _,v in ipairs(r.parts)do check(v.Material==Enum.Material.Neon,'Reused quiet/far material not reset')end
-  check(#r.parts==4 and near(r.parts[1].Size.Y,radius*1.65) and r.parts[1].Transparency==.72,'Reduced body changed')
-  check(near(r.parts[3].Size.Y,radius*.28) and same(r.parts[3].Color,white) and r.parts[3].Transparency==.45,'Reduced spine changed')
-  check(r.parts[4].Shape==Enum.PartType.Cylinder and near(r.parts[4].Size.X,.12),'Reduced endpoint changed')
+  check(#r.parts==4 and r.parts[1].Material==Enum.Material.SmoothPlastic and near(r.parts[1].Size.Y,radius*.72)
+   and r.parts[1].Transparency==.83,'Reduced body changed')
+  check(near(r.parts[2].Size.Y,radius*.42) and r.parts[2].Material==Enum.Material.SmoothPlastic,'Reduced shaft retained a wide glow')
+  check(near(r.parts[3].Size.Y,radius*.13) and r.parts[3].Material==Enum.Material.Neon
+   and same(r.parts[3].Color,tint:Lerp(white,.35)) and r.parts[3].Transparency==.45,'Reduced spine changed')
+  check(r.parts[4].Shape==Enum.PartType.Cylinder and near(r.parts[4].Size.X,.12)
+   and near(r.parts[4].Size.Y,radius*.34) and r.parts[4].Material==Enum.Material.SmoothPlastic,'Reduced endpoint changed')
   Visuals.Animate(r,r.born+age,vec(0,0,111),false)
   for _,v in ipairs(r.parts)do check(v.Material==Enum.Material.Neon,'Reused quiet/far material not reset')end
   check(#r.parts==4 and near(r.parts[1].Size.Y,radius*1.65) and r.parts[1].Transparency==.68,'Far body changed')
@@ -80,7 +83,7 @@ for _,length in ipairs({.01,.1,2})do
  Visuals.Destroy(short)
 end
 local reused=Visuals.Create();Visuals.Update(reused,Vector3.zero,Vector3.zAxis,40,7,color,100,true);Visuals.Animate(reused,reused.born+.6,Vector3.zero,true)
-for _,v in ipairs(reused.parts)do check(v.Material==Enum.Material.Neon,'Cross-rig pooled material not reset')end
+for i,v in ipairs(reused.parts)do check(v.Material==(i==3 and Enum.Material.Neon or Enum.Material.SmoothPlastic),'Cross-rig pooled material not reset')end
 Visuals.Destroy(reused)
 Visuals.Clear();local allocated,cached=Visuals.Budget();check(allocated==0 and cached==0,'Terminal cleanup failed')
 print('PASS '..checks..' actual beam silhouette/tint/lifecycle checks; orientation mocked')
@@ -93,7 +96,7 @@ def main():
  p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');a=p.parse_args();s=PATH.read_text();r=run(s);assert r.returncode==0,r.stdout+r.stderr;print(r.stdout.strip())
  if a.negative_controls:
   cases=[('detailed and 1.35 or 1.65','detailed and 1.65 or 1.65','Regular body not slim'),('color:Lerp(white,.72)','white','Hot spine lost'),('finish-dir*depth,finish','finish,finish+dir*depth','Lens exceeds endpoint'),('(i-.28)*math.pi/5','i*math.pi/5','Collar has no open channel')]
-  cases=cases+[('detailed and .10 or .28','detailed and .10 or .20','Reduced spine changed')]
+  cases=cases+[('radius*.13,color:Lerp(white,.35),.45','radius*.28,color:Lerp(white,.35),.45','Reduced spine changed')]
   cases += [('math.min(radius*1.25,width*.65)','radius*1.25','Termination lens has the wrong size'),('math.min(length,radius*.22,diameter*.18)','math.min(length,radius*.22)','Termination lens has the wrong size'),('rig.contactPosition and .86 or .58','rig.contactPosition and .86 or .18','Idle termination lens obscures the target')]
   for old,new,diagnostic in cases:
    assert s.count(old)==1,old;r=run(s.replace(old,new));assert r.returncode and diagnostic in r.stderr,r.stdout+r.stderr

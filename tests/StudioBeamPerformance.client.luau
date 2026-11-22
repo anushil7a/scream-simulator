@@ -112,21 +112,25 @@ connection=Run.RenderStepped:Connect(function(dt)
    check(allocated<=Style.MaxParts,"Allocation cap exceeded")
    for id,entry in pairs(manager.entries)do
     local vfx=entry.visual.vfx
-    check(vfx and vfx.styleId=="hollow_purple","Production Hollow Purple template missing")
-    local detailed=phase==2 or (phase==3 and id==1)
-    local cores,emitters=0,0
-    for _,beam in ipairs(vfx.beams)do
-     check(beam.inst.Enabled==(beam.isCore or detailed),"Unexpected template visibility")
-     if beam.inst.Enabled then
-      enabledBeams+=1
-      if beam.isCore then cores+=1 end
+    if phase==4 then
+     check(not vfx or vfx.root.Parent==nil,"Reduced effects kept a template in the visible scene")
+    else
+     check(vfx and vfx.root.Parent==workspace and vfx.styleId=="hollow_purple","Production Hollow Purple template missing")
+     local detailed=phase==2 or (phase==3 and id==1)
+     local cores,emitters=0,0
+     for _,beam in ipairs(vfx.beams)do
+      check(beam.inst.Enabled==(beam.isCore or detailed),"Unexpected template visibility")
+      if beam.inst.Enabled then
+       enabledBeams+=1
+       if beam.isCore then cores+=1 end
+      end
      end
+     for _,emitter in ipairs(vfx.emitters)do if emitter.inst.Enabled then emitters+=1 end end
+     check(cores==2,"Template core missing on one or more rigs")
+     check((detailed and emitters>0) or (not detailed and emitters==0),"Unexpected template emission")
+     if phase==3 then check(detailed and #entry.visual.parts>5 or not detailed and #entry.visual.parts==5,"Crowded geometry wrong")end
+     enabledEmitters+=emitters
     end
-    for _,emitter in ipairs(vfx.emitters)do if emitter.inst.Enabled then emitters+=1 end end
-    check(cores==2,"Template core missing on one or more rigs")
-    check((detailed and emitters>0) or (not detailed and emitters==0),"Unexpected template emission")
-    if phase==3 then check(detailed and #entry.visual.parts>5 or not detailed and #entry.visual.parts==5,"Crowded geometry wrong")end
-    enabledEmitters+=emitters
     for _,part in ipairs(entry.visual.parts)do
      tracked[part]=true;visible+=1
      check(part.Parent==workspace and not part.CanCollide and not part.CanQuery and not part.CanTouch,"Invalid cosmetic part")
