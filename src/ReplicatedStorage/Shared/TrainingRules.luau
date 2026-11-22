@@ -1,4 +1,4 @@
-local Training={Radius=32,Windup=1.1,AttackInterval=4,ResetAfter=25,RoamRadius=18,RoamSpeed=7,RoamLeash=22}
+local Training={Radius=32,StrikeRadius=4,Windup=1.1,AttackInterval=4,ResetAfter=25,RoamRadius=18,RoamSpeed=7,RoamLeash=22}
 Training.Tiers={
  {id="rookie",name="Rookie",level=1,maxLevel=24,health=80,damage=8,xp=48,x=-440,z=545},
  {id="brawler",name="Brawler",level=25,maxLevel=59,health=220,damage=18,xp=180,x=-320,z=545},
@@ -14,6 +14,6 @@ function Training.Recommended(level)
 end
 -- A telegraphed strike lands at a fixed point; moving four studs or dodging avoids it.
 function Training.Hits(distanceFromAim,protected,dodging)
- return distanceFromAim<=4 and not protected and not dodging
+ return distanceFromAim<=Training.StrikeRadius and not protected and not dodging
 end
 return Training

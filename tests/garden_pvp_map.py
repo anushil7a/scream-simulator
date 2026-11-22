@@ -79,9 +79,14 @@ for x=-320,320,5 do for z=-180,190,5 do
  end
 end end
 local zoneValues={Text=''};local zoneWrites=0
-local zone=setmetatable({},{__index=zoneValues,__newindex=function(_,key,value)zoneWrites+=1;zoneValues[key]=value end});local white,gold='white','gold';local academy={};local root={Position=Vector3.new(0,20,0)}
+local zone=setmetatable({},{__index=zoneValues,__newindex=function(_,key,value)zoneWrites+=1;zoneValues[key]=value end});local white,gold='white','gold';local academy={TrainingRules={StrikeRadius=4}};local root={Position=Vector3.new(0,20,0)}
 local bossHint
-local p={Character={FindFirstChild=function()return root end},GetAttribute=function()return bossHint end}
+local attributes={};local humanoid={Health=100}
+local character={FindFirstChild=function()return root end,FindFirstChildOfClass=function()return humanoid end,GetAttribute=function(_,key)return attributes[key]end}
+local p={Character=character,GetAttribute=function()return bossHint end}
+local now=10
+local workspace={GetServerTimeNow=function()return now end}
+local function typeof(value)return type(value)=='table' and 'Vector3' or type(value)end
 '''
 POST2=r'''
 academy.refreshZone();check(zone.Text=='GARDEN • PvP ON','Current local garden cue missing')
@@ -89,6 +94,16 @@ bossHint='Step off the circles';academy.refreshZone();check(zone.Text=='GARDEN �
 root.Position=Vector3.new(0,20,110);academy.refreshZone()
 check(zone.Text==bossHint and zone.TextColor3==gold,'Boss hint did not use existing safe status lane')
 bossHint=nil
+attributes.TrainingStrikeAt=11;attributes.TrainingStrikeCenter=Vector3.new(0,0,110)
+academy.refreshZone();check(zone.Text=='MOVE OR DODGE','Targeted strike did not reach the status lane')
+root.Position=Vector3.new(4,20,110);academy.refreshZone();check(zone.Text=='MOVE OR DODGE','Warning ended on the inclusive strike edge')
+root.Position=Vector3.new(4.1,20,110);academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','Leaving the circle retained the training cue')
+root.Position=Vector3.new(0,20,110);academy.refreshZone();check(zone.Text=='MOVE OR DODGE','Crossing back into the circle missed the warning')
+humanoid.Health=0;academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','Dead character retained the training cue')
+humanoid.Health=100
+bossHint='Step off the circles';academy.refreshZone();check(zone.Text==bossHint,'Training cue displaced the boss cue')
+bossHint=nil
+now=11;academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','Expired training cue retained')
 root.Position=Vector3.new(0,20,110);academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','Cafe path HUD unsafe')
 root.Position=Vector3.new(0,35,0);academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','HUD ignores height band')
 root.Position=Vector3.new((Layout.ZoneMin.X+Layout.ZoneMax.X)/2,(Layout.ZoneMin.Y+Layout.ZoneMax.Y)/2,(Layout.ZoneMin.Z+Layout.ZoneMax.Z)/2)
@@ -109,12 +124,14 @@ for _,viewport in ipairs({{X=320,Y=568},{X=390,Y=844},{X=844,Y=390},{X=1280,Y=72
 end
 print('PASS '..n..' actual Map10 canonical fill/edge/projection + local zone cue assertions; mocked GUI, native/mobile still required')
 '''
-def code(s):return PRE+layout+'\n'+BRIDGE+config+'\n'+BRIDGE2+s+'\n'+POST+'\n'+zone+'\n'+POST2
-def run(s,negative=False):
- with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False)as f:f.write(code(s));p=Path(f.name)
+def code(s,hud):return PRE+layout+'\n'+BRIDGE+config+'\n'+BRIDGE2+s+'\n'+POST+'\n'+hud+'\n'+POST2
+def run(s,negative=False,hud=zone):
+ with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False)as f:f.write(code(s,hud));p=Path(f.name)
  try:
   r=subprocess.run(['luau',str(p)],capture_output=True,text=True);out=r.stdout+r.stderr
-  if negative:assert r.returncode,'Negative control passed';print('PASS negative control:',out.splitlines()[0])
+  if negative:
+   assert r.returncode and (negative is True or negative in out),out
+   print('PASS negative control:',out.splitlines()[0])
   else:assert not r.returncode,out;print(out,end='')
  finally:p.unlink()
 if __name__=='__main__':
@@ -125,3 +142,9 @@ if __name__=='__main__':
  if a.negative_controls:
   run(source.replace('finish.X.Scale-start.X.Scale,finish.Y.Scale-start.Y.Scale','1,1',1),True)
   run(source.replace('CityMap.GardenPvp(map,compact)','CityMap.NoGardenPvp(map,compact)',1).replace(' CityMap.GardenPvp(map,compact)','',1),True)
+  for old,new,expected in [
+   ('x*x+z*z<=radius*radius','true','Leaving the circle retained the training cue'),
+   ('workspace:GetServerTimeNow()<strikeAt','true','Expired training cue retained'),
+  ]:
+   assert zone.count(old)==1
+   run(source,expected,zone.replace(old,new))

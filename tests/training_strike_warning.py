@@ -23,9 +23,14 @@ local root={Position=pos}
 local health={Health=100}
 local otherRoot={Position=pos}
 local otherHealth={Health=100}
+local function character()
+ local attributes={}
+ return {SetAttribute=function(_,key,value)attributes[key]=value end,GetAttribute=function(_,key)return attributes[key]end}
+end
+local playerCharacter,otherCharacter=character(),character()
 local function parts(who)
- if who==other then return {},otherRoot,otherHealth end
- return {},root,health
+ if who==other then return otherCharacter,otherRoot,otherHealth end
+ return playerCharacter,root,health
 end
 local function audible()return true end
 local Config={HealQuietSeconds=4,InArena=function()return false end}
@@ -40,7 +45,8 @@ local transform={__mul=function(a)return a end}
 local CFrame={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},transform)end,Angles=function()return {}end}
 local Enum={PartType={Cylinder=1},Material={Neon=1}}
 local Color3={fromRGB=function(...)return {...}end}
-local workspace={}
+local serverClock=50
+local workspace={GetServerTimeNow=function()return serverClock end}
 local TrainingRules=require("../src/ReplicatedStorage/Shared/TrainingRules")
 local bot={training={y=32,damage=8},alive=true,start=pos,root={Position=pos},health=80,maxHealth=80,trainingTarget=player}
 local World={Bots={bot}}
@@ -98,7 +104,22 @@ stepTraining(26+TrainingRules.Windup)
 assert(health.Health==84 and otherHealth.Health==92,"Cancelled strike still dealt damage")
 stepTraining(30)
 assert(#partsCreated==6 and bot.strike,"New target could not begin the next strike")
-print("PASS training strike visibility, cancellation, stable target and retarget cadence")
+assert(otherCharacter:GetAttribute("TrainingStrikeAt")==50+TrainingRules.Windup,"Selected character missed the deadline")
+assert(otherCharacter:GetAttribute("TrainingStrikeCenter")==otherRoot.Position,"Selected character missed the ground center")
+assert(playerCharacter:GetAttribute("TrainingStrikeAt")==nil,"Cue leaked to a bystander")
+session.flight=false
+otherSession.flight=true
+stepTraining(30.1)
+assert(otherCharacter:GetAttribute("TrainingStrikeAt")==nil and otherCharacter:GetAttribute("TrainingStrikeCenter")==nil,"Cancelled strike retained HUD")
+otherSession.flight=false
+bot.trainingTarget=player
+stepTraining(34)
+serverClock=100
+playerCharacter:SetAttribute("TrainingStrikeAt",serverClock)
+playerCharacter:SetAttribute("TrainingStrikeCenter",otherRoot.Position)
+stepTraining(34+TrainingRules.Windup)
+assert(playerCharacter:GetAttribute("TrainingStrikeAt")==serverClock and playerCharacter:GetAttribute("TrainingStrikeCenter")==otherRoot.Position,"Older strike cleared a newer cue")
+print("PASS training strike visibility, cancellation, targeting, deadlines and cue fencing")
 '''
 
 
@@ -134,3 +155,6 @@ if args.negative_controls:
     clear_if_current = 'if bot.trainingTarget==p then bot.trainingTarget=nil end'
     assert source.count(clear_if_current) == 1
     run(source.replace(clear_if_current, 'bot.trainingTarget=nil'), 'Cancellation lost the next target')
+    cue_guard = 'strike.character:GetAttribute("TrainingStrikeAt")==strike.cueUntil'
+    assert source.count(cue_guard)==1
+    run(source.replace(cue_guard,'true'),'Older strike cleared a newer cue')

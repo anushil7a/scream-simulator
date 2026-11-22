@@ -470,6 +470,10 @@ local function clearTrainingStrike(bot)
  local strike=bot.strike
  bot.strike=nil
  if strike and strike.warning then strike.warning:Destroy() end
+ if strike and strike.cueUntil and strike.character:GetAttribute("TrainingStrikeAt")==strike.cueUntil then
+  strike.character:SetAttribute("TrainingStrikeAt",nil)
+  strike.character:SetAttribute("TrainingStrikeCenter",nil)
+ end
  return strike
 end
 local function restoreBot(bot)
@@ -1169,9 +1173,13 @@ local function stepTraining(now)
    local disc=Instance.new("Part");disc.Name="TrainingStrikeWarning";disc.Anchored=true
    disc.CanCollide=false;disc.CanTouch=false;disc.CanQuery=false;disc.Shape=Enum.PartType.Cylinder
    local warningY=(bot.training.y or 0)+1.4
-   disc.Size=Vector3.new(.1,8,8);disc.CFrame=CFrame.new(r.Position.X,warningY,r.Position.Z)*CFrame.Angles(0,0,math.pi/2)
+   local diameter=TrainingRules.StrikeRadius*2
+   disc.Size=Vector3.new(.1,diameter,diameter);disc.CFrame=CFrame.new(r.Position.X,warningY,r.Position.Z)*CFrame.Angles(0,0,math.pi/2)
    disc.Color=Color3.fromRGB(255,90,70);disc.Material=Enum.Material.Neon;disc.Transparency=.65;disc.CastShadow=false;disc.Parent=workspace
-   bot.strike={at=now+TrainingRules.Windup,position=r.Position,warning=disc,target=p}
+   local cueUntil=workspace:GetServerTimeNow()+TrainingRules.Windup
+   bot.strike={at=now+TrainingRules.Windup,position=r.Position,warning=disc,target=p,character=c,cueUntil=cueUntil}
+   c:SetAttribute("TrainingStrikeCenter",bot.strike.position)
+   c:SetAttribute("TrainingStrikeAt",cueUntil)
    game:GetService("Debris"):AddItem(disc,TrainingRules.Windup+.5)
   end
  end

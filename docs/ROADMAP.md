@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Rookie's strike warning stays visible off-screen
+
+- In the iPhone 7 landscape emulator (666 × 316 safe pixels), a close camera aimed upward put the Rookie warning disc below the frame for all 71 sampled warning frames. The old status line said **SAFE • PvP OFF** throughout.
+- The targeted character now carries the strike center and deadline. The existing HUD status line shows **MOVE OR DODGE** during the windup while that living character is within the four-stud horizontal strike radius. It restores the normal status on exit, cancellation or expiry. Arena and boss cues retain priority.
+- With the same local setup, the disc was below the frame for all 68 sampled warning frames. The new cue fit and showed on 65 frames, and standing still took eight damage. A staged five-stud step dropped the cue and kept health at 100. A canceled strike cleared the deadline and also left health at 100.
+- Independent review and the full local run passed, including 29 pure/synthetic suites, 164 mocked-service suites, production compilation and review builds. The tests cover targeting, deadline cleanup, a later cue surviving an old cancellation, exact radius, leaving and reentering, death, status priority, and expired state. Studio used synthetic readiness, a fixed camera and staged positions. Real voice, physical touch, human reaction time and live multiplayer remain open. The emulator viewport was restored and the disposable session closed.
+
 ## The aim HUD follows the beam endpoint
 
 - The old aim preview treated the two-stud PvP root-distance allowance as extra beam length and used it for training fighters too. At about 31.15 studs from Rookie with 30 studs of full-power reach, the local Studio HUD read **TRAINING RESIDENT** while the server resolver excluded the fighter.

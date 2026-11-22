@@ -355,9 +355,20 @@ function academy.refreshZone()
  local enabled=position and Config.InArena(position)==true or false
  local garden=enabled and Config.InGardenPvp and Config.InGardenPvp(position)==true
  local bossHint=not enabled and position and p:GetAttribute("BossCombatHint")
- local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or bossHint or "SAFE • PvP OFF"
+ local strikeAt=not enabled and not bossHint and position and character:GetAttribute("TrainingStrikeAt")
+ local trainingHint=false
+ if type(strikeAt)=="number" and workspace:GetServerTimeNow()<strikeAt then
+  local center=character:GetAttribute("TrainingStrikeCenter")
+  local humanoid=character:FindFirstChildOfClass("Humanoid")
+  if typeof(center)=="Vector3" and humanoid and humanoid.Health>0 then
+   local x,z=position.X-center.X,position.Z-center.Z
+   local radius=academy.TrainingRules.StrikeRadius
+   trainingHint=x*x+z*z<=radius*radius
+  end
+ end
+ local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or bossHint or trainingHint and "MOVE OR DODGE" or "SAFE • PvP OFF"
  if zone.Text~=value then
-  zone.Text=value;zone.TextColor3=enabled and Color3.fromRGB(255,140,139) or bossHint and gold or white
+  zone.Text=value;zone.TextColor3=(enabled or trainingHint) and Color3.fromRGB(255,140,139) or bossHint and gold or white
  end
 end
 function academy.layoutZone(viewport,touch)
