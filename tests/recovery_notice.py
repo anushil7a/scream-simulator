@@ -37,7 +37,7 @@ check(saveStatus():find('progress may be missing',1,true),'Ownership loss erased
 print('PASS '..checks..' actual recovery notice formatter checks')
 '''
 autosave_start=server.index('local function autosave(p,s)')
-autosave_end=server.index('task.spawn(function() while true do task.wait(60)',autosave_start)
+autosave_end=server.index('local function stepAutosaves(now)',autosave_start)
 server_setup=r'''
 local sessions={};local saveResult,saveReason
 local Profiles={Save=function()return saveResult,saveReason end}

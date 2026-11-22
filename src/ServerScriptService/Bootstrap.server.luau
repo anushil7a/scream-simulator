@@ -1082,7 +1082,7 @@ local function joined(p)
   return
  end
  local s={data=data,canSave=save,recoveryWarning=recoveryWarning,rewardIdentity={},voice=VoiceCombat.New(),voiceEligibility=VoiceEligibility.New(localFixture,os.clock(),p.UserId),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
- botRewards={},credit={},collected={},sprintRequested=false,sprintRunning=false,sprintRegenAt=0,sprintCharge=Config.SprintDuration,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
+ botRewards={},credit={},collected={},sprintRequested=false,sprintRunning=false,sprintRegenAt=0,sprintCharge=Config.SprintDuration,sprintLockedUntil=0,lastStep=os.clock(),nextAutosaveAt=save and os.clock()+30 or nil};sessions[p]=s
  -- Visibility cache only. Every activation, pulse and tick rechecks the dynamic server guard.
  s.testBeamAvailable=toolAuthorized(p)
  task.spawn(Commerce.Load,p)
@@ -1336,7 +1336,32 @@ local function autosave(p,s)
   if first then state(p,"Save delayed. Your progress is still in this server; saving will retry automatically.",nil,true,"save") end
  end
 end
-task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(autosave,p,s) end end end end)
+local function stepAutosaves(now)
+ if closing then return end
+ local player,session
+ for p,s in pairs(sessions) do
+  if s.canSave and p.Parent and not s.autosaveInFlight and now>=s.nextAutosaveAt
+   and (not session or s.nextAutosaveAt<session.nextAutosaveAt) then
+   player,session=p,s
+  end
+ end
+ if not session then return end
+ -- Pace starts, including after a slow frame, without stacking a player's saves.
+ session.nextAutosaveAt=now+60
+ session.autosaveInFlight=true
+ task.defer(function()
+  if not closing and sessions[player]==session and player.Parent and session.canSave then
+   autosave(player,session)
+  end
+  session.autosaveInFlight=false
+ end)
+end
+task.spawn(function()
+ while not closing do
+  task.wait(.25)
+  stepAutosaves(os.clock())
+ end
+end)
 local function shutdown()
  closing=true
  local pending=0

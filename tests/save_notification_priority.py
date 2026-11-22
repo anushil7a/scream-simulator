@@ -12,7 +12,7 @@ setup=setup.replace('local function notify(message,urgent)table.insert(notices,m
 local function notify(message,urgent,key)notifications:Push(message,urgent,key)end''')
 receiver=client[client.index('local lastMilestone'):client.index('connectClient(UIS.InputBegan')]
 state=server[server.index('local function state('):server.index('Commerce.Start(')]
-autosave=server[server.index('local function autosave('):server.index('task.spawn(function() while true do task.wait(60)')]
+autosave=server[server.index('local function autosave('):server.index('local function stepAutosaves(now)')]
 speaker=server[server.index('local function gearAction('):server.index('local function vendorPurchase(')]
 extra='''
 local VoiceEligibility=require('../src/ServerScriptService/VoiceEligibility')

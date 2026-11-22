@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Pace autosave starts instead of launching a server-wide burst
+
+- The previous dispatch loop started all 20 writable profiles on one synthetic 60-second tick. The new scheduler starts the oldest eligible profile at most once per quarter-second. A writable profile first becomes due 30 seconds after admission and is next due 60 seconds after dispatch, including when the profile is quiet and needs its lease renewed.
+- A yielding write cannot queue another autosave for the same session. Other profiles can proceed, and deferred work checks that the player, session and saving eligibility are still current before writing. Existing ownership, retry, failure notices, leave saves and final shutdown saves keep their existing policies.
+- The isolated Studio-only fixture used the production dispatcher with 20 mock profiles and an adapter that yielded for 0.8 seconds. All 20 completed with no duplicates. Starts occurred over 4.96 seconds, with a minimum 0.250-second gap. That test used Roblox task scheduling without networking or storage services. The disposable Studio closed.
+- Independent review found a historical regression fixture still needed the old extraction boundary. Both current and frozen-baseline fixture modes passed after correcting it. Focused tests passed 124 scheduler assertions, 11 autosave-status assertions and four new negative controls. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. Live DataStore request budgets, retry bursts, shutdown and rapid-rejoin behavior remain release gates. The report's shutdown/rejoin items are separate from this scheduler change.
+
 ## Keep health and XP visible while a notice is open
 
 - In matched Studio at 666 × 316 usable pixels, the baseline opened the notice at (14, 66) and hid the health, XP, level and wallet card. The fixed layout moved the notice to (264, 66), eight pixels past the card, with both the status and objective tracker visible. At 448 × 300, inline space was insufficient and the existing **NOTICE** shortcut opened the full message in the menu.

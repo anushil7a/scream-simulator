@@ -13,7 +13,8 @@ def build(baseline=False,mutation=None):
  if mutation:b=mutation(b)
  dev=b[b.index('local function dev(p,command)'):b.index('World.OnVehicleSweep=')]
  payout=b[b.index('local function xp('):b.index('local function stopQuest(')]
- save=b[b.index('local function autosave('):b.index('task.spawn(function() while true do task.wait(60)')]
+ save_end='task.spawn(function() while true do task.wait(60)' if baseline else 'local function stepAutosaves(now)'
+ save=b[b.index('local function autosave('):b.index(save_end)]
  predicates=''
  if not baseline:
   sections={'sustained':b[b.index('local function resolveSustained('):b.index('local function destructionHint(')],'legacy':b[b.index('local function cast('):b.index('local function dodge(')]}
