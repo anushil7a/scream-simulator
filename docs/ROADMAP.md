@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Restore the archived coastal art baseline check
+
+- Running the old coastal fixture directly on Map10 failed inside the mocked builder before the baseline comparison. The supported archive runner now includes the fingerprint comparison and negative controls for the exact preserved coast. A direct run against Map10 prints the archive command.
+- The preserved checkout passed all 11 archived suites, checked both archived source files byte-for-byte after newline normalization, and passed 2,645 coastal art assertions, the original and pinned pre-removal fingerprints, and all nine negative controls. The archived art is already at its 350-part cap. This verifies archived geometry and flags in a mock. A current Map10 skyline streaming capture is still needed to verify the floating-roof report.
+- Independent review cleared the runner and direct invocation. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. The archived baseline comparison requires both pinned revisions in local Git history.
+
 ## Explain the starter beam's voice-only sound
 
 - The level-1 Tiny Aah style uses the player's voice without added beam audio. The old Beams menu showed it as equipped without explaining the missing recording. The collection now labels styles with no recording **VOICE ONLY** using the playback catalog, and shows **NOW · VOICE ONLY** in the first card when that style is equipped. **NEXT SOUND** still shows Echo Pop at level 10 for a fresh player.

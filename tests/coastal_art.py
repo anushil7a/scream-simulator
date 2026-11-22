@@ -62,6 +62,8 @@ def digest(output):
 EXPECTED='5ef036ad23b972f1fc95aad878e6de684d3c6e51bd82fb90261e0f1ed4b2499b'
 if __name__=='__main__':
  p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');p.add_argument('--baseline',action='store_true');args=p.parse_args()
+ if 'MapId="Map10"' in world.layout:
+  p.error('For the archived coast, run python tests/preserved_compact.py (includes the baseline and negative controls).')
  source=(ROOT/'src/ServerScriptService/CompactCity.luau').read_text(encoding='utf-8')
  output=run(source)
  assert digest(output)==EXPECTED,'Original gameplay geometry or flags changed'
