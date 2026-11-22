@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Require deliberate beam rearm after a protected return
+
+- In the baseline, the real knockout ejection returned an active player to the safe hub without replacing the avatar. The server stopped sequence 1 and enforced protection and cooldown. The client stayed armed and fired sequence 2 from fresh synthetic input after recovery, without a second activation.
+- A positive server protection grant now uses the same local disarm path as focus loss. It applies to knockouts and other protected returns. The client still disarms if it receives the grant after its deadline. The toggle stays OFF until deliberate rearm. The action does not mute Roblox voice or change server combat timing.
+- In a matched disposable Studio run, the same avatar stayed OFF through protection and cooldown. Quiet followed by fresh synthetic speech left the sequence at 1. A deliberate rearm while already loud did not fire, and a fresh onset after silence started sequence 2. The fixture then delivered a staged past-deadline grant, and the actual client and server stopped the active cast. The initial knockout path was invoked directly by the fixture, and the delayed grant was staged rather than measured on a live connection.
+- Independent review cleared both the initial fix and late-grant handling. The focused checks passed 36 voice assertions and five negative controls, 1,219 notice assertions, 16 server knockout checks and 13 server respawn checks. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. Three disposable Studio sessions closed. Authentic microphones, voice audibility, physical touch and live network delivery remain unverified.
+
 ## Keep the first-play HUD and menu usable at 480 safe pixels
 
 - At 480 × 150 safe pixels the old action group began at y = −45, Talk at y = −99 and Gear content had a negative 28-pixel height. The compact touch HUD now starts at 480 pixels wide. It keeps its 44-pixel targets and narrows the Notice or Reward shortcut only below 492 pixels. The short menu uses 56-pixel tabs on that same narrow width so the cards retain the previous minimum width.

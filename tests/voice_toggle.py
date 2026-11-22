@@ -6,6 +6,11 @@ import tempfile
 root=Path(__file__).resolve().parents[1]
 s=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text();a=s.index('local function toggleVoice()');b=s.index('local function releaseCapture(',a)
 respawn_line=next(line for line in s.splitlines() if line.startswith('connectClient(p.CharacterRemoving,') and 'hitFeedback:DiscardThrough' in line)
+suspend_start=s.index('local function suspendGameplay()')
+suspend=s[suspend_start:s.index('connectClient(UIS.WindowFocusReleased',suspend_start)]
+protection_start=s.index('connectClient(p:GetAttributeChangedSignal("ProtectionEnds")')
+protection=s[protection_start:s.index('\n;(function()',protection_start)]
+
 setup='''
 local unavailable=false;local windowFocused=true
 local academy={lockLostUntil=0,incomingHit={}} -- Presentation dependency; voice assertions remain unchanged.
@@ -74,11 +79,19 @@ check(server.protocol.active~=nil,'ON failed after cooldown and fresh quiet')
 toggleVoice();local finalCount=#sent;advance(1,.8)
 check(#sent==finalCount and not server.protocol.active,'OFF repeatedly stopped or restarted')
 -- Dispatch the actual CharacterRemoving callback with mocked character services.
-local removalCallback;local p={CharacterRemoving={}}
-local function connectClient(_,callback)removalCallback=callback end
+local removalCallback,protectionCallback;local p={CharacterRemoving={}}
+local protectionEnds=0
+function p:GetAttribute(name)assert(name=="ProtectionEnds");return protectionEnds end
+function p:GetAttributeChangedSignal(name)return name end
+local function connectClient(signal,callback)
+ if signal==p.CharacterRemoving then removalCallback=callback else protectionCallback=callback end
+end
 local hitFeedback={DiscardThrough=function()end}
-local function setSprint()end;local function cancelCapture()end;local closeConversation=nil
+local sprintStops,captureCancels=0,0
+local function setSprint()sprintStops+=1 end
+local function cancelCapture()captureCancels+=1 end;local closeConversation=nil
 __RESPAWN_CALLBACK__
+__PROTECTION_CALLBACK__
 removalCallback();sustainedControl:ObserveAvailability(false);sustainedControl:ObserveAvailability(true)
 advance(.4,0);advance(.4,.8)
 check(not sustainedControl.armed and #sent==finalCount,'Actual removal callback lost OFF choice on respawn-like recovery')
@@ -89,9 +102,24 @@ check(not sustainedControl.armed and not server.protocol.active and sent[#sent]=
 sustainedControl:ObserveAvailability(false);sustainedControl:ObserveAvailability(true)
 advance(11,0);advance(.4,.8)
 check(not sustainedControl.armed and not server.protocol.active and mic.ready,'Respawn-like recovery resumed attacks or disabled mic')
+toggleVoice();advance(.4,0);advance(.4,.8)
+check(server.protocol.active~=nil,'Protected return setup did not start an attack')
+local sprintBefore,captureBefore=sprintStops,captureCancels
+protectionEnds=now+5;protectionCallback()
+check(not sustainedControl.armed and not server.protocol.active and sent[#sent]=='SustainedStop','Same-avatar protection did not stop and disarm')
+check(sprintStops==sprintBefore+1 and captureCancels==captureBefore+1,'Protected return left locomotion or capture running')
+local beforeQuiet=#sent
+advance(6,0);advance(.4,.8)
+check(not server.protocol.active and #sent==beforeQuiet and mic.ready,'Protected return automatically restarted or disabled the mic')
+toggleVoice();advance(.4,0);advance(.4,.8)
+check(server.protocol.active~=nil,'Deliberate re-arm failed after protected return')
+protectionEnds=0;protectionCallback()
+check(sustainedControl.armed and server.protocol.active,'Cleared protection update disarmed an active cast')
+protectionEnds=now-1;protectionCallback()
+check(not sustainedControl.armed and not server.protocol.active,'Late protection grant did not disarm')
 print('PASS '..checks..' actual voice toggle checks with mocked availability')
 '''
-checks=checks.replace('__RESPAWN_CALLBACK__',respawn_line)
+checks=checks.replace('__RESPAWN_CALLBACK__',respawn_line).replace('__PROTECTION_CALLBACK__',suspend+protection)
 def run(payload, expected_failure=None):
     with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.voice_toggle_',dir=root/'tests',delete=False) as f:
         path=Path(f.name);f.write(payload)
@@ -101,7 +129,8 @@ def run(payload, expected_failure=None):
             assert result.returncode!=0 and expected_failure in result.stderr, result.stdout+result.stderr
             print('PASS negative control caught: '+expected_failure)
         else:
-            print(result.stdout,end='');result.check_returncode()
+            assert result.returncode==0,result.stdout+result.stderr
+            print(result.stdout,end='')
     finally:
         path.unlink()
 
@@ -117,3 +146,14 @@ if '--negative-controls' in sys.argv:
     assert payload.count(needle)==1
     run(payload.replace(needle,'sustainedControl:SetArmed(true)\n'+needle),
         'Availability/respawn-like recovery re-enabled OFF')
+
+    needle='  suspendGameplay()'
+    assert payload.count(needle)==1
+    run(payload.replace(needle,'  setSprint(false)'),
+        'Same-avatar protection did not stop and disarm')
+    needle=' and (p:GetAttribute("ProtectionEnds") or 0)>0'
+    assert payload.count(needle)==1
+    run(payload.replace(needle,''),
+        'Cleared protection update disarmed an active cast')
+    run(payload.replace(needle,' and (p:GetAttribute("ProtectionEnds") or 0)>now'),
+        'Late protection grant did not disarm')

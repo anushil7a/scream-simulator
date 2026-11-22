@@ -1664,7 +1664,14 @@ local function suspendGameplay()
 end
 connectClient(UIS.WindowFocusReleased,function() windowFocused=false;suspendGameplay() end)
 connectClient(GuiService.MenuOpened,suspendGameplay)
-connectClient(p:GetAttributeChangedSignal("ProtectionEnds"),function() setSprint(false) end)
+connectClient(p:GetAttributeChangedSignal("ProtectionEnds"),function()
+ -- A positive update is a server protection grant, even if it arrives late.
+ if sustainedControl and (p:GetAttribute("ProtectionEnds") or 0)>0 then
+  suspendGameplay()
+ else
+  setSprint(false)
+ end
+end)
 ;(function()
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
