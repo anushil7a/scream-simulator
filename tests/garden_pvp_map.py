@@ -31,6 +31,7 @@ BRIDGE2=r'''
 local BossCatalog={Entries={}} -- Preserve pin construction path without replacing tested map geometry.
 local node={};function node:WaitForChild(name)return name=='Shared' and self or name end
 local game={GetService=function()return node end}
+local TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
 local function require(name)if name=='Config'then return Config elseif name=='CompactLayout'then return Layout elseif name=='BossCatalog'then return BossCatalog else error(name)end end
 local CityMap=(function()
 '''
@@ -88,7 +89,7 @@ for x=-320,320,5 do for z=-180,190,5 do
  end
 end end
 local zoneValues={Text=''};local zoneWrites=0
-local zone=setmetatable({},{__index=zoneValues,__newindex=function(_,key,value)zoneWrites+=1;zoneValues[key]=value end});local white,gold='white','gold';local academy={TrainingRules={StrikeRadius=4}};local root={Position=Vector3.new(0,20,0)}
+local zone=setmetatable({},{__index=zoneValues,__newindex=function(_,key,value)zoneWrites+=1;zoneValues[key]=value end});local white,gold='white','gold';local academy={TrainingRules=TrainingRules};local root={Position=Vector3.new(0,20,0)}
 local bossHint
 local attributes={};local humanoid={Health=100}
 local character={FindFirstChild=function()return root end,FindFirstChildOfClass=function()return humanoid end,GetAttribute=function(_,key)return attributes[key]end}
@@ -103,10 +104,11 @@ bossHint='Step off the circles';academy.refreshZone();check(zone.Text=='GARDEN �
 root.Position=Vector3.new(0,20,110);academy.refreshZone()
 check(zone.Text==bossHint and zone.TextColor3==gold,'Boss hint did not use existing safe status lane')
 bossHint=nil
-attributes.TrainingStrikeAt=11;attributes.TrainingStrikeCenter=Vector3.new(0,0,110)
+attributes.TrainingStrikeAt=11;attributes.TrainingStrikeCenter=Vector3.new(0,17,110)
 academy.refreshZone();check(zone.Text=='MOVE OR DODGE','Targeted strike did not reach the status lane')
 root.Position=Vector3.new(4,20,110);academy.refreshZone();check(zone.Text=='MOVE OR DODGE','Warning ended on the inclusive strike edge')
 root.Position=Vector3.new(4.1,20,110);academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','Leaving the circle retained the training cue')
+root.Position=Vector3.new(0,23.01,110);academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','Ground warning retained above the damage band')
 root.Position=Vector3.new(0,20,110);academy.refreshZone();check(zone.Text=='MOVE OR DODGE','Crossing back into the circle missed the warning')
 humanoid.Health=0;academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','Dead character retained the training cue')
 humanoid.Health=100
@@ -154,7 +156,8 @@ if __name__=='__main__':
   run(source.replace('finish.X.Scale-start.X.Scale,finish.Y.Scale-start.Y.Scale','1,1',1),True)
   run(source.replace('CityMap.GardenPvp(map,compact)','CityMap.NoGardenPvp(map,compact)',1).replace(' CityMap.GardenPvp(map,compact)','',1),True)
   for old,new,expected in [
-   ('x*x+z*z<=radius*radius','true','Leaving the circle retained the training cue'),
+   ('academy.TrainingRules.ContainsStrike(center,position)','true','Leaving the circle retained the training cue'),
+   ('academy.TrainingRules.ContainsStrike(center,position)','academy.TrainingRules.ContainsStrike(center,Vector3.new(position.X,center.Y+3,position.Z))','Ground warning retained above the damage band'),
    ('workspace:GetServerTimeNow()<strikeAt','true','Expired training cue retained'),
   ]:
    assert zone.count(old)==1

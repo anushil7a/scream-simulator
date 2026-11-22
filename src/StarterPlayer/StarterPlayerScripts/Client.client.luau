@@ -379,9 +379,7 @@ function academy.refreshZone()
   local center=character:GetAttribute("TrainingStrikeCenter")
   local humanoid=character:FindFirstChildOfClass("Humanoid")
   if typeof(center)=="Vector3" and humanoid and humanoid.Health>0 then
-   local x,z=position.X-center.X,position.Z-center.Z
-   local radius=academy.TrainingRules.StrikeRadius
-   trainingHint=x*x+z*z<=radius*radius
+   trainingHint=academy.TrainingRules.ContainsStrike(center,position)
   end
  end
  local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or bossHint or trainingHint and "MOVE OR DODGE" or "SAFE • PvP OFF"

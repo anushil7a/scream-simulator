@@ -48,14 +48,14 @@ local Color3={fromRGB=function(...)return {...}end}
 local serverClock=50
 local workspace={GetServerTimeNow=function()return serverClock end}
 local TrainingRules=require("../src/ReplicatedStorage/Shared/TrainingRules")
-local bot={training={y=32,damage=8},alive=true,start=pos,root={Position=pos},health=80,maxHealth=80,trainingTarget=player}
+local bot={training={y=32,damage=8},trainingSurfaceY=32.26,alive=true,start=pos,root={Position=pos},health=80,maxHealth=80,trainingTarget=player}
 local World={Bots={bot}}
 local function state()end
 '''
 checks = r'''
 stepTraining(10)
 local mark=assert(partsCreated[1],"Windup did not show")
-assert(mark.Size.Y==8 and mark.CFrame.Y==33.4 and not mark.CanQuery,"Warning footprint or placement changed")
+assert(mark.Size.Y==8 and not mark.CanQuery,"Warning footprint changed")
 local initial=mark.Transparency
 local strikeTime=bot.strike.at
 session.flight=true
@@ -105,7 +105,8 @@ assert(health.Health==84 and otherHealth.Health==92,"Cancelled strike still deal
 stepTraining(30)
 assert(#partsCreated==6 and bot.strike,"New target could not begin the next strike")
 assert(otherCharacter:GetAttribute("TrainingStrikeAt")==50+TrainingRules.Windup,"Selected character missed the deadline")
-assert(otherCharacter:GetAttribute("TrainingStrikeCenter")==otherRoot.Position,"Selected character missed the ground center")
+local center=otherCharacter:GetAttribute("TrainingStrikeCenter")
+assert(center.X==otherRoot.Position.X and center.Z==otherRoot.Position.Z and center.Y==bot.trainingSurfaceY,"Selected character missed the ground center")
 assert(playerCharacter:GetAttribute("TrainingStrikeAt")==nil,"Cue leaked to a bystander")
 session.flight=false
 otherSession.flight=true
@@ -119,17 +120,33 @@ playerCharacter:SetAttribute("TrainingStrikeAt",serverClock)
 playerCharacter:SetAttribute("TrainingStrikeCenter",otherRoot.Position)
 stepTraining(34+TrainingRules.Windup)
 assert(playerCharacter:GetAttribute("TrainingStrikeAt")==serverClock and playerCharacter:GetAttribute("TrainingStrikeCenter")==otherRoot.Position,"Older strike cleared a newer cue")
+bot.trainingTarget=player
+stepTraining(38)
+mark=assert(bot.strike.warning)
+assert(math.abs(mark.CFrame.Y-mark.Size.X/2-bot.trainingSurfaceY-.02)<.0001,"Strike warning floats above painted pad")
+local before=health.Health
+root.Position=Vector3.new(pos.X,bot.trainingSurfaceY+6.1,pos.Z)
+stepTraining(38+TrainingRules.Windup)
+assert(health.Health==before and mark.destroyed,"Ground strike hit above its vertical band")
+root.Position=pos
 print("PASS training strike visibility, cancellation, targeting, deadlines and cue fencing")
 '''
 
 
-def run(source, expected=None):
+def run(source, expected=None, historical_rules=None):
     start = source.index('local function stepTraining(')
     end = source.index('local function stepSprint(', start)
     start_helper = source.index('local function clearTrainingStrike(')
     helper = source[start_helper:source.index('local function restoreBot(', start_helper)]
+    fixture = setup
+    if historical_rules is not None:
+        fixture = fixture.replace(
+            'local TrainingRules=require("../src/ReplicatedStorage/Shared/TrainingRules")',
+            'local TrainingRules=(function()\n'+historical_rules+'\nend)()',
+            1,
+        )
     with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix='.luau', dir=ROOT / 'tests', delete=False) as file:
-        file.write(setup + helper + source[start:end] + checks)
+        file.write(fixture + helper + source[start:end] + checks)
         path = Path(file.name)
     try:
         result = subprocess.run(['luau', str(path)], text=True, capture_output=True)
@@ -151,10 +168,13 @@ source = (ROOT / SOURCE_PATH).read_text(encoding='utf-8')
 run(source)
 if args.negative_controls:
     baseline = subprocess.check_output(['git', 'show', f'b97f944:{SOURCE_PATH}'], cwd=ROOT, text=True, encoding='utf-8')
-    run(baseline, 'Strike retargeted during windup')
+    baseline_rules = subprocess.check_output(['git', 'show', 'b97f944:src/ReplicatedStorage/Shared/TrainingRules.luau'], cwd=ROOT, text=True, encoding='utf-8')
+    run(baseline, 'Strike retargeted during windup', baseline_rules)
     clear_if_current = 'if bot.trainingTarget==p then bot.trainingTarget=nil end'
     assert source.count(clear_if_current) == 1
     run(source.replace(clear_if_current, 'bot.trainingTarget=nil'), 'Cancellation lost the next target')
     cue_guard = 'strike.character:GetAttribute("TrainingStrikeAt")==strike.cueUntil'
     assert source.count(cue_guard)==1
     run(source.replace(cue_guard,'true'),'Older strike cleared a newer cue')
+    run(source.replace('center.Y+.07','center.Y+1.4',1),'Strike warning floats above painted pad')
+    run(source.replace('TrainingRules.Hits(strike.position,r.Position,','TrainingRules.Hits(strike.position,Vector3.new(r.Position.X,strike.position.Y+3,r.Position.Z),',1),'Ground strike hit above its vertical band')

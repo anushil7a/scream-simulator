@@ -35,6 +35,11 @@ check(P.Advance(challenges,'fighters',1)==0,'Challenge paid early')
 P.Advance(challenges,'fighters',1)
 check(P.Advance(challenges,'fighters',1)==32 and challenges.fighters==0,'Challenge failed to pay/reset')
 check(P.Advance(challenges,'unknown',1)==0,'Unknown objective paid')
-check(T.Hits(4,false,false) and not T.Hits(4.01,false,false),'Telegraphed strike radius incorrect')
-check(not T.Hits(0,true,false) and not T.Hits(0,false,true),'Protection or dodge failed')
+local strikeCenter={X=0,Y=32,Z=0}
+local function trainingHit(x,y,protected,dodging)
+ return T.Hits(strikeCenter,{X=x,Y=y,Z=0},protected,dodging)
+end
+check(trainingHit(4,35,false,false) and not trainingHit(4.01,35,false,false),'Telegraphed strike radius incorrect')
+check(trainingHit(0,38,false,false) and not trainingHit(0,38.01,false,false) and not trainingHit(0,31.99,false,false),'Strike height bounds incorrect')
+check(not trainingHit(0,35,true,false) and not trainingHit(0,35,false,true),'Protection or dodge failed')
 print('PASS '..n..' combat credit, repeat farming, challenge and training rule checks')

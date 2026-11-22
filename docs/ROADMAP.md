@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Ground training strike warnings and match their hit volume
+
+- At Rookie's painted pad, matched Studio measured the old warning underside 1.09 studs above the paint. A staged avatar at 7.5 studs above the pad still took 8 damage. The new warning is 0.02 studs above the higher of the pad's solid and painted surfaces. The same four-stud horizontal radius and zero-to-six-stud root-height band now drive the server hit and **MOVE OR DODGE** cue.
+- Baseline and candidate standing hits both dealt 8 damage. The candidate still dealt 8 after trainer reset, and missed at 7.5 studs above the pad and 4.15 studs outside the center. A scripted Humanoid jump was still within the vertical band at impact and took damage. The staged high position proves the vertical miss. It does not establish natural jump timing, unusually tall avatar behavior, live voice play or multiplayer.
+- Independent review cleared the geometry and lifecycle. Focused checks passed shared bounds, trainer roam/grounding, warning lifecycle and HUD cue assertions, and caught controls for an elevated disc or a missing vertical gate. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. The optional legacy `compact_integration.py` still fails its arena-boundary assertion on both clean HEAD and the candidate. Native checks used the real City and a temporary server-owned avatar with the input controller disabled. The play sessions ended, source was restored and the disposable Studio closed.
+
 ## Apply the shutdown deadline to final release writes
 
 - The old shutdown callback stopped waiting after 25 seconds, but a delayed worker could still start its final write afterward. Final releases and departure or late-load releases started during shutdown now receive the same cutoff. Lock waits and retry backoff honor the remaining budget. A request already issued can still settle, and its success or ownership result is recorded. An ambiguous failure remains unconfirmed and uses the existing frozen-snapshot recovery rules.

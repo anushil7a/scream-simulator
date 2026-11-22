@@ -1200,8 +1200,7 @@ local function stepTraining(now)
   if bot.strike then
    if now>=bot.strike.at then
     local strike=clearTrainingStrike(bot)
-    local delta=r.Position-strike.position
-    if TrainingRules.Hits(Vector3.new(delta.X,0,delta.Z).Magnitude,now<s.protectedUntil,now<s.dodgingUntil) then
+    if TrainingRules.Hits(strike.position,r.Position,now<s.protectedUntil,now<s.dodgingUntil) then
      s.nextHeal=now+Config.HealQuietSeconds
      if h.Health<=bot.training.damage then eject(p,h) else h.Health-=bot.training.damage;state(p) end
     end
@@ -1214,12 +1213,12 @@ local function stepTraining(now)
    -- Replicated, bounded warning disc; never collides or blocks the player's beam.
    local disc=Instance.new("Part");disc.Name="TrainingStrikeWarning";disc.Anchored=true
    disc.CanCollide=false;disc.CanTouch=false;disc.CanQuery=false;disc.Shape=Enum.PartType.Cylinder
-   local warningY=(bot.training.y or 0)+1.4
+   local center=Vector3.new(r.Position.X,bot.trainingSurfaceY,r.Position.Z)
    local diameter=TrainingRules.StrikeRadius*2
-   disc.Size=Vector3.new(.1,diameter,diameter);disc.CFrame=CFrame.new(r.Position.X,warningY,r.Position.Z)*CFrame.Angles(0,0,math.pi/2)
+   disc.Size=Vector3.new(.1,diameter,diameter);disc.CFrame=CFrame.new(center.X,center.Y+.07,center.Z)*CFrame.Angles(0,0,math.pi/2)
    disc.Color=Color3.fromRGB(255,90,70);disc.Material=Enum.Material.Neon;disc.Transparency=.65;disc.CastShadow=false;disc.Parent=workspace
    local cueUntil=workspace:GetServerTimeNow()+TrainingRules.Windup
-   bot.strike={at=now+TrainingRules.Windup,position=r.Position,warning=disc,target=p,character=c,cueUntil=cueUntil}
+   bot.strike={at=now+TrainingRules.Windup,position=center,warning=disc,target=p,character=c,cueUntil=cueUntil}
    c:SetAttribute("TrainingStrikeCenter",bot.strike.position)
    c:SetAttribute("TrainingStrikeAt",cueUntil)
    game:GetService("Debris"):AddItem(disc,TrainingRules.Windup+.5)

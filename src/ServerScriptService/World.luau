@@ -967,10 +967,16 @@ function World.Build()
     -- Dedicated sparring pads sit outside PvP and do not recruit city workers.
     for index,originalTier in ipairs(TrainingRules.Tiers) do
         local tier=originalTier;local padColor=C.green
+        local paintSurface
         if Config.CompactCity then
             tier=table.clone(originalTier);local home=Config.CityLayout.TrainingHomes[index];tier.x=home.x;tier.z=home.z;tier.y=home.y or 0
             for _,spec in ipairs(Config.CityLayout.PartSpecs) do
-                if spec.id=="TrainingPad"..index then padColor=spec.color;break end
+                if spec.id=="TrainingPad"..index then
+                    padColor=spec.color
+                    local thickness=spec.shape=="Cylinder" and spec.size.X or spec.size.Y
+                    paintSurface=spec.position.Y+thickness/2
+                    break
+                end
             end
         end
         local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,Config.CompactCity and (tier.y or 0)+.1 or 1.1,tier.z),padColor,Enum.Material.SmoothPlastic)
@@ -978,7 +984,9 @@ function World.Build()
         local sign=part(parent,"TrainingSign_"..tier.id,Vector3.new(1,1,1),Vector3.new(tier.x,(tier.y or 0)+7,tier.z+30),C.gold,nil,false);sign.Transparency=1
         local words=billboard(sign,tier.name.." · recommended Lv "..tier.level.."\n"..tier.health.." HP · "..tier.xp.." base XP\nHit to spar · move out of red strikes",Vector3.zero,280)
         words.Parent.Size=UDim2.fromOffset(280,76);words.Parent.MaxDistance=100
-        makeBot(parent,#World.Bots+1,tier.x,tier.z,"Fighter",nil,tier)
+        local bot=makeBot(parent,#World.Bots+1,tier.x,tier.z,"Fighter",nil,tier)
+        local padSurface=pad.Position.Y+pad.Size.Y/2
+        bot.trainingSurfaceY=math.max(padSurface,paintSurface or padSurface)
     end
     if Config.CompactCity then
         for _,original in ipairs(SupportingNPCs.Roster) do
