@@ -20,8 +20,13 @@ local UDim2={fromScale=function(x,y)return {x=x,y=y}end,fromOffset=function(x,y)
 local Enum={Font={GothamBold=true},AspectType={FitWithinMaxSize=true}}
 local all={}
 local Instance={new=function(kind)local node={kind=kind};table.insert(all,node);return node end}
-local game={GetService=function()return {Shared={Config="Config"}} end}
-local script={Parent={CityMapBase="Base"}}
+-- Access through WaitForChild can discover modules that have not replicated yet.
+local function delayed(children)
+ return setmetatable({WaitForChild=function(_,name)return assert(children[name],name) end},
+  {__index=function(_,name) error(name.." read before replication") end})
+end
+local game={GetService=function()return delayed({Shared=delayed({Config="Config"})}) end}
+local script={Parent=delayed({CityMapBase="Base"})}
 local layout=(function()
 '''
 bridge=r'''
@@ -98,9 +103,9 @@ check(fromPractice and fromPractice.Position.Z==layout.PracticeEntry.z
 check(world.FallRescue({X=0,Z=149})==nil and world.FallRescue({X=0,Z=150})~=nil,'Fall midgap split drifted')
 print('PASS Hall and practice fall routing and rail height checks')
 '''
-def run(metadata, expected=None, world=world_source):
+def run(metadata, expected=None, world=world_source, map_source=source):
     with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',suffix='.luau',dir=root/'tests',prefix='tmp_hall_',delete=False) as file:
-        file.write(setup+metadata+bridge+source+checks+recovery_setup+world+recovery_checks)
+        file.write(setup+metadata+bridge+map_source+checks+recovery_setup+world+recovery_checks)
         path=Path(file.name)
     try:
         result=subprocess.run(['luau',str(path)],cwd=root,capture_output=True,text=True)
@@ -123,3 +128,7 @@ if '--negative-controls' in sys.argv:
         assert layout.count(old)==1
         run(layout.replace(old,new),expected)
     run(layout,'Practice fall did not recover facing the practice portal',world_source.replace('position.Z>=gapMiddle','position.Z>Layout.Practice.z'))
+    for name in ('Shared', 'Config', 'CityMapBase'):
+        wait=':WaitForChild("'+name+'")'
+        assert source.count(wait)==1
+        run(layout,name+' read before replication',map_source=source.replace(wait,'.'+name))

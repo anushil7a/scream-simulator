@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Resonance Hall waits for the replicated map modules
+
+- The earlier missing defender HUD was intermittent. A fresh three-client native run reproduced it on two clients: the Hall map read CityMapBase before it arrived in PlayerScripts, and Client stopped before creating ScreamUI. The Hall map now waits for the bundled Shared, Config and CityMapBase instances. The generated Hall Config waits for ResonanceLayout. The city source and combat rules are unchanged.
+- In a matched two-client Studio test, the probe held CityMapBase under a temporary local name for 0.7 seconds after enabling Client. Both baseline clients errored without creating a HUD. With the same delay in the candidate, both waited, then created the HUD and the defender label with no matching startup errors. The seven offline negative controls include restoring a direct read for each map dependency.
+- A separate candidate run gated on a ready HUD and viewport in three real local clients. Two staged level-100 yellow beams overlapped. Each client received three updates for each beam, showed both tinted rigs simultaneously, and cleared both after the casts. Only the defender took damage, from 480 to 346 HP, and only the defender showed the fitting **BEAM HIT YOU** cue. Power, positions and ticks were scripted. This establishes local behavior in the sampled overlap, with real voice, physical-device performance and live network testing still open.
+- Independent review, 29 pure/synthetic suites, 167 mocked-service suites, production compilation, review builds and the standalone guarded Hall build passed. Both disposable Studio sessions closed.
+
 ## Confirmed beam dodges get a private HUD cue
 
 - In a guarded two-client Hall replay, an empty roll and an authoritative evade both left the defender at 100 HP and sent no feedback on the baseline. A standing control took 3 HP. The candidate sends one private defender confirmation for the actual evade. It sends none for the empty roll and continues to show the ordinary damage cue for the standing hit.

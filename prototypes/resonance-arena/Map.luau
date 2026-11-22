@@ -1,7 +1,7 @@
 -- Local preview map. The two panels are connected by portals in the place.
-local Config=require(game:GetService("ReplicatedStorage").Shared.Config)
+local Config=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config"))
 local Layout=assert(Config.ResonanceLayout)
-local Base=require(script.Parent.CityMapBase)
+local Base=require(script.Parent:WaitForChild("CityMapBase"))
 local Map={
  aspectRatio=1.2,
  MiniLayout=Base.MiniLayout,
