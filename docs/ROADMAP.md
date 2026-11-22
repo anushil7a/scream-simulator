@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Keep the defender's hit and dodge feedback truthful
+
+- The previous defender HUD let a dodge replace a recent hit. A second hit could reduce HP during the server's existing one-second warning throttle while the player still saw only the green dodge message. The production helpers reproduced this sequence in isolated Luau, and a staged native UI replay confirmed the rendered green label while the fixture's health decreased.
+- The existing defender label now shows **HIT + DODGE** in the damage color when both confirmed cues are current. A dodge that joins an active hit expires with that hit, preventing a misleading green-only tail. A fresh dodge still has its normal cue. A new hit after a dodge keeps its warning after the dodge expires. Combat damage, immunity, server authority and packet rates are untouched.
+- The local late-game visual probe staged two level-100 Gold beams. The close frontal view showed both reduced silhouettes and readable health. In a fixed off-axis view, the brighter beam partially covered the avatar's torso while the face and HUD stayed legible. This sampled camera framing with synthetic beams; it does not establish combat readability for real players or physical devices.
+
+- Exact final desktop and iPhone 7 Studio emulator replays covered both hit/dodge orders, the expiry, and a later standalone evade. At 666 × 316 safe pixels the mixed text measured 78 × 13 in a 116 × 18 label and fit beside the staged 375/480 HP. The final replay showed no green-only tail after the staged damage. Real voice, physical input, and live delivery remain open.
+- Independent review cleared the change. Client integration passed 382 assertions and 41 negative controls. Existing server contact and sustained authority checks passed. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. Next check current City encounters with an actual eligible voice pair and physical input when an isolated playtest is available.
+
 ## Keep the desktop wallet readable beside combat
 
 - In the current City baseline at 491 × 150 safe pixels, the actual Garden claim credited 80 coins while Beams covered the rightmost 27 × 13 pixels of the rendered wallet text. Dodge also covered a small portion of the temporary progress line.

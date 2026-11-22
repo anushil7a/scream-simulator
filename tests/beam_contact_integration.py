@@ -104,7 +104,7 @@ local function make(ack)
  mic.ready=true;data.voiceEligible=true;data.settings.reducedShake=false;workspace.CurrentCamera.CFrame.Position=Vector3.zero
  attrs={SustainedActive=false};cues=0;screenHits=0
  gate.next='start';sustainedControl:Step(.001,clock,0,true,true,false,0)
- academy.defenderCueUntil=nil;academy.attackCueUntil=nil;protectionRemaining=0;alive=true
+ academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil;academy.attackCueUntil=nil;protectionRemaining=0;alive=true
  local id=sustainedControl.attack.sequence;attrs.SustainedActive=true;attrs.SustainedSequence=id
  if ack~=false then sustainedControl:Step(.001,clock,0,true,true,true,id)end
  beam();local rig=sustainedBeams.entries[7].visual;frame(1/30)
@@ -153,15 +153,31 @@ check(hitText.Visible and hitText.Text=='4 DAMAGE','Opponent dodge cue hid confi
 clock+=.75;send('SustainedEvaded',nil,evadeId);send('SustainedNoHit',nil,evadeId);hud()
 check(not hitText.Visible,'Old dodge resurfaced after damage')
 make()
+h.Health=94
+send('SustainedDamageTaken',h);hud()
+clock+=.125;send('BeamDodged',h);hud()
+clock+=.625;h.Health=88;hud() -- A second real hit can be inside the server's red-cue throttle.
+check(academy.incomingHit.Visible and academy.incomingHit.Text=='HIT + DODGE',
+ 'A recent evade concealed damage in the overlapping defender window')
+check(academy.incomingHit.TextColor3.R>academy.incomingHit.TextColor3.G,'Mixed result lost the damage color')
+clock+=.66;hud()
+check(not academy.incomingHit.Visible,'A dodge-only tail outlived the mixed damage window')
+clock+=.13;send('BeamDodged',h);hud()
+check(academy.incomingHit.Visible and academy.incomingHit.Text=='BEAM DODGED','Fresh standalone dodge lost its cue')
+clock+=1.41;hud()
+check(not academy.incomingHit.Visible,'Fresh standalone dodge outlived its duration')
+make()
 send('SustainedDamageTaken',{});hud()
 check(not academy.incomingHit.Visible,'Foreign Humanoid showed defender cue')
 send('BeamDodged',{});hud()
 check(not academy.incomingHit.Visible,'Foreign Humanoid showed dodge cue')
 send('BeamDodged',h);hud()
 check(academy.incomingHit.Visible and academy.incomingHit.Text=='BEAM DODGED','Actual evade did not show the dodge label')
-send('SustainedDamageTaken',h);hud()
-check(academy.incomingHit.Visible and academy.incomingHit.Text=='BEAM HIT YOU','Damage did not replace old dodge cue')
-academy.defenderCueUntil=nil
+clock+=.2;send('SustainedDamageTaken',h);hud()
+check(academy.incomingHit.Visible and academy.incomingHit.Text=='HIT + DODGE','A hit after a dodge lost the mixed result')
+clock+=1.25;hud()
+check(academy.incomingHit.Visible and academy.incomingHit.Text=='BEAM HIT YOU','Expired dodge masked a still-current hit')
+academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil
 send('SustainedDamageTaken',nil);hud()
 check(not academy.incomingHit.Visible,'Nil Humanoid showed defender cue')
 mic.ready=false;data.voiceEligible=false;sustainedControl:SetArmed(false)
@@ -171,7 +187,7 @@ windowFocused=false;hud();check(not academy.incomingHit.Visible,'Defender cue es
 windowFocused=true;gameplayVisible=false;hud();check(not academy.incomingHit.Visible,'Defender cue escaped covered gameplay')
 gameplayVisible=true;hud();check(academy.incomingHit.Visible,'Defender cue failed to restore before expiry')
 clock+=1.5;hud();check(not academy.incomingHit.Visible,'Defender cue outlived its duration')
-send('SustainedDamageTaken',h);protectionRemaining=1;hud();protectionRemaining=0;hud()
+send('SustainedDamageTaken',h);send('BeamDodged',h);protectionRemaining=1;hud();protectionRemaining=0;hud()
 check(not academy.incomingHit.Visible,'Defender cue replayed after protection')
 local rig,id=make();check(sustainedControl.attack.acknowledged,'Real Controls did not acknowledge')
 hit(id,10,anchor);send('SustainedDamageTaken',h);hud();retained(10);frame(1/30)
@@ -375,10 +391,13 @@ def main():
             (event, '   if id==academy.attackCueSequence then academy.attackCueUntil=nil end', '', 'Old cover resurfaced after damage'),
             (event, '"OPPONENT DODGED" or "BEAM HIT COVER"', '"BEAM HIT COVER" or "BEAM HIT COVER"', 'Opponent dodge cue missing or played a hit effect'),
             (event, '"NO HIT YET" or kind', '"BEAM HIT COVER" or kind', 'Open advisory missing or played a hit effect'),
-            (event, 'local dodged=kind=="BeamDodged"', 'local dodged=false', 'Actual evade did not show the dodge label'),
+            (event, 'if kind=="BeamDodged" then','if false then', 'A recent evade concealed damage'),
+            (hud, 'dodged and "HIT + DODGE" or "BEAM HIT YOU"', '"BEAM HIT YOU"', 'A recent evade concealed damage'),
+            (event, 'hitUntil and hitUntil>now and hitUntil or expires','expires','A dodge-only tail outlived the mixed damage window'),
+            (hud, 'local hit=now<(academy.defenderHitUntil or 0)', 'local hit=academy.defenderHitUntil~=nil', 'A dodge-only tail outlived the mixed damage window'),
             (event, 'character:FindFirstChildOfClass("Humanoid")==pos', 'true', 'Foreign Humanoid showed defender cue'),
             (event, 'beamWidth,color,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'beamWidth,Config.Auras.Gold,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'Explicit Color3 lost its override'),
-            (hud, 'if protectionRemaining>0 then academy.defenderCueUntil=nil end', '', 'Defender cue replayed after protection'),
+            (hud, 'if protectionRemaining>0 then academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil end', '', 'Defender cue replayed after protection'),
             (hud, 'aimGui.AbsoluteSize.Y<300', 'false', 'Short combat cue overlapped the Beams control'),
             (hud, 'academy.shortObjective or aimGui.AbsoluteSize.Y<300', 'aimGui.AbsoluteSize.Y<300', 'Combat cue covered the compact objective row'),
             (hud, 'hitText.Visible=gameplayVisible and (confirmed~=nil or attackCue)', 'hitText.Visible=gameplayVisible and attackCue', 'Cover hid confirmed damage'),
