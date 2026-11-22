@@ -17,6 +17,8 @@ local cards,messages={},{};local sent={};local muted,gold={},{foo=true};local ac
 local function card(height)local c={height=height,children={}};table.insert(cards,c);return c end
 local function label(c,text,size,pos)table.insert(c.children,{text=text,size=size,pos=pos});table.insert(messages,text);return {}end
 local function button(c,id,text,size,pos,callback)table.insert(c.children,{text=text,size=size,pos=pos,button=true,callback=callback});return {}end
+local nextTab
+local function toggleTab(tab)nextTab=tab end
 local function info(text)table.insert(messages,text)end
 local function draw(data,narrow,sustainedRules)
  cards={};messages={}
@@ -30,7 +32,15 @@ for _,width in ipairs({288,328,358,592,672})do
  local text=table.concat(messages,'\n')
  check(not string.find(text,'SOUND STYLE',1,true),'Repeated style label')
  check(not string.find(text,'Train at the',1,true),'Repeated training direction')
- check(string.find(text,'Now:',1,true) and string.find(text,'CURRENT BEAM',1,true),'Stats removed')
+ check(string.find(text,'CURRENT BEAM',1,true),'Stats removed')
+ local top=table.remove(cards,1)
+ check(top.height==70 and #top.children==3,'Next unlock must share the first card with Gear')
+ check(top.children[1].text==(level==100 and (automatic and 'BEAM SOUNDS' or 'BEAM STYLES') or (automatic and 'NEXT SOUND' or 'NEXT STYLE')),'Milestone heading was wrong')
+ check(top.children[2].text==(level==100 and 'All unlocked' or 'Cap · Lv 100'),'Next unlock or cap was wrong')
+ check(top.children[3].text=='VIEW GEAR' and top.children[3].size[2]==(narrow and 92 or 112) and top.children[3].size[4]==44,'Gear shortcut was removed')
+ nextTab=nil;top.children[3].callback()
+ check(nextTab=='Style','Gear shortcut did not open Gear')
+ check(top.children[2].pos[2]+width+top.children[2].size[2]<width+top.children[3].pos[2],'Milestone overlapped the Gear shortcut')
  check(string.find(text,'Sound styles change audio, not damage or range.',1,true),'Shared explanation removed')
  for _,c in ipairs(cards)do
   check(#c.children==(automatic and 2 or 3),'Unexpected description row')
@@ -78,4 +88,10 @@ if '--negative-controls' in sys.argv:
   assert old in source
   out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stderr)
  out=run(source.replace('if not sustainedRules then\n   label(c,s.description,','if true then\n   label(c,s.description,'));assert out.returncode and 'Unexpected description row' in out.stderr,out.stderr
- print('PASS 6 copy/layout negative controls')
+ for old,new,message in [
+   ('local milestone=card(70)','local milestone=card(140)','Next unlock must share the first card with Gear'),
+   ('function() toggleTab("Style") end)','function() toggleTab("Map") end)','Gear shortcut did not open Gear'),
+ ]:
+  assert old in source
+  out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stderr)
+ print('PASS 8 copy/layout negative controls')

@@ -1095,23 +1095,28 @@ render=function()
   shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow,compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
  elseif selected=="Screams" then
   title.Text="BEAM COLLECTION"
-  local gearCard=card(60)
-  label(gearCard,"Gear for earned coins",UDim2.new(1,-150,0,44),UDim2.fromOffset(14,8),14,gold)
-  button(gearCard,"OpenBeamGear","VIEW GEAR",UDim2.fromOffset(112,44),UDim2.new(1,-126,0,8),function() toggleTab("Style") end)
   local nextStyle
   for _,style in ipairs(Config.Sounds) do
    if style.level>data.level and (not nextStyle or style.level<nextStyle.level) then nextStyle=style end
   end
-  local progress=nextStyle and string.format("Next style: %s · level %d",nextStyle.name,nextStyle.level) or "All beam styles unlocked"
-  local stats=Config.VoiceCombat.Stats(data.level,1,false)
-  if nextStyle then
-   local nextStats=Config.VoiceCombat.Stats(nextStyle.level,1,false)
-   progress..=string.format("\nAt level %d: %d HP · %.1f max DPS",nextStyle.level,nextStats.health,nextStats.maxDps)
-  end
-  info(progress..string.format("\nNow: %d HP · %.1f max DPS",stats.health,stats.maxDps))
+  local milestone=card(70)
+  milestone.Name="BeamMilestone"
+  local heading=sustainedRules and "BEAM SOUNDS" or "BEAM STYLES"
+  if nextStyle then heading=sustainedRules and "NEXT SOUND" or "NEXT STYLE" end
+  local detail=nextStyle and (nextStyle.name.." · Lv "..nextStyle.level) or "All unlocked"
+  local gearWidth=narrow and 92 or 112
+  local textInset=gearWidth+38
+  label(milestone,heading,UDim2.new(1,-textInset,0,19),UDim2.fromOffset(14,8),12,gold)
+  label(milestone,detail,UDim2.new(1,-textInset,0,34),UDim2.fromOffset(14,28),15)
+  button(milestone,"OpenBeamGear","VIEW GEAR",UDim2.fromOffset(gearWidth,44),UDim2.new(1,-gearWidth-14,.5,-22),function() toggleTab("Style") end)
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier)
   local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs",data.level,maximum.maxDps,maximum.maxRange)
    or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs",data.level,maximum.damage,maximum.maxRange)
+  if nextStyle then
+   local nextStats=Config.VoiceCombat.Stats(nextStyle.level,1,false)
+   local forecast=sustainedRules and string.format("%.1f max DPS",nextStats.maxDps) or (nextStats.damage.." damage")
+   combatSummary..=string.format("\nAT LEVEL %d: %d HP · %s",nextStyle.level,nextStats.health,forecast)
+  end
   info(combatSummary,narrow and 112 or 82)
   info("Sound styles change audio, not damage or range. These limits use your current level for the next attack. Lower voice power and cover shorten reach. DPS requires full power and continuous contact.",narrow and 150 or 96)
   for _,s in ipairs(Config.Sounds) do

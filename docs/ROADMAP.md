@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Make the next beam sound visible when the collection opens
+
+- At 567 × 241 usable pixels, the old collection opened with a separate Gear card. The next-unlock label occupied pixels 80–130 of a 113-pixel scroll window. The first card now shows **NEXT SOUND**, its name and level, and the existing **VIEW GEAR** shortcut. The current full-power limit and next-level forecast follow below. Legacy uses **NEXT STYLE** and its forecast shows burst damage.
+- The first candidate clipped a heading and the longest sampled name at forced 318 × 509 portrait. The revised card widens narrow text by 20 pixels and gives Gear a fitted 92 × 44 target with ten pixels of separation. Native Studio showed the whole card without scrolling at both sampled sizes and at levels 1, 9, 10, 99 and 100. Echo Pop read **LEVEL 10** at level 9 and **EQUIP** at level 10 while the card advanced to Panic Chicken. Level 100 read **All unlocked**.
+- The fixture sent staged levels through an actual temporary server State packet and measured native GUI bounds. It exercised neither real touch nor unlocking through natural play. Both emulator configurations were restored and all disposable sessions closed.
+- Independent review, 526 UI assertions, 1,180 beam/readout assertions, and 13 focused negative controls passed. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+
 ## Rejected TALK requests leave an active beam alone
 
 - In a temporary City Studio session, the player closed Mar's dialogue, started beam sequence 1, and tried TALK again before the two-second interaction cooldown expired. Mar's panel stayed closed, but a premature client Stop ended the beam and the sampling point showed 4.77 seconds of cooldown.
