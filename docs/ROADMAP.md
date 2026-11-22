@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Beam cover feedback during the first training fight
+
+- In the guarded native baseline, a wall clipped two sustained beam samples aimed at Rookie. Rookie took no damage, and the attacker saw no result. The same setup with the wall out of the way produced six damage and the usual numeric feedback.
+- The attacker now sees **BEAM HIT COVER** after two consecutive authoritative clips without a hit, evade or successful activity interaction. The message is private and limited to once per cast. It describes the obstruction without guessing which target the player meant to hit. Confirmed damage takes priority, and ending or changing the cast clears the cue. Open misses remain quiet.
+- Native desktop and iPhone 7 landscape Studio runs showed the fitting cue on the covered shot, no cue on the open miss, and **6 DAMAGE** on the clear shot. When the obstruction was removed after two clips in the same cast, **3 DAMAGE** replaced the cover cue. The phone safe area was 666 × 316. The test used temporary profiles and scripted power, position and tick timing. Real microphone use, physical controls and live network timing remain open. Both disposable sessions closed and the emulator returned to default.
+- Independent review, 15,427 authority-path assertions, 356 client integration assertions and 36 focused negative controls passed. The full run passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+
 ## City combat HUD waits for state and effects
 
 - In the guarded three-client baseline, each client reached one required lookup with its dependency deliberately held back for 0.7 seconds. State, Effect and BeamStyle each caused a missing-child error and an incomplete HUD. The late-State client missed the wallet update, and none showed the staged defender cue.

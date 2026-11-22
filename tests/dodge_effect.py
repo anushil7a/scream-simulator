@@ -30,6 +30,7 @@ local character={FindFirstChild=function(_,key)return key=="HumanoidRootPart" an
 local p={Character=character,UserId=7};local data={level=20,settings={reducedShake=false}}
 local Config={Auras={Blue=blue},GetSound=function(id)lookups+=1;if id=="Known" then return {effect="beam",variant=2,level=10}end end,VoiceCombat={Stats=function()return {range=55}end}}
 local ScreamEffects={Render=function(...)table.insert(renders,{...})end}
+local academy={}
 local accepted=true;local hitFeedback={Accept=function()return accepted end}
 -- Decorative feedback is verified separately; preserve this fixture's audio/world assertions.
 local beamScreenFeedback={Hit=function()end,Clear=function()end};local sustainedControl=nil

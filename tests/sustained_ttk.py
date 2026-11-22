@@ -45,9 +45,10 @@ local workspace={Raycast=function(_,origin,delta,params)
 end}
 local VoiceEligibility={Allowed=function(s)return s==true end}
 local sustained=Adapter.new(Attack,VoiceCombat,function(origin,aim)return (aim-origin).Unit end)
-local dodgeCues={}
-local effect={FireClient=function(_,p,kind,humanoid)
- if kind=='BeamDodged' then table.insert(dodgeCues,{p,humanoid}) end
+local dodgeCues,coverCues={},{}
+local effect={FireClient=function(_,p,kind,humanoid,sequence)
+ if kind=='BeamDodged' then table.insert(dodgeCues,{p,humanoid})
+ elseif kind=='SustainedCover' then table.insert(coverCues,{p,sequence,clock}) end
 end,FireAllClients=function()end}
 local function sustainedEnd()end;local function beamColor()return nil end
 local Soccer={Hit=function()return false end};local BeachVolley=Soccer
@@ -61,7 +62,7 @@ local function knockOutBot(bot)bot.alive=false;koAt=clock end
 checks=r"""
 local n=0;local function check(x,m)assert(x,m);n+=1 end
 local function measure(level,targetLevel,power,kind,tier,phase,quiet,quantum)
- table.clear(dodgeCues)
+ table.clear(dodgeCues);table.clear(coverCues)
  clock=0;cover=kind=='cover';awards=0;koAt=nil;World.Bots={}
  local min,max=Config.ZoneMin,Config.ZoneMax
  local x,z=min.X+20,(min.Z+max.Z)*.5
@@ -83,7 +84,7 @@ local function measure(level,targetLevel,power,kind,tier,phase,quiet,quantum)
   if not s.sustained.protocol.active and clock+1e-7>=s.sustained.protocol.nextStart and (kind~='timeout' or sequence==0) then
    sequence+=1;local context=sustainedContext(attacker,s,clock)
    local ok=sustained.Begin(s.sustained,clock,{sequence=sequence,power=power,aim=bot and bot.root.Position or victim.root.Position},context)
-   if ok then begins+=1;sample=0;nextPulse=clock+.125;if kind=='capturedLevel'then s.data.level=1 end end
+   if ok then attacker.attrs.SustainedSequence=sequence;begins+=1;sample=0;nextPulse=clock+.125;if kind=='capturedLevel'then s.data.level=1 end end
   end
   if kind~='timeout' and s.sustained.protocol.active and clock+1e-7>=nextPulse then
    sample+=1;sustained.Pulse(s.sustained,clock,{sequence=sequence,sample=sample,power=power,aim=bot and bot.root.Position or victim.root.Position},sustainedContext(attacker,s,clock));nextPulse=clock+.125
@@ -104,6 +105,12 @@ local function measure(level,targetLevel,power,kind,tier,phase,quiet,quantum)
   check(#dodgeCues==1 and dodgeCues[1][1]==victim and dodgeCues[1][2]==victim.h,'Real resolver evade did not emit a single defender cue')
  else
   check(#dodgeCues==0,'Non-evade resolver branch showed a dodge cue')
+ end
+ if kind=='cover' then
+  check(#coverCues==1 and coverCues[1][1]==attacker and coverCues[1][2]==1,'Missing/duplicate or public cover cue')
+  check(coverCues[1][3]>=.4,'Cover cue emitted before two blocked ticks')
+ else
+  check(#coverCues==0,'Non-cover resolver branch showed cover')
  end
  return koAt,begins
 end
@@ -151,7 +158,7 @@ if '--baseline' in sys.argv:
  code=code.replace('victim.h.Health==56','victim.h.Health==73').replace('koAt==1.0','koAt==1.6').replace('time-1.0','time-1.6')
 result=run(code);print(result.stdout,end='');assert result.returncode==0,result.stderr
 if '--negative-controls' in sys.argv:
- for old,new,message in [('sameCombatMode(sessions[ctx.player],ts)','true','Guard allowed damage mixedMode'),('now>=targetProtectedUntil','true','Guard allowed damage protected')]:
+ for old,new,message in [('sameCombatMode(sessions[ctx.player],ts)','true','Guard allowed damage mixedMode'),('now>=targetProtectedUntil','true','Guard allowed damage protected'),('intent.coverTicks==2','intent.coverTicks==1','Cover cue emitted before two blocked ticks'),('intent.coverReported=true','intent.coverTicks=nil','Missing/duplicate or public cover cue')]:
   assert old in code
   out=run(code.replace(old,new));assert out.returncode and message in out.stderr,(old,out.stdout,out.stderr)
  original=(R/'src/ReplicatedStorage/Shared/VoiceCombat.luau').read_text()
@@ -159,7 +166,7 @@ if '--negative-controls' in sys.argv:
  mutant=original.replace('level=100,health=480,dps=110','level=100,health=480,dps=68')
  out=run(code.replace("require('../src/ReplicatedStorage/Shared/VoiceCombat')",'(function()\n'+mutant+'\nend)()'))
  assert out.returncode and 'Max vs starter full-power TTK changed' in out.stderr,out.stderr
- print('PASS 3 authority/balance negative controls')
+ print('PASS 5 authority/balance/cover negative controls')
 if '--report' in sys.argv:
  assert '--baseline' not in sys.argv, 'Historical report must not overwrite candidate evidence'
  paths=['src/ServerScriptService/Bootstrap.server.luau','src/ServerScriptService/SustainedAttackAdapter.luau','src/ServerScriptService/CombatRules.luau','src/ReplicatedStorage/Shared/SustainedAttack.luau','src/ReplicatedStorage/Shared/VoiceCombat.luau','src/ReplicatedStorage/Shared/Healing.luau','src/ReplicatedStorage/Shared/TrainingRules.luau','src/ReplicatedStorage/Shared/Config.luau','src/ReplicatedStorage/Shared/CompactLayout.luau','tests/sustained_ttk.py']

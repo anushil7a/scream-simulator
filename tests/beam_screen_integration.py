@@ -45,6 +45,7 @@ local clientDestroyed=false;local windowFocused=true;local Controls=require('../
 local gate={Cancel=function(self)self.next=nil end,Step=function(self)local n=self.next;self.next=nil;return n end}
 local sent={};local sustainedControl=Controls.new(gate,function(verb,arg)table.insert(sent,{verb,arg})end,function()return {}end);sustainedControl:SetArmed(true);local mic={ready=true,power=0,phase=nil}
 local data={micReady=true,voiceEligible=true,settings={reducedShake=false}}
+local academy={}
 local hitFeedback=require('../src/StarterPlayer/StarterPlayerScripts/HitFeedback').new()
 local remotes={Effect={OnClientEvent={}}};local Players={GetPlayerByUserId=function(_,id)return (id==7 or id==8) and {} or nil end}
 local Config={Auras={Gold=gold},GetSound=function()return nil end}

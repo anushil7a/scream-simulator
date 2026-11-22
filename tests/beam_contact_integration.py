@@ -80,7 +80,7 @@ local function make(ack)
  mic.ready=true;data.voiceEligible=true;data.settings.reducedShake=false;workspace.CurrentCamera.CFrame.Position=Vector3.zero
  attrs={SustainedActive=false};cues=0;screenHits=0
  gate.next='start';sustainedControl:Step(.001,clock,0,true,true,false,0)
- academy.defenderCueUntil=nil;protectionRemaining=0;alive=true
+ academy.defenderCueUntil=nil;academy.coverCueUntil=nil;protectionRemaining=0;alive=true
  local id=sustainedControl.attack.sequence;attrs.SustainedActive=true;attrs.SustainedSequence=id
  if ack~=false then sustainedControl:Step(.001,clock,0,true,true,true,id)end
  beam();local rig=sustainedBeams.entries[7].visual;frame(1/30)
@@ -91,6 +91,18 @@ local function hit(id,total,pos)send('SustainedHit',pos,id,total);hud()end
 local function retained(total)
  check(cues==1 and screenHits==1 and hitFeedback:Read(clock)==total and hitText.Visible and hitText.Text==total..' DAMAGE','Accepted hit lost retained sound/HUD')
 end
+local _,coverId=make()
+send('SustainedCover',nil,coverId+1);hud()
+check(not hitText.Visible and academy.coverCueUntil==nil,'Stale sequence showed cover')
+send('SustainedCover',nil,coverId);hud()
+check(hitText.Visible and hitText.Text=='BEAM HIT COVER','Confirmed cover was not shown')
+attrs.SustainedActive=false;hud()
+check(not hitText.Visible,'Inactive cast showed cover')
+attrs.SustainedActive=true
+hit(coverId,3,anchor)
+check(hitText.Visible and hitText.Text=='3 DAMAGE','Cover hid confirmed damage')
+clock+=.75;send('SustainedCover',nil,coverId);hud()
+check(not hitText.Visible,'Old cover resurfaced after damage')
 make()
 send('SustainedDamageTaken',{});hud()
 check(not academy.incomingHit.Visible,'Foreign Humanoid showed defender cue')
@@ -301,16 +313,19 @@ def main():
             (event, 'if hitFeedback:Accept(id,aura,os.clock()) then', 'if (function()hitFeedback:Accept(id,aura,os.clock());return true end)() then', 'Duplicate/backward total replayed'),
             (event, 'attack and attack.acknowledged and attack.sequence==id', 'attack and attack.sequence==id', 'Ineligible hit decorated new rig: no acknowledgement'),
             (event, 'and attack.sequence==id', '', 'Ineligible hit decorated new rig: local sequence mismatch'),
-            (event, 'and p:GetAttribute("SustainedActive")==true', '', 'Ineligible hit decorated new rig: inactive server'),
+            (event, 'and attack.sequence==id and p:GetAttribute("SustainedActive")==true',
+             'and attack.sequence==id', 'Ineligible hit decorated new rig: inactive server'),
             (event, 'and p:GetAttribute("SustainedSequence")==id', '', 'Ineligible hit decorated new rig: server sequence mismatch'),
             (event, 'now<entry.expires', 'true', 'Ineligible hit decorated new rig: expired entry'),
             (event, 'and windowFocused and not beamBlocked()', '', 'Blocked hit created contact'),
             (event, 'playGameplayCue("Hit");', '', 'Accepted hit lost retained sound/HUD'),
+            (event, ' and id==p:GetAttribute("SustainedSequence") and id~=hitFeedback.sequence', ' and id~=hitFeedback.sequence', 'Stale sequence showed cover'),
+            (event, '   if id==academy.coverCueSequence then academy.coverCueUntil=nil end', '', 'Old cover resurfaced after damage'),
             (event, 'local dodged=kind=="BeamDodged"', 'local dodged=false', 'Actual evade did not show the dodge label'),
             (event, 'character:FindFirstChildOfClass("Humanoid")==pos', 'true', 'Foreign Humanoid showed defender cue'),
             (event, 'beamWidth,color,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'beamWidth,Config.Auras.Gold,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'Explicit Color3 lost its override'),
             (hud, 'if protectionRemaining>0 then academy.defenderCueUntil=nil end', '', 'Defender cue replayed after protection'),
-            (hud, 'hitText.Visible=gameplayVisible and confirmed~=nil', 'hitText.Visible=false', 'Accepted hit lost retained sound/HUD'),
+            (hud, 'hitText.Visible=gameplayVisible and (confirmed~=nil or coverCue)', 'hitText.Visible=gameplayVisible and coverCue', 'Cover hid confirmed damage'),
             (render, 'windowFocused and not beamBlocked() and attack', 'attack', 'Blocked frame retained contact'),
             (render, 'attack and attack.acknowledged', 'attack', 'Current-state frame gate retained contact: lost acknowledgement'),
             (render, 'and p:GetAttribute("SustainedActive")==true', '', 'Current-state frame gate retained contact: inactive'),
