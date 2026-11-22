@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Quests warn before replacing an unfinished task
+
+- In a disposable City Studio game, with both starter tasks unlocked and Garden staged at 1/3, Beach showed ACCEPT without a reset warning. Clicking it through the actual menu sent the game's normal request and the server switched to Beach and reset Garden to 0/3.
+- An available alternate task now shows SWITCH and names the active task whose unfinished progress resets. Existing restart guidance still applies to partial destination tasks. Earned rewards still use CLAIM. In the matched desktop run, the warning and 44-pixel button fit and were readable before clicking. Clicking SWITCH produced the same server transition and reset.
+- Independent review, 1,759 synthetic renderer assertions, 18 negative controls, and the full run passed, including 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. The native check used staged progress on an unpublished temporary profile. The disposable Studio session closed. Physical touch and unassisted first-session play remain open.
+
 ## The training menu and aim HUD identify the right targets
 
 - In a disposable City playtest, Quests said the pads were in the west courtyard. The Academy spawn is at Z = -260 and the training row at Z = -400. Quests now gives the north-of-spawn direction on Map10 and keeps the west courtyard direction for the legacy layout.

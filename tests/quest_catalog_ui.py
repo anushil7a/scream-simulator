@@ -145,6 +145,24 @@ for _,isNarrow in ipairs({false,true})do
  check(buttons.ActiveQuestAction and buttons.ActiveQuestAction.text=='ABANDON','Current active quest card missing')
  check(cards[1]==buttons.ActiveQuestAction.card,'Current active quest card no longer first')
  check(buttons.garden.text=='ACTIVE','Active quest tracking state lost')
+ local beach=buttons.beach
+ check(beach.text=='SWITCH','Unfinished active task offered silent acceptance')
+ check(table.concat(beach.card.labels,' '):find(Config.GetQuest('garden').name,1,true),'Switch warning omitted the active task name')
+ check(table.concat(beach.card.labels,' '):find('Unfinished progress resets.',1,true),'Switch warning omitted progress loss')
+ beach.call()
+ check(#calls==1 and calls[1][1]=='AcceptQuest' and calls[1][2]=='beach','Switch sent the wrong server action')
+ local alternate=copy(value);alternate.quests.beach={progress=1}
+ renderChecked(alternate,isNarrow)
+ local both=table.concat(buttons.beach.card.labels,' ')
+ check(buttons.beach.text=='SWITCH' and both:find('Restarting resets this unfinished progress.',1,true) and both:find('Unfinished progress resets.',1,true),'Switch hid destination restart or current task reset')
+ alternate.quests.beach={progress=Config.GetQuest('beach').goal}
+ renderChecked(alternate,isNarrow)
+ check(buttons.beach.text=='CLAIM' and not table.concat(buttons.beach.card.labels,' '):find('Unfinished progress resets.',1,true),'Claim was presented as a destructive task switch')
+ alternate.quests.garden={progress=Config.GetQuest('garden').goal}
+ alternate.quests.beach={progress=0}
+ renderChecked(alternate,isNarrow)
+ check(buttons.beach.text=='ACCEPT' and not table.concat(buttons.beach.card.labels,' '):find('Unfinished progress resets.',1,true),'Claimable active reward was presented as progress at risk')
+ renderChecked(value,isNarrow)
  buttons.garden.call();check(#calls==0,'Tracking quest can be reaccepted')
  buttons.ActiveQuestAction.call();check(#calls==1 and calls[1][1]=='AbandonQuest','Active quest abandon changed')
  for _,q in ipairs(Config.Quests)do value.quests[q.id]={progress=q.goal,claimed=q.id=='nick'}end
@@ -264,6 +282,12 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    claimed=code.replace('if available and not v.claimed and','if available and')
    assert claimed!=code
    run(claimed,'Claimed city quest can replay reward')
+   switch_label=code.replace('or switching and "SWITCH"', '')
+   assert switch_label!=code
+   run(switch_label,'Unfinished active task offered silent acceptance')
+   switch_warning=code.replace('Unfinished progress resets."', 'New task begins."')
+   assert switch_warning!=code
+   run(switch_warning,'Switch warning omitted progress loss')
    restart_label=code.replace('or restarting and "RESTART" or "ACCEPT"','or "ACCEPT"')
    assert restart_label!=code
    run(restart_label,'Inactive partial quest misleading ACCEPT label')

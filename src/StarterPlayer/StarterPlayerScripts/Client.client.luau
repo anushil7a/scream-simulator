@@ -1100,6 +1100,8 @@ render=function()
     action:FireServer("AbandonQuest")
    end)
   end
+  local currentProgress=current and data.quests[current.id]
+  local unfinished=current and not current.retired and not (currentProgress and (currentProgress.claimed or currentProgress.progress>=current.goal))
   local combatEvents={Crowd=true,Evade=true,Underdog=true,PracticeBeam=true,ArenaAssist=true}
   local questGroups={{title="BEAM COMBAT TASKS",combat=true},{title="OPTIONAL CITY ACTIVITIES",combat=false}}
   for _,group in ipairs(questGroups) do
@@ -1112,7 +1114,9 @@ render=function()
     if q.hidden and not available then continue end
     if not headingShown then info(group.title,50);headingShown=true end
     local restarting=available and not v.claimed and v.progress>0 and v.progress<q.goal and data.activeQuest~=q.id
+    local switching=unfinished and q~=current and available and not q.retired and not v.claimed and v.progress<q.goal
     local description=q.retired==true and "Earned reward available." or q.description
+    if switching then description..="\n\nReplaces "..current.name..". Unfinished progress resets." end
     if restarting then description..="\n\nRestarting resets this unfinished progress." end
     if not available then description..="\n\nTo unlock: meet "..(q.giver or "a resident").." and use Talk." end
     local textWidth=math.min(720,gui.AbsoluteSize.X-24)-48-(narrow and 28 or 158)
@@ -1126,7 +1130,7 @@ render=function()
     label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
     label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
     label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
-    button(c,q.id,guideToMar and "GUIDE TO MAR" or not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "ACTIVE" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,guideToMar and 44 or 38),UDim2.new(1,-130,0,actionY),function()
+    button(c,q.id,guideToMar and "GUIDE TO MAR" or not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "ACTIVE" or switching and "SWITCH" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,switching and 44 or (guideToMar and 44 or 38)),UDim2.new(1,-130,0,actionY),function()
      if guideToMar then academy.selectGuide("mar","gardens");closeMenu();return end
      if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
     end)
