@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Measure four-client beam overlap in populated City
+
+- Exact source `24c182d` ran in a disposable Studio place on one desktop with four local clients, 18 NPCs and 3,023 world instances. Clients staged on Academy safe paving, used synthetic power through normal Action remotes and cast four acknowledged level-100 beams each. The packaged Hollow Purple template was present. All four clients received 253 beam packets each in the active phase and none in idle. This exercised beam replication and client effects on the active map. The safe zone excluded PvP target resolution.
+- In paired 30-second idle, beam-cycling and recovery samples, the server saw four simultaneous casts for 14.63 seconds and at least three for 14.80 seconds. Server Heartbeat p95 was 18.06, 18.03 and 18.07 ms across the three phases, and 18.05 ms over 888 samples with at least three active beams. Client frame intervals stayed near the observed 15 Hz Studio cadence. Client p95 across the four windows was 68.05–68.12 ms before, 68.00–68.28 ms during and 67.98–68.16 ms after. Camera and viewport stayed fixed on each client.
+- No phase-to-phase interval change was distinguishable at this test's cadence. Frame intervals on one host do not establish GPU time, released-client performance, phone performance or crowded PvP capacity. The benchmark also did not verify visual readability. Continue with target-device profiling and a representative player soak before release. [Native measurements](../tests/evidence/city-overlap-load-2026-11-22.json)
+- Argon reviewed the measurement design, and independent review checked the recorded metrics and limitations. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. All disposable Studio instances closed. No production code changed.
+
 ## Verify knockout outcomes through two local clients
 
 - On `aaa7268`, two native Studio clients sent synthetic beam input through the normal Action remote. A first arena KO awarded 96 XP and 20 coins, and a repeat within the 60-second reward cooldown awarded neither. Both KOs ejected, healed and protected the defender. Each intended client received and displayed its own notice. See the [two-client evidence and scope](PVP_READINESS_REVIEW.md#november-22-two-client-action-and-notice-check).

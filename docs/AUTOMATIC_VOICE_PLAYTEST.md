@@ -27,7 +27,7 @@ These are **pending checks**, not completed results. Save your open Studio work 
 
 - **Live proximity voice:** two eligible accounts/devices, near/far listening and a real scream-driven hit. Hearing your own mic loopback is not required.
 - **Legitimate saves/migration:** an explicitly approved test environment using normal profiles and legitimate earned progress. Disposable fixtures intentionally do not save. Do not publish a fixture or experiment with production keys to perform this check.
-- **Performance:** use the labeled PerformanceReview collector described below, and native client profiling on representative desktop/phone hardware. No measured performance result exists for this candidate.
+- **Performance:** use the labeled PerformanceReview collector described below and profile representative desktop and phone hardware. The [four-client Studio overlap test](../tests/evidence/city-overlap-load-2026-11-22.json) gives a local beam replication and timing reference. It has no PvP target-resolution workload or device performance evidence.
 
 ### Record one result per scenario
 
