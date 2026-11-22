@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Repeating Buy & Equip keeps the first upgrade equipped
+
+- Before the fix, two accepted Gear requests in a disposable Studio playtest took a temporary wallet from 130 to 30 coins and left the owned Megaphone unequipped. Gear buttons now send the action displayed on the card: buy, equip or unequip. Repeating the same action cannot toggle the selection, and repeating a buy for owned gear is silent. Existing vendor purchases and legacy toggle callers retain their behavior.
+- In Studio the real **BUY & EQUIP** button followed by two repeated buy requests left the Megaphone equipped, 30 coins in the wallet, and exactly one server confirmation. A real unequip followed by repeated unequip and old buy requests left the owned gear unequipped. The **EQUIP** button then restored it without a charge. Tests used the actual local RemoteEvent with scripted duplicate sends and a temporary wallet.
+- The panel suite passed 47 checks and seven negative controls; the focused gear suite and full local verification passed, including 29 pure/synthetic suites, 164 mocked-service suites, production compilation and review builds. No real purchase, live save or internet transport ran. The disposable Studio session was closed.
+
 ## The Megaphone card guides active starter quests
 
 - With Garden in progress and 80 coins, the Academy Megaphone used to show a disabled **NEED 20 COINS**. It now offers **GUIDE QUEST** when the current Garden or Beach task has a valid objective. The button keeps the exact shortfall, closes Gear and selects the existing route. Completed rewards keep first priority. The shortcut does not send a quest or gear request.

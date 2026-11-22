@@ -156,7 +156,7 @@ for _,narrow in ipairs({false,true}) do
  cards,buttons,sent=renderStyle({level=1,coins=1000,aura='Gold'},narrow)
  assert(buttons.Megaphone.text=='BUY & EQUIP\n100 COINS' and buttons.Megaphone.Interactable,'Buy action missing the actual price')
  assert(cards[1].detail:find('1000 coins in wallet',1,true),'Displayed balance differs before purchase')
- buttons.Megaphone.press();assert(#sent==1 and sent[1][1]=='Gear' and sent[1][2]=='Megaphone')
+ buttons.Megaphone.press();assert(#sent==1 and sent[1][1]=='Gear' and sent[1][2].id=='Megaphone' and sent[1][2].intent=='buy')
  cards,buttons=renderStyle({level=1,coins=900,aura='Gold',megaphoneOwned=true,megaphoneEquipped=true},narrow)
  assert(buttons.Megaphone.text=='UNEQUIP' and buttons.Megaphone.Interactable)
  assert(cards[1].detail:find('Equipped · 900 coins in wallet',1,true) and not cards[1].detail:find('100 coins',1,true),'Equipped gear shows stale price or balance')

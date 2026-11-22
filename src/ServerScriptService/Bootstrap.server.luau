@@ -718,8 +718,8 @@ local function closeConversation(p)
  if bot and bot.talkingTo==p then bot.talkingTo=nil;bot.socialUntil=0 end
  if s then s.conversationBot=nil end
 end
-local function gearAction(p,s,id,toggle)
- local ok,message=Config.Gear.Act(s.data,id,toggle)
+local function gearAction(p,s,id,intent)
+ local ok,message=Config.Gear.Act(s.data,id,intent)
  state(p,message,nil,not ok)
 end
 local function megaphone(p,s,toggle) gearAction(p,s,"Megaphone",toggle) end
@@ -981,7 +981,11 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="Talk" then talk(p,arg)
  elseif verb=="DevCommand" then dev(p,arg)
  elseif verb=="EquipSound" then local sound=type(arg)=="string" and Config.GetSound(arg);if sound and sound.level<=s.data.level then s.data.sound=sound.id;state(p,sound.name.." equipped") end
- elseif verb=="Gear" then if type(arg)=="string" then gearAction(p,s,arg,true) end
+ elseif verb=="Gear" then
+  if type(arg)=="string" then gearAction(p,s,arg,true)
+  elseif type(arg)=="table" and type(arg.id)=="string" and (arg.intent=="buy" or arg.intent=="equip" or arg.intent=="unequip") then
+   gearAction(p,s,arg.id,arg.intent)
+  end
  elseif verb=="MicroSpeaker" then microSpeaker(p,s,true)
  elseif verb=="Megaphone" then megaphone(p,s,true)
  elseif verb=="VendorPurchase" then vendorPurchase(p,s,arg)

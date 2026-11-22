@@ -60,9 +60,10 @@ def assemble(client):
  closeconv=client[client.index('closeConversation=function()'):client.index('local function refreshConversation()')]
  show=client[client.index('showConversation=function(info)'):client.index('\nlocal function refreshQuestObjects()')]
  stop=server[server.index('local function stopQuest(p)'):server.index('local function protect(p,s)')]
- micro=server[server.index('local function gearAction(p,s,id,toggle)'):server.index('local function vendorPurchase(p,s,arg)')]
+ micro=server[server.index('local function gearAction(p,s,id,intent)'):server.index('local function vendorPurchase(p,s,arg)')]
  branches=server[server.index(' elseif verb=="SetAura" and'):server.index(' elseif verb=="SetSettings" and')]
- dispatch='local function dispatch(verb,arg) if verb=="Gear" then gearAction(p,s,arg,true) elseif verb=="MicroSpeaker" then microSpeaker(p,s,true)'+branches+' end end\n'
+ gear=server[server.index(' elseif verb=="Gear" then'):server.index(' elseif verb=="Megaphone" then')]
+ dispatch='local function dispatch(verb,arg) if false then return'+gear+branches+' end end\n'
  return '\n'.join([setup,stop,micro,dispatch,ui,shop_lifecycle,close,toggle,render,convdecl,closeconv,show,open_helper])+r'''
 local f={s=s,sent=sent,modal=modal,conversation=conversationPanel,effects=effects}
 function f.open(tab)snapshot();toggleTab(tab)end
@@ -70,6 +71,7 @@ function f.tab(tab)tabs[tab].callback()end
 function f.rerender()snapshot();render()end
 function f.button(name)return buttons[name].callback end
 function f.close()closeMenu()end
+function f.gearRequest(arg)dispatch("Gear",arg)end
 function f.destroy()clientDestroyed=true end
 function f.dialogue(id,complete)
  snapshot();showConversation({npc={},name='NPC',line='Hello',hint='Hint',quests={{id=id,name=id,description='Task',complete=complete==true,claimed=false}}})
@@ -112,6 +114,33 @@ f.rerender();f.button('practice_beams')();check(f.s.activeQuest=='practice_beams
 f.s.data.quests.practice_beams.progress=3;f.rerender();local claim=f.button('practice_beams');claim();claim();check(f.s.data.coins==2025 and f.s.data.xp==60 and f.s.data.quests.practice_beams.claimed,'Claim duplicate/authority changed')
 f.tab('Style');f.button('MicroSpeaker')();check(f.s.data.coins==2025-require("../src/ReplicatedStorage/Shared/GearCatalog").Get("MicroSpeaker").price and f.s.data.amplifierOwned,'Current Style purchase blocked')
 f.button('BaseColor')();check(f.s.data.aura=='Gold','Current legacy-color action blocked')
+
+f=fixture();f.s.data.coins=130;f.open('Style')
+local buy=f.button('Megaphone')
+buy();buy()
+check(f.s.data.coins==30 and f.s.data.megaphoneOwned and f.s.data.gearEquipped=='Megaphone','Repeated Buy & Equip removed the purchased gear')
+f.rerender()
+local unequip=f.button('Megaphone')
+unequip();unequip()
+check(f.s.data.coins==30 and f.s.data.gearEquipped==nil and not f.s.data.megaphoneEquipped,'Repeated Unequip reversed the gear selection')
+f.gearRequest({id='Megaphone',intent='buy'})
+check(f.s.data.gearEquipped==nil,'Old Buy equipped already owned gear')
+f.rerender()
+local equip=f.button('Megaphone')
+equip();equip()
+check(f.s.data.gearEquipped=='Megaphone' and f.s.data.megaphoneEquipped and f.s.data.coins==30,'Repeated Equip did not leave gear selected')
+f.gearRequest({id='MicroSpeaker',intent='unequip'})
+check(f.s.data.gearEquipped=='Megaphone','Unequip cleared a different equipped item')
+f=fixture();f.s.data.coins=130
+f.gearRequest({id='Megaphone',intent='unknown'})
+check(f.s.data.coins==130 and not f.s.data.megaphoneOwned,'Malformed Gear request mutated ownership')
+f.gearRequest({id='Megaphone',intent='equip'})
+check(f.s.data.coins==130 and not f.s.data.megaphoneOwned,'Equip bought unowned gear')
+f.gearRequest({id='MicroSpeaker',intent='buy'})
+check(f.s.data.coins==130 and not f.s.data.amplifierOwned,'Unaffordable Buy charged or unlocked gear')
+f.gearRequest('Megaphone');f.gearRequest('Megaphone')
+check(f.s.data.coins==30 and f.s.data.megaphoneOwned and not f.s.data.gearEquipped,'Legacy Gear string lost toggle semantics')
+
 f=fixture();f.dialogue('practice_beams');f.npcAction()();check(f.s.activeQuest=='practice_beams' and not f.conversation.Visible,'Current NPC accept blocked')
 f.s.data.quests.practice_beams.progress=3;f.dialogue('practice_beams',true);local claim=f.npcAction();claim();claim();check(f.s.data.coins==2025 and f.s.data.xp==60,'NPC claim duplicate/authority changed')
 f=fixture();f.s.data.availableQuests.garden=false;f.dialogue('garden');f.npcAction()();check(f.s.activeQuest=='garden' and f.s.data.quests.garden.progress==1,'Server discovery gate changed')
@@ -156,6 +185,9 @@ if a.baseline:
 else:
  run(c)
  if a.negative_controls:
+  gear_intent='action:FireServer("Gear",{id=item.id,intent=canBuy and "buy" or equipped and "unequip" or "equip"})'
+  assert c.count(gear_intent)==1
+  run(c.replace(gear_intent,'action:FireServer("Gear",item.id)'),'Repeated Buy & Equip removed the purchased gear')
   for scope,word,error in [('modal','clientDestroyed or ','Menu stale abandon: destroy'),('modal','not modal.Visible or ','Menu stale abandon: hidden'),('modal',' or revision~=renderRevision','Menu stale abandon: reopen'),('conversation','clientDestroyed or ','NPC stale accept: destroy'),('conversation','not conversationPanel.Visible or ','NPC stale accept: hidden'),('conversation',' or revision~=conversationRevision','NPC stale accept: reopen')]:
    guard='if clientDestroyed or not '+('modal.Visible or revision~=renderRevision' if scope=='modal' else 'conversationPanel.Visible or revision~=conversationRevision')+' then return end'
    assert c.count(guard)==1;run(c.replace(guard,guard.replace(word,'')),error)

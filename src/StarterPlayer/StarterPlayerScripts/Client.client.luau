@@ -1127,7 +1127,9 @@ render=function()
    end
    label(c,detail,UDim2.new(1,narrow and not compactGear and -28 or -170,0,compactGear and 42 or 48),UDim2.fromOffset(15,compactGear and 26 or narrow and 57 or 34),13)
    local control=button(c,item.id,stateText,UDim2.fromOffset(135,44),UDim2.new(1,-149,0,narrow and 6 or 50),function()
-    if canAct then action:FireServer("Gear",item.id);return end
+    if canAct then
+     action:FireServer("Gear",{id=item.id,intent=canBuy and "buy" or equipped and "unequip" or "equip"});return
+    end
     if coinAction and academy.starterCoinAction(data)==coinAction then
      if coinAction=="claim" then toggleTab("Quests",true)
      elseif coinAction=="objective" then academy.selectGuide("quest",data.activeQuest);closeMenu()
