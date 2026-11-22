@@ -12,7 +12,7 @@ That release authorization is complete. **Another Roblox upload/publication requ
 
 Run `python3 tests/verify_local.py --build` from the repository root with Luau tools and Rojo installed. Generated `build/` outputs are ignored by Git.
 
-- `AutomaticVoiceCandidate.rbxl`: current automatic-voice candidate with normal profile handling. Its `.provenance.json` sidecar identifies source/build hashes. No upload is approved.
+- `AutomaticVoiceCandidate.rbxl`: current automatic-voice candidate. A local Studio file with both universe and place IDs zero uses temporary profiles and skips DataStore initialization. The `.provenance.json` sidecar identifies source and build hashes. Upload requires separate approval.
 - `SustainedLocalPlay.rbxl`: disposable, local-only temporary profiles for manual gameplay review.
 - `SustainedNativeFixture.rbxl`: disposable local place with synthetic combat checks; these do not establish real microphone behavior.
 - `PerformanceReview.rbxl`: disposable local place with the manual server heartbeat collector. It does not automatically measure performance.

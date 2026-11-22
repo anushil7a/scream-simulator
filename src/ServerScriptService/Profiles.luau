@@ -1,4 +1,3 @@
-local DataStoreService = game:GetService("DataStoreService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 
@@ -17,6 +16,11 @@ local RECOVERY_NOTICE="Loaded the last confirmed save. Recent progress may be mi
 local Profiles = {}
 local store
 local storeReady, storeResult = pcall(function()
+    -- A detached local playtest always starts with temporary progress.
+    if RunService:IsStudio() and game.GameId == 0 and game.PlaceId == 0 then
+        return nil
+    end
+    local DataStoreService = game:GetService("DataStoreService")
     return DataStoreService:GetDataStore(RunService:IsStudio() and "ScreamSimulator_Studio_v2" or "ScreamSimulator_v1")
 end)
 if storeReady then

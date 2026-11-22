@@ -1,5 +1,16 @@
 # Scream Simulator development roadmap
 
+## Run the full City locally with temporary profiles
+
+- The uninstrumented City candidate used to request the Studio profile store at module startup. In a fake store that returned a handle, joining a detached Studio place with zero universe and place IDs then wrote an acquisition lease. The baseline regression failed on that attempted persistence.
+- Detached zero-ID Studio now skips service lookup and joins with a fresh temporary profile. Published Studio still selects the Studio store, and live servers still select the production store. The profile lease and saves retain their existing behavior for those destinations.
+- The actual profile module passed 19 mock assertions, including fresh local rejoin, disabled save, and each existing store's namespace and lease path. Bypassing the new guard reached the fake store and failed the test. The normal Rojo candidate audited all 99 production scripts and packaged assets with no disposable fixture attribute.
+
+- Opened an unchanged copy of the normal candidate in native desktop Studio with both IDs zero. It contained all 99 scripts and four referenced assets. The fresh avatar spawned in the City with level 1, zero coins, full health, safe-zone status, and the temporary-progress message. Clicking Rookie Guide showed 18 markers. Keyboard movement traveled 15.47 studs and the actual dodge entered its four-second cooldown. Beams stayed OFF. No voice attack or later-game combat was exercised.
+- The Output log showed three asset-type mismatch warnings for ID `203785492` in the sampled startup. The ID was absent from the tracked source and the serialized place XML. Its source and impact remain unconfirmed. No Luau exception appeared in the sampled Output.
+- Independent review passed. Full verification passed 29 pure or synthetic suites, 168 mocked-service suites, 99 Luau compilations and Rojo builds. The audited and played binary had SHA-256 `4394b62a084a8fad9809272c68261593b12b510c8dd17005c573f716f18e94ce`.
+- The offline playtest establishes startup and the first guide interaction. Release still requires eligible accounts on real devices, a representative multiplayer and performance run, isolated persistence validation, and the quest-writer cutover evidence.
+
 ## Make Game Passes easy to find and compare
 
 - The gold **Passes** launcher opens **Game Passes**. Spectrum is featured with its full action in the first fold of shorter landscape screens. Permanent perks appear before timed boosts. Both section shortcuts retain 44-pixel targets, and boost cards keep their offline countdown and saved inventory.
