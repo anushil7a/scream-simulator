@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Keep the Beach guide visible over the coast ramp
+
+- The retained Beach route on `e501643` went blank at the coast ramp lip. The low guide ray hit the flat terrace at Y16 with an upward normal while the higher ray stayed clear. Both ends of that segment had walkable support, but a raw waypoint below the terrace made the low ray descend through the floor. The native avatar could walk the ramp, and the baseline guide recovered after a 3.10-second pause and automatic replan.
+- On an upward low-ray hit with a clear upper ray, the guide now checks support at the start, midpoint and end of the segment. It retries both clearance rays at ground-relative heights only for a gentle level or downward profile and a hit on one of those supporting surfaces. Missing support, steep changes and genuine obstructions still stop the trail.
+- In matched Studio runs from the same terrace position, both versions initially planned 103 waypoints. The candidate started with 18 visible dots instead of 16 and reached the far lip in 12.683 seconds versus 15.598 seconds for the baseline. It passed the known gap without stopping or selecting the route again. The local fixture used scripted walking and temporary profiles.
+- The candidate run earned 80 coins from three Garden holds and the actual Claim button. From a staged start on the retained coast approach, the avatar then followed the live Guide through the ramp and to all six Beach prompts without repositioning. The real Beach Claim raised the wallet to 130. The Gear button spent 100, left 30, mounted the Megaphone and reported the expected 1.06 power multiplier. These were earned local coins on a temporary profile with staged starting positions.
+- Independent review cleared the change. The guide suite passed 63 mocked checks and nine controls. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. Physical-device discovery, voice, and the existing PvP crossing remain release checks.
+
 ## Keep usable guide breadcrumbs during the first upgrade route
 
 - On `9778447`, a fresh player followed the actual Gear guide from spawn toward Mar. Talking to her and accepting and completing Garden awarded 80 coins. Two failures interrupted the walkthrough. Mar's movement repeatedly invalidated the first route during its three-second retry interval. A solid hit later in a route hid all earlier breadcrumbs. The matched ray probes hit Mar's torso after nine clear segments and GardenBed0 after three clear segments on the Beach route.

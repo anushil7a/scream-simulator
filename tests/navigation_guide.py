@@ -19,9 +19,26 @@ local objects={};Instance={new=function(class)local o={ClassName=class,Destroyin
 Color3={fromRGB=function(...)return {...}end};Enum={RaycastFilterType={Exclude=1},Material={SmoothPlastic=1},PathStatus={Success=1}}
 RaycastParams={new=function()return {}end}
 local tasks={};task={spawn=function(fn)table.insert(tasks,fn)end}
-local paths={};local corner=nil;local fail=false;local wall=false;local ground=true;local lowWall=false;local laterWall;local rayCount=0
+local paths={};local corner=nil;local fail=false;local wall=false;local ground=true;local lowWall=false;local laterWall;local floorCase;local floorPart={};local rayCount=0
 local world={};function world:Raycast(origin,direction,params)
  rayCount+=1
+ if floorCase then
+  local hitFloor=floorCase~='fake floor' and floorPart or {}
+  if direction.Y==-9 then
+   if floorCase=='gap' and origin.X>1 and origin.X<3 then return nil end
+   local floorY=floorCase=='steep' and -origin.X or floorCase=='ramp' and -.16*origin.X or 0
+   return {Instance=floorPart,Position=Vector3.new(origin.X,floorY,origin.Z),Normal=Vector3.new(0,1,0)}
+  end
+  local endY=origin.Y+direction.Y
+  local factor=floorCase=='ramp' and .16 or floorCase=='steep' and direction.Y< -2.5 and 1 or 0
+  local rampY=-factor*(origin.X+direction.X)
+  if direction.X>0 and direction.Y<0 and origin.Y>0 and endY<rampY then
+   return {Instance=hitFloor,Normal=Vector3.new(0,1,0)}
+  end
+  if floorCase=='wall' and direction.X>0 and origin.Y<1.5 and origin.X<2 and origin.X+direction.X>=2 then
+   return {Normal=Vector3.new(-1,0,0)}
+  end
+ end
  -- Newly streamed vertical barrier at X=2, from floor to 1.5 studs high.
  if lowWall and origin.Y<1.5 and direction.X>0 and origin.X<2 and origin.X+direction.X>=2 then return {} end
  if laterWall and origin.Y<1.5 and direction.X>0 and origin.X<laterWall and origin.X+direction.X>=laterWall then return {} end
@@ -135,6 +152,21 @@ check(prefix.points and prefix.visibleDots==2 and prefix.dots[3].Transparency==1
 slowRoot.Position=Vector3.new(10,2.5,0);prefix:Step(slowRoot,.4,true)
 check(not prefix.points and prefix.visibleDots==0,'An immediate obstacle did not invalidate the remaining path')
 laterWall=nil;slowRoot.Position=Vector3.new(0,2.5,0);prefix:Destroy()
+corner={{Position=Vector3.new(0,0,0)},{Position=Vector3.new(4,-2,0)},{Position=Vector3.new(100,0,0)}}
+for _,case in ipairs({'flat','ramp','gap','steep','wall','fake floor'}) do
+ floorCase=case
+ local descent=Guide.new(nil)
+ descent:SetTarget({position=Vector3.new(100,0,0)});descent:Step(slowRoot,0,true);flush()
+ descent:Step(slowRoot,.2,true)
+ if case=='flat' or case=='ramp' then
+  check(descent.points and descent.visibleDots>0 and descent.dots[1].Position.X==4,'Walkable descent lost to the waypoint chord')
+  check(math.abs(descent.dots[1].Position.Y-(case=='flat' and .45 or -.19))<.0001,'Recovered guide dot does not sit above the floor')
+ else
+  check(not descent.points and descent.visibleDots==0,'Floor recovery showed a route across '..case)
+ end
+ descent:Destroy()
+end
+floorCase=nil;corner=nil
 local cadence=Guide.new(nil)
 cadence:SetTarget({position=Vector3.new(100,0,0)});cadence:Step(slowRoot,0,true);flush()
 rayCount=0;cadence:Step(slowRoot,.2,true);check(rayCount<=54,'ray work exceeds bounded two-height checks')
@@ -163,6 +195,9 @@ if parser.parse_args().negative_controls:
   ('or (points[#points].Position-self.target.position).Magnitude>MAX_TARGET_DRIFT then','then','A replacement endpoint too far from live Mar was accepted'),
   ('or (self.points[#self.points].Position-target.position).Magnitude>MAX_TARGET_DRIFT) then',') then','A retained endpoint too far from live Mar was left visible'),
   ('if count>0 then break end','', 'A later obstacle hid the checked-clear path or showed a dot past it'),
+  ('local recovered=lowHit and floorClearance(self.raycast,from,point,lowHit,previousGround)','local recovered=nil','Walkable descent lost to the waypoint chord'),
+  ('or not mildDescent(start.Position,middle.Position)\n  or not mildDescent(middle.Position,finish.Position)','', 'Floor recovery showed a route across steep'),
+  ('if Workspace:Raycast(start.Position+LOW_RAY,delta,raycast)\n  or Workspace:Raycast(start.Position+HIGH_RAY,delta,raycast) then return end','', 'Floor recovery showed a route across wall'),
  ):
   assert source.count(old)==1,old
   result=run(source.replace(old,new))

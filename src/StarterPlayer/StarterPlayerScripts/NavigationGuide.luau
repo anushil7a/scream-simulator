@@ -7,6 +7,8 @@ local Guide={}
 Guide.__index=Guide
 local MAX_DOTS,SPACING,RETRY,MAX_AGE=18,5,3,8
 local REPATH_DRIFT,MAX_TARGET_DRIFT=3,8
+local LOW_RAY,HIGH_RAY=Vector3.new(0,.5,0),Vector3.new(0,2.5,0)
+local GROUND_RAY=Vector3.new(0,-9,0)
 local BEARINGS={"N","NE","E","SE","S","SW","W","NW"}
 local function validPosition(p)
  return typeof(p)=="Vector3" and p.X==p.X and p.Y==p.Y and p.Z==p.Z
@@ -115,6 +117,30 @@ function Guide:_request(root,now)
   end)
  end)
 end
+local function groundAt(raycast,point,height)
+ local hit=Workspace:Raycast(Vector3.new(point.X,height+3,point.Z),GROUND_RAY,raycast)
+ return hit and hit.Normal.Y>=.6 and hit or nil
+end
+local function mildDescent(first,last)
+ local delta=last-first
+ local horizontal=math.sqrt(delta.X^2+delta.Z^2)
+ return horizontal>.01 and delta.Y<=.05 and -delta.Y<=horizontal*.5+.05
+end
+local function floorClearance(raycast,from,point,lowHit,previousGround)
+ -- A navmesh waypoint chord can dip into a walkable surface at a ramp lip.
+ if not lowHit.Normal or lowHit.Normal.Y<.6 or Workspace:Raycast(from+HIGH_RAY,point-from,raycast) then return end
+ local start=previousGround or groundAt(raycast,from,from.Y)
+ if not start then return end
+ local middle=groundAt(raycast,(from+point)*.5,start.Position.Y)
+ local finish=groundAt(raycast,point,start.Position.Y)
+ if not middle or not finish or not mildDescent(start.Position,middle.Position)
+  or not mildDescent(middle.Position,finish.Position) then return end
+ if lowHit.Instance~=start.Instance and lowHit.Instance~=middle.Instance and lowHit.Instance~=finish.Instance then return end
+ local delta=finish.Position-start.Position
+ if Workspace:Raycast(start.Position+LOW_RAY,delta,raycast)
+  or Workspace:Raycast(start.Position+HIGH_RAY,delta,raycast) then return end
+ return finish
+end
 function Guide:Step(root,now,visible)
  if self.destroyed or not self.target then return end
  if type(now)~="number" or now~=now or math.abs(now)==math.huge then return end
@@ -153,7 +179,8 @@ function Guide:Step(root,now,visible)
   if delta.X*delta.X+delta.Z*delta.Z>6.25 or math.abs(delta.Y)>6 then break end
   self.cursor+=1
  end
- local from=root.Position-Vector3.new(0,2.5,0)
+ local from=root.Position-HIGH_RAY
+ local previousGround
  local index,count,distance=self.cursor,0,0
  while index<=#points and count<MAX_DOTS and distance<90 do
   local goal=points[index].Position
@@ -162,16 +189,17 @@ function Guide:Step(root,now,visible)
   local step=math.min(SPACING,length)
   local point=from+delta.Unit*step
   -- Keep only the already checked prefix. Replan when the obstacle blocks the first step.
-  if Workspace:Raycast(from+Vector3.new(0,.5,0),point-from,self.raycast)
-   or Workspace:Raycast(from+Vector3.new(0,2.5,0),point-from,self.raycast) then
+  local lowHit=Workspace:Raycast(from+LOW_RAY,point-from,self.raycast)
+  local recovered=lowHit and floorClearance(self.raycast,from,point,lowHit,previousGround)
+  if (lowHit and not recovered) or (not lowHit and Workspace:Raycast(from+HIGH_RAY,point-from,self.raycast)) then
    if count>0 then break end
    self:_dropPath();self.status="Finding route";return
   end
-  local ground=Workspace:Raycast(point+Vector3.new(0,3,0),Vector3.new(0,-9,0),self.raycast)
-  if not ground or ground.Normal.Y<.6 then break end
+  local ground=recovered or groundAt(self.raycast,point,point.Y)
+  if not ground then break end
   -- Ground rays ignore decorative paving, so place markers above its shallow inlays.
   count+=1;self.visibleDots=count;self.dots[count].Position=ground.Position+Vector3.new(0,.45,0);self.dots[count].Transparency=.22
-  distance+=step;from=point
+  distance+=step;from=recovered and ground.Position or point;previousGround=ground
   if step>=length then index+=1 end
  end
  if count==0 then self.status="Route unavailable" else self.status="Follow the markers" end
