@@ -57,6 +57,7 @@ def assemble(client):
  toggle=client[client.index('local function toggleTab('):client.index('\nlocal shop=button(top,')]
  render=client[client.index('render=function()'):client.index('\nlocal conversationNPC,conversationUntil')]
  convdecl=client[client.index('local conversationNPC,conversationUntil'):].split('conversationPanel=frame',1)[0]
+ orderconv=client[client.index('function conversationView.orderOptions()'):client.index('closeConversation=function()')] if 'function conversationView.orderOptions()' in client else ''
  closeconv=client[client.index('closeConversation=function()'):client.index('local function refreshConversation()')]
  show=client[client.index('showConversation=function(info)'):client.index('\nlocal function refreshQuestObjects()')]
  stop=server[server.index('local function stopQuest(p)'):server.index('local function protect(p,s)')]
@@ -64,7 +65,7 @@ def assemble(client):
  branches=server[server.index(' elseif verb=="SetAura" and'):server.index(' elseif verb=="SetSettings" and')]
  gear=server[server.index(' elseif verb=="Gear" then'):server.index(' elseif verb=="Megaphone" then')]
  dispatch='local function dispatch(verb,arg) if false then return'+gear+branches+' end end\n'
- return '\n'.join([setup,stop,micro,dispatch,ui,shop_lifecycle,close,toggle,render,convdecl,closeconv,show,open_helper])+r'''
+ return '\n'.join([setup,stop,micro,dispatch,ui,shop_lifecycle,close,toggle,render,convdecl,orderconv,closeconv,show,open_helper])+r'''
 local f={s=s,sent=sent,modal=modal,conversation=conversationPanel,effects=effects}
 function f.open(tab)snapshot();toggleTab(tab)end
 function f.tab(tab)tabs[tab].callback()end
@@ -164,7 +165,9 @@ print('PASS',n,'registered panel callbacks with actual quest/style server helper
 def run(client,error=None,case=None):
  code=assemble(client).replace('return buttons.Choice.callback','return buttons.QuestChoice.callback')
  if not a.baseline:
-  choice=client[client.index(' local function choice(text,callback)'):client.index(' choice("Tell me about this neighborhood"')]
+  choice_start=client.index(' local function choice(text,callback)')
+  choice_end=client.index('\n', client.index('\n end', choice_start)+1)
+  choice=client[choice_start:choice_end]
   probe='function f.forwardNpc(...) local order=0;local revision=conversationRevision;conversationPanel.Visible=true;'+choice+' local b=choice("probe",function(...)return ... end);return b.callback(...) end\n'
   code=code.replace('return f\nend',probe+'return f\nend')
  code+=tail(case)

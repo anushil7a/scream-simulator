@@ -6,7 +6,7 @@ import tempfile
 root=Path(__file__).resolve().parents[1]
 source=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 a=source.index('local function refreshConversation()')
-b=source.index('button(conversationPanel,"Close"',a)
+b=source.rindex("\n",a,source.index('button(conversationPanel,"Close"',a))
 setup='''
 local now=0;local os={clock=function()return now end}
 local conversationPanel={Visible=true};local modal={Visible=false}

@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Show Mar's first quest action above the fold in short dialogue
+
+- At 509 × 162 safe pixels the old dialogue scroller was 60 pixels high. It opened on a greeting and cut-off neighborhood button, while Accept began at y206. The compact landscape dialogue now preserves a 44 × 44 Close and gives the list 94 pixels there. It places quest details and controls before optional neighborhood information and keeps warnings before their actions. The existing wider layout still begins with the greeting.
+- Studio showed the complete flowerbed description and 48-pixel Accept button at scroll position zero in a 94-pixel window at 509 × 162, and in an 82-pixel window at 493 × 150 before the register-pressure refactor. In the final build at 509 × 162, emulated Talk opened Mar's real dialogue after staging travel, and the first-view Accept click produced server state with the Garden quest active. Matched baseline and final screenshots captured the change.
+- Independent review cleared the layout and the subsequent refactor that restored the generated quest review build's Luau register headroom. Focused tests passed 152 dialogue assertions with five negative controls, 47 panel callback assertions with seven negative controls, and 33 lifecycle and Talk-request assertions. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. Three disposable Studio instances and three temporary profiles were closed or removed. Later options, long descriptions and quest warnings can still require scrolling. Physical touch and the human first-minute test remain open.
+- Next compare a complete first session with a later-game fight, including simultaneous effects, before expanding the world. Move from menu coverage to combat readability and feedback visible during actual attacks.
+
 ## Keep Talk reachable on the shortest supported touch layout
 
 - At 509 × 162 safe pixels, the Talk button started at y = −87. The compact touch layout below 205 safe pixels now places Talk and the developer-only Test launcher side by side in 44 × 44 targets. The two targets clear the right combat column and stock Jump button. The layout at 205 pixels and above retains its wider Talk target.

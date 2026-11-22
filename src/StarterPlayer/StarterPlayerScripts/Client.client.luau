@@ -1462,11 +1462,18 @@ for i,name in ipairs(academy.menuTabs) do
 end
 local conversationNPC,conversationUntil
 local conversationRevision=0
+local conversationView={compact=false}
 conversationPanel=frame(gui,"Conversation",UDim2.fromOffset(460,300),UDim2.fromScale(.5,.5));conversationPanel.AnchorPoint=Vector2.new(.5,.5);conversationPanel.Visible=false;conversationPanel.ZIndex=10
 academy.surface(conversationPanel,gold)
 local conversationName=label(conversationPanel,"",UDim2.new(1,-80,0,36),UDim2.fromOffset(18,12),19,gold)
 local conversationList=Instance.new("ScrollingFrame");conversationList.Size=UDim2.new(1,-36,1,-66);conversationList.Position=UDim2.fromOffset(18,54);conversationList.BackgroundTransparency=1;conversationList.BorderSizePixel=0;conversationList.ScrollBarThickness=4;conversationList.AutomaticCanvasSize=Enum.AutomaticSize.Y;conversationList.CanvasSize=UDim2.new();conversationList.Parent=conversationPanel
-do local conversationLayout=Instance.new("UIListLayout");conversationLayout.Padding=UDim.new(0,10);conversationLayout.SortOrder=Enum.SortOrder.LayoutOrder;conversationLayout.Parent=conversationList end
+conversationView.listLayout=Instance.new("UIListLayout")
+conversationView.listLayout.Padding=UDim.new(0,10);conversationView.listLayout.SortOrder=Enum.SortOrder.LayoutOrder;conversationView.listLayout.Parent=conversationList
+function conversationView.orderOptions()
+ if not conversationView.intro then return end
+ conversationView.intro.LayoutOrder=conversationView.compact and conversationView.secondaryOrder or 1
+ conversationView.hint.LayoutOrder=conversationView.compact and conversationView.secondaryOrder+1 or 2
+end
 closeConversation=function()
  conversationRevision+=1
  if conversationPanel.Visible then action:FireServer("EndConversation") end
@@ -1484,7 +1491,18 @@ local function refreshConversation()
  if modal.Visible or not root or not humanoid or humanoid.Health<=0 or humanoid.PlatformStand or not npcRoot or not npcHumanoid or npcHumanoid.Health<=0 or npcHumanoid.PlatformStand or npc:GetAttribute("ResidentActive")==false
   or (root.Position-npcRoot.Position).Magnitude>18 or os.clock()>=conversationUntil then closeConversation() end
 end
-button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
+conversationView.close=button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
+function conversationView.layout(viewport)
+ conversationView.compact=viewport.X>viewport.Y and viewport.Y<205
+ conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-(conversationView.compact and 16 or 36)))
+ conversationList.Size=UDim2.new(1,-36,1,conversationView.compact and -52 or -66)
+ conversationList.Position=UDim2.fromOffset(18,conversationView.compact and 46 or 54)
+ conversationView.listLayout.Padding=UDim.new(0,conversationView.compact and 6 or 10)
+ conversationName.Position=UDim2.fromOffset(18,conversationView.compact and 4 or 12)
+ conversationView.close.Size=conversationView.compact and UDim2.fromOffset(44,44) or UDim2.fromOffset(38,34)
+ conversationView.close.Position=conversationView.compact and UDim2.new(1,-50,0,0) or UDim2.new(1,-50,0,12)
+ conversationView.orderOptions()
+end
 showConversation=function(info)
  academy.testLauncherBlocked=true;if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end;academy.refreshTestLauncher();cancelCapture();closeMenu();if devPanel then devPanel.Visible=false end
  if info.name=="Mar Soler" and academy.guideSelection and academy.guideSelection.kind=="mar" then academy.clearGuide() end
@@ -1502,7 +1520,7 @@ showConversation=function(info)
    return callback(...)
   end);b.TextWrapped=true;b.LayoutOrder=order;return b
  end
- choice("Tell me about this neighborhood",function() line.Text=info.hint end)
+ local hint=choice("Tell me about this neighborhood",function() line.Text=info.hint end)
  for _,product in ipairs(info.products or {}) do
   words(product.description,muted)
   local b=choice(product.owned and (product.name.." · owned") or ("Buy "..product.name.." · "..product.price.." coins"),function()
@@ -1524,6 +1542,12 @@ showConversation=function(info)
   if academy.NavigationCatalog.Resolve("quest",q.id,data) then
    choice("Guide me: "..q.name,function() academy.selectGuide("quest",q.id);closeConversation() end)
   end
+ end
+ conversationView.intro,conversationView.hint=nil,nil
+ if info.quests and #info.quests>0 then
+  conversationView.intro,conversationView.hint,conversationView.secondaryOrder=line,hint,order+1
+  order+=2
+  conversationView.orderOptions()
  end
  if Config.CompactCity~=false then choice("Choose a boss or place to guide me to",function() toggleTab("Map") end) end
  choice("See you later",closeConversation)
@@ -1772,7 +1796,7 @@ connectClient(Run.RenderStepped,function(dt)
  local touch=UIS.TouchEnabled
  local layoutChanged=viewport~=lastViewport or touch~=lastTouch or data.devAccess~=lastDevAccess
  if layoutChanged then lastViewport=viewport;lastTouch=touch;lastDevAccess=data.devAccess end
- if layoutChanged then conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-36)) end
+ if layoutChanged then conversationView.layout(viewport) end
  refreshConversation()
  saveNotice.Text=saveStatus()
  saveNotice.Visible=saveNotice.Text~="" and not modal.Visible and viewport.X>=820

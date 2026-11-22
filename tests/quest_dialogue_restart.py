@@ -5,10 +5,12 @@ R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument
 path='src/StarterPlayer/StarterPlayerScripts/Client.client.luau'
 s=subprocess.check_output(['git','show','af8c277:'+path],cwd=R,text=True,encoding='utf-8') if a.baseline else (R/path).read_text(encoding='utf-8')
 f=s[s.index('showConversation=function(info)'):s.index('\nlocal function refreshQuestObjects()')]
+layout=s[s.index('function conversationView.orderOptions()'):s.index('closeConversation=function()')]+s[s.index('function conversationView.layout(viewport)'):s.index('showConversation=function(info)')] if 'function conversationView.layout(viewport)' in s else ''
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
-local UDim2={new=function(...)return {...}end};local Vector2={zero={}};local Enum={AutomaticSize={Y='Y'}}
+local UDim2={new=function(...)return {...}end,fromOffset=function(...)return {...}end};local UDim={new=function(...)return {...}end};local Vector2={zero={}};local Enum={AutomaticSize={Y='Y'}}
 local conversationRevision=0;local clientDestroyed=false
+local conversationView={compact=false,close={},listLayout={}}
 local modal={};local devPanel={};local conversationName={};local conversationPanel={};local conversationList={GetChildren=function()return {}end}
 local texts,buttons,sent={},{},{};local closed=0
 local function label(_,text)local l={Text=text};table.insert(texts,l);return l end
@@ -42,10 +44,32 @@ end
 -- The server supplies unlocked dialogue choices; absent/locked choices stay absent.
 texts={};buttons={};sent={};showConversation({name='NPC',line='Hello',hint='Hint',quests={}})
 check(#buttons==3 and #sent==0,'Renderer invented locked quest choice')
+if conversationView.layout then
+ for _,height in ipairs({150,162,204,205,375})do
+  for _,hasQuest in ipairs({true,false})do
+   texts={};buttons={};data.activeQuest=nil
+   local quest={id='garden',name='Task',description='Objective'}
+   showConversation({name='NPC',line='Hello',hint='Hint',quests=hasQuest and {quest} or {}})
+   conversationView.layout({X=509,Y=height})
+   local compact=height<205
+   check(conversationPanel.Size[2]==math.min(340,height-(compact and 16 or 36)) and conversationList.Size[4]==(compact and -52 or -66),'Dialogue body did not resize')
+   check(conversationView.close.Size[1]==(compact and 44 or 38) and conversationView.close.Size[2]==(compact and 44 or 34),'Dialogue close was undersized')
+   check(texts[1].LayoutOrder+1==buttons[1].LayoutOrder,'Greeting separated from optional hint')
+   if hasQuest then
+    check((buttons[2].LayoutOrder<buttons[1].LayoutOrder)==compact,'Compact dialogue did not prioritize quest')
+    check(buttons[1].LayoutOrder<buttons[#buttons].LayoutOrder,'Hint appeared after the exit choice')
+   else
+    check(texts[1].LayoutOrder==1,'Dialogue without quests moved its greeting')
+   end
+   buttons[1].callback()
+   check(texts[1].Text=='Hint','Optional hint failed to update the greeting')
+  end
+ end
+end
 print('PASS',n,'actual dialogue assertions; mocked GUI/catalog goals, no native fit')
 '''
 def run(fragment,error=None):
- with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=R/'tests',encoding='utf-8',delete=False)as t:t.write(setup+fragment+checks);q=Path(t.name)
+ with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=R/'tests',encoding='utf-8',delete=False)as t:t.write(setup+layout+fragment+checks);q=Path(t.name)
  try:r=subprocess.run(['luau',str(q)],capture_output=True,text=True)
  finally:q.unlink()
  out=r.stdout+r.stderr
@@ -61,3 +85,5 @@ else:
    (' and data.activeQuest~=q.id','','Restart disclosure mismatch garden active'),
    ('q.complete and "ClaimQuest" or "AcceptQuest"','"AcceptQuest"','Action contract changed')]:
    assert f.count(old)==1,old;run(f.replace(old,new),error)
+
+if a.negative_controls and not a.baseline: run(f.replace('  conversationView.orderOptions()', '  conversationView.secondaryOrder=-5;conversationView.orderOptions()'), 'Compact dialogue did not prioritize quest')
