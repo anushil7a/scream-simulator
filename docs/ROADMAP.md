@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Tell players when they can afford their first gear
+
+- In the disposable City baseline, claiming a prepared Beach quest through the real Action remote raised a temporary wallet from 80 to 130 coins. The HUD rendered Level 2 and the 50-coin payout. It gave no indication that the 100-coin Academy Megaphone was now affordable.
+- The first observed City wallet crossing now offers **Academy Megaphone ready to buy · MENU → GEAR**. The notice waits for existing messages to finish and clears on ownership, insufficient funds, or entry into developer test mode. Loading an already sufficient wallet does not produce the hint. Temporary earned coins follow the same UI rule as saved coins, with saving status reported separately.
+- On the iPhone 7 landscape emulator (666 × 374 viewport), the candidate rendered Level 2, then the Beach payout, then the fitting hint at about 9.6 seconds from the start of sampling. The notice was visible for 84 polling samples (about four seconds). The wallet remained at 130 and gear remained unowned. Quest completion and the starting wallet were staged. Both temporary local Studio sessions closed and the emulator returned to default. Physical touch, real voice, an unassisted first session and live save remain open.
+- Independent review cleared the change. Focused checks passed 235 assertions and 16 negative controls. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+
 ## Show when a sustained beam is still missing
 
 - In a disposable Studio baseline, two and four open samples left the feedback slot blank. Two wall clips showed **BEAM HIT COVER** and a later clear shot against Rookie produced **3 DAMAGE**. The default beam packets resolved to the existing yellow base.

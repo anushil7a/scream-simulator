@@ -88,6 +88,78 @@ def run(source, failure=None):
         path.unlink()
 
 run(payload)
+
+# Use the actual queue with the State receiver and its frame-bound idle handoff.
+gear_setup = setup.replace(
+    'local function notify(message,urgent)table.insert(notices,message);table.insert(urgentNotices,urgent==true)end',
+    """local Queue=require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue')
+local notifications
+local function notify(message,urgent,key)notifications:Push(message,urgent,key)end""",
+)
+render_hint = client.split('connectClient(Run.RenderStepped,function(dt)\n -- The optional gear hint', 1)[1]
+render_hint = ' -- The optional gear hint' + render_hint.split(' local notice=notifications:Step(0,false)', 1)[0]
+gear_checks = r"""
+local function update(coins, options, message)
+ local d=packet(message)
+ d.coins=coins
+ for k,v in pairs(options or {}) do d[k]=v end
+ receiver(d)
+end
+local function frame()
+ frameHint()
+ return notifications:Step(.1,true)
+end
+local function waitFor(text)
+ for _=1,150 do if frame()==text then return true end end
+ return false
+end
+local n=0;local function check(value,message) assert(value,message);n+=1 end
+local hint='Academy Megaphone ready to buy · MENU → GEAR'
+Config.CompactCity=true
+reset();update(130)
+check(frame()=='','Existing wallet was mistaken for freshly earned coins')
+reset();update(80);update(99)
+check(frame()=='','Hint appeared below the catalog price')
+update(100,{savingAvailable=false},'Level 2')
+check(frame()=='Level 2','Gear hint displaced the level notice')
+update(100,nil,'Quest reward')
+local seen={}
+for _=1,145 do
+ local value=frame()
+ if value~='' and value~=seen[#seen] then table.insert(seen,value) end
+ if value==hint then break end
+end
+check(#seen==3 and seen[1]=='Level 2' and seen[2]=='Quest reward' and seen[3]==hint,
+ 'Gear hint missing after the real notices drained')
+update(100,{megaphoneOwned=true})
+check(frame()=='','Buying the item left stale affordability text')
+update(20);update(130)
+check(frame()=='','Repeated crossing replayed an already shown hint')
+reset();update(80);update(130,nil,'Reward');update(90)
+check(not waitFor(hint) and frame()=='','Falling below price left a queued hint')
+reset();update(80);update(130,nil,'Reward');update(130,{megaphoneOwned=true})
+check(not waitFor(hint) and frame()=='','Ownership did not cancel a pending hint')
+reset();update(80);update(130,{testSession=true})
+check(frame()=='','Temporary test coins advertised the gear')
+update(130)
+check(frame()=='','Leaving test mode was mistaken for an earning event')
+Config.ResonanceLayout=true
+reset();update(80);update(130)
+check(frame()=='','City guidance leaked into Resonance Hall')
+print('PASS '..n..' actual gear affordability/queue checks; simulated State and render timing')
+"""
+gear_payload = gear_setup + '\nlocal frameHint\nlocal function reset()\n local coins={}\n notifications=Queue.new()\n' + receiver + '\n frameHint=function()\n' + render_hint + '\n end\nend\n' + gear_checks
+run(gear_payload)
+if '--negative-controls' in sys.argv:
+    for before, after, expected in (
+        ('starterGear.lastCoins and starterGear.lastCoins<item.price', 'true', 'Existing wallet was mistaken'),
+        ('and not notifications.active then', 'then', 'Gear hint missing after the real notices drained'),
+        ('   starterGear.pending=nil\n   notifications:Remove("starterGear")', '   notifications:Remove("starterGear")', 'Falling below price left a queued hint'),
+        ('   notifications:Remove("starterGear")', '', 'Buying the item left stale affordability text'),
+        ('not starterGear.shown and starterGear.lastCoins', 'starterGear.lastCoins', 'Repeated crossing replayed'),
+    ):
+        assert before in gear_payload
+        run(gear_payload.replace(before, after, 1), expected)
 if reproduce:
     print('REPRODUCED: authoritative upgrade rejection, reward confirmation and completion disappear inside the milestone window; debit/reward guards remain correct.')
 if '--negative-controls' in sys.argv:

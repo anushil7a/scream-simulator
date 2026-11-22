@@ -1468,6 +1468,7 @@ local function progressLabel(compact)
 end
 local trackedQuestText=""
 local lastMilestone=nil
+local starterGear={}
 connectClient(remotes.State.OnClientEvent,function(nextData)
  observeVoiceEligibility(nextData)
  cueContext();gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())
@@ -1497,6 +1498,18 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
   lastMilestone=data.milestone;notify(data.milestone)
  end
  if data.message and (not newMilestone or data.messageUrgent) then notify(data.message,data.messageUrgent,data.messageKey=="save" and "save" or nil) end
+ if Config.CompactCity and not Config.ResonanceLayout then
+  local item=Config.Gear.Get("Megaphone")
+  local ready=item and not data.testSession and data.level>=item.level
+   and data.coins>=item.price and not Config.Gear.Owned(data,item.id)
+  if not ready then
+   starterGear.pending=nil
+   notifications:Remove("starterGear")
+  elseif not starterGear.shown and starterGear.lastCoins and starterGear.lastCoins<item.price then
+   starterGear.pending=item.name.." ready to buy · MENU → GEAR"
+  end
+  starterGear.lastCoins=not data.testSession and data.coins or nil
+ end
  if data.conversation then showConversation(data.conversation) end
  if modal.Visible then render() end
 end)
@@ -1641,6 +1654,11 @@ local lastViewport,lastTouch,lastDevAccess
 -- Visible modal buttons keep the pointer available while interacting with panels.
 modal.Close.Modal=true;conversationPanel.Close.Modal=true
 connectClient(Run.RenderStepped,function(dt)
+ -- The optional gear hint yields to payouts and other notices already waiting.
+ if starterGear.pending and not notifications.active then
+  notify(starterGear.pending,false,"starterGear")
+  starterGear.pending=nil;starterGear.shown=true
+ end
  local notice=notifications:Step(0,false)
  if notice~=toast.Text then toast.Text=notice;toastWidth=0 end
  -- NoticeView owns full-text visibility and readable dwell.
