@@ -174,6 +174,26 @@ local filter=cadence.raycast.FilterDescendantsInstances
 local previousRays=rayCount;cadence:Step(slowRoot,.25,true);check(rayCount==previousRays,'ray work escaped 150ms cadence')
 cadence:Step(slowRoot,.4,true);check(filter==cadence.raycast.FilterDescendantsInstances,'filter reallocated with unchanged character')
 cadence:Destroy()
+local crossing=true
+local route=Guide.new(nil,function(ground)
+ check(ground.Y==0,'PvP classifier received the dot offset instead of its support')
+ return crossing and ground.X>=10
+end)
+local goldColor=route.dots[1].Color
+route:SetTarget({position=Vector3.new(100,0,0)});route:Step(slowRoot,0,true);flush()
+route:Step(slowRoot,.2,true)
+check(route:HasPvPAhead() and route.dots[1].Color==goldColor and route.dots[2].Color~=goldColor,'Dangerous and safe dots did not show distinct states')
+route:Step(slowRoot,.4,false)
+check(not route:HasPvPAhead() and route.visibleDots==0,'A hidden guide retained its PvP warning')
+crossing=false;route:Step(slowRoot,.6,true)
+check(not route:HasPvPAhead() and route.dots[2].Color==goldColor,'A recycled breadcrumb retained its danger tint')
+crossing=true;laterWall=9;route:Step(slowRoot,.8,true)
+check(not route:HasPvPAhead() and route.visibleDots==1,'A blocked PvP dot contributed an advance warning')
+laterWall=nil;route:Step(slowRoot,1,true)
+check(route:HasPvPAhead(),'Clear route did not restore the PvP warning')
+route:Clear()
+check(not route:HasPvPAhead(),'A cleared guide retained its PvP warning')
+route:Destroy()
 print('PASS '..count..' NavigationGuide mocked lifecycle checks; native pathfinding/streaming unverified')
 '''
 def run(module):
@@ -198,6 +218,9 @@ if parser.parse_args().negative_controls:
   ('local recovered=lowHit and floorClearance(self.raycast,from,point,lowHit,previousGround)','local recovered=nil','Walkable descent lost to the waypoint chord'),
   ('or not mildDescent(start.Position,middle.Position)\n  or not mildDescent(middle.Position,finish.Position)','', 'Floor recovery showed a route across steep'),
   ('if Workspace:Raycast(start.Position+LOW_RAY,delta,raycast)\n  or Workspace:Raycast(start.Position+HIGH_RAY,delta,raycast) then return end','', 'Floor recovery showed a route across wall'),
+  ('self.visibleDots=0;self.pvpAhead=false','self.visibleDots=0','A hidden guide retained its PvP warning'),
+  ('local color=pvp and PVP_COLOR or ROUTE_COLOR','local color=ROUTE_COLOR','Dangerous and safe dots did not show distinct states'),
+  ('self.isPvP(ground.Position)==true','self.isPvP(ground.Position+Vector3.new(0,.45,0))==true','PvP classifier received the dot offset instead of its support'),
  ):
   assert source.count(old)==1,old
   result=run(source.replace(old,new))

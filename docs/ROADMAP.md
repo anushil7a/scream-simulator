@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Warn before the Beach guide crosses Garden PvP
+
+- On `5e7247f`, the chosen Beach Cleanup guide drew 18 gold dots from the safe café spine. The fourth dot was about 15 studs ahead and inside Garden PvP at standing height. The route crossed the boundary in under one second during a scripted native walk. The existing HUD showed the current safe state and only changed after entry.
+- An active Beach Cleanup guide now tints its validated Garden PvP breadcrumbs and shows SAFE • PvP AHEAD on the existing zone badge while the player is still safe. The dots use the shared Garden geometry at a nominal standing height. The actual position still determines the live zone label. Active PvP and combat warnings take precedence. Clearing or hiding the guide clears the projected warning.
+- The matched native route kept the same 18 dot positions, with exactly six tinted. A fresh replay showed SAFE • PvP AHEAD, then GARDEN • PvP ON at the original authority boundary, then SAFE • PvP OFF after exit. A separate replay briefly showed ordinary safe status before entry after viewport toggles. The cause was not confirmed and the transient did not recur in the fresh replay. Desktop and iPhone 17 Pro landscape emulator labels fit. The route still crosses PvP and was tested without opponents.
+- Independent review, 124 guide checks, 15,087 map and HUD checks and 22 combined negative controls passed. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. Both disposable Studio sessions closed. Physical phone and live combat validation remain open.
+
 ## Keep the Beach guide visible over the coast ramp
 
 - The retained Beach route on `e501643` went blank at the coast ramp lip. The low guide ray hit the flat terrace at Y16 with an upward normal while the higher ray stayed clear. Both ends of that segment had walkable support, but a raw waypoint below the terrace made the low ray descend through the floor. The native avatar could walk the ramp, and the baseline guide recovered after a 3.10-second pause and automatic replan.

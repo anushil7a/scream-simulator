@@ -398,15 +398,18 @@ function academy.refreshZone()
    trainingHint=academy.TrainingRules.ContainsStrike(center,position)
   end
  end
- local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or bossHint or trainingHint and "MOVE OR DODGE" or "SAFE • PvP OFF"
  local layout=Config.ResonanceLayout
+ local pvpAhead=not layout and not enabled and not bossHint and not trainingHint and position
+  and academy.guide and data.activeQuest=="beach" and academy.guide:HasPvPAhead()
+ local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or bossHint or trainingHint and "MOVE OR DODGE"
+  or pvpAhead and "SAFE • PvP AHEAD" or "SAFE • PvP OFF"
  if layout and position then
   if enabled then value="RESONANCE HALL • PvP ON"
   elseif layout.Contains(layout.Practice,position) then value="TRAINING LANDING • SAFE"
   elseif layout.Contains(layout.Hall,position) and layout.IsSafeApron(position) then value="TRAINING PORTAL • SAFE" end
  end
  if zone.Text~=value then
-  zone.Text=value;zone.TextColor3=(enabled or trainingHint) and Color3.fromRGB(255,140,139) or bossHint and gold or white
+  zone.Text=value;zone.TextColor3=(enabled or trainingHint) and Color3.fromRGB(255,140,139) or (bossHint or pvpAhead) and gold or white
  end
 end
 function academy.layoutZone(viewport,touch)
@@ -992,7 +995,12 @@ academy.NavigationCatalog=loadClientDependency(shared,"NavigationCatalog");if no
 academy.TrainingRules=loadClientDependency(shared,"TrainingRules");if not clientCheckpoint() then return end
 academy.BossCatalog=loadClientDependency(shared,"BossCatalog");if not clientCheckpoint() then return end
 academy.NavigationGuide=loadClientDependency(script.Parent,"NavigationGuide");if not clientCheckpoint() then return end
-academy.guide=academy.NavigationGuide.new(gui)
+academy.guide=academy.NavigationGuide.new(gui,function(ground)
+ local selection=academy.guideSelection
+ return data.activeQuest=="beach" and selection and selection.kind=="quest" and selection.id=="beach"
+  -- Project a standing avatar over the validated ground sample.
+  and Config.InGardenPvp(ground+Vector3.new(0,3,0))
+end)
 ownClient(function() academy.guide:Destroy() end);if not clientCheckpoint() then return end
 academy.guidePanel=frame(gui,"SelectedGuide",UDim2.fromOffset(290,62),UDim2.fromOffset(16,120));academy.guidePanel.Visible=false
 academy.surface(academy.guidePanel)
@@ -1912,7 +1920,7 @@ connectClient(Run.RenderStepped,function(dt)
  if notice~=toast.Text then toast.Text=notice;toastWidth=0 end
  -- NoticeView owns full-text visibility and readable dwell.
  ShopUI.Tick()
- refreshHealth();academy.refreshZone()
+ refreshHealth()
  local viewport=gui.AbsoluteSize
  local touch=UIS.TouchEnabled
  local layoutChanged=viewport~=lastViewport or touch~=lastTouch or data.devAccess~=lastDevAccess
@@ -1953,7 +1961,8 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if sprinting then setSprint(true) end
  local gameplayVisible=not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
- academy.guide:Step(p.Character and p.Character:FindFirstChild("HumanoidRootPart"),os.clock(),gameplayVisible and not devPanel.Visible)
+ academy.guide:Step(p.Character and p.Character:FindFirstChild("HumanoidRootPart"),os.clock(),gameplayVisible and alive and not devPanel.Visible)
+ academy.refreshZone()
 
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end

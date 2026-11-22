@@ -10,10 +10,14 @@ client=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text
 zone=client[client.index('function academy.refreshZone()'):client.index('\nlocal ',client.index('function academy.layoutZone('))]
 # End on the next top-level block after both exact helper bodies.
 zone=zone[:zone.index('\nend',zone.index('function academy.layoutZone('))+4]
+guide_start=client.index('academy.guide=academy.NavigationGuide.new(gui,function(ground)')
+guide=client[guide_start:client.index('\nownClient(',guide_start)]
 PRE=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function near(a,b)return math.abs(a-b)<1e-8 end
-local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}
+local Vector3={}
+local vector={__add=function(a,b)return Vector3.new(a.X+b.X,a.Y+b.Y,a.Z+b.Z)end}
+function Vector3.new(x,y,z)return setmetatable({X=x,Y=y,Z=z},vector)end
 local Vector2={new=function(x,y)return {X=x,Y=y}end}
 local UDim2={new=function(x,ox,y,oy)return {X={Scale=x,Offset=ox},Y={Scale=y,Offset=oy}}end,fromScale=function(x,y)return {X={Scale=x,Offset=0},Y={Scale=y,Offset=0}}end,fromOffset=function(x,y)return {X={Scale=0,Offset=x},Y={Scale=0,Offset=y}}end}
 local UDim={new=function(s,o)return {Scale=s,Offset=o}end}
@@ -97,6 +101,12 @@ local p={Character=character,GetAttribute=function()return bossHint end}
 local now=10
 local workspace={GetServerTimeNow=function()return now end}
 local function typeof(value)return type(value)=='table' and 'Vector3' or type(value)end
+local data,gui={},{}
+local ahead,classified
+academy.NavigationGuide={new=function(_,classifier)
+ classified=classifier
+ return {HasPvPAhead=function()return ahead==true end}
+end}
 '''
 POST2=r'''
 academy.refreshZone();check(zone.Text=='GARDEN • PvP ON','Current local garden cue missing')
@@ -121,6 +131,28 @@ root.Position=Vector3.new((Layout.ZoneMin.X+Layout.ZoneMax.X)/2,(Layout.ZoneMin.
 academy.refreshZone();check(zone.Text=='ARENA • PvP ON','Existing stadium cue mislabeled')
 p.Character=nil;academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','Missing character shows stale PvP')
 local prior=zoneWrites;for _=1,1000 do academy.refreshZone()end;check(zoneWrites==prior,'Unchanged zone writes UI every frame')
+p.Character=character;root.Position=Vector3.new(51,19.8,113)
+local terrace=Vector3.new(80,16,126)
+academy.guideSelection={kind='quest',id='beach'}
+check(not classified(terrace),'Inactive Beach guide marked PvP')
+data.activeQuest='beach';academy.guideSelection={kind='place',id='beach'}
+check(not classified(terrace),'Wrong route type marked PvP')
+academy.guideSelection={kind='quest',id='garden'}
+check(not classified(terrace),'Wrong quest guide marked PvP')
+academy.guideSelection={kind='quest',id='beach'}
+check(classified(terrace),'Beach route failed to classify a verified PvP terrace')
+check(not classified(Vector3.new(80,16,125)),'Safe café edge marked PvP')
+check(not classified(Vector3.new(80,32,126)) and not classified(Vector3.new(80,10,126)),'Route warning ignored garden height band')
+ahead=true;academy.refreshZone()
+check(zone.Text=='SAFE • PvP AHEAD' and zone.TextColor3==gold,'Approach did not distinguish safe now from upcoming PvP')
+root.Position=Vector3.new(80,19.8,126);academy.refreshZone()
+check(zone.Text=='GARDEN • PvP ON','Advance warning displaced live Garden PvP')
+root.Position=Vector3.new(51,19.8,113);bossHint='Step off the circles';academy.refreshZone()
+check(zone.Text==bossHint,'Advance warning displaced an active boss warning')
+bossHint=nil;attributes.TrainingStrikeAt=12;attributes.TrainingStrikeCenter=Vector3.new(51,17,113);academy.refreshZone()
+check(zone.Text=='MOVE OR DODGE','Advance warning displaced an active training warning')
+attributes.TrainingStrikeAt=nil;ahead=false;academy.refreshZone()
+check(zone.Text=='SAFE • PvP OFF','Advance warning remained after dangerous markers cleared')
 for _,viewport in ipairs({{X=320,Y=568},{X=390,Y=844},{X=844,Y=390},{X=1280,Y=720}})do
  for _,touch in ipairs({false,true})do
   academy.layoutZone(viewport,touch)
@@ -135,9 +167,9 @@ for _,viewport in ipairs({{X=320,Y=568},{X=390,Y=844},{X=844,Y=390},{X=1280,Y=72
 end
 print('PASS '..n..' actual Map10 canonical fill/edge/projection + local zone cue assertions; mocked GUI, native/mobile still required')
 '''
-def code(s,hud):return PRE+layout+'\n'+BRIDGE+config+'\n'+BRIDGE2+s+'\n'+POST+'\n'+hud+'\n'+POST2
-def run(s,negative=False,hud=zone):
- with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False)as f:f.write(code(s,hud));p=Path(f.name)
+def code(s,hud,route):return PRE+layout+'\n'+BRIDGE+config+'\n'+BRIDGE2+s+'\n'+POST+'\n'+route+'\n'+hud+'\n'+POST2
+def run(s,negative=False,hud=zone,route=guide):
+ with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False)as f:f.write(code(s,hud,route));p=Path(f.name)
  try:
   r=subprocess.run(['luau',str(p)],capture_output=True,text=True);out=r.stdout+r.stderr
   if negative:
@@ -159,6 +191,9 @@ if __name__=='__main__':
    ('academy.TrainingRules.ContainsStrike(center,position)','true','Leaving the circle retained the training cue'),
    ('academy.TrainingRules.ContainsStrike(center,position)','academy.TrainingRules.ContainsStrike(center,Vector3.new(position.X,center.Y+3,position.Z))','Ground warning retained above the damage band'),
    ('workspace:GetServerTimeNow()<strikeAt','true','Expired training cue retained'),
+   ('or pvpAhead and "SAFE • PvP AHEAD"', 'or false and "SAFE • PvP AHEAD"', 'Approach did not distinguish safe now from upcoming PvP'),
   ]:
    assert zone.count(old)==1
    run(source,expected,zone.replace(old,new))
+  run(source,'Inactive Beach guide marked PvP',route=guide.replace('data.activeQuest=="beach" and selection','selection'))
+  run(source,'Safe café edge marked PvP',route=guide.replace('Config.InGardenPvp(ground+Vector3.new(0,3,0))','true'))
