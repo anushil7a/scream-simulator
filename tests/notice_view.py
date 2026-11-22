@@ -50,6 +50,20 @@ end
 local CityMap={aspectRatio=1.2}
 MINI
 local samples=SAMPLES
+do
+ local pos,size=Vector2.new(14,64),Vector2.new(242,94)
+ local status={x=14,y=64,width=242,height=94}
+ local w,h=666,316
+ local map=CityMap.MiniLayout(Vector2.new(w,h),true,true)
+ local beside=Layout.Get(w,h,true,map,true,false,pos,size)
+ check(beside.available and beside.x>=264 and not Layout.Overlaps(beside,status),'Landscape notice covers health and progress')
+ local portrait=Layout.Get(390,844,true,{available=true,width=112},false,false,pos,size)
+ check(portrait.available and portrait.y>=166 and not Layout.Overlaps(portrait,status),'Narrow tall notice cannot move below the status card')
+ local questPortrait=Layout.Get(390,844,true,{available=true,width=112},false,false,pos,size,210)
+ check(questPortrait.available and questPortrait.y>=218,'Notice below the status card hides the timed quest tracker')
+ local small=Layout.Get(390,316,true,{available=true,width=112},false,false,pos,size)
+ check(not small.available,'Short narrow notice should use the existing menu fallback')
+end
 for _,size in ipairs({{320,315},{640,360},{390,844},{1280,720}})do
  for _,dev in ipairs({false,true})do
   local w,h=size[1],size[2];local map=CityMap.MiniLayout(Vector2.new(w,h),true,dev);local l=Layout.Get(w,h,true,map,dev)
@@ -205,6 +219,9 @@ notifications=Queue.new()
 touch=false
 for _,desktop in ipairs({{416,416,14,308},{567,416,165,308},{567,241,251,12},{683,416,281,308},{684,416,282,308},{1280,720,580,612}})do
  local w,h,x,y=table.unpack(desktop)
+ hud=rect(14,w<820 and 64 or h-108,242,94)
+ tracked=rect(16,w<820 and 160 or 64,290,50)
+ academy.guidePanel.Visible=false
  viewport=Vector2.new(w,h);notifications=Queue.new();frame()
  local pos=talkButton.Position
  check(pos.X.Scale*w+pos.X.Offset==x and pos.Y.Scale*h+pos.Y.Offset==y,'Desktop TALK left its clear lane')
@@ -265,6 +282,10 @@ def run(layout,view,body=checks,error=None):
  else:assert r.returncode==0,out;print(out.strip())
 run(sources['NoticeLayout'],sources['NoticeView'])
 if a.negative_controls:
+ run(sources['NoticeLayout'].replace('if status and result.available and Layout.Overlaps(result,status) then','if false then',1),
+     sources['NoticeView'],error='Landscape notice covers health and progress')
+ run(sources['NoticeLayout'].replace('objectiveBottom or 0','0',1),
+     sources['NoticeView'],error='Notice below the status card hides the timed quest tracker')
  for old,new,error in [('corner.CornerRadius=UDim.new(0,6)','corner.CornerRadius=UDim.new(0,0)','NoticeCorner missing 6px radius'),('stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border','stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Contextual','NoticeStroke not border-scoped'),('stroke.Transparency=.55','stroke.Transparency=0','NoticeStroke transparency or gold color wrong'),('hint.TextColor3=Color3.fromRGB(255,214,128)','hint.TextColor3=text.TextColor3','Scroll hint lost accent color'),('math.ceil(math.max(measured,self.renderedHeight or 0))','math.max(measured,self.renderedHeight or 0)','Fractional body allocation truncates text'),('math.ceil(math.max(hintHeight,self.renderedHintHeight or 0))','math.max(hintHeight,self.renderedHintHeight or 0)','Fractional header allocation truncates text'),('rendered.Y>self.measuredHeight','rendered.Y>self.measuredHeight+1','Subpixel rendered growth ignored'),('hintBounds.Y>self.measuredHintHeight','hintBounds.Y>self.measuredHintHeight+1','Subpixel rendered growth ignored'),('hint.Parent=scroll','hint.Parent=root','Cue remains outside scroll content'),('self.measuredHintHeight=math.ceil(math.max(hintHeight,self.renderedHintHeight or 0))','self.measuredHintHeight=16','Cue measurement omitted'),('self.renderedHintHeight=hintBounds.Y;self.key=nil','self.renderedHintHeight=nil','Enlarged cue clipped'),('self.visibleHeight=self.panelHeight;','self.visibleHeight=self.panelHeight-16;','Actual scrolling target below44px'),('self.textHeight+self.headerHeight','self.textHeight','Last text line remains under cue'),('hint.Interactable=false','hint.Interactable=true','Cue intercepts scroll input'),('self.atBottom and not self.hover','true and not self.hover','Unseen overflow expires'),('and not self.hover','and true','Hovered notice expires'),('entry~=self.entry','false','Same-text replacement keeps stale exposure'),('and now>=self.pauseUntil','and true','Scrolling charges dwell'),('not fresh and self.atBottom','self.atBottom','New message immediately charged dwell'),('self.visible==true and','true and','Covered notice expires'),('self.root.Position=UDim2.fromOffset(layout.x,layout.y)\n local rendered','local rendered','Same-size reposition used stale drawn bounds')]:
   assert old in sources['NoticeView'];run(sources['NoticeLayout'],sources['NoticeView'].replace(old,new),error=error)
  bad=checks.replace('notifications:Step(dt,noticeView:CanAdvance())','notifications:Step(dt,true)');run(sources['NoticeLayout'],sources['NoticeView'],bad,'Unseen Client overflow expired')

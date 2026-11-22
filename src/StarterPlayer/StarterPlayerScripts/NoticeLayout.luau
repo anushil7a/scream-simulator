@@ -1,6 +1,6 @@
 -- Bounded notice geometry; coordinates share the existing HUD ScreenGui inset.
 local Layout={}
-function Layout.Get(width,height,touch,map,testTools,talkVisible)
+function Layout.Get(width,height,touch,map,testTools,talkVisible,statusPosition,statusSize,objectiveBottom)
  local right=width-14
  if map and map.available then right=math.min(right,width-map.width-22) end
  if testTools then right=math.min(right,width-(width<432 and 100 or 126)-8) end
@@ -8,6 +8,18 @@ function Layout.Get(width,height,touch,map,testTools,talkVisible)
  local h=math.floor(math.min(height*.35,bottom-66))
  local w=math.floor(math.min(640,right-14))
  local result={x=14,y=66,width=math.max(0,w),height=math.max(0,h),available=w>=120 and h>=44 and (not touch or width>=312)}
+ local status=statusPosition and {x=statusPosition.X,y=statusPosition.Y,width=statusSize.X,height=statusSize.Y}
+ if status and result.available and Layout.Overlaps(result,status) then
+  -- Keep health and progress readable while a notice is on screen.
+  local beside=math.ceil(status.x+status.width+8)
+  if right-beside>=120 then
+   result.x=beside;result.width=math.floor(math.min(640,right-beside))
+  else
+   result.y=math.ceil(math.max(status.y+status.height,objectiveBottom or 0)+8)
+   result.height=math.max(0,math.floor(math.min(height*.35,bottom-result.y)))
+   result.available=result.height>=44
+  end
+ end
  if not touch and talkVisible then
   local talkX=width/2-60
   local lastX=width-274-8-120 -- leave space to the left of the combat controls
@@ -31,7 +43,7 @@ function Layout.Get(width,height,touch,map,testTools,talkVisible)
    talk.x=x;talk.y=math.min(14,height-239)
    result.baseTalkX=talk.x;result.baseTalkY=talk.y
   end
-  if Layout.Overlaps(result,talk) then
+  if Layout.Overlaps(result,talk) or status and Layout.Overlaps(status,talk) then
    -- Never move TALK into the native bottom-left thumbstick exclusion zone.
    if x+120<=right then result.moveTalk=true;result.talkX=x;result.talkY=14 else result.available=false end
   end

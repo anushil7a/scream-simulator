@@ -1987,7 +1987,10 @@ connectClient(Run.RenderStepped,function(dt)
   beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),Config.Auras.Gold,screenFeedbackAllowed())
  end
  -- Pause queue time while covered, too small, interacting, or overflow remains unseen.
- local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,CityMap.MiniLayout(viewport,touch,data.devAccess==true),data.devAccess==true,talkTarget~=nil)
+ local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,CityMap.MiniLayout(viewport,touch,data.devAccess==true),data.devAccess==true,talkTarget~=nil,
+  hud.Visible and hud.AbsolutePosition-gui.AbsolutePosition,hud.AbsoluteSize,
+  math.max(tracked.Visible and tracked.AbsolutePosition.Y+tracked.AbsoluteSize.Y or 0,
+   academy.guidePanel.Visible and academy.guidePanel.AbsolutePosition.Y+academy.guidePanel.AbsoluteSize.Y or 0)-gui.AbsolutePosition.Y)
  if modal.Visible then noticeLayout=NoticeLayout.Modal(viewport.X,viewport.Y,shortLandscape) end
  local noticeVisible=(gameplayVisible or modal.Visible) and windowFocused and not GuiService.MenuIsOpen
  local noticeNow=os.clock()

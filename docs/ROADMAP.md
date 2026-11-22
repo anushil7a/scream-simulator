@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Keep health and XP visible while a notice is open
+
+- In matched Studio at 666 × 316 usable pixels, the baseline opened the notice at (14, 66) and hid the health, XP, level and wallet card. The fixed layout moved the notice to (264, 66), eight pixels past the card, with both the status and objective tracker visible. At 448 × 300, inline space was insufficient and the existing **NOTICE** shortcut opened the full message in the menu.
+- The fallback can also place a notice below the status card when there is enough safe height. It reserves the bottom of the live objective tracker and guide before doing so. The portrait test covers that placement with mocked geometry. A Studio orientation attempt remained landscape at 843 × 331, so that sample checks only the side lane. Native checks used a disposable place, a staged notice and a scripted menu action. Studio returned to its default viewport and closed.
+- Independent review cleared the timed-tracker overlap after the reservation was added. Focused tests passed 682 notice assertions plus controls that restore status overlap or ignore the tracker. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. The audit's cited spawn microphone modal variable is absent and the current Dodge button is styled after creation. Continue the audit with save scheduling and remaining current-world checks.
+
 ## Let quiet time during beam cooldown count toward rearm
 
 - The current-city audit reproduced a second quiet requirement after the full five-second cooldown. In matched Studio sessions, both builds used the real Client controller, Action remote and server cooldown. After a quiet cooldown, the baseline kept **go quiet** and never began the second held onset. The candidate showed only the countdown with the start threshold hidden, stayed idle at expiry and acknowledged fresh sequence 2 about 0.30 seconds after the new onset.
