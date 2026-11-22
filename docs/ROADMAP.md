@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Show what earned gear actually boosts
+
+- The former Gear card called the Megaphone bonus mic power. The real voice gate reads calibrated input before gear is applied. The card and vendor now share a beam-power label with the percentage and 100% cap. The Gear explanation describes the bonus after activation and its benefit to reach and damage below full power.
+- In a matched native level-one test at the same unobstructed origin, six authoritative beam packets per case showed 21.900 studs without gear and 22.494 studs after an actual EQUIP click with raw synthetic power .55. The equipped multiplier was 1.06 and the observed pulse inputs stayed at .55. At synthetic power 1.00 both cases reached 30.000 studs over seven packets each. Ownership was staged in a temporary profile.
+- Desktop Studio and the iPhone 17 Pro landscape emulator fit the new three-line unaffordable starter detail and its 44-pixel guide action. At 491 × 150 usable desktop pixels, the detail fit its card and the boost and wallet were fully visible. The existing Mar hint's last few pixels were below the initial scroll viewport. Independent review cleared the copy. Focused gear, Style, combat authority and readout suites passed. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. Native input was synthetic, and this test measured reach rather than dealt damage.
+
 ## Warn before the Beach guide crosses Garden PvP
 
 - On `5e7247f`, the chosen Beach Cleanup guide drew 18 gold dots from the safe café spine. The fourth dot was about 15 studs ahead and inside Garden PvP at standing height. The route crossed the boundary in under one second during a scripted native walk. The existing HUD showed the current safe state and only changed after entry.

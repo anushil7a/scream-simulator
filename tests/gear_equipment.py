@@ -34,6 +34,9 @@ local Equipment=(function()
 '''+source+r'''
 end)()
 local G=require('../src/ReplicatedStorage/Shared/GearCatalog')
+for _,product in ipairs(G.Products({}))do
+ assert(product.description==G.BonusLabel(G.Get(product.id)),'Vendor and Gear descriptions disagree')
+end
 local character=node('Model');local hand=node('Part','RightHand');hand.Parent=character;local torso=node('Part','UpperTorso');torso.Parent=character
 local player={Character=character}
 for _,item in ipairs(G.Items)do
@@ -167,6 +170,8 @@ print('PASS guarded Hall gear directions and disabled unaffordable action')
 for _,narrow in ipairs({false,true}) do
  local cards,buttons,sent=renderStyle({level=1,coins=80,aura='Gold',activeQuest='sprint'},narrow)
  assert(cards[1].text=='ACADEMY MEGAPHONE' and cards[2].text=='Color Mixer','Starter gear below color controls')
+ assert(cards[1].detail:find('Lv 1 · +6% beam power · 100% cap',1,true),'Starter gear described microphone gain instead of capped beam power')
+ assert(cards[3].text:find('once your voice triggers an attack',1,true),'Gear explanation omitted the activation order')
  local starter=buttons.Megaphone
  assert(starter.size.h>=44 and starter.text=='NEED 20 COINS' and not starter.Interactable,'Starter shortcut displaced an active quest')
  assert(cards[1].detail:find('100 coins · 80 coins in wallet',1,true),'Unaffordable gear obscures the price or balance')
@@ -281,6 +286,8 @@ def run_style(source, expected=None):
 run_style(code)
 if '--negative-controls' in sys.argv:
  for old,new,reason in [
+  ('Config.Gear.BonusLabel(item)','"+6% mic power"','Starter gear described microphone gain instead of capped beam power'),
+  ('The bonus applies once your voice triggers an attack. ','','Gear explanation omitted the activation order'),
   ('if nextUpgrade then gearCard(nextUpgrade,false) end','if false then gearCard(nextUpgrade,false) end','Next gear upgrade buried below first purchase'),
   ('local nextUpgrade=academy.nextGearUpgrade','local nextUpgrade=academy.gearUpgrade(data)','An open Gear panel moved a different buy button into the last tapped slot'),
   ('if item~=starter and item~=nextUpgrade then','if item~=starter then','Next upgrade was duplicated'),

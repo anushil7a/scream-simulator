@@ -21,6 +21,9 @@ function Gear.Selected(data)
  if data.megaphoneOwned and data.megaphoneEquipped then return Gear.Get("Megaphone") end
 end
 function Gear.Multiplier(data) local item=Gear.Selected(data);return item and 1+item.bonus or 1 end
+function Gear.BonusLabel(item)
+ return string.format("Lv %d · +%d%% beam power · 100%% cap",item.level,math.floor(item.bonus*100+.5))
+end
 function Gear.Sanitize(data,raw)
  data.gearOwned={}
  for _,item in ipairs(Gear.Items) do
@@ -55,7 +58,9 @@ function Gear.Act(data,id,intent)
 end
 function Gear.Products(data)
  local out={}
- for _,item in ipairs(Gear.Items) do table.insert(out,{id=item.id,name=item.name,price=item.price,owned=Gear.Owned(data,item.id),description=string.format("Level %d · +%d%% normalized power, capped at 100%%. One gear at a time.",item.level,math.floor(item.bonus*100+.5))}) end
+ for _,item in ipairs(Gear.Items) do
+  table.insert(out,{id=item.id,name=item.name,price=item.price,owned=Gear.Owned(data,item.id),description=Gear.BonusLabel(item)})
+ end
  return out
 end
 return Gear

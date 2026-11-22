@@ -1415,7 +1415,7 @@ render=function()
    label(c,string.upper(item.name),UDim2.new(1,sidebarGear and -142 or narrow and -168 or -28,0,sidebarGear and 38 or compactGear and 20 or narrow and 44 or 28),
     UDim2.fromOffset(sidebarGear and 12 or 15,6),sidebarGear and 14 or 16,gold)
    local status=equipped and "Equipped · " or owned and "Owned · " or not canBuy and (item.price.." coins · ") or ""
-   local detail=string.format("Level %d · +%d%% mic power\n%s%d coins in wallet",item.level,math.floor(item.bonus*100+.5),status,data.coins)
+   local detail=Config.Gear.BonusLabel(item).."\n"..status..data.coins.." coins in wallet"
    if starter and not canAct then
     detail..=Config.ResonanceLayout and "\nEarn coins from PvP KOs" or coinAction=="claim" and "\nClaim coins in Quests" or coinAction=="guide" and "\nEarn coins with Mar's quests" or coinAction=="objective" and "\nFollow your current quest" or coinAction=="quest" and "\nOpen an unlocked quest" or "\nEarn coins from training or quests"
    end
@@ -1442,7 +1442,7 @@ render=function()
   if nextUpgrade then gearCard(nextUpgrade,false) end
   if starter then gearCard(starter,true) end
   shopUsed=true;ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
-  info("Earned-coin gear · one active bonus · normalized power capped at 100%. Buy once, then equip freely.",90)
+  info("Gear boosts reach and damage below full power. The bonus applies once your voice triggers an attack. Equip one item at a time.",90)
   for _,item in ipairs(Config.Gear.Items) do
    if item~=starter and item~=nextUpgrade then gearCard(item,false) end
   end
