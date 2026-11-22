@@ -594,12 +594,23 @@ local function setSprint(requested)
  if sprinting==requested and (not requested or now<nextSprintSend) then return end
  sprinting=requested;nextSprintSend=now+.5;action:FireServer("Sprint",requested)
 end
-local function targetCovered(root,targetRoot,targetModel)
+local function previewAttackOrigin(root)
  local character=p.Character;local head=character and character:FindFirstChild("Head")
- local origin=root.Position+Vector3.new(0,1,0)
- if head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
+ if head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then return head.Position end
+ return root.Position+Vector3.new(0,1,0)
+end
+local function beamTargetRange(root,targetRoot,aimPoint,stats,pvp)
+ local origin=previewAttackOrigin(root)
+ local aim=aimPoint-origin
+ local projection=aim.Magnitude>=.01 and (targetRoot.Position-origin):Dot(aim.Unit) or math.huge
+ local rootDistance=pvp and (targetRoot.Position-root.Position).Magnitude or 0
+ local far=projection<0 or projection>stats.maxRange or rootDistance>stats.maxRange+2
+ local currentFar=projection>stats.range or rootDistance>stats.range+2
+ return far,currentFar,origin
+end
+local function targetCovered(origin,targetRoot,targetModel)
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
- params.FilterDescendantsInstances={character,targetModel};params.RespectCanCollide=true
+ params.FilterDescendantsInstances={p.Character,targetModel};params.RespectCanCollide=true
  return workspace:Raycast(origin,targetRoot.Position-origin,params)~=nil
 end
 local function playerTargetInfo(target,humanoid,inPvp,targetInPvp,far,now,currentFar,covered)
@@ -1591,7 +1602,8 @@ connectClient(Run.RenderStepped,function(dt)
  meter.Visible=gameplayVisible and showVoiceMeter;reticle.Visible=usesCenterAim() and gameplayVisible
  local power=academy.VoiceReactor.Power(captureSource and mic:CapturePower() or mic.power)
  academy.reactor:Step(power,dt,data.settings.reducedShake or platformReducedMotion,mic.ready and (not sustainedControl or sustainedControl.armed))
- local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).range
+ local beamStats=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier)
+ local range=beamStats.range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
  if sustainedControl then
@@ -1830,18 +1842,16 @@ connectClient(Run.RenderStepped,function(dt)
    if root and targetRoot and humanoid then
     local inPvp,targetInPvp=Config.InArena(root.Position),Config.InArena(targetRoot.Position)
     local canFight=inPvp and targetInPvp
-    local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).maxRange+2
-    local currentFar=(targetRoot.Position-root.Position).Magnitude>range+2
-    local text,available=playerTargetInfo(targetPlayer,humanoid,inPvp,targetInPvp,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(root,targetRoot,object))
+    local far,currentFar,origin=beamTargetRange(root,targetRoot,hit.Position,beamStats,true)
+    local text,available=playerTargetInfo(targetPlayer,humanoid,inPvp,targetInPvp,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(origin,targetRoot,object))
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or white
    end
   elseif object and object~=workspace and object:IsA("Model") and object:GetAttribute("NpcId") then
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
    local npcRoot=object:FindFirstChild("HumanoidRootPart")
    if root and npcRoot then
-    local distance=(npcRoot.Position-root.Position).Magnitude
-    local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).maxRange+2
-    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2,not far and targetCovered(root,npcRoot,object),root.Position)
+    local far,currentFar,origin=beamTargetRange(root,npcRoot,hit.Position,beamStats,false)
+    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,currentFar,not far and targetCovered(origin,npcRoot,object),root.Position)
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then

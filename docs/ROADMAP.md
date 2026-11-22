@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## The aim HUD follows the beam endpoint
+
+- The old aim preview treated the two-stud PvP root-distance allowance as extra beam length and used it for training fighters too. At about 31.15 studs from Rookie with 30 studs of full-power reach, the local Studio HUD read **TRAINING RESIDENT** while the server resolver excluded the fighter.
+- The range cues now project the target onto the same head-origin cast line used by the beam. PvP still uses its additional root-distance check. In the iPhone 7 landscape emulator (666 × 316 safe pixels), the HUD showed **OUT OF MAX RANGE** at about 31.11 studs and **TRAINING RESIDENT** at 29.12. With 50% input and 21 studs of reach, it showed **BEYOND CURRENT RANGE** at 22.10 and **TRAINING RESIDENT** at 20.13. The local server resolver excluded the two distant samples and admitted the two close ones.
+- The cover and endpoint suite passed 73 assertions and three negative controls. The readout suite passed 29 assertions and two negative controls. Independent review and the full local run passed, including 29 pure/synthetic suites, 164 mocked-service suites, production compilation and review builds. This was a staged local resolver test with synthetic power and pointer input. It establishes range guidance at those tested positions. Real microphones, a physical phone, and live multiplayer remain open. Studio's viewport was restored and the disposable session closed.
+
 ## Beam animation keeps time at uneven frame rates
 
 - The old renderer discarded fractional frame time after every animation update. Feeding the actual Client gate 31 FPS for ten seconds yielded 155 updates. Keeping the remainder brought the result to the 30 Hz target, with at most one update on each rendered frame and no backlog after stalls. The test covers six fixed frame rates, jitter, long frames and operation below 30 FPS. A reset-to-zero mutation reproduced the defect in both the Client and its Studio benchmark.
