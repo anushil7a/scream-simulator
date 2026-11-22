@@ -181,7 +181,8 @@ def build(source, baseline):
     head = head[:start] + VIEW + head[head.index(' local task=', start):]
     client = (ROOT / 'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text(encoding='utf-8-sig')
     helpers = client[client.index('local function frame(parent,'):client.index('-- Presentation only: no subscriptions,')]
-    card = client[client.index('local function card(height)'):client.index('local function info(text,')]
+    card_end = 'function academy.menuContentWidth(' if 'function academy.menuContentWidth(' in client else 'local function info(text,'
+    card = client[client.index('local function card(height)'):client.index(card_end)]
     head = head[:head.index(' local ui={')] + UI.replace('CLIENT_HELPERS', helpers).replace('CLIENT_CARD', card)
     old = (head + baseline[:baseline.index('function Shop.ColorMixer(')] + TAIL).replace('local function fixture()', 'local function baseline()', 1)
     return old + head[head.index('local function fixture()'):] + source[:source.index('function Shop.ColorMixer(')] + TAIL + CHECKS

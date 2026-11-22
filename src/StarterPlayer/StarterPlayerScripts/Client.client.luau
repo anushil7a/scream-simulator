@@ -964,7 +964,10 @@ local function card(height)
  local edge=Instance.new("UIStroke");edge.Color=Color3.fromRGB(64,91,125);edge.Transparency=.65;edge.Parent=c
  return c
 end
-local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
+function academy.menuContentWidth()
+ return math.min(720,gui.AbsoluteSize.X-24)-(academy.sidebarMenu and 220 or 40)
+end
+local function info(text,height) local width=math.max(1,academy.menuContentWidth()-36);local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
 ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)
 -- Guidance is session-local and can only be selected by an explicit button.
 academy.NavigationCatalog=loadClientDependency(shared,"NavigationCatalog");if not clientCheckpoint() then return end
@@ -1150,7 +1153,7 @@ local function menuKey()
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil}
  else fields={} end
- return selected..":"..gui.AbsoluteSize.X..":"..game:GetService("HttpService"):JSONEncode(fields)
+ return selected..":"..gui.AbsoluteSize.X..":"..tostring(academy.sidebarMenu==true)..":"..game:GetService("HttpService"):JSONEncode(fields)
 end
 render=function()
  if selected=="Screams" then
@@ -1171,7 +1174,7 @@ render=function()
  end
  clearShop()
  mapDot=nil
- narrow=gui.AbsoluteSize.X-24<620
+ narrow=academy.sidebarMenu==true or gui.AbsoluteSize.X-24<620
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Shop" then
@@ -1233,7 +1236,7 @@ render=function()
   if reward then
    local payout=data.level>=Config.MaxLevel and (reward.coins.." coins (base)")
     or string.format("%d coins · %d XP (base)",reward.coins,reward.xp)
-   local textBounds=Vector2.new(math.max(1,math.min(720,gui.AbsoluteSize.X-24)-206),10000)
+   local textBounds=Vector2.new(math.max(1,academy.menuContentWidth()-166),10000)
    local nameHeight=math.max(19,TextService:GetTextSize(reward.name,15,Enum.Font.GothamMedium,textBounds).Y+2)
    local payoutHeight=math.max(16,TextService:GetTextSize(payout,12,Enum.Font.GothamMedium,textBounds).Y+2)
    local c=card(math.max(60,nameHeight+payoutHeight+18))
@@ -1278,7 +1281,7 @@ render=function()
     if switching then description..="\n\nReplaces "..current.name..". Unfinished progress resets." end
     if restarting then description..="\n\nRestarting resets this unfinished progress." end
     if not available then description..="\n\nTo unlock: meet "..(q.giver or "a resident").." and use Talk." end
-    local textWidth=math.min(720,gui.AbsoluteSize.X-24)-48-(narrow and 28 or 158)
+    local textWidth=math.max(1,academy.menuContentWidth()-8-(narrow and 28 or 158))
     local nameHeight=math.max(26,TextService:GetTextSize(q.name,17,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+4)
     local descriptionHeight=math.max(49,TextService:GetTextSize(description,13,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+8)
     local descriptionY=12+nameHeight;local rewardY=descriptionY+descriptionHeight+5
@@ -1286,7 +1289,7 @@ render=function()
     local canGuide=academy.NavigationCatalog.Resolve("quest",q.id,data)~=nil
     local guideToMar=not available and (q.id=="garden" or q.id=="beach") and academy.NavigationCatalog.Resolve("place","gardens",data)~=nil
     local c=card(narrow and actionY+(canGuide and 100 or guideToMar and 54 or 48) or math.max(canGuide and 164 or 150,rewardY+35))
-    if q.id==academy.menuQuestFocus then c.LayoutOrder=-1 end
+    if q.id==academy.menuQuestFocus and not (academy.sidebarMenu and q==reward) then c.LayoutOrder=-1 end
     label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
     label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
     label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
@@ -1304,7 +1307,8 @@ render=function()
  elseif selected=="Style" then
   title.Text="GEAR & BEAM COLOR";subtitle.Text=Config.ResonanceLayout and "Earn gear with coins from PvP." or "Earn gear with coins from training and quests."
   local selectedGear=Config.Gear.Selected(data)
-  local compactGear=narrow and gui.AbsoluteSize.X>=500
+  local sidebarGear=academy.sidebarMenu==true
+  local compactGear=not sidebarGear and narrow and gui.AbsoluteSize.X>=500
   local function gearCard(item,starter)
    local owned=Config.Gear.Owned(data,item.id)
    local locked=data.level<item.level
@@ -1319,15 +1323,18 @@ render=function()
     or coinAction=="objective" and ("GUIDE QUEST\n"..shortfall)
     or coinAction=="quest" and ("VIEW QUEST\n"..shortfall)
     or remaining>0 and shortfall or ("BUY & EQUIP\n"..item.price.." COINS")
-   local c=card(compactGear and 72 or narrow and 116 or 110)
-   label(c,string.upper(item.name),UDim2.new(1,narrow and -168 or -28,0,compactGear and 20 or narrow and 44 or 28),UDim2.fromOffset(15,6),16,gold)
+   local c=card(sidebarGear and 96 or compactGear and 72 or narrow and 116 or 110)
+   label(c,string.upper(item.name),UDim2.new(1,sidebarGear and -142 or narrow and -168 or -28,0,sidebarGear and 38 or compactGear and 20 or narrow and 44 or 28),
+    UDim2.fromOffset(sidebarGear and 12 or 15,6),sidebarGear and 14 or 16,gold)
    local status=equipped and "Equipped · " or owned and "Owned · " or not canBuy and (item.price.." coins · ") or ""
    local detail=string.format("Level %d · +%d%% mic power\n%s%d coins in wallet",item.level,math.floor(item.bonus*100+.5),status,data.coins)
    if starter and not canAct then
     detail..=Config.ResonanceLayout and "\nEarn coins from PvP KOs" or coinAction=="claim" and "\nClaim coins in Quests" or coinAction=="guide" and "\nEarn coins with Mar's quests" or coinAction=="objective" and "\nFollow your current quest" or coinAction=="quest" and "\nOpen an unlocked quest" or "\nEarn coins from training or quests"
    end
-   label(c,detail,UDim2.new(1,narrow and not compactGear and -28 or -170,0,compactGear and 42 or 48),UDim2.fromOffset(15,compactGear and 26 or narrow and 57 or 34),13)
-   local control=button(c,item.id,stateText,UDim2.fromOffset(135,44),UDim2.new(1,-149,0,narrow and 6 or 50),function()
+   label(c,detail,UDim2.new(1,(sidebarGear or narrow and not compactGear) and -28 or -170,0,sidebarGear and 44 or compactGear and 42 or 48),
+    UDim2.fromOffset(sidebarGear and 12 or 15,sidebarGear and 50 or compactGear and 26 or narrow and 57 or 34),sidebarGear and 12 or 13)
+   local buttonWidth=sidebarGear and 112 or 135
+   local control=button(c,item.id,stateText,UDim2.fromOffset(buttonWidth,44),UDim2.new(1,-buttonWidth-14,0,(sidebarGear or narrow) and 6 or 50),function()
     if canAct then
      action:FireServer("Gear",{id=item.id,intent=canBuy and "buy" or equipped and "unequip" or "equip"});return
     end
@@ -1869,21 +1876,36 @@ connectClient(Run.RenderStepped,function(dt)
  local short=viewport.Y<550
  menuScale.Scale=1
  local width=math.min(720,viewport.X-24)
- modal.Size=UDim2.fromOffset(width,math.min(620,viewport.Y-(shortLandscape and 16 or 76)))
+ local menuHeight=math.min(620,viewport.Y-(shortLandscape and 16 or 76))
+ modal.Size=UDim2.fromOffset(width,menuHeight)
  modal.Position=UDim2.new(.5,0,0,shortLandscape and 8 or 64)
  modal.Close.Position=UDim2.new(1,-56,0,shortLandscape and 0 or 10)
  title.Position=UDim2.fromOffset(22,shortLandscape and 4 or 15)
  title.TextSize=width<620 and 20 or 23
  subtitle.Visible=not short;subtitle.Size=UDim2.new(1,-44,0,width<620 and 42 or 25)
  local tabY=shortLandscape and 44 or short and 54 or width<620 and 102 or 88
- local columns=(width>=620 or shortLandscape and width>=500) and 6 or 3;local rows=6/columns
- local tabWidth=(width-40-(columns-1)*6)/columns
+ local columns=(width>=620 or shortLandscape and width>=500) and 6 or 3
+ local rows=6/columns
+ -- Keep the notice/title strip above both the tab grid and the scrolling cards.
+ local sidebar=shortLandscape and width>=468 and viewport.Y>=150 and menuHeight-(tabY+rows*50+18)<88
+ local sidebarChanged=academy.sidebarMenu~=sidebar
+ academy.sidebarMenu=sidebar
+ if sidebar then
+  columns=3
+  modal.Size=UDim2.fromOffset(width,viewport.Y-12)
+ end
+ local tabWidth=sidebar and 60 or (width-40-(columns-1)*6)/columns
+ local tabLeft,tabGap=sidebar and 12 or 20,sidebar and 4 or 6
  for i,name in ipairs(academy.menuTabs) do
-  local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(20+((i-1)%columns)*(tabWidth+6),tabY+math.floor((i-1)/columns)*50);b.TextSize=width<620 and 12 or 14
+  local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(tabLeft+((i-1)%columns)*(tabWidth+tabGap),tabY+math.floor((i-1)/columns)*50);b.TextSize=(width<620 or sidebar) and 12 or 14
   local decoration=academy.tabIcons[name];academy.layoutTab(b,decoration.icon,decoration.padding,tabWidth)
  end
- content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
- if width~=lastLayoutWidth or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) or (Config.ResonanceLayout and selected=="Map" and layoutChanged) then
+ if sidebar then
+  content.Position=UDim2.fromOffset(208,44);content.Size=UDim2.new(1,-220,1,-52)
+ else
+  content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
+ end
+ if width~=lastLayoutWidth or sidebarChanged or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) or (Config.ResonanceLayout and selected=="Map" and layoutChanged) then
   lastLayoutWidth=width
   academy.shopCompactLandscape=ShopUI.CompactLandscape(viewport.X,viewport.Y)
   if modal.Visible then render() end

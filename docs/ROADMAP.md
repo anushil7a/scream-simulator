@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Keep Gear and Quests usable in short landscape menus
+
+- At 509 × 162 safe pixels in Studio, the old Gear scroller measured negative 16 pixels tall and Guide to Mar sat below the menu. The compact layout puts six 60 × 44 tabs beside the cards, reserves the top strip for notices and gives the scroller 98 pixels at that height. At 492 × 162 all six gear titles fit. At 666 × 162 the Gear action and nine Settings labels fit. Opening a completed matching quest leaves its quick Claim visible at scroll position zero.
+- A disposable Studio session used synthetic microphone levels through the real client and server attack path. Two beams defeated Rookie for five coins. With staged travel and emulated prompts, two Mar rewards raised the player's wallet to 135. Buying the Megaphone left 35; the server showed a 1.06 multiplier and the gear remounted on respawn. The end-to-end run scrolled to claim the rewards before the ordering correction; the final build separately verified the quick Claim in the first view.
+- Independent review cleared the layout after checking Gear action placement, measured text widths and reward order. The existing Talk button can still sit below the safe canvas below 205 pixels of height. Physical touch, real microphones, unassisted navigation, multiplayer and live saving remain unverified. All 29 pure/synthetic suites, 167 mocked-service suites, 97 production script compilations and Rojo review builds passed. Four disposable Studio sessions were closed and three temporary device profiles removed.
+
 ## Restore the first-spar objective on short landscape screens
 
 - In Studio at 509 × 162 safe canvas, the previous objective started at y160 and the Guide button started at y163, fully below the safe canvas. The compact navigation now holds the first-spar goal, progress and Guide action in a 104 × 44 button beside Menu and the Notice or Reward shortcut. It works throughout the supported stacked touch layout and restores the ordinary tracker at 566 × 244.

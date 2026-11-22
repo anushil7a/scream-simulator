@@ -150,6 +150,7 @@ local function renderStyle(data,narrow,width,window)
  local function render()end
  if window then
   academy.nextGearUpgrade=window.nextGearUpgrade
+  academy.sidebarMenu=window.sidebar
  else
 '''+toggle+r'''
   toggleTab("Style")
@@ -249,6 +250,13 @@ local function view(w,h)
 '''+short_landscape+'\n'+layout+r'''
  return modal.Size.y+content.Size.y,modal.Position.y,modal.Close.Position.y,tabs.Style.Position.y
 end
+local minimum=view(509,162)
+local sidebarCards,sidebarButtons,sidebarRequests=renderStyle({level=1,coins=100,aura='Gold'},true,509,{sidebar=true})
+assert(minimum>=sidebarCards[1].detailBottom and sidebarButtons.Megaphone.position.y+sidebarButtons.Megaphone.size.h<=minimum and sidebarButtons.Megaphone.size.h==44,'Short gear drawer clips price or Buy & Equip')
+sidebarButtons.Megaphone.press()
+assert(#sidebarRequests==1 and sidebarRequests[1][2].id=='Megaphone' and sidebarRequests[1][2].intent=='buy','Short gear drawer changed the purchase request')
+local wideShort,wideShortButtons=renderStyle({level=1,coins=100,aura='Gold'},false,700,{sidebar=true})
+assert(wideShortButtons.Megaphone.position.y+wideShortButtons.Megaphone.size.h<=50,'Wide short gear drawer overlaps CTA and detail')
 local available,menuY,closeY,firstTabY=view(567,241)
 assert(available>=60 and menuY==8 and closeY+44<=firstTabY,'Short landscape clips the gear CTA or overlaps close/tab controls')
 local smallerWindow=view(567,321)

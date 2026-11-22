@@ -35,6 +35,7 @@ local academy={
  selectGuide=function(kind,id)table.insert(routes,{kind,id})end,
 }
 local data,narrow;local title,subtitle={},{};local gui={AbsoluteSize={X=390}};local gold,muted={},{}
+MENU_CONTENT_WIDTH
 local messages,buttons,calls,cards,order={},{},{},{},{}
 local function info(text)table.insert(messages,text);table.insert(order,{kind="info",text=text})end
 local function card()local c={labels={}};table.insert(cards,c);table.insert(order,{kind="card",card=c});return c end
@@ -44,6 +45,11 @@ local action={FireServer=function(_,verb,id)table.insert(calls,{verb,id})end}
 local function render(value,isNarrow)
  data=value;narrow=isNarrow;gui.AbsoluteSize.X=isNarrow and 390 or 1280;messages={};buttons={};calls={};cards={};order={}
 """
+if not args.baseline:
+    start=client.index('function academy.menuContentWidth(')
+    between=between.replace('MENU_CONTENT_WIDTH',client[start:client.index('\nlocal function info(',start)])
+else:
+    between=between.replace('MENU_CONTENT_WIDTH','')
 checks="""
 end
 local function copy(value)
@@ -215,6 +221,15 @@ for _,isNarrow in ipairs({false,true})do
  renderChecked(value,isNarrow)
  check(order[1].card==buttons.ActiveQuestAction.card,'Ready reward does not render first')
  check(buttons.ActiveQuestAction.height==44,'Ready reward tap target is shorter than 44 pixels')
+ if academy.menuContentWidth then
+  academy.sidebarMenu=true
+  academy.menuQuestFocus=value.activeQuest
+  renderChecked(value,isNarrow)
+  check(buttons[value.activeQuest].card.LayoutOrder~=-1,'Compact quest focus pushed the matching reward below the fold')
+  academy.sidebarMenu=false
+  academy.menuQuestFocus=nil
+  renderChecked(value,isNarrow)
+ end
  local claimPos=buttons.ActiveQuestAction.pos
  check(claimPos[3]==0 and claimPos[4]+buttons.ActiveQuestAction.height<=45,'Claim target clips in the shortest tested reward window')
  local readyQuest=Config.GetQuest('garden')
@@ -289,9 +304,10 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    unwarned=code.replace('lower Garden terraces on the way.','path on the way.')
    assert unwarned!=code
    run(unwarned,'Beach quest hid the Garden route warning')
-   focus=code.replace('if q.id==academy.menuQuestFocus then c.LayoutOrder=-1 end','')
+   focus=code.replace('if q.id==academy.menuQuestFocus and not (academy.sidebarMenu and q==reward) then c.LayoutOrder=-1 end','')
    assert focus!=code
    run(focus,'Focused quest stayed below unrelated cards')
+   run(code.replace(' and not (academy.sidebarMenu and q==reward)', ''),'Compact quest focus pushed the matching reward below the fold')
    run(code.replace('local function render(value,isNarrow)','table.insert(Config.Progression.Challenges,{id="cover",name="Destroy 5 eligible cover objects",goal=5})\nlocal function render(value,isNarrow)'),'Retired challenge displayed')
    run(code.replace('if q.hidden and not available then continue end','if false then continue end'),'Hidden city quest exposed before discovery')
    generic=code.replace('local description=q.retired==true and "Earned reward available." or q.description','local description=available and q.description or "Meet "..(q.giver or "a resident")')

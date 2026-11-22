@@ -8,7 +8,7 @@ p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.a
 name='src/StarterPlayer/StarterPlayerScripts/Client.client.luau'
 src=subprocess.check_output(['git','show','899b0b8:'+name],cwd=ROOT,text=True,encoding='utf-8') if args.baseline else (ROOT/name).read_text(encoding='utf-8')
 setup_line='' # Mandatory setup panel retired; disclosure remains in Settings.
-info_start=src.index('local function info(')
+info_start=src.index('local function info(' if args.baseline else 'function academy.menuContentWidth(')
 info_end='\nscript.Destroying:Connect(' if args.baseline else '\nownClient('
 info=src[info_start:src.index(info_end,info_start)]
 a=src.index('  title.Text="SETTINGS & CONTROLS"');b=src.index('\n end\n -- Restore only after AutomaticCanvasSize',a);settings=src[a:b]
