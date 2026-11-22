@@ -54,7 +54,7 @@ local legacy={nick={1,1800,1200,'Soccer'},garden={3,130,80,'Garden'},beach={6,10
 check(#Config.Quests==10,'Unexpected quest catalog size')
 local crowd=Config.GetQuest('crowd').description
 check(crowd:find('3 different NPCs',1,true) and crowd:find('residents or training fighters',1,true) and crowd:find('during one beam',1,true) and crowd:find('do not need to be hit at the same instant',1,true),'Crowd copy lost distinct-target/non-simultaneous clarification')
-for _,row in ipairs({{'crowd','Hit 3 different NPCs during one beam'},{'arena_assist','Assist an equal/higher-level arena KO'}})do
+for _,row in ipairs({{'crowd','Hit 3 different NPCs during one beam'},{'arena_assist','Assist an equal/higher-level player KO'}})do
  local q=Config.GetQuest(row[1]);check(realGuide.Step(q,0)==row[2],'Quest guide objective mismatch')
  check(realGuide.Step(q,q.goal):find('claim in Quests',1,true)~=nil,'Completed quest guide missing claim')
 end

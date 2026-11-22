@@ -4,7 +4,7 @@ import subprocess,tempfile,argparse
 R=Path(__file__).resolve().parents[1]
 layout=(R/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text()
 config=(R/'src/ReplicatedStorage/Shared/Config.luau').read_text()
-config=config[config.index('function Config.InGardenPvp('):config.index('\nreturn Config')]
+config='\n'.join(line for line in config.splitlines() if line.startswith(('function Config.HasGardenPvp(', 'function Config.InGardenPvp(', 'function Config.InArena(')))
 source=(R/'src/StarterPlayer/StarterPlayerScripts/CityMap.luau').read_text()
 client=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 zone=client[client.index('function academy.refreshZone()'):client.index('\nlocal ',client.index('function academy.layoutZone('))]

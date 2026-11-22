@@ -59,6 +59,12 @@ local function equal(a,b)
 end
 local expected={nick={1,1800,1200},garden={3,130,80},beach={6,100,50},delivery={1,120,60},crowd={1,100,40},sprint={1,120,50},dodge={3,160,70},arena={1,180,80},practice_beams={3,60,25},arena_assist={1,120,50}}
 check(#Config.Quests==10,'City quest definitions unexpectedly changed')
+if Config.HasGardenPvp() then
+ check(Config.GetQuest('beach').description:find('lower Garden terraces',1,true)~=nil,'Beach quest hid the Garden route warning')
+ for _,id in ipairs({'dodge','arena','arena_assist'})do
+  check(Config.GetQuest(id).description:find('a PvP zone',1,true)~=nil,'PvP task still says arena only')
+ end
+end
 for _,q in ipairs(Config.Quests)do
  local e=expected[q.id];check(e and q.goal==e[1] and q.xp==e[2] and q.coins==e[3],'Quest identity/goal/rewards changed')
 end
@@ -270,6 +276,9 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
  else:
   run(code)
   if args.negative_controls:
+   unwarned=code.replace('lower Garden terraces on the way.','path on the way.')
+   assert unwarned!=code
+   run(unwarned,'Beach quest hid the Garden route warning')
    focus=code.replace('if q.id==academy.menuQuestFocus then c.LayoutOrder=-1 end','')
    assert focus!=code
    run(focus,'Focused quest stayed below unrelated cards')

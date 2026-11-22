@@ -773,8 +773,11 @@ local function talk(p,id)
    local q=Config.GetQuest(id);local progress=s.data.quests[id]
    if q then table.insert(choices,{id=id,name=q.name,description=q.description,claimed=progress and progress.claimed==true,complete=progress and progress.progress>=q.goal}) end
   end
-  local hints={Gardener="The raised flowerbeds in Rambla Gardens need water. Use the interaction prompt beside each bed after accepting my task.",Vendor="The café sends orders along the waterfront. Collect one, then check your objective for its destination.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker="Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
-  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices,products=b.role=="Vendor" and Config.Gear.Products(s.data) or nil});return
+  local gardenPvp=Config.HasGardenPvp()
+  local pvpHint=gardenPvp and "PvP is active in the stadium arena and on marked lower Garden terraces. Check the map for red areas." or "Player combat stays inside the central arena."
+  local gardenHint=gardenPvp and "Water each flowerbed with its prompt. On the way to the beach, check the PvP status on the lower Garden terraces." or "The raised flowerbeds in Rambla Gardens need water. Use the interaction prompt beside each bed after accepting my task."
+  local hints={Gardener=gardenHint,Vendor="The café sends orders along the waterfront. Collect one, then check your objective for its destination.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker=gardenPvp and pvpHint or "Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
+  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or (gardenPvp and pvpHint or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena."),quests=choices,products=b.role=="Vendor" and Config.Gear.Products(s.data) or nil});return
  end end
 end
 local function dev(p,command)

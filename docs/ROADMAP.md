@@ -1,5 +1,10 @@
 # Scream Simulator development roadmap
 
+## Garden PvP guidance on the first upgrade route
+
+- Eric's neighborhood topic said the stadium was the only PvP area, even though the sampled route to the Beach quest crossed the lower Garden PvP terraces. Eric and Mar now identify the lower terraces in their guidance. The Beach quest warns players before they leave the garden. PvP quest descriptions use the wider area on Map10, and their tracked labels describe the objectives. Combat rules and boundaries are unchanged.
+- In a disposable Studio play session, Eric's neighborhood topic and Mar's guidance and Beach description fit the iPhone 7 landscape safe area (666 × 316). With the avatar staged at four points, server geometry and the client HUD agreed. Upper Garden and the café crosswalk were safe, the lower terraces showed Garden PvP, and the stadium showed Arena PvP. Independent review, 1,777 quest UI assertions and 20 negative controls passed. The full run passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. Studio returned to its default viewport and the disposable file closed. Real voice, physical touch and live multiplayer remain open.
+
 ## Gear opens the already unlocked starter quest
 
 - On a fresh local profile, the Gear guide led to Mar. The player walked there, opened the real conversation, accepted Garden, walked to all three beds, and claimed 80 coins. Gear still said Guide to Mar even though talking once unlocked Beach and the regular Quests menu accepted it from the garden.

@@ -61,6 +61,7 @@ for level=60,Config.MaxLevel,10 do
 end
 for _,style in ipairs(Config.Sounds) do style.cooldown=4 end
 Config.Auras={Gold=Color3.fromRGB(255,203,99),Mint=Color3.fromRGB(98,244,187),Violet=Color3.fromRGB(188,137,255),Ice=Color3.fromRGB(110,207,255),Coral=Color3.fromRGB(255,128,128)}
+function Config.HasGardenPvp() return Config.CompactCity and CompactLayout.MapId=="Map10" end
 Config.Quests={
  {id="nick",name="The Worst Striker’s Best Assist",hidden=true,giver="Nick Booty · hidden coastal court",description="Find Nick’s three lost balls (120s), steer through four cone-course gates (90s), then hit five targets (120s). Final targets move and Nick’s assist drifts right. Soft mic shots give control. Restart at his court.",goal=1,xp=1800,coins=1200,event="Soccer"},
  {id="garden",name="A Little More Color",description="Help Mar Soler water the three raised flowerbeds in Rambla Gardens. Use the interaction prompt beside each bed.",giver="Mar Soler · Rambla Gardens",goal=3,xp=130,coins=80,event="Garden"},
@@ -96,8 +97,17 @@ function Config.GetSound(id)
  end
 end
 function Config.GetQuest(id) for _,q in ipairs(Config.Quests) do if q.id==id then return q end end end
+if Config.HasGardenPvp() then
+ local beach=Config.GetQuest("beach")
+ beach.description..=" Watch for PvP on the marked lower Garden terraces on the way."
+ for _,id in ipairs({"dodge","arena","arena_assist"}) do
+  local quest=Config.GetQuest(id)
+  local originalArea=id=="arena_assist" and "the arena" or "the central arena"
+  quest.description=quest.description:gsub(originalArea,"a PvP zone",1)
+ end
+end
 function Config.XPToNext(level) return Progression.XPToNext(level) end
 function Config.PlayerKOXP(level) return Progression.PlayerKOXP(level) end
-function Config.InGardenPvp(p) return Config.CompactCity and CompactLayout.MapId=="Map10" and p.Y>=CompactLayout.GardenPvpMinY and p.Y<=CompactLayout.GardenPvpMaxY and CompactLayout.InGardenPvpXZ(p.X,p.Z) end
+function Config.InGardenPvp(p) return Config.HasGardenPvp() and p.Y>=CompactLayout.GardenPvpMinY and p.Y<=CompactLayout.GardenPvpMaxY and CompactLayout.InGardenPvpXZ(p.X,p.Z) end
 function Config.InArena(p) return (p.X>=Config.ZoneMin.X and p.X<=Config.ZoneMax.X and p.Z>=Config.ZoneMin.Z and p.Z<=Config.ZoneMax.Z and p.Y>=Config.ZoneMin.Y and p.Y<=Config.ZoneMax.Y) or (Config.CompactCity and Config.InGardenPvp(p))==true end
 return Config
