@@ -2027,7 +2027,6 @@ connectClient(Run.RenderStepped,function(dt)
  testButton.Position=UDim2.new(1,-testWidth-(splitTalkLane and 10 or 14),0,testTop)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,data.devAccess==true and viewport.X<356 and miniLayout.height+74 or 64) or UDim2.new(0,14,1,-108)
  academy.layoutStatusCard(touch and shortLandscape)
- talkButton.Size=UDim2.fromOffset(splitTalkLane and 44 or stackedActions and 84 or 120,touch and 44 or 34)
  local trackerY=(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64
  local trackerX,trackerTop,trackerWidth,trackerHeight,canShare,centerTracker=academy.trackerLayout(viewport,touch,trackerY)
  academy.guideMayUseTracker=canShare==true
@@ -2211,6 +2210,7 @@ connectClient(Run.RenderStepped,function(dt)
  academy.passesToggle.Visible=shop.Visible and gameplayVisible and not devPanel.Visible
  if academy.compactObjective.Visible then academy.refreshCompactObjective(questsToggle.Visible) end
  talkButton.Visible=talkTarget~=nil and gameplayVisible
+ talkButton.Size=UDim2.fromOffset(academy.stackedTouchActions and (viewport.Y<205 and 44 or 84) or noticeLayout.baseTalkWidth or 120,touch and 44 or 34)
  if academy.stackedTouchActions then
   -- The top lane is the only shared space above the stock Jump button on the shortest canvas.
   talkButton.Position=viewport.Y<205 and UDim2.new(1,-102,0,0) or UDim2.new(1,-98,0,50)

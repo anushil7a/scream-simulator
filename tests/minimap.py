@@ -161,7 +161,7 @@ for width=320,1280 do
    local data={devAccess=testAccess};local testButton={}
    local viewport={X=width,Y=height}
    local shortLandscape=height<300 and width>height
-   local tracked={Size=__TRACKER__};local hud={Size=__HUD__};local talkButton={}
+   local tracked={Size=__TRACKER__};local hud={Size=__HUD__};local talkButton={};local noticeLayout={}
    shop.Position=UDim2.fromOffset(0,0)
 __LAYOUT__
    for _,child in ipairs({shop,academy.passesToggle,questsToggle})do child.Position.X.Offset+=top.Position.X.Offset;child.Position.Y.Offset+=top.Position.Y.Offset end

@@ -216,6 +216,16 @@ local function checkShortTalk()
  for _,b in ipairs(blockers)do check(not Layout.Overlaps(target,b),'Short phone TALK overlaps an existing HUD control')end
  return x,y
 end
+-- This section runs across render frames without any layout-pass-only locals.
+academy.stackedTouchActions=true
+for _,sample in ipairs({{150,44,0},{204,44,0},{205,84,50},{238,84,50}}) do
+ local height,width,y=table.unpack(sample)
+ viewport=Vector2.new(491,height);frame()
+ check(talkButton.Size.X.Offset==width and talkButton.Size.Y.Offset==44 and talkButton.Position.Y.Offset==y,
+  'Compact touch TALK did not keep its allocated width across frames')
+end
+academy.stackedTouchActions=false
+viewport=Vector2.new(567,242)
 local firstX,firstY=checkShortTalk()
 notifications:Push(samples[1],true,'save')
 local noticeX,noticeY=checkShortTalk()
@@ -226,6 +236,20 @@ local portrait=talkButton.Position
 check(portrait.X.Scale*390+portrait.X.Offset==135 and portrait.Y.Scale*844+portrait.Y.Offset==595,'Portrait TALK moved out of its existing lane')
 notifications=Queue.new()
 touch=false
+viewport=Vector2.new(491,150)
+for _,tester in ipairs({true,false})do
+ data.devAccess=tester
+ frame()
+ local position=talkButton.Position
+ local size=talkButton.Size
+ local target={x=position.X.Scale*491+position.X.Offset,y=position.Y.Scale*150+position.Y.Offset,width=size.X.Offset,height=size.Y.Offset}
+ check(not Layout.Overlaps(target,{x=94,y=2,width=64,height=46}),'491 × 150 desktop TALK overlaps Passes')
+ check(target.x==251 and target.y==12 and target.width==84 and target.height==34,'Short desktop TALK lost its compact target')
+ for _,blocker in ipairs({{x=164,y=2,width=78,height=36},{x=217,y=48,width=260,height=44},{x=365,y=14,width=112,height=44}})do
+  check(not Layout.Overlaps(target,blocker),'Short desktop TALK overlaps adjacent controls')
+ end
+end
+data.devAccess=true
 for _,desktop in ipairs({{416,416,14,308},{567,416,165,308},{567,241,251,12},{683,416,281,308},{684,416,282,308},{1280,720,580,612}})do
  local w,h,x,y=table.unpack(desktop)
  hud=rect(14,w<820 and 64 or h-108,242,94)
@@ -315,7 +339,9 @@ if a.negative_controls:
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('elseif noticeLayout.baseTalkX then','elseif noticeView.visible and noticeLayout.baseTalkX then'),'Short phone TALK extends outside the safe HUD')
  run(sources['NoticeLayout'].replace('talk.x=x;talk.y=','talk.x=navRight-24;talk.y='),sources['NoticeView'],error='Short phone TALK overlaps an existing HUD control')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('(gameplayVisible or modal.Visible)','gameplayVisible'),'Shop error hidden or covers modal navigation')
- run(sources['NoticeLayout'].replace('if not touch and talkVisible then','if false then'),sources['NoticeView'],error='Desktop TALK left its clear lane')
+ run(sources['NoticeLayout'].replace('if height>=150 and height<318','if height>=156 and height<318'),sources['NoticeView'],error='491 × 150 desktop TALK overlaps Passes')
+ run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('academy.stackedTouchActions and (viewport.Y<205 and 44 or 84) or noticeLayout.baseTalkWidth or 120','splitTalkLane and 44 or stackedActions and 84 or noticeLayout.baseTalkWidth or 120'),'Compact touch TALK did not keep its allocated width across frames')
+ run(sources['NoticeLayout'].replace('if not touch and talkVisible then','if false then'),sources['NoticeView'],error='Short desktop TALK lost its compact target')
 print('Actual warning lengths:',[len(t)for t in texts])
 
 assert client.index('local nextNotice=notifications:Step(dt,noticeView:CanAdvance())')<client.index('elapsed+=dt;if elapsed<.15'), 'Notice dwell behind throttled gate'

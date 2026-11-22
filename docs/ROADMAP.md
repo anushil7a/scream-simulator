@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Separate Talk from Passes on the shortest desktop HUD
+
+- At 491 × 150 safe pixels in desktop Studio, Talk overlapped Passes by 64 × 6 pixels. A pointer click in that strip opened Game Passes while Mar was in reach. The same overlapping rectangles appeared with Test Tools hidden. The older offscreen Talk clipping did not reproduce in the sampled desktop run.
+- Desktop Talk now uses the available top rail on 150–155-pixel-high layouts when the rail has room. The 84 × 34 target at x251, y12 in the matched case clears navigation, the combat row and Test Tools. The mobile layout still draws its existing 44 × 44 or 84 × 44 target from persistent layout state. Review caught a layout-phase scope mistake in the initial implementation. The regression restores that mistake as a negative control.
+- The current City source also passed the local developer-access preflight. Both the separate guarded Resonance Hall geometry and combat preview rebuilt, and the map and portal suites passed their focused checks. Those checks cover local travel; cross-place service, shared-profile handoff and writer-fleet verification remain release gates.
+
+- Final desktop Studio replay at 491 × 150 confirmed the original shared coordinate now opens only Passes and the relocated Talk target opens Mar's real dialogue. At 567 × 180 safe pixels in the touch emulator, Talk fit in its 44 × 44 target and a native emulated tap opened the same dialogue. These used staged travel and temporary profiles. The desktop extreme still has a separate existing Test Tools/Beams overlap.
+- Independent review cleared the corrected touch state. The focused notice checks passed 700 assertions and 37 negative controls. Full local verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. Next check the remaining overlap between Test Tools and Beams at this desktop size.
+
 ## Verify quest receipts in the phone emulator
 
 - The current City build displayed the Garden receipt without overlapping actionable controls at 750 × 323 safe pixels in the iPhone 17 Pro Studio preset. At 666 × 316 safe pixels on the iPhone 7 preset, the longer Nick receipt fit at the top of the open Quests menu. Those two receipt layout probes used staged State messages.

@@ -289,7 +289,7 @@ def main():
             ('or UDim2.new(1,-98,0,50)', 'or UDim2.new(1,-246,0,50)', 'Stack overlaps the compact TALK button'),
             ('UDim2.new(1,-102,0,0)', 'UDim2.new(1,-102,0,60)', 'Compact TALK has no safe target'),
             ('talkButton.Position=viewport.Y<205 and', 'talkButton.Position=splitTalkLane and', 'Compact TALK has no safe target'),
-            ('splitTalkLane and 44 or stackedActions and 84 or 120', 'splitTalkLane and 40 or stackedActions and 84 or 120', 'Compact TALK has no safe target'),
+            ('academy.stackedTouchActions and (viewport.Y<205 and 44 or 84) or noticeLayout.baseTalkWidth or 120', 'academy.stackedTouchActions and (viewport.Y<205 and 40 or 84) or noticeLayout.baseTalkWidth or 120', 'Compact TALK has no safe target'),
             ('stackedActions and 84 or viewport.X<432', 'stackedActions and 112 or viewport.X<432', 'Test Tools overlaps a combat control'),
         ]
         for old, new, expected in cases:
