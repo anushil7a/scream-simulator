@@ -1187,26 +1187,30 @@ local function stepTraining(now)
   if not bot.training or not bot.alive then continue end
   if now-(bot.lastTrainingHit or now)>TrainingRules.ResetAfter and bot.health<bot.maxHealth then restoreBot(bot) end
   -- Hits during a windup select the next target, not the strike already on the ground.
-  local p=if bot.strike then bot.strike.target else bot.trainingTarget
+  local strike=bot.strike
+  local p=if strike then strike.target else bot.trainingTarget
   local s=p and sessions[p];local c,r,h
   if p then c,r,h=parts(p) end
-  local valid=s and not s.flight and r and s.micReady and not Config.InArena(r.Position) and (r.Position-bot.start).Magnitude<=TrainingRules.Radius
-   and now>=s.protectedUntil and now>=(s.knockedUntil or 0) and audible(bot.model,bot.root.Position,r.Position,c)
-  if not valid then
+  local valid=s and not s.flight and r and not Config.InArena(r.Position) and (r.Position-bot.start).Magnitude<=TrainingRules.Radius
+   and now>=s.protectedUntil and now>=(s.knockedUntil or 0)
+  if not valid or (strike and strike.character~=c)
+   or (not strike and (not s.micReady or not audible(bot.model,bot.root.Position,r.Position,c))) then
    clearTrainingStrike(bot)
    if bot.trainingTarget==p then bot.trainingTarget=nil end
    continue
   end
-  if bot.strike then
-   if now>=bot.strike.at then
-    local strike=clearTrainingStrike(bot)
-    if TrainingRules.Hits(strike.position,r.Position,now<s.protectedUntil,now<s.dodgingUntil) then
+  if strike then
+   if now>=strike.at then
+    clearTrainingStrike(bot)
+    -- An announced strike resolves against the same character; cover matters at impact.
+    if TrainingRules.Hits(strike.position,r.Position,now<s.protectedUntil,now<s.dodgingUntil)
+     and audible(bot.model,bot.root.Position,r.Position,c) then
      s.nextHeal=now+Config.HealQuietSeconds
      if h.Health<=bot.training.damage then eject(p,h) else h.Health-=bot.training.damage;state(p) end
     end
    else
-    local remaining=math.clamp((bot.strike.at-now)/TrainingRules.Windup,0,1)
-    bot.strike.warning.Transparency=.24+.41*remaining
+    local remaining=math.clamp((strike.at-now)/TrainingRules.Windup,0,1)
+    strike.warning.Transparency=.24+.41*remaining
    end
   elseif now>=(bot.nextStrike or 0) then
    bot.nextStrike=now+TrainingRules.AttackInterval

@@ -32,7 +32,9 @@ local function parts(who)
  if who==other then return otherCharacter,otherRoot,otherHealth end
  return playerCharacter,root,health
 end
-local function audible()return true end
+local clearSight=true
+local losChecks=0
+local function audible()losChecks+=1;return clearSight end
 local Config={HealQuietSeconds=4,InArena=function()return false end}
 local partsCreated={}
 local Instance={new=function()
@@ -129,6 +131,49 @@ root.Position=Vector3.new(pos.X,bot.trainingSurfaceY+6.1,pos.Z)
 stepTraining(38+TrainingRules.Windup)
 assert(health.Health==before and mark.destroyed,"Ground strike hit above its vertical band")
 root.Position=pos
+bot.trainingTarget=player
+stepTraining(42)
+mark=assert(bot.strike.warning)
+before=health.Health
+local atStart=losChecks
+session.micReady=false
+stepTraining(42.35)
+assert(bot.strike and not mark.destroyed and losChecks==atStart,"Microphone readiness interrupted an already marked strike")
+stepTraining(42+TrainingRules.Windup)
+assert(health.Health==before-8 and mark.destroyed,"Marked strike did not resolve after microphone readiness changed")
+stepTraining(46)
+assert(not bot.strike,"Unavailable microphone started a new training strike")
+session.micReady=true
+
+bot.trainingTarget=player
+stepTraining(46)
+mark=assert(bot.strike.warning)
+before=health.Health
+atStart=losChecks
+clearSight=false
+stepTraining(46.4)
+assert(bot.strike and not mark.destroyed and losChecks==atStart,"Brief cover cleared a marked strike")
+clearSight=true
+stepTraining(46+TrainingRules.Windup)
+assert(health.Health==before-8 and mark.destroyed,"Clear target escaped after brief cover")
+stepTraining(50)
+mark=assert(bot.strike.warning)
+before=health.Health
+clearSight=false
+stepTraining(50+TrainingRules.Windup)
+assert(health.Health==before and mark.destroyed and not bot.strike,"Cover at impact did not block the strike")
+stepTraining(54)
+assert(not bot.strike,"Cover allowed a new training strike")
+clearSight=true
+
+bot.trainingTarget=player
+stepTraining(54)
+mark=assert(bot.strike.warning)
+local previousCharacter=playerCharacter
+playerCharacter=character()
+stepTraining(54+TrainingRules.Windup)
+assert(mark.destroyed and not bot.strike and health.Health==before,"Old strike damaged the replacement character")
+assert(previousCharacter:GetAttribute("TrainingStrikeAt")==nil and playerCharacter:GetAttribute("TrainingStrikeAt")==nil,"Character replacement retained a training cue")
 print("PASS training strike visibility, cancellation, targeting, deadlines and cue fencing")
 '''
 
@@ -178,3 +223,6 @@ if args.negative_controls:
     run(source.replace(cue_guard,'true'),'Older strike cleared a newer cue')
     run(source.replace('center.Y+.07','center.Y+1.4',1),'Strike warning floats above painted pad')
     run(source.replace('TrainingRules.Hits(strike.position,r.Position,','TrainingRules.Hits(strike.position,Vector3.new(r.Position.X,strike.position.Y+3,r.Position.Z),',1),'Ground strike hit above its vertical band')
+    run(source.replace('or (strike and strike.character~=c)','or (strike and (strike.character~=c or not s.micReady))',1),'Microphone readiness interrupted an already marked strike')
+    run(source.replace('     and audible(bot.model,bot.root.Position,r.Position,c) then','     then',1),'Cover at impact did not block the strike')
+    run(source.replace('or (strike and strike.character~=c)','',1),'Old strike damaged the replacement character')

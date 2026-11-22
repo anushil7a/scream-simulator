@@ -78,7 +78,7 @@ else:
  capture=s[s.index('local function canCapture('):s.index('local function attackOrigin(')]
  training=s[s.index('local function stepTraining('):s.index('local function stepSprint(')]
  assert 's.micReady and VoiceEligibility.Allowed' in capture, 'Beam readiness/eligibility gate changed'
- assert 'local valid=s and not s.flight and r and s.micReady' in training, 'Trainer readiness gate changed'
+ assert 'not strike and (not s.micReady or not audible(' in training, 'New training strike lost its microphone readiness gate'
  print('PASS two source contracts: beam eligibility/readiness and trainer gate retained')
  if a.negative_controls:
   mutations=[

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Let marked training strikes resolve through brief interruptions
+
+- In matched native City runs, changing the temporary player's microphone readiness or inserting brief cover erased the old Rookie warning before impact. With the fix, both warnings stayed through windup and dealt 8 damage to the marked character once exposed at impact. Continuous solid cover kept the warning visible through windup and blocked all damage at impact. All three warnings and their HUD attributes cleared at resolution.
+- New strikes still require microphone readiness and line of sight. Marked strikes retain the original character and still cancel when the target leaves the permitted training state. The server checks the existing strike volume, protection, dodge and cover at impact. Brief cover no longer triggers a line-of-sight check every windup tick.
+- Independent review cleared the start and impact checks, including replacement-character protection. Focused warning tests passed eight negative controls, including the old early mic cancellation, omitted impact cover, and omitted character fence. The movement fixture now verifies microphone readiness on the strike-start branch. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, compilation and review builds. Native Studio used the actual City and server strike step with staged microphone readiness, cover, avatar and timing. The input controller was disabled. The disposable session closed. Live voice, normal player movement through cover and multiplayer remain unverified in this check.
+
 ## Ground training strike warnings and match their hit volume
 
 - At Rookie's painted pad, matched Studio measured the old warning underside 1.09 studs above the paint. A staged avatar at 7.5 studs above the pad still took 8 damage. The new warning is 0.02 studs above the higher of the pad's solid and painted surfaces. The same four-stud horizontal radius and zero-to-six-stud root-height band now drive the server hit and **MOVE OR DODGE** cue.
