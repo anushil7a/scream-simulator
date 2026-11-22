@@ -29,7 +29,7 @@ local Hits=require('../src/StarterPlayer/StarterPlayerScripts/HitFeedback')
 local Controls=require('../src/StarterPlayer/StarterPlayerScripts/SustainedControls')
 local Beams=require('../src/StarterPlayer/StarterPlayerScripts/SustainedBeams')
 local hitFeedback=Hits.new();local sustainedBeams=Beams.new(BeamVisuals.Create,BeamVisuals.Update,BeamVisuals.Destroy)
-local attrs={};local root={Position=Vector3.zero};local h={Health=100,PlatformStand=false}
+local attrs={};local idleRoot=vec(12,0,0);local root={Position=idleRoot};local h={Health=100,PlatformStand=false}
 local character={FindFirstChild=function()return root end,FindFirstChildOfClass=function()return h end}
 local p={UserId=7,Character=character,GetAttribute=function(_,key)return attrs[key]end}
 workspace.GetServerTimeNow=function()return clock end
@@ -298,6 +298,20 @@ aimCamera(6,14)
 check(#incomingVisual.parts==4,'Camera guard did not re-enter near the rendered beam')
 platformReducedMotion=true;aimCamera(7.5,14);platformReducedMotion=false;aimCamera(7.5,14)
 check(#incomingVisual.parts>5,'Camera guard retained stale state after reduced motion')
+root.Position=vec(0,0,14);aimCamera(12,14)
+check(#incomingVisual.parts==4,'Off-axis beam crossing the local avatar kept full detail')
+check(#rig.parts>5,'Avatar guard reduced the owner beam')
+root.Position=vec(5,0,14);aimCamera(12,14)
+check(#incomingVisual.parts==4,'Off-axis avatar guard flickered at the edge')
+root.Position=vec(6,0,14);aimCamera(12,14)
+check(#incomingVisual.parts>5,'Off-axis beam stayed quiet away from the local avatar')
+root.Position=vec(5,0,14);aimCamera(12,14)
+check(#incomingVisual.parts>5,'Off-axis avatar guard used its exit margin for entry')
+root.Position=vec(0,0,46);aimCamera(12,14)
+check(#incomingVisual.parts>5,'Off-axis avatar guard ignored the finite endpoint')
+root.Position=vec(0,0,14);alive=false;aimCamera(12,14)
+check(#incomingVisual.parts>5,'Off-axis avatar guard followed a defeated character')
+alive=true;root.Position=idleRoot
 
 rig,id=make()
 workspace.CurrentCamera.CFrame.Position=vec(0,10,0)
@@ -406,7 +420,9 @@ def main():
             (render, 'and p:GetAttribute("SustainedActive")==true', '', 'Current-state frame gate retained contact: inactive'),
             (render, 'and p:GetAttribute("SustainedSequence")==attack.sequence', '', 'Current-state frame gate retained contact: mismatch'),
             (render, 'entry.visual.contactSequence==attack.sequence', 'true', 'Current-state frame gate retained contact: contact owner mismatch'),
-            (render, ',incoming)', ',false)', 'Incoming close beam kept full detail or lost base yellow'),
+            (render, ',incoming,avatar)', ',false,avatar)', 'Incoming close beam kept full detail or lost base yellow'),
+            (render, ',incoming,avatar)', ',incoming,nil)', 'Off-axis beam crossing the local avatar kept full detail'),
+            (render, 'local avatar=alive and root', 'local avatar=root', 'Off-axis avatar guard followed a defeated character'),
             (render, 'local incoming=type(id)=="number" and id~=p.UserId', 'local incoming=type(id)=="number"', 'Current accepted hit missing contact'),
             (render, 'local incoming=type(id)=="number" and id~=p.UserId', 'local incoming=id~=p.UserId or id=="test:"..p.UserId', 'Camera guard reduced the test beam'),
             (render, 'platformReducedMotion,crowded', 'false,crowded', 'OS quiet contact or beam missed quiet mode'),
@@ -427,8 +443,9 @@ def main():
         for old, new, expected in [
             ('if not near and distance<=Style.DrawDistance then', 'if false then', 'Converging far beam missed the crowd count'),
             ('math.clamp(offset:Dot(rig.direction),0,rig.length)\n    near=', 'math.max(0,offset:Dot(rig.direction))\n    near=', 'Ray extension beyond the endpoint counted as nearby'),
-            ('math.clamp(offset:Dot(rig.direction),0,rig.length)\n  local separation=', 'math.max(0,offset:Dot(rig.direction))\n  local separation=', 'Camera guard reduced a beam beyond its endpoint'),
-            ('rig.width+(rig.cameraQuiet and .75 or 0)', 'rig.width', 'Incoming beam flickered at the camera guard edge'),
+            ('math.clamp(offset:Dot(rig.direction),0,rig.length)\n local separation=', 'math.max(0,offset:Dot(rig.direction))\n local separation=', 'Camera guard reduced a beam beyond its endpoint'),
+            ('local margin=rig.proximityQuiet and .75 or 0', 'local margin=0', 'Incoming beam flickered at the camera guard edge'),
+            ('nearRenderedSegment(rig,avatar,rig.width*.5+1+margin)', 'nearRenderedSegment(rig,avatar,rig.width*.5+1)', 'Off-axis avatar guard flickered at the edge'),
             ('if not near and distance<=Style.DrawDistance then', 'if not near then', 'Culled beam counted as nearby'),
         ]:
             assert visual.count(old) == 1, old

@@ -2234,11 +2234,12 @@ connectClient(Run.RenderStepped,function(dt)
     local attack=sustainedControl.attack
     local contactAllowed=windowFocused and not beamBlocked() and attack and attack.acknowledged and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==attack.sequence
     local viewer=camera.CFrame.Position
+    local avatar=alive and root and root.Position or nil
     local crowded=BeamVisuals.IsCrowded(sustainedBeams.entries,viewer)
     local ownTestKey="test:"..p.UserId
     for id,entry in pairs(sustainedBeams.entries) do
      local incoming=type(id)=="number" and id~=p.UserId
-     BeamVisuals.Animate(entry.visual,now,viewer,data.settings.reducedShake,(contactAllowed and entry.visual.contactSequence==attack.sequence)==true,platformReducedMotion,crowded and id~=p.UserId and id~=ownTestKey,incoming)
+     BeamVisuals.Animate(entry.visual,now,viewer,data.settings.reducedShake,(contactAllowed and entry.visual.contactSequence==attack.sequence)==true,platformReducedMotion,crowded and id~=p.UserId and id~=ownTestKey,incoming,avatar)
     end
    end
   end

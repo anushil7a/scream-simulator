@@ -450,19 +450,23 @@ function Visuals.IsCrowded(entries,viewer)
  end
  return false
 end
-function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,suppressSecondary,guardCamera)
+local function nearRenderedSegment(rig,point,radius)
+ local offset=point-rig.origin
+ local along=math.clamp(offset:Dot(rig.direction),0,rig.length)
+ local separation=offset-rig.direction*along
+ return separation:Dot(separation)<=radius*radius
+end
+function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,suppressSecondary,guardCamera,avatar)
  if not rig.origin then return end
  local distance=(viewer-rig.origin).Magnitude
- -- Keep nearby incoming beams readable from the defender's camera.
+ -- Protect the camera and the local silhouette when an incoming beam crosses either.
  if guardCamera and distance<=Style.DrawDistance and not (reduced or rig.reduced or contactReduced) then
-  local offset=viewer-rig.origin
-  local along=math.clamp(offset:Dot(rig.direction),0,rig.length)
-  local separation=offset-rig.direction*along
-  local limit=rig.width+(rig.cameraQuiet and .75 or 0)
-  rig.cameraQuiet=separation:Dot(separation)<=limit*limit
-  reduced=rig.cameraQuiet
+  local margin=rig.proximityQuiet and .75 or 0
+  rig.proximityQuiet=nearRenderedSegment(rig,viewer,rig.width+margin)
+   or (avatar~=nil and nearRenderedSegment(rig,avatar,rig.width*.5+1+margin))
+  reduced=rig.proximityQuiet
  else
-  rig.cameraQuiet=nil
+  rig.proximityQuiet=nil
  end
  rig.used=0
  rig.contact.used=0

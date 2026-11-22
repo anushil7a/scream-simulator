@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep defenders visible when beams cross their avatar
+
+- The baseline off-axis Studio capture showed two level-100 yellow beam rigs with 77 visual Parts each. The camera was outside the existing quiet zone even as the glow and decorative strokes crossed the defender's shoulders and torso. Health, the dodge control and the incoming-hit status were still readable.
+- Incoming beams now also use the existing quiet profile when the living local avatar is close to their finite rendered segment. The avatar radius uses half the visual width plus one stud and shares the existing .75-stud exit margin. The quiet profile retains the beam spine and its color. Original owner/test detail and the combat resolver retain their existing behavior.
+- In matched native Studio views, the camera was about 12 studs from either beam and both paths passed within .60 studs of the avatar. The candidate drew four quiet paths per beam instead of 77 detailed paths, exposing more of the defender's shoulders and torso while keeping the shafts visible. Shifting both beams away restored full detail. The replay used scripted positions, beams and HUD cues, so human combat readability, live transport and physical-device performance remain open.
+- Independent review cleared the rendering change. The focused suite passed 389 assertions and 44 negative controls, including a baseline repro for the off-axis case, a finite endpoint check and an alive-character check. The full run passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds.
+
 ## Verify the first Rookie win below full power
 
 - Before recording, the Studio tester used the actual Guide, walked from spawn with keyboard input and turned Beams on. The fixture on `86da0c4` recorded a fresh level-one profile with zero XP and coins at the pad. It supplied normalized power 0.55 and tracked the live Rookie's position for aim. The server observed two cast starts and 56 pulse requests through the Action remote.
