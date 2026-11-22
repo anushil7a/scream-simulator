@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## The training guide shows Rookie's recovery and the earned counter
+
+- In matched iPhone 7 landscape Studio runs (666 x 316 safe pixels), the player selected the actual Guide button, walked the Academy route using Humanoid movement, and defeated an 80-HP Rookie through two full-power synthetic casts sent through the normal Action remote. The first cast left 21 HP. The server awarded 48 XP, 5 coins and one Fighter challenge point after the second cast.
+- Previously the guide told the player to hit Rookie while he was recovering and hid the 1/3 counter on the shared quest tracker. The guide now reads Fighter recovering and Fighters 1/3 during the six-second recovery. It resumes the sparring instruction when Rookie returns at 80 HP and retains the counter. The text fit in each sampled state. A fighter missing from local streaming gets a neutral Sparring pad label.
+- From the same temporary wallet, the Gear menu showed Guide to Mar and Need 95 coins. Clicking it switched to Mar's route. Independent review, 110 navigation layout checks, 16 negative controls, and the full run passed (29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds). Studio returned to the default viewport and the disposable session closed. The test used synthetic readiness and power. It did not complete Mar's tasks, purchase gear, or exercise human voice, a physical phone or live persistence.
+
 ## Rookie's head gives the same aim guidance as the torso
 
 - With the native desktop aim ray centered on Rookie's visible head, the old solid camera ray had no hit and the aim HUD was blank. From the same staged level-one firing position, the actual beam resolver admitted Rookie. The head was noncollidable and excluded from spatial queries.

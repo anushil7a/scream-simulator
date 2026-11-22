@@ -968,6 +968,18 @@ function academy.refreshMarGuide(playerRoot,residents)
  end
  academy.refreshGuide()
 end
+function academy.refreshTrainingGuide(residents)
+ local selection=academy.guideSelection
+ academy.trainingGuideFighter=nil
+ if not selection or selection.kind~="place" or selection.id~="training" then return end
+ local tier=academy.TrainingRules.Recommended(data.level).id
+ for _,resident in ipairs(residents) do
+  if resident.Parent and resident:GetAttribute("TrainingTier")==tier then
+   academy.trainingGuideFighter=resident
+   return
+  end
+ end
+end
 academy.selectGuide=function(kind,id)
  if not academy.resolveGuide(kind,id) then return end
  if kind~="mar" then academy.marPosition=nil
@@ -1658,6 +1670,7 @@ connectClient(Run.RenderStepped,function(dt)
   local residents=game:GetService("CollectionService"):GetTagged("CityResident")
   talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,residents)
   academy.refreshMarGuide(root,residents)
+  academy.refreshTrainingGuide(residents)
  end
  local confirmed=hitFeedback:Read(os.clock())
  hitText.Visible=gameplayVisible and confirmed~=nil
@@ -1784,12 +1797,20 @@ connectClient(Run.RenderStepped,function(dt)
    academy.guidePanel.Position=UDim2.fromOffset(x,y);academy.guidePanel.Size=UDim2.fromOffset(w,h)
    local status,distance,bearing=academy.guide:GetStatus()
    local selection=academy.guideSelection
+   local heading=compact and "" or academy.guideTarget.label.."\n"
    if status=="Arrived" and selection.kind=="place" and selection.id=="training" then
-    status,distance="Hit the fighter to spar",nil
+    local fighter=academy.trainingGuideFighter
+    local ready=fighter and fighter.Parent and fighter:GetAttribute("ResidentActive")
+    status=ready==false and "Fighter recovering" or ready==true and "Hit the fighter to spar" or "Sparring pad"
+    distance=nil
+    if guideUsesTracker then
+     heading=""
+     status..="\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3"
+    end
    end
    if compact and status=="Route unavailable" then status="No route" end
    local suffix=distance and (" · "..math.floor(distance).." studs"..(bearing and (" "..bearing) or "")) or ""
-   local text=(compact and "" or academy.guideTarget.label.."\n")..status..suffix
+   local text=heading..status..suffix
    if academy.guideText.Text~=text then academy.guideText.Text=text end
   end
  end
