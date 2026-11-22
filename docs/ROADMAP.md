@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Distinguish the Academy sparring tiers at a glance
+
+- A matched Studio lineup showed the same chest and forearm shapes on all three tiers despite different accent colors. Rookie retains the teal and ivory kit. Brawler gains a clay chest and padded forearms. Elite has a slate chest and two gold shoulder guards. The first posed review exposed a split-looking guard where it sank into its sleeve. The final fit uses shallow oval guards just above the fabric.
+- Native checks compared seven rig parts and HP per trainer against the baseline. In isolated local play the final guards and wraps stayed welded in the expected positions when the arm joints were staged at existing gait and gesture angles. Game scripts were disabled. Aim, collision flags, and matchup rules keep their existing behavior. No combat timing or touch-device result is inferred from the staged render.
+- Antigravity Argon contributed bounded costume ideation, and Critic reviewed the final dimensions and gameplay isolation. The final run passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation, review builds and all ten focused negative controls. Next compare the higher-tier looks during unassisted sparring and keep the real voice, device and multiplayer checks open.
+
 ## Restore the ocean backdrop from the City pier
 
 - Matched local Studio Edit renders from the timber pier showed the old water abruptly give way to sky behind the deck. Eight tiles extend the existing surface to the distant waterline. A persistent model holds all nine anchored surfaces with collision, touch, queries, and shadows disabled.

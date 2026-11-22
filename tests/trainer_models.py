@@ -94,8 +94,10 @@ local function compare(a,b,trainer)
   end
  end
  if not trainer then check(#extra==0,'Trainer kit leaked into resident');return end
- check(#extra==32,'Expected sixteen cosmetics and sixteen welds')
+ local tier=b.bot.training.id
+ check(#extra==(tier=='elite' and 36 or 32),'Wrong trainer costume inventory')
  local expected={AcademyChestLeft='Torso',AcademyChestRight='Torso',AcademyCenter='Torso',AcademyBack='Torso',AcademyBelt='Torso',AcademyWristLeft='Left Arm',AcademyWristRight='Right Arm',AcademyCollar='Torso',AcademySeamLeft='Torso',AcademySeamRight='Torso',AcademyKneeLeft='Left Leg',AcademyKneeRight='Right Leg',AcademyBootLeft='Left Leg',AcademyBootRight='Right Leg',AcademyRank='Torso',AcademyBuckle='Torso'}
+ if tier=='elite' then expected.AcademyGuardLeft='Left Arm';expected.AcademyGuardRight='Right Arm' end
  local seen={}
  for _,n in ipairs(extra)do
   if n.ClassName=='Part'then
@@ -103,12 +105,22 @@ local function compare(a,b,trainer)
    check(n.CanCollide==false and n.CanQuery==false and n.CanTouch==false and n.Massless==true and n.Anchored==false,'Cosmetic gameplay flags changed')
    check(n.Material=='Material.SmoothPlastic','Cosmetic material changed')
    local accents={rookie={R=111,G=196,B=180},brawler={R=219,G=120,B=94},elite={R=240,G=192,B=89}}
-   local accented=n.Name=='AcademyRank' or n.Name=='AcademyCenter' or n.Name=='AcademyBelt' or n.Name=='AcademyWristLeft' or n.Name=='AcademyWristRight'
+   local wrist=n.Name=='AcademyWristLeft' or n.Name=='AcademyWristRight'
+   local guard=n.Name=='AcademyGuardLeft' or n.Name=='AcademyGuardRight'
+   local chest=n.Name=='AcademyChestLeft' or n.Name=='AcademyChestRight'
+   local accented=n.Name=='AcademyRank' or n.Name=='AcademyCenter' or n.Name=='AcademyBelt' or wrist or guard
    local dark=n.Name=='AcademySeamLeft' or n.Name=='AcademySeamRight' or n.Name=='AcademyBuckle'
-   local expectedColor=dark and {R=31,G=48,B=67} or accented and accents[b.bot.training.id] or {R=238,G=230,B=207}
+   local chestColor=tier=='elite' and {R=72,G=97,B=118} or tier=='brawler' and {R=160,G=79,B=63}
+   local expectedColor=dark and {R=31,G=48,B=67} or accented and accents[tier] or chest and chestColor or {R=238,G=230,B=207}
    check(serial(n.Color)==serial(expectedColor),'Tier palette incorrect')
    check(n.CollisionGroup=='Residents' and next(n.attributes)==nil,'Cosmetic authority changed')
-   check(n.Size.X>0 and n.Size.X<=2.04 and n.Size.Y>0 and n.Size.Y<=1.3 and n.Size.Z>0 and n.Size.Z<=1.06,'Cosmetic unbounded dimensions')
+   check(n.Size.X>0 and n.Size.X<=2.04 and n.Size.Y>0 and n.Size.Y<=1.3 and n.Size.Z>0 and n.Size.Z<=1.19,'Cosmetic unbounded dimensions')
+   if wrist then
+    local expectedHeight=tier=='brawler' and .98 or .58
+    check(n.Size.Y==expectedHeight,'Trainer forearm silhouette lost')
+   elseif guard then
+    check(n.Shape=='PartType.Ball' and n.Size.X==1.30 and n.Size.Y==.26,'Elite shoulder silhouette lost')
+   end
    local welds=0;for _,w in ipairs(extra)do if w.Parent==n then check(w.ClassName=='WeldConstraint' and w.Part1==n and w.Part0.Name==expected[n.Name] and w.Part0.Parent==n.Parent,'Cosmetic attachment changed');welds+=1 end end
    check(welds==1,'Missing cosmetic weld')
   else check(n.ClassName=='WeldConstraint','Unexpected cosmetic object')end
@@ -167,8 +179,10 @@ if __name__=='__main__':
    (chest,chest.replace('accessory(', 'local unsafe=accessory(',1)+';unsafe.CanQuery=true','Cosmetic gameplay flags changed'),
    (chest,chest.replace('Enum.Material.SmoothPlastic','Enum.Material.Fabric'),'Cosmetic material changed'),
    ('Color3.fromRGB(111,196,180)','Color3.fromRGB(240,192,89)','Tier palette incorrect'),
+   ('Vector3.new(1.23,.98,1.19)','Vector3.new(1.06,.58,1.06)','Trainer forearm silhouette lost'),
+   ('local guard=Vector3.new(1.30,.26,1.17)','local guard=Vector3.new(1,.26,1.17)','Elite shoulder silhouette lost'),
    ('local outfit = avatarRng:NextInteger(1, 5)','local outfit = avatarRng:NextInteger(1, 4)','RNG draw sequence changed'),
   ]
   for old,new,message in cases:
    assert old in current,old;out=run(current.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stdout,out.stderr)
-  print('PASS 8 trainer negative controls')
+  print('PASS 10 trainer negative controls')
