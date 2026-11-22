@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Keep the microphone status consistent near Rookie
+
+- In the full City baseline, the Beams button changed from **[E] to turn on** to **Connecting mic** every time the Talk prompt appeared in five sampled cycles. The reverse transition happened when Talk left the screen. No Roblox window focus event coincided with the changes. Talk temporarily reserves the meter's lane. The wide button offered the turn-on shortcut even though the client had no AudioDeviceInput and the server still reported the mic as unavailable.
+- Rookie Talk itself reached the actual server and returned the sparring tip. The observed notice stayed visible for 4.017 seconds. Training fighters send a notice through State and leave the conversation panel closed.
+- The Beams button now shows the actual local input problem in either layout. It distinguishes inactive input, an invalid signal, and waiting for an input after the local access check. Initial access and server acknowledgement still use the existing readiness paths. Roblox mute and eligibility instructions keep priority. No change to input admission, attack timing, or ordinary voice communication.
+
+- Matched native desktop Studio kept **Waiting for mic input** across sampled Talk show and hide states without an input device or server readiness. The button text fit at 260 × 44, and pressing T with Rookie in range still displayed the sparring tip. Both runs used disposable copies of the uninstrumented City. The candidate binary SHA-256 was `fde7d80671b1965db16245b6d88658ed6d11b45f22cc87c10be655ed9d084b2d`. Real microphone availability and physical-phone layout remain open.
+- Independent review passed. The VoiceReactor suite passed 261 assertions and 12 negative controls. Direct readiness and toggle checks passed. Full verification passed 29 pure or synthetic suites, 168 mocked-service suites, 99 Luau compilations and Rojo builds.
+
 ## Run the full City locally with temporary profiles
 
 - The uninstrumented City candidate used to request the Studio profile store at module startup. In a fake store that returned a handle, joining a detached Studio place with zero universe and place IDs then wrote an acquisition lease. The baseline regression failed on that attempted persistence.

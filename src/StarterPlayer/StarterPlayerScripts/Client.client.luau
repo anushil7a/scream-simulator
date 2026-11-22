@@ -2028,7 +2028,7 @@ connectClient(Run.RenderStepped,function(dt)
    or rolling and (compactVoice and "Rolling" or "Rolling • attack cancelled")
    or UIS:GetFocusedTextBox()~=nil and (compactVoice and "Typing · paused" or "Typing • attack paused")
    or compactVoice and devPanel.Visible and "Close Test Tools"
-   or (data.micReady~=true or compactVoice and not mic.ready) and (compactVoice and "Connecting mic" or "Connecting microphone…")
+   or academy.VoiceReactor.InputStatus(mic,data.micReady,compactVoice)
    or not sustainedControl.armed and (compactVoice and (touch and "Tap to turn on" or "[E] to turn on") or touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
    or voiceCooldown>0 and string.format(sustainedControl.gate.needsQuiet and "Cooldown %.1fs · go quiet" or "Cooldown %.1fs",voiceCooldown)
    or sustainedControl.attack and (voiceActive and string.format(compactVoice and "Firing · %.1fs" or "Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
@@ -2203,7 +2203,7 @@ connectClient(Run.RenderStepped,function(dt)
  if sustainedControl then
   -- Keep the next voice action on the toggle when the meter has no lane.
   local status
-  if compactVoice or inputMuted or sustainedControl.armed and (voiceActive or voiceCooldown>0) then
+  if compactVoice or inputMuted or not mic.ready or data.micReady~=true or sustainedControl.armed and (voiceActive or voiceCooldown>0) then
    status=captureHint
    if inputMuted then
     status="Unmute in Roblox"

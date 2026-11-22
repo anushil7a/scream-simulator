@@ -101,6 +101,16 @@ check(short({voiceStatus='unavailable'},0,false,false,false,0,false)=='BEAMS: OF
 check(short({voiceStatus='checking'},0,false,false,false,0,false)=='BEAMS: OFF\nChecking voice','Checking short cue missing')
 check(short({voiceStatus='checking',voiceEligible=true})=='BEAMS: ON\nAim and speak','Eligible player was treated as still checking')
 check(short({localReady=false},0,false,false,false,0,false)=='BEAMS: OFF\nConnecting mic','Local mic unavailable reported ready')
+check(short({localReady=false,inactiveInput=true},0,false,false,false,0,false)=='BEAMS: OFF\nMic inactive','Inactive input was labeled as connecting')
+check(short({localReady=false,invalidSignal=true},0,false,false,false,0,false)=='BEAMS: OFF\nNo mic signal','Invalid signal was labeled as connecting')
+check(short({localReady=false,localEligible=true},0,false,false,false,0,false)=='BEAMS: OFF\nWaiting for mic input','Missing input was labeled as connecting')
+check(short({localReady=false,localEligible=true,detachedInput=true,invalidSignal=true},0,false,false,false,0,false)=='BEAMS: OFF\nWaiting for mic input','Detached input retained an invalid-signal label')
+check(short({localReady=false,mutedInput=true,inactiveInput=true},0,false,false,false,0,false)=='BEAMS: OFF\nUnmute in Roblox','Inactive input masked mute guidance')
+local _,_,wideInactive=cue(0,false,false,false,0,false,{localReady=false,inactiveInput=true})
+check(wideInactive=='BEAMS: OFF\nMic inactive','Wide button hid the concrete input problem')
+local _,_,wideMissing=cue(0,false,false,false,0,false,{localReady=false,localEligible=true})
+local _,_,talkMissing=cue(0,false,false,false,0,false,{localReady=false,localEligible=true,nearNpc=true})
+check(wideMissing==talkMissing and wideMissing=='BEAMS: OFF\nWaiting for mic input','Nearby TALK changed the microphone readiness cue')
 check(short({localReady=false,mutedInput=true},0,false,false,false,0,false)=='BEAMS: OFF\nUnmute in Roblox','Muted short cue omitted the recovery action')
 check(short({localReady=false,mutedInput=true,detachedInput=true},0,false,false,false,0,false)=='BEAMS: OFF\nConnecting mic','Detached input retained stale mute guidance')
 check(short({voiceStatus='denied',localReady=false,mutedInput=true},0,false,false,false,0,false)=='BEAMS: OFF\nCheck voice settings','Mute cue masked denied access')
@@ -136,7 +146,9 @@ status_code=r'''
  local viewport={X=state.width or 1280,Y=state.height or 381}
  local talkTarget=state.nearNpc and {} or nil
  local alive,windowFocused,protectionRemaining,knocked,rolling,touch=true,true,state.protection or 0,false,false,state.touch==true
- local mic={ready=state.localReady~=false,input=state.mutedInput and {Muted=true,Parent=not state.detachedInput} or nil}
+ local mic={ready=state.localReady~=false,eligible=state.localEligible==true,signalUnavailable=state.invalidSignal==true,
+  input=(state.mutedInput or state.inactiveInput or state.invalidSignal) and
+   {Muted=state.mutedInput,Active=not state.inactiveInput,Parent=not state.detachedInput} or nil}
  local devPanel={Visible=state.tools==true}
  local UIS={GetFocusedTextBox=function()end}
  local humanoid={PlatformStand=false}
@@ -178,10 +190,14 @@ if '--negative-controls' in sys.argv:
   ('status=captureHint','status=nil','Short cooldown hides the quiet cue'),
   ('viewport.Y>=315','viewport.Y>=314','Short cue disappears one pixel early'),
   ('viewport.Y>=315','viewport.Y>=316','Short cue leaks into full meter layout'),
-  ('or compactVoice and not mic.ready','', 'Local mic unavailable reported ready'),
+  ('if not mic.ready or serverReady~=true then','if serverReady~=true then','Local mic unavailable reported ready'),
+  ('if input.Active==false then return "Mic inactive" end','', 'Inactive input was labeled as connecting'),
+  ('if mic.signalUnavailable then return "No mic signal" end','', 'Invalid signal was labeled as connecting'),
+  ('elseif mic.eligible then return "Waiting for mic input" end','end','Missing input was labeled as connecting'),
+  ('or not mic.ready or data.micReady~=true or sustainedControl.armed','or sustainedControl.armed','Wide button hid the concrete input problem'),
   ('and not (not touch and viewport.X>=820 and talkTarget~=nil)','', 'Desktop TALK hides the quiet cue'),
   ('if eligibilityHint then', 'if false then','Denied short cue suggests arming'),
-  ('if inputMuted then','if false then','Muted short cue omitted the recovery action'),
+  ('if inputMuted then','if false then','Inactive input masked mute guidance'),
   (' or sustainedControl.armed and (voiceActive or voiceCooldown>0)','', 'Wide beam button hides firing phase'),
  ]:
   assert payload.count(old)==1,old
