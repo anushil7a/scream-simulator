@@ -1604,7 +1604,16 @@ local function refreshQuestObject(object)
  local action=object:GetAttribute("QuestAction")
  if action~="Litter" and action~="Garden" then return end
  local collected=data.collected and data.collected[object.Name]==true
- if action=="Litter" then object.LocalTransparencyModifier=collected and 1 or 0 end
+ if action=="Litter" then
+  local transparency=collected and 1 or 0
+  object.LocalTransparencyModifier=transparency
+  local bottle=object:FindFirstChild("BottleVisual")
+  if bottle then
+   for _,piece in bottle:GetChildren() do
+    if piece:IsA("BasePart") then piece.LocalTransparencyModifier=transparency end
+   end
+  end
+ end
  local prompt=object:FindFirstChildOfClass("ProximityPrompt")
  if prompt then prompt.Enabled=not collected end
 end
@@ -1621,6 +1630,16 @@ connectClient(game:GetService("ProximityPromptService").PromptShown,function(pro
  local world=workspace:FindFirstChild("ScreamSimulatorWorld")
  local objects=world and world:FindFirstChild("QuestObjects")
  if objects and object.Parent==objects then refreshQuestObject(object) end
+end)
+-- The bottle's art can stream in after its prompt has already been disabled.
+connectClient(workspace.DescendantAdded,function(piece)
+ local model=piece.Parent
+ if not data.collected or not model or model.Name~="BottleVisual" or not piece:IsA("BasePart") then return end
+ local marker=model.Parent
+ if not marker or not data.collected[marker.Name] then return end
+ local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+ local objects=world and world:FindFirstChild("QuestObjects")
+ if objects and marker.Parent==objects and marker:GetAttribute("QuestAction")=="Litter" then piece.LocalTransparencyModifier=1 end
 end)
 local function saveStatus()
  if data.testSession then return "TEST SESSION · progress is temporary" end

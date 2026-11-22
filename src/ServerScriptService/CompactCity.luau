@@ -29,6 +29,22 @@ local function plantGarden(soil,bedIndex)
  end
  garden.Parent=soil
 end
+local function dressBottle(marker,index)
+ local model=Instance.new("Model");model.Name="BottleVisual";model.ModelStreamingMode=Enum.ModelStreamingMode.Atomic
+ -- This row of pickups sits on the flat Map10 beach at Y = 0.
+ local frame=CFrame.new(marker.Position.X,.31,marker.Position.Z)*CFrame.Angles(0,math.rad(27+index*48),0)
+ local function section(name,offset,length,diameter,color)
+  local p=part(model,name,V(length,diameter,diameter),marker.Position,color,false)
+  p.Shape=Enum.PartType.Cylinder;p.CFrame=frame*CFrame.new(offset,0,0);p.CastShadow=false
+ end
+ local blue=Color3.fromRGB(34,111,142)
+ section("Body",0,.96,.66,blue)
+ section("Label",-.19,.36,.68,Color3.fromRGB(244,229,174))
+ section("Neck",.55,.38,.30,blue)
+ section("Cap",.79,.17,.39,Color3.fromRGB(34,55,73))
+ marker.Transparency=1;marker.CastShadow=false
+ model.Parent=marker
+end
 local function prompt(p,action,text,object)
  p:SetAttribute("QuestAction",action)
  local pr=Instance.new("ProximityPrompt");pr.ActionText=text;pr.ObjectText=object or p.Name
@@ -69,10 +85,12 @@ function City.Build(parent,withMap10Finish)
   end
  end
  local quests=Instance.new("Folder");quests.Name="QuestObjects";quests.Parent=parent
- for _,spec in ipairs(Layout.QuestMarkers) do
+ for index,spec in ipairs(Layout.QuestMarkers) do
   local p=part(quests,spec.id,V(1,1.6,1),spec.position,Color3.fromRGB(226,181,83),false)
   if withMap10Finish and spec.action=="Garden" then p.Transparency=1;p.CastShadow=false end
-  prompt(p,spec.action,spec.text,spec.action=="Garden" and "Community garden" or nil)
+  local bottle=withMap10Finish and spec.action=="Litter"
+  if bottle then dressBottle(p,index) end
+  prompt(p,spec.action,spec.text,spec.action=="Garden" and "Community garden" or bottle and "Beach cleanup" or nil)
  end
  for _,stop in ipairs(Layout.DeliveryStops) do
   local p=part(quests,stop.id,V(1,1.6,1),stop.position,Color3.fromRGB(226,181,83),false)

@@ -358,6 +358,36 @@ for _,node in ipairs(nodes) do
 end
 assert(bedCount==3 and flowers==90 and markers==3,"Community garden missing foliage or prompt")
 print("PASS three existing quest beds dressed with 90 nonphysical pieces and three unchanged prompts")
+local bottles=0
+for _,node in ipairs(nodes) do
+ local folder=node.Parent
+ if node.QuestAction=="Litter" and folder and folder.Parent==finishedParent then
+  local original,visual,prompt
+  for _,child in ipairs(nodes) do
+   if child.Name==node.Name and child.Parent and child.Parent.Parent==baseParent then original=child end
+   if child.Parent==node then
+    if child.ClassName=="Model" then visual=child elseif child.ClassName=="ProximityPrompt" then prompt=child end
+   end
+  end
+  assert(original and original.Position==node.Position and not original.Transparency,"Bottle activation moved or base preview changed")
+  assert(visual and visual.Name=="BottleVisual" and visual.ModelStreamingMode==Enum.ModelStreamingMode.Atomic
+   and node.Transparency==1,"Bottle still has the placeholder block")
+  local sections={}
+  for _,piece in ipairs(nodes) do
+   if piece.Parent==visual then
+    assert(piece.Anchored and not piece.CanCollide and not piece.CanQuery and not piece.CanTouch
+     and piece.Shape==Enum.PartType.Cylinder,"Bottle art interferes with gameplay")
+    sections[piece.Name]=true
+   end
+  end
+  assert(sections.Body and sections.Label and sections.Neck and sections.Cap,"Bottle silhouette is incomplete")
+  assert(prompt and prompt.HoldDuration==.25 and prompt.MaxActivationDistance==10
+   and prompt.ActionText=="Collect bottle" and not prompt.RequiresLineOfSight,"Bottle prompt behavior changed")
+  bottles+=1
+ end
+end
+assert(bottles==6,"Missing beach-cleanup bottles")
+print("PASS six bottle props use existing nonphysical markers and collection prompts")
 local finishedDrivers=0
 for index=firstMapNode,#nodes do
  local node=nodes[index]
@@ -376,11 +406,12 @@ try:
     subprocess.run(['luau', str(path)], cwd=R, check=True)
     if '--negative-controls' in sys.argv:
         for before, after, expected_error in (
-            ('model.ModelStreamingMode=Enum.ModelStreamingMode.Atomic',
-             'model.ModelStreamingMode=Enum.ModelStreamingMode.Default', 'Pavilion must be Atomic'),
+            ('model.Name=pavilion;model.ModelStreamingMode=Enum.ModelStreamingMode.Atomic',
+             'model.Name=pavilion;model.ModelStreamingMode=Enum.ModelStreamingMode.Default', 'Pavilion must be Atomic'),
             ('p.Parent=(pavilion and pavilions["Academy"..pavilion]) or district',
              'p.Parent=district', 'Pavilion streamed separately: NorthPavilion'),
             (' or id:match("^Speaker[0-2]%d%d$")', '', 'Finished Map10 allocated replaced scenery Speaker046'),
+            ('if bottle then dressBottle(p,index) end', 'if false then dressBottle(p,index) end', 'Bottle still has the placeholder block'),
             ('layer("Leaves",.29', 'layer("Leaves",1.5', 'Garden foliage floats above soil'),
             ('size,V(x+(dx or 0),top+y,z+(dz or 0)),color,false)', 'size,V(x+(dx or 0),top+y,z+(dz or 0)),color,true)', 'Garden decor added physical or query surfaces'),
             ('local petalOffsets={{-.67,0}', 'local petalOffsets={{0,0}', 'Garden petal collapsed into center'),

@@ -84,21 +84,24 @@ finally:
 client=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text(encoding='utf-8')
 refresh=client[client.index('local function refreshQuestObject('):client.index('local function saveStatus()')]
 client_setup=r'''
-local shown
+local shown,added
 local game={GetService=function(_,name)
  assert(name=="ProximityPromptService");return {PromptShown={}}
 end}
-local function connectClient(_,callback)shown=callback end
+local function connectClient(signal,callback)
+ if signal=="DescendantAdded" then added=callback else shown=callback end
+end
 local data={}
 local folder={children={}};function folder:GetChildren()return self.children end
 local world={FindFirstChild=function(_,name)if name=="QuestObjects" then return folder end end}
-local workspace={FindFirstChild=function(_,name)if name=="ScreamSimulatorWorld" then return world end end}
+local workspace={DescendantAdded="DescendantAdded",FindFirstChild=function(_,name)if name=="ScreamSimulatorWorld" then return world end end}
 local function marker(name,action,parent)
  local part={Name=name,Parent=parent,LocalTransparencyModifier=.2}
  local prompt={Enabled=true,Parent=part}
  function part:IsA(class)return class=="BasePart" end
  function part:GetAttribute(attr)if attr=="QuestAction" then return action end end
  function part:FindFirstChildOfClass()return prompt end
+ function part:FindFirstChild(name)if name=='BottleVisual' then return self.visual end end
  return part,prompt
 end
 '''
@@ -107,6 +110,14 @@ local checks=0;local function check(v,msg)assert(v,msg);checks+=1 end
 local bed,bedPrompt=marker("Bed1","Garden",folder)
 local otherBed,otherPrompt=marker("Bed2","Garden",folder)
 local bottle,bottlePrompt=marker("Bottle1","Litter",folder)
+local function bottleVisual(part)
+ local pieces={}
+ for i=1,4 do pieces[i]={LocalTransparencyModifier=.2,IsA=function(_,class)return class=="BasePart" end} end
+ part.visual={Name="BottleVisual",Parent=part,GetChildren=function()return pieces end}
+ for _,piece in ipairs(pieces) do piece.Parent=part.visual end
+ return pieces
+end
+local bottlePieces=bottleVisual(bottle)
 local race,racePrompt=marker("RaceStart","RaceStart",folder)
 folder.children={bed,otherBed,bottle,race}
 refreshQuestObjects()
@@ -116,11 +127,36 @@ refreshQuestObjects()
 check(not bedPrompt.Enabled and otherPrompt.Enabled,"Only the watered bed should retire its prompt")
 check(bed.LocalTransparencyModifier==.2 and otherBed.LocalTransparencyModifier==.2,"Flowerbeds lost their world appearance")
 check(not bottlePrompt.Enabled and bottle.LocalTransparencyModifier==1,"Collected bottle no longer hides")
+for _,piece in ipairs(bottlePieces) do check(piece.LocalTransparencyModifier==1,"Collected bottle art remained visible") end
 check(racePrompt.Enabled and race.LocalTransparencyModifier==.2,"Unrelated quest prompt mutated")
 data.collected={}
 refreshQuestObjects()
 check(bedPrompt.Enabled and otherPrompt.Enabled,"Restart left a bed disabled")
 check(bottlePrompt.Enabled and bottle.LocalTransparencyModifier==0,"Restart left a bottle hidden")
+for _,piece in ipairs(bottlePieces) do check(piece.LocalTransparencyModifier==0,"Restart left bottle art hidden") end
+data.collected={Bottle1=true}
+local newBottle,newPrompt=marker("Bottle1","Litter",folder)
+local streamedParts=bottleVisual(newBottle)
+shown(newPrompt)
+check(not newPrompt.Enabled and streamedParts[4].LocalTransparencyModifier==1,"Late-loaded bottle art appeared after collection")
+local laterBottle,laterPrompt=marker("Bottle1","Litter",folder)
+shown(laterPrompt)
+check(not laterPrompt.Enabled,"Late marker prompt stayed enabled")
+local laterPieces=bottleVisual(laterBottle)
+check(added~=nil,"Late art listener missing")
+for _,piece in ipairs(laterPieces) do
+ added(piece)
+ check(piece.LocalTransparencyModifier==1,"Bottle art arriving after its prompt was visible")
+end
+local unrelatedBottle=marker("Bottle1","Litter",{})
+local unrelatedPiece=bottleVisual(unrelatedBottle)[1]
+added(unrelatedPiece)
+check(unrelatedPiece.LocalTransparencyModifier==.2,"Bottle art outside QuestObjects was changed")
+local nearbyBottle=marker("Bottle2","Litter",folder)
+local nearbyPiece=bottleVisual(nearbyBottle)[1]
+added(nearbyPiece)
+check(nearbyPiece.LocalTransparencyModifier==.2,"Uncollected bottle art was changed")
+
 data.collected={Bed1=true}
 local streamed,streamedPrompt=marker("Bed1","Garden",folder)
 shown(streamedPrompt)
@@ -151,7 +187,9 @@ def run_client(source, failure=None):
 run_client(refresh)
 for old,new,failure in [
     ('action~="Litter" and action~="Garden"','action~="Litter"','Only the watered bed should retire its prompt'),
-    ('if objects and object.Parent==objects then refreshQuestObject(object) end','if false then refreshQuestObject(object) end','Late-loaded watered bed showed a prompt'),
+    ('if piece:IsA("BasePart") then piece.LocalTransparencyModifier=transparency end','if false then piece.LocalTransparencyModifier=transparency end','Collected bottle art remained visible'),
+    ('if objects and object.Parent==objects then refreshQuestObject(object) end','if false then refreshQuestObject(object) end','Late-loaded bottle art appeared after collection'),
+    ('then piece.LocalTransparencyModifier=1 end','then piece.LocalTransparencyModifier=0 end','Bottle art arriving after its prompt was visible'),
 ]:
     assert refresh.count(old)==1,old
     run_client(refresh.replace(old,new),failure)

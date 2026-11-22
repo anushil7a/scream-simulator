@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Make the Beach Cleanup pickups read as bottles
+
+- On the original build all six pickups were opaque gold blocks with their bottoms 1.1 studs above the flat shore. The new bottles have blue bodies, pale labels, narrow necks and dark caps. Twenty-four small cylinders sit on the existing sand in six streaming groups with no collision, touches or ray-query surfaces. Original marker IDs, pickup positions, reach and duration are unchanged.
+- In disposable desktop Studio a fresh temporary profile earned 80 coins from Mar's Garden quest. After a staged Beach entry and camera check, normal movement and six distinct native holds advanced Beach Cleanup from 0/6 to 6/6. Each collected bottle and its prompt disappeared on the local client, while the server kept them unchanged. Claim added 50 coins, and the normal 100-coin Megaphone purchase left 30 and equipped the model using the fixture's local fallback art.
+- Independent review caught that bottle art could appear briefly if it arrived after the already-disabled prompt. A client arrival check now scopes hiding to collected bottle art in the active quest folder. A focused Studio probe with deliberately late local art hid all four replacement pieces by the next frame without another State packet. That probe simulates delivery ordering; it does not establish real-network streaming or a second player's view.
+
+- Final verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. All three disposable Studio sessions closed. Next, verify the claim notice against a fast successful redemption during the opening route.
+
 ## Make the Academy garden quest beds recognizable
 
 - The matched baseline showed three flat pink rectangles and separate floating gold prompt blocks. The first attempt at new planter bodies intersected the original solid beds by three studs, so the final art uses those existing beds. Each of the three slabs now reads as soil with five low, four-petal flowers. The 90 added parts are noncolliding, nonqueryable, nontouching and grouped by bed. Original colliders, quest prompt IDs, positions, duration and activation radius are preserved.

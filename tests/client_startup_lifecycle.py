@@ -63,6 +63,7 @@ function methods:GetPropertyChangedSignal(n)local k='property:'..n;if not rawget
 methods.GetAttributeChangedSignal=methods.GetPropertyChangedSignal
 function methods:FireServer(verb,...)table.insert(commands,verb)end
 local game=object('game');local workspace=object('Workspace',game)
+workspace.DescendantAdded=signal('Workspace.DescendantAdded')
 workspace.CurrentCamera=object('Camera',workspace);workspace.CurrentCamera.ViewportSize={X=640,Y=360}
 function workspace:GetServerTimeNow()return 100 end
 local services={};function game:GetService(n)assert(services[n],'Missing service '..n);return services[n] end
