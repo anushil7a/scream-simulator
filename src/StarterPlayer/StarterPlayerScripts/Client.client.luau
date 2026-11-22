@@ -294,6 +294,11 @@ local shop=button(top,"ShopToggle","MENU [B]",UDim2.fromOffset(125,36),UDim2.fro
 local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests",true) end)
 questsToggle.Visible=false
 academy.surface(shop);academy.surface(questsToggle)
+academy.passesToggle=button(top,"PassesToggle","PASSES",UDim2.fromOffset(64,46),UDim2.fromOffset(80,0),function()
+ if academy.passesToggle.Visible and not modal.Visible and not GuiService.MenuIsOpen then toggleTab("Shop",true) end
+end,Color3.fromRGB(50,54,96))
+academy.passesToggle.TextColor3=gold;academy.passesToggle.Visible=false
+academy.surface(academy.passesToggle,gold)
 local function questLauncherText()
  local count=0
  for _,quest in ipairs(Config.Quests)do
@@ -1077,17 +1082,46 @@ function academy.compactObjectiveText()
  end
  return heading.."\nClear guide"
 end
+function academy.refreshCompactObjective(limited)
+ local objective=academy.compactObjective
+ objective.Size=UDim2.fromOffset(limited and 52 or 104,46)
+ objective.TextSize=limited and 11 or 12
+ local text=academy.compactObjectiveText()
+ if limited then
+  local headline,detail=string.match(text,"([^\n]+)\n(.*)")
+  local shortTitle=({["VIEW QUEST"]="QUEST",["FOLLOW GUIDE"]="GUIDE",["FIGHTER RESTING"]="RESTING",["HIT TO SPAR"]="SPAR",["SPARRING PAD"]="SPAR"})[headline]
+  local progress,seconds=detail:match("^(%d+/%d+) · (%d+s)$")
+  if headline=="VIEW QUEST" and seconds then text=progress.."\n"..seconds
+  elseif not data.activeQuest and academy.guideSelection then
+   local routeStatus=({["FOLLOW GUIDE"]="En route",["NO ROUTE"]="No route",["ARRIVED"]="Arrived"})[headline]
+   text="CLEAR\n"..(routeStatus or shortTitle or "Guide")
+  else
+   local footer=detail:match("^[%d/]+") or ""
+   text=(shortTitle or "GUIDE").."\n"..footer
+  end
+ end
+ objective.Text=text
+end
 function academy.layoutObjectiveNav(viewport,touch,stacked)
  local tight=viewport.X<380
  local compact=stacked and Config.CompactCity==true and not Config.ResonanceLayout
  academy.shortObjective=compact
- top.Position=UDim2.fromOffset(14,compact and 0 or 12)
- shop.Size=UDim2.fromOffset(compact and 56 or tight and 90 or 125,touch and 44 or 36)
- shop.Text=(tight or touch) and "MENU" or "MENU [B]"
- local narrowShortcut=compact and viewport.X<492
- questsToggle.Size=UDim2.fromOffset(narrowShortcut and 44 or compact and 56 or tight and 78 or 95,touch and 44 or 36)
- questsToggle.Position=UDim2.fromOffset(compact and 172 or tight and 98 or 134,0)
- questsToggle.TextSize=narrowShortcut and 11 or compact and 12 or 14
+ local narrowNav=stacked or tight
+ local menuWidth=compact and 45 or narrowNav and 50 or 74
+ local passesWidth=compact and 52 or narrowNav and 60 or 64
+ top.Position=UDim2.fromOffset(14,stacked and 0 or (touch or viewport.X<820) and 2 or 12)
+ shop.Size=UDim2.fromOffset(menuWidth,touch and 46 or 36)
+ shop.Text=(narrowNav or touch) and "MENU" or "MENU [B]"
+ shop.TextSize=narrowNav and 12 or 14
+ academy.passesToggle.Size=UDim2.fromOffset(passesWidth,46)
+ academy.passesToggle.Position=UDim2.fromOffset(menuWidth+6,0)
+ academy.passesToggle.TextSize=narrowNav and 12 or 14
+ local nextX=menuWidth+passesWidth+12
+ local shortcutWidth=compact and 45 or narrowNav and 54 or 78
+ questsToggle.Size=UDim2.fromOffset(shortcutWidth,touch and 46 or 36)
+ questsToggle.Position=UDim2.fromOffset(nextX+(compact and 58 or 0),0)
+ questsToggle.TextSize=narrowNav and 10 or 13
+ academy.compactObjective.Position=UDim2.fromOffset(nextX,0)
 end
 academy.guideMenu=function()
  local c=card(110)
@@ -1152,7 +1186,7 @@ local function menuKey()
  elseif selected=="Style" then
   local starterAction,starterQuest=academy.starterCoinAction(data)
   fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=starterAction,starterQuest=starterQuest}
- elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
+ elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil}
  else fields={} end
@@ -1181,7 +1215,7 @@ render=function()
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Shop" then
-  title.Text="THE AMPLIFIER";subtitle.Text="SIGNATURE COLORS / POWER YOUR PROGRESS"
+  title.Text="PASSES & BOOSTS";subtitle.Text="Permanent perks and 30-minute boosts"
   shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow,compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
  elseif selected=="Screams" then
   title.Text="BEAM COLLECTION"
@@ -1464,7 +1498,7 @@ render=function()
 end
 academy.menuTabs={"Style","Screams","Quests","Shop","Map","Settings"}
 for i,name in ipairs(academy.menuTabs) do
- local tabText=name=="Style" and "GEAR" or name=="Screams" and "BEAMS" or name=="Quests" and Config.ResonanceLayout and "RULES" or name:upper()
+ local tabText=name=="Style" and "GEAR" or name=="Screams" and "BEAMS" or name=="Quests" and Config.ResonanceLayout and "RULES" or name=="Shop" and "PASSES" or name:upper()
  tabs[name]=button(modal,name,tabText,UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function()
   if clientDestroyed or not modal.Visible then return end
   if selected~=name then toggleTab(name) end
@@ -2004,7 +2038,6 @@ connectClient(Run.RenderStepped,function(dt)
  local showQuest=not data.inWarZone or combatQuest or (data.questTime or 0)>0
  academy.compactObjective.Visible=academy.shortObjective and gameplayVisible and showQuest
   and not devPanel.Visible and (tracked.Text~="" or academy.guideTarget~=nil)
- if academy.compactObjective.Visible then academy.compactObjective.Text=academy.compactObjectiveText() end
  local guideUsesTracker=false
  do
   local x,y,w,h,compact=academy.guideLayout(viewport,touch,tracked.Position.Y.Offset)
@@ -2150,6 +2183,8 @@ connectClient(Run.RenderStepped,function(dt)
  -- Keep navigation in MENU. A pending claim or inaccessible notice gets a shortcut.
  questsToggle.Text=academy.shortObjective and questShortcut~="NOTICE" and questShortcut~="QUESTS" and "REWARD" or questShortcut
  questsToggle.Visible=shop.Visible and not modal.Visible and questShortcut~="QUESTS"
+ academy.passesToggle.Visible=shop.Visible and gameplayVisible and not devPanel.Visible
+ if academy.compactObjective.Visible then academy.refreshCompactObjective(questsToggle.Visible) end
  talkButton.Visible=talkTarget~=nil and gameplayVisible
  if academy.stackedTouchActions then
   -- The top lane is the only shared space above the stock Jump button on the shortest canvas.

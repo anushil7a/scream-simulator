@@ -6,9 +6,10 @@ path='src/ServerScriptService/Entitlements.luau'
 s=subprocess.check_output(['git','show','670948d:'+path],cwd=R,text=True,encoding='utf-8') if args.baseline else (R/path).read_text(encoding='utf-8')
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
-local function fixture(spectrumId,movementId)
+local function fixture(spectrumId,movementId,encoreId,afterimageId)
  local handlers={};local function event(name)return {Connect=function(_,fn)handlers[name]=fn end}end
- local f={calls={},studio=false};local config={MovementPassId=movementId,InArena=function(pos)return pos=='arena'end,Get=function()return {id=spectrumId}end}
+ local f={calls={},studio=false};local ids={Spectrum=spectrumId,Encore=encoreId,Afterimage=afterimageId}
+ local config={MovementPassId=movementId,InArena=function(pos)return pos=='arena'end,Get=function(key)return {id=ids[key] or 0}end}
  local services={Players={PlayerRemoving=event('remove')},RunService={IsStudio=function()return f.studio end}}
  services.MarketplaceService={PromptGamePassPurchaseFinished=event('purchase'),UserOwnsGamePassAsync=function(_,id,pass)
   table.insert(f.calls,{id,pass});local result=coroutine.yield();if result=='error'then error('mock ownership unavailable')end;return result
@@ -19,7 +20,11 @@ local function fixture(spectrumId,movementId)
 '''
 checks=r'''
  end)();f.E=E;f.remove=handlers.remove;f.purchase=handlers.purchase
- function f.start(player)local co=coroutine.create(E.Refresh);local ok,err=coroutine.resume(co,player);assert(ok,err);return co end
+ function f.start(player)
+  player.SetAttribute=player.SetAttribute or function(self,key,value) self[key]=value end
+  player.GetAttribute=player.GetAttribute or function(self,key) return self[key] end
+  local co=coroutine.create(E.Refresh);local ok,err=coroutine.resume(co,player);assert(ok,err);return co
+ end
  function f.resume(co,value)local ok,err=coroutine.resume(co,value);assert(ok,err)end
  return f
 end
@@ -82,6 +87,7 @@ end
 for _,pass in ipairs({11,22})do
  for _,response in ipairs({false,'error'})do
   local f=fixture(11,22);local p={UserId=7,Parent={}}
+  p.SetAttribute=function(self,key,value) self[key]=value end
   f.purchase(p,pass,true)
   check(f.spawned~=nil and not f.E.HasSpectrum(p) and not f.E.HasMovement(p),'Purchase event granted before ownership response')
   f.resume(f.spawned,response)
@@ -104,6 +110,30 @@ check(not f.E.HasSpectrum(p) and not f.E.HasMovement(p),'Disabled IDs granted ac
 f.studio=true;check(f.E.SetStudioMovement(p,true) and f.E.HasMovement(p),'Studio override broken')
 check(not f.E.CanUseMovement(p,'arena') and f.E.CanUseMovement(p,'safe'),'Arena rule changed')
 f.studio=false;check(not f.E.HasMovement(p),'Studio override leaked live')
+check(p.EncorePass==false and p.AfterimagePass==false,'Disabled cosmetic attributes must be false')
+f.purchase(p,0,true);check(f.spawned==nil,'Disabled pass event queried ownership')
+for _,pass in ipairs({33,44})do
+ f=fixture(0,0,33,44);p={UserId=7,Parent={}}
+ local join=f.start(p)
+ check(f.calls[1][2]==33,'Disabled movement blocked Encore ownership')
+ f.purchase(p,pass,true)
+ check(not f.E.HasEncore(p) and not f.E.HasAfterimage(p),'Cosmetic purchase callback granted ownership')
+ f.resume(f.spawned,true)
+ check(p.EncorePass==true and f.calls[#f.calls][2]==44,'Confirmed Encore missing or Afterimage unchecked')
+ f.resume(f.spawned,true)
+ check(p.AfterimagePass==true and f.E.HasEncore(p) and f.E.HasAfterimage(p),'Confirmed cosmetics missing')
+ local calls=#f.calls;f.resume(join,false)
+ check(#f.calls==calls and p.EncorePass==true,'Stale Encore refresh changed cosmetics')
+ local old=f.start(p);f.resume(old,true)
+ co=f.start(p);f.resume(co,'error');f.resume(co,'error')
+ check(f.E.HasEncore(p) and f.E.HasAfterimage(p),'Cosmetic API errors cleared last-good values')
+ f.resume(old,false)
+ check(p.AfterimagePass==true,'Stale Afterimage refresh changed cosmetics')
+ co=f.start(p);f.resume(co,false);f.resume(co,false)
+ check(p.EncorePass==false and p.AfterimagePass==false,'Cosmetic revocation failed to clear attributes')
+ co=f.start(p);f.remove(p);f.resume(co,true)
+ check(p.EncorePass==false and not f.E.HasEncore(p) and not f.E.HasAfterimage(p),'Departure let a pending cosmetic confirm')
+end
 print('PASS',n,'actual entitlement coroutine assertions; no live API, purchase or native replication')
 '''
 def run(source,error=None):
@@ -118,9 +148,10 @@ else:
  run(s)
  if args.negative_controls:
   guard='if not current() then return false end'
-  assert s.count(guard)==2
+  assert s.count(guard)==3
   run(s.replace(guard,'-- omitted first fence',1),'Stale first response overwrote spectrum')
-  at=s.rindex(guard);run(s[:at]+s[at:].replace(guard,'-- omitted second fence',1),'Stale second response overwrote movement')
+  at=s.index(guard,s.index(guard)+len(guard));run(s[:at]+s[at:].replace(guard,'-- omitted second fence',1),'Stale second response overwrote movement')
+  at=s.rindex(guard);run(s[:at]+s[at:].replace(guard,'-- omitted cosmetic fence',1),'Stale Encore refresh changed cosmetics')
   old='refreshIdentity[player]=nil;';assert s.count(old)==1;run(s.replace(old,''),'Departed cache repopulated')
   old='if not player.Parent or departed[player] then return false end';assert s.count(old)==1;run(s.replace(old,'if departed[player] then return false end'),'Detached player began ownership work')
   old='if success then owned[player]=result==true end';assert s.count(old)==1;run(s.replace(old,'if success and result then owned[player]=true end'),'Later legitimate revocation ignored')

@@ -84,7 +84,10 @@ function Commerce.Prompt(player,key)
    changed(player,"This purchase is currently unavailable.",nil,true);return
   end
  end
- if item.key=="Spectrum" and Entitlements.HasSpectrum(player) or item.key=="Movement" and Entitlements.HasMovement(player) then return end
+ if item.key=="Spectrum" and Entitlements.HasSpectrum(player)
+  or item.key=="Movement" and Entitlements.HasMovement(player)
+  or item.key=="Encore" and Entitlements.HasEncore(player)
+  or item.key=="Afterimage" and Entitlements.HasAfterimage(player) then return end
  local ok=pcall(function()
   if item.kind=="pass" then Marketplace:PromptGamePassPurchase(player,id)
   else Marketplace:PromptProductPurchase(player,id) end

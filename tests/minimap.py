@@ -96,7 +96,7 @@ local function toggleTab(tab)table.insert(opens,tab)end
 local function button(parent,name,text,size,pos,fn)allocations+=1;activated=fn;return {Parent=parent,Name=name,Text=text,Size=size,Position=pos}end
 local function frame(parent,name,size,pos)allocations+=1;return {Parent=parent,Name=name,Size=size,Position=pos}end
 '''
- client_setup+='\nlocal academy={};local clientDestroyed=false\n'+client[client.index('function academy.canShowTestLauncher()'):client.index('\n-- Flight controls exist only',client.index('function academy.canShowTestLauncher()'))]+'\n'
+ client_setup+='\nlocal academy={passesToggle={},compactObjective={}};local clientDestroyed=false\n'+client[client.index('function academy.canShowTestLauncher()'):client.index('\n-- Flight controls exist only',client.index('function academy.canShowTestLauncher()'))]+'\n'
  action_start=client.index('function academy.layoutActions(')
  client_setup+=client[action_start:client.index('\nlocal talkTarget',action_start)]+'\n'
  nav_start=client.index('function academy.layoutObjectiveNav(')
@@ -164,7 +164,7 @@ for width=320,1280 do
    local tracked={Size=__TRACKER__};local hud={Size=__HUD__};local talkButton={}
    shop.Position=UDim2.fromOffset(0,0)
 __LAYOUT__
-   for _,child in ipairs({shop,questsToggle})do child.Position.X.Offset+=top.Position.X.Offset;child.Position.Y.Offset+=top.Position.Y.Offset end
+   for _,child in ipairs({shop,academy.passesToggle,questsToggle})do child.Position.X.Offset+=top.Position.X.Offset;child.Position.Y.Offset+=top.Position.Y.Offset end
 __POSITIONS__
    local m=rectangle(miniMapButton,viewport)
    check(miniLayout.available==(width>=280 and height>=(touch and 315 or 168)),'Minimap availability boundary wrong')
@@ -179,7 +179,7 @@ __POSITIONS__
    if miniLayout.available then
    check(not overlaps(m,rectangle(tracked,viewport)),'Minimap overlaps quest tracker')
    check(not overlaps(m,rectangle(hud,viewport)),'Minimap overlaps actual HUD')
-   check(not overlaps(m,rectangle(shop,viewport)) and not overlaps(m,rectangle(questsToggle,viewport)),'Minimap overlaps interactive navigation')
+   check(not overlaps(m,rectangle(shop,viewport)) and not overlaps(m,rectangle(questsToggle,viewport)) and not overlaps(m,rectangle(academy.passesToggle,viewport)),'Minimap overlaps interactive navigation')
    if touch then check(not overlaps(m,rectangle(controls,viewport)),'Minimap overlaps actual touch controls '..width..'x'..height)end
    check(not overlaps(m,rectangle(talkButton,viewport)),'Minimap overlaps Talk button')
    for _,textHeight in ipairs({18,30,60,10000})do
@@ -187,7 +187,7 @@ __TOAST__
     if layout.available then
      check(not overlaps(m,notice),'Minimap overlaps visible notice viewport')
      if testAccess then check(not overlaps(rectangle(testButton,viewport),notice),'Tools overlap visible notice viewport')end
-     check(not overlaps(rectangle(shop,viewport),notice) and not overlaps(rectangle(questsToggle,viewport),notice),'Notice overlaps navigation')
+     check(not overlaps(rectangle(shop,viewport),notice) and not overlaps(rectangle(questsToggle,viewport),notice) and not overlaps(rectangle(academy.passesToggle,viewport),notice),'Notice overlaps navigation')
      if touch then check(not overlaps(rectangle(controls,viewport),notice),'Notice overlaps touch controls')end
      local talk=rectangle(talkButton,viewport)
      if layout.moveTalk then talk.x=layout.talkX;talk.y=layout.talkY
@@ -227,7 +227,7 @@ else:
   cases=[(code.replace('compact and {} or landmarks','{}'),'Modal landmark missing'),(code.replace('compact and {} or landmarks','landmarks'),'Compact landmark clutter'),(code.replace('if view.lastRoot==root and view.nextUpdate and now<view.nextUpdate', 'if false and view.lastRoot==root and view.nextUpdate and now<view.nextUpdate'),'Minimap throttle missing'),(code.replace('view.dot.Visible=false;view.nextUpdate=nil','view.dot.Visible=true;view.nextUpdate=nil'),'Hidden minimap marker retained'),(code.replace('viewport.X-278','viewport.X-200'),'Minimap overlaps left HUD'),(code.replace('miniMapAvailable and gameplayVisible and windowFocused','miniMapAvailable and gameplayVisible and windowFocused and not toast.Visible'),'MAP visibility gate failed'),(code.replace('width=math.min(width,math.max(119,viewport.X-328))',''),'Minimap overlaps quest tracker'),(code.replace('view.lastRoot==root and view.nextUpdate','view.nextUpdate'),'Replacement root throttled'),(code.replace('miniMapAvailable and gameplayVisible','gameplayVisible'),'MAP visibility gate failed'),(code.replace('touch and 315 or 168','touch and 314 or 167',1),'Minimap availability boundary wrong'),(code.replace('touch and 315 or 168','touch and 261 or 168'),'Minimap overlaps Talk button')]
   cases.append((code.replace('width-map.width-22','width-14'),'Resolved TALK overlaps MAP'))
   cases.extend([(code.replace(" for i,v in ipairs(compact and {} or landmarks)"," box(map,'North',.04,.025,.25,.075,cream)\n for i,v in ipairs(compact and {} or landmarks)"),'Retired north decoration retained'),(code.replace("if not compact then arrow=text","if true then arrow=text"),'Compact facing arrow retained')])
-  cases.extend([(code.replace('-testWidth-14,0,testTop','-testWidth-(viewport.X<432 and 18 or 14),0,testTop'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
+  cases.extend([(code.replace('-testWidth-(splitTalkLane and 10 or 14),0,testTop','-testWidth-(splitTalkLane and 10 or viewport.X<432 and 18 or 14),0,testTop'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
   cases.append((code.replace('math.clamp(viewport.Y-195-44,0,14)','14'),'Tools overlap short touch controls'))
   for changed,message in cases:
    assert changed!=code,'Mutation did not match: '+message

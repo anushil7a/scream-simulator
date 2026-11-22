@@ -8,6 +8,7 @@ local spectrum={}
 local owned={}
 local testOwned={}
 local refreshIdentity={}
+local cosmeticPasses={"Encore","Afterimage"}
 -- Removal may precede Parent becoming nil; queued refreshes must stay invalid.
 local departed=setmetatable({},{__mode="k"})
 function Entitlements.SetStudioMovement(player,enabled)
@@ -30,13 +31,25 @@ function Entitlements.Refresh(player)
   if success then spectrum[player]=result==true end
  else spectrum[player]=false end
  local id=Config.MovementPassId
- if type(id)~="number" or id<=0 then owned[player]=false;return false end
- local success,result=pcall(Marketplace.UserOwnsGamePassAsync,Marketplace,player.UserId,id)
- if not current() then return false end
- if success then owned[player]=result==true end
+ if type(id)~="number" or id<=0 then owned[player]=false
+ else
+  local success,result=pcall(Marketplace.UserOwnsGamePassAsync,Marketplace,player.UserId,id)
+  if not current() then return false end
+  if success then owned[player]=result==true end
+ end
+ for _,key in ipairs(cosmeticPasses) do
+  local passId=Catalog.Get(key).id
+  if passId>0 then
+   local success,result=pcall(Marketplace.UserOwnsGamePassAsync,Marketplace,player.UserId,passId)
+   if not current() then return false end
+   if success then player:SetAttribute(key.."Pass",result==true) end
+  else player:SetAttribute(key.."Pass",false) end
+ end
  return owned[player]==true
 end
 function Entitlements.HasSpectrum(player) return spectrum[player]==true end
+function Entitlements.HasEncore(player) return not departed[player] and player:GetAttribute("EncorePass")==true end
+function Entitlements.HasAfterimage(player) return not departed[player] and player:GetAttribute("AfterimagePass")==true end
 function Entitlements.HasMovement(player)
  return owned[player]==true or Entitlements.HasStudioMovement(player)
 end
@@ -44,7 +57,7 @@ function Entitlements.CanUseMovement(player,position)
  return Entitlements.HasMovement(player) and not Config.InArena(position)
 end
 Marketplace.PromptGamePassPurchaseFinished:Connect(function(player,id,purchased)
- if (id==Config.MovementPassId or id==Catalog.Get("Spectrum").id) and purchased then task.spawn(Entitlements.Refresh,player) end
+ if id>0 and (id==Config.MovementPassId or id==Catalog.Get("Spectrum").id or id==Catalog.Get("Encore").id or id==Catalog.Get("Afterimage").id) and purchased then task.spawn(Entitlements.Refresh,player) end
 end)
 Players.PlayerRemoving:Connect(function(player) departed[player]=true;refreshIdentity[player]=nil;owned[player]=nil;testOwned[player]=nil;spectrum[player]=nil end)
 return Entitlements

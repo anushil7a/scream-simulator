@@ -147,7 +147,7 @@ local function state(p,message,conversation,messageUrgent,messageKey,changedOnly
  local step=QuestGuide.Step(quest,progress and progress.progress or 0,s.carrying,s.raceStart~=nil,soccer and soccer.detail,deliveryStop and deliveryStop.name)
  Equipment.SyncGear(p,Config.Gear.Selected(s.data))
  local packet={coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
- shop=Commerce.Status(p),spectrumPass=Entitlements.HasSpectrum(p),customColor=s.data.customColor,useCustomColor=s.data.useCustomColor,
+ shop=Commerce.Status(p),spectrumPass=Entitlements.HasSpectrum(p),encorePass=Entitlements.HasEncore(p),afterimagePass=Entitlements.HasAfterimage(p),customColor=s.data.customColor,useCustomColor=s.data.useCustomColor,
  combatChallenges=s.data.combatChallenges,training=TrainingRules.Recommended(s.data.level).name,milestone=s.milestone,
  gearOwned=s.data.gearOwned,gearEquipped=s.data.gearEquipped,gearMultiplier=Config.Gear.Multiplier(s.data),amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,megaphoneOwned=s.data.megaphoneOwned,megaphoneEquipped=s.data.megaphoneEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
  questNavigation=NavigationCatalog.QuestTargets(s,questGivers),availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,

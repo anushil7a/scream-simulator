@@ -4,8 +4,8 @@ import argparse, ast, subprocess, tempfile
 root=Path(__file__).resolve().parents[1]
 source=(root/'src/StarterPlayer/StarterPlayerScripts/ShopUI.luau').read_text(encoding='utf-8')
 start=source.index(' for index,key in ipairs({"XP","Coins"}) do')
-render=source[start:source.index(' local movement=',start)]
-footer=next(line for line in source.splitlines() if line.startswith(' ui.info("New boosts activate'))
+render=source[start:source.index(' local footer=',start)]
+footer=next(line for line in source.splitlines() if line.startswith(' local footer=ui.info("New boosts activate'))
 tick=source[source.index('function Shop.Tick()'):source.index('local function purchaseButton(')]
 setup='''
 local Catalog=require('../src/ReplicatedStorage/Shared/ShopCatalog')

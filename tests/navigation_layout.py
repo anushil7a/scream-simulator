@@ -139,6 +139,7 @@ compact_render=s[start:s.index('\n local guideUsesTracker=false',start)]
 code+=r'''
 do
 local top,shop,questsToggle={},{},{}
+academy.passesToggle={}
 local data={training='Rookie',quests={},combatChallenges={fighters=1}}
 local quest={id='sprint',goal=3}
 local Config={CompactCity=true,GetQuest=function(id)return id=='sprint' and quest or nil end}
@@ -158,25 +159,30 @@ academy.guide={GetStatus=function()return status end}
 ''' + compact_ui + r'''
 local function refresh(gameplayVisible)
 ''' + compact_render + r'''
+ if academy.compactObjective.Visible then academy.compactObjective.Text=academy.compactObjectiveText() end
 end
 academy.layoutObjectiveNav({X=492,Y=150},true,true)
 local b=academy.compactObjective
-check(top.Position.y==0 and shop.Size.x==56 and b.Size.x==104 and b.Size.y==44,'Compact navigation lacks a safe touch row')
-check(b.Position.x>=shop.Size.x+6 and questsToggle.Position.x>=b.Position.x+b.Size.x+6,'Compact objective overlaps a navigation sibling')
+check(top.Position.y==0 and shop.Size.x>=45 and b.Size.x==104 and b.Size.y==44,'Compact navigation lacks a safe touch row')
+local passes=academy.passesToggle
+check(passes.Size.x>44 and passes.Size.y>44 and passes.Position.x==shop.Size.x+6,'Passes touch target or Menu clearance was lost')
+check(b.Position.x>=passes.Position.x+passes.Size.x+6 and questsToggle.Position.x>=b.Position.x+52+6,'Compact objective overlaps a navigation sibling')
 check(top.Position.x+questsToggle.Position.x+questsToggle.Size.x<492-246,'Compact navigation overlaps the action stack')
 academy.layoutObjectiveNav({X=480,Y=150},true,true)
-check(questsToggle.Size.x>=44 and questsToggle.Size.y==44 and top.Position.x+questsToggle.Position.x+questsToggle.Size.x<480-246,
+check(questsToggle.Size.x>=44 and questsToggle.Size.y>=44 and top.Position.x+questsToggle.Position.x+questsToggle.Size.x<480-246,
  'Narrow navigation overlaps the action stack or loses its touch target')
 
 refresh(true);check(b.Visible and b.Text=='ROOKIE GUIDE\n1/3 fighters','Compact idle objective lost the first-spar goal')
 b.Activated();refresh(true)
 check(b.Text=='FOLLOW GUIDE\n1/3 · Clear','Compact training route missing progress or Clear')
+academy.refreshCompactObjective(true);check(b.Text=='CLEAR\nEn route','Tight row concealed the active route clear action')
 status='Arrived';academy.trainingGuideFighter={Parent={},GetAttribute=function()return true end};refresh(true)
 check(b.Text=='HIT TO SPAR\n1/3 · Clear','Compact arrival lost its instruction')
 academy.trainingGuideFighter.GetAttribute=function()return false end;refresh(true)
 check(b.Text=='FIGHTER RESTING\n1/3 · Clear','Compact arrival masked recovery')
 data.activeQuest='sprint';data.quests.sprint={progress=2};data.questTime=37
 refresh(true);check(b.Text=='VIEW QUEST\n2/3 · 37s','Compact guide covered the active quest timer')
+data.questTime=120;academy.refreshCompactObjective(true);check(b.Text=='2/3\n120s' and b.Size.x==52 and b.Size.y==46,'Tight row lost quest timing or its touch target')
 b.Activated();check(modal.Visible and academy.guideSelection~=nil,'Quest click cleared the selected guide')
 modal.Visible=false;data.activeQuest=nil
 b.Activated();refresh(true);check(b.Text=='ROOKIE GUIDE\n1/3 fighters','Clearing the compact guide did not restore the goal')
@@ -186,7 +192,7 @@ modal.Visible=false;devPanel.Visible=true;refresh(true);check(not b.Visible,'Com
 academy.layoutObjectiveNav({X=509,Y=220},true,true);refresh(true)
 check(b.Visible,'The compact objective disappeared inside the stacked band')
 academy.layoutObjectiveNav({X=566,Y=244},true,false);refresh(true)
-check(not b.Visible and top.Position.y==12 and shop.Size.x==125 and questsToggle.Size.x==95,'Standard navigation layout did not restore')
+check(not b.Visible and top.Position.y==2 and shop.Size.x==74 and questsToggle.Size.x==78,'Standard navigation layout did not restore')
 Config.ResonanceLayout={};academy.layoutObjectiveNav({X=509,Y=162},true,true);refresh(true)
 check(not b.Visible,'PvP place exposed the Academy objective')
 end
@@ -218,9 +224,9 @@ cases = [
     ('status=="Arrived" and selection.kind=="place" and selection.id=="training"', 'selection and selection.kind=="place" and selection.id=="training"', 'Training arrival cue appears before reaching the pad'),
     ('ready==false and "Fighter recovering"', 'false and "Fighter recovering"', 'Recovery or progress is missing on the shared tracker'),
     ('or "Sparring pad"', 'or "Fighter recovering"', 'An unobserved fighter was reported alive or recovering'),
-    ('compact and 172 or tight', 'compact and 134 or tight', 'Compact objective overlaps a navigation sibling'),
+    ('compact and 58 or 0', 'compact and 44 or 0', 'Compact objective overlaps a navigation sibling'),
     ('timer>0 and string.format(" · %ds",timer)', 'false and string.format(" · %ds",timer)', 'Compact guide covered the active quest timer'),
-    ('narrowShortcut and 44 or compact and 56','compact and 56','Narrow navigation overlaps the action stack'),
+    ('compact and 45 or narrowNav and 54 or 78','compact and 56 or narrowNav and 54 or 78','Narrow navigation overlaps the action stack'),
     ('if not academy.shortObjective or not academy.compactObjective.Visible', 'if not academy.shortObjective', 'A hidden compact objective accepted a click'),
 ]
 for old,new,reason in cases:

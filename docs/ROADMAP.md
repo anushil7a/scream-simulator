@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Give permanent passes a dedicated entrance and store
+
+- **Passes** opens the in-game store directly from the HUD. The store presents permanent offers before timed boosts, with ownership and sale states on each card. Spectrum and Freerunner retain their existing behavior. The two new offers grant an **Encore** title and an **Afterimage** dodge trail in safe areas. Both are cosmetic and disappear in combat space.
+- Suggested Creator Hub default prices are 79 Robux for Encore, 99 for Afterimage, 149 for Spectrum and 99 for Freerunner. The repeatable 30-minute boosts are 39 for double XP and 29 for double coins. These are launch suggestions. Configured cards display the player's runtime marketplace price. Unconfigured entries remain **COMING SOON**.
+- The server checks ownership before granting pass benefits. The existing timed boost receipt and offline expiry paths are unchanged. Matching approved pass and product IDs still need to be configured before sales can be enabled. No purchase or Creator Hub changes were made.
+- In disposable Studio the 64 × 46 desktop Passes target opened the store by mouse. All six entries rendered in order with disabled **COMING SOON** actions. Simulated owned state updated Encore and Afterimage only. A true server-accepted safe dodge produced the simulated owner's trail, and a dodge across the PvP boundary removed the trail and title. A fresh character recovered the title without retaining old attachments. Afterimage also respects Roblox reduced motion.
+- A Studio landscape touch preset with a 677 × 280 usable GUI activated the 64 × 46 Passes button through touch. A swipe revealed the entire Spectrum button in the 609 × 152 store scroller. All six offer labels fit. The 480-pixel rail and 120-second quest timer were checked in mocks. Desktop screenshots were retained locally, including the two new cards with simulated ownership.
+- Independent review cleared entitlement, checkout and compact-rail behavior. Full build verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds with matching inputs. The pass cosmetic mock passed 13 checks. Physical device and live Marketplace validation remain pending.
+
 ## Suppress exact duplicate periodic player snapshots
 
 - A native idle client on `0892c88` received 21 periodic `State` packets in 11.516 seconds. Nine exactly duplicated the preceding packet and 11 differed only in the shop clock. The periodic send now compares the whole payload with a copy of the last sent packet. Explicit syncs, action updates, conversations and notifications still send immediately. Changed payloads retain the full schema, including shop timing and quest countdowns. Collected markers keep their periodic refresh for streaming.

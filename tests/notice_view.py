@@ -135,13 +135,16 @@ v:Destroy()
 local NoticeLayout=Layout;local noticeView=make();local notifications=Queue.new();local viewport=Vector2.new(320,315);local touch=true;local data={devAccess=true}
 local modal={Visible=false};local title={Visible=true};local talkTarget
 local selected='Shop';local function closeMenu()modal.Visible=false end;local function render()end
-local devPanel={Visible=false};local closeConversation;local action={FireServer=function()end}
-local academy={damageReadout={},gearUpgrade=function()return nil end} -- The extracted tab handler shares the Client UI namespace.
+local devPanel={Visible=false};local closeConversation;local shopRefreshes=0
+local action={FireServer=function(_,verb)if verb=='ShopRefresh' then shopRefreshes+=1 end end}
+local GuiService={MenuIsOpen=false}
+local academy={surface=function()end,compactObjective={},damageReadout={},gearUpgrade=function()return nil end} -- The extracted tab handler shares the Client UI namespace.
 local renderedTab,renderedMenuKey
 TOGGLE
 local top={};local dark,gold={},{};local function button(_,_,text,_,_,fn)return {Visible=true,callback=fn,Text=text}end
 MENU_BUTTON
 QUEST_BUTTON
+PASS_BUTTON
 local Config={Quests={{id='a',goal=3},{id='b',goal=2}}};data.quests={}
 local gold,white={},{}
 QUEST_LABEL
@@ -149,7 +152,7 @@ local function receiveQuests(quests)
  data.quests=quests
 RECEIVER_COUNT
 end
-local gameplayVisible=true;local windowFocused=true;local GuiService={MenuIsOpen=false};local gui={AbsolutePosition=Vector2.zero};local dt=.05
+local gameplayVisible=true;local windowFocused=true;local gui={AbsolutePosition=Vector2.zero};local dt=.05
 local function rect(x,y,w,h)return {Visible=true,AbsolutePosition=Vector2.new(x,y),AbsoluteSize=Vector2.new(w,h),Position={}}end
 academy.guidePanel=rect(16,270,290,62);local meter=rect(490,612,300,96)
 local talkButton=rect(100,66,120,44);local hud=rect(14,118,240,88);local tracked=rect(16,214,290,50);local zone=rect(40,12,240,28);local saveNotice=rect(35,40,250,28)
@@ -180,6 +183,12 @@ renderedTab,renderedMenuKey="Style","previous position"
 shop.callback();check(modal.Visible and selected=="Style",'Menu toggle did not reopen the last tab')
 check(renderedTab=="Style" and renderedMenuKey=="previous position",'Ordinary menu reopen discarded scroll')
 shop.callback();check(not modal.Visible,'Menu toggle did not close its group')
+local beforePassRefresh=shopRefreshes
+renderedTab,renderedMenuKey="Style","previous position"
+academy.passesToggle.callback()
+check(modal.Visible and selected=='Shop' and shopRefreshes==beforePassRefresh+1 and renderedTab==nil,'Passes did not open and refresh the Shop immediately')
+academy.passesToggle.callback();check(modal.Visible and shopRefreshes==beforePassRefresh+1,'Covered Passes toggle reactivated')
+shop.callback()
 renderedTab,renderedMenuKey="Quests","below ready reward"
 selected="Quests";data.quests={a={progress=3}};frame()
 questsToggle.callback()
@@ -276,7 +285,7 @@ local count=measured;f:Update('Fractional recovery warning',lane,true,4,14,id)
 check(measured==count,'Rounded measurement causes repeated invalidation')
 f:Destroy();TextService.GetTextSize=oldMeasure
 print('PASS',n,'notice module/Client assertions; mock text metrics/GUI, no native access claim')
-'''.replace('MINI',mini).replace('SAMPLES','{'+','.join(json.dumps(t) for t in texts)+'}').replace('INTEGRATION',integration).replace('TOGGLE',client[client.index('local function toggleTab('):client.index('local shop=button(')]).replace('MENU_BUTTON',next(x for x in client.splitlines() if x.startswith('local shop=button('))).replace('QUEST_LABEL',client[client.index('local function questLauncherText()'):client.index('local hud=frame(gui,"CompactHUD"')]).replace('RECEIVER_COUNT',client[client.index(' local unclaimed=0'):client.index(' refreshQuestObjects();stats.Text=')]).replace('QUEST_BUTTON',next(x for x in client.splitlines() if x.startswith('local questsToggle=button(')))
+'''.replace('MINI',mini).replace('SAMPLES','{'+','.join(json.dumps(t) for t in texts)+'}').replace('INTEGRATION',integration).replace('TOGGLE',client[client.index('local function toggleTab('):client.index('local shop=button(')]).replace('MENU_BUTTON',next(x for x in client.splitlines() if x.startswith('local shop=button('))).replace('QUEST_LABEL',client[client.index('local function questLauncherText()'):client.index('local hud=frame(gui,"CompactHUD"')]).replace('RECEIVER_COUNT',client[client.index(' local unclaimed=0'):client.index(' refreshQuestObjects();stats.Text=')]).replace('PASS_BUTTON',client[client.index('academy.passesToggle=button('):client.index('local function questLauncherText()')]).replace('QUEST_BUTTON',next(x for x in client.splitlines() if x.startswith('local questsToggle=button(')))
 def run(layout,view,body=checks,error=None):
  code=setup+layout+'\nend\nlocal Layout=loadLayout();local function require(k)if k=="layout"then return Layout end;return _G.require(k)end\nlocal function loadView()\n'+view+'\nend\nlocal View=loadView()\n'+body
  # Preserve ordinary file require while mocking just the module dependency.
@@ -300,7 +309,7 @@ if a.negative_controls:
  for old,new,error in [('h>=44','h>=1','Tiny viewport claimed safe access'),('width-map.width-22','width-14','Notice overlaps actionable target'),('result.talkY=14','result.talkY=height-143','TALK moved into native thumbstick zone')]:
   assert old in sources['NoticeLayout'];run(sources['NoticeLayout'].replace(old,new),sources['NoticeView'],error=error)
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('or questLauncherText()', 'or "QUESTS"'),'Frame erased actual receiver reward count')
- run(sources['NoticeLayout'],sources['NoticeView'],checks.replace(' and questsToggle.Text~="QUESTS"',''),'Modal exit failed to restore grouped navigation')
+ run(sources['NoticeLayout'],sources['NoticeView'],checks.replace(' and questShortcut~="QUESTS"',''),'Modal exit failed to restore grouped navigation')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('),toggle,gold);shop.TextColor3', '),function()toggleTab("Shop")end,gold);shop.TextColor3'),'Menu toggle did not reopen the last tab')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('toggleTab("Quests",true)','toggleTab("Quests")'),'Ready reward shortcut preserved stale scroll')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('elseif noticeLayout.baseTalkX then','elseif noticeView.visible and noticeLayout.baseTalkX then'),'Short phone TALK extends outside the safe HUD')

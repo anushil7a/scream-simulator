@@ -7,7 +7,7 @@ setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
  local f={now=0,jobs={},buttons={},sent=0,labels={},cards={}};local os={clock=function()return f.now end,time=function()return 100 end}
- local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement'})do table.insert(Catalog.Items,{key=key,id=100+i,kind=(i==1 or i==4) and 'pass' or 'product'})end
+ local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement','Encore','Afterimage'})do table.insert(Catalog.Items,{key=key,id=i<=4 and 100+i or 0,suggestedPrice=i==5 and 79 or 99,kind=(i==1 or i>=4) and 'pass' or 'product'})end
  function Catalog.Get(key)for _,v in ipairs(Catalog.Items)do if v.key==key then return v end end end
  for _,item in ipairs(Catalog.Items)do item.tag='tag';item.name=item.key;item.description='description';item.boost=item.key=='XP' and 'xp' or 'coins'end
  local Config={MovementPassId=104}
@@ -32,7 +32,10 @@ endsetup=r'''
 end
 local m=module();f.shop=m.shop;f.stats=m.stats;f.items=Catalog.Items;f.config=Config
 function f.draw(i,clear,allowed,owned)if clear~=false then m.shop.Clear()end;m.button(Catalog.Items[i or 2],{},owned==true,{savingAvailable=allowed~=false},ui,action,{},{});return f.buttons[#f.buttons]end
-function f.render(narrow,compact)ui.narrow=narrow;ui.compactLandscape=compact;f.buttons={};f.cards={};m.shop.Render({savingAvailable=true,shop={ready=true,inventory={},ends={},serverNow=100}},ui,action)end
+function f.render(narrow,compact,data)
+ ui.narrow=narrow;ui.compactLandscape=compact;f.buttons={};f.cards={}
+ m.shop.Render(data or {savingAvailable=true,shop={ready=true,inventory={},ends={},serverNow=100}},ui,action)
+end
 function f.finish(i,result)local ok,err=coroutine.resume(f.jobs[i].co,result);assert(ok,err);m.shop.Tick()end
 return f
 end
@@ -54,7 +57,7 @@ if visual.shop.CompactLandscape then
   local feature=visual.cards[1];local cta=visual.buttons[1]
   local scrollY=math.min(620,xy[2]-76)-(54+50+18)
   check(feature.height<=scrollY and cta.pos.y+cta.size.y<=feature.height and cta.size.y==44,'Spectrum action below first fold or shortened')
-  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==4,'Hierarchy or action count changed')
+  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==(visual.cards[2].Name=='MovementFeature' and 6 or 4),'Hierarchy or action count changed')
  end
  check(not visual.shop.CompactLandscape(643,388) and not visual.shop.CompactLandscape(749,325) and not visual.shop.CompactLandscape(749,431),'Breakpoint leaked')
  visual.render(false,false);check(visual.cards[1].height==260 and visual.buttons[1].pos.y==206,'Desktop hero changed')
@@ -124,6 +127,32 @@ for _,info in ipairs({{},true,{IsForSale=true},{IsForSale=true,PriceInRobux=-1},
 end
 f=fixture();b=f.draw(2,true,false);f.finish(1,{IsForSale=true,PriceInRobux=10});b.callback();check(b.Text=='TEST / UNAVAILABLE' and f.sent==0,'Unsavable snapshot purchase enabled')
 f=fixture();f.items[2].id=0;b=f.draw();check(#f.jobs==0 and b.Text=='COMING SOON','Disabled product queried')
+if visual.shop.CompactLandscape and visual.buttons[3].Name=="BuyEncore" then
+ local f=fixture()
+ f.render(false,false)
+ local order={"BuySpectrum","BuyMovement","BuyEncore","BuyAfterimage","BuyXP","BuyCoins"}
+ for i,name in ipairs(order)do check(f.buttons[i].Name==name and f.cards[i].LayoutOrder==i,'Permanent passes must appear before timed boosts')end
+ for i=3,4 do
+  local b=f.buttons[i]
+  check(b.Text=="COMING SOON" and not b.Interactable and b.size.y>=45,'Unconfigured pass needs a disabled state and full target')
+  b.callback()
+ end
+ check(f.sent==0 and #f.jobs==4,'Unconfigured pass attempted price lookup or purchase')
+ f.render(true,false,{encorePass=true,afterimagePass=true,savingAvailable=true})
+ for i=3,4 do
+  local b=f.buttons[i];check(b.Text=="OWNED" and not b.Interactable,'Owned cosmetic state was lost')
+  b.callback()
+ end
+ check(f.sent==0,'Owned pass attempted purchase')
+ f=fixture();f.items[5].id=105;f.items[6].id=106
+ f.render(false,false)
+ check(#f.jobs==4 and f.buttons[3].Text~="R$ 79" and f.buttons[4].Text~="R$ 99",'Checkout displayed a suggested price or exceeded request limit')
+ f.finish(3,{IsForSale=true,PriceInRobux=82})
+ f.finish(4,{IsForSale=false})
+ check(f.buttons[3].Text=="R$ 82" and f.buttons[3].Interactable,'Encore did not use the verified Marketplace price')
+ check(f.buttons[4].Text=="UNAVAILABLE" and not f.buttons[4].Interactable,'Off-sale Afterimage was interactive')
+ f.buttons[3].callback();f.buttons[4].callback();check(f.sent==1,'Pass availability did not gate the purchase action')
+end
 print('PASS',n,'actual price-path assertions; coroutine API and GUI mocks only')
 '''
 # Historical lifecycle repros retain their original UI copy and intended failure oracle.
