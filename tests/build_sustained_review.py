@@ -130,7 +130,18 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         transport_fixture = (ROOT / "tests/StudioVoiceTransport.server.luau").read_text()
         builds = [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", transport_fixture), ("TrainingRoamReview", (ROOT / "tests/StudioTrainingRoam.server.luau").read_text())]
         if args.resonance_local_qa:
-            builds = [("ResonanceCombatLocalReview", arena_cases.read_text())]
+            portal_prep = '''
+require(script.Parent.PortalTravel).SetPreparation(function(p, character)
+ local s=sessions[p]
+ if closing or not s or s.character~=character or s.flight then return false end
+ local now=os.clock()
+ cancelSustained(p,s,now)
+ VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
+ if testBeamEnd(p,s,now) then task.defer(state,p) end
+ return true
+end)
+'''
+            builds = [("ResonanceCombatLocalReview", portal_prep + arena_cases.read_text())]
         elif args.test_beam_damage_local_qa:
             builds = [("TestBeamDamageLocalReview", (ROOT / "tests/StudioTestBeamDamageReview.server.luau").read_text())]
         elif args.central_pvp_local_qa:
@@ -158,6 +169,7 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
             server["Bootstrap"] = {"$path": str(script)}
             if args.resonance_local_qa:
                 server["Arena"] = {"$path": str(arena / "Arena.server.luau")}
+                server["PortalTravel"] = {"$path": str(arena / "PortalTravel.luau")}
                 server["World"] = {"$path": str(arena / "CombatWorld.luau")}
                 profiles = (source / "Profiles.luau").read_text()
                 store_call = 'return DataStoreService:GetDataStore(RunService:IsStudio() and "ScreamSimulator_Studio_v2" or "ScreamSimulator_v1")'

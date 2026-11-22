@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Resonance portal travel ends the departing cast
+
+- In a disposable combat preview, synthetic power sent through the real Action remote began a cast on the Hall apron. Holding the actual F prompt moved the player from Z=54 to Z=240. The baseline cast stayed active, sent two beam updates on the landing, and sent no end event during the sampled crossing.
+- The guarded combat portal now runs the existing attack cleanup before relocation. It checks proximity and the same living avatar before and after preparation. The matched Studio replay sent one end event, with zero beam updates on the landing and about 4.52 seconds of normal cooldown remaining. An attempt from Z=43 moved nobody and left the active beam running. In the separate geometry-only preview, the regular E prompts still took the player to Z=240 and back.
+- The focused suite passed 16 assertions and three negative controls. It exercised legacy and test cast cancellation with doubles. Independent review and the full local run passed 29 pure/synthetic suites, 166 mocked-service suites, production compilation and review builds. The Studio sessions were closed. Live voice, live-network transport and cross-place travel remain open.
+
 ## The Hall portal floor marks the protected arrival area
 
 - The old Hall deck began at Z=51 and was 19 studs wide. The protected apron begins at Z=50 and is 22 studs wide. The floor deck, cyan threshold and map now share the apron footprint. The markings are decorative and the arena keeps 25 solid parts.

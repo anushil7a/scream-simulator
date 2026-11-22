@@ -3,6 +3,7 @@ assert(game:GetService("RunService"):IsStudio() and game.PlaceId==0 and game.Gam
  "Open the unpublished Resonance Arena draft in Studio")
 
 local Layout=require(game:GetService("ReplicatedStorage").Shared.ResonanceLayout)
+local PortalTravel=require(script.Parent.PortalTravel)
 local Lighting=game:GetService("Lighting")
 Lighting.ClockTime=16.6
 Lighting.Brightness=2.1
@@ -127,13 +128,7 @@ local function portal(parent,name,position,title,body,action,travelTo,apron)
  prompt.RequiresLineOfSight=false
  prompt.Parent=anchor
  prompt.Triggered:Connect(function(player)
-  local character=player.Character
-  local root=character and character:FindFirstChild("HumanoidRootPart")
-  local humanoid=character and character:FindFirstChildOfClass("Humanoid")
-  if not root or not humanoid or humanoid.Health<=0 or (root.Position-anchor.Position).Magnitude>prompt.MaxActivationDistance then return end
-  character:PivotTo(travelTo)
-  root.AssemblyLinearVelocity=Vector3.zero
-  root.AssemblyAngularVelocity=Vector3.zero
+  PortalTravel.Move(player,anchor,prompt.MaxActivationDistance,travelTo)
  end)
 end
 

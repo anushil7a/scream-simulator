@@ -11,7 +11,8 @@
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "ResonanceArena": { "$path": "prototypes/resonance-arena/Arena.server.luau" }
+      "ResonanceArena": { "$path": "prototypes/resonance-arena/Arena.server.luau" },
+      "PortalTravel": { "$path": "prototypes/resonance-arena/PortalTravel.luau" }
     },
     "StarterPlayer": {
       "$className": "StarterPlayer",
