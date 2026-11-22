@@ -718,8 +718,9 @@ local function finishDodge(p,s,c,r,h,started,now)
 end
 local function dodge(p,sideIntent)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
- if s then cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
  if not s or not r or r.Anchored or h.Sit or h.SeatPart or h.PlatformStand or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
+ -- An invalid roll request must leave the current attack intact.
+ cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
  local cooldown=Entitlements.CanUseMovement(p,r.Position) and Config.DodgeDuration or Config.DodgeCooldown
  s.nextDodge=now+cooldown;s.dodgingUntil=now+Config.DodgeDuration
  s.lastDodge=now;s.premiumRoll=cooldown<Config.DodgeCooldown

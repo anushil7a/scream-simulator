@@ -540,7 +540,8 @@ local function releaseCapture(source)
  nextCast=os.clock()+4
 end
 local function dodge()
- cancelCapture()
+ -- The legacy hold input cancels on this gesture. Automatic beams wait for the server.
+ if not sustainedControl then cancelCapture() end
  if not blocked() then
   local character=p.Character;local root=character and character:FindFirstChild("HumanoidRootPart")
   local humanoid=character and character:FindFirstChildOfClass("Humanoid")

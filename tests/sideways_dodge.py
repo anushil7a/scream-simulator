@@ -63,7 +63,8 @@ local h={MoveDirection=move};local c={FindFirstChild=function()return root end,F
 local p={Character=c};local UIS={IsKeyDown=function(_,key)return keys[key]end}
 local Enum={KeyCode={A='A',D='D',W='W',S='S'}}
 local action={FireServer=function(_,verb,side)table.insert(calls,{verb,side})end}
-local function cancelCapture()end
+local sustainedControl={}
+local cancels=0;local function cancelCapture()cancels+=1 end
 local function blocked()return blockedNow end
 ''' + fragment + r'''
 for _,case in ipairs({
@@ -78,6 +79,9 @@ for _,case in ipairs({
  check(calls[#calls][1]=='Dodge' and calls[#calls][2]==case[4],'desktop/joystick/fallback intent')
 end
 local count=#calls;blockedNow=true;dodge();check(#calls==count,'blocked input escaped')
+check(cancels==0,'Automatic Dodge input cancelled capture before server acceptance')
+sustainedControl=nil;blockedNow=false;dodge()
+check(cancels==1 and #calls==count+1,'Legacy Dodge lost immediate capture cancel')
 print('PASS desktop/joystick/default intent using actual client function')
 '''
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=r/'tests',delete=False) as f:f.write(code);p=Path(f.name)

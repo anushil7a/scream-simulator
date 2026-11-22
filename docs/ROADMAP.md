@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Keep automatic beams active when a dodge is rejected
+
+- In guarded native Studio, a cooldown-denied Dodge request did not roll but cancelled the active cast and started its beam cooldown. An automatic client request now leaves the cast alone until the server accepts the dodge. The server applies all existing eligibility checks before interrupting combat. The legacy hold-to-cast gesture still cancels capture immediately, preserving its input timing.
+- In the rebuilt disposable place, both a direct request and the production client Dodge helper left the same acknowledged cast running under a staged dodge cooldown. Neither moved the player into a roll or started a new beam cooldown. Clearing the staged dodge deadline allowed the next input to roll, end sequence 1 and start the server's beam cooldown. This exercised real Studio client/server events with synthetic voice and staged cooldown.
+- Independent review cleared the final automatic/legacy split. The focused guard and cancellation test passed 21 assertions and two negative controls. The four-way fixture passed 106 motion checks and the client input contracts. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. Three disposable Studio instances closed. Physical touch, real microphones and internet latency were outside this run.
+
 ## Require deliberate beam rearm after a protected return
 
 - In the baseline, the real knockout ejection returned an active player to the safe hub without replacing the avatar. The server stopped sequence 1 and enforced protection and cooldown. The client stayed armed and fired sequence 2 from fresh synthetic input after recovery, without a second activation.
