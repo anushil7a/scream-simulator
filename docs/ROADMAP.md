@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Correct the Amphitheatre speaker preview and remove duplicate cones
+
+- The nine basic cones in the geometry-only map sat behind their towers with sideways cylinder axes. They now face the audience and sit flush against the front casings. A native standalone build retained all nine cones and the same 654 parts. The solid casings, routes and collision settings stayed the same.
+- The finished City already has 27 layered driver pieces on the front faces. It now skips the nine redundant basic cones. Independent review caught that relocating those solid-looking decorative cones in the finished City would cover the dark middle layer. The final native comparison matched position, orientation, size, material, color and flags for all 27 authored pieces. The exposed driver samples matched across 117 rays per view, with 114 clear from the front, 111 from the diagonal and 84 from center stage. This is native geometry and occlusion evidence from staged views without screenshot or phone coverage.
+- The active Map10 contract passed 1,098 checks. Negative controls rejected the wrong axis, a cone behind the casing, and restoring the redundant cones to the finished map. Independent review cleared the corrected implementation.
+- Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. All three disposable Studio sessions were stopped and closed.
+
 ## Keep Academy pavilion roofs and supports together when streaming
 
 - Under the stock 64/512 radii and Opportunistic stream-out, the native baseline briefly showed projected roof geometry with missing columns on Pavilion 0 and Pavilion 3. The worst visible sample had one of four Pavilion 3 columns near (−300, 36, −260). A staged 105-stud/s sweep also sampled 18 of 27 pieces for up to 0.583 seconds on three pavilions outside the camera framing.

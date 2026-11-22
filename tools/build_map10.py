@@ -100,7 +100,9 @@ for k,color in enumerate(([92,68,114],[99,73,123],[106,78,132],[113,83,140],[120
 disk('MusicStage',90,32.3,-330,50,.6,[51,43,72]);disk('MusicNeonRing',90,32.65,-330,26,.1,[179,105,240],False)
 for i,(x,z) in enumerate([(-30,-410),(90,-470),(210,-410)]):
  box('SpeakerTower'+str(i),[x,64,z],[28,64,18],dark)
- for h in [46,70,86]:disk('Speaker'+str(i)+str(h),x,h,z-9.3,8,1,purple,False);p[-1]['rotation']=[90,0,0]
+ # The cylinder axle faces +Z, with its back slightly inset into the tower.
+ for h in (46,70,86):
+  box(f'Speaker{i}{h}',[x,h,z+9.4],[1,16,16],purple,False,[0,-90,0],shape='Cylinder')
 # Static level-meter artwork on the back of the circular stage.
 box('EqualizerHousing',[90,37.6,-369],[46,10,4],[43,39,58])
 box('EqualizerFace',[90,37.65,-366.93],[42.8,7.8,.14],[27,31,47],False)

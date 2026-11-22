@@ -211,7 +211,8 @@ print('PASS four complete Atomic pavilions, including all 76 trim parts')
 local omitted=0
 for _,spec in ipairs(Layout.PartSpecs) do
  local id=spec.id
- local replaced=id:match("^Crystal%d+$") or id:match("^LavaFissure%d+$") or id:match("^BranchLava%d+$")
+ local speaker=id:match("^Speaker([0-2])(%d%d)$")
+ local replaced=id:match("^Crystal%d+$") or id:match("^LavaFissure%d+$") or id:match("^BranchLava%d+$") or speaker
  assert(standalone[id]~=nil,"Base preview lost "..id)
  if replaced then
   assert(not spec.collidable and finished[id]==nil,"Finished Map10 allocated replaced scenery "..id)
@@ -221,8 +222,17 @@ for _,spec in ipairs(Layout.PartSpecs) do
   assert(p.Position==standalone[id].Position and p.Size==standalone[id].Size and p.CanCollide==standalone[id].CanCollide and p.CanQuery==standalone[id].CanQuery)
  end
 end
-assert(omitted==17,"Unexpected Map10 replacement count")
-print('PASS 17 replaced props omitted only when finishing is enabled')
+assert(omitted==26,"Unexpected Map10 replacement count")
+local finishedDrivers=0
+for index=firstMapNode,#nodes do
+ local node=nodes[index]
+ if node.Name and node.Name:match("^NorthAudio[0-2]Driver[0-2]_[0-2]$") then
+  assert(node.Parent.Parent.Parent==finishedParent and not node.CanCollide and not node.CanQuery,'Missing decorative finished driver')
+  finishedDrivers+=1
+ end
+end
+assert(finishedDrivers==27,"Expected all 27 finished speaker driver layers")
+print('PASS 26 replaced props omitted and all 27 finished driver layers retained')
 '''
 with tempfile.NamedTemporaryFile('w',suffix='.luau',prefix='tmp_map_finish_',dir=R/'tests',delete=False,encoding='utf-8') as f:
     f.write(script)
@@ -235,6 +245,7 @@ try:
              'model.ModelStreamingMode=Enum.ModelStreamingMode.Default', 'Pavilion must be Atomic'),
             ('p.Parent=(pavilion and pavilions["Academy"..pavilion]) or district',
              'p.Parent=district', 'Pavilion streamed separately: NorthPavilion'),
+            (' or id:match("^Speaker[0-2]%d%d$")', '', 'Finished Map10 allocated replaced scenery Speaker046'),
         ):
             assert script.count(before) == 1, before
             path.write_text(script.replace(before, after), encoding='utf-8')

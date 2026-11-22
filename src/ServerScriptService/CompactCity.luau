@@ -14,10 +14,10 @@ end
 function City.Build(parent,withMap10Finish)
  local ocean
  for _,spec in ipairs(Layout.PartSpecs) do
-  -- The finishing pass supplies visible crystals and lava channels.
+  -- The finishing pass supplies crystals, lava channels and layered speaker drivers.
   local id=spec.id
   if withMap10Finish and not spec.collidable
-   and (id:match("^Crystal%d+$") or id:match("^LavaFissure%d+$") or id:match("^BranchLava%d+$")) then continue end
+   and (id:match("^Crystal%d+$") or id:match("^LavaFissure%d+$") or id:match("^BranchLava%d+$") or id:match("^Speaker[0-2]%d%d$")) then continue end
   local oceanTile=id=="Sea" or id:match("^SeaHorizon")
   if oceanTile and not ocean then
    ocean=Instance.new("Model")

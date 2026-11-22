@@ -108,6 +108,24 @@ for source in (layout,runtime):
   check('position=Vector3.new('+','.join(map(str,part['position']))+')' in entry and
         'size=Vector3.new('+','.join(map(str,part['size']))+')' in entry and
         'collidable='+str(part['collidable']).lower() in entry,part['id']+' runtime and preview differ')
+for tower_index in range(3):
+ tower=by_id[f'SpeakerTower{tower_index}']
+ tower_x,_,tower_z=tower['position']
+ front_z=tower_z+tower['size'][2]/2
+ for height in (46,70,86):
+  name=f'Speaker{tower_index}{height}'
+  cone=by_id[name]
+  x,y,z=cone['position']
+  depth,width,rim_height=cone['size']
+  check(cone['shape']=='Cylinder' and not cone['collidable'],name+' is decorative cylinder')
+  check(cone['rotation']==[0,-90,0],name+' axis must face the audience (+Z)')
+  check(x==tower_x and y==height and width==rim_height==16 and depth==1,name+' silhouette changed')
+  check(math.isclose(z-depth/2,front_z-.1,abs_tol=1e-6),name+' is recessed or floating away from tower')
+  for source in (layout,runtime):
+   entry=next(line for line in source.splitlines() if line.startswith('{id="'+name+'"'))
+   for field in ('position','size','rotation'):
+    check(field+'=Vector3.new('+','.join(map(str,cone[field]))+')' in entry,name+' runtime and preview '+field+' differ')
+   check('shape="Cylinder"' in entry and 'collidable=false' in entry,name+' runtime flags differ')
 world=(R/'src/ServerScriptService/World.luau').read_text();check('(training.y or 0)+3.2' in world,'trainer grounding');check('nil,nil,spot.y' in world,'seed elevation');check('SupportingNPCs.AtHome' in world,'support placement adapter')
 nav=(R/'src/ReplicatedStorage/Shared/NavigationCatalog.luau').read_text();check('(boss.y or 0)+3' in nav and '(landmark.y or 0)+3' in nav,'elevated guides')
 check('home=Layout.BossHomes' in (R/'src/ReplicatedStorage/Shared/BossCatalog.luau').read_text(),'boss bindings')
