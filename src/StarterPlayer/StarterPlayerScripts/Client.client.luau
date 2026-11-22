@@ -1777,7 +1777,7 @@ connectClient(UIS.InputEnded,function(input)
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
  if input.KeyCode==Enum.KeyCode.LeftShift then setSprint(false) end
 end)
-connectClient(p.CharacterRemoving,function() academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil;academy.attackCueUntil=nil;academy.incomingHit.Visible=false;hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
+connectClient(p.CharacterRemoving,function() academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil;academy.defenderCoverUntil=nil;academy.attackCueUntil=nil;academy.incomingHit.Visible=false;hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
 connectClient(UIS.WindowFocused,function() windowFocused=true end)
 local function suspendGameplay()
  if sustainedControl then sustainedControl:SetArmed(false) end
@@ -1832,16 +1832,23 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   sustainedBeams:Update(key,os.clock(),pos,direction,length,beamWidth,color,attackLevel or 1,data.settings.reducedShake)
   return
  end
- if kind=="SustainedDamageTaken" or kind=="BeamDodged" then
+ if kind=="SustainedDamageTaken" or kind=="BeamDodged" or kind=="BeamBodyBlocked" then
   local character=p.Character
   if pos and character and character:FindFirstChildOfClass("Humanoid")==pos then
    local now=os.clock()
    local expires=now+1.4
-   if kind=="BeamDodged" then
-    -- A damage cue can be throttled during this window. Do not leave a dodge-only tail.
-    local hitUntil=academy.defenderHitUntil
-    academy.defenderDodgeUntil=hitUntil and hitUntil>now and hitUntil or expires
-   else academy.defenderHitUntil=expires end
+   if kind=="BeamBodyBlocked" then
+    if now>=math.max(academy.defenderHitUntil or 0,academy.defenderDodgeUntil or 0) then
+     academy.defenderCoverUntil=expires
+    end
+   else
+    academy.defenderCoverUntil=nil
+    if kind=="BeamDodged" then
+     -- A damage cue can be throttled during this window. Do not leave a dodge-only tail.
+     local hitUntil=academy.defenderHitUntil
+     academy.defenderDodgeUntil=hitUntil and hitUntil>now and hitUntil or expires
+    else academy.defenderHitUntil=expires end
+   end
   end
   return
  end
@@ -1997,17 +2004,18 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed)
  elseif attackCue then hitText.Text=academy.attackCueText end
- if protectionRemaining>0 then academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil end
+ if protectionRemaining>0 then academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil;academy.defenderCoverUntil=nil end
  do
   local now=os.clock()
   local hit=now<(academy.defenderHitUntil or 0)
   local dodged=now<(academy.defenderDodgeUntil or 0)
-  academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and (hit or dodged)
+  local covered=now<(academy.defenderCoverUntil or 0)
+  academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and (hit or dodged or covered)
   if academy.incomingHit.Visible then
-   local text=hit and (dodged and "HIT + DODGE" or "BEAM HIT YOU") or "BEAM DODGED"
+   local text=hit and (dodged and "HIT + DODGE" or "BEAM HIT YOU") or dodged and "BEAM DODGED" or "BODY BLOCK"
    if academy.incomingHit.Text~=text then
     academy.incomingHit.Text=text
-    academy.incomingHit.TextColor3=hit and Color3.fromRGB(255,157,146) or Color3.fromRGB(147,236,192)
+    academy.incomingHit.TextColor3=hit and Color3.fromRGB(255,157,146) or dodged and Color3.fromRGB(147,236,192) or Color3.fromRGB(168,221,255)
    end
   end
  end

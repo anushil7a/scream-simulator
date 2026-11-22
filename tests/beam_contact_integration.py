@@ -104,7 +104,7 @@ local function make(ack)
  mic.ready=true;data.voiceEligible=true;data.settings.reducedShake=false;workspace.CurrentCamera.CFrame.Position=Vector3.zero
  attrs={SustainedActive=false};cues=0;screenHits=0
  gate.next='start';sustainedControl:Step(.001,clock,0,true,true,false,0)
- academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil;academy.attackCueUntil=nil;protectionRemaining=0;alive=true
+ academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil;academy.defenderCoverUntil=nil;academy.attackCueUntil=nil;protectionRemaining=0;alive=true
  local id=sustainedControl.attack.sequence;attrs.SustainedActive=true;attrs.SustainedSequence=id
  if ack~=false then sustainedControl:Step(.001,clock,0,true,true,true,id)end
  beam();local rig=sustainedBeams.entries[7].visual;frame(1/30)
@@ -189,6 +189,28 @@ gameplayVisible=true;hud();check(academy.incomingHit.Visible,'Defender cue faile
 clock+=1.5;hud();check(not academy.incomingHit.Visible,'Defender cue outlived its duration')
 send('SustainedDamageTaken',h);send('BeamDodged',h);protectionRemaining=1;hud();protectionRemaining=0;hud()
 check(not academy.incomingHit.Visible,'Defender cue replayed after protection')
+make()
+send('BeamBodyBlocked',Vector3.zero);hud()
+check(not academy.incomingHit.Visible,'Foreign Humanoid showed body cover cue')
+local handled=pcall(send,'BeamBodyBlocked',h);hud()
+check(handled and academy.incomingHit.Visible and academy.incomingHit.Text=='BODY BLOCK','Body cover was not shown')
+check(cues==0 and screenHits==0 and not hitText.Visible,'Body cover fabricated hit feedback')
+clock+=.3;send('SustainedDamageTaken',h);hud()
+check(academy.incomingHit.Text=='BEAM HIT YOU','Body cover masked actual damage')
+clock+=1.3;send('BeamBodyBlocked',h);hud()
+check(academy.incomingHit.Text=='BEAM HIT YOU','New body cover masked actual damage')
+clock+=.15;hud()
+check(not academy.incomingHit.Visible,'Body cover outlived a higher-priority hit')
+send('BeamBodyBlocked',h);hud()
+clock+=.2;send('BeamDodged',h);hud()
+check(academy.incomingHit.Text=='BEAM DODGED','Body cover masked actual dodge')
+clock+=1.3;send('BeamBodyBlocked',h);hud()
+clock+=.15;hud()
+check(not academy.incomingHit.Visible,'Body cover outlived a higher-priority dodge')
+send('BeamBodyBlocked',h);hud();clock+=1.41;hud()
+check(not academy.incomingHit.Visible,'Body cover outlived its duration')
+send('BeamBodyBlocked',h);hud();protectionRemaining=1;hud();protectionRemaining=0;hud()
+check(not academy.incomingHit.Visible,'Body cover replayed after protection')
 local rig,id=make();check(sustainedControl.attack.acknowledged,'Real Controls did not acknowledge')
 hit(id,10,anchor);send('SustainedDamageTaken',h);hud();retained(10);frame(1/30)
 check(academy.incomingHit.Visible and hitText.Visible,'Outgoing damage replaced defender cue')
@@ -408,10 +430,13 @@ def main():
             (event, 'if kind=="BeamDodged" then','if false then', 'A recent evade concealed damage'),
             (hud, 'dodged and "HIT + DODGE" or "BEAM HIT YOU"', '"BEAM HIT YOU"', 'A recent evade concealed damage'),
             (event, 'hitUntil and hitUntil>now and hitUntil or expires','expires','A dodge-only tail outlived the mixed damage window'),
+            (event, ' or kind=="BeamBodyBlocked" then', ' then', 'Body cover was not shown'),
+            (event, 'if now>=math.max(academy.defenderHitUntil or 0,academy.defenderDodgeUntil or 0) then', 'if true then', 'Body cover outlived a higher-priority hit'),
+            (hud, 'academy.defenderDodgeUntil=nil;academy.defenderCoverUntil=nil end', 'academy.defenderDodgeUntil=nil end', 'Body cover replayed after protection'),
             (hud, 'local hit=now<(academy.defenderHitUntil or 0)', 'local hit=academy.defenderHitUntil~=nil', 'A dodge-only tail outlived the mixed damage window'),
             (event, 'character:FindFirstChildOfClass("Humanoid")==pos', 'true', 'Foreign Humanoid showed defender cue'),
             (event, 'beamWidth,color,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'beamWidth,Config.Auras.Gold,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'Explicit Color3 lost its override'),
-            (hud, 'if protectionRemaining>0 then academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil end', '', 'Defender cue replayed after protection'),
+            (hud, 'if protectionRemaining>0 then academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil;academy.defenderCoverUntil=nil end', '', 'Defender cue replayed after protection'),
             (hud, 'aimGui.AbsoluteSize.Y<300', 'false', 'Short combat cue overlapped the Beams control'),
             (hud, 'academy.shortObjective or aimGui.AbsoluteSize.Y<300', 'aimGui.AbsoluteSize.Y<300', 'Combat cue covered the compact objective row'),
             (hud, 'hitText.Visible=gameplayVisible and (confirmed~=nil or attackCue)', 'hitText.Visible=gameplayVisible and attackCue', 'Cover hid confirmed damage'),

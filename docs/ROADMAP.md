@@ -1,5 +1,15 @@
 # Scream Simulator development roadmap
 
+## Show when another player blocks a beam
+
+- The matched Old Stadium replay showed a level-100 beam passing visually through two players even though the nearer player's torso blocked the far defender's damage sight ray. The existing hit resolver already distinguishes those targets.
+- When an eligible defender's existing sustained-beam sight ray first hits another player's character, the server sends **BODY BLOCK** privately to that defender. The cue uses the health HUD for up to 1.4 seconds. Hits and dodges take priority, and spawn protection clears the notice. The server sends at most one such notice per second per defender across all attackers. The cue contains no blocker identity.
+- The implementation reuses the existing sight ray and keeps damage, reach, and the replicated beam silhouette intact. World geometry, active dodges, and Test Beams do not generate this cue.
+- Focused authority and client checks passed 15,482 and 400 assertions respectively, with 57 combined negative controls. Running the new cue regression against the prior source failed as expected. Independent review cleared the damage, protection, and cue-priority paths.
+
+- In the guarded three-client Studio replay, both level-100 casts delivered three beam updates with the same 54.75-stud length. In the offset lane both defenders lost 73 HP and no cover cue appeared. In the centered lane the front player lost 73 HP and the far defender lost zero. Only that defender received a cue and saw **BODY BLOCK**. The 116 × 18 label fit at a 1274 × 671 desktop viewport and was gone by the three-second sample. The tested fixture SHA-256 was `de1b8453d11e95265e20eb9605dace38badde6d72647509d523c92fc73ebdbd1`. All five disposable Studio processes closed.
+- The full Map 10 verification passed 29 pure or synthetic suites, 168 mocked-service suites, 99 Luau compilations and Rojo builds. The replay used fixed avatar positions and synthetic aim and power through the normal Action path. Physical-phone readability, real microphones and live multiplayer remain open. The older compact-map integration fixture still expects its original arena boundaries and fails there on the baseline as well. The current Map 10 verification uses its own geometry suites.
+
 ## Verify overlapping level-100 attacks in Old Stadium
 
 - Three local Studio clients ran the current City with temporary profiles and all four packaged assets. The fixture staged positions and level 100. Two attackers sent synthetic aim and power through the normal Action path. Both were acknowledged and delivered six beam packets per sender to each client, followed by each sender's end packet.

@@ -363,7 +363,8 @@ local function eject(p,h)
 end
 local function audible(c,origin,target,targetModel)
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c,targetModel};params.RespectCanCollide=true
- return workspace:Raycast(origin,target-origin,params)==nil
+ local hit=workspace:Raycast(origin,target-origin,params)
+ return hit==nil,hit
 end
 -- Bigger visual silhouettes need a taller aim envelope, not a larger
 -- engagement circle. Callers still require the same server CanHit gate.
@@ -456,9 +457,23 @@ local function resolveSustained(ctx,direction,stats,now)
   for _,p in ipairs(players) do
    local ts=sessions[p];local c,r,h=parts(p)
    if p~=ctx.player and sameCombatMode(sessions[ctx.player],ts) and r and Rules.CanTarget(ctx.position,r.Position,ts.protectedUntil,now,stats.range+2)
-    and Rules.InBeam(ctx.origin,direction,r.Position,length,stats.width,1) and audible(ctx.character,ctx.origin,r.Position,c) then
-    if now<ts.dodgingUntil and not ts.premiumRoll then table.insert(dodged,p)
-    else add("player:"..p.UserId,{player=p,session=ts,humanoid=h}) end
+    and Rules.InBeam(ctx.origin,direction,r.Position,length,stats.width,1) then
+    local clear,hit=audible(ctx.character,ctx.origin,r.Position,c)
+    if clear then
+     if now<ts.dodgingUntil and not ts.premiumRoll then table.insert(dodged,p)
+     else add("player:"..p.UserId,{player=p,session=ts,humanoid=h}) end
+    elseif hit and h and now>=ts.dodgingUntil and now>=(ts.nextBeamBodyBlockCueAt or 0) then
+     local ancestor=hit.Instance
+     while ancestor and ancestor~=workspace do
+      local blocker=ancestor:IsA("Model") and Players:GetPlayerFromCharacter(ancestor)
+      if blocker and blocker~=p and blocker~=ctx.player and blocker.Character==ancestor then
+       ts.nextBeamBodyBlockCueAt=now+1
+       effect:FireClient(p,"BeamBodyBlocked",h)
+       break
+      end
+      ancestor=ancestor.Parent
+     end
+    end
    end
   end
  end
@@ -1114,7 +1129,7 @@ local function joined(p)
   s.jumpPower=h.JumpPower;s.jumpHeight=h.JumpHeight
   h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=16
   s.sprintCharge=Config.SprintDuration;s.sprintRequested=false;s.sprintRunning=false;s.sprintRegenAt=0;s.lastStep=os.clock();s.sprintLockedUntil=0;s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false
-  s.nextHeal=os.clock()+Config.HealQuietSeconds;s.nextBeamCueAt=nil
+  s.nextHeal=os.clock()+Config.HealQuietSeconds;s.nextBeamCueAt=nil;s.nextBeamBodyBlockCueAt=nil
   p:SetAttribute("DodgeEnds",0);p:SetAttribute("DodgeStarted",0);p:SetAttribute("KnockdownEnds",0)
   p:SetAttribute("Sprinting",false);p:SetAttribute("SprintCooldown",0);p:SetAttribute("SprintCharge",Config.SprintDuration)
   protect(p,s);state(p)

@@ -39,15 +39,21 @@ local function player(id,pos,hp)
  return p
 end
 local function parts(p)if p.h.Health<=0 then return nil end;return p.Character,p.root,p.h end
-local Players={GetPlayers=function()return {attacker,victim}end}
+local roster, sightRay
+local Players={GetPlayers=function()return roster or {attacker,victim}end}
+function Players:GetPlayerFromCharacter(character)
+ for _,p in ipairs(Players:GetPlayers())do if p.Character==character then return p end end
+end
 local workspace={Raycast=function(_,origin,delta,params)
+ if sightRay then return sightRay(origin,delta,params) end
  if cover then return {Distance=3,Instance={GetAttribute=function()return nil end}} end
 end}
 local VoiceEligibility={Allowed=function(s)return s==true end}
 local sustained=Adapter.new(Attack,VoiceCombat,function(origin,aim)return (aim-origin).Unit end)
-local dodgeCues,coverCues,evadedCues={},{},{}
+local dodgeCues,coverCues,evadedCues,bodyCues={},{},{},{}
 local effect={FireClient=function(_,p,kind,humanoid,sequence)
  if kind=='BeamDodged' then table.insert(dodgeCues,{p,humanoid})
+ elseif kind=='BeamBodyBlocked' then table.insert(bodyCues,{p,humanoid,sequence})
  elseif kind=='SustainedCover' then table.insert(coverCues,{p,sequence,clock})
  elseif kind=='SustainedEvaded' then table.insert(evadedCues,{p,sequence}) end
 end,FireAllClients=function()end}
@@ -144,6 +150,70 @@ check(sustained.Begin(state,0,{sequence=1,power=1,aim=v(10,0,0)},context),'Begin
 sustained.Stop(state,.1,1)
 check(not sustained.Begin(state,5,{sequence=2,power=1,aim=v(10,0,0)},context),'Cooldown admitted early')
 check(sustained.Begin(state,5.1,{sequence=3,power=1,aim=v(10,0,0)},context),'Cooldown boundary rejected')
+do
+ local a,b,c
+ local x,z=Config.ZoneMin.X+20,(Config.ZoneMin.Z+Config.ZoneMax.Z)*.5
+ a=player(1,v(x,3,z),480);b=player(2,v(x+19,3,z),480);c=player(3,v(x+10,3,z),480)
+ local observer=player(4,v(x+10,3,z+14),480)
+ roster={a,b,c,observer}
+ local function session()return {protectedUntil=0,dodgingUntil=0}end
+ sessions={[a]=session(),[b]=session(),[c]=session(),[observer]=session()}
+ local function instance(class,parent)
+  return {IsA=function(_,name)return name==class end,Parent=parent}
+ end
+ c.Character.IsA=function(_,name)return name=='Model' end
+ c.Character.Parent=workspace
+ a.Character.IsA=c.Character.IsA;a.Character.Parent=workspace
+ b.Character.IsA=c.Character.IsA;b.Character.Parent=workspace
+ local accessory=instance('Accessory',c.Character)
+ local body=instance('Part',accessory)
+ local blocker=body
+ local sightCalls=0
+ sightRay=function(_,delta,params)
+  check(params.RespectCanCollide==true,'Sustained ray stopped respecting collidable cover')
+  if params.FilterDescendantsInstances[2]~=b.Character then return end
+  sightCalls+=1
+  return blocker and {Distance=10,Instance=blocker} or nil
+ end
+ local stats={range=54.75,width=7,power=1}
+ local function resolve(sender,now)
+  local ctx={player=sender,character=sender.Character,origin=sender.root.Position,position=sender.root.Position}
+  return resolveSustained(ctx,v(1,0,0),stats,now)
+ end
+ local ids,targets,packet=resolve(a,2)
+ check(#bodyCues==1 and bodyCues[1][1]==b and bodyCues[1][2]==b.h and bodyCues[1][3]==nil,'Eligible body cover did not send one private defender cue')
+ check(sightCalls==1,'The body-cover cue cast a second target sight ray')
+ check(#ids==1 and targets['player:3'].humanoid==c.h and not targets['player:2'] and packet.length==54.75 and #packet.dodged==0,'Body cover changed hits, dodge, or visual beam length')
+ -- A different beam shares the same defender cooldown.
+ observer.root.Position=v(x,3,z)
+ resolve(observer,2.99)
+ observer.root.Position=v(x+10,3,z+14)
+ check(#bodyCues==1,'Different beam bypassed defender cooldown')
+ resolve(a,3)
+ check(#bodyCues==2,'Defender cooldown did not expire after one second')
+ local ts=sessions[b]
+ local function noCue(label)
+  resolve(a,5)
+  check(#bodyCues==2,'Body cover cue leaked to '..label)
+ end
+ blocker=instance('Part',instance('Model',workspace));noCue('geometry or NPC')
+ blocker=instance('Part',a.Character);noCue('attacker character')
+ blocker=instance('Part',b.Character);noCue('defender character')
+ blocker=body
+ ts.dodgingUntil=6;noCue('dodge');ts.premiumRoll=true;noCue('premium roll')
+ ts.dodgingUntil=0;ts.premiumRoll=nil
+ ts.protectedUntil=6;noCue('spawn protection');ts.protectedUntil=0
+ ts.testBaseline={};noCue('different combat mode');ts.testBaseline=nil
+ ts.flight=true;noCue('flight');ts.flight=nil
+ local pos=b.root.Position
+ b.root.Position=v(Config.ZoneMax.X+1,3,z);noCue('safe area')
+ b.root.Position=v(x+19,3,z+12);noCue('outside target volume')
+ b.root.Position=pos
+ blocker=nil
+ ids,targets,packet=resolve(a,5)
+ check(#bodyCues==2 and #ids==2 and targets['player:2'].humanoid==b.h and packet.length==54.75,'Unblocked beam changed damage eligibility or emitted cover')
+ sightRay=nil;roster=nil
+end
 print('PASS '..n..' actual authority-path TTK/guard assertions; synthetic scheduling, geometry and humanoid endpoint')
 """
 code=setup+zone+'\n'+in_arena+'\nlocal Rules=(function()\n'+r+'\nend)()\n'+mode+helpers+evade+step+checks
@@ -158,6 +228,13 @@ if '--baseline' in sys.argv:
  code=code.replace("check(math.abs(offgrid-2.0375)<1e-7,'Off-grid timing changed')","check(offgrid>2,'Historical off-grid exceeds target')")
  code=code.replace('(63+(level-75)*(110-63)/25)','(49+(level-75)*(68-49)/25)').replace("check(t<=2.0250001,'Accepted-power TTK exceeds quantized target')","check(t<=4,'Historical completes one cast')")
  code=code.replace('victim.h.Health==56','victim.h.Health==73').replace('koAt==1.0','koAt==1.6').replace('time-1.0','time-1.6')
+if '--body-cover-baseline' in sys.argv:
+ old=subprocess.check_output(['git','show','5e7a18e:src/ServerScriptService/Bootstrap.server.luau'],cwd=R,text=True,encoding='utf8')
+ old_helpers=old[old.index('local function audible('):old.index('local function restoreBot(')]
+ out=run(code.replace(helpers,old_helpers))
+ assert out.returncode and 'Eligible body cover did not send one private defender cue' in out.stderr,out.stderr
+ print('PASS baseline failed on missing private defender cue')
+ sys.exit(0)
 result=run(code);print(result.stdout,end='');assert result.returncode==0,result.stderr
 if '--negative-controls' in sys.argv:
  for old,new,message in [('sameCombatMode(sessions[ctx.player],ts)','true','Guard allowed damage mixedMode'),('now>=targetProtectedUntil','true','Guard allowed damage protected'),('intent.coverTicks==2','intent.coverTicks==1','Cover cue emitted before two blocked ticks'),('intent.coverReported=true','intent.coverTicks=nil','Missing/duplicate or public cover cue'),('intent.evadeReported=true','intent.evadeReported=false','Attacker dodge cue incorrectly routed or repeated')]:
@@ -168,7 +245,15 @@ if '--negative-controls' in sys.argv:
  mutant=original.replace('level=100,health=480,dps=110','level=100,health=480,dps=68')
  out=run(code.replace("require('../src/ReplicatedStorage/Shared/VoiceCombat')",'(function()\n'+mutant+'\nend)()'))
  assert out.returncode and 'Max vs starter full-power TTK changed' in out.stderr,out.stderr
- print('PASS 6 authority/balance/cover/dodge negative controls')
+ for old,new,message in [
+  ('effect:FireClient(p,"BeamBodyBlocked",h)','effect:FireClient(ctx.player,"BeamBodyBlocked",h)','Eligible body cover did not send one private defender cue'),
+  ('ts.nextBeamBodyBlockCueAt=now+1','ts.nextBeamBodyBlockCueAt=now','Different beam bypassed defender cooldown'),
+  ('now>=ts.dodgingUntil and now>=(ts.nextBeamBodyBlockCueAt or 0)','now>=(ts.nextBeamBodyBlockCueAt or 0)','Body cover cue leaked to dodge'),
+  ('if blocker and blocker~=p and blocker~=ctx.player and blocker.Character==ancestor then','if ancestor:IsA("Model") then','Body cover cue leaked to geometry or NPC'),
+ ]:
+  assert old in code
+  out=run(code.replace(old,new));assert out.returncode and message in out.stderr,(old,out.stdout,out.stderr)
+ print('PASS 10 authority/balance/cover/dodge negative controls')
 if '--report' in sys.argv:
  assert '--baseline' not in sys.argv, 'Historical report must not overwrite candidate evidence'
  paths=['src/ServerScriptService/Bootstrap.server.luau','src/ServerScriptService/SustainedAttackAdapter.luau','src/ServerScriptService/CombatRules.luau','src/ReplicatedStorage/Shared/SustainedAttack.luau','src/ReplicatedStorage/Shared/VoiceCombat.luau','src/ReplicatedStorage/Shared/Healing.luau','src/ReplicatedStorage/Shared/TrainingRules.luau','src/ReplicatedStorage/Shared/Config.luau','src/ReplicatedStorage/Shared/CompactLayout.luau','tests/sustained_ttk.py']
