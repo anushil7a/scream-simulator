@@ -294,11 +294,15 @@ local shop=button(top,"ShopToggle","MENU [B]",UDim2.fromOffset(125,36),UDim2.fro
 local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests",true) end)
 questsToggle.Visible=false
 academy.surface(shop);academy.surface(questsToggle)
-academy.passesToggle=button(top,"PassesToggle","PASSES",UDim2.fromOffset(64,46),UDim2.fromOffset(80,0),function()
+academy.passesToggle=button(top,"PassesToggle","STORE",UDim2.fromOffset(64,46),UDim2.fromOffset(80,0),function()
  if academy.passesToggle.Visible and not modal.Visible and not GuiService.MenuIsOpen then toggleTab("Shop",true) end
-end,Color3.fromRGB(50,54,96))
-academy.passesToggle.TextColor3=gold;academy.passesToggle.Visible=false
-academy.surface(academy.passesToggle,gold)
+end,Color3.fromRGB(22,55,70))
+academy.passesToggle.TextColor3=Color3.fromRGB(198,247,255);academy.passesToggle.Visible=false
+academy.surface(academy.passesToggle,Color3.fromRGB(93,212,230))
+do
+ local signal=frame(academy.passesToggle,"StoreSignal",UDim2.fromOffset(18,2),UDim2.new(.5,-9,1,-7),Color3.fromRGB(104,225,240))
+ signal.Interactable=false;signal.Active=false;signal.Selectable=false
+end
 local function questLauncherText()
  local count=0
  for _,quest in ipairs(Config.Quests)do
@@ -1188,14 +1192,14 @@ function academy.starterCoinAction(data)
 end
 local function menuKey()
  local fields
- if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped,megaphone=data.megaphoneEquipped}
+ if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped,megaphone=data.megaphoneEquipped,signalDeck=data.signalDeckPass}
  elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,navigation=data.questNavigation,challenges=data.combatChallenges,level=data.level}
  elseif selected=="Style" then
   local starterAction,starterQuest=academy.starterCoinAction(data)
   fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=starterAction,starterQuest=starterQuest}
- elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
+ elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,signalDeck=data.signalDeckPass,cityCrest=data.cityCrestPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
- elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil}
+ elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil,cityCrest=data.cityCrestPass}
  else fields={} end
  return selected..":"..gui.AbsoluteSize.X..":"..tostring(academy.sidebarMenu==true)..":"..game:GetService("HttpService"):JSONEncode(fields)
 end
@@ -1222,8 +1226,16 @@ render=function()
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Shop" then
-  title.Text="GAME PASSES";subtitle.Text="Permanent perks and 30-minute boosts"
-  shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow,compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
+  title.Text="CITY STORE";subtitle.Text="Cosmetics, safe-area perks and timed boosts"
+  local function jump(to)
+   local target=content:FindFirstChild(to)
+   if not target then return end
+   local offset=content.CanvasPosition.Y+target.AbsolutePosition.Y-content.AbsolutePosition.Y
+   local maximum=math.max(0,content.AbsoluteCanvasSize.Y-content.AbsoluteWindowSize.Y)
+   scroll=Vector2.new(0,math.clamp(offset,0,maximum))
+   content.CanvasPosition=scroll
+  end
+  shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,jump=jump,narrow=narrow,compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
  elseif selected=="Screams" then
   title.Text="BEAM COLLECTION"
   local nextStyle,voiceOnlyEquipped
@@ -1235,6 +1247,7 @@ render=function()
   end
   local milestone=card(voiceOnlyEquipped and 86 or 70)
   milestone.Name="BeamMilestone"
+  if data.signalDeckPass==true then ShopUI.SignalDeckSkin(milestone) end
   local heading=sustainedRules and "BEAM SOUNDS" or "BEAM STYLES"
   if nextStyle then heading=sustainedRules and "NEXT SOUND" or "NEXT STYLE" end
   local detail=nextStyle and (nextStyle.name.." · Lv "..nextStyle.level) or "All unlocked"
@@ -1258,6 +1271,7 @@ render=function()
   info("Sound styles change audio, not damage or range. These limits use your current level for the next attack. Lower voice power and cover shorten reach. DPS requires full power and continuous contact.",narrow and 150 or 96)
   for _,s in ipairs(Config.Sounds) do
    local c=card(sustainedRules and (narrow and 108 or 64) or (narrow and 150 or 76))
+   if data.signalDeckPass==true then ShopUI.SignalDeckSkin(c) end
    local voiceOnly=sustainedRules and not attackAudioSettings.AssetForLevel(s.level)
    label(c,s.name.."  /  LEVEL "..s.level..(voiceOnly and "\nVOICE ONLY" or ""),UDim2.new(1,narrow and -28 or -156,0,(narrow or sustainedRules) and 44 or 26),UDim2.fromOffset(14,8),17,gold)
    if not sustainedRules then
@@ -1428,7 +1442,13 @@ render=function()
   end
   local height=Config.ResonanceLayout and math.clamp(content.AbsoluteWindowSize.Y-4,78,300) or 300
   local c=card(height)
+  local crest=data.cityCrestPass==true and Config.CompactCity and not Config.ResonanceLayout
+  if crest then
+   c.Size=UDim2.new(1,-8,0,height+30);c.Name="CityCrestMap"
+   ShopUI.CityCrestSkin(c,{frame=frame,label=label})
+  end
   local holder=frame(c,"MapHolder",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13));holder.BackgroundTransparency=1
+  if crest then holder.Size=UDim2.new(1,-26,1,-56);holder.Position=UDim2.fromOffset(13,43) end
   mapDot=CityMap.create(holder)
   CityMap.update(mapDot,p.Character and p.Character:FindFirstChild("HumanoidRootPart"))
   info(CityMap.mapHelp,64)
@@ -1505,7 +1525,7 @@ render=function()
 end
 academy.menuTabs={"Style","Screams","Quests","Shop","Map","Settings"}
 for i,name in ipairs(academy.menuTabs) do
- local tabText=name=="Style" and "GEAR" or name=="Screams" and "BEAMS" or name=="Quests" and Config.ResonanceLayout and "RULES" or name=="Shop" and "PASSES" or name:upper()
+ local tabText=name=="Style" and "GEAR" or name=="Screams" and "BEAMS" or name=="Quests" and Config.ResonanceLayout and "RULES" or name=="Shop" and "STORE" or name:upper()
  tabs[name]=button(modal,name,tabText,UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function()
   if clientDestroyed or not modal.Visible then return end
   if selected~=name then toggleTab(name) end

@@ -55,6 +55,20 @@ end
 local function gradient(parent,colors,rotation)
  local g=Instance.new("UIGradient");g.Color=ColorSequence.new(colors);g.Rotation=rotation or 0;g.Parent=parent;return g
 end
+function Shop.SignalDeckSkin(card)
+ card.BackgroundColor3=Color3.fromRGB(19,34,62)
+ stroke(card,accent,2)
+ local signal=Instance.new("Frame")
+ signal.Name="SignalDeckTrim";signal.Size=UDim2.new(0,3,1,-20);signal.Position=UDim2.fromOffset(5,10)
+ signal.BackgroundColor3=accent;signal.BorderSizePixel=0;signal.Interactable=false;signal.Active=false;signal.Parent=card
+end
+function Shop.CityCrestSkin(card,ui)
+ card.BackgroundColor3=Color3.fromRGB(44,37,32);stroke(card,gold,2)
+ local crest=ui.frame(card,"AcademyCrest",UDim2.fromOffset(12,12),UDim2.fromOffset(17,15),gold)
+ crest.Rotation=45;crest.Interactable=false
+ local name=ui.label(card,"ACADEMY CITY MAP",UDim2.new(1,-58,0,28),UDim2.fromOffset(38,7),12,gold)
+ name.Font=Enum.Font.GothamBold
+end
 function Shop.Tick()
  for _,view in ipairs(priceViews) do updatePrice(view) end
  for _,timer in ipairs(timers) do
@@ -104,7 +118,18 @@ function Shop.Render(data,ui,action)
  Shop.Clear()
  local narrow=ui.narrow
  local compact=ui.compactLandscape==true
- local hero=ui.card(compact and 124 or narrow and 300 or 260);hero.Name="SpectrumFeature";hero.LayoutOrder=1
+ local function section(name,title,detail,tint,order,link,target)
+  local c=ui.card(64);c.Name=name;c.LayoutOrder=order
+  c.BackgroundColor3=Color3.fromRGB(18,29,48)
+  local line=ui.frame(c,"SectionAccent",UDim2.fromOffset(3,28),UDim2.fromOffset(8,13),tint)
+  line.Interactable=false
+  local heading=ui.label(c,title,UDim2.new(1,-108,0,20),UDim2.fromOffset(20,7),14,tint)
+  heading.Font=Enum.Font.GothamBlack
+  ui.label(c,detail,UDim2.new(1,-108,0,32),UDim2.fromOffset(20,26),12,soft)
+  local jump=ui.button(c,"Browse"..target,link,UDim2.fromOffset(70,44),UDim2.new(1,-78,0,10),function() ui.jump(target) end,ink)
+  jump.TextSize=12;jump.TextColor3=tint
+ end
+ local hero=ui.card(compact and 124 or narrow and 300 or 260);hero.Name="SpectrumFeature";hero.LayoutOrder=10
  local textScale,textOffset=compact and .48 or 1,compact and -24 or -32
  local function heroLabel(text,height,y,size,color)
   return ui.label(hero,text,UDim2.new(textScale,textOffset,0,height),UDim2.fromOffset(16,y),size,color)
@@ -125,7 +150,8 @@ function Shop.Render(data,ui,action)
  end
  heroLabel("Yellow base. Saved colors are kept.",compact and 24 or narrow and 42 or 30,compact and 86 or 167,13,soft)
  purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,UDim2.new(compact and .52 or 1,-32,0,44),compact and UDim2.new(.48,16,0,66) or UDim2.fromOffset(16,narrow and 238 or 206))
- local movement=ui.card(narrow and 202 or 170);movement.Name="MovementFeature";movement.LayoutOrder=2
+ section("PassesSection","GAME PASSES","One-time unlocks",accent,15,"BOOSTS ↓","BoostsSection")
+ local movement=ui.card(narrow and 202 or 170);movement.Name="MovementFeature";movement.LayoutOrder=20
  movement.BackgroundColor3=Color3.new(1,1,1)
  gradient(movement,{ColorSequenceKeypoint.new(0,Color3.fromRGB(22,44,68)),ColorSequenceKeypoint.new(1,Color3.fromRGB(16,26,44))},25)
  stroke(movement,accent)
@@ -136,26 +162,29 @@ function Shop.Render(data,ui,action)
   {key="Encore",owned=data.encorePass,tint=gold,preview="ENCORE"},
   {key="Afterimage",owned=data.afterimagePass,tint=violet,preview="›  ›  ›"},
   {key="CityGlow",owned=data.cityGlowPass,tint=gold,preview="GLOW"},
+  {key="SignalDeck",owned=data.signalDeckPass,tint=accent,preview="BEAMS"},
+  {key="CityCrest",owned=data.cityCrestPass,tint=gold,preview="MAP"},
  }
  for index,pass in ipairs(cosmeticOffers) do
   local item=Catalog.Get(pass.key)
-  local c=ui.card(168);c.Name=pass.key.."Feature";c.LayoutOrder=index+2
+  local c=ui.card(168);c.Name=pass.key.."Feature";c.LayoutOrder=(index+2)*10
   c.BackgroundColor3=Color3.new(1,1,1)
   gradient(c,{ColorSequenceKeypoint.new(0,Color3.fromRGB(28,43,75)),ColorSequenceKeypoint.new(1,Color3.fromRGB(44,27,65))},25)
   stroke(c,pass.tint)
-  ui.label(c,item.tag,UDim2.new(1,-32,0,18),UDim2.fromOffset(16,10),11,pass.tint)
-  local name=ui.label(c,item.name,UDim2.new(1,-118,0,28),UDim2.fromOffset(16,29),18)
+  ui.label(c,"COSMETIC PASS",UDim2.new(1,-118,0,24),UDim2.fromOffset(16,8),11,pass.tint)
+  local name=ui.label(c,item.name,UDim2.new(1,-32,0,28),UDim2.fromOffset(16,31),18)
   name.Font=Enum.Font.GothamBlack
-  local plate=ui.frame(c,"PerkPreview",UDim2.fromOffset(74,26),UDim2.new(1,-90,0,30),ink)
+  local plate=ui.frame(c,"PerkPreview",UDim2.fromOffset(74,24),UDim2.new(1,-90,0,8),ink)
   stroke(plate,pass.tint)
   local preview=ui.label(plate,pass.preview,UDim2.fromScale(1,1),UDim2.new(),12,pass.tint)
   preview.TextXAlignment=Enum.TextXAlignment.Center;preview.Font=Enum.Font.GothamBold
   ui.label(c,item.description,UDim2.new(1,-32,0,40),UDim2.fromOffset(16,61),14,soft)
   purchaseButton(item,c,pass.owned,data,ui,action,UDim2.new(1,-32,0,46),UDim2.fromOffset(16,108))
  end
+ section("BoostsSection","TIMED BOOSTS","30 min · Counts down offline",violet,75,"PASSES ↑","SpectrumFeature")
  for index,key in ipairs({"XP","Coins"}) do
   local item=Catalog.Get(key);local tint=key=="XP" and violet or gold
-  local c=ui.card(narrow and 262 or 242);c.Name="Boost"..key;c.LayoutOrder=index+2+#cosmeticOffers;stroke(c,tint)
+  local c=ui.card(narrow and 262 or 242);c.Name="Boost"..key;c.LayoutOrder=(index+2+#cosmeticOffers)*10;stroke(c,tint)
   local badge=ui.frame(c,"Multiplier",UDim2.fromOffset(54,54),UDim2.fromOffset(16,16),tint)
   local badgeText=ui.label(badge,"2×",UDim2.fromScale(1,1),UDim2.new(),27,ink);badgeText.TextXAlignment=Enum.TextXAlignment.Center;badgeText.Font=Enum.Font.GothamBlack
   ui.label(c,item.tag,UDim2.new(1,-100,0,20),UDim2.fromOffset(84,13),12,tint)
@@ -181,7 +210,7 @@ function Shop.Render(data,ui,action)
   end
  end
  local footer=ui.info("New boosts activate automatically on confirmed delivery and stack time, not multiplier. Previously saved boosts remain usable.")
- if footer then footer.LayoutOrder=5+#cosmeticOffers end
+ if footer then footer.LayoutOrder=(5+#cosmeticOffers)*10 end
  Shop.Tick()
 end
 function Shop.ColorMixer(data,ui,action)

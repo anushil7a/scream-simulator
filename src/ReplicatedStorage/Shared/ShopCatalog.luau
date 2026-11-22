@@ -8,6 +8,8 @@ Catalog.Items={
  {key="Encore",name="ENCORE",tag="PERMANENT PASS",description="See an Encore title above your name in safe areas.",kind="pass",id=0,suggestedPrice=79},
  {key="Afterimage",name="AFTERIMAGE",tag="PERMANENT PASS",description="Leave a cosmetic trail when you dodge in safe areas.",kind="pass",id=0,suggestedPrice=99},
  {key="CityGlow",name="CITY GLOW",tag="PERMANENT PASS",description="Soft gold outline in safe areas. Only you can see it.",kind="pass",id=0,suggestedPrice=59},
+ {key="SignalDeck",name="SIGNAL DECK",tag="PERMANENT PASS",description="Give your Beam Collection a neon instrument-panel theme.",kind="pass",id=0,suggestedPrice=69},
+ {key="CityCrest",name="CITY CREST",tag="PERMANENT PASS",description="Give your personal City map a gold Academy crest and trim.",kind="pass",id=0,suggestedPrice=49},
 }
 function Catalog.Get(key) for _,item in ipairs(Catalog.Items) do if item.key==key then return item end end end
 function Catalog.Product(id)

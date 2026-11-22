@@ -35,6 +35,7 @@ CLIENT_CARD
  local ui={card=function(h)local p=card(h);table.insert(f.cards,p);return p end,frame=frame,label=label}
  ui.button=function(...)local p=button(...);table.insert(f.buttons,p);return p end
  ui.info=function(text)f.info=text end
+ ui.jump=function()end
  local action={FireServer=function(_,verb,key)f.sent+=1;table.insert(f.actions,{verb,key})end}
  local function module()
 '''
@@ -136,7 +137,8 @@ local function trace(old,current)
 end
 local function layout(f,narrow)
  for index,key in ipairs({'XP','Coins'})do
-  local card=f.cards[index+5];local timer=f.stats().timers[index];local band=timer.band;local status=timer.label;local indicator=timer.indicator
+  local timer=f.stats().timers[index];local band=timer.band;local card=band.Parent;local status=timer.label;local indicator=timer.indicator
+  check(card.Name=='Boost'..key,'Boost status belongs to the wrong offer')
   local tint=key=='XP' and {R=173/255,G=139/255,B=1} or {R=1,G=209/255,B=111/255}
   local badge=named(f,card,'Multiplier');local badgeText=children(f,badge)[2]
   check(equal(badge.BackgroundColor3,tint) and badgeText.Text=='2×' and equal(badgeText.TextColor3,ink),'Multiplier badge lost tint/ink identity')
@@ -161,8 +163,12 @@ for _,narrow in ipairs({false,true})do
     local data={savingAvailable=saving,shop={ready=ready,inventory={xp=saved and 3 or 0,coins=saved and 1 or 0},ends={xp=200,coins=100.001},serverNow=100}}
     local old=baseline();local current=fixture();old.render(data,narrow);current.render(data,narrow)
     trace(old,current);paint(current);layout(current,narrow)
-    graph(old,current,old.cards[1],current.cards[1],nil,nil,false);movementCard(old,current,old.cards[4],current.cards[2])
-    for i=1,2 do graph(old,current,old.cards[i+1],current.cards[i+5],old.stats().timers[i],current.stats().timers[i],true)end
+    graph(old,current,old.cards[1],current.cards[1],nil,nil,false)
+    local movement
+    for _,card in ipairs(current.cards)do if card.Name=='MovementFeature'then movement=card;break end end
+    check(movement~=nil,'Movement card semantic name missing')
+    movementCard(old,current,old.cards[4],movement)
+    for i=1,2 do graph(old,current,old.cards[i+1],current.stats().timers[i].band.Parent,old.stats().timers[i],current.stats().timers[i],true)end
     for _,now in ipairs({.001,.999,1,59.1,100,100.001})do old.now=now;current.now=now;old.shop.Tick();current.shop.Tick();trace(old,current);paint(current)end
     for _,f in ipairs({old,current})do for _,p in ipairs(f.buttons)do p.Activated:Fire()end end;trace(old,current)
     for index=1,4 do old.finish(index,{IsForSale=true,PriceInRobux=20+index});current.finish(commerceOrder[index],{IsForSale=true,PriceInRobux=20+index})end;trace(old,current)

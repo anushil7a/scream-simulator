@@ -6,8 +6,8 @@ path='src/StarterPlayer/StarterPlayerScripts/ShopUI.luau';s=subprocess.check_out
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
- local f={now=0,jobs={},buttons={},sent=0,labels={},cards={}};local os={clock=function()return f.now end,time=function()return 100 end}
- local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement','Encore','Afterimage','CityGlow'})do table.insert(Catalog.Items,{key=key,id=i<=4 and 100+i or 0,suggestedPrice=i==5 and 79 or 99,kind=(i==1 or i>=4) and 'pass' or 'product'})end
+ local f={now=0,jobs={},buttons={},links={},sent=0,labels={},cards={}};local os={clock=function()return f.now end,time=function()return 100 end}
+ local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement','Encore','Afterimage','CityGlow','SignalDeck','CityCrest'})do table.insert(Catalog.Items,{key=key,id=i<=4 and 100+i or 0,suggestedPrice=i==5 and 79 or 99,kind=(i==1 or i>=4) and 'pass' or 'product'})end
  function Catalog.Get(key)for _,v in ipairs(Catalog.Items)do if v.key==key then return v end end end
  for _,item in ipairs(Catalog.Items)do item.tag='tag';item.name=item.key;item.description='description';item.boost=item.key=='XP' and 'xp' or 'coins'end
  local Config={MovementPassId=104}
@@ -22,7 +22,7 @@ local function fixture()
  local task={spawn=function(fn,...)
   local args={...};local co=coroutine.create(fn);table.insert(f.jobs,{co=co,args=args});assert(coroutine.resume(co,...))
  end}
- local ui={button=function(parent,name,text,size,pos,callback)local b={Name=name,Text=text,Parent=true,callback=callback,holder=parent,size=size,pos=pos};table.insert(f.buttons,b);return b end}
+ local ui={button=function(parent,name,text,size,pos,callback)local b={Name=name,Text=text,Parent=true,callback=callback,holder=parent,size=size,pos=pos};table.insert(name:sub(1,6)=='Browse' and f.links or f.buttons,b);return b end,jump=function(name)f.destination=name end}
  ui.card=function(height)local card={height=height};table.insert(f.cards,card);return card end;ui.label=function(_,text)f.labels[text]=true;return {Text=text}end;ui.frame=function()return {}end;ui.info=function()end
  local action={FireServer=function()f.sent+=1 end}
  local function module()
@@ -33,7 +33,7 @@ end
 local m=module();f.shop=m.shop;f.stats=m.stats;f.items=Catalog.Items;f.config=Config
 function f.draw(i,clear,allowed,owned)if clear~=false then m.shop.Clear()end;m.button(Catalog.Items[i or 2],{},owned==true,{savingAvailable=allowed~=false},ui,action,{},{});return f.buttons[#f.buttons]end
 function f.render(narrow,compact,data)
- ui.narrow=narrow;ui.compactLandscape=compact;f.buttons={};f.cards={}
+ ui.narrow=narrow;ui.compactLandscape=compact;f.buttons={};f.cards={};f.links={}
  m.shop.Render(data or {savingAvailable=true,shop={ready=true,inventory={},ends={},serverNow=100}},ui,action)
 end
 function f.finish(i,result)local ok,err=coroutine.resume(f.jobs[i].co,result);assert(ok,err);m.shop.Tick()end
@@ -57,7 +57,7 @@ if visual.shop.CompactLandscape then
   local feature=visual.cards[1];local cta=visual.buttons[1]
   local scrollY=math.min(620,xy[2]-76)-(54+50+18)
   check(feature.height<=scrollY and cta.pos.y+cta.size.y<=feature.height and cta.size.y==44,'Spectrum action below first fold or shortened')
-  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==(visual.cards[2].Name=='MovementFeature' and (visual.cards[5].Name=='CityGlowFeature' and 7 or 6) or 4),'Hierarchy or action count changed')
+  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==9,'Hierarchy or action count changed')
  end
  check(not visual.shop.CompactLandscape(643,388) and not visual.shop.CompactLandscape(749,325) and not visual.shop.CompactLandscape(749,431),'Breakpoint leaked')
  visual.render(false,false);check(visual.cards[1].height==260 and visual.buttons[1].pos.y==206,'Desktop hero changed')
@@ -130,20 +130,28 @@ f=fixture();f.items[2].id=0;b=f.draw();check(#f.jobs==0 and b.Text=='COMING SOON
 if visual.shop.CompactLandscape and visual.buttons[3].Name=="BuyEncore" then
  local f=fixture()
  f.render(false,false)
- local order={"BuySpectrum","BuyMovement","BuyEncore","BuyAfterimage","BuyCityGlow","BuyXP","BuyCoins"}
- for i,name in ipairs(order)do check(f.buttons[i].Name==name and f.cards[i].LayoutOrder==i,'Permanent passes must appear before timed boosts')end
- for i=3,5 do
+ local order={"BuySpectrum","BuyMovement","BuyEncore","BuyAfterimage","BuyCityGlow","BuySignalDeck","BuyCityCrest","BuyXP","BuyCoins"}
+ for i,name in ipairs(order)do check(f.buttons[i].Name==name and f.buttons[i].holder.LayoutOrder==i*10,'Permanent passes must appear before timed boosts')end
+ check(#f.links==2 and f.links[1].size.y==44 and f.links[2].size.y==44,'Missing section shortcuts or touch target')
+ check(f.links[1].holder.LayoutOrder==15 and f.links[2].holder.LayoutOrder==75,'Sections are out of order')
+ f.links[1].callback();check(f.destination=='BoostsSection','Boosts shortcut did not open boost section')
+ f.links[2].callback();check(f.destination=='SpectrumFeature','Passes shortcut did not return to featured pass')
+ for i=3,7 do
   local b=f.buttons[i]
   check(b.Text=="COMING SOON" and not b.Interactable and b.size.y>=45,'Unconfigured pass needs a disabled state and full target')
   b.callback()
  end
  check(f.sent==0 and #f.jobs==4,'Unconfigured pass attempted price lookup or purchase')
- f.render(true,false,{encorePass=true,afterimagePass=true,cityGlowPass=true,savingAvailable=true})
- for i=3,5 do
+ f.render(true,false,{encorePass=true,afterimagePass=true,cityGlowPass=true,signalDeckPass=true,cityCrestPass=true,savingAvailable=true})
+ for i=3,7 do
   local b=f.buttons[i];check(b.Text=="OWNED" and not b.Interactable,'Owned cosmetic state was lost')
   b.callback()
  end
  check(f.sent==0,'Owned pass attempted purchase')
+ f.render(true,false,{signalDeckPass=true,savingAvailable=true})
+ check(f.buttons[6].Text=='OWNED' and f.buttons[7].Text=='COMING SOON','Ownership of the new passes must remain independent')
+ f.render(true,false,{cityCrestPass=true,savingAvailable=true})
+ check(f.buttons[6].Text=='COMING SOON' and f.buttons[7].Text=='OWNED','Ownership of the new passes must remain independent')
  f=fixture()
  for i=1,4 do f.items[i].id=0 end;f.config.MovementPassId=0;f.items[7].id=107
  f.render(false,false)
@@ -153,6 +161,17 @@ if visual.shop.CompactLandscape and visual.buttons[3].Name=="BuyEncore" then
  check(glow.Text=='R$ 47' and glow.Interactable,'City Glow did not display its runtime price')
  glow.callback()
  check(f.sent==1,'Available City Glow did not request checkout')
+ for offset,key in ipairs({'SignalDeck','CityCrest'}) do
+  f=fixture()
+  for i=1,4 do f.items[i].id=0 end
+  f.config.MovementPassId=0;f.items[7+offset].id=107+offset
+  f.render(false,false)
+  check(#f.jobs==1 and f.jobs[1].args[2]==107+offset and f.jobs[1].args[3]=='pass','New pass looked up the wrong ID or information type')
+  f.finish(1,{IsForSale=true,PriceInRobux=41+offset})
+  local pass=f.buttons[5+offset]
+  check(pass.Name=='Buy'..key and pass.Interactable and pass.Text=='R$ '..(41+offset),'New pass did not use the Roblox-returned price')
+  pass.callback();check(f.sent==1,'Available new pass did not request checkout')
+ end
  f=fixture();f.items[5].id=105;f.items[6].id=106
  f.render(false,false)
  check(#f.jobs==4 and f.buttons[3].Text~="R$ 79" and f.buttons[4].Text~="R$ 99",'Checkout displayed a suggested price or exceeded request limit')
@@ -166,7 +185,7 @@ print('PASS',n,'actual price-path assertions; coroutine API and GUI mocks only')
 '''
 # Historical lifecycle repros retain their original UI copy and intended failure oracle.
 if a.baseline or a.callback_baseline or a.disabled_baseline:
- checks='\n'.join(line for line in checks.split('\n') if 'Spectrum concise copy missing' not in line and 'Repeated hue instruction retained' not in line)
+ checks='\n'.join(line for line in checks.split('\n') if not any(message in line for message in ('Spectrum concise copy missing','Repeated hue instruction retained','Hierarchy or action count changed')))
 
 def run(source,error=None,baseline=False):
  tail="local f=fixture();for i=1,120 do f.draw()end;assert(#f.jobs==120);print('REPRO120 rerenders create120 pending price calls')" if baseline else checks
@@ -185,6 +204,8 @@ else:
   mutations=[('Yellow base. Saved colors are kept.','Unlock the hue picker. Yellow is the base color; saved colors are kept.','Spectrum concise copy missing'),('revision==generation and b and b.Parent and available','b and b.Parent and available','Obsolete priced callback sent after clear'),('revision==generation and b and b.Parent and available','revision==generation and available','Obsolete priced callback sent after detach'),(' or prices[item.key] and prices[item.key].key~=item.kind..":"..id','','Owned changed configuration retained obsolete request'),('if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end' ,'-- omitted disabled invalidation','Disabled ID roundtrip reused obsolete request'),('if record.info and os.clock()<record.expires then view.apply(record.info,false);return end','-- omitted synchronous cache apply','Synchronous success displayed unavailable'),('not record.pending and now>=','now>=','Rerenders duplicated pending request'),('priceInFlight<PRICE_LIMIT','true','Hung slot abandoned/replaced'),('record.retryAt=now+PRICE_RETRY','record.retryAt=now','Error not unavailable'),('now<record.deadline and validPrice(info)','validPrice(info)','Timed-out response cached'),('table.clear(priceViews)','do end','Full Render did not bound four product views/calls'),('if prices[record.itemKey]~=record then return end','if false then return end','Obsolete ID record accepted result')]
   for old,new,error in mutations:
    assert s.count(old)==1,old;run(s.replace(old,new),error)
+  run(s.replace('"BOOSTS ↓","BoostsSection"','"BOOSTS ↓","SpectrumFeature"'),'Boosts shortcut did not open boost section')
+  run(s.replace('owned=data.signalDeckPass','owned=data.cityCrestPass'), 'Ownership of the new passes must remain independent')
 
   worker=s[s.index('local function fetchPrice('):s.index('local function updatePrice(')]
   assert all(word not in worker for word in ['view.','apply(','button','data.']), 'Worker captures GUI context'

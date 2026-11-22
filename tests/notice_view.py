@@ -142,9 +142,12 @@ local academy={surface=function()end,compactObjective={},damageReadout={},gearUp
 local renderedTab,renderedMenuKey
 TOGGLE
 local top={};local dark,gold={},{};local function button(_,_,text,_,_,fn)return {Visible=true,callback=fn,Text=text}end
+local storeSignal={}
+local function frame(_,name)check(name=='StoreSignal','Unexpected store launcher decoration');return storeSignal end
 MENU_BUTTON
 QUEST_BUTTON
 PASS_BUTTON
+check(storeSignal.Interactable==false and storeSignal.Active==false and storeSignal.Selectable==false,'Store signal intercepted activation')
 local Config={Quests={{id='a',goal=3},{id='b',goal=2}}};data.quests={}
 local gold,white={},{}
 QUEST_LABEL

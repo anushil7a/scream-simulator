@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## City Store and personal cosmetics
+
+- The HUD now opens City Store directly. Spectrum stays featured, the game-pass and timed-boost sections have reciprocal scroll shortcuts, and boost cards still show the confirmed countdown and any saved inventory.
+- Existing offers remain in the store. Signal Deck (suggested 69 Robux) adds cyan panels and trim to the owner's Beam Collection. City Crest (suggested 49 Robux) decorates the owner's expanded City map without changing its markers or navigation. Both apply automatically from confirmed ownership. Neither affects player speed, combat, visibility in the world or rewards.
+- New IDs stay zero until the owner configures the offers in Creator Dashboard. The buttons stay disabled with zero IDs. Configured offers use Roblox-returned prices, and boost delivery still uses the existing receipt ledger. Next owner step is to create the passes, supply distinct IDs and verify Store pricing and entitlement refresh in the isolated release environment.
+- Full local verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. Focused regressions passed 156 pricing and navigation assertions, 90 entitlement assertions and 71 commerce assertions with 37 combined negative controls. Native Studio fit and interaction used local profiles and staged ownership. Live Marketplace prices, receipts and ownership remain unverified.
+- In the iPhone 13 landscape Studio emulator at 749 × 330 safe pixels, Store opened by emulated tap and all nine offers fit their labels. Both section shortcuts worked once in view. The iPhone 17 Pro layout at 750 × 323 clipped part of the first card below the fold as expected for a scroll view. An emulated continuous touch swipe reached the final boost footer. Physical-phone testing remains open.
+
 ## Keep the defender's hit and dodge feedback truthful
 
 - The previous defender HUD let a dodge replace a recent hit. A second hit could reduce HP during the server's existing one-second warning throttle while the player still saw only the green dodge message. The production helpers reproduced this sequence in isolated Luau, and a staged native UI replay confirmed the rendered green label while the fixture's health decreased.
@@ -7,6 +15,8 @@
 - The local late-game visual probe staged two level-100 Gold beams. The close frontal view showed both reduced silhouettes and readable health. In a fixed off-axis view, the brighter beam partially covered the avatar's torso while the face and HUD stayed legible. This sampled camera framing with synthetic beams; it does not establish combat readability for real players or physical devices.
 
 - Exact final desktop and iPhone 7 Studio emulator replays covered both hit/dodge orders, the expiry, and a later standalone evade. At 666 × 316 safe pixels the mixed text measured 78 × 13 in a 116 × 18 label and fit beside the staged 375/480 HP. The final replay showed no green-only tail after the staged damage. Real voice, physical input, and live delivery remain open.
+
+- A follow-up replay from an immutable archive of `206d325` exercised the actual Action and Effect remotes in two native Studio clients. Authority reduced defender HP from 100 to 97, accepted Forward Dodge, then reduced HP to 93 and 90 within the first hit's one-second notice throttle. The defender received just one damage packet and one evade packet. At roughly 1274 × 634, the live label showed red HIT + DODGE, fit its 116 × 18 allocation and cleared without a green tail. Positions, readiness, beam power and input timing were scripted locally. No real microphone, physical input, live network or live persistence was exercised.
 - Independent review cleared the change. Client integration passed 382 assertions and 41 negative controls. Existing server contact and sustained authority checks passed. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. Next check current City encounters with an actual eligible voice pair and physical input when an isolated playtest is available.
 
 ## Keep the desktop wallet readable beside combat

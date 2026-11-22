@@ -32,7 +32,7 @@ CHECKS=r'''
 local names={'Style','Screams','Quests','Shop','Map','Settings'}
 local signatures={};local totalFrames=0
 for _,name in ipairs(names)do
- local b=tabs[name];check(b~=nil and b.Text==(name=='Style' and 'GEAR' or name=='Screams' and 'BEAMS' or name=='Shop' and 'PASSES' or string.upper(name)),'Tab label changed')
+ local b=tabs[name];check(b~=nil and b.Text==(name=='Style' and 'GEAR' or name=='Screams' and 'BEAMS' or name=='Shop' and 'STORE' or string.upper(name)),'Tab label changed')
  local icons={};for _,o in ipairs(made)do if o.Parent==b and o.ClassName=='Frame' then table.insert(icons,o)end end
  check(#icons==1,'Missing or duplicate tab icon');local icon=icons[1]
  check(icon.Size.X.Offset==20 and icon.Size.Y.Offset==20,'Icon bounds changed')

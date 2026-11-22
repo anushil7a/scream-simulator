@@ -65,7 +65,13 @@ These are source/integration milestones, not blanket verification of every devic
 
 A usable microphone and Roblox voice eligibility are required for microphone-driven attacks, not for movement or ordinary menus. There is no blocking microphone setup panel. Actual microphone sensitivity and comfortable-speech behavior remain unverified. Synthetic fixtures in `tests/` can exercise selected mechanics, but are not a substitute for live voice validation and must never be appended to production source.
 
-## Boost delivery (unpublished local candidate)
+## City Store (unpublished local candidate)
+
+Open **STORE** on the HUD or in the main menu. The shop includes Spectrum, Freerunner, Encore, Afterimage and City Glow, plus two new permanent cosmetic passes. **Signal Deck** adds a cyan instrument-panel theme to the owner's Beam Collection. **City Crest** adds gold Academy trim to the owner's full City map. The new passes apply automatically while owned and do not change combat, navigation information or rewards.
+
+Suggested default prices are 69 Robux for Signal Deck and 49 Robux for City Crest. Create both passes under the game's Roblox Creator Dashboard, set the default sale prices there, and enter their unique IDs in [ShopCatalog](src/ReplicatedStorage/Shared/ShopCatalog.luau). All source IDs remain disabled pending owner configuration. The store displays the runtime Roblox price when available, so regional offers can differ from the defaults.
+
+### Boost delivery
 
 Configured boost purchases activate on confirmed server receipt delivery, extending the current expiry by 30 minutes once per receipt. They stack time at 2x; time continues offline. Old saved boosts remain separately usable. Product IDs are not configured, and real receipt delivery is unverified. See [behavior, simulated evidence and limitations](docs/BOOST_PURCHASE_REVIEW.md).
 
