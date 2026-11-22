@@ -79,7 +79,8 @@ terrace('CentralGardenTerrace',-250,190,-180,210,16,grass,[(58,102,150,210),(-25
 terrace('AmphitheatrePlateau',-65,245,-495,-165,32,dark,[(-65,-60,-495,-165),(200,245,-275,-165)])
 terrace('VolcanoPlateau',200,510,-275,135,32,dark,[(200,300,23,57)])
 # Main gentle routes connect all terrace levels, exact endpoints used by QA.
-routes=[('AcademyGarden',[-90,32,-170],[-90,16,-70],36),('GardenCoast',[80,16,150],[80,0,250],40),('GardenArena',[-190,16,110],[-290,0,110],36),('AcademyAmphitheatre',[-70,32,-330],[90,32,-330],32),('VolcanoBridgeNorth',[90,32,-190],[300,32,-180],28),('VolcanoBridgeSouth',[170,16,40],[300,32,40],30),('ShrineAscent',[450,32,-250],[450,64,-420],26),('ShrineApproach',[450,64,-420],[350,64,-420],28)]
+# GardenCoast spans the full 58..102 notch so the ramp edges support the avatar.
+routes=[('AcademyGarden',[-90,32,-170],[-90,16,-70],36),('GardenCoast',[80,16,150],[80,0,250],44),('GardenArena',[-190,16,110],[-290,0,110],36),('AcademyAmphitheatre',[-70,32,-330],[90,32,-330],32),('VolcanoBridgeNorth',[90,32,-190],[300,32,-180],28),('VolcanoBridgeSouth',[170,16,40],[300,32,40],30),('ShrineAscent',[450,32,-250],[450,64,-420],26),('ShrineApproach',[450,64,-420],[350,64,-420],28)]
 for n,a,b,w in routes:ramp(n,a,b,w)
 # Road ribbons and central switchback with planted islands.
 for n,pos,sz in [('AcademySpine',[-300,32.13,-260],[350,.2,26]),('AcademyTraining',[-300,32.14,-400],[360,.2,26]),('GardenSpine',[-10,16.13,110],[360,.2,30]),('GardenNorth',[-30,16.14,-60],[320,.2,28]),('GardenWest',[-90,16.15,20],[28,.2,180]),('GardenEast',[100,16.16,25],[28,.2,180]),('CoastalWalk',[0,.12,420],[960,.2,36]),('CoastArena',[-430,.13,260],[30,.2,280]),('SportsApproach',[300,.14,240],[30,.2,320])]:box(n,pos,sz,cream,False)

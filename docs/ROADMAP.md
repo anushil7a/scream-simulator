@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Close the lateral seams on the Beach quest ramp
+
+- The first-upgrade walk on `a86db39` lost all breadcrumbs near the west edge of GardenCoast. In a matched local Studio probe on `083d0ce`, the staged root at (59.269, 14.745, 181.998) and the live first bottle target reproduced **Route unavailable** with zero markers. A collidable downward ray hit the island floor at Y0. Roblox returned a 95-waypoint route starting on the Y16 terrace, while the recorded center position started down the ramp and displayed 18 markers.
+- The 40-stud ramp left a 2-stud gap on either side of the 44-stud terrace notch. The original ramp now fills the notch. The ramp's slope, endpoints, part count, garden PvP bounds and quest targets stay the same. The Guide still uses the same path settings and collision checks.
+- An initial native width-only control, at the identical west root and bottle target, produced a 78-waypoint ramp route and 18 visible markers. A separate sample at the mirrored east edge also displayed 18. These probes used staged root positions with the production Guide and Roblox pathfinding. The source geometry contract reproduced the seam on the old width and verifies support in the live layout and preview data.
+
+- The exact final Studio build drew 18 markers at the staged west, center and mirrored east positions. The west ground ray now hit GardenCoast at Y10.880. Probes confirmed the adjoining terrace still supports at Y16, and all three paths reached the first bottle within 1.9 studs vertically. From the staged west start, a normal keyboard descent kept X59.27, reached Z250.77 at full health and displayed no **Route unavailable** message in the sampled readouts.
+- Independent review cleared the footprint and found no additional solid overlap in the filled strips. The focused map contract passed 1,101 assertions. The repair suite passed 18 checks and the guide passed 199 assertions and 15 negative controls. Full local verification passed 29 pure or synthetic suites, 168 mocked suites, 99 Luau compilations and Rojo builds. The exact native build SHA-256 was `946d9f94055d69b90b8ca4bb8f9b73f5c9850bf1cea862be0e3bc46bd0ea6fee`.
+
 ## Refresh the Pass Shop and add safe-area cosmetics
 
 - **PASSES** on the HUD opens the **PASS SHOP**. Spectrum has a first-screen shortcut to the timed boosts, and their header returns to the featured pass. Wide cosmetic cards put the checkout beside the benefit. Narrow cards keep a 46-pixel checkout below the benefit. The existing nine passes and both timed boosts are retained.

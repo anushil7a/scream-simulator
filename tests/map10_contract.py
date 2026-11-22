@@ -24,6 +24,20 @@ rules=(R/'src/ReplicatedStorage/Shared/TrainingRules.luau').read_text()
 radius=int(re.search(r'local Training=\{Radius=(\d+)',rules).group(1))
 homes=[tuple(map(int,m)) for m in re.findall(r'\{x=(-?\d+),y=(-?\d+),z=(-?\d+)\}',next(l for l in layout.splitlines() if l.startswith('Layout.TrainingHomes=')))]
 by_id={part['id']:part for part in parts}
+coast_ramp=by_id['GardenCoast']
+west=by_id['CentralGardenTerrace0']
+east=by_id['CentralGardenTerrace3']
+west_edge=west['position'][0]+west['size'][0]/2
+east_edge=east['position'][0]-east['size'][0]/2
+ramp_x,_,_=coast_ramp['position']
+half_width=coast_ramp['size'][0]/2
+check(coast_ramp['collidable'] and coast_ramp['rotation'][1:]==[0,0]
+      and (ramp_x-half_width,ramp_x+half_width)==(west_edge,east_edge),
+      'Coast ramp leaves a lateral seam or overlaps its terrace walls')
+for code in (layout,(R/'src/ReplicatedStorage/Shared/Map10Geometry.luau').read_text()):
+ row=next(line for line in code.splitlines() if line.startswith('{id="GardenCoast"'))
+ check('size=Vector3.new('+','.join(map(str,coast_ramp['size']))+')' in row
+       and 'collidable=true' in row,'Coast ramp runtime and preview support differ')
 sea=by_id['Sea']
 water=[p for p in parts if p['id']=='Sea' or p['id'].startswith('SeaHorizon')]
 check(len(water)==9,'Pier sea ends at the inner tile')
