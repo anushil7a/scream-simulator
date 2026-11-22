@@ -32,7 +32,7 @@ local clientDestroyed=false;local modal=node();modal.Visible=false;local gui={Ab
 local content=node();content.CanvasPosition={X=0,Y=40};content.AbsoluteCanvasSize={Y=600};content.AbsoluteWindowSize={Y=200}
 
 -- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
-local academy={damageReadout={available=false},refreshTestLauncher=function()end,guideMenu=function()end,NavigationCatalog={Resolve=function()return nil end},tabIcons={},tabIcon=function()return {},{} end}
+local academy={damageReadout={available=false},refreshTestLauncher=function()end,guideMenu=function()end,NavigationCatalog={Resolve=function()return nil end},tabIcons={},tabIcon=function()return {},{} end,gearUpgrade=function()return nil end}
 local title,subtitle={},{};local selected='Quests';local render;local tabs={};local devPanel=node();local narrow=false
 local conversationPanel=node();conversationPanel.Visible=false;local showConversation,closeConversation;local conversationName=node();local conversationList=node()
 local muted,gold,panel,white={},{},{},{};local version=0;local data

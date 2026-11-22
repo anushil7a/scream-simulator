@@ -19,7 +19,7 @@ def assemble(s, state_override=None):
  return r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local clientDestroyed=false
-local academy={};local data={devAccess=true};local GuiService={MenuIsOpen=false}
+local academy={gearUpgrade=function()return nil end};local data={devAccess=true};local GuiService={MenuIsOpen=false}
 local modal={Visible=false};local conversationPanel={Visible=false};local testButton={Visible=false}
 local miniMapButton={Visible=true};local devPanel={Visible=false};local selected='Shop'
 local renderedMenuKey='old';local renderRevision=0;local clears=0;local renders=0

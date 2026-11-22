@@ -45,7 +45,7 @@ local modal={Visible=false};local gui={AbsoluteSize={X=720,Y=720},Destroy=functi
 local content={CanvasPosition={X=0,Y=40},AbsoluteCanvasSize={Y=600},AbsoluteWindowSize={Y=200},GetChildren=function()return {}end}
 
 -- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
-local academy={tabIcons={},tabIcon=function()return {},{} end,refreshTestLauncher=function()end,canShowTestLauncher=function()return not clientDestroyed and not modal.Visible end}
+local academy={tabIcons={},tabIcon=function()return {},{} end,refreshTestLauncher=function()end,canShowTestLauncher=function()return not clientDestroyed and not modal.Visible end,gearUpgrade=function()return nil end}
 academy.starterCoinAction=function()end
 local tabs={};local panel={};local title={};local subtitle={};local mapDot;local narrow=false
 local devPanel={Visible=false};local data={level=1,xp=0,xpNext=100,savingAvailable=true,settings={},quests={},aura='Gold',shop={ready=true,inventory={},ends={},serverNow=100}}

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Put the next gear upgrade first on reopen
+
+- On a level-1 temporary profile with the Megaphone purchased, the Micro-speaker buy button sat 490 pixels below the top of a 111-pixel scroll window in the shortest Studio phone sample. Gear now uses the catalog order to promote the tier after the strongest owned item. Fresh players still see the Academy Megaphone first. Players who own the highest tier return to the normal ordering.
+- The menu snapshots its order on opening. The same visible panel retained the Megaphone button position after the server debited 100 earned coins. On reopen, the Micro-speaker was first at Y=6, advertising 200 coins, and the color mixer remained in the list. At 666 × 316 and 566 × 239 usable pixels, the promoted name and button fit. The tester used the actual State and Gear remote handlers with staged coins and scripted open and buy commands. That verifies ordering and one authorized earned-coin debit, with no physical touch or real purchase. Studio reset to the default viewport and the disposable session closed.
+- Independent review identified and cleared the risk of changing the item underneath a second tap in the same open panel. The three focused controls catch missing promotion, order changes during an open panel, and duplicate cards. The first full run exposed mocked tab handlers lacking the new Gear lookup. After refreshing four fixtures, all 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds passed.
+
 ## Boss guides acknowledge a defeat
 
 - With the eligible player five studs from the Metronome waypoint, native Studio showed **Hit boss to join** even at zero boss HP. The actual boss service rejected another hit and recorded a 90-second respawn window. The guide now shows **Boss defeated** when either replicated health or phase confirms the knockout, and **Boss unavailable** if the encounter data is missing. The level requirement still takes precedence for lower-level players.

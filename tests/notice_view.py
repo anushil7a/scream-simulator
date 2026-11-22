@@ -122,7 +122,7 @@ local NoticeLayout=Layout;local noticeView=make();local notifications=Queue.new(
 local modal={Visible=false};local title={Visible=true};local talkTarget
 local selected='Shop';local function closeMenu()modal.Visible=false end;local function render()end
 local devPanel={Visible=false};local closeConversation;local action={FireServer=function()end}
-local academy={damageReadout={}} -- The extracted tab handler shares the Client UI namespace.
+local academy={damageReadout={},gearUpgrade=function()return nil end} -- The extracted tab handler shares the Client UI namespace.
 local renderedTab,renderedMenuKey
 TOGGLE
 local top={};local dark,gold={},{};local function button(_,_,text,_,_,fn)return {Visible=true,callback=fn,Text=text}end

@@ -260,6 +260,13 @@ do local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.Sort
 local selected="Style";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
 local conversationPanel,showConversation,closeConversation
 local observedMicInterruption=0
+function academy.gearUpgrade(data)
+ local highestOwned
+ for index,item in ipairs(Config.Gear.Items) do
+  if Config.Gear.Owned(data,item.id) then highestOwned=index end
+ end
+ return highestOwned and Config.Gear.Items[highestOwned+1]
+end
 local function toggleTab(name,resetScroll,focusQuest)
  local opening=not modal.Visible or selected~=name
  selected=name;if not opening then closeMenu();return end;modal.Visible=true
@@ -267,6 +274,12 @@ local function toggleTab(name,resetScroll,focusQuest)
  if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end
  if academy.refreshTestLauncher then academy.refreshTestLauncher() end
  if opening then
+  if name=="Style" then
+   -- Keep item positions stable across a purchase response while this tab is open.
+   local nextUpgrade=academy.gearUpgrade(data)
+   if nextUpgrade~=academy.nextGearUpgrade then resetScroll=true end
+   academy.nextGearUpgrade=nextUpgrade
+  end
   if resetScroll then renderedTab=nil;renderedMenuKey=nil end
   if name=="Shop" then action:FireServer("ShopRefresh") end
   if closeConversation then closeConversation() end
@@ -1253,11 +1266,13 @@ render=function()
    if not control.Interactable then control.TextColor3=muted end
   end
   local starter=Config.Gear.Get("Megaphone")
+  local nextUpgrade=academy.nextGearUpgrade
+  if nextUpgrade then gearCard(nextUpgrade,false) end
   if starter then gearCard(starter,true) end
   shopUsed=true;ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
   info("Earned-coin gear · one active bonus · normalized power capped at 100%. Buy once, then equip freely.",90)
   for _,item in ipairs(Config.Gear.Items) do
-   if item~=starter then gearCard(item,false) end
+   if item~=starter and item~=nextUpgrade then gearCard(item,false) end
   end
   info("Movement pass: repeated jumps (24-stud height limit) and consecutive rolls only in safe areas. Arena cooldowns always apply."..(Config.MovementPassId==0 and " Purchase setup is not available yet." or ""),70)
   local base=card(76)

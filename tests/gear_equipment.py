@@ -107,12 +107,16 @@ client=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_t
 start=client.index(' elseif selected=="Style" then',client.index('render=function()'))
 style=client[start:client.index(' elseif selected=="Map" then',start)].split('\n',1)[1]
 coin_action=client[client.index('function academy.starterCoinAction('):client.index('local function menuKey()')]
+gear_upgrade=client[client.index('function academy.gearUpgrade('):client.index('local function toggleTab(')]
+toggle=client[client.index('local function toggleTab('):client.index('local function toggle()')]
+assert toggle.count('academy.nextGearUpgrade=nextUpgrade')==1
+assert client.count('academy.nextGearUpgrade=nextUpgrade')==1,'Card priority changed away from tab-open'
 short_landscape=next(line for line in client.splitlines() if 'local shortLandscape=' in line)
 layout=client[client.index(' local short=viewport.Y<550'):client.index(' if width~=lastLayoutWidth')]
 menu_tabs=next(line for line in client.splitlines() if line.startswith('academy.menuTabs='))
 code=r'''
 local Gear=require('../src/ReplicatedStorage/Shared/GearCatalog')
-local function renderStyle(data,narrow,width)
+local function renderStyle(data,narrow,width,window)
  local quests={garden={goal=3},beach={goal=6}}
  local Config={Gear=Gear,MovementPassId=0,ResonanceLayout=data.hall and {},Auras={Gold='gold'},GetQuest=function(id)return quests[id]end}
  local gui={AbsoluteSize={X=width or (narrow and 390 or 1280)}}
@@ -141,8 +145,17 @@ local function renderStyle(data,narrow,width)
  local ShopUI={ColorMixer=function()table.insert(cards,{text='Color Mixer'})end}
  local action={FireServer=function(_,verb,id)table.insert(sent,{verb,id})end}
  local shopUsed
-'''+coin_action+style+r'''
- return cards,buttons,sent,links,subtitle.Text
+'''+coin_action+gear_upgrade+r'''
+ local modal={Visible=window~=nil};local selected=window and "Style" or "Quests"
+ local function render()end
+ if window then
+  academy.nextGearUpgrade=window.nextGearUpgrade
+ else
+'''+toggle+r'''
+  toggleTab("Style")
+ end
+'''+style+r'''
+ return cards,buttons,sent,links,subtitle.Text,academy
 end
 local hallCards,hallButtons,hallSent,hallLinks,hallSubtitle=renderStyle({hall=true,level=1,coins=0,aura='Gold'},true,666)
 assert(hallSubtitle=='Earn gear with coins from PvP.' and hallCards[1].detail:find('Earn coins from PvP KOs',1,true),'Arena gear points to unavailable training or quests')
@@ -164,12 +177,28 @@ for _,narrow in ipairs({false,true}) do
  assert(cards[1].detail:find('1000 coins in wallet',1,true),'Displayed balance differs before purchase')
  buttons.Megaphone.press();assert(#sent==1 and sent[1][1]=='Gear' and sent[1][2].id=='Megaphone' and sent[1][2].intent=='buy')
  cards,buttons=renderStyle({level=1,coins=900,aura='Gold',megaphoneOwned=true,megaphoneEquipped=true},narrow)
+ assert(cards[1].text=='MICRO-SPEAKER' and cards[2].text=='ACADEMY MEGAPHONE' and cards[3].text=='Color Mixer','Next gear upgrade buried below first purchase')
  assert(buttons.Megaphone.text=='UNEQUIP' and buttons.Megaphone.Interactable)
- assert(cards[1].detail:find('Equipped · 900 coins in wallet',1,true) and not cards[1].detail:find('100 coins',1,true),'Equipped gear shows stale price or balance')
+ assert(cards[2].detail:find('Equipped · 900 coins in wallet',1,true) and not cards[2].detail:find('100 coins',1,true),'Equipped gear shows stale price or balance')
  cards,buttons=renderStyle({level=1,coins=900,aura='Gold',megaphoneOwned=true},narrow)
  assert(buttons.Megaphone.text=='EQUIP' and buttons.Megaphone.Interactable)
- assert(cards[1].detail:find('Owned · 900 coins in wallet',1,true),'Unequipped gear obscures ownership or balance')
+ assert(cards[2].detail:find('Owned · 900 coins in wallet',1,true),'Unequipped gear obscures ownership or balance')
+ cards,buttons=renderStyle({level=35,coins=580,aura='Gold',gearOwned={MosaicMic=true}},narrow)
+ assert(cards[1].text=='STREET BOOMBOX' and buttons.StreetBoombox.text=='NEED 20 COINS','Next upgrade ignored a stronger owned item')
+ local found=0
+ for _,c in ipairs(cards) do if c.text=='STREET BOOMBOX' then found+=1 end end
+ assert(found==1,'Next upgrade was duplicated')
+ cards=renderStyle({level=100,coins=0,aura='Gold',gearOwned={CelestialOrgan=true}},narrow)
+ assert(cards[1].text=='ACADEMY MEGAPHONE' and cards[2].text=='Color Mixer','Max gear promoted a weaker item')
 end
+local _,beforeButtons,beforeSent,_,_,openGear=renderStyle({level=1,coins=300,aura='Gold'},true,567)
+beforeButtons.Megaphone.press()
+assert(beforeSent[1][2].id=='Megaphone','Fixture did not buy the first item')
+local afterFirst={level=1,coins=200,aura='Gold',megaphoneOwned=true,megaphoneEquipped=true}
+local stayed=renderStyle(afterFirst,true,567,openGear)
+assert(stayed[1].text=='ACADEMY MEGAPHONE','An open Gear panel moved a different buy button into the last tapped slot')
+local reopened=renderStyle(afterFirst,true,567)
+assert(reopened[1].text=='MICRO-SPEAKER','Reopening Gear did not promote the next upgrade')
 print('PASS starter gear placement, eligibility and action on narrow and wide layouts; mocked UI')
 local cards,buttons,sent,links=renderStyle({level=1,coins=0,aura='Gold'},true,567)
 assert(buttons.Megaphone.TextColor3~='muted' and buttons.Megaphone.Interactable and buttons.Megaphone.text=='GUIDE TO MAR\nNEED 100 COINS','Fresh player has no route or exact shortfall')
@@ -224,7 +253,7 @@ local available,menuY,closeY,firstTabY=view(567,241)
 assert(available>=60 and menuY==8 and closeY+44<=firstTabY,'Short landscape clips the gear CTA or overlaps close/tab controls')
 local smallerWindow=view(567,321)
 local cards,buttons=renderStyle({level=1,coins=900,aura='Gold',megaphoneOwned=true,megaphoneEquipped=true},true,567)
-assert(cards[1].detailBottom<=smallerWindow and buttons.Megaphone.position.y+buttons.Megaphone.size.h<=smallerWindow,'Short two-row menu clips equipped balance or action')
+assert(cards[1].detailBottom<=smallerWindow and buttons.MicroSpeaker.position.y+buttons.MicroSpeaker.size.h<=smallerWindow,'Short two-row menu clips first upgrade balance or action')
 local _,desktopY=view(1280,720)
 assert(desktopY==64,'Desktop menu moved for compact landscape change')
 print('PASS short landscape content clearance and desktop layout')
@@ -244,6 +273,9 @@ def run_style(source, expected=None):
 run_style(code)
 if '--negative-controls' in sys.argv:
  for old,new,reason in [
+  ('if nextUpgrade then gearCard(nextUpgrade,false) end','if false then gearCard(nextUpgrade,false) end','Next gear upgrade buried below first purchase'),
+  ('local nextUpgrade=academy.nextGearUpgrade','local nextUpgrade=academy.gearUpgrade(data)','An open Gear panel moved a different buy button into the last tapped slot'),
+  ('if item~=starter and item~=nextUpgrade then','if item~=starter then','Next upgrade was duplicated'),
   ('if Config.ResonanceLayout then return end','if false then return end','Arena exposes a city quest shortcut'),
   ('Earn coins from PvP KOs" or coinAction','Earn coins from training or quests" or coinAction','Arena gear points to unavailable training or quests'),
   ('if canGuide and not active then','if canGuide then','Starter shortcut displaced an active quest'),
