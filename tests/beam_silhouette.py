@@ -12,7 +12,7 @@ local function rgb(r,g,b)return setmetatable({R=r/255,G=g/255,B=b/255},Colors)en
 function Colors:Lerp(b,t)return rgb((self.R+(b.R-self.R)*t)*255,(self.G+(b.G-self.G)*t)*255,(self.B+(b.B-self.B)*t)*255)end
 local Color3={fromRGB=rgb};local color=rgb(255,203,99)''')
  pre=pre.replace('Material={Neon=1}', 'Material={Neon=1,SmoothPlastic=2}')
- source=source.replace('require(game:GetService("ReplicatedStorage").Shared.BeamStyle)','StyleSource')
+ source=source.replace('require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("BeamStyle"))','StyleSource')
  return pre+"\nlocal StyleSource=require('../src/ReplicatedStorage/Shared/BeamStyle')\nlocal Visuals=(function()\n"+source+'\nend)()\n'+CHECKS
 CHECKS='''
 local checks=0;local function check(v,m)assert(v,m);checks+=1 end

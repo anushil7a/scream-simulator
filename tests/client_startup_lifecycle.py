@@ -216,7 +216,10 @@ if __name__=='__main__':
   r=run(source,auto,fixed=not args.baseline);assert r.returncode==0,r.stdout+r.stderr
   boundaries=re.findall(r'^BOUNDARY (\d+) (.+)$',r.stdout,re.M)
   expected=([name for name in EXPECTED_COMMON if args.baseline or name not in ('wait:Shared/FirstBeamGuide','require:FirstBeamGuide')])+(EXPECTED_AUTO if auto else [])+([name for name in EXPECTED_TAIL if not args.baseline or not any(module in name for module in ("VoiceReactor","NavigationCatalog","TrainingRules","BossCatalog","NavigationGuide"))])+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
-  if not args.baseline: expected[2:2]=['wait:PlayerScripts/DodgeVisuals','require:DodgeVisuals']
+  if not args.baseline:
+   expected[2:2]=['wait:PlayerScripts/DodgeVisuals','require:DodgeVisuals']
+   remote_boundary=expected.index('wait:Player/PlayerGui')
+   expected[remote_boundary:remote_boundary]=['wait:ScreamRemotes/State','wait:ScreamRemotes/Effect']
   if not args.baseline:
    insert=expected.index('require:NoticeView')+1;expected[insert:insert]=['wait:PlayerScripts/DamageReadout','require:DamageReadout']
    insert=expected.index('require:HitFeedback')+1;expected[insert:insert]=['wait:PlayerScripts/TestBeamTools','require:TestBeamTools']

@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## City combat HUD waits for state and effects
+
+- In the guarded three-client baseline, each client reached one required lookup with its dependency deliberately held back for 0.7 seconds. State, Effect and BeamStyle each caused a missing-child error and an incomplete HUD. The late-State client missed the wallet update, and none showed the staged defender cue.
+- The client now waits for State and Effect before building the HUD. BeamVisuals waits for its packaged style module. The final state request and optional effects behavior retain their existing paths.
+- In the matched Studio repeat, all three clients received the wallet update, displayed **BEAM DODGED**, and rendered an enabled yellow level-100 beam rig after the dependencies arrived. No matching dependency errors were logged in the final run. Inputs and delivery were staged locally. Real microphones, physical devices and live network timing remain open.
+- Independent review, 448 startup lifecycle scenarios, 19 ownership cases, 115,412 renderer-pool assertions and 29 focused negative controls passed. The full run passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. Both disposable Studio sessions closed.
+
 ## City HUD startup tolerates late audio and shop modules
 
 - In a guarded native three-client test, each client's probe held one dependency under a temporary local name for 0.7 seconds after the corresponding loader was reached. The baseline failed separately on AttackAudioConfig, GameplayAudioConfig and ShopCatalog, leaving each client without a HUD after the module returned. The city client modules now wait for their packaged shared dependencies.

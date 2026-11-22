@@ -120,6 +120,9 @@ local screamEffectsUsed=false
 ownClient(function() if screamEffectsUsed then ScreamEffects.Clear() end end)
 local remotes=RS:WaitForChild("ScreamRemotes");if not clientCheckpoint() then return end
 local action=remotes:WaitForChild("Action");if not clientCheckpoint() then return end
+-- Required channels can replicate separately from the folder.
+remotes:WaitForChild("State");if not clientCheckpoint() then return end
+remotes:WaitForChild("Effect");if not clientCheckpoint() then return end
 local playerGui=p:WaitForChild("PlayerGui");if not clientCheckpoint() then return end
 local gui=Instance.new("ScreenGui");ownClient(function() gui:Destroy() end);if not clientCheckpoint() then return end
 gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=playerGui

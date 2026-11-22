@@ -1,5 +1,5 @@
 -- One animated rig per attacker. Parts are pooled across attacks, never per pulse.
-local Style=require(game:GetService("ReplicatedStorage").Shared.BeamStyle)
+local Style=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("BeamStyle"))
 local Visuals={}
 local pool,live={},{}
 local allocated=0

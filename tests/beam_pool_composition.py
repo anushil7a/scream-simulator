@@ -81,7 +81,7 @@ Visuals.Clear();check(Visuals.Budget()==0 and dead==made,'final destruction');Vi
 print('PASS',checks,'composed assertions; peak',peak,'created',made,'destroyed',dead)
 '''
 def run(s,expected=None):
- v=s['visual'];old='require(game:GetService("ReplicatedStorage").Shared.BeamStyle)';assert v.count(old)==1
+ v=s['visual'];old='require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("BeamStyle"))';assert v.count(old)==1
  v=v.replace(old,'StyleSource')
  text=PRE+'\nlocal StyleSource=(function()\n'+s['style']+'\nend)()\nlocal Visuals=(function()\n'+v+'\nend)()\nlocal B=(function()\n'+s['manager']+'\nend)()\n'+CHECKS
  with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.beam_pool_',dir=R/'tests',encoding='utf8',delete=False)as f:f.write(text);p=Path(f.name)
