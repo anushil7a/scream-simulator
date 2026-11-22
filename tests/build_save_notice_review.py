@@ -6,9 +6,9 @@ subprocess.run([sys.executable,str(root/'tests/build_ui_preview.py'),'390','844'
 s=(out/'StudioUIPreview.luau').read_text().split('\nlocal report={}')[0]
 control='--negative-control' in sys.argv
 if control:
- needle='key=="save" and 2 or urgent and 1 or 0'
+ needle='key=="save" and 2 or urgent and 1 or receipt and .5 or 0'
  assert s.count(needle)==1
- s=s.replace(needle,'urgent and 1 or 0')
+ s=s.replace(needle,'urgent and 1 or receipt and .5 or 0')
 s+='''
 ;(function()
 local character=p.Character or p.CharacterAdded:Wait();character:WaitForChild("Humanoid")

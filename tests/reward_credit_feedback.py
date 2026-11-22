@@ -28,7 +28,7 @@ local TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
 local p={UserId=1};local victim={UserId=2,DisplayName='Opponent'};local helper={UserId=3};local sessions={};local notices={};local calls={xp=0,coins=0};local multiplier=1;local once=false
 local Commerce={Multiplier=function(_,kind)calls[kind]+=1;if once and calls[kind]>1 then return 1 end;return multiplier end}
 local Config={HealQuietSeconds=12,PlayerKOXP=Progression.PlayerKOXP,MaxLevel=100,Sounds={},Progression=Progression,XPToNext=Progression.XPToNext,HealthForLevel=function()return 100 end}
-local q={id='test',goal=1,xp=120,coins=50,event='Underdog'}
+local q={id='test',name='Test quest',goal=1,xp=120,coins=50,event='Underdog'}
 Config.GetQuest=function(id)if id==q.id then return q end end
 local VoiceCombat={Stats=function()return {health=100,maxDps=1}end}
 local function parts()return nil,nil,nil end
@@ -47,7 +47,7 @@ end
 CHECKS=r'''
 local s=reset(100,0,999999990);claim(p,s,'test')
 check(s.data.coins==1000000000 and s.data.xp==0,'Claim cap mutation changed')
-check(notices[#notices]=='Quest reward · +0 XP · +10 coins','Claim feedback not actual credit')
+check(string.find(notices[#notices],'Quest reward · +0 XP · +10 coins',1,true)==1,'Claim feedback not actual credit')
 check(s.data.quests.test.claimed,'Cap claim not consumed')
 local n=#notices;claim(p,s,'test');check(#notices==n,'Claim replay paid/notified')
 s=reset(100,0,999999999);multiplier=2
@@ -55,7 +55,7 @@ check(nick(p):find('+1 coins',1,true)~=nil,'FoundNick capped notice')
 check(s.data.achievements.FoundNick and calls.coins==1,'FoundNick grant missing')
 nick(p);check(calls.coins==1,'FoundNick replay')
 s=reset(1,0,0);multiplier=2;once=true;claim(p,s,'test')
-check(notices[#notices]=='Quest reward · +240 XP · +100 coins','Multiplier reread changed feedback')
+check(string.find(notices[#notices],'Quest reward · +240 XP · +100 coins',1,true)==1,'Multiplier reread changed feedback')
 check(calls.xp==1 and calls.coins==1,'Feedback-only multiplier call')
 s=reset(99,Progression.XPToNext(99)-7,0);multiplier=2
 check(xp(p,50.9)==7 and s.data.level==100 and s.data.xp==0,'Cap overflow credit')

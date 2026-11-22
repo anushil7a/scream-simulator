@@ -1693,7 +1693,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  if data.message and (not newMilestone or data.messageUrgent) then
   local key=data.messageKey
   if key~="questClaim" or unclaimed>0 then
-   notify(data.message,data.messageUrgent,(key=="save" or key=="questClaim") and key or nil)
+   notify(data.message,data.messageUrgent,(key=="save" or key=="questClaim" or key=="questReceipt") and key or nil)
   end
  end
  if Config.CompactCity and not Config.ResonanceLayout then

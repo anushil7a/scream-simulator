@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Show quest reward receipts beside the wallet update
+
+- The previous Garden replay displayed the wallet update first, then the receipt 9.86 seconds later in the rapid case and 4.05 seconds later in the delayed case. Confirmed claim receipts now take priority over routine HUD notices. Urgent errors and save warnings retain higher priority. Earlier routine notices remain queued within the existing limit. Each receipt includes its quest name and the XP and coins actually credited, so equal payouts stay distinguishable.
+- In the final disposable desktop Studio build, the titled Garden receipt appeared 13.49 ms after the first rendered 80-coin wallet sample in the rapid claim and 14.91 ms after it in the delayed claim. The rapid label measured 382 × 16 pixels in a 624 × 16 allocation and passed native TextFits. The award was +130 XP and +80 coins in both cases. Inputs and travel were staged with temporary profiles, and the results do not measure physical devices or network latency.
+- Focused coverage exercises the authoritative claim path, identical credit amounts on different quests, replayed claims, competing save and urgent errors, and expired claim reminders. The old opt-in zero-credit historical reward fixture still fails on an unrelated earlier level-cap expectation, reproduced at parent 545d839. Current reward-credit and shutdown checks pass.
+
+- Independent review cleared the final queue and quest titles. Final local verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. The two disposable Studio sessions closed. Next, validate the opening and receipt visibility on an approved physical device and continue prioritizing defects reproduced on the current city build.
+
 ## Retire quest claim reminders when the wallet is credited
 
 - In disposable Studio, the original Garden reminder first rendered 5.90 seconds after an immediate successful claim had already credited 80 coins. The server now identifies claim reminders and the client clears both visible and queued reminders when the authoritative quest snapshot has no claimable rewards. Other rewards remain claimable and keep their existing shared reminder. The normal credit receipt and urgent save priority stay intact.

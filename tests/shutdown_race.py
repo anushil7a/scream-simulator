@@ -31,7 +31,7 @@ local store={UpdateAsync=function(_,key,transform)
  if result~=nil then records[key]=result end;return result
 end}
 local Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLevel=100,XPToNext=function()return 1000 end,Sounds={},Auras={Gold=true},
- Quests={{id='garden',goal=3,coins=40,xp=100}},Progression={Challenges={},Normalize=function(l,x)return l or 1,x or 0 end},
+ Quests={{id='garden',name='Garden',goal=3,coins=40,xp=100}},Progression={Challenges={},Normalize=function(l,x)return l or 1,x or 0 end},
  GetSound=function()return {id='TinyAah',level=1} end}
 Config.GetQuest=function(id)for _,q in ipairs(Config.Quests)do if q.id==id then return q end end end
 local services={DataStoreService={GetDataStore=function()return store end},ReplicatedStorage={Shared={Config='Config',ProfileLease='Lease'}},RunService={IsStudio=function()return false end},HttpService={GenerateGUID=function()return 'test-owner' end}}

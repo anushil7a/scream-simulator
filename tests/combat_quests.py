@@ -271,7 +271,7 @@ if __name__=='__main__':
    ('assist finisher gate',change(2,'victim and recipient~=finisher and underdog and meaningful[id]','victim and underdog and meaningful[id]'),'Finisher counted as assist'),
    ('assist level gate',change(2,'victim and recipient~=finisher and underdog and meaningful[id]','victim and recipient~=finisher and meaningful[id]'),'Ineligible assist progressed'),
    ('menu acceptance gate',change(2,'q.menuAvailable~=true and not s.data.availableQuests[q.id]','not s.data.availableQuests[q.id]'),'Menu quest requires'),
-   ('claim flag before reward',change(2,'v.claimed=true;if q.id=="nick"','if q.id=="nick"'),'Reentrant/repeated claim'),
+   ('claim flag before reward',change(2,'v.claimed=true\n   if q.id=="nick"','if q.id=="nick"'),'Reentrant/repeated claim'),
    ('new saved quest preservation',change(1,'local old=raw.quests[q.id]','local old=q.id~="practice_beams" and raw.quests[q.id]'),'Saved quest state lost')]
   for name,mutation,expected in controls:
    failed=run(build(mutation=mutation));output=failed.stdout+failed.stderr

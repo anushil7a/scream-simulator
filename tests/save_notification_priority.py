@@ -93,7 +93,13 @@ for _=1,150 do frame()end
 check(notifications.active==nil,'Save toast became permanently sticky')
 do
  local completion='Quest complete! Claim your reward in Quests.'
- local receipt='Quest reward · +100 XP · +40 coins'
+ local receipt='Quest reward · +100 XP · +40 coins · Garden'
+ local beachReceipt='Quest reward · +100 XP · +40 coins · Beach'
+ local gardenQuest=Config.GetQuest
+ Config.GetQuest=function(id)
+  if id=='beach' then return {id='beach',name='Beach',goal=6,xp=100,coins=40} end
+  return gardenQuest(id)
+ end
  local function prepare()
   notifications=Queue.new()
   s.canSave=true;s.saveDelayed=false;s.activeQuest='garden'
@@ -107,8 +113,10 @@ do
  check(frame()==receipt,'Claimed reward reminder remained visible instead of receipt')
  prepare()
  notify('Earlier action')
+ notify('Level-up cue')
  questProgress(p,'Garden');claim(p,s,'garden')
- local seen={}
+ check(frame()==receipt,'Quest receipt waited behind routine notices')
+ local seen={[receipt]=true}
  for _=1,150 do seen[frame()]=true end
  check(seen[receipt] and not seen[completion],'Claimed reward reminder came back from pending queue')
  prepare()
@@ -116,10 +124,18 @@ do
  table.insert(Config.Quests,{id='beach',goal=6})
  questProgress(p,'Garden')
  claim(p,s,'garden')
- check(frame()==completion,'Claiming one reward hid another earned reward reminder')
- s.data.quests.beach.claimed=true
- state(p)
- check(frame()==receipt,'Last reward did not retire the shared reminder')
+ check(frame()==receipt and notifications.pending[1] and notifications.pending[1].text==completion,
+  'Claiming one reward hid another earned reward reminder')
+ local firstReceipt=notifications.active
+ claim(p,s,'beach')
+ check(notifications.active==firstReceipt and #notifications.pending==1
+  and notifications.pending[1].text==beachReceipt and notifications.pending[1]~=firstReceipt,
+  'Equal claim receipts merged or last reward did not retire the shared reminder')
+ claim(p,s,'beach');claim(p,s,'garden')
+ check(#notifications.pending==1,'Repeated claim produced another receipt')
+ for _=1,55 do frame() end
+ check(notifications.active and notifications.active.text==beachReceipt and notifications.active~=firstReceipt,
+  'Second confirmed claim receipt received no dwell')
  prepare()
  questProgress(p,'Garden')
  claim(p,s,'garden')
@@ -130,12 +146,18 @@ do
  prepare()
  s.canSave=false;s.saveDelayed=false
  state(p,saving,nil,true,'save')
+ notify('Other urgent',true)
  questProgress(p,'Garden')
  claim(p,s,'garden')
  check(frame()==saving,'Quest receipt interrupted urgent save warning')
  local seen={}
- for _=1,180 do seen[frame()]=true end
+ local order={}
+ for _=1,180 do
+  local text=frame();seen[text]=true
+  if text~='' and order[#order]~=text then table.insert(order,text) end
+ end
  check(seen[receipt] and not seen[completion],'Save warning masked stale quest notice until later')
+ check(order[1]==saving and order[2]=='Other urgent' and order[3]==receipt,'Receipt moved ahead of a queued urgent warning')
 end
 do
  local packets={}
@@ -182,22 +204,26 @@ if '--negative-controls' in sys.argv:
   assert queue.count(old)==1,old
   require="require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue')"
   run(payload.replace(require,'(function()\n'+queue.replace(old,new)+'\nend)()'),failure)
- mutate_queue('key=="save" and 2 or urgent and 1 or 0','urgent and 1 or 0','Save warning evicted before any displayed frame')
+ mutate_queue('key=="save" and 2 or urgent and 1 or receipt and .5 or 0','urgent and 1 or receipt and .5 or 0','Save warning evicted before any displayed frame')
  assert payload.count(',nil,true,"save")')==2
  run(payload.replace(',nil,true,"save")',',nil,true)'),'Save warning evicted before any displayed frame')
- needle='messageKey=(messageKey=="save" or messageKey=="questClaim") and messageKey or nil'
+ needle='messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt") and messageKey or nil'
  assert payload.count(needle)==1
  run(payload.replace(needle,'messageKey=nil'),'Save warning evicted before any displayed frame')
- needle='(key=="save" or key=="questClaim") and key or nil'
+ needle='(key=="save" or key=="questClaim" or key=="questReceipt") and key or nil'
  assert payload.count(needle)==1
  run(payload.replace(needle,'nil'),'Save warning evicted before any displayed frame')
  needle='if data.savingAvailable==true and not data.savingDelayed then notifications:Remove("save") end'
  assert payload.count(needle)==1
  run(payload.replace(needle,''),'Healthy snapshot retained stale save warning')
- run(payload.replace('if unclaimed==0 then notifications:Remove("questClaim") end',''),'Claimed reward reminder remained visible instead of receipt')
+ run(payload.replace('if unclaimed==0 then notifications:Remove("questClaim") end',''),'Claimed reward reminder came back from pending queue')
  run(payload.replace('if key~="questClaim" or unclaimed>0 then','if true then'),'Unclaimable snapshot resurrected quest guidance')
  mutate_queue('if #self.pending>Queue.Limit then','if false then','Mixed traffic exceeded queue bound')
  mutate_queue('if key then self:Remove(key) end','if key and key~="save" then self:Remove(key) end','Permanent failure did not replace delayed warning')
+ mutate_queue('or receipt and .5 or 0','or 0','Quest receipt waited behind routine notices')
+ run(payload.replace('.." coins · "..q.name','.." coins · Garden"'),'Equal claim receipts merged')
+ mutate_queue('if not receipt then','if true then','Equal claim receipts merged')
+ mutate_queue('or urgent and 1 or receipt and .5 or 0','or receipt and 1.5 or urgent and 1 or 0','Receipt moved ahead of a queued urgent warning')
  run(payload.replace('if changedOnly and not (s.collected and next(s.collected)) and StateSnapshot.Equal(packet,s.lastStatePacket) then return end',''), 'Identical periodic State was transmitted')
  run(payload.replace('StateSnapshot.Copy(packet)','table.clone(packet)'),'In-place quest progress was suppressed')
  run(payload.replace('if changedOnly and not (s.collected and next(s.collected))','if not (s.collected and next(s.collected))'),'Explicit State requests were suppressed')

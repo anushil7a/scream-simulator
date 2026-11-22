@@ -156,7 +156,7 @@ local function state(p,message,conversation,messageUrgent,messageKey,changedOnly
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,flying=s.flight~=nil,
  testBeamAvailable=s.testBeamAvailable==true,testBeamDamageAvailable=s.testBeamAvailable==true,
- testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=(messageKey=="save" or messageKey=="questClaim") and messageKey or nil}
+ testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt") and messageKey or nil}
  -- Keep the periodic client refresh for collected markers that may stream back in.
  if changedOnly and not (s.collected and next(s.collected)) and StateSnapshot.Equal(packet,s.lastStatePacket) then return end
  stateRemote:FireClient(p,packet)
@@ -1064,7 +1064,13 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="AbandonQuest" then stopQuest(p);state(p,"Task abandoned. Unfinished progress was reset; earned rewards remain claimable.")
  elseif verb=="ClaimQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg);local v=q and s.data.quests[q.id]
-  if v and not v.claimed and v.progress>=q.goal then v.claimed=true;if q.id=="nick" then s.data.achievements.NickChampion=true end;local coinCredit=coins(p,q.coins);local xpCredit=xp(p,q.xp);if s.activeQuest==q.id then stopQuest(p) end;state(p,"Quest reward · +"..xpCredit.." XP · +"..coinCredit.." coins") end
+  if v and not v.claimed and v.progress>=q.goal then
+   v.claimed=true
+   if q.id=="nick" then s.data.achievements.NickChampion=true end
+   local coinCredit=coins(p,q.coins);local xpCredit=xp(p,q.xp)
+   if s.activeQuest==q.id then stopQuest(p) end
+   state(p,"Quest reward · +"..xpCredit.." XP · +"..coinCredit.." coins · "..q.name,nil,false,"questReceipt")
+  end
  elseif verb=="SetSettings" and type(arg)=="table" then
   if type(arg.volume)=="number" and arg.volume==arg.volume then s.data.settings.volume=math.clamp(arg.volume,0,1) end
   if type(arg.reducedShake)=="boolean" then s.data.settings.reducedShake=arg.reducedShake end;state(p)
