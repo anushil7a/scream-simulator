@@ -66,11 +66,17 @@ check(meter.Position.x==14 and meter.Position.y==164 and meter.Position.x+meter.
 meterLayout(750,323,true)
 check(meter.Position.x==-115 and meter.Position.y==-96 and meter.Size.y==84 and meter.RecentAmplitude.Visible,
  'Full meter did not restore after resize')
-local function visibility(active,selected,paused,touch,view,selection,routeStatus,preview,fighterReady,progress)
+local function visibility(active,selected,paused,touch,view,selection,routeStatus,preview,fighterReady,progress,voice)
  local Config={ResonanceLayout=preview and {} or nil}
  local viewport=view or (touch and {X=750,Y=323} or {X=567,Y=241})
  local showQuest,gameplayVisible=true,not paused
  local data={activeQuest=active and 'sprint' or nil,combatChallenges={fighters=progress}}
+ local sustainedControl=voice and {armed=voice.armed}
+ data.micReady=voice and voice.ready
+ local windowFocused=not voice or not voice.inactive
+ local function beamBlocked()return voice and voice.blocked end
+ local function voiceEligibilityHint()return nil,voice and voice.muted end
+ __ARRIVAL__
  local devPanel={Visible=false}
  local function offset(x,y)return {X={Offset=x},Y={Offset=y}}end
  local UDim2={fromOffset=offset}
@@ -122,6 +128,19 @@ _,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},{kind='place',id='g
 check(arrival=='Training courtyard\nArrived · 42 studs N','Another destination showed fight instructions')
 _,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},{kind='quest',id='training'},'Arrived')
 check(arrival=='Training courtyard\nArrived · 42 studs N','Another guide type showed fight instructions')
+for _,case in ipairs({
+ {{ready=false,armed=false},'Check the Beams button'},
+ {{ready=true,armed=false,blocked=true},'Check the Beams button'},
+ {{ready=true,armed=true,muted=true},'Check the Beams button'},
+ {{ready=true,armed=true,inactive=true},'Check the Beams button'},
+ {{ready=true,armed=false},'Turn Beams on to spar'},
+ {{ready=true,armed=true},'Aim at the fighter'},
+})do
+ _,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},training,'Arrived',false,true,1,case[1])
+ check(arrival==case[2]..'\nFighters 1/3','Regular guide did not reflect automatic beam availability')
+end
+_,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},training,'Arrived',false,false,1,{ready=false})
+check(arrival=='Fighter recovering\nFighters 1/3','Voice availability overrode fighter recovery')
 track,route,guide=visibility(false,false,false,true,{X=666,Y=316},nil,nil,true)
 check(not track and not guide,'Arena preview displayed the city training tracker')
 print('PASS '..checks..' navigation layout checks; no native rendering claim')
@@ -129,6 +148,9 @@ print('PASS '..checks..' navigation layout checks; no native rendering claim')
 start=s.index(' local guideUsesTracker=false')
 stop=s.index(' local now=workspace:GetServerTimeNow();local protected=',start)
 code=code.replace('__SHARED_RAIL__',s[start:stop])
+start=s.index('function academy.trainingArrival(')
+arrival_source=s[start:s.index('function academy.compactObjectiveText()',start)]
+code=code.replace('__ARRIVAL__',arrival_source)
 start=s.index(' local meterWidth,meterHeight=')
 stop=s.index(' local testBottom=',start)
 code=code.replace('__METER_LAYOUT__',s[start:stop])
@@ -141,6 +163,10 @@ do
 local top,shop,questsToggle={},{},{}
 academy.passesToggle={}
 local data={training='Rookie',quests={},combatChallenges={fighters=1}}
+local sustainedControl
+local windowFocused=true
+local function beamBlocked()return false end
+local function voiceEligibilityHint()return nil,false end
 local quest={id='sprint',goal=3}
 local Config={CompactCity=true,GetQuest=function(id)return id=='sprint' and quest or nil end}
 local GuiService={MenuIsOpen=false};local modal,devPanel,conversationPanel={},{},{}
@@ -178,6 +204,18 @@ check(b.Text=='FOLLOW GUIDE\n1/3 · Clear','Compact training route missing progr
 academy.refreshCompactObjective(true);check(b.Text=='CLEAR\nEn route','Tight row concealed the active route clear action')
 status='Arrived';academy.trainingGuideFighter={Parent={},GetAttribute=function()return true end};refresh(true)
 check(b.Text=='HIT TO SPAR\n1/3 · Clear','Compact arrival lost its instruction')
+sustainedControl={armed=false}
+refresh(true)
+check(b.Text=='CHECK BEAMS\n1/3 · Clear','Connecting mic did not replace the spar instruction')
+academy.refreshCompactObjective(true)
+check(b.Text=='CLEAR\nBeams','Tight route made the voice check look like a toggle')
+data.micReady=true;refresh(true)
+check(b.Text=='BEAMS OFF\n1/3 · Clear','Ready but disarmed still showed the spar instruction')
+academy.refreshCompactObjective(true)
+check(b.Text=='CLEAR\nBeam off','Tight route lost the disarmed status or Clear')
+sustainedControl.armed=true;refresh(true)
+check(b.Text=='AIM TO SPAR\n1/3 · Clear','Ready and armed did not show the aiming handoff')
+sustainedControl=nil
 academy.trainingGuideFighter.GetAttribute=function()return false end;refresh(true)
 check(b.Text=='FIGHTER RESTING\n1/3 · Clear','Compact arrival masked recovery')
 data.activeQuest='sprint';data.quests.sprint={progress=2};data.questTime=37
@@ -241,8 +279,11 @@ cases = [
     (' and h<346 and w-274>=314',' and w-274>=314','Landscape guide clear button overlaps Talk on taller narrow screens'),
     ('status=="Arrived" and selection.kind=="place" and selection.id=="training"', 'status=="Arrived" and selection.kind=="place"', 'Another destination showed fight instructions'),
     ('status=="Arrived" and selection.kind=="place" and selection.id=="training"', 'selection and selection.kind=="place" and selection.id=="training"', 'Training arrival cue appears before reaching the pad'),
-    ('ready==false and "Fighter recovering"', 'false and "Fighter recovering"', 'Recovery or progress is missing on the shared tracker'),
-    ('or "Sparring pad"', 'or "Fighter recovering"', 'An unobserved fighter was reported alive or recovering'),
+    ('if ready==false then return short', 'if false then return short', 'Recovery or progress is missing on the shared tracker'),
+    ('or "Sparring pad" end', 'or "Fighter recovering" end', 'An unobserved fighter was reported alive or recovering'),
+    (' or data.micReady~=true or beamBlocked()', ' or beamBlocked()', 'Regular guide did not reflect automatic beam availability'),
+    ('if not sustainedControl.armed then return short', 'if false then return short', 'Regular guide did not reflect automatic beam availability'),
+    ('if inputMuted or not windowFocused', 'if not windowFocused', 'Regular guide did not reflect automatic beam availability'),
     ('compact and 58 or 0', 'compact and 44 or 0', 'Compact objective overlaps a navigation sibling'),
     ('timer>0 and string.format(" · %ds",timer)', 'false and string.format(" · %ds",timer)', 'Compact guide covered the active quest timer'),
     ('compact and 45 or narrowNav and 54 or 78','compact and 56 or narrowNav and 54 or 78','Narrow navigation overlaps the action stack'),
@@ -250,7 +291,8 @@ cases = [
     ('(stacked or shortDesktop) and Config.CompactCity', 'stacked and Config.CompactCity', 'Short desktop loses the first Rookie Guide'),
 ]
 for old,new,reason in cases:
-    assert code.count(old)==1,old
+    expected=2 if old in arrival_source else 1
+    assert code.count(old)==expected,old
     result=run(code.replace(old,new))
     assert result.returncode and reason in result.stderr,(old,result.stderr)
 print(f'PASS {len(cases)} tracker, guide, menu and timer negative controls')

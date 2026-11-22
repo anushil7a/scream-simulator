@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Match Rookie arrival guidance to beam readiness
+
+- The 491 × 150 Studio baseline at `bd72795` showed HIT TO SPAR at Rookie while the Beams control still said Connecting mic. The existing guide used only the fighter's active flag. A focused regression reproduced the mismatch.
+- Both guide layouts now distinguish a blocked voice attack, available Beams that are OFF, and armed Beams. The standard guide points players to the Beams control while it is unavailable, then tells them to turn Beams on, then to aim at Rookie. The compact guide uses CHECK BEAMS, BEAMS OFF and AIM TO SPAR while keeping Clear visible. Fighter recovery, missing fighter and the old hold-to-cast guide copy keep their original precedence.
+- This reads the existing focus, mute, local and server readiness, and control state. The guide does not arm Beams or bypass cooldown. Current validation uses local Studio clients with staged microphone readiness. Real voice and physical-device discovery remain open.
+- Native Studio verified all three states after a normal keyboard walk to Rookie on desktop. At 491 × 150 the early click stayed OFF and showed the existing Notice, and the 52 × 46 CLEAR action still fit as the voice state changed. In iPhone 17 Pro emulation at 750 × 323, the three arrival messages fit a 204 × 42 label, and an emulated tap on the real Beams control advanced the guide to Aim at the fighter.
+- Independent review cleared the change. Navigation layout passed 170 assertions and 24 negative controls. The final full check passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and all Rojo builds.
+
 ## Keep the Rookie Guide visible in short desktop windows
 
 - In the current City baseline at 491 × 150 safe pixels, the Rookie tracker began at y160 and its 78 × 44 Guide at y163. Both were completely outside the visible HUD at a fresh spawn. The same action opened the Rookie route in a taller 567 × 241 native Studio view.

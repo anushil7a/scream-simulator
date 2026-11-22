@@ -1071,6 +1071,17 @@ end)
 academy.compactObjective.Visible=false
 academy.compactObjective.TextSize=12
 academy.surface(academy.compactObjective,gold)
+function academy.trainingArrival(ready,short)
+ if ready==false then return short and "FIGHTER RESTING" or "Fighter recovering" end
+ if ready~=true then return short and "SPARRING PAD" or "Sparring pad" end
+ if not sustainedControl then return short and "HIT TO SPAR" or "Hit the fighter to spar" end
+ local _,inputMuted=voiceEligibilityHint(true)
+ if inputMuted or not windowFocused or data.micReady~=true or beamBlocked() then
+  return short and "CHECK BEAMS" or "Check the Beams button"
+ end
+ if not sustainedControl.armed then return short and "BEAMS OFF" or "Turn Beams on to spar" end
+ return short and "AIM TO SPAR" or "Aim at the fighter"
+end
 function academy.compactObjectiveText()
  local quest=Config.GetQuest(data.activeQuest)
  if quest then
@@ -1087,7 +1098,7 @@ function academy.compactObjectiveText()
   if status=="Arrived" then
    local fighter=academy.trainingGuideFighter
    local ready=fighter and fighter.Parent and fighter:GetAttribute("ResidentActive")
-   heading=ready==false and "FIGHTER RESTING" or ready==true and "HIT TO SPAR" or "SPARRING PAD"
+   heading=academy.trainingArrival(ready,true)
   end
   return heading.."\n"..count.."/3 · Clear"
  end
@@ -1100,7 +1111,8 @@ function academy.refreshCompactObjective(limited)
  local text=academy.compactObjectiveText()
  if limited then
   local headline,detail=string.match(text,"([^\n]+)\n(.*)")
-  local shortTitle=({["VIEW QUEST"]="QUEST",["FOLLOW GUIDE"]="GUIDE",["FIGHTER RESTING"]="RESTING",["HIT TO SPAR"]="SPAR",["SPARRING PAD"]="SPAR"})[headline]
+  local shortTitle=({["VIEW QUEST"]="QUEST",["FOLLOW GUIDE"]="GUIDE",["FIGHTER RESTING"]="RESTING",["HIT TO SPAR"]="SPAR",["SPARRING PAD"]="SPAR",
+   ["CHECK BEAMS"]="Beams",["BEAMS OFF"]="Beam off",["AIM TO SPAR"]="Aim"})[headline]
   local progress,seconds=detail:match("^(%d+/%d+) · (%d+s)$")
   if headline=="VIEW QUEST" and seconds then text=progress.."\n"..seconds
   elseif not data.activeQuest and academy.guideSelection then
@@ -2133,7 +2145,7 @@ connectClient(Run.RenderStepped,function(dt)
    if status=="Arrived" and selection.kind=="place" and selection.id=="training" then
     local fighter=academy.trainingGuideFighter
     local ready=fighter and fighter.Parent and fighter:GetAttribute("ResidentActive")
-    status=ready==false and "Fighter recovering" or ready==true and "Hit the fighter to spar" or "Sparring pad"
+    status=academy.trainingArrival(ready,false)
     distance=nil
     if guideUsesTracker then
      heading=""
