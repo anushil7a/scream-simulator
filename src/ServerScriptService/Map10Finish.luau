@@ -36,8 +36,18 @@ local function mark(part,title)
  gui.Parent=part
 end
 function Finish.Build(world)
+ local pavilions={}
  for _,p in ipairs(world:GetChildren()) do
   if not p:IsA("BasePart") then continue end
+  local pavilion=p.Name:match("^(AcademyPavilion[0-3])")
+  if pavilion then
+   local model=pavilions[pavilion]
+   if not model then
+    model=Instance.new("Model");model.Name=pavilion;model.ModelStreamingMode=Enum.ModelStreamingMode.Atomic
+    pavilions[pavilion]=model
+   end
+   p.Parent=model
+  end
   for _,spec in ipairs(grades) do
    if starts(p.Name,spec[1]) then
     if not p.CanCollide then p.Material=Enum.Material[spec[2]] end
@@ -62,9 +72,12 @@ function Finish.Build(world)
   if shape~="Wedge" then p.Shape=Enum.PartType[shape] end
   p.TopSurface=Enum.SurfaceType.Smooth;p.BottomSurface=Enum.SurfaceType.Smooth
   p.CFrame=CFrame.new(pos)*CFrame.Angles(0,math.rad(rot.Y),0)*CFrame.Angles(math.rad(rot.X),0,math.rad(rot.Z))
-  p.Parent=district
+  local pavilion=id:match("^North(Pavilion[0-3])")
+  p.Parent=(pavilion and pavilions["Academy"..pavilion]) or district
   if names[id] then mark(p,names[id]) end
  end
+ -- Attach the finished columns, roofs and their trim as a single streaming unit.
+ for _,model in pairs(pavilions) do model.Parent=world end
  return root
 end
 return Finish

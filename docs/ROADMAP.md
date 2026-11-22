@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep Academy pavilion roofs and supports together when streaming
+
+- Under the stock 64/512 radii and Opportunistic stream-out, the native baseline briefly showed projected roof geometry with missing columns on Pavilion 0 and Pavilion 3. The worst visible sample had one of four Pavilion 3 columns near (−300, 36, −260). A staged 105-stud/s sweep also sampled 18 of 27 pieces for up to 0.583 seconds on three pavilions outside the camera framing.
+- Each Academy pavilion now streams as one Atomic model with its eight structural parts and 19 decorative parts. Part positions, collision/query flags and world streaming settings are unchanged. A disposable Studio client recorded zero partial pavilions across 1,050 staged samples. Every group was observed both fully absent and fully present. Independent review found no blocker. The mocked finish check passed the four groups and rejected Default mode and separated trim mutations.
+- The dock shelter had one isolated partial sample with no roof projected in the candidate, and this change leaves it alone. The Amphitheatre speaker cones were separately confirmed edge-on and behind their tower faces from the audience. That is a geometry issue for a separate art patch. Native evidence here is from staged movement on one local desktop client; no screenshots, physical-phone or live multiplayer validation.
+- Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. Both disposable sessions were stopped and closed.
+
 ## Restore the archived coastal art baseline check
 
 - Running the old coastal fixture directly on Map10 failed inside the mocked builder before the baseline comparison. The supported archive runner now includes the fingerprint comparison and negative controls for the exact preserved coast. A direct run against Map10 prints the archive command.

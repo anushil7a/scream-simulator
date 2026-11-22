@@ -175,19 +175,39 @@ local Config={CompactCity=true}
 local City={}
 function City.Build('''+city_dispatch+'''end
 local baseParent,finishedParent={},{}
+local firstMapNode=#nodes+1
 City.Build(baseParent)
 City.Build(finishedParent,true)
+function finishedParent:GetChildren()
+ local children={}
+ for _,node in ipairs(nodes) do if node.Parent==self then table.insert(children,node) end end
+ return children
+end
+Finish.Build(finishedParent)
 local standalone,finished={},{}
-for _,node in ipairs(nodes) do
+local pavilionCounts={}
+for index=firstMapNode,#nodes do
+ local node=nodes[index]
  local parent=node.Parent
  if parent and parent.Name=='OceanBackdrop' then
   assert(parent.ClassName=='Model' and parent.ModelStreamingMode==Enum.ModelStreamingMode.Persistent,'Water must persist across streaming')
   assert(node.Anchored and not node.CanCollide and not node.CanQuery and not node.CanTouch and not node.CastShadow,'Unexpected ocean part flags')
   parent=parent.Parent
  end
+ local pavilion=node.Name and (node.Name:match("^Academy(Pavilion[0-3]).+") or node.Name:match("^North(Pavilion[0-3])"))
+ if pavilion and parent~=baseParent then
+  assert(parent.Name=="Academy"..pavilion and parent.ClassName=='Model', 'Pavilion streamed separately: '..node.Name)
+  assert(parent.ModelStreamingMode==Enum.ModelStreamingMode.Atomic,'Pavilion must be Atomic')
+  pavilionCounts[parent]=(pavilionCounts[parent] or 0)+1
+  parent=parent.Parent
+ end
  if parent==baseParent then standalone[node.Name]=node
  elseif parent==finishedParent then finished[node.Name]=node end
 end
+local pavilionModels=0
+for _,count in pairs(pavilionCounts) do assert(count==27,'Pavilion must include eight structural and 19 trim parts');pavilionModels+=1 end
+assert(pavilionModels==4,'Expected four independent pavilion models')
+print('PASS four complete Atomic pavilions, including all 76 trim parts')
 local omitted=0
 for _,spec in ipairs(Layout.PartSpecs) do
  local id=spec.id
@@ -207,5 +227,18 @@ print('PASS 17 replaced props omitted only when finishing is enabled')
 with tempfile.NamedTemporaryFile('w',suffix='.luau',prefix='tmp_map_finish_',dir=R/'tests',delete=False,encoding='utf-8') as f:
     f.write(script)
     path=Path(f.name)
-try: subprocess.run(['luau',str(path)],cwd=R,check=True)
+try:
+    subprocess.run(['luau', str(path)], cwd=R, check=True)
+    if '--negative-controls' in sys.argv:
+        for before, after, expected_error in (
+            ('model.ModelStreamingMode=Enum.ModelStreamingMode.Atomic',
+             'model.ModelStreamingMode=Enum.ModelStreamingMode.Default', 'Pavilion must be Atomic'),
+            ('p.Parent=(pavilion and pavilions["Academy"..pavilion]) or district',
+             'p.Parent=district', 'Pavilion streamed separately: NorthPavilion'),
+        ):
+            assert script.count(before) == 1, before
+            path.write_text(script.replace(before, after), encoding='utf-8')
+            mutant = subprocess.run(['luau', str(path)], cwd=R, text=True, capture_output=True)
+            assert mutant.returncode and expected_error in mutant.stderr, mutant.stderr
+            print('PASS negative control:', expected_error)
 finally: path.unlink()
