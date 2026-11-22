@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Keep usable guide breadcrumbs during the first upgrade route
+
+- On `9778447`, a fresh player followed the actual Gear guide from spawn toward Mar. Talking to her and accepting and completing Garden awarded 80 coins. Two failures interrupted the walkthrough. Mar's movement repeatedly invalidated the first route during its three-second retry interval. A solid hit later in a route hid all earlier breadcrumbs. The matched ray probes hit Mar's torso after nine clear segments and GardenBed0 after three clear segments on the Beach route.
+- The guide now keeps a compatible moving-target path while it requests a replacement, within the existing three-second cadence. The result must still end within eight studs of the latest target. If a later segment hits a solid object, the guide shows only the checked-clear prefix. It clears and replans when the first step is blocked.
+- In matched disposable Studio probes, the candidate displayed nine checked dots toward Mar where the baseline had shown zero. It then kept guiding while Mar resumed her patrol, and the player followed the dots into range and opened the real Talk dialogue. At the same GardenBed0 approach on the active Beach route, the candidate kept exactly three clear dots and drew none past the fourth ray's obstruction.
+- Independent review cleared the change. The guide suite passed 55 checks and six controls. The navigation UI, catalog, Garden authority and gear checks passed. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds.
+- The baseline Beach walk entered Garden PvP before reaching the first bottle and later stopped short of the beach. The route and PvP rules are separate from this guide change. Actual first-upgrade completion on this walkthrough, unassisted discovery, physical touch and real voice remain to be checked.
+
 ## Keep defenders visible when beams cross their avatar
 
 - The baseline off-axis Studio capture showed two level-100 yellow beam rigs with 77 visual Parts each. The camera was outside the existing quiet zone even as the glow and decorative strokes crossed the defender's shoulders and torso. Health, the dodge control and the incoming-hit status were still readable.

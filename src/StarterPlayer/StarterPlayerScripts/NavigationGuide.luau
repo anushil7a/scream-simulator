@@ -6,6 +6,7 @@ local Workspace=game:GetService("Workspace")
 local Guide={}
 Guide.__index=Guide
 local MAX_DOTS,SPACING,RETRY,MAX_AGE=18,5,3,8
+local REPATH_DRIFT,MAX_TARGET_DRIFT=3,8
 local BEARINGS={"N","NE","E","SE","S","SW","W","NW"}
 local function validPosition(p)
  return typeof(p)=="Vector3" and p.X==p.X and p.Y==p.Y and p.Z==p.Z
@@ -32,7 +33,7 @@ end
 function Guide:_dropPath()
  if self.blocked then self.blocked:Disconnect();self.blocked=nil end
  if self.path then self.path:Destroy();self.path=nil end
- self.points=nil;self.cursor=nil
+ self.points=nil;self.cursor=nil;self.pathGoal=nil
  self:_hide()
 end
 function Guide:Clear()
@@ -43,11 +44,22 @@ function Guide:Clear()
 end
 function Guide:SetTarget(target,keepThrottle)
  if self.destroyed then return end
+ local valid=type(target)=="table" and validPosition(target.position)
+ local label=valid and type(target.label)=="string" and string.sub(target.label,1,100) or "Destination"
+ if keepThrottle and valid and self.target and self.target.label==label then
+  -- Keep a nearby, already validated path visible while Mar is moving.
+  self.target.position=target.position
+  if self.points and ((self.pathGoal-target.position).Magnitude>MAX_TARGET_DRIFT
+   or (self.points[#self.points].Position-target.position).Magnitude>MAX_TARGET_DRIFT) then
+   self:_dropPath();self.status="Finding route"
+  end
+  return
+ end
  local lastRequest,root=self.lastRequest,self.root
  self:Clear()
- if type(target)~="table" or not validPosition(target.position) then return end
+ if not valid then return end
  if keepThrottle then self.lastRequest=lastRequest;self.root=root end
- self.target={position=target.position,label=type(target.label)=="string" and string.sub(target.label,1,100) or "Destination"}
+ self.target={position=target.position,label=label}
  self.status="Finding route"
 end
 function Guide:GetStatus()
@@ -63,7 +75,8 @@ function Guide:GetStatus()
  return self.status,self.distance,bearing
 end
 function Guide:_request(root,now)
- if self.points or self.busy or now-self.lastRequest<RETRY then return end
+ if self.busy or now-self.lastRequest<RETRY then return end
+ if self.pathGoal and (self.pathGoal-self.target.position).Magnitude<REPATH_DRIFT then return end
  self.busy=true;self.lastRequest=now
  local generation=self.generation
  local start,destination=root.Position,self.target.position
@@ -80,16 +93,21 @@ function Guide:_request(root,now)
    if path then path:Destroy() end
    return
   end
-  if not root.Parent or (root.Position-start).Magnitude>18 then
+  if not root.Parent or (root.Position-start).Magnitude>18
+   or (self.target.position-destination).Magnitude>MAX_TARGET_DRIFT then
    if path then path:Destroy() end
-   self.status="Finding route";return
+   if not self.points then self.status="Finding route" end
+   return
   end
   -- A successful path must actually reach the chosen destination.
-  if not ok or not points or #points<2 or #points>1024 or (points[#points].Position-destination).Magnitude>8 then
+  if not ok or not points or #points<2 or #points>1024 or (points[#points].Position-destination).Magnitude>8
+   or (points[#points].Position-self.target.position).Magnitude>MAX_TARGET_DRIFT then
    if path then path:Destroy() end
-   self:_dropPath();self.status="Route unavailable";return
+   if not self.points then self.status="Route unavailable" end
+   return
   end
-  self:_dropPath();self.path=path;self.points=points;self.cursor=2;self.pathAt=self.lastStepAt or now;self.status="Follow the markers"
+  self:_dropPath();self.path=path;self.points=points;self.cursor=2;self.pathGoal=destination
+  self.pathAt=self.lastStepAt or now;self.status="Follow the markers"
   self.blocked=path.Blocked:Connect(function(index)
    if not self.destroyed and self.path==path and index>=self.cursor then
     self:_dropPath();self.status="Finding route"
@@ -143,9 +161,10 @@ function Guide:Step(root,now,visible)
   if length<.1 then index+=1;continue end
   local step=math.min(SPACING,length)
   local point=from+delta.Unit*step
-  -- Fail closed if newly streamed geometry blocks any displayed segment.
+  -- Keep only the already checked prefix. Replan when the obstacle blocks the first step.
   if Workspace:Raycast(from+Vector3.new(0,.5,0),point-from,self.raycast)
    or Workspace:Raycast(from+Vector3.new(0,2.5,0),point-from,self.raycast) then
+   if count>0 then break end
    self:_dropPath();self.status="Finding route";return
   end
   local ground=Workspace:Raycast(point+Vector3.new(0,3,0),Vector3.new(0,-9,0),self.raycast)
