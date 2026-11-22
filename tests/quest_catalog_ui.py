@@ -39,7 +39,7 @@ local messages,buttons,calls,cards,order={},{},{},{},{}
 local function info(text)table.insert(messages,text);table.insert(order,{kind="info",text=text})end
 local function card()local c={labels={}};table.insert(cards,c);table.insert(order,{kind="card",card=c});return c end
 local function label(c,text)table.insert(messages,text);table.insert(c.labels,text);return {}end
-local function button(c,id,text,size,_,fn)buttons[id]={text=text,call=fn,card=c,height=size.Y};c.button=id;return {}end
+local function button(c,id,text,size,pos,fn)buttons[id]={text=text,call=fn,card=c,height=size.Y,pos=pos};c.button=id;return {}end
 local action={FireServer=function(_,verb,id)table.insert(calls,{verb,id})end}
 local function render(value,isNarrow)
  data=value;narrow=isNarrow;gui.AbsoluteSize.X=isNarrow and 390 or 1280;messages={};buttons={};calls={};cards={};order={}
@@ -215,11 +215,21 @@ for _,isNarrow in ipairs({false,true})do
  renderChecked(value,isNarrow)
  check(order[1].card==buttons.ActiveQuestAction.card,'Ready reward does not render first')
  check(buttons.ActiveQuestAction.height==44,'Ready reward tap target is shorter than 44 pixels')
+ local claimPos=buttons.ActiveQuestAction.pos
+ check(claimPos[3]==0 and claimPos[4]+buttons.ActiveQuestAction.height<=45,'Claim target clips in the shortest tested reward window')
+ local readyQuest=Config.GetQuest('garden')
+ local baseReward=string.format("%d coins · %d XP (base)",readyQuest.coins,readyQuest.xp)
+ check(table.find(buttons.ActiveQuestAction.card.labels,baseReward),'Quick claim hides the available base reward')
  local old=#calls;buttons.ActiveQuestAction.call()
  check(#calls==old+1 and calls[#calls][1]=='ClaimQuest' and calls[#calls][2]=='garden','Active completed quest no longer claimable')
  local inactive=copy(value);inactive.activeQuest=nil;inactive.quests={garden=copy(value.quests.garden)}
  renderChecked(inactive,isNarrow)
  check(order[1].card==buttons.ReadyQuestAction.card,'Inactive ready reward does not render first')
+ check(table.find(buttons.ReadyQuestAction.card.labels,baseReward),'Inactive quick claim hides the available base reward')
+ local capped=copy(inactive);capped.level=Config.MaxLevel
+ renderChecked(capped,isNarrow)
+ check(table.find(buttons.ReadyQuestAction.card.labels,readyQuest.coins.." coins (base)"),'Max-level quick claim advertises XP')
+ renderChecked(inactive,isNarrow)
  buttons.ReadyQuestAction.call()
  check(#calls==1 and calls[1][1]=='ClaimQuest' and calls[1][2]=='garden','Inactive ready shortcut sends wrong claim')
  inactive.quests.garden.claimed=true;renderChecked(inactive,isNarrow)
@@ -323,9 +333,18 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    active=code.replace('if data.activeQuest and not (current and current.retired==true) and (not reward or current~=reward) then','if data.activeQuest and (not reward or current~=reward) then')
    assert active!=code
    run(active,'Retired active objective exposed')
-   below=code.replace('  if reward then\n   local c=card(60)','  info("Before claim")\n  if reward then\n   local c=card(60)',1)
+   below=code.replace('  if reward then\n','  info("Before claim")\n  if reward then\n',1)
    assert below!=code
    run(below,'Ready reward does not render first')
    undiscovered=code.replace('local progress=available and data.quests[quest.id]','local progress=data.quests[quest.id]',1)
    assert undiscovered!=code
    run(undiscovered,'Stale progress promoted an undiscovered reward')
+   missing=code.replace('label(c,payout,','label(c,"",',1)
+   assert missing!=code
+   run(missing,'Quick claim hides the available base reward')
+   capped=code.replace('local payout=data.level>=Config.MaxLevel','local payout=false',1)
+   assert capped!=code
+   run(capped,'Max-level quick claim advertises XP')
+   clipped=code.replace('UDim2.new(1,-130,0,1),function()','UDim2.new(1,-130,.5,-22),function()',1)
+   assert clipped!=code
+   run(clipped,'Claim target clips in the shortest tested reward window')

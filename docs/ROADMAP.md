@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Show the reward beside the quick Claim button
+
+- At the top of Quests, the completed Garden card showed the title and **CLAIM** while the reward amounts were farther down the list. The first card now shows the catalog amount, **80 coins · 130 XP (base)** for Garden, and hides XP at level 100. The claim result still displays the actual server credit, which can differ with boosts and the level cap.
+- In the 566 × 239 usable landscape Studio run, the name and reward fit without scrolling. The 499 × 223 sample exposed the old Claim button extending below a 45-pixel scroll window. The final build kept the full 116 × 44 button, quest name and reward visible in that window for Garden, level-100 Garden and The Worst Striker’s Best Assist. The staged Garden claim credited 80 coins via the actual server handler. Repeating it left the wallet at 80. These samples used a temporary profile and staged completion rather than physical input. The emulator returned to default and the disposable Studio closed.
+- Independent review cleared reward semantics and claim authority. Focused verification passed 1,793 renderer assertions and caught controls for a missing preview, showing XP at max level and a clipped button. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+
 ## Put the next gear upgrade first on reopen
 
 - On a level-1 temporary profile with the Megaphone purchased, the Micro-speaker buy button sat 490 pixels below the top of a 111-pixel scroll window in the shortest Studio phone sample. Gear now uses the catalog order to promote the tier after the strongest owned item. Fresh players still see the Academy Megaphone first. Players who own the highest tier return to the normal ordering.

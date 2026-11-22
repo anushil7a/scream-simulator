@@ -1160,10 +1160,16 @@ render=function()
    end
   end
   if reward then
-   local c=card(60)
-   label(c,reward.name,UDim2.new(1,-158,0,44),UDim2.fromOffset(14,8),15,gold)
+   local payout=data.level>=Config.MaxLevel and (reward.coins.." coins (base)")
+    or string.format("%d coins · %d XP (base)",reward.coins,reward.xp)
+   local textBounds=Vector2.new(math.max(1,math.min(720,gui.AbsoluteSize.X-24)-206),10000)
+   local nameHeight=math.max(19,TextService:GetTextSize(reward.name,15,Enum.Font.GothamMedium,textBounds).Y+2)
+   local payoutHeight=math.max(16,TextService:GetTextSize(payout,12,Enum.Font.GothamMedium,textBounds).Y+2)
+   local c=card(math.max(60,nameHeight+payoutHeight+18))
+   label(c,reward.name,UDim2.new(1,-158,0,nameHeight),UDim2.fromOffset(14,8),15,gold)
+   label(c,payout,UDim2.new(1,-158,0,payoutHeight),UDim2.fromOffset(14,nameHeight+10),12,muted)
    local actionName=reward==current and not reward.retired and "ActiveQuestAction" or "ReadyQuestAction"
-   button(c,actionName,"CLAIM",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,8),function()
+   button(c,actionName,"CLAIM",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,1),function()
     action:FireServer("ClaimQuest",reward.id)
    end)
   end
