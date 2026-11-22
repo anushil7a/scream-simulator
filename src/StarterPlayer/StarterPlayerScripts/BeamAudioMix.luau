@@ -27,10 +27,11 @@ function Mix:Pulse(id,now,position,isLocal,tier,distance)
  if not entry then
   if distance and distance>self.settings.Range then return false end
   if self.count>=self.settings.Limit then
-   -- A silent distant handle may keep its timeline only while a slot is free.
-   local farId,farthest=nil,self.settings.Range
+   -- A local cast can replace the farthest remote. Remote casts can only reclaim distant remote slots.
+   local farId,farthest=nil,isLocal and -math.huge or self.settings.Range
    for otherId,other in pairs(self.entries) do
-    if other.distance and other.distance>farthest then farId,farthest=otherId,other.distance end
+    local otherDistance=other.distance or 0
+    if not other.isLocal and otherDistance>farthest then farId,farthest=otherId,otherDistance end
    end
    if not farId or not self.canCreate or not self.canCreate(tier) then return false end
    self:Remove(farId)

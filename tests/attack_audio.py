@@ -131,6 +131,24 @@ mixer:Step(5.13,.13,false)
 check(mixer.entries[25].sound.sound.plays==1,"Reclaimed slot did not play")
 mixer:Step(5.74,.25,false)
 check(mixer.count==0,"Distant entries escaped normal timeout cleanup")
+-- A later local cast must still receive its own audio when all four slots are nearby.
+for id=31,34 do check(mixer:Pulse(id,6,id-21,false,10,id-21),"Nearby slot missing") end
+local displaced=mixer.entries[34].sound
+check(not mixer:Pulse(7,6.02,1,true,1,1) and not displaced.anchor.destroyed,"Unassigned local clip displaced an audible remote")
+check(mixer:Pulse(7,6.03,1,true,100,1),"Four nearby remote beams starved the local clip")
+check(mixer.count==settings.Limit and not mixer.entries[34] and displaced.anchor.destroyed,"Local priority did not replace only the farthest remote")
+mixer:Step(6.16,.13,true)
+local own=mixer.entries[7].sound
+local total=0;for _,entry in pairs(mixer.entries) do total+=entry.sound.sound.Volume end
+check(own.sound.plays==1 and own.sound.Volume>0 and total<=settings.LowVolume*mixer.duck+1e-6,"Local priority broke gain or voice headroom")
+check(not mixer:Pulse(35,6.17,2,false,10,2) and mixer.entries[7].sound==own,"Remote arrival displaced the local clip")
+check(mixer:Pulse(7,6.18,1,true,100,1),"Local pulse rejected after priority admission")
+mixer:Step(6.18,.01,false)
+check(own.sound.plays==1 and mixer.entries[7].sound==own,"Local priority restarted the recording")
+-- Even temporarily silent local audio keeps its slot until normal cast cleanup.
+check(mixer:Pulse(7,6.19,71,true,100,71),"Existing local range update was rejected")
+check(not mixer:Pulse(35,6.20,2,false,10,2) and mixer.entries[7].sound==own,"Remote arrival evicted a range-muted local cast")
+mixer:Clear()
 mixer:Destroy();check(nodes[1].destroyed,"Teardown leaked SoundGroup")
 check(not mixer:Pulse(2,1,10,true),"Destroyed adapter recreated audio")
 print("PASS "..checks.." actual attack audio adapter checks with mocked instances")
@@ -153,8 +171,10 @@ if '--negative-controls' in sys.argv:
         ('  if distance and distance>self.settings.Range then return false end', '', 'Distant first pulse allocated audio'),
         ('(not entry.distance or entry.distance<=self.settings.Range) and ', '', 'Distant clip was not silently advanced'),
         (' or not self.canCreate(tier)', '', 'Unassigned starter evicted a live handle'),
+        ('isLocal and -math.huge or self.settings.Range', 'self.settings.Range', 'Four nearby remote beams starved the local clip'),
+        ('not other.isLocal and otherDistance>farthest', 'otherDistance>farthest', 'Remote arrival evicted a range-muted local cast'),
     ):
         assert mix.count(old) == 1, old
         result = run(mix.replace(old, new))
         assert result.returncode and diagnostic in result.stderr, result.stderr
-    print('PASS 3 audio range negative controls')
+    print('PASS 5 audio range and priority negative controls')

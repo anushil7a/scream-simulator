@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep the player's beam audio in the mix during overlapping fights
+
+- Four in-range remote beams filled the old mixer and rejected a subsequent local level-100 beam. A configured local clip now replaces the farthest remote handle when the four-handle cap is full. Remote arrivals can still reclaim distant remote handles. They cannot evict the local handle or displace an in-range remote. Missing or malformed asset IDs do not evict anything. Replacement cuts the displaced sound immediately. A valid-looking ID can still fail to load after it takes a slot.
+- A matched disposable Studio probe used real Sound instances with blank SoundIds and scripted mixer inputs. The baseline rejected the local cast and its gain was zero. The update admitted it at 0.01718 local gain while total gain was 0.09080 under the 0.09816 voice-active ceiling. The peak was four live handles, the farthest remote was displaced and all handles were released. This did not play or audition any asset.
+- Separately, the current 24-beam visual fixture passed 7,667 native assertions at a fixed 666 × 353 viewport after an initial viewport drift abort. Regular, crowded and reduced script-section p95 measured 5.00, 1.13 and 0.40 ms at about 30 animation updates per second. Median frame intervals were about 16.7 ms in all modes. This is an overlap sample with staged visuals, not an FPS improvement attributable to the audio change.
+- Independent review cleared the change. The audio adapter passed 70 checks and five negative controls; cadence passed 344 checks and three negative controls. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. The disposable session was closed and its temporary profile removed. Real listening, microphones, phones, live network play and GPU timing remain open.
+
 ## Show Mar's first quest action above the fold in short dialogue
 
 - At 509 × 162 safe pixels the old dialogue scroller was 60 pixels high. It opened on a greeting and cut-off neighborhood button, while Accept began at y206. The compact landscape dialogue now preserves a 44 × 44 Close and gives the list 94 pixels there. It places quest details and controls before optional neighborhood information and keeps warnings before their actions. The existing wider layout still begins with the greeting.
