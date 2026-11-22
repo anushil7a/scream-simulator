@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Close the temporary all-tester access gate
+
+- The branch preflight previously returned `BLOCKED` because the temporary all-tester switch was enabled. The switch now matches the existing reviewed disabled-module fingerprint. Built candidate provenance records `PASS_LOCAL_DISABLED_CONFIG_ONLY`; the quest-writer fleet gate remains separate. The matching owner retains the existing general commands. City Preview-only cloud beam and flight tools switch off with temporary access. Ordinary testers use normal progression.
+- Independent review cleared the source and fixture changes. The focused checks passed 15 preflight assertions, 42 simulated two-player authorization and save assertions with four negative controls, 109 developer-command assertions with four controls, and 57 test-session reward assertions with 11 controls.
+- In the unpublished native fixture, the actual server access module rejected an ordinary player under staged live-style City Preview metadata, authorized the matching owner, and disabled Preview-only tools. The real local `Action` remote let Studio add ten levels from level 1 while `savingAvailable` was false. Cloud identity in that module check was staged. It did not exercise cloud sessions, live saves or publication.
+- Fresh Play returned the test profile to level 1. The disposable Studio window was closed. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. The candidate binary matched its provenance hash and still reports `BLOCKED_UNVERIFIED_WRITER_FLEET`. The release handoff records the remaining fleet, real-device and save gates.
+
 ## Correct the Amphitheatre speaker preview and remove duplicate cones
 
 - The nine basic cones in the geometry-only map sat behind their towers with sideways cylinder axes. They now face the audience and sit flush against the front casings. A native standalone build retained all nine cones and the same 654 parts. The solid casings, routes and collision settings stayed the same.

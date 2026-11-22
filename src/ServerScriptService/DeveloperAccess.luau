@@ -7,7 +7,7 @@ Access.OwnerUserId = 11499795799
 -- Temporary owner-approved tester access. Disable before any public release.
 -- Server-owned only: City Preview place 90337242377543 / universe 10769005350.
 -- Verified cloud-reopen evidence: tests/evidence/city-preview-version14-2026-11-06.json.
-Access.PrelaunchAllTesters = true
+Access.PrelaunchAllTesters = false
 Access.PrelaunchUniverseIds = {[10769005350] = true}
 
 function Access.IsAuthorized(player, creatorType, creatorId, isStudio, universeId)

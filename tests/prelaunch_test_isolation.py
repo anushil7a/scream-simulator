@@ -6,9 +6,12 @@ local function acquire(p)
  local data,writable=Profiles.Load(p.UserId);check(writable,'Fake acquisition failed')
  sessions[p]={rewardIdentity={},data=data,canSave=true,voice=Combat.New(),credit={},protectedUntil=0,dodgingUntil=0};return sessions[p]
 end
-check(Access.PrelaunchAllTesters==true,'Prelaunch flag not enabled')
 game.GameId=10769005350
 local a=acquire(ordinary);local b=acquire(third)
+check(Access.PrelaunchAllTesters==false,'Release default must disable prelaunch tools')
+dev(ordinary,'MaxLevel');check(a.data.level==1 and a.testBaseline==nil,'Release default allowed tester command')
+check(not Access.IsCityPreviewTools(Enum.CreatorType.User,Access.OwnerUserId,false,10769005350,90337242377543),'Release default enabled City Preview-only tools')
+Access.PrelaunchAllTesters=true -- Exercise the isolated temporary policy below.
 local beforeA=Profiles.Sanitize(a.data);local beforeB=Profiles.Sanitize(b.data)
 for _,command in ipairs({'bad',{},false})do dev(ordinary,command)end
 check(a.testBaseline==nil,'Unknown command entered test mode')
@@ -68,7 +71,7 @@ def build(mutation=None):
  if mutation:source=mutation(source)
  declarations='\n'.join(re.findall(r'^local (?:testRewardHistory|rewardHistory)=.*$',source,re.M))
  code=code.replace('local rewardHistory={pairs={}};local testRewardHistory={pairs={}}',declarations)
- # Retained old-policy fixture explicitly disables prelaunch; this suite tests current flag.
+ # Observe the shipped default before this suite changes the flag locally.
  code=code.replace('Access.PrelaunchAllTesters=false -- retained owner-only policy','')
  return code
 if __name__=='__main__':

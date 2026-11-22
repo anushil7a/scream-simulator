@@ -1,13 +1,13 @@
 # Temporary game-specific Test Tools review (November 12, 2026)
 
-The owner requested Test Tools for anyone currently joining this developer-tested game, with removal before launch. This draft implements that request only for City Preview universe `10769005350`, retaining creator `11499795799`/User validation. Historical native cloud-reopen evidence maps place `90337242377543` to that universe (version 10/12/14 records and version 19 handoff); the fresh public API lookup was unavailable. Newly saved `idk`, `gmae` and `game` disposable copies are not substituted for this identity.
+The owner requested temporary Test Tools for testers, with removal before launch. The earlier draft enabled them only for City Preview universe `10769005350` with creator `11499795799`/User validation. The current branch disables temporary all-tester access and retains owner/Studio access. Historical native cloud-reopen evidence maps place `90337242377543` to that universe (version 10/12/14 records and version 19 handoff); the fresh public API lookup was unavailable. Newly saved `idk`, `gmae` and `game` disposable copies are not substituted for this identity.
 
 ## Boundary and save protection
 
 - Both the State visibility snapshot and each test command pass server `game.GameId` into DeveloperAccess. A non-owner needs the exact true prelaunch flag, exact true allowlist entry, valid positive integer universe ID and matching creator. Original owner/Studio access is unchanged. Client flags cannot grant access.
 - A valid test command freezes a sanitized legitimate baseline and creates separate temporary working data before mutation. Existing purchase-in-flight barrier, mixed test/normal PvP isolation, NPC/reset restrictions and save/release baseline paths remain. The owner's Keep Playing choice for ordinary save failures is unchanged.
 - Test-to-test repeat-opponent history is now separate from ordinary history. Each retains the existing 4,096-pair bound and expiry. This avoids temporary test fights penalizing later ordinary sessions without an unbounded ledger.
-- `python tools/developer_access_preflight.py` returns BLOCKED/exit 2 while enabled. The draft build records that status. Disabling the flag passes only for the exact reviewed disabled-module fingerprint; any source drift needs review. This is a local CLI/provenance gate, NOT enforcement against manual publication, proof about deployed servers or publication approval. Disable and review before public release.
+- `python tools/developer_access_preflight.py` returns `PASS_LOCAL_DISABLED_CONFIG_ONLY` for the exact reviewed disabled module and `BLOCKED`/exit 2 for the enabled source. The candidate records this result in provenance. It applies to local source only. Review deployed servers and obtain approval separately before release.
 
 ## Verification
 
