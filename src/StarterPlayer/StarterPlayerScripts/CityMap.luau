@@ -102,9 +102,14 @@ function CityMap.create(parent,compact)
    local cover=part.kind=='cover'
    local court=part.id=='Court'
    if architecture or training or cover or court then
-    local start=position(part.position.X-part.size.X/2,part.position.Z-part.size.Z/2)
+    local roundPad=training and part.shape=="Cylinder"
+    local spanX=roundPad and part.size.Y or part.size.X
+    local start=position(part.position.X-spanX/2,part.position.Z-part.size.Z/2)
     local color=architecture and Color3.fromRGB(173,181,167) or training and part.color or cover and Color3.fromRGB(166,131,111) or Color3.fromRGB(110,157,148)
-    box(map,'Footprint_'..part.id,start.X.Scale,start.Y.Scale,part.size.X/width,part.size.Z/depth,color)
+    local footprint=box(map,'Footprint_'..part.id,start.X.Scale,start.Y.Scale,spanX/width,part.size.Z/depth,color)
+    if roundPad then
+     local corner=Instance.new('UICorner');corner.CornerRadius=UDim.new(.5,0);corner.Parent=footprint
+    end
     local tier=trainingBadges[part.id]
     if tier and not compact then
      local badge=box(map,'TrainingTier_'..part.id,0,0,0,0,tier.color)

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Academy pads show the sparring circle
+
+- The three Map10 sparring pads used square green surfaces with corners outside the training radius. Each now has a 64-stud decorative disk above the paving and below the Rookie trail. The original walkable surfaces stay present with their existing collision and dimensions. Both maps draw the same circular ground footprint and retain their tier markers.
+- Native Studio inspection found square art before the change. Afterward, isolated ray samples hit each disk at 31.9 studs and missed at 32.1 studs and at the former diagonal corner. Twelve normal floor rays matched the old hit part and height exactly. The native full map and minimap both constructed all three round footprints. The circle depicts the ground projection of the server's existing 3D radius.
+- Independent review, 686 Map10 contract checks, 15,075 mocked map and zone assertions, six mutation controls, and the full run passed. The full run covered 29 pure/synthetic suites, 167 mocked-service suites, compilation and review builds. The disposable Studio session closed. The updated local review place was rebuilt. Physical touch and real voice remain open.
+
 ## Rookie's floor trail leads into sparring range
 
 - In the disposable City build, the old trail ended 32.87 studs from Rookie's home against a 32-stud sparring radius. A native humanoid walk reached 32.60 studs from home in 12.12 seconds. A staged Rookie target 16.56 studs away was within beam reach and unobstructed, but the actual server resolver excluded it at the trail tip.

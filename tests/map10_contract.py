@@ -20,6 +20,21 @@ for name,offset in [('Soccer',(25,54.5)),('Volley',(100,90))]:
  check(len(new)==len(prev),name+' vectors preserved')
  for a,b in zip(new,prev):check(abs(a[0]-b[0]-offset[0])<.001 and a[1]==b[1] and abs(a[2]-b[2]-offset[1])<.001,name+' rigid relocation')
 for q in parts:check(all(math.isfinite(v) for v in q['position']+q['size']+q['rotation']) and min(q['size'])>0,q['id']+' finite')
+rules=(R/'src/ReplicatedStorage/Shared/TrainingRules.luau').read_text()
+radius=int(re.search(r'local Training=\{Radius=(\d+)',rules).group(1))
+homes=[tuple(map(int,m)) for m in re.findall(r'\{x=(-?\d+),y=(-?\d+),z=(-?\d+)\}',next(l for l in layout.splitlines() if l.startswith('Layout.TrainingHomes=')))]
+by_id={part['id']:part for part in parts}
+for index,(x,y,z) in enumerate(homes,1):
+ name=f'TrainingPad{index}'
+ part=by_id[name]
+ check(part['shape']=='Cylinder' and part['rotation']==[0,0,90] and part['size'][1:]==[2*radius,2*radius],name+' must show the sparring circle')
+ check(part['position'][0]==x and part['position'][2]==z and not part['collidable'],name+' art moved or changed collision')
+ top=part['position'][1]+part['size'][0]/2
+ road=by_id['AcademyTraining']
+ check(road['position'][1]+road['size'][1]/2<top<y+.285,name+' needs clearance between paving and Rookie trail')
+ for source in (layout,(R/'src/ReplicatedStorage/Shared/Map10Geometry.luau').read_text()):
+  row=next(line for line in source.splitlines() if line.startswith('{id="'+name+'"'))
+  check('shape="Cylinder"' in row and 'size=Vector3.new('+','.join(map(str,part['size']))+')' in row,name+' runtime and preview differ')
 world=(R/'src/ServerScriptService/World.luau').read_text();check('(training.y or 0)+3.2' in world,'trainer grounding');check('nil,nil,spot.y' in world,'seed elevation');check('SupportingNPCs.AtHome' in world,'support placement adapter')
 nav=(R/'src/ReplicatedStorage/Shared/NavigationCatalog.luau').read_text();check('(boss.y or 0)+3' in nav and '(landmark.y or 0)+3' in nav,'elevated guides')
 check('home=Layout.BossHomes' in (R/'src/ReplicatedStorage/Shared/BossCatalog.luau').read_text(),'boss bindings')

@@ -46,6 +46,15 @@ for i in ipairs(Layout.MapLandmarks)do
 end
 check(CityMap.mapHelp:find('Red: PvP',1,true) and not CityMap.mapHelp:find('North',1,true),'Legend/compass policy wrong')
 for _,view in ipairs({full,mini})do
+ for i,home in ipairs(Layout.TrainingHomes)do
+  local mark=find(view.map,'Footprint_TrainingPad'..i);check(mark~=nil,'Sparring map footprint missing')
+  local a,b=CityMap.Project(home.x-32,home.z-32),CityMap.Project(home.x+32,home.z+32)
+  check(near(mark.Position.X.Scale,a.X.Scale) and near(mark.Position.Y.Scale,a.Y.Scale)
+   and near(mark.Size.X.Scale,b.X.Scale-a.X.Scale) and near(mark.Size.Y.Scale,b.Y.Scale-a.Y.Scale),'Sparring circle projection lost its diameter')
+  local rounded=false
+  for _,o in ipairs(objects)do if o.Parent==mark and o.ClassName=='UICorner' and o.CornerRadius.Scale==.5 then rounded=true end end
+  check(rounded,'Sparring map still shows a square')
+ end
  for i,r in ipairs(Layout.GardenPvpRects)do
   local f=find(view.map,'GardenPvp_'..i);check(f~=nil,'Missing canonical rect')
   local a,b=CityMap.Project(r.minX,r.minZ),CityMap.Project(r.maxX,r.maxZ)
@@ -140,6 +149,8 @@ if __name__=='__main__':
  assert 'Arena District: %d%% PvP' not in client
  p=argparse.ArgumentParser();p.add_argument('--negative-controls',action='store_true');a=p.parse_args();run(source)
  if a.negative_controls:
+  run(source.replace('local spanX=roundPad and part.size.Y or part.size.X','local spanX=part.size.X'),'Sparring circle projection lost its diameter')
+  run(source.replace('if roundPad then','if false then'),'Sparring map still shows a square')
   run(source.replace('finish.X.Scale-start.X.Scale,finish.Y.Scale-start.Y.Scale','1,1',1),True)
   run(source.replace('CityMap.GardenPvp(map,compact)','CityMap.NoGardenPvp(map,compact)',1).replace(' CityMap.GardenPvp(map,compact)','',1),True)
   for old,new,expected in [

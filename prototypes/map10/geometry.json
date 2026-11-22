@@ -4320,12 +4320,12 @@
       "id": "TrainingPad1",
       "position": [
         -420,
-        32.12,
+        32.185,
         -400
       ],
       "size": [
-        64,
         0.15,
+        64,
         64
       ],
       "color": [
@@ -4337,21 +4337,21 @@
       "rotation": [
         0,
         0,
-        0
+        90
       ],
       "material": "SmoothPlastic",
-      "shape": null
+      "shape": "Cylinder"
     },
     {
       "id": "TrainingPad2",
       "position": [
         -300,
-        32.12,
+        32.185,
         -400
       ],
       "size": [
-        64,
         0.15,
+        64,
         64
       ],
       "color": [
@@ -4363,21 +4363,21 @@
       "rotation": [
         0,
         0,
-        0
+        90
       ],
       "material": "SmoothPlastic",
-      "shape": null
+      "shape": "Cylinder"
     },
     {
       "id": "TrainingPad3",
       "position": [
         -180,
-        32.12,
+        32.185,
         -400
       ],
       "size": [
-        64,
         0.15,
+        64,
         64
       ],
       "color": [
@@ -4389,10 +4389,10 @@
       "rotation": [
         0,
         0,
-        0
+        90
       ],
       "material": "SmoothPlastic",
-      "shape": null
+      "shape": "Cylinder"
     },
     {
       "id": "FountainBasin",

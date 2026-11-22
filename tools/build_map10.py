@@ -69,7 +69,8 @@ for n,a,b,w in routes:ramp(n,a,b,w)
 for n,pos,sz in [('AcademySpine',[-300,32.13,-260],[350,.2,26]),('AcademyTraining',[-300,32.14,-400],[360,.2,26]),('GardenSpine',[-10,16.13,110],[360,.2,30]),('GardenNorth',[-30,16.14,-60],[320,.2,28]),('GardenWest',[-90,16.15,20],[28,.2,180]),('GardenEast',[100,16.16,25],[28,.2,180]),('CoastalWalk',[0,.12,420],[960,.2,36]),('CoastArena',[-430,.13,260],[30,.2,280]),('SportsApproach',[300,.14,240],[30,.2,320])]:box(n,pos,sz,cream,False)
 # Academy open pavilions with readable fountain and training clear pads.
 for i,(x,z,w) in enumerate([(-450,-460,44),(-300,-460,58),(-140,-460,44),(-490,-180,36)]):pavilion('AcademyPavilion'+str(i),x,z,32,w)
-for i,x in enumerate([-420,-300,-180]):box('TrainingPad'+str(i+1),[x,32.12,-400],[64,.15,64],[148,181,145],False)
+# Raise the sparring circles over the cream road and under the Rookie trail.
+for i,x in enumerate([-420,-300,-180]):disk('TrainingPad'+str(i+1),x,32.185,-400,32,.15,[148,181,145],False)
 disk('FountainBasin',-300,33,-300,19,2,cream);disk('FountainWater',-300,34.1,-300,16,.2,water,False);disk('FountainPedestal',-300,37,-300,3,6,cream);disk('FountainBowl',-300,40,-300,9,2,cream)
 # Stadium: octagonal bowl, east entrance, clear central PvP square and static cover.
 for k in range(5):ring('ArenaTier'+str(k),-330,120,112+k*7,k*3,3,[166+k*9,166+k*8,145+k*7],gaps=(2,))

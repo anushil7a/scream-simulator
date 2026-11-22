@@ -973,6 +973,7 @@ function World.Build()
             end
         end
         local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,Config.CompactCity and (tier.y or 0)+.1 or 1.1,tier.z),padColor,Enum.Material.SmoothPlastic)
+        if finishMap10 then pad.Transparency=1;pad.CastShadow=false end
         local sign=part(parent,"TrainingSign_"..tier.id,Vector3.new(1,1,1),Vector3.new(tier.x,(tier.y or 0)+7,tier.z+30),C.gold,nil,false);sign.Transparency=1
         local words=billboard(sign,tier.name.." · recommended Lv "..tier.level.."\n"..tier.health.." HP · "..tier.xp.." base XP\nHit to spar · move out of red strikes",Vector3.zero,280)
         words.Parent.Size=UDim2.fromOffset(280,76);words.Parent.MaxDistance=100
