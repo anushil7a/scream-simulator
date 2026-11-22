@@ -12,6 +12,8 @@ Catalog.Items={
  {key="CityCrest",name="CITY CREST",tag="PERMANENT PASS",description="Give your personal City map a gold Academy crest and trim.",kind="pass",id=0,suggestedPrice=49},
  {key="PulseFrame",name="PULSE FRAME",tag="PERMANENT PASS",description="Add a cosmetic frame to your personal beam status HUD.",kind="pass",id=0,suggestedPrice=49},
  {key="RouteLights",name="ROUTE LIGHTS",tag="PERMANENT PASS",description="Tint your personal guide markers blue on safe ground.",kind="pass",id=0,suggestedPrice=39},
+ {key="HarborBadge",name="HARBOR BADGE",tag="PERMANENT PASS",description="Wear a harbor badge above your avatar in safe areas. Only you can see it.",kind="pass",id=0,suggestedPrice=49},
+ {key="SprintRibbon",name="SPRINT RIBBON",tag="PERMANENT PASS",description="Leave a short ribbon while sprinting in safe areas. Only you can see it.",kind="pass",id=0,suggestedPrice=69},
 }
 function Catalog.Get(key) for _,item in ipairs(Catalog.Items) do if item.key==key then return item end end end
 function Catalog.Product(id)

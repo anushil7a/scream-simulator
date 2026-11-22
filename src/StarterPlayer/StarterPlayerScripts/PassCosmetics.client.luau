@@ -8,15 +8,16 @@ local Config=require(shared:WaitForChild("Config"))
 if not Config.CompactCity or Config.ResonanceLayout then return end
 local Catalog=require(shared:WaitForChild("ShopCatalog"))
 local localFixture=RunService:IsStudio() and game.PlaceId==0 and game.GameId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
-if not localFixture and Catalog.Get("Encore").id<=0 and Catalog.Get("Afterimage").id<=0 and Catalog.Get("CityGlow").id<=0 then return end
+if not localFixture and Catalog.Get("Encore").id<=0 and Catalog.Get("Afterimage").id<=0 and Catalog.Get("CityGlow").id<=0 and Catalog.Get("HarborBadge").id<=0 and Catalog.Get("SprintRibbon").id<=0 then return end
 
 local localPlayer=Players.LocalPlayer
 local gui=localPlayer:WaitForChild("PlayerGui")
 local effect=Storage:WaitForChild("ScreamRemotes"):WaitForChild("Effect")
 local titles,trails={},{}
-local glow
+local glow,harborBadge,sprintRibbon
 local violet=Color3.fromRGB(179,151,255)
 local mint=Color3.fromRGB(125,242,255)
+local amber=Color3.fromRGB(255,191,111)
 
 local function safeRoot(player)
  local character=player.Character
@@ -30,10 +31,25 @@ local function clearTitle(player)
  if plate then plate:Destroy();titles[player]=nil end
 end
 
+local function destroyTrail(record)
+ record.trail:Destroy();record.bottom:Destroy();record.top:Destroy()
+end
+
 local function clearTrail(player)
  local record=trails[player]
  if not record then return end
- record.trail:Destroy();record.bottom:Destroy();record.top:Destroy();trails[player]=nil
+ destroyTrail(record);trails[player]=nil
+end
+
+local function makeTrail(root,name,startColor,endColor,lifetime)
+ local bottom=Instance.new("Attachment");bottom.Name=name.."Bottom";bottom.Position=Vector3.new(0,-.7,.55);bottom.Parent=root
+ local top=Instance.new("Attachment");top.Name=name.."Top";top.Position=Vector3.new(0,.7,.55);top.Parent=root
+ local trail=Instance.new("Trail");trail.Name=name.."PassTrail";trail.Attachment0=bottom;trail.Attachment1=top
+ trail.Color=ColorSequence.new(startColor,endColor);trail.Lifetime=lifetime;trail.LightEmission=.45;trail.FaceCamera=true
+ trail.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,.38),NumberSequenceKeypoint.new(1,1)})
+ trail.WidthScale=NumberSequence.new({NumberSequenceKeypoint.new(0,.8),NumberSequenceKeypoint.new(1,0)})
+ trail.Parent=root
+ return {trail=trail,top=top,bottom=bottom,root=root}
 end
 
 local function addTitle(player,head)
@@ -57,14 +73,8 @@ local effectConnection=effect.OnClientEvent:Connect(function(kind,origin,userId)
  local root,viewer=safeRoot(player),safeRoot(localPlayer)
  if not root or not viewer or (viewer.Position-origin).Magnitude>55 then return end
  clearTrail(player)
- local bottom=Instance.new("Attachment");bottom.Name="AfterimageBottom";bottom.Position=Vector3.new(0,-.7,.55);bottom.Parent=root
- local top=Instance.new("Attachment");top.Name="AfterimageTop";top.Position=Vector3.new(0,.7,.55);top.Parent=root
- local trail=Instance.new("Trail");trail.Name="AfterimagePassTrail";trail.Attachment0=bottom;trail.Attachment1=top
- trail.Color=ColorSequence.new(mint,violet);trail.Lifetime=.18;trail.LightEmission=.45;trail.FaceCamera=true
- trail.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,.38),NumberSequenceKeypoint.new(1,1)})
- trail.WidthScale=NumberSequence.new({NumberSequenceKeypoint.new(0,.8),NumberSequenceKeypoint.new(1,0)})
- trail.Parent=root
- local now=os.clock();trails[player]={trail=trail,top=top,bottom=bottom,root=root,stopAt=now+.25,endAt=now+.44}
+ local record=makeTrail(root,"Afterimage",mint,violet,.18)
+ local now=os.clock();record.stopAt=now+.25;record.endAt=now+.44;trails[player]=record
 end)
 
 local function updateGlow(viewer)
@@ -81,11 +91,31 @@ local function updateGlow(viewer)
  glow.Parent=character
 end
 
+local function updatePersonalExtras(viewer)
+ local head=viewer and localPlayer:GetAttribute("HarborBadgePass")==true and localPlayer.Character:FindFirstChild("Head")
+ if harborBadge and harborBadge.Adornee~=head then harborBadge:Destroy();harborBadge=nil end
+ if head and not harborBadge then
+  local plate=Instance.new("BillboardGui")
+  plate.Name="HarborBadgePassIcon";plate.Adornee=head;plate.Size=UDim2.fromOffset(58,17)
+  plate.StudsOffsetWorldSpace=Vector3.new(0,3.35,0);plate.MaxDistance=26;plate.AlwaysOnTop=false
+  local label=Instance.new("TextLabel")
+  label.Size=UDim2.fromScale(1,1);label.BackgroundColor3=Color3.fromRGB(16,41,52)
+  label.BackgroundTransparency=.12;label.Text="HARBOR";label.TextColor3=amber
+  label.TextSize=10;label.Font=Enum.Font.GothamBold;label.Parent=plate
+  local corners=Instance.new("UICorner");corners.CornerRadius=UDim.new(0,8);corners.Parent=label
+  plate.Parent=gui;harborBadge=plate
+ end
+ local ribbonRoot=viewer and not GuiService.ReducedMotionEnabled
+  and localPlayer:GetAttribute("SprintRibbonPass")==true and localPlayer:GetAttribute("Sprinting")==true and viewer
+ if sprintRibbon and sprintRibbon.root~=ribbonRoot then destroyTrail(sprintRibbon);sprintRibbon=nil end
+ if ribbonRoot and not sprintRibbon then sprintRibbon=makeTrail(ribbonRoot,"SprintRibbon",amber,mint,.24) end
+end
+
 local nextTitleUpdate=0
 local heartbeat=RunService.Heartbeat:Connect(function()
  local now=os.clock()
  local viewer=safeRoot(localPlayer)
- updateGlow(viewer)
+ updateGlow(viewer);updatePersonalExtras(viewer)
  for player,record in pairs(trails) do
   if not viewer or GuiService.ReducedMotionEnabled or safeRoot(player)~=record.root or player:GetAttribute("AfterimagePass")~=true or now>=record.endAt then clearTrail(player)
   elseif now>=record.stopAt then record.trail.Enabled=false end
@@ -110,7 +140,7 @@ end)
 local removing=Players.PlayerRemoving:Connect(function(player) clearTitle(player);clearTrail(player) end)
 script.Destroying:Connect(function()
  effectConnection:Disconnect();heartbeat:Disconnect();removing:Disconnect()
- updateGlow(nil)
+ updateGlow(nil);updatePersonalExtras(nil)
  for player in pairs(titles) do clearTitle(player) end
  for player in pairs(trails) do clearTrail(player) end
 end)

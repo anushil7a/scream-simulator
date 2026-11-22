@@ -1,6 +1,7 @@
 """Run the cosmetic controller with mocked engine objects and events."""
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +32,12 @@ local settings={EncorePass=false,AfterimagePass=false,CityGlowPass=false}
 local root={Position=Vector3.new(-12,0,0)};local health={Health=100};local head={}
 local character={FindFirstChild=function(_,key)return key=='Head' and head or root end,FindFirstChildOfClass=function()return health end}
 local owner={UserId=1,Character=character,GetAttribute=function(_,name)return settings[name] end}
-local viewer={UserId=2,Character=character,GetAttribute=function(_,name)return name=='CityGlowPass' and settings.CityGlowPass end,WaitForChild=function()return {}end}
+local viewerSettings={}
+local gui={}
+local viewer={UserId=2,Character=character,GetAttribute=function(_,name)
+ if name=='CityGlowPass' then return settings.CityGlowPass end
+ return viewerSettings[name]
+end,WaitForChild=function()return gui end}
 local players={LocalPlayer=viewer,PlayerRemoving=signal(),GetPlayers=function()return {owner,viewer}end,
  GetPlayerByUserId=function(_,id)if id==1 then return owner elseif id==2 then return viewer end end}
 local run={Heartbeat=signal(),IsStudio=function()return false end}
@@ -83,14 +89,80 @@ root.Position=Vector3.new(-12,0,0);step(.01)
 check(alive('CityGlowPassOutline')~=nil,'Glow did not return in safety')
 settings.CityGlowPass=false;step(.01)
 check(not alive('CityGlowPassOutline'),'Glow remained after entitlement cleared')
+settings.HarborBadgePass=true;settings.SprintRibbonPass=true;settings.Sprinting=true;step(.01)
+check(not alive('HarborBadgePassIcon') and not alive('SprintRibbonPassTrail'),'Other player ownership created personal cosmetics')
+viewerSettings.HarborBadgePass=true;step(.01)
+local badge=alive('HarborBadgePassIcon')
+check(badge and badge.Adornee==head and badge.Parent==gui and not badge.AlwaysOnTop,'Owned personal Harbor Badge missing or visible through cover')
+check(not alive('SprintRibbonPassTrail'),'Harbor Badge ownership granted Sprint Ribbon')
+viewerSettings.SprintRibbonPass=true;step(.01)
+check(not alive('SprintRibbonPassTrail'),'Owned ribbon emitted without a sprint')
+viewerSettings.Sprinting=true;step(.01)
+local ribbon=alive('SprintRibbonPassTrail')
+check(ribbon and ribbon.Parent==root and ribbon.Attachment0.Parent==root and ribbon.Attachment1.Parent==root,'Owned safe sprint missed its ribbon')
+step(.01)
+check(alive('SprintRibbonPassTrail')==ribbon and alive('HarborBadgePassIcon')==badge,'Cosmetics duplicated during steady state')
+guiService.ReducedMotionEnabled=true;step(.01)
+check(not alive('SprintRibbonPassTrail') and not alive('SprintRibbonBottom') and alive('HarborBadgePassIcon')==badge,'Reduced motion did not clean up only the ribbon')
+guiService.ReducedMotionEnabled=false;step(.01)
+root.Position=Vector3.new(1,0,0);step(.01)
+check(not alive('SprintRibbonPassTrail') and not alive('HarborBadgePassIcon'),'Personal cosmetics entered PvP')
+root.Position=Vector3.new(-12,0,0);step(.01)
+check(alive('SprintRibbonPassTrail') and alive('HarborBadgePassIcon'),'Owned cosmetics did not return in safety')
+viewerSettings.Sprinting=false;step(.01)
+check(not alive('SprintRibbonPassTrail') and not alive('SprintRibbonTop'),'Sprint end left ribbon or attachment')
+viewerSettings.HarborBadgePass=false;step(.01)
+check(not alive('HarborBadgePassIcon'),'Harbor Badge remained after entitlement cleared')
+viewerSettings.Sprinting=true;step(.01)
+viewerSettings.SprintRibbonPass=false;step(.01)
+check(not alive('SprintRibbonPassTrail'),'Sprint Ribbon remained after entitlement cleared')
+viewerSettings.HarborBadgePass=true;viewerSettings.SprintRibbonPass=true;step(.01)
+health.Health=0;step(.01)
+check(not alive('HarborBadgePassIcon') and not alive('SprintRibbonPassTrail'),'Dead avatar retained personal effects')
+health.Health=100;step(.01)
+local oldBadge,oldRibbon=alive('HarborBadgePassIcon'),alive('SprintRibbonPassTrail')
+head={};root={Position=Vector3.new(-12,0,0)};step(.01)
+check(oldBadge.destroyed and oldRibbon.destroyed and alive('HarborBadgePassIcon').Adornee==head and alive('SprintRibbonPassTrail').Parent==root,'Replacement avatar did not cleanly replace effects')
 settings.CityGlowPass=true;step(.01);script.Destroying:Fire()
+check(not alive('HarborBadgePassIcon') and not alive('SprintRibbonPassTrail') and not alive('SprintRibbonBottom'),'Destroy left personal cosmetics')
 check(not alive('CityGlowPassOutline'),'Destroy left an outline')
 check(not alive('AfterimagePassTrail') and not alive('EncorePassTitle'),'Destroy did not clean effects')
 step(1);dodge(-12);check(not alive('EncorePassTitle') and not alive('AfterimagePassTrail'),'Destroy left callbacks')
 print('PASS '..count..' actual pass cosmetic checks; mocked engine only')
 '''
 
-with tempfile.TemporaryDirectory() as directory:
-    fixture = Path(directory) / 'PassCosmetics.luau'
-    fixture.write_text(setup + source + checks, encoding='utf-8')
-    subprocess.run(['luau', str(fixture)], check=True)
+def run(code, expected=None):
+    with tempfile.TemporaryDirectory() as directory:
+        fixture = Path(directory) / 'PassCosmetics.luau'
+        fixture.write_text(code, encoding='utf-8')
+        result = subprocess.run(['luau', str(fixture)], text=True, capture_output=True)
+    if expected:
+        assert result.returncode and expected in result.stderr, result.stderr
+        print('PASS negative control:', expected)
+    else:
+        assert not result.returncode, result.stderr
+        print(result.stdout.strip())
+
+run(setup + source + checks)
+for key, object_name in (('HarborBadge', 'HarborBadgePassIcon'), ('SprintRibbon', 'SprintRibbonPassTrail')):
+    single_pass = setup.replace('local Catalog={Get=function()return {id=1}end}',
+                                f"local Catalog={{Get=function(key) return {{id=key=='{key}' and 1 or 0}} end}}")
+    configured_check = f"""
+end
+viewerSettings['{key}Pass']=true
+viewerSettings.Sprinting=true
+run.Heartbeat:Fire()
+assert(alive('{object_name}'),'An independently configured pass did not start its controller')
+print('PASS independently configured {key}')
+"""
+    run(single_pass + source + configured_check)
+if '--negative-controls' in sys.argv:
+    for old, new, expected in (
+        ('localPlayer:GetAttribute("HarborBadgePass")==true', 'true', 'Other player ownership created personal cosmetics'),
+        ('localPlayer:GetAttribute("SprintRibbonPass")==true', 'true', 'Sprint Ribbon remained after entitlement cleared'),
+        ('localPlayer:GetAttribute("Sprinting")==true', 'true', 'Owned ribbon emitted without a sprint'),
+        ('viewer and not GuiService.ReducedMotionEnabled', 'viewer', 'Reduced motion did not clean up only the ribbon'),
+        ('updateGlow(nil);updatePersonalExtras(nil)', 'updateGlow(nil)', 'Destroy left personal cosmetics'),
+    ):
+        assert source.count(old) == 1
+        run(setup + source.replace(old, new) + checks, expected)

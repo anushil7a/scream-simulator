@@ -111,7 +111,7 @@ check(not f.E.HasSpectrum(p) and not f.E.HasMovement(p),'Disabled IDs granted ac
 f.studio=true;check(f.E.SetStudioMovement(p,true) and f.E.HasMovement(p),'Studio override broken')
 check(not f.E.CanUseMovement(p,'arena') and f.E.CanUseMovement(p,'safe'),'Arena rule changed')
 f.studio=false;check(not f.E.HasMovement(p),'Studio override leaked live')
-check(p.EncorePass==false and p.AfterimagePass==false and p.CityGlowPass==false and p.SignalDeckPass==false and p.CityCrestPass==false and p.PulseFramePass==false and p.RouteLightsPass==false,'Disabled cosmetic attributes must be false')
+check(p.EncorePass==false and p.AfterimagePass==false and p.CityGlowPass==false and p.SignalDeckPass==false and p.CityCrestPass==false and p.PulseFramePass==false and p.RouteLightsPass==false and p.HarborBadgePass==false and p.SprintRibbonPass==false,'Disabled cosmetic attributes must be false')
 f.purchase(p,0,true);check(f.spawned==nil,'Disabled pass event queried ownership')
 for _,pass in ipairs({33,44})do
  f=fixture(0,0,33,44);p={UserId=7,Parent={}}
@@ -143,7 +143,7 @@ f.resume(f.spawned,true);f.resume(old,false)
 check(f.E.HasCityGlow(p),'Stale refresh cleared confirmed glow')
 co=f.start(p);f.resume(co,false)
 check(not f.E.HasCityGlow(p),'Glow did not revoke after confirmed ownership loss')
-for i,key in ipairs({'SignalDeck','CityCrest','PulseFrame','RouteLights'})do
+for i,key in ipairs({'SignalDeck','CityCrest','PulseFrame','RouteLights','HarborBadge','SprintRibbon'})do
  local id=55+i
  local f=fixture(0,0,0,0,0,{[key]=id})
  local p={UserId=7,Parent={}}
@@ -181,7 +181,7 @@ else:
   at=s.index(guard,s.index(guard)+len(guard));run(s[:at]+s[at:].replace(guard,'-- omitted second fence',1),'Stale second response overwrote movement')
   at=s.rindex(guard);run(s[:at]+s[at:].replace(guard,'-- omitted cosmetic fence',1),'Stale Encore refresh changed cosmetics')
   run(s.replace(' or id==Catalog.Get("CityGlow").id',''),'Glow checkout must recheck ownership without granting it')
-  for key in ('SignalDeck', 'CityCrest', 'PulseFrame', 'RouteLights'):
+  for key in ('SignalDeck', 'CityCrest', 'PulseFrame', 'RouteLights', 'HarborBadge', 'SprintRibbon'):
    run(s.replace(f' or id==Catalog.Get("{key}").id',''),'Theme checkout must recheck ownership without granting it')
   old='refreshIdentity[player]=nil;';assert s.count(old)==1;run(s.replace(old,''),'Departed cache repopulated')
   old='if not player.Parent or departed[player] then return false end';assert s.count(old)==1;run(s.replace(old,'if departed[player] then return false end'),'Detached player began ownership work')

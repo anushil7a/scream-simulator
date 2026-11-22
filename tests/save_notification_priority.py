@@ -34,7 +34,8 @@ local Equipment={SyncGear=function()end};local TrainingRules={Recommended=functi
 local Entitlements={HasSpectrum=function()return false end,HasMovement=function()return false end,
  HasEncore=function()return true end,HasAfterimage=function()return false end,HasCityGlow=function()return true end,
  HasSignalDeck=function()return false end,HasCityCrest=function()return true end,
- HasPulseFrame=function()return true end,HasRouteLights=function()return false end}
+ HasPulseFrame=function()return true end,HasRouteLights=function()return false end,
+ HasHarborBadge=function()return false end,HasSprintRibbon=function()return true end}
 local Access={IsAuthorized=function()return false end};local game={}
 local RunService={IsStudio=function()return false end}
 Commerce.Status=function()return {} end
@@ -65,7 +66,7 @@ check(seen[saving],'Save warning evicted before any displayed frame')
 -- Mixed sustained traffic cannot preempt or evict the active save warning.
 notifications=Queue.new();s.canSave=true;s.saveDelayed=false;saveMode='transient';autosave(p,s)
 check(latest.messageKey=='save' and latest.messageUrgent,'Autosave State lost save category')
-check(latest.encorePass==true and latest.afterimagePass==false and latest.cityGlowPass==true and latest.signalDeckPass==false and latest.cityCrestPass==true and latest.pulseFramePass==true and latest.routeLightsPass==false,'State lost cosmetic ownership booleans')
+check(latest.encorePass==true and latest.afterimagePass==false and latest.cityGlowPass==true and latest.signalDeckPass==false and latest.cityCrestPass==true and latest.pulseFramePass==true and latest.routeLightsPass==false and latest.harborBadgePass==false and latest.sprintRibbonPass==true,'State lost cosmetic ownership booleans')
 for i=1,100 do
  s.data.coins=i%200;microSpeaker(p,s,false);state(p,'Reward '..i)
  notify('Beams OFF',false,'voice');notify('Setup denied',true,'voice')

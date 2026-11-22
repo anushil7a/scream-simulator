@@ -92,7 +92,9 @@ function Commerce.Prompt(player,key)
   or item.key=="SignalDeck" and Entitlements.HasSignalDeck(player)
   or item.key=="CityCrest" and Entitlements.HasCityCrest(player)
   or item.key=="PulseFrame" and Entitlements.HasPulseFrame(player)
-  or item.key=="RouteLights" and Entitlements.HasRouteLights(player) then return end
+  or item.key=="RouteLights" and Entitlements.HasRouteLights(player)
+  or item.key=="HarborBadge" and Entitlements.HasHarborBadge(player)
+  or item.key=="SprintRibbon" and Entitlements.HasSprintRibbon(player) then return end
  local ok=pcall(function()
   if item.kind=="pass" then Marketplace:PromptGamePassPurchase(player,id)
   else Marketplace:PromptProductPurchase(player,id) end

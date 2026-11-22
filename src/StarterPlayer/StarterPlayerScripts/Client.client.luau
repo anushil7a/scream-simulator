@@ -296,11 +296,11 @@ questsToggle.Visible=false
 academy.surface(shop);academy.surface(questsToggle)
 academy.passesToggle=button(top,"PassesToggle","PASSES",UDim2.fromOffset(64,46),UDim2.fromOffset(80,0),function()
  if academy.passesToggle.Visible and not modal.Visible and not GuiService.MenuIsOpen then toggleTab("Shop",true) end
-end,Color3.fromRGB(43,33,55))
+end,Color3.fromRGB(78,55,27))
 academy.passesToggle.TextColor3=gold;academy.passesToggle.Visible=false
 academy.surface(academy.passesToggle,gold)
 do
- local signal=frame(academy.passesToggle,"StoreSignal",UDim2.fromOffset(18,2),UDim2.new(.5,-9,1,-7),gold)
+ local signal=frame(academy.passesToggle,"StoreSignal",UDim2.fromOffset(24,2),UDim2.new(.5,-12,1,-8),gold)
  signal.Interactable=false;signal.Active=false;signal.Selectable=false
 end
 local function questLauncherText()
@@ -1222,7 +1222,7 @@ local function menuKey()
  elseif selected=="Style" then
   local starterAction,starterQuest=academy.starterCoinAction(data)
   fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=starterAction,starterQuest=starterQuest}
- elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,signalDeck=data.signalDeckPass,cityCrest=data.cityCrestPass,pulseFrame=data.pulseFramePass,routeLights=data.routeLightsPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
+ elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,signalDeck=data.signalDeckPass,cityCrest=data.cityCrestPass,pulseFrame=data.pulseFramePass,routeLights=data.routeLightsPass,harborBadge=data.harborBadgePass,sprintRibbon=data.sprintRibbonPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil,cityCrest=data.cityCrestPass}
  else fields={} end
@@ -1251,7 +1251,7 @@ render=function()
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Shop" then
-  title.Text="GAME PASSES";subtitle.Text="Permanent perks and 30-minute boosts"
+  title.Text="PASS SHOP";subtitle.Text="Permanent unlocks and 30-minute boosts"
   local function jump(to)
    local target=content:FindFirstChild(to)
    if not target then return end

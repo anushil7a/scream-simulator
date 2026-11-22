@@ -7,7 +7,7 @@ setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
  local f={now=0,jobs={},buttons={},links={},sent=0,labels={},cards={}};local os={clock=function()return f.now end,time=function()return 100 end}
- local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement','Encore','Afterimage','CityGlow','SignalDeck','CityCrest','PulseFrame','RouteLights'})do table.insert(Catalog.Items,{key=key,id=i<=4 and 100+i or 0,suggestedPrice=i==5 and 79 or 99,kind=(i==1 or i>=4) and 'pass' or 'product'})end
+ local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement','Encore','Afterimage','CityGlow','SignalDeck','CityCrest','PulseFrame','RouteLights','HarborBadge','SprintRibbon'})do table.insert(Catalog.Items,{key=key,id=i<=4 and 100+i or 0,suggestedPrice=i==5 and 79 or 99,kind=(i==1 or i>=4) and 'pass' or 'product'})end
  function Catalog.Get(key)for _,v in ipairs(Catalog.Items)do if v.key==key then return v end end end
  for _,item in ipairs(Catalog.Items)do item.tag='tag';item.name=item.key;item.description='description';item.boost=item.key=='XP' and 'xp' or 'coins'end
  local Config={MovementPassId=104}
@@ -57,7 +57,7 @@ if visual.shop.CompactLandscape then
   local feature=visual.cards[1];local cta=visual.buttons[1]
   local scrollY=math.min(620,xy[2]-76)-(54+50+18)
   check(feature.height<=scrollY and cta.pos.y+cta.size.y<=feature.height and cta.size.y==44,'Spectrum action below first fold or shortened')
-  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==11,'Hierarchy or action count changed')
+  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==13,'Hierarchy or action count changed')
  end
  check(not visual.shop.CompactLandscape(643,388) and not visual.shop.CompactLandscape(749,315) and not visual.shop.CompactLandscape(749,431),'Breakpoint leaked')
  visual.render(false,false);check(visual.cards[1].height==260 and visual.buttons[1].pos.y==206,'Desktop hero changed')
@@ -130,24 +130,30 @@ f=fixture();f.items[2].id=0;b=f.draw();check(#f.jobs==0 and b.Text=='COMING SOON
 if visual.shop.CompactLandscape and visual.buttons[3].Name=="BuyEncore" then
  local f=fixture()
  f.render(false,false)
- local order={"BuySpectrum","BuyMovement","BuyEncore","BuyAfterimage","BuyCityGlow","BuySignalDeck","BuyCityCrest","BuyPulseFrame","BuyRouteLights","BuyXP","BuyCoins"}
+ local order={"BuySpectrum","BuyMovement","BuyEncore","BuyAfterimage","BuyCityGlow","BuySignalDeck","BuyCityCrest","BuyPulseFrame","BuyRouteLights","BuyHarborBadge","BuySprintRibbon","BuyXP","BuyCoins"}
  for i,name in ipairs(order)do check(f.buttons[i].Name==name and f.buttons[i].holder.LayoutOrder==i*10,'Permanent passes must appear before timed boosts')end
  check(#f.links==2 and f.links[1].size.y==44 and f.links[2].size.y==44,'Missing section shortcuts or touch target')
- check(f.links[1].holder.LayoutOrder==15 and f.links[2].holder.LayoutOrder==95,'Sections are out of order')
- f.links[1].callback();check(f.destination=='BoostsSection','Boosts shortcut did not open boost section')
+ check(f.links[1].holder.LayoutOrder==10 and f.links[2].holder.LayoutOrder==115,'Sections are out of order')
+ f.links[1].callback();check(f.destination=='BoostsSection','First-fold shortcut did not open boost section')
  f.links[2].callback();check(f.destination=='SpectrumFeature','Passes shortcut did not return to featured pass')
- for i=3,9 do
+ local oldShortcut=f.links[1];f.shop.Clear();oldShortcut.callback()
+ check(f.destination=='SpectrumFeature','Closed shop shortcut still directs scroll')
+ for i=3,11 do
   local b=f.buttons[i]
   check(b.Text=="COMING SOON" and not b.Interactable and b.size.y>=45,'Unconfigured pass needs a disabled state and full target')
   b.callback()
  end
  check(f.sent==0 and #f.jobs==4,'Unconfigured pass attempted price lookup or purchase')
- f.render(true,false,{encorePass=true,afterimagePass=true,cityGlowPass=true,signalDeckPass=true,cityCrestPass=true,pulseFramePass=true,routeLightsPass=true,savingAvailable=true})
- for i=3,9 do
+ f.render(true,false,{encorePass=true,afterimagePass=true,cityGlowPass=true,signalDeckPass=true,cityCrestPass=true,pulseFramePass=true,routeLightsPass=true,harborBadgePass=true,sprintRibbonPass=true,savingAvailable=true})
+ for i=3,11 do
   local b=f.buttons[i];check(b.Text=="OWNED" and not b.Interactable,'Owned cosmetic state was lost')
   b.callback()
  end
  check(f.sent==0,'Owned pass attempted purchase')
+ f.render(true,false,{harborBadgePass=true,savingAvailable=true})
+ check(f.buttons[10].Text=='OWNED' and f.buttons[11].Text=='COMING SOON','Harbor Badge ownership was conflated')
+ f.render(true,false,{sprintRibbonPass=true,savingAvailable=true})
+ check(f.buttons[10].Text=='COMING SOON' and f.buttons[11].Text=='OWNED','Sprint Ribbon ownership was conflated')
  f.render(true,false,{signalDeckPass=true,savingAvailable=true})
  check(f.buttons[6].Text=='OWNED' and f.buttons[7].Text=='COMING SOON','Ownership of the new passes must remain independent')
  f.render(true,false,{cityCrestPass=true,savingAvailable=true})
@@ -174,7 +180,7 @@ if visual.shop.CompactLandscape and visual.buttons[3].Name=="BuyEncore" then
  check(glow.Text=='R$ 47' and glow.Interactable,'City Glow did not display its runtime price')
  glow.callback()
  check(f.sent==1,'Available City Glow did not request checkout')
- for offset,key in ipairs({'SignalDeck','CityCrest','PulseFrame','RouteLights'}) do
+ for offset,key in ipairs({'SignalDeck','CityCrest','PulseFrame','RouteLights','HarborBadge','SprintRibbon'}) do
   f=fixture()
   for i=1,4 do f.items[i].id=0 end
   f.config.MovementPassId=0;f.items[7+offset].id=107+offset
@@ -217,7 +223,9 @@ else:
   mutations=[('Yellow base. Saved colors are kept.','Unlock the hue picker. Yellow is the base color; saved colors are kept.','Spectrum concise copy missing'),('revision==generation and b and b.Parent and available','b and b.Parent and available','Obsolete priced callback sent after clear'),('revision==generation and b and b.Parent and available','revision==generation and available','Obsolete priced callback sent after detach'),(' or prices[item.key] and prices[item.key].key~=item.kind..":"..id','','Owned changed configuration retained obsolete request'),('if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end' ,'-- omitted disabled invalidation','Disabled ID roundtrip reused obsolete request'),('if record.info and os.clock()<record.expires then view.apply(record.info,false);return end','-- omitted synchronous cache apply','Synchronous success displayed unavailable'),('not record.pending and now>=','now>=','Rerenders duplicated pending request'),('priceInFlight<PRICE_LIMIT','true','Hung slot abandoned/replaced'),('record.retryAt=now+PRICE_RETRY','record.retryAt=now','Error not unavailable'),('now<record.deadline and validPrice(info)','validPrice(info)','Timed-out response cached'),('table.clear(priceViews)','do end','Full Render did not bound four product views/calls'),('if prices[record.itemKey]~=record then return end','if false then return end','Obsolete ID record accepted result')]
   for old,new,error in mutations:
    assert s.count(old)==1,old;run(s.replace(old,new),error)
-  run(s.replace('"BOOSTS ↓","BoostsSection"','"BOOSTS ↓","SpectrumFeature"'),'Boosts shortcut did not open boost section')
+  run(s.replace('or UDim2.new(1,-90,0,actionY),"BoostsSection"','or UDim2.new(1,-90,0,actionY),"SpectrumFeature"'),'First-fold shortcut did not open boost section')
+  run(s.replace('if revision==generation then ui.jump(target) end','ui.jump(target)'),'Closed shop shortcut still directs scroll')
+  run(s.replace('owned=data.harborBadgePass','owned=data.sprintRibbonPass'),'Harbor Badge ownership was conflated')
   run(s.replace('owned=data.signalDeckPass','owned=data.cityCrestPass'), 'Ownership of the new passes must remain independent')
 
   run(s.replace('height>=316','height>=326'),'Supported landscape not compact')

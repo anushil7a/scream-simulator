@@ -67,9 +67,11 @@ A usable microphone and Roblox voice eligibility are required for microphone-dri
 
 ## City Store (unpublished local candidate)
 
-Open **STORE** on the HUD or in the main menu. The shop includes Spectrum, Freerunner, Encore, Afterimage and City Glow, plus two new permanent cosmetic passes. **Signal Deck** adds a cyan instrument-panel theme to the owner's Beam Collection. **City Crest** adds gold Academy trim to the owner's full City map. The new passes apply automatically while owned and do not change combat, navigation information or rewards.
+Open **PASSES** on the HUD or **STORE** in the main menu. The Pass Shop keeps the existing permanent perks together and provides a shortcut from Spectrum to the timed boosts.
 
-Suggested default prices are 69 Robux for Signal Deck and 49 Robux for City Crest. Create both passes under the game's Roblox Creator Dashboard, set the default sale prices there, and enter their unique IDs in [ShopCatalog](src/ReplicatedStorage/Shared/ShopCatalog.luau). All source IDs remain disabled pending owner configuration. The store displays the runtime Roblox price when available, so regional offers can differ from the defaults.
+Two additional passes are available in the local build. **Harbor Badge** (proposed 49 Robux) shows a private overhead badge in safe areas. **Sprint Ribbon** (proposed 69 Robux) shows a private trail during a normal safe-area sprint. Both apply automatically while owned and leave combat and movement stats alone. The ribbon respects reduced motion.
+
+Source IDs remain disabled pending owner configuration. See the [pass list, proposed launch prices and setup](docs/SHOP_AND_BEAMS.md). Configured offers display the player's runtime Roblox price.
 
 ### Boost delivery
 

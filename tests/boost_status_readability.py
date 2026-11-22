@@ -66,7 +66,9 @@ local properties={'ClassName','Name','Size','Position','BackgroundColor3','Borde
 local function graph(old,current,a,b,oldTimer,newTimer,boost)
  for _,key in ipairs(properties)do
   local exception=boost and ((a==oldTimer.label.Parent and key=='Size') or (a.Name=='Multiplier' and key=='BackgroundColor3') or (a.Parent and a.Parent.Name=='Multiplier' and key=='TextColor3') or (a.ClassName=='TextButton' and key=='Position'))
-  if exception and key=='Size'then check(equal(a.Size.X,b.Size.X) and a.Size.Y.Scale==b.Size.Y.Scale,'Boost card width/scale changed')
+  if b.Name=='BuySpectrum' and key=='Size'then
+   check(equal(a.Size.Y,b.Size.Y) and b.Size.X.Scale==1 and b.Size.X.Offset==-114,'Spectrum checkout lost its row allocation')
+  elseif exception and key=='Size'then check(equal(a.Size.X,b.Size.X) and a.Size.Y.Scale==b.Size.Y.Scale,'Boost card width/scale changed')
   elseif exception and key=='Position'then check(equal(a.Position.X,b.Position.X) and a.Position.Y.Scale==b.Position.Y.Scale,'Boost button horizontal allocation changed')
   elseif not exception then
    local brandedLabel=key=='Text' and type(a.Text)=='string' and (a.Text:find(' / ',1,true)~=nil or a.Text=='FREERUNNER')
@@ -77,7 +79,8 @@ local function graph(old,current,a,b,oldTimer,newTimer,boost)
    end
   end
  end
- local aa=children(old,a,boost and oldTimer.label or nil);local bb=children(current,b,boost and newTimer.band or nil)
+ local omitted=boost and newTimer.band or (b.Name=='SpectrumFeature' and named(current,b,'BrowseTimedBoosts') or nil)
+ local aa=children(old,a,boost and oldTimer.label or nil);local bb=children(current,b,omitted)
  check(#aa==#bb,'Unrelated UI nodes changed')
  for i,p in ipairs(aa)do graph(old,current,p,bb[i],oldTimer,newTimer,boost)end
 end

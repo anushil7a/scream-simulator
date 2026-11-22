@@ -127,17 +127,24 @@ end
 function Shop.Render(data,ui,action)
  Shop.Clear()
  local narrow=ui.narrow
+ local revision=generation
+ local function shortcut(parent,name,text,size,position,target,tint)
+  local button=ui.button(parent,name,text,size,position,function()
+   if revision==generation then ui.jump(target) end
+  end,ink)
+  button.TextSize=12;button.TextColor3=tint;stroke(button,tint)
+ end
  local compact=ui.compactLandscape==true
  local function section(name,title,detail,tint,order,link,target)
   local c=ui.card(64);c.Name=name;c.LayoutOrder=order
   c.BackgroundColor3=Color3.fromRGB(18,29,48)
   local line=ui.frame(c,"SectionAccent",UDim2.fromOffset(3,28),UDim2.fromOffset(8,13),tint)
   line.Interactable=false
-  local heading=ui.label(c,title,UDim2.new(1,-108,0,20),UDim2.fromOffset(20,7),14,tint)
+  local textWidth=target and -108 or -36
+  local heading=ui.label(c,title,UDim2.new(1,textWidth,0,20),UDim2.fromOffset(20,7),14,tint)
   heading.Font=Enum.Font.GothamBlack
-  ui.label(c,detail,UDim2.new(1,-108,0,32),UDim2.fromOffset(20,26),12,soft)
-  local jump=ui.button(c,"Browse"..target,link,UDim2.fromOffset(70,44),UDim2.new(1,-78,0,10),function() ui.jump(target) end,ink)
-  jump.TextSize=12;jump.TextColor3=tint
+  ui.label(c,detail,UDim2.new(1,textWidth,0,32),UDim2.fromOffset(20,26),12,soft)
+  if target then shortcut(c,"Browse"..target,link,UDim2.fromOffset(70,44),UDim2.new(1,-78,0,10),target,tint) end
  end
  local hero=ui.card(compact and 112 or narrow and 300 or 260);hero.Name="SpectrumFeature";hero.LayoutOrder=10
  local textScale,textOffset=compact and .48 or 1,compact and -24 or -32
@@ -148,8 +155,8 @@ function Shop.Render(data,ui,action)
  gradient(hero,{ColorSequenceKeypoint.new(0,Color3.fromRGB(30,49,76)),ColorSequenceKeypoint.new(1,Color3.fromRGB(39,24,61))},25)
  stroke(hero,accent)
  heroLabel("PERMANENT PASS · BEAM COLOR",20,compact and 8 or 12,12,accent)
- local heading=heroLabel("SPECTRUM",38,compact and 23 or 35,30);heading.Font=Enum.Font.GothamBlack
- heroLabel("One pass. Choose your beam hue.",compact and 24 or 38,compact and 61 or 78,15)
+ local heading=heroLabel("SPECTRUM",compact and 28 or 38,compact and 23 or 35,compact and 24 or 30);heading.Font=Enum.Font.GothamBlack
+ heroLabel("One pass. Choose your beam hue.",compact and 16 or 38,compact and 50 or 78,compact and 12 or 15)
  local beam=ui.frame(hero,"SpectrumBeam",UDim2.new(compact and .52 or 1,compact and -38 or -48,0,12),compact and UDim2.new(.48,14,0,29) or UDim2.fromOffset(24,137),Color3.new(1,1,1))
  local keys={};for i=0,6 do table.insert(keys,ColorSequenceKeypoint.new(i/6,Color3.fromHSV(i/6,.8,1))) end
  gradient(beam,keys)
@@ -158,9 +165,14 @@ function Shop.Render(data,ui,action)
   local ring=ui.frame(hero,"EnergyRing",UDim2.fromOffset(14,42),UDim2.new(compact and .48+.52*i/5 or i/5,-7,0,compact and 14 or 122),accent)
   ring.BackgroundTransparency=1;stroke(ring,Color3.fromHSV(i/5,.5,1),2)
  end
- heroLabel("Yellow base. Saved colors are kept.",compact and 24 or narrow and 42 or 30,compact and 86 or 167,13,soft)
- purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,UDim2.new(compact and .52 or 1,-32,0,44),compact and UDim2.new(.48,16,0,66) or UDim2.fromOffset(16,narrow and 238 or 206))
- section("PassesSection","PERMANENT PERKS","Unlock once",accent,15,"BOOSTS ↓","BoostsSection")
+ if not compact then heroLabel("Yellow base. Saved colors are kept.",narrow and 42 or 30,167,13,soft) end
+ local actionY=compact and 68 or narrow and 238 or 206
+ purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,
+  UDim2.new(compact and .52 or 1,compact and -32 or -114,0,44),
+  compact and UDim2.new(.48,16,0,actionY) or UDim2.fromOffset(16,actionY))
+ shortcut(hero,"BrowseTimedBoosts","BOOSTS ↓",UDim2.fromOffset(74,44),
+  compact and UDim2.fromOffset(16,actionY) or UDim2.new(1,-90,0,actionY),"BoostsSection",violet)
+ section("PassesSection","PERMANENT PERKS","Movement and cosmetics",accent,15)
  local movement=ui.card(narrow and 202 or 170);movement.Name="MovementFeature";movement.LayoutOrder=20
  movement.BackgroundColor3=Color3.new(1,1,1)
  gradient(movement,{ColorSequenceKeypoint.new(0,Color3.fromRGB(22,44,68)),ColorSequenceKeypoint.new(1,Color3.fromRGB(16,26,44))},25)
@@ -176,24 +188,28 @@ function Shop.Render(data,ui,action)
   {key="CityCrest",owned=data.cityCrestPass,tint=gold,preview="MAP"},
   {key="PulseFrame",owned=data.pulseFramePass,tint=violet,preview="[ PULSE ]"},
   {key="RouteLights",owned=data.routeLightsPass,tint=accent,preview="●  ●  ●"},
+  {key="HarborBadge",owned=data.harborBadgePass,tint=accent,preview="HARBOR"},
+  {key="SprintRibbon",owned=data.sprintRibbonPass,tint=violet,preview="»  »  »"},
  }
  for index,pass in ipairs(cosmeticOffers) do
   local item=Catalog.Get(pass.key)
-  local c=ui.card(168);c.Name=pass.key.."Feature";c.LayoutOrder=(index+2)*10
+  local c=ui.card(narrow and 162 or 104);c.Name=pass.key.."Feature";c.LayoutOrder=(index+2)*10
   c.BackgroundColor3=Color3.new(1,1,1)
   gradient(c,{ColorSequenceKeypoint.new(0,Color3.fromRGB(28,43,75)),ColorSequenceKeypoint.new(1,Color3.fromRGB(44,27,65))},25)
   stroke(c,pass.tint)
   local trim=ui.frame(c,"CardTrim",UDim2.fromOffset(3,76),UDim2.fromOffset(6,12),pass.tint)
   trim.Active=false;trim.Interactable=false;trim.Selectable=false
-  ui.label(c,"COSMETIC PASS",UDim2.new(1,-118,0,24),UDim2.fromOffset(16,8),11,pass.tint)
-  local name=ui.label(c,item.name,UDim2.new(1,-32,0,28),UDim2.fromOffset(16,31),18)
+  local name=ui.label(c,item.name,UDim2.new(1,-32,0,26),UDim2.fromOffset(16,10),18)
   name.Font=Enum.Font.GothamBlack
-  local plate=ui.frame(c,"PerkPreview",UDim2.fromOffset(74,24),UDim2.new(1,-90,0,8),ink)
+  local plate=ui.frame(c,"PerkPreview",UDim2.fromOffset(74,22),UDim2.new(1,-90,0,12),ink)
+  plate.Visible=not narrow
+  name.Size=UDim2.new(1,narrow and -32 or -112,0,26)
   stroke(plate,pass.tint)
   local preview=ui.label(plate,pass.preview,UDim2.fromScale(1,1),UDim2.new(),12,pass.tint)
   preview.TextXAlignment=Enum.TextXAlignment.Center;preview.Font=Enum.Font.GothamBold
-  ui.label(c,item.description,UDim2.new(1,-32,0,40),UDim2.fromOffset(16,61),14,soft)
-  purchaseButton(item,c,pass.owned,data,ui,action,UDim2.new(1,-32,0,46),UDim2.fromOffset(16,108))
+  ui.label(c,item.description,UDim2.new(1,narrow and -32 or -178,0,narrow and 56 or 48),UDim2.fromOffset(16,42),14,soft)
+  purchaseButton(item,c,pass.owned,data,ui,action,narrow and UDim2.new(1,-32,0,46) or UDim2.fromOffset(126,46),
+   narrow and UDim2.fromOffset(16,106) or UDim2.new(1,-142,0,44))
  end
  section("BoostsSection","TIMED BOOSTS","30 min · Counts down offline",violet,(#cosmeticOffers+2)*10+5,"PASSES ↑","SpectrumFeature")
  for index,key in ipairs({"XP","Coins"}) do

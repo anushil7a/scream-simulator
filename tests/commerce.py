@@ -34,7 +34,8 @@ local function fixture(seed)
  local Config={MovementPassId=0};local Entitlements={HasSpectrum=function()return false end,HasMovement=function()return false end,
   HasEncore=function()return f.encore==true end,HasAfterimage=function()return f.afterimage==true end,HasCityGlow=function()return f.cityglow==true end,
   HasSignalDeck=function()return f.signalDeck==true end,HasCityCrest=function()return f.cityCrest==true end,
-  HasPulseFrame=function()return f.pulseFrame==true end,HasRouteLights=function()return f.routeLights==true end}
+  HasPulseFrame=function()return f.pulseFrame==true end,HasRouteLights=function()return f.routeLights==true end,
+  HasHarborBadge=function()return f.harborBadge==true end,HasSprintRibbon=function()return f.sprintRibbon==true end}
  services.ReplicatedStorage={Shared={ShopCatalog=Catalog,BoostLedger=Ledger,Config=Config}}
  local game={GetService=function(_,name)return services[name]end}
  local script={Parent={Entitlements=Entitlements}}
@@ -119,7 +120,7 @@ f.load();f.commerce.Prompt(f.player,'XP');check(f.prompts==0 and f.urgent==true,
 f=fixture({inventory={xp=1000000}});f.load();f.commerce.Prompt(f.player,'XP')
 check(f.prompts==1,'Legacy inventory capacity blocked automatic purchase')
 f.commerce.Prompt(f.player,'Spectrum');check(f.prompts==1 and f.urgent==true,'Unconfigured pass prompted')
-for _,entry in ipairs({{'Encore','encore',103,79},{'Afterimage','afterimage',104,99},{'CityGlow','cityglow',105,59},{'SignalDeck','signalDeck',106,69},{'CityCrest','cityCrest',107,49},{'PulseFrame','pulseFrame',108,49},{'RouteLights','routeLights',109,39}})do
+for _,entry in ipairs({{'Encore','encore',103,79},{'Afterimage','afterimage',104,99},{'CityGlow','cityglow',105,59},{'SignalDeck','signalDeck',106,69},{'CityCrest','cityCrest',107,49},{'PulseFrame','pulseFrame',108,49},{'RouteLights','routeLights',109,39},{'HarborBadge','harborBadge',110,49},{'SprintRibbon','sprintRibbon',111,69}})do
  local key,field,id,price=table.unpack(entry)
  local item=Catalog.Get(key)
  f=fixture()
@@ -164,4 +165,6 @@ if __name__=='__main__':
   run(code.replace('or item.key=="SignalDeck" and Entitlements.HasSignalDeck(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
   run(code.replace('or item.key=="CityCrest" and Entitlements.HasCityCrest(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
   run(code.replace('or item.key=="PulseFrame" and Entitlements.HasPulseFrame(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
-  run(code.replace('or item.key=="RouteLights" and Entitlements.HasRouteLights(player) then return end','then return end'),'Confirmed cosmetic ownership prompted duplicate purchase')
+  run(code.replace('or item.key=="RouteLights" and Entitlements.HasRouteLights(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
+  run(code.replace('or item.key=="HarborBadge" and Entitlements.HasHarborBadge(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
+  run(code.replace('or item.key=="SprintRibbon" and Entitlements.HasSprintRibbon(player) then return end','then return end'),'Confirmed cosmetic ownership prompted duplicate purchase')

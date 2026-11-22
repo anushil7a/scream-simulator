@@ -8,7 +8,7 @@ local spectrum={}
 local owned={}
 local testOwned={}
 local refreshIdentity={}
-local cosmeticPasses={"Encore","Afterimage","CityGlow","SignalDeck","CityCrest","PulseFrame","RouteLights"}
+local cosmeticPasses={"Encore","Afterimage","CityGlow","SignalDeck","CityCrest","PulseFrame","RouteLights","HarborBadge","SprintRibbon"}
 -- Removal may precede Parent becoming nil; queued refreshes must stay invalid.
 local departed=setmetatable({},{__mode="k"})
 function Entitlements.SetStudioMovement(player,enabled)
@@ -55,6 +55,8 @@ function Entitlements.HasSignalDeck(player) return not departed[player] and play
 function Entitlements.HasCityCrest(player) return not departed[player] and player:GetAttribute("CityCrestPass")==true end
 function Entitlements.HasPulseFrame(player) return not departed[player] and player:GetAttribute("PulseFramePass")==true end
 function Entitlements.HasRouteLights(player) return not departed[player] and player:GetAttribute("RouteLightsPass")==true end
+function Entitlements.HasHarborBadge(player) return not departed[player] and player:GetAttribute("HarborBadgePass")==true end
+function Entitlements.HasSprintRibbon(player) return not departed[player] and player:GetAttribute("SprintRibbonPass")==true end
 function Entitlements.HasMovement(player)
  return owned[player]==true or Entitlements.HasStudioMovement(player)
 end
@@ -62,7 +64,7 @@ function Entitlements.CanUseMovement(player,position)
  return Entitlements.HasMovement(player) and not Config.InArena(position)
 end
 Marketplace.PromptGamePassPurchaseFinished:Connect(function(player,id,purchased)
- if id>0 and (id==Config.MovementPassId or id==Catalog.Get("Spectrum").id or id==Catalog.Get("Encore").id or id==Catalog.Get("Afterimage").id or id==Catalog.Get("CityGlow").id or id==Catalog.Get("SignalDeck").id or id==Catalog.Get("CityCrest").id or id==Catalog.Get("PulseFrame").id or id==Catalog.Get("RouteLights").id) and purchased then task.spawn(Entitlements.Refresh,player) end
+ if id>0 and (id==Config.MovementPassId or id==Catalog.Get("Spectrum").id or id==Catalog.Get("Encore").id or id==Catalog.Get("Afterimage").id or id==Catalog.Get("CityGlow").id or id==Catalog.Get("SignalDeck").id or id==Catalog.Get("CityCrest").id or id==Catalog.Get("PulseFrame").id or id==Catalog.Get("RouteLights").id or id==Catalog.Get("HarborBadge").id or id==Catalog.Get("SprintRibbon").id) and purchased then task.spawn(Entitlements.Refresh,player) end
 end)
 Players.PlayerRemoving:Connect(function(player) departed[player]=true;refreshIdentity[player]=nil;owned[player]=nil;testOwned[player]=nil;spectrum[player]=nil end)
 return Entitlements
