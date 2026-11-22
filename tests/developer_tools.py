@@ -190,7 +190,7 @@ else:
  saves=[line for line in server.splitlines() if 'pcall(Profiles.Save,p.UserId,' in line]
  assert len(saves)==4 and sum('s.testBaseline or s.data' in line for line in saves)==3,saves
  late=server[server.index(' if closing or not p.Parent then',server.index('local function joined(p)')):server.index(' local s={data=data',server.index('local function joined(p)'))]
- assert 'pcall(Profiles.Save,p.UserId,data,true)' in late and 'return' in late,'Unexpected raw-data save outside pre-session late-load release'
+ assert 'pcall(Profiles.Save,p.UserId,data,true,shutdownSaveDeadline)' in late and 'return' in late,'Unexpected raw-data save outside pre-session late-load release'
  assert 'devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId)' in server,'Visibility omitted server Studio/universe context'
  assert 'return TestBeamRules.Available(Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),localFixture)' in server
  assert 'TestFlight.Step(p,s,toolAuthorized(p),flightBounds,now,.1)' in server

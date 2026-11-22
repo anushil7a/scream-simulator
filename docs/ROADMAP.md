@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Apply the shutdown deadline to final release writes
+
+- The old shutdown callback stopped waiting after 25 seconds, but a delayed worker could still start its final write afterward. Final releases and departure or late-load releases started during shutdown now receive the same cutoff. Lock waits and retry backoff honor the remaining budget. A request already issued can still settle, and its success or ownership result is recorded. An ambiguous failure remains unconfirmed and uses the existing frozen-snapshot recovery rules.
+- The in-memory protocol tests cover late workers, a lock held by an autosave, an in-flight success and failure, and idempotent recovery after a committed response was lost. In isolated Studio with short test deadlines and a fake store, lock expiry started no final write, the already-issued success completed once, and the failed request made no second attempt. The Studio scheduler resumed a lock waiter after its nominal deadline, so the cutoff limits initiation of new requests rather than guaranteeing wall-clock task timing. The disposable Studio closed.
+- Independent review cleared the ownership and revision checks. Focused verification passed 53 race/protocol assertions, 13 shutdown callback assertions and five new negative controls. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. A late acquisition whose release misses the cutoff may leave its lease until expiry. A departure that began before shutdown and an already-started acquisition still use their original retry policy. Live shutdown and rapid-rejoin behavior remain unverified.
+
 ## Pace autosave starts instead of launching a server-wide burst
 
 - The previous dispatch loop started all 20 writable profiles on one synthetic 60-second tick. The new scheduler starts the oldest eligible profile at most once per quarter-second. A writable profile first becomes due 30 seconds after admission and is next due 60 seconds after dispatch, including when the profile is quiet and needs its lease renewed.

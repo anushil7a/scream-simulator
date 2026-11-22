@@ -89,6 +89,7 @@ end
 local sessions={}
 local bosses
 local closing=false
+local shutdownSaveDeadline
 local joinsInFlight=0
 local rewardHistory={pairs={}} -- survives reconnects in this server
 local testRewardHistory={pairs={}} -- temporary fights never consume normal-play anti-farm history
@@ -1074,7 +1075,7 @@ local function joined(p)
  else data,save,loadMessage,recoveryWarning=Profiles.Load(p.UserId,arrivedFromAnotherPlace(p)) end
  if closing or not p.Parent then
   if save then
-   local completed,ok,reason=pcall(Profiles.Save,p.UserId,data,true)
+   local completed,ok,reason=pcall(Profiles.Save,p.UserId,data,true,shutdownSaveDeadline)
    if not completed or not ok then
     warn("ScreamSimulator late profile release failed",p.UserId,completed and reason or ok)
    end
@@ -1136,7 +1137,7 @@ local function leaving(p)
  sessions[p]=nil
  if s.canSave then
   departuresInFlight+=1
-  local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true)
+  local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true,shutdownSaveDeadline)
   departuresInFlight-=1
   if not completed or not ok then warn("ScreamSimulator departure save failed",p.UserId,completed and reason or ok) end
  end
@@ -1363,9 +1364,10 @@ task.spawn(function()
  end
 end)
 local function shutdown()
+ local deadline=os.clock()+25
+ shutdownSaveDeadline=deadline
  closing=true
  local pending=0
- local deadline=os.clock()+25
  local finalSaves={}
  -- Freeze gameplay before any final save can yield or release its lease.
  -- In-flight joins see closing and release their acquired profile instead.
@@ -1381,12 +1383,16 @@ local function shutdown()
   if s.canSave then
    pending+=1
    task.spawn(function()
-    local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true)
+    local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true,deadline)
     pending-=1
     if not completed or not ok then warn("ScreamSimulator shutdown save failed",completed and reason or ok) end
    end)
   end
  end
- while (pending>0 or departuresInFlight>0 or joinsInFlight>0) and os.clock()<deadline do task.wait(.1) end
+ while pending>0 or departuresInFlight>0 or joinsInFlight>0 do
+  local remaining=deadline-os.clock()
+  if remaining<=0 then break end
+  task.wait(math.min(.1,remaining))
+ end
 end
 game:BindToClose(shutdown)

@@ -7,7 +7,7 @@ s=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
 a=s.index('local function shutdown()');b=s.index('game:BindToClose(shutdown)',a)
 setup='''
 local now=0;local os={clock=function()return now end}
-local sessions={};local departuresInFlight=0;local joinsInFlight=0;local closing=false
+local sessions={};local departuresInFlight=0;local joinsInFlight=0;local closing=false;local shutdownSaveDeadline
 local closes,cancels=0,0
 local function closeConversation()closes+=1 end
 local function cancelSustained()cancels+=1 end
@@ -19,9 +19,9 @@ local task={spawn=function(fn)table.insert(queue,fn)end,wait=function(dt)
  if departureDone and now>=departureDone then departuresInFlight=0 end
 end}
 local calls={};local warnings=0;local warn=function()warnings+=1 end
-local Profiles={Save=function(id,data,release)
+local Profiles={Save=function(id,data,release,deadline)
  assert(next(sessions)==nil,'Final save began before all gameplay sessions detached')
- table.insert(calls,{id=id,data=data,release=release})
+ table.insert(calls,{id=id,data=data,release=release,deadline=deadline})
  if id==2 then error('synthetic save failure') end
  if id==5 then return false,'retry' end
  return true
@@ -38,6 +38,7 @@ shutdown()
 check(#calls==2,'Shutdown omitted legitimate save or saved temporary data')
 for _,call in ipairs(calls)do
  check(call.release==true and call.data==(call.id==1 and ordinary or baseline),'Shutdown changed baseline/release')
+ check(call.deadline==25,'Shutdown worker did not receive the shared deadline')
 end
 check(warnings==1 and waits==1 and now<1,'Exception leaked pending shutdown counter')
 check(closing and next(sessions)==nil and closes==3 and cancels==3,'Shutdown retained gameplay or attacks')

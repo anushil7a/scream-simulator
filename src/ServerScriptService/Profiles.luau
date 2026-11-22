@@ -93,7 +93,7 @@ end
 -- Callback retries must recheck the current record, not a cached ownership flag.
 local function commit(userId,session,operation,deadline)
     for attempt=1,3 do
-        if deadline and os.clock()>=deadline then break end
+        if deadline and os.clock()>=deadline then return false,"deadline" end
         local success,result=pcall(function()
             return store:UpdateAsync("Player_"..userId,function(raw)
                 local saved=type(raw)=="table" and raw._save
@@ -113,7 +113,9 @@ local function commit(userId,session,operation,deadline)
         end
         warn("ScreamSimulator profile save failed",userId,attempt)
         if deadline then
-            if attempt<3 then task.wait(math.max(0,math.min(attempt,deadline-os.clock()))) end
+            local remaining=deadline-os.clock()
+            if remaining<=0 then return false,"deadline" end
+            if attempt<3 then task.wait(math.min(attempt,remaining)) end
         else task.wait(attempt) end
     end
     return false,"retry"
@@ -221,16 +223,21 @@ function Profiles.Load(userId, fromOtherPlace)
         (confirmed and RECOVERY_NOTICE.." " or "Could not confirm a saved profile. ").."Saving is unavailable; progress here is temporary.",confirmed~=nil
 end
 
-function Profiles.Save(userId,data,release)
+function Profiles.Save(userId,data,release,deadline)
     if not store then return false,"unavailable" end
     local session=owned[userId]
     if not session or bindings[data]~=session then return false,"ownership" end
-    while locks[userId] do task.wait(.05) end
+    while locks[userId] do
+        local remaining=deadline and deadline-os.clock()
+        if remaining and remaining<=0 then return false,"deadline" end
+        task.wait(remaining and math.min(.05,remaining) or .05)
+    end
+    if deadline and os.clock()>=deadline then return false,"deadline" end
     if owned[userId]~=session or session.pending then return false,"ownership" end
     locks[userId]=true
     session.revision+=1
     local operation={snapshot=Profiles.Sanitize(data),release=release==true,revision=session.revision}
-    local ok,reason=commit(userId,session,operation)
+    local ok,reason=commit(userId,session,operation,deadline)
     if release and not ok then
         -- Keep only one frozen final snapshot. Caller tables may change later.
         session.pending=operation
