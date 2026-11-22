@@ -1673,6 +1673,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
   local progress=data.quests[quest.id]
   if progress and not progress.claimed and progress.progress>=quest.goal then unclaimed+=1 end
  end
+ if unclaimed==0 then notifications:Remove("questClaim") end
  questsToggle.Text=unclaimed>0 and ("QUESTS "..unclaimed) or "QUESTS"
  questsToggle.TextColor3=unclaimed>0 and gold or white
  refreshQuestObjects();stats.Text="LEVEL "..data.level;coins.Text=data.coins.." coins";refreshHealth()
@@ -1689,7 +1690,12 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  if newMilestone then
   lastMilestone=data.milestone;notify(data.milestone)
  end
- if data.message and (not newMilestone or data.messageUrgent) then notify(data.message,data.messageUrgent,data.messageKey=="save" and "save" or nil) end
+ if data.message and (not newMilestone or data.messageUrgent) then
+  local key=data.messageKey
+  if key~="questClaim" or unclaimed>0 then
+   notify(data.message,data.messageUrgent,(key=="save" or key=="questClaim") and key or nil)
+  end
+ end
  if Config.CompactCity and not Config.ResonanceLayout then
   local item=Config.Gear.Get("Megaphone")
   local ready=item and not data.testSession and data.level>=item.level

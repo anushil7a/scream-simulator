@@ -156,7 +156,7 @@ local function state(p,message,conversation,messageUrgent,messageKey,changedOnly
  castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,flying=s.flight~=nil,
  testBeamAvailable=s.testBeamAvailable==true,testBeamDamageAvailable=s.testBeamAvailable==true,
- testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil}
+ testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=(messageKey=="save" or messageKey=="questClaim") and messageKey or nil}
  -- Keep the periodic client refresh for collected markers that may stream back in.
  if changedOnly and not (s.collected and next(s.collected)) and StateSnapshot.Equal(packet,s.lastStatePacket) then return end
  stateRemote:FireClient(p,packet)
@@ -247,7 +247,9 @@ local function questProgress(p,event,amount)
  local s=sessions[p];if not s or not s.activeQuest then return end
  local q=Config.GetQuest(s.activeQuest);if not q or q.retired==true or q.event~=event then return end
  local v=s.data.quests[q.id];if not v or v.claimed or v.progress>=q.goal then return end
- v.progress=math.min(q.goal,v.progress+(amount or 1));state(p,v.progress==q.goal and "Quest complete! Claim your reward in Quests." or nil)
+ v.progress=math.min(q.goal,v.progress+(amount or 1))
+ if v.progress==q.goal then state(p,"Quest complete! Claim your reward in Quests.",nil,false,"questClaim")
+ else state(p) end
 end
 local function confirmBeamDodge(target,now)
  questProgress(target,"Evade")
@@ -896,7 +898,8 @@ local function interactQuest(p,obj)
   if not s or s.flight or not r or not marker or not marker:IsA("BasePart") or (r.Position-marker.Position).Magnitude>12 then return end
   local active=Config.GetQuest(s.activeQuest)
   local progress=active and s.data.quests[active.id]
-  if progress and (progress.claimed or progress.progress>=active.goal) then state(p,"Task complete · claim your reward in Quests.");return end
+  if progress and progress.claimed then return end
+  if progress and progress.progress>=active.goal then state(p,"Task complete · claim your reward in Quests.",nil,false,"questClaim");return end
   local kind=marker:GetAttribute("QuestAction")
   if kind=="Garden" and s.activeQuest=="garden" then
    if s.collected[marker.Name] then state(p,"This bed is already watered.");return end
@@ -1051,11 +1054,11 @@ action.OnServerEvent:Connect(function(p,verb,arg)
    if not root or (root.Position-(Config.CompactCity and Config.CityLayout.Soccer.center or Vector3.new(647,4,547))).Magnitude>90 then state(p,"Return to Nick's coastal court to start.");return end
   end
   if q then local v=s.data.quests[q.id];if not v then v={progress=0,claimed=false};s.data.quests[q.id]=v end
-   if not v.claimed and v.progress>=q.goal then state(p,"Task complete · claim your reward.");return end
+   if not v.claimed and v.progress>=q.goal then state(p,"Task complete · claim your reward.",nil,false,"questClaim");return end
    if s.activeQuest==q.id then state(p,"Task already active · continue your current attempt.");return end
    if not v.claimed then stopQuest(p);v.progress=0;s.activeQuest=q.id;state(p,q.name.." accepted")
     if q.id=="nick" then Soccer.Start(p,function(message) state(p,message) end,function()
-     if sessions[p]==s and s.activeQuest=="nick" then s.questDeadline=nil;questProgress(p,"Soccer");state(p,"Nick: WE DID IT! Claim your reward in Quests.") end
+     if sessions[p]==s and s.activeQuest=="nick" then s.questDeadline=nil;questProgress(p,"Soccer");state(p,"Nick: WE DID IT!") end
     end,function() if sessions[p]==s and s.activeQuest=="nick" then stopQuest(p);state(p,"Nick: Attempt ended. Return to the court and accept my task to try again.") end end) end
    end end
  elseif verb=="AbandonQuest" then stopQuest(p);state(p,"Task abandoned. Unfinished progress was reset; earned rewards remain claimable.")

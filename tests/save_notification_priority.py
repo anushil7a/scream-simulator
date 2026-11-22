@@ -14,6 +14,10 @@ receiver=client[client.index('local lastMilestone'):client.index('connectClient(
 state=server[server.index('local function state('):server.index('Commerce.Start(')]
 autosave=server[server.index('local function autosave('):server.index('local function stepAutosaves(now)')]
 speaker=server[server.index('local function gearAction('):server.index('local function vendorPurchase(')]
+progress=server[server.index('local function questProgress('):server.index('local function confirmBeamDodge(')]
+claim_start=server.index(' elseif verb=="ClaimQuest" then')+len(' elseif verb=="ClaimQuest" then')
+claim='\nlocal function claim(p,s,arg)\n'+server[claim_start:server.index(' elseif verb=="SetSettings"',claim_start)]+'\nend\n'
+
 extra='''
 local VoiceEligibility=require('../src/ServerScriptService/VoiceEligibility')
 local StateSnapshot=require('../src/ServerScriptService/StateSnapshot')
@@ -88,6 +92,52 @@ check(notifications.active.remaining==left,'Duplicate save reset dwell')
 for _=1,150 do frame()end
 check(notifications.active==nil,'Save toast became permanently sticky')
 do
+ local completion='Quest complete! Claim your reward in Quests.'
+ local receipt='Quest reward · +100 XP · +40 coins'
+ local function prepare()
+  notifications=Queue.new()
+  s.canSave=true;s.saveDelayed=false;s.activeQuest='garden'
+  s.data.quests={garden={progress=2,claimed=false}}
+  s.data.achievements={}
+ end
+ prepare()
+ questProgress(p,'Garden')
+ check(frame()==completion,'Quest completion did not display')
+ claim(p,s,'garden')
+ check(frame()==receipt,'Claimed reward reminder remained visible instead of receipt')
+ prepare()
+ notify('Earlier action')
+ questProgress(p,'Garden');claim(p,s,'garden')
+ local seen={}
+ for _=1,150 do seen[frame()]=true end
+ check(seen[receipt] and not seen[completion],'Claimed reward reminder came back from pending queue')
+ prepare()
+ s.data.quests.beach={progress=6,claimed=false}
+ table.insert(Config.Quests,{id='beach',goal=6})
+ questProgress(p,'Garden')
+ claim(p,s,'garden')
+ check(frame()==completion,'Claiming one reward hid another earned reward reminder')
+ s.data.quests.beach.claimed=true
+ state(p)
+ check(frame()==receipt,'Last reward did not retire the shared reminder')
+ prepare()
+ questProgress(p,'Garden')
+ claim(p,s,'garden')
+ state(p,completion,nil,false,'questClaim')
+ local seen={}
+ for _=1,150 do seen[frame()]=true end
+ check(seen[receipt] and not seen[completion],'Unclaimable snapshot resurrected quest guidance')
+ prepare()
+ s.canSave=false;s.saveDelayed=false
+ state(p,saving,nil,true,'save')
+ questProgress(p,'Garden')
+ claim(p,s,'garden')
+ check(frame()==saving,'Quest receipt interrupted urgent save warning')
+ local seen={}
+ for _=1,180 do seen[frame()]=true end
+ check(seen[receipt] and not seen[completion],'Save warning masked stale quest notice until later')
+end
+do
  local packets={}
  stateRemote.FireClient=function(_,_,packet)table.insert(packets,packet)end
  local function periodic() state(p,nil,nil,nil,nil,true) end
@@ -111,7 +161,7 @@ end
 print('PASS '..checks..' save notification and State integration assertions; synthetic store/UI/time/coin changes')
 '''
 # Keep the client HUD label separate from the reused server coins helper.
-payload=setup+'\ndo local coins={}\n'+receiver+'\nend\n'+extra+state+autosave+speaker+checks
+payload=setup+'\ndo local coins={}\n'+receiver+'\nend\n'+extra+state+autosave+speaker+progress+claim+checks
 def run(source,failure=None):
  with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',suffix='.luau',dir=root/'tests',delete=False) as f:
   path=Path(f.name);f.write(source)
@@ -135,15 +185,17 @@ if '--negative-controls' in sys.argv:
  mutate_queue('key=="save" and 2 or urgent and 1 or 0','urgent and 1 or 0','Save warning evicted before any displayed frame')
  assert payload.count(',nil,true,"save")')==2
  run(payload.replace(',nil,true,"save")',',nil,true)'),'Save warning evicted before any displayed frame')
- needle='messageKey=messageKey=="save" and "save" or nil'
+ needle='messageKey=(messageKey=="save" or messageKey=="questClaim") and messageKey or nil'
  assert payload.count(needle)==1
  run(payload.replace(needle,'messageKey=nil'),'Save warning evicted before any displayed frame')
- needle='data.messageKey=="save" and "save" or nil'
+ needle='(key=="save" or key=="questClaim") and key or nil'
  assert payload.count(needle)==1
  run(payload.replace(needle,'nil'),'Save warning evicted before any displayed frame')
  needle='if data.savingAvailable==true and not data.savingDelayed then notifications:Remove("save") end'
  assert payload.count(needle)==1
  run(payload.replace(needle,''),'Healthy snapshot retained stale save warning')
+ run(payload.replace('if unclaimed==0 then notifications:Remove("questClaim") end',''),'Claimed reward reminder remained visible instead of receipt')
+ run(payload.replace('if key~="questClaim" or unclaimed>0 then','if true then'),'Unclaimable snapshot resurrected quest guidance')
  mutate_queue('if #self.pending>Queue.Limit then','if false then','Mixed traffic exceeded queue bound')
  mutate_queue('if key then self:Remove(key) end','if key and key~="save" then self:Remove(key) end','Permanent failure did not replace delayed warning')
  run(payload.replace('if changedOnly and not (s.collected and next(s.collected)) and StateSnapshot.Equal(packet,s.lastStatePacket) then return end',''), 'Identical periodic State was transmitted')

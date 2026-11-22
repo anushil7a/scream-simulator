@@ -14,6 +14,7 @@ claim = server[start:server.index(' elseif verb=="SetSettings"', start)]
 setup = '''
 local now=100;local os={clock=function()return now end}
 local academy={refreshGuide=function()end,refreshZone=function()end,refreshTestLauncher=function()end}
+local notifications={Remove=function()end}
 local notices={};local urgentNotices={};local receiver;local data;local p={SetAttribute=function()end};local earned=0;local stops=0
 local function notify(message,urgent)table.insert(notices,message);table.insert(urgentNotices,urgent==true)end
 -- Account eligibility lifecycle is exercised by voice_eligibility.py; this fixture isolates notifications.
@@ -22,7 +23,7 @@ local function cueContext()end;local gameplayAudio={ObserveLevel=function()end}
 local remotes={State={OnClientEvent={}}}
 local function connectClient(_,fn)receiver=fn end
 local Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLevel=100,MicroSpeakerPrice=200,Quests={{id='garden',goal=3}},GetQuest=function(id)
- if id=='garden' then return {id='garden',name='Garden',goal=3,coins=40,xp=100} end
+ if id=='garden' then return {id='garden',name='Garden',goal=3,coins=40,xp=100,event='Garden'} end
 end}
 local questsToggle={};local stats={};local xpText={};local xf={};local zone={};local testButton={};local tracked={}
 local gold='gold';local white='white';local trackedQuestText

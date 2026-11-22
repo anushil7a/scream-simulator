@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Retire quest claim reminders when the wallet is credited
+
+- In disposable Studio, the original Garden reminder first rendered 5.90 seconds after an immediate successful claim had already credited 80 coins. The server now identifies claim reminders and the client clears both visible and queued reminders when the authoritative quest snapshot has no claimable rewards. Other rewards remain claimable and keep their existing shared reminder. The normal credit receipt and urgent save priority stay intact.
+- The rapid Garden replay saw no stale reminder over 17.4 seconds after credit and displayed the original +130 XP/+80 coin receipt. In a delayed replay, the reminder was visible until the confirmed claim and cleared by the next observed render sample, about 15 ms after the first wallet sample. It did not return. Both used temporary profiles and native watering holds with staged travel and scripted claim inputs. Physical controls and real network timing remain open.
+- Independent review cleared the change. The State and notification integration suite passed 232 assertions and 13 negative controls, including stale queued or visible reminders, a second unclaimed reward, and urgent save priority. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds.
+- The rapid replay still showed the receipt 9.86 seconds after the wallet because earlier notices occupied the lane. The next feedback check should measure that queue delay against the moment the player earns or claims the first reward.
+
 ## Make the Beach Cleanup pickups read as bottles
 
 - On the original build all six pickups were opaque gold blocks with their bottoms 1.1 studs above the flat shore. The new bottles have blue bodies, pale labels, narrow necks and dark caps. Twenty-four small cylinders sit on the existing sand in six streaming groups with no collision, touches or ray-query surfaces. Original marker IDs, pickup positions, reach and duration are unchanged.
