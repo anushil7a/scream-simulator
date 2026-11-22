@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep the Rookie Guide visible in short desktop windows
+
+- In the current City baseline at 491 × 150 safe pixels, the Rookie tracker began at y160 and its 78 × 44 Guide at y163. Both were completely outside the visible HUD at a fresh spawn. The same action opened the Rookie route in a taller 567 × 241 native Studio view.
+- The City now reuses its compact objective for desktop widths 480–819 at heights 150–209. It puts the Rookie route action above combat, reuses the existing route status and Clear action, and can still open an active quest. The shorter objective leaves room for an urgent Notice or a reward shortcut. Native interaction uses an unpublished local fixture. A first-time player on a physical device with an eligible microphone remains a separate release check.
+- In the matched 491 × 150 Studio session, the fitted Rookie Guide used a 104 × 46 target at x123, y2 and ended exactly where the Beams row started. A real mouse click started the route and showed the in-world markers. Normal keyboard movement reached the Rookie approach without repositioning the avatar. The route was known to the tester, and this run did not activate a beam.
+- Independent review cleared the layout. The focused navigation suite passed 158 assertions and 21 negative controls. Notice, HUD and minimap checks passed. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds.
+
 ## City Store and personal cosmetics
 
 - The HUD now opens City Store directly. Spectrum stays featured, the game-pass and timed-boost sections have reciprocal scroll shortcuts, and boost cards still show the confirmed countdown and any saved inventory.

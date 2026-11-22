@@ -1115,9 +1115,11 @@ function academy.refreshCompactObjective(limited)
 end
 function academy.layoutObjectiveNav(viewport,touch,stacked)
  local tight=viewport.X<380
- local compact=stacked and Config.CompactCity==true and not Config.ResonanceLayout
+ -- The desktop tracker starts at y160 and needs 50 pixels. Its action fits in the top rail here.
+ local shortDesktop=not touch and viewport.X>=480 and viewport.X<820 and viewport.Y>=150 and viewport.Y<210
+ local compact=(stacked or shortDesktop) and Config.CompactCity==true and not Config.ResonanceLayout
  academy.shortObjective=compact
- local narrowNav=stacked or tight
+ local narrowNav=stacked or tight or compact
  local menuWidth=compact and 45 or narrowNav and 50 or 74
  local passesWidth=compact and 52 or narrowNav and 60 or 64
  top.Position=UDim2.fromOffset(14,stacked and 0 or (touch or viewport.X<820) and 2 or 12)

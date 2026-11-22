@@ -193,8 +193,27 @@ academy.layoutObjectiveNav({X=509,Y=220},true,true);refresh(true)
 check(b.Visible,'The compact objective disappeared inside the stacked band')
 academy.layoutObjectiveNav({X=566,Y=244},true,false);refresh(true)
 check(not b.Visible and top.Position.y==2 and shop.Size.x==74 and questsToggle.Size.x==78,'Standard navigation layout did not restore')
+for _,view in ipairs({{X=491,Y=150},{X=480,Y=168},{X=819,Y=209}}) do
+ academy.layoutObjectiveNav(view,false,false);refresh(true);academy.refreshCompactObjective(false)
+ check(b.Visible and b.Text=='ROOKIE GUIDE\n1/3 fighters','Short desktop loses the first Rookie Guide')
+ check(top.Position.y+b.Position.y+b.Size.y<=48 and b.Size.y>=44,'Desktop objective crosses the combat row')
+ check(top.Position.x+b.Position.x+b.Size.x<=251,'Desktop objective crosses the Talk lane')
+ b.Activated();refresh(true)
+ check(b.Text=='FIGHTER RESTING\n1/3 · Clear','Desktop guide lost the selected route')
+ academy.refreshCompactObjective(true)
+ check(top.Position.x+b.Position.x+b.Size.x+6<=top.Position.x+questsToggle.Position.x
+  and top.Position.x+questsToggle.Position.x+questsToggle.Size.x<=251,'Desktop quest notice crosses the objective or Talk lane')
+ b.Activated();refresh(true)
+ check(b.Text=='ROOKIE GUIDE\n1/3 fighters','Desktop guide did not return to the starting action')
+end
+for _,view in ipairs({{X=491,Y=149},{X=479,Y=150},{X=480,Y=210},{X=820,Y=168}}) do
+ academy.layoutObjectiveNav(view,false,false);refresh(true)
+ check(not b.Visible,'Desktop objective escaped the fitted layout band')
+end
 Config.ResonanceLayout={};academy.layoutObjectiveNav({X=509,Y=162},true,true);refresh(true)
 check(not b.Visible,'PvP place exposed the Academy objective')
+academy.layoutObjectiveNav({X=491,Y=150},false,false);refresh(true)
+check(not b.Visible,'PvP place exposed the desktop Academy objective')
 end
 print('PASS '..checks..' total navigation and compact objective assertions')
 '''
@@ -228,6 +247,7 @@ cases = [
     ('timer>0 and string.format(" · %ds",timer)', 'false and string.format(" · %ds",timer)', 'Compact guide covered the active quest timer'),
     ('compact and 45 or narrowNav and 54 or 78','compact and 56 or narrowNav and 54 or 78','Narrow navigation overlaps the action stack'),
     ('if not academy.shortObjective or not academy.compactObjective.Visible', 'if not academy.shortObjective', 'A hidden compact objective accepted a click'),
+    ('(stacked or shortDesktop) and Config.CompactCity', 'stacked and Config.CompactCity', 'Short desktop loses the first Rookie Guide'),
 ]
 for old,new,reason in cases:
     assert code.count(old)==1,old
