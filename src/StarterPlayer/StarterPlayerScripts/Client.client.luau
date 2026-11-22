@@ -2104,8 +2104,14 @@ connectClient(Run.RenderStepped,function(dt)
  end
  -- A current local acknowledgement, not visual-packet arrival order, owns launch feedback.
  local screenAttack=sustainedControl and sustainedControl.attack
- if screenAttack and screenAttack.acknowledged and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==screenAttack.sequence then
-  beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),Config.Auras.Gold,screenFeedbackAllowed())
+ if screenAttack and screenAttack.acknowledged and screenAttack.sequence>beamScreenFeedback.sequence
+  and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==screenAttack.sequence then
+  local launchColor=Config.Auras[data.aura] or Config.Auras.Gold
+  if data.spectrumPass==true and data.useCustomColor==true and type(data.customColor)=="string"
+   and data.customColor:match("^%x%x%x%x%x%x$") then
+   launchColor=Color3.fromHex(data.customColor)
+  end
+  beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),launchColor,screenFeedbackAllowed())
  end
  -- Pause queue time while covered, too small, interacting, or overflow remains unseen.
  local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,CityMap.MiniLayout(viewport,touch,data.devAccess==true),data.devAccess==true,talkTarget~=nil,

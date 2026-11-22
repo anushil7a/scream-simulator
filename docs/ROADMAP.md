@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Match the launch accent to the equipped beam color
+
+- The baseline Studio cast sent Mint (#62F4BB) for the beam but rendered yellow (#FFCB63) on the launch rays. The client now takes the launch color from the latest server-provided style state once the server acknowledges that sequence. The default remains yellow. A valid equipped Spectrum color requires the existing entitlement, and a missing or invalid selection falls back through the saved palette to yellow.
+- In disposable Studio, four scripted level-100 casts used synthetic microphone power through the actual client, Action handler, server ticks and Effect remote. The rendered launch colors matched the server beam packets for yellow, saved Mint, simulated equipped Spectrum cyan (#26B9E3), and the fallback to Mint when the simulated entitlement was removed. Both temporary places remained unpublished; no purchase, real mic or live persistence ran. The launch samples the latest received state, so a style update in flight can briefly leave it on the previous color.
+- Independent review cleared the acknowledgement and comfort behavior. The focused client test passed 101 assertions and 20 negative controls. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. Both disposable sessions closed.
+
 ## Keep the player's beam audio in the mix during overlapping fights
 
 - Four in-range remote beams filled the old mixer and rejected a subsequent local level-100 beam. A configured local clip now replaces the farthest remote handle when the four-handle cap is full. Remote arrivals can still reclaim distant remote handles. They cannot evict the local handle or displace an in-range remote. Missing or malformed asset IDs do not evict anything. Replacement cuts the displaced sound immediately. A valid-looking ID can still fail to load after it takes a slot.

@@ -12,7 +12,7 @@ def build(c):
  a=c.index(' -- A current local acknowledgement,',c.index('connectClient(Run.RenderStepped'))
  # Isolate the actual acknowledged-attack hook and feedback/audio cadence.
  # Resident/notice presentation between them is covered by its own integration suite.
- hook_end=c.index('\n end',a)+5
+ hook_end=c.index('\n end\n',a)+5
  cadence_end=c.index(' aimInfo.Text=',a)
  tail_start=min(c.index(' beamScreenFeedback:Step(',hook_end),c.index(' cueContext();',hook_end))
  cadence=c[a:hook_end]+'\n'+c[tail_start:cadence_end]
@@ -27,6 +27,7 @@ local function vec(x,y,z)return setmetatable({X=x,Y=y,Z=z},{__sub=function(a,b)r
 local Vector3={new=vec};local Vector2={new=function(x,y)return {X=x,Y=y}end}
 local UDim2={new=function(...)return {...}end,fromOffset=function(...)return {...}end,fromScale=function(...)return {...}end}
 local Color3={fromRGB=function(r,g,b)return {R=r/255,G=g/255,B=b/255,kind='Color3'}end}
+function Color3.fromHex(hex)return Color3.fromRGB(tonumber(hex:sub(1,2),16),tonumber(hex:sub(3,4),16),tonumber(hex:sub(5,6),16))end
 local function typeof(v)return type(v)=='table' and v.kind or type(v)end
 local Instance={new=function()return {Destroy=function(self)self.dead=true end}end}
 local Enum={ScreenInsets={None='None'},ZIndexBehavior={Sibling='Sibling'}}
@@ -48,7 +49,8 @@ local data={micReady=true,voiceEligible=true,settings={reducedShake=false}}
 local academy={}
 local hitFeedback=require('../src/StarterPlayer/StarterPlayerScripts/HitFeedback').new()
 local remotes={Effect={OnClientEvent={}}};local Players={GetPlayerByUserId=function(_,id)return (id==7 or id==8) and {} or nil end}
-local Config={Auras={Gold=gold},GetSound=function()return nil end}
+local mint=Color3.fromRGB(98,244,187)
+local Config={Auras={Gold=gold,Mint=mint},GetSound=function()return nil end}
 local worldUpdates,worldRemoves,audioStops,cues=0,0,0,0
 local sustainedBeams={Update=function()worldUpdates+=1 end,Remove=function()worldRemoves+=1 end}
 local attackAudioSettings={Range=100};local attackAudio={Stop=function()audioStops+=1 end,Remove=function()end,Pulse=function()end,Step=function()end}
@@ -115,6 +117,24 @@ for _,signal in ipairs({UIS.WindowFocusReleased,GuiService.MenuOpened})do
  callbacks[signal]();check(not beamScreenFeedback.root.Visible and beamScreenFeedback.launchEnds==0,'Immediate focus/menu cleanup missing');seq=start();ack(seq)
 end
 callbacks[p.CharacterRemoving]();check(not beamScreenFeedback.root.Visible and beamScreenFeedback.launchEnds==0,'Character removal retained effect')
+local function launchColor()
+ return beamScreenFeedback.rays[1].BackgroundColor3
+end
+local colorSeq=start();ack(colorSeq)
+check(launchColor()==gold,'Default launch lost the yellow base')
+data.aura='Mint';colorSeq=start();ack(colorSeq)
+check(launchColor()==mint,'Saved beam color did not reach the launch rays')
+data.useCustomColor=true;data.customColor='26B9E3';data.spectrumPass=true
+colorSeq=start();ack(colorSeq)
+check(launchColor().R==38/255 and launchColor().G==185/255 and launchColor().B==227/255,'Equipped Spectrum color did not reach the launch rays')
+data.customColor='DD1020';tick(.01)
+check(launchColor().R==38/255,'Later style state recolored an acknowledged launch')
+data.spectrumPass=false;colorSeq=start();ack(colorSeq)
+check(launchColor()==mint,'Unentitled custom color replaced saved palette')
+data.spectrumPass=true;data.customColor='bad';colorSeq=start();ack(colorSeq)
+check(launchColor()==mint,'Malformed custom color did not fall back')
+data.aura='Unknown';colorSeq=start();ack(colorSeq)
+check(launchColor()==gold,'Unknown saved palette did not use yellow')
 seq=start();ack(seq);for i=#cleanups,1,-1 do cleanups[i]()end;check(beamScreenFeedback.destroyed and beamScreenFeedback.root==nil and beamFeedbackGui.dead,'Destroy retained effect')
 print('PASS',checks,'actual Client feedback integration assertions; real Controls ack, mocked GUI/world/audio and synthetic events')
 '''
@@ -145,6 +165,8 @@ if args.negative_controls:
  ('connectClient(UIS.WindowFocusReleased,function() beamScreenFeedback:Clear() end)','connectClient(UIS.WindowFocusReleased,function() end)','Immediate focus/menu cleanup'),
  ('connectClient(GuiService.MenuOpened,function() beamScreenFeedback:Clear() end)','connectClient(GuiService.MenuOpened,function() end)','Immediate focus/menu cleanup'),
  ('platformReducedMotion=not ok or value==true','platformReducedMotion=ok and value==true','Comfort read failure'),
+ ('local launchColor=Config.Auras[data.aura] or Config.Auras.Gold','local launchColor=Config.Auras.Gold','Saved beam color did not reach'),
+ ('data.spectrumPass==true and data.useCustomColor==true','data.useCustomColor==true','Unentitled custom color replaced'),
  ('connectClient(p.CharacterRemoving,function() beamScreenFeedback:Clear() end)','connectClient(p.CharacterRemoving,function() end)','Character removal retained'),
  ('ownClient(function() beamScreenFeedback:Destroy() end)','ownClient(function() end)','Destroy retained'),
  ]
