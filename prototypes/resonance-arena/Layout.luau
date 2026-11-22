@@ -1,7 +1,8 @@
 -- Authored geometry shared by the standalone draft and guarded combat preview.
 local Layout={
  Hall={x=0,z=0,width=176,depth=152},
- Practice={x=0,z=248,width=72,depth=48},
+ Practice={x=0,z=248,width=72,depth=48,railHeight=12},
+ PracticeEntry={x=0,z=240},
  Combat={minX=-86,maxX=86,minZ=-74,maxZ=74,minY=0,maxY=16},
  Apron={halfWidth=11,startZ=50},
  Desk={x=0,z=0,width=28,depth=8},

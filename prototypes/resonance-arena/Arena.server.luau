@@ -196,13 +196,15 @@ training.Name="TrainingPreview"
 training.Parent=world
 local practice=Layout.Practice
 box(training,"TrainingDeck",practice.x,-1.5,practice.z,practice.width,3,practice.depth,deck,true)
+local railHeight=practice.railHeight
 for _,side in ipairs({-1,1}) do
- box(training,"SideRail",side*35,3,248,2,6,46,ink,true)
- box(training,"EndRail",0,3,248+side*23,70,6,2,ink,true)
+ box(training,"SideRail",practice.x+side*(practice.width/2-1),railHeight/2,practice.z,2,railHeight,practice.depth,ink,true)
+ box(training,"EndRail",practice.x,railHeight/2,practice.z+side*(practice.depth/2-1),practice.width-4,railHeight,2,ink,true)
 end
 sign(training,"ArrivalSign",-20,10,258,25,4.8,"TRAINING CITY","LOCAL PREVIEW",blue)
+local arrival=Layout.PracticeEntry
 portal(arena,"TrainingPortal",Vector3.new(Layout.HallPortal.x,0,Layout.HallPortal.z),"TRAINING CITY","RETURN TO PRACTICE","Return to training",
- CFrame.lookAt(Vector3.new(0,3.5,240),Vector3.new(0,3.5,263)),Layout.ApronFootprint())
+ CFrame.lookAt(Vector3.new(arrival.x,3.5,arrival.z),Vector3.new(Layout.PracticePortal.x,3.5,Layout.PracticePortal.z)),Layout.ApronFootprint())
 local entry=Layout.HallEntry
 portal(training,"ArenaPortal",Vector3.new(Layout.PracticePortal.x,0,Layout.PracticePortal.z),"RESONANCE HALL","RETURN TO THE ARENA","Return to arena",
  CFrame.lookAt(Vector3.new(entry.x,3.5,entry.z),Vector3.new(entry.x,3.5,0)))

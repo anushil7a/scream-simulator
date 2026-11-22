@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Resonance Hall keeps practice falls on the training landing
+
+- A scripted normal jump at WalkSpeed 16 and JumpPower 50 cleared the six-stud landing rail, crossed X = 42.22 and fell below Y = −20. The server recovered the player at the Hall, bypassing the return prompt. The landing now has twelve-stud visible rails with flush corners. Fall recovery on the practice side returns the same avatar to the protected training landing facing the return portal.
+- The rebuilt Hall stopped eight native jump attempts across side, end and corner approaches. The matched nine-stud negative control escaped on its second jump. Native walking passed all eight Hall spawn exits. Both staged falls recovered with protection on the expected sides at Z = 240 and Z = 54. Both real portal prompts worked with scripted holds, including a walk from the practice arrival to the return prompt. Geometry remains at 181 parts and 25 solids.
+- All eight existing Hall combat cases passed in a separate two-client local Studio test with synthetic beam power. Independent review, the focused map and fall checks with four negative controls, 29 pure/synthetic suites, 167 mocked-service suites, production compilation and all review builds passed. Both disposable Studio sessions closed. Current portals are within one unpublished file. Physical controls, real voice and cross-place profile handoff remain open.
+
 ## Resonance Hall explains gear earnings and portal controls
 
 - The Hall's Gear screen pointed to training and quests that its local map does not offer, and Settings advertised city quest controls. Gear now points to coins from PvP knockouts and keeps unaffordable gear disabled. Settings describes the Hall's portal input. City Gear shortcuts and Settings instructions retain their existing paths.

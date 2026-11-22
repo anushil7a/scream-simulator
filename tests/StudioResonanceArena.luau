@@ -1,6 +1,6 @@
 -- Run in the Server DataModel of the local Resonance Arena place during Play.
 assert(game:GetService("RunService"):IsStudio() and game.PlaceId==0 and game.GameId==0)
-local world=workspace:WaitForChild("ResonanceArena",5)
+local world=workspace:FindFirstChild("ScreamSimulatorWorld") or workspace:WaitForChild("ResonanceArena",5)
 assert(world and world.Hall and world.TrainingPreview)
 local player=assert(game.Players:GetPlayers()[1])
 local character=assert(player.Character)
@@ -91,4 +91,45 @@ for i,exit in ipairs(exits) do
 end
 humanoid.WalkSpeed=walkSpeed
 humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,previousJump)
-return {parts=parts,solid=solid,walked=#exits,normalRange=limit}
+local practice=layout.Practice
+local rails={
+ {28,248,45,248}, {29,248,45,248}, {31,248,45,248}, {32,248,45,248},
+ {-29,248,-45,248}, {20,230,20,215}, {20,265,20,282}, {29,265,44,281},
+}
+local before=character:GetPivot()
+local originalOwner=root:GetNetworkOwner()
+root:SetNetworkOwner(nil)
+local checked=0
+local failed
+for i,leg in ipairs(rails) do
+ local x,z,targetX,targetZ=table.unpack(leg)
+ character:PivotTo(CFrame.new(x,3.8,z))
+ root.AssemblyLinearVelocity=Vector3.zero
+ humanoid:MoveTo(root.Position)
+ task.wait(.3)
+ local settled=os.clock()+.7
+ repeat task.wait() until humanoid.FloorMaterial~=Enum.Material.Air or os.clock()>=settled
+ local origin=root.Position
+ humanoid:MoveTo(Vector3.new(targetX,origin.Y,targetZ))
+ humanoid.Jump=true
+ local deadline=os.clock()+1.4
+ local jumped=false
+ repeat
+  task.wait()
+  local position=root.Position
+  jumped=jumped or position.Y>origin.Y+3
+  if not layout.Contains(practice,position) or position.Y<0 then
+   failed="Jump bypassed practice rail on leg "..i.." at "..tostring(position)
+   break
+  end
+ until os.clock()>=deadline
+ if failed then break end
+ if not jumped then failed="No jump occurred on practice leg "..i;break end
+ checked+=1
+end
+humanoid:MoveTo(root.Position)
+character:PivotTo(before)
+root.AssemblyLinearVelocity=Vector3.zero
+root:SetNetworkOwner(originalOwner)
+assert(not failed,failed)
+return {parts=parts,solid=solid,walked=#exits,railJumps=checked,normalRange=limit}

@@ -8,6 +8,7 @@ root=Path(__file__).resolve().parents[1]
 arena=root/'prototypes/resonance-arena'
 layout=(arena/'Layout.luau').read_text()
 source=(arena/'Map.luau').read_text()
+world_source=(arena/'CombatWorld.luau').read_text()
 setup=r'''
 local function equal(a,b)return math.abs(a-b)<.00001 end
 local count=0
@@ -73,9 +74,33 @@ map.MiniUpdate(view,avatar,1,false)
 check(not view.dot.Visible and not view.nextUpdate,"Hidden map retained a player marker")
 print("PASS "..count.." Hall map geometry, portal and player projection assertions")
 '''
-def run(metadata, expected=None):
+recovery_setup=r'''
+local world=(function()
+ local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z} end}
+ local CFrame={lookAt=function(position,target)return {Position=position,Target=target} end}
+ local studio={IsStudio=function()return true end}
+ local storage={Shared={ResonanceLayout={}}}
+ local game={PlaceId=0,GameId=0,GetService=function(_,name)
+  if name=="RunService" then return studio end
+  assert(name=="ReplicatedStorage");return storage
+ end}
+ local function require(module)assert(module==storage.Shared.ResonanceLayout);return layout end
+'''
+recovery_checks=r'''
+end)()
+check(layout.Practice.railHeight>=12,'Practice rail is lower than the native-validated height')
+local fromHall=world.FallRescue({X=0,Z=layout.HallEntry.z})
+check(fromHall==nil,'Hall fall redirected to practice')
+local fromPractice,text=world.FallRescue({X=42,Z=layout.Practice.z})
+check(fromPractice and fromPractice.Position.Z==layout.PracticeEntry.z
+ and fromPractice.Target.Z==layout.PracticePortal.z and text:find('training landing',1,true),
+ 'Practice fall did not recover facing the practice portal')
+check(world.FallRescue({X=0,Z=149})==nil and world.FallRescue({X=0,Z=150})~=nil,'Fall midgap split drifted')
+print('PASS Hall and practice fall routing and rail height checks')
+'''
+def run(metadata, expected=None, world=world_source):
     with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',suffix='.luau',dir=root/'tests',prefix='tmp_hall_',delete=False) as file:
-        file.write(setup+metadata+bridge+source+checks)
+        file.write(setup+metadata+bridge+source+checks+recovery_setup+world+recovery_checks)
         path=Path(file.name)
     try:
         result=subprocess.run(['luau',str(path)],cwd=root,capture_output=True,text=True)
@@ -93,6 +118,8 @@ if '--negative-controls' in sys.argv:
     for old,new,expected in [
         ('local startZ,endZ=Layout.Apron.startZ,','local startZ,endZ=Layout.Apron.startZ+1,','Apron footprint drifted from the PvP boundary'),
         ('HallEntry={x=0,z=54}','HallEntry={x=0,z=52}','Hall arrival cannot reach the local portal'),
+        ('railHeight=12','railHeight=9','Practice rail is lower than the native-validated height'),
     ]:
         assert layout.count(old)==1
         run(layout.replace(old,new),expected)
+    run(layout,'Practice fall did not recover facing the practice portal',world_source.replace('position.Z>=gapMiddle','position.Z>Layout.Practice.z'))

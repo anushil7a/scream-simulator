@@ -1279,8 +1279,10 @@ task.spawn(function()
      p.Character:PivotTo(CFrame.new(math.clamp(r.Position.X,-670,670),5,594));protect(p,s)
      state(p,"Lifeguard rescue · stay inside the gold buoys.")
     elseif r.Position.Y< -20 then
-     resetMovement(p,s,h,r);running=false;p.Character:PivotTo(World.SafeSpawn);protect(p,s)
-     state(p,"Rescued · back at the safe hub")
+     local rescue,notice
+     if World.FallRescue then rescue,notice=World.FallRescue(r.Position) end
+     resetMovement(p,s,h,r);running=false;p.Character:PivotTo(rescue or World.SafeSpawn);protect(p,s)
+     state(p,notice or "Rescued · back at the safe hub")
     end
    end
    if s.questDeadline and now>s.questDeadline then stopQuest(p);state(p,"Time's up · accept the task again to restart.") end
