@@ -10,6 +10,7 @@ def build(c):
  mic=next(x for x in c.splitlines() if 'info("MICROPHONE' in x)
  return r'''
 local Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat')
+local attackAudioSettings=require('../src/ReplicatedStorage/Shared/AttackAudioConfig')
 local checks=0;local function check(v,m)assert(v,m);checks+=1 end
 local UDim2={new=function(a,b,c,d)return {a,b,c,d}end,fromOffset=function(x,y)return {0,x,0,y}end}
 local Config={VoiceCombat=Combat,Sounds={{id='one',level=1,name='First',description='First sound'},{id='cap',level=100,name='Cap',description='Last sound'}}}
@@ -34,9 +35,14 @@ for _,width in ipairs({288,328,358,592,672})do
  check(not string.find(text,'Train at the',1,true),'Repeated training direction')
  check(string.find(text,'CURRENT BEAM',1,true),'Stats removed')
  local top=table.remove(cards,1)
- check(top.height==70 and #top.children==3,'Next unlock must share the first card with Gear')
+ check(top.height==(automatic and 86 or 70) and #top.children==(automatic and 4 or 3),'Next unlock must share the first card with Gear')
  check(top.children[1].text==(level==100 and (automatic and 'BEAM SOUNDS' or 'BEAM STYLES') or (automatic and 'NEXT SOUND' or 'NEXT STYLE')),'Milestone heading was wrong')
  check(top.children[2].text==(level==100 and 'All unlocked' or 'Cap · Lv 100'),'Next unlock or cap was wrong')
+ if automatic then
+  check(top.children[4].text=='NOW · VOICE ONLY','Missing starter sound status')
+  check(string.find(cards[1].children[1].text,'VOICE ONLY',1,true)~=nil,'Starter card did not disclose missing sound')
+  check(string.find(cards[2].children[1].text,'VOICE ONLY',1,true)==nil,'Configured sound was mislabeled')
+ end
  check(top.children[3].text=='VIEW GEAR' and top.children[3].size[2]==(narrow and 92 or 112) and top.children[3].size[4]==44,'Gear shortcut was removed')
  nextTab=nil;top.children[3].callback()
  check(nextTab=='Style','Gear shortcut did not open Gear')
@@ -59,6 +65,9 @@ for _,width in ipairs({288,328,358,592,672})do
  check((string.find(text,'First sound',1,true)~=nil)==not automatic,'Mode description mismatch')
  end end
 end
+draw({level=100,sound='cap'},true,{})
+check(cards[1].height==70 and #cards[1].children==3,'Configured equipped sound retained voice-only milestone')
+check(string.find(cards[2].children[1].text,'VOICE ONLY',1,true)~=nil,'Unequipped starter lost its voice-only label')
 local function settings(touch,sustainedControl)
  messages={};local sustainedRules={MaxDuration=4,Cooldown=5};local mic={status='Microphone ready'}
 '''+help+safety+'\n'+mic+r'''
@@ -89,9 +98,11 @@ if '--negative-controls' in sys.argv:
   out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stderr)
  out=run(source.replace('if not sustainedRules then\n   label(c,s.description,','if true then\n   label(c,s.description,'));assert out.returncode and 'Unexpected description row' in out.stderr,out.stderr
  for old,new,message in [
-   ('local milestone=card(70)','local milestone=card(140)','Next unlock must share the first card with Gear'),
+   ('local milestone=card(voiceOnlyEquipped and 86 or 70)','local milestone=card(140)','Next unlock must share the first card with Gear'),
    ('function() toggleTab("Style") end)','function() toggleTab("Map") end)','Gear shortcut did not open Gear'),
+   ('label(milestone,"NOW · VOICE ONLY",','label(milestone,"",','Missing starter sound status'),
+   ('sustainedRules and not attackAudioSettings.AssetForLevel(s.level)','sustainedRules','Configured sound was mislabeled'),
  ]:
   assert old in source
   out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stderr)
- print('PASS 8 copy/layout negative controls')
+ print('PASS 10 copy/layout negative controls')

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Explain the starter beam's voice-only sound
+
+- The level-1 Tiny Aah style uses the player's voice without added beam audio. The old Beams menu showed it as equipped without explaining the missing recording. The collection now labels styles with no recording **VOICE ONLY** using the playback catalog, and shows **NOW · VOICE ONLY** in the first card when that style is equipped. **NEXT SOUND** still shows Echo Pop at level 10 for a fresh player.
+- In disposable Studio at 480 × 150 safe pixels, the disclosure fit at y62–78 inside the 86-pixel scroll window, below the next sound and clear of View Gear. The individual starter label fit. The normal server rejected Echo Pop at level 1. After a local test level grant, emulated clicks switched back to Tiny Aah and then equipped Echo Pop. The milestone collapsed to 70 pixels and hid the voice-only line when Echo Pop was equipped.
+- Independent review covered the catalog, layout and legacy labels. Focused checks passed 558 copy/layout assertions and ten negative controls, plus 1,180 readout/protocol assertions and five controls. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. Three disposable Studio instances closed and their emulator profile was removed. Asset playback, actual listening and physical touch were outside this run.
+
 ## Keep automatic beams active when a dodge is rejected
 
 - In guarded native Studio, a cooldown-denied Dodge request did not roll but cancelled the active cast and started its beam cooldown. An automatic client request now leaves the cast alone until the server accepts the dodge. The server applies all existing eligibility checks before interrupting combat. The legacy hold-to-cast gesture still cancels capture immediately, preserving its input timing.

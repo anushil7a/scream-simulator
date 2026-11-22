@@ -1185,11 +1185,14 @@ render=function()
   shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow,compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
  elseif selected=="Screams" then
   title.Text="BEAM COLLECTION"
-  local nextStyle
+  local nextStyle,voiceOnlyEquipped
   for _,style in ipairs(Config.Sounds) do
    if style.level>data.level and (not nextStyle or style.level<nextStyle.level) then nextStyle=style end
+   if sustainedRules and style.id==data.sound then
+    voiceOnlyEquipped=not attackAudioSettings.AssetForLevel(style.level)
+   end
   end
-  local milestone=card(70)
+  local milestone=card(voiceOnlyEquipped and 86 or 70)
   milestone.Name="BeamMilestone"
   local heading=sustainedRules and "BEAM SOUNDS" or "BEAM STYLES"
   if nextStyle then heading=sustainedRules and "NEXT SOUND" or "NEXT STYLE" end
@@ -1199,6 +1202,9 @@ render=function()
   label(milestone,heading,UDim2.new(1,-textInset,0,19),UDim2.fromOffset(14,8),12,gold)
   label(milestone,detail,UDim2.new(1,-textInset,0,34),UDim2.fromOffset(14,28),15)
   button(milestone,"OpenBeamGear","VIEW GEAR",UDim2.fromOffset(gearWidth,44),UDim2.new(1,-gearWidth-14,.5,-22),function() toggleTab("Style") end)
+  if voiceOnlyEquipped then
+   label(milestone,"NOW · VOICE ONLY",UDim2.new(1,-textInset,0,16),UDim2.fromOffset(14,62),11,muted)
+  end
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier)
   local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs",data.level,maximum.maxDps,maximum.maxRange)
    or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs",data.level,maximum.damage,maximum.maxRange)
@@ -1210,7 +1216,9 @@ render=function()
   info(combatSummary,narrow and 112 or 82)
   info("Sound styles change audio, not damage or range. These limits use your current level for the next attack. Lower voice power and cover shorten reach. DPS requires full power and continuous contact.",narrow and 150 or 96)
   for _,s in ipairs(Config.Sounds) do
-   local c=card(sustainedRules and (narrow and 108 or 64) or (narrow and 150 or 76));label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,(narrow or sustainedRules) and 44 or 26),UDim2.fromOffset(14,8),17,gold)
+   local c=card(sustainedRules and (narrow and 108 or 64) or (narrow and 150 or 76))
+   local voiceOnly=sustainedRules and not attackAudioSettings.AssetForLevel(s.level)
+   label(c,s.name.."  /  LEVEL "..s.level..(voiceOnly and "\nVOICE ONLY" or ""),UDim2.new(1,narrow and -28 or -156,0,(narrow or sustainedRules) and 44 or 26),UDim2.fromOffset(14,8),17,gold)
    if not sustainedRules then
    label(c,s.description,UDim2.new(1,narrow and -28 or -158,0,narrow and 40 or 25),UDim2.fromOffset(14,narrow and 54 or 36),13)
    end

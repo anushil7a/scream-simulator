@@ -11,6 +11,7 @@ endfn = server[server.index('local function sustainedEnd('):server.index('local 
 bar = client[client.index(' local fraction\n',client.index('voiceTimeTrack.Visible=')):client.index('\n end\n if academy.setBeamFace then',client.index('voiceTimeTrack.Visible='))]
 setup = '''
 local Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat')
+local attackAudioSettings=require('../src/ReplicatedStorage/Shared/AttackAudioConfig')
 local Attack=require('../src/ReplicatedStorage/Shared/SustainedAttack')
 local Adapter=require('../src/ServerScriptService/SustainedAttackAdapter').new(Attack,Combat,function(origin,aim)return aim-origin end)
 local checks=0
