@@ -305,6 +305,59 @@ for _,spec in ipairs(Layout.PartSpecs) do
  end
 end
 assert(omitted==26,"Unexpected Map10 replacement count")
+local bedCount,flowers,markers=0,0,0
+for i=0,2 do
+ local soil=assert(finished["Flowers"..i])
+ local bed=assert(finished["GardenBed"..i])
+ assert(bed.CanCollide and bed.Material==standalone[bed.Name].Material,"Garden collider or surface changed")
+ assert(soil.Material=="Ground" and standalone[soil.Name].Material=="SmoothPlastic","Garden still has flat pink slabs")
+ for _,node in ipairs(nodes) do
+  if node.Parent==soil then
+   assert(node.Name=="GardenPlantings" and node.ModelStreamingMode==Enum.ModelStreamingMode.Atomic)
+   bedCount+=1
+   local parts={}
+   for _,plant in ipairs(nodes) do
+    if plant.Parent==node then
+     assert(not plant.CanCollide and not plant.CanQuery and not plant.CanTouch and plant.Anchored,"Garden decor added physical or query surfaces")
+     assert(math.abs(plant.Position.X-soil.Position.X)+plant.Size.X/2<=soil.Size.X/2
+      and math.abs(plant.Position.Z-soil.Position.Z)+plant.Size.Z/2<=soil.Size.Z/2,"Garden planting hangs outside the bed")
+     parts[plant.Name]=plant;flowers+=1
+    end
+   end
+   for j=1,5 do
+    local leaves,center=parts["Leaves"..j],parts["Center"..j]
+    assert(leaves.Position.Y-leaves.Size.Y/2<=soil.Position.Y+soil.Size.Y/2,"Garden foliage floats above soil")
+    for i=1,4 do
+     local petal=parts["Petal"..i.."_"..j]
+     assert(petal.Position.Y-petal.Size.Y/2<leaves.Position.Y+leaves.Size.Y/2
+      and center.Position.Y-center.Size.Y/2<petal.Position.Y+petal.Size.Y/2,"Garden flowers are disconnected")
+     assert(math.abs(petal.Position.X-center.Position.X)+math.abs(petal.Position.Z-center.Position.Z)>.45,
+      "Garden petal collapsed into center")
+    end
+   end
+  end
+ end
+end
+for _,node in ipairs(nodes) do
+ local folder=node.Parent
+ if node.QuestAction=="Garden" and folder and folder.Parent==finishedParent then
+  assert(node.Transparency==1 and not node.CastShadow,"Garden still shows a gold quest block")
+  local original
+  for _,other in ipairs(nodes) do
+   if other.Name==node.Name and other.Parent and other.Parent.Parent==baseParent then original=other;break end
+  end
+  assert(original and original.Position==node.Position and not original.Transparency,"Garden prompt moved or altered in base preview")
+  for _,prompt in ipairs(nodes) do
+   if prompt.Parent==node then
+    assert(prompt.ClassName=="ProximityPrompt" and prompt.MaxActivationDistance==10 and prompt.HoldDuration==1.5
+     and prompt.ActionText=="Water flowers" and prompt.ObjectText=="Community garden","Garden prompt changed")
+    markers+=1
+   end
+  end
+ end
+end
+assert(bedCount==3 and flowers==90 and markers==3,"Community garden missing foliage or prompt")
+print("PASS three existing quest beds dressed with 90 nonphysical pieces and three unchanged prompts")
 local finishedDrivers=0
 for index=firstMapNode,#nodes do
  local node=nodes[index]
@@ -328,6 +381,10 @@ try:
             ('p.Parent=(pavilion and pavilions["Academy"..pavilion]) or district',
              'p.Parent=district', 'Pavilion streamed separately: NorthPavilion'),
             (' or id:match("^Speaker[0-2]%d%d$")', '', 'Finished Map10 allocated replaced scenery Speaker046'),
+            ('layer("Leaves",.29', 'layer("Leaves",1.5', 'Garden foliage floats above soil'),
+            ('size,V(x+(dx or 0),top+y,z+(dz or 0)),color,false)', 'size,V(x+(dx or 0),top+y,z+(dz or 0)),color,true)', 'Garden decor added physical or query surfaces'),
+            ('local petalOffsets={{-.67,0}', 'local petalOffsets={{0,0}', 'Garden petal collapsed into center'),
+            ('then p.Transparency=1;p.CastShadow=false end', 'then p.Transparency=0;p.CastShadow=false end', 'Garden still shows a gold quest block'),
         ):
             assert script.count(before) == 1, before
             path.write_text(script.replace(before, after), encoding='utf-8')

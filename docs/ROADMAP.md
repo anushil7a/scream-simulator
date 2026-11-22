@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Make the Academy garden quest beds recognizable
+
+- The matched baseline showed three flat pink rectangles and separate floating gold prompt blocks. The first attempt at new planter bodies intersected the original solid beds by three studs, so the final art uses those existing beds. Each of the three slabs now reads as soil with five low, four-petal flowers. The 90 added parts are noncolliding, nonqueryable, nontouching and grouped by bed. Original colliders, quest prompt IDs, positions, duration and activation radius are preserved.
+- In a disposable desktop Studio session a fresh temporary profile walked from spawn to the east bed in 9.90 seconds via 11 waypoints, reached Mar, accepted the quest and advanced through the three native watering holds. Claim awarded 130 XP and 80 coins. A separate front approach fired the visible prompt at 6.16 studs. Fifteen lane rays cleared Mar's walking area. The final matched camera showed the flower silhouettes and the unobstructed walkway.
+- Independent review cleared the final geometry and quest scope. The focused fixture rejected floating foliage, new physical parts, a collapsed petal and the old gold block. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. All disposable Studio sessions closed. The walk used scripted pathfinding and prompt holds. Unassisted discovery, physical phones, real voice and live persistence remain release checks.
+
 ## Add City Glow to the Game Passes store
 
 - The direct **Passes** HUD button opens **Game Passes**. Spectrum, Freerunner, Encore and Afterimage remain in the store. The new **City Glow** card appears before the two 30-minute boosts.
