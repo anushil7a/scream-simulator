@@ -66,7 +66,7 @@ def add(box, disk, line):
              [-300 + math.sin(a)*37, 32.19, -300 + math.cos(a)*37], .7, .10, brass)
 
     # The first route passes inside the west court, clear of the planter and boss.
-    route = [(-320, -268), (-360, -294), (-399, -332), (-420, -368)]
+    route = [(-320, -268), (-360, -294), (-399, -332), (-420, -368), (-420, -384)]
     for index, ((ax, az), (bx, bz)) in enumerate(zip(route, route[1:])):
         length = math.hypot(bx - ax, bz - az)
         dx, dz = (bx - ax) / length, (bz - az) / length
@@ -75,7 +75,9 @@ def add(box, disk, line):
         def point(along, across, y):
             return [ax + along * dx + across * lx, y, az + along * dz + across * lz]
 
-        start, end = 1, length - 1
+        # Clear the angled stone and edge at the turn into the pad.
+        start = 2 if index == len(route) - 2 else 1
+        end = length - 1
         rail(f'RookiePathStone{index}', point(start, 0, 32.26),
              point(end, 0, 32.26), 9, .05, [211, 200, 171])
         for side in (-1, 1):

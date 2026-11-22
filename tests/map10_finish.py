@@ -63,7 +63,25 @@ for suffix in 'LR':
     assert post['position'][1] - post['size'][1] / 2 == 31.8
     assert post['position'][1] + post['size'][1] / 2 > rookie['position'][1] - rookie['size'][1] / 2
 trail=[part for part in doc['parts'] if part['id'].startswith('NorthRookiePath')]
-assert len(trail)==15 and all(not part['collidable'] and part['size'][1]<=.05 for part in trail)
+stones = [part for part in trail if 'Stone' in part['id']]
+last = max(stones, key=lambda part: int(part['id'].removeprefix('NorthRookiePathStone')))
+layout = (R/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text()
+home_x, home_z = map(int, re.search(r'TrainingHomes=\{\{x=(-?\d+),y=-?\d+,z=(-?\d+)\}', layout).groups())
+rules = (R/'src/ReplicatedStorage/Shared/TrainingRules.luau').read_text()
+radius = int(re.search(r'local Training=\{Radius=(\d+)', rules).group(1))
+x, _, z = last['position']
+yaw = math.radians(last['rotation'][1])
+half_length = last['size'][2] / 2
+tip_x, tip_z = x + math.sin(yaw) * half_length, z + math.cos(yaw) * half_length
+assert math.hypot(tip_x-home_x, tip_z-home_z) <= radius-10, 'Rookie trail ends before a usable position inside the sparring pad'
+assert len(trail)==20 and all(not part['collidable'] and part['size'][1]<=.05 for part in trail)
+previous = next(part for part in stones if part['id']=='NorthRookiePathStone2')
+previous_yaw = math.radians(previous['rotation'][1])
+previous_north = previous['position'][2] - (
+    abs(math.sin(previous_yaw)) * previous['size'][0] + abs(math.cos(previous_yaw)) * previous['size'][2]
+) / 2
+final_south = z + half_length
+assert final_south < previous_north, 'Rookie trail stones overlap at the final seam'
 for part in (p for p in trail if 'Stone' in p['id']):
     x,_,z=part['position']
     width,_,length=part['size']

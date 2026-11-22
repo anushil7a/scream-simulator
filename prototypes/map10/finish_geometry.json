@@ -1,6 +1,6 @@
 {
  "groups": {
-  "North": 295,
+  "North": 300,
   "East": 219,
   "Coast": 240,
   "Stadium": 144,
@@ -3173,6 +3173,136 @@
    "rotation": [
     -0.0,
     -115.04840930523528,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathStone3",
+   "position": [
+    -420.0,
+    32.26,
+    -376.5
+   ],
+   "size": [
+    9,
+    0.05,
+    13.0
+   ],
+   "color": [
+    211,
+    200,
+    171
+   ],
+   "rotation": [
+    -0.0,
+    180.0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge3_-1",
+   "position": [
+    -424.0,
+    32.3,
+    -376.5
+   ],
+   "size": [
+    0.5,
+    0.03,
+    13.0
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    180.0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow3_-1",
+   "position": [
+    -420.9,
+    32.32,
+    -376.0
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.1622776601684044
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    145.3048464687661,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge3_1",
+   "position": [
+    -416.0,
+    32.3,
+    -376.5
+   ],
+   "size": [
+    0.5,
+    0.03,
+    13.0
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    180.0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow3_1",
+   "position": [
+    -419.1,
+    32.32,
+    -376.0
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.1622776601684044
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -145.3048464687661,
     0
    ],
    "material": "SmoothPlastic",

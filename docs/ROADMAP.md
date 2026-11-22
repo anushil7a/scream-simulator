@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Rookie's floor trail leads into sparring range
+
+- In the disposable City build, the old trail ended 32.87 studs from Rookie's home against a 32-stud sparring radius. A native humanoid walk reached 32.60 studs from home in 12.12 seconds. A staged Rookie target 16.56 studs away was within beam reach and unobstructed, but the actual server resolver excluded it at the trail tip.
+- The existing stone, teal edges and brass chevron continue into the pad. The final seam leaves roughly 0.60 studs clear between the two stones. Five decorative parts were added. They leave movement and raycasts to the underlying floor. In the matched Studio walk, the avatar arrived 17.84 studs from home in 13.33 seconds. At the exact tip, 17.02 studs from home, the resolver admitted the staged target.
+- The geometry check caught both the old endpoint and the first draft's seam overlap. The final focused check passed for all 1,037 finishing parts, and independent review passed. The full local run passed 29 pure/synthetic suites, 167 mocked-service suites, compilation and review builds. The disposable Studio session closed. This used staged movement, an unpublished Studio place and synthetic beam inputs. The square forecourt still extends beyond the circular boundary at the corners. Human discovery, physical touch and real microphones remain open.
+
 ## Quests warn before replacing an unfinished task
 
 - In a disposable City Studio game, with both starter tasks unlocked and Garden staged at 1/3, Beach showed ACCEPT without a reset warning. Clicking it through the actual menu sent the game's normal request and the server switched to Beach and reset Garden to 0/3.
