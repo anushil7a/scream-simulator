@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## The Megaphone card guides active starter quests
+
+- With Garden in progress and 80 coins, the Academy Megaphone used to show a disabled **NEED 20 COINS**. It now offers **GUIDE QUEST** when the current Garden or Beach task has a valid objective. The button keeps the exact shortfall, closes Gear and selects the existing route. Completed rewards keep first priority. The shortcut does not send a quest or gear request.
+- In a local Studio iPhone 7 landscape preview (666 × 316 safe pixels), the real menu showed the disabled baseline and the candidate displayed a 135 × 44 button with fitting text. A simulated pointer clicked the candidate. World markers appeared and redirected when the staged next bed switched from X = −490 to X = −460. A staged completed Garden instead showed **VIEW REWARDS** and opened Quests at **CLAIM**. This was emulated UI and staged quest progress. Unassisted discovery, physical touch, eligible voice and live persistence still require play.
+- The focused test reproduced the missing shortcut on the baseline. Ten focused mutation controls passed, and the full local verification passed 29 pure/synthetic suites, 164 mocked-service suites, production compilation and review builds. Studio reset to its default viewport and the disposable processes closed.
+
 ## Close incoming beams leave room to see
 
 - A two-client local Studio replay at the Old Stadium put a level-100 Megaphone attacker eight studs from the defender. Before the fix, the incoming arcs covered the arena and hid most of the attacker. With the revised player scripts in the same defender client, the yellow beam and hit warning stayed visible while the sides of the arena cleared. Both captures showed 390/480 HP and BEAM HIT YOU. An off-axis capture showed the tier-100 arcs again.

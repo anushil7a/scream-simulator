@@ -957,7 +957,9 @@ function academy.starterCoinAction(data)
    canGuide=true
   end
  end
- if canGuide and not data.activeQuest then return "guide" end
+ local active=data.activeQuest
+ if (active=="garden" or active=="beach") and academy.NavigationCatalog.Resolve("quest",active,data) then return "objective" end
+ if canGuide and not active then return "guide" end
 end
 local function menuKey()
  local fields
@@ -1114,19 +1116,21 @@ render=function()
    local shortfall="NEED "..remaining.." COINS"
    local stateText=locked and ("LEVEL "..item.level) or equipped and "UNEQUIP" or owned and "EQUIP"
     or coinAction=="claim" and ("VIEW REWARDS\n"..shortfall) or coinAction=="guide" and ("GUIDE TO MAR\n"..shortfall)
+    or coinAction=="objective" and ("GUIDE QUEST\n"..shortfall)
     or remaining>0 and shortfall or ("BUY & EQUIP\n"..item.price.." COINS")
    local c=card(compactGear and 72 or narrow and 116 or 110)
    label(c,string.upper(item.name),UDim2.new(1,narrow and -168 or -28,0,compactGear and 20 or narrow and 44 or 28),UDim2.fromOffset(15,6),16,gold)
    local status=equipped and "Equipped · " or owned and "Owned · " or not canBuy and (item.price.." coins · ") or ""
    local detail=string.format("Level %d · +%d%% mic power\n%s%d coins in wallet",item.level,math.floor(item.bonus*100+.5),status,data.coins)
    if starter and not canAct then
-    detail..=coinAction=="claim" and "\nClaim coins in Quests" or coinAction=="guide" and "\nEarn coins with Mar's quests" or "\nEarn coins from training or quests"
+    detail..=coinAction=="claim" and "\nClaim coins in Quests" or coinAction=="guide" and "\nEarn coins with Mar's quests" or coinAction=="objective" and "\nFollow your current quest" or "\nEarn coins from training or quests"
    end
    label(c,detail,UDim2.new(1,narrow and not compactGear and -28 or -170,0,compactGear and 42 or 48),UDim2.fromOffset(15,compactGear and 26 or narrow and 57 or 34),13)
    local control=button(c,item.id,stateText,UDim2.fromOffset(135,44),UDim2.new(1,-149,0,narrow and 6 or 50),function()
     if canAct then action:FireServer("Gear",item.id);return end
     if coinAction and academy.starterCoinAction(data)==coinAction then
      if coinAction=="claim" then toggleTab("Quests",true)
+     elseif coinAction=="objective" then academy.selectGuide("quest",data.activeQuest);closeMenu()
      else academy.selectGuide("mar","gardens");closeMenu() end
     end
    end)

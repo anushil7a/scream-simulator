@@ -119,7 +119,11 @@ local function renderStyle(data,narrow,width)
  local title,subtitle={},{}
  local gold,muted='gold','muted'
  local cards,buttons,sent,links={},{},{},{}
- local academy={NavigationCatalog={Resolve=function()return not data.noCity end}}
+ local academy={NavigationCatalog={Resolve=function(kind,id)
+  if data.noCity then return end
+  if kind=='quest' then return (data.questNavigation or {})[id] end
+  return true
+ end}}
  academy.selectGuide=function(kind,id)table.insert(links,kind..':'..id) end
  local function toggleTab(tab,reset)table.insert(links,tab..':'..tostring(reset)) end
  local function closeMenu()table.insert(links,'close') end
@@ -172,6 +176,18 @@ buttons.Megaphone.press()
 assert(#sent==0 and #links==1 and links[1]=='Quests:true','Reward shortcut did not open Quests without claiming')
 _,buttons=renderStyle({level=2,coins=5,aura='Gold',activeQuest='beach',availableQuests={garden=true},quests={garden={progress=3}}},true,567)
 assert(buttons.Megaphone.text=='VIEW REWARDS\nNEED 95 COINS','An earned reward vanished while another quest was active')
+local active={level=1,coins=80,aura='Gold',activeQuest='garden',quests={garden={progress=1}},questNavigation={garden=true,beach=true}}
+cards,buttons,sent,links=renderStyle(active,true,567)
+assert(buttons.Megaphone.Interactable and buttons.Megaphone.text=='GUIDE QUEST\nNEED 20 COINS','Active starter quest has no gear shortcut')
+assert(cards[1].detail:find('100 coins · 80 coins in wallet',1,true),'Active shortcut obscures price or balance')
+active.activeQuest='beach'
+buttons.Megaphone.press()
+assert(#sent==0 and links[1]=='quest:beach' and links[2]=='close','Shortcut did not route to the current quest')
+active.questNavigation={}
+buttons.Megaphone.press()
+assert(#links==2 and #sent==0,'Stale shortcut navigated or sent an action')
+_,buttons=renderStyle(active,true,567)
+assert(not buttons.Megaphone.Interactable,'Missing objective still shows a guide')
 for _,data in ipairs({{noCity=true},{quests={garden={claimed=true},beach={claimed=true}}},{activeQuest='sprint'}}) do
  data.level=1;data.coins=5;data.aura='Gold'
  cards,buttons,sent,links=renderStyle(data,true,567)
@@ -214,8 +230,11 @@ def run_style(source, expected=None):
 run_style(code)
 if '--negative-controls' in sys.argv:
  for old,new,reason in [
-  ('if canGuide and not data.activeQuest then','if canGuide then','Starter shortcut displaced an active quest'),
+  ('if canGuide and not active then','if canGuide then','Starter shortcut displaced an active quest'),
   ('then return "claim" end','then return "guide" end','A ready reward lost priority over Mar'),
+  ('then return "objective" end','then return end','Active starter quest has no gear shortcut'),
+  ('and academy.NavigationCatalog.Resolve("quest",active,data) then return "objective"', 'then return "objective"', 'Stale shortcut navigated or sent an action'),
+  ('academy.selectGuide("quest",data.activeQuest);closeMenu()', 'academy.selectGuide("quest","garden");closeMenu()', 'Shortcut did not route to the current quest'),
   ('active or (data.availableQuests or {})[id]','active or not data.activeQuest and (data.availableQuests or {})[id]','An earned reward vanished while another quest was active'),
   ('academy.selectGuide("mar","gardens");closeMenu()','action:FireServer("Gear",item.id)','Guide spent coins or did not route to Mar'),
  ]:
