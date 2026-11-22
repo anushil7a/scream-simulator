@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Make Training City visible from every Hall spawn
+
+- In the unpublished Hall, the portal sign was hidden behind cover from both north spawns and outside the sampled 666 × 353 forward view from both south spawns. Four speaker-mounted signs now show each spawn's correct exit direction. A pale blue non-emissive line follows the exterior walkable lane to the protected cyan apron. The signs say **SAFE AT PORTAL**, since the route crosses PvP space.
+- In the matched Studio view the final boards measured about 88 projected pixels tall and their text areas cleared cover from all four spawns. The focused native check passed four mount, sightline and direction cases plus six route legs. The baseline failed the missing-route control. A staged Humanoid walked the north route to the safe prompt in 11.02 seconds without jumping. Native prompt holds moved the avatar from the Hall to the local landing at Z = 240 and back to Z = 54.
+- Geometry rose from 181 to 193 parts while solid/queryable parts remained 25. Antigravity Argon supplied general wayfinding concepts. Independent review cleared the final mounts, headings and protected-area distinction. The standalone draft and guarded Hall combat review built. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds. Four disposable Studio instances closed and the temporary emulator profile was removed. Human discovery, physical touch and the live cross-place connection remain open.
+
 ## Match the launch accent to the equipped beam color
 
 - The baseline Studio cast sent Mint (#62F4BB) for the beam but rendered yellow (#FFCB63) on the launch rays. The client now takes the launch color from the latest server-provided style state once the server acknowledges that sequence. The default remains yellow. A valid equipped Spectrum color requires the existing entitlement, and a missing or invalid selection falls back through the saved palette to yellow.
