@@ -114,7 +114,7 @@ code=r'''
 local Gear=require('../src/ReplicatedStorage/Shared/GearCatalog')
 local function renderStyle(data,narrow,width)
  local quests={garden={goal=3},beach={goal=6}}
- local Config={Gear=Gear,MovementPassId=0,Auras={Gold='gold'},GetQuest=function(id)return quests[id]end}
+ local Config={Gear=Gear,MovementPassId=0,ResonanceLayout=data.hall and {},Auras={Gold='gold'},GetQuest=function(id)return quests[id]end}
  local gui={AbsoluteSize={X=width or (narrow and 390 or 1280)}}
  local title,subtitle={},{}
  local gold,muted='gold','muted'
@@ -142,8 +142,14 @@ local function renderStyle(data,narrow,width)
  local action={FireServer=function(_,verb,id)table.insert(sent,{verb,id})end}
  local shopUsed
 '''+coin_action+style+r'''
- return cards,buttons,sent,links
+ return cards,buttons,sent,links,subtitle.Text
 end
+local hallCards,hallButtons,hallSent,hallLinks,hallSubtitle=renderStyle({hall=true,level=1,coins=0,aura='Gold'},true,666)
+assert(hallSubtitle=='Earn gear with coins from PvP.' and hallCards[1].detail:find('Earn coins from PvP KOs',1,true),'Arena gear points to unavailable training or quests')
+assert(not hallButtons.Megaphone.Interactable and hallButtons.Megaphone.text=='NEED 100 COINS','Arena exposes a city quest shortcut')
+hallButtons.Megaphone.press()
+assert(#hallLinks==0 and #hallSent==0,'Unaffordable arena gear action attempted navigation or purchase')
+print('PASS guarded Hall gear directions and disabled unaffordable action')
 for _,narrow in ipairs({false,true}) do
  local cards,buttons,sent=renderStyle({level=1,coins=80,aura='Gold',activeQuest='sprint'},narrow)
  assert(cards[1].text=='ACADEMY MEGAPHONE' and cards[2].text=='Color Mixer','Starter gear below color controls')
@@ -238,6 +244,8 @@ def run_style(source, expected=None):
 run_style(code)
 if '--negative-controls' in sys.argv:
  for old,new,reason in [
+  ('if Config.ResonanceLayout then return end','if false then return end','Arena exposes a city quest shortcut'),
+  ('Earn coins from PvP KOs" or coinAction','Earn coins from training or quests" or coinAction','Arena gear points to unavailable training or quests'),
   ('if canGuide and not active then','if canGuide then','Starter shortcut displaced an active quest'),
   ('if unlocked then return "quest",unlocked end','if false then return "quest",unlocked end','Unlocked Beach still points back to Mar'),
   ('toggleTab("Quests",true,questId)','toggleTab("Quests",true,"garden")','Gear shortcut did not open exactly the unlocked Beach quest'),

@@ -297,7 +297,7 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
    end
    local summary=recipient==finisher and "KO" or "Assist"
    if tier then summary=tier.name..(recipient==finisher and " defeated" or " assist") end
-   state(recipient,summary.." · +"..(credited+bonusXP).." XP"..(tier and " · +"..coinCredit.." coins" or "")
+   state(recipient,summary.." · +"..(credited+bonusXP).." XP"..((tier or coinCredit>0) and " · +"..coinCredit.." coins" or "")
     ..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
   elseif recipient==finisher then state(recipient,"KO · no reward awarded") end
  end

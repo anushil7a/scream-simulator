@@ -84,7 +84,7 @@ check(s.data.combatChallenges.fighters==0 and actual>200 and s.data.level<100,'E
 s=reset(100,0,0);s.activeQuest='test';s.data.quests.test.progress=0
 ledger={};recordCredit(ledger,p,100,100,200);awardCombatKO(ledger,p,100,100,100,200,victim,nil)
 check(s.data.quests.test.progress==1,'Cap suppressed nominal eligible quest event')
-check(notices[#notices]=='KO · +0 XP','Cap KO mislabeled limited')
+check(notices[#notices]=='KO · +0 XP · +20 coins','Level cap hid earned PvP coins')
 s=reset(100,0,0);s.data.combatChallenges.fighters=2
 local nominal,credited=combatChallenge(p,'fighters',false)
 check(nominal>0 and credited==0 and notices[#notices]:find('+0 XP',1,true)~=nil,'Challenge return/notice contract')
@@ -114,7 +114,15 @@ check(notices[#notices]=='KO · no reward awarded','Tiny first PvP falsely label
 check(rewardHistory.pairs['1:2'].count==1 and rewardHistory.pairs['1:2'].last==600,'First zero payout changed existing repeat accounting')
 s=fresh();h={Health=100,MaxHealth=100};target={player=victim,humanoid=h,session=sessions[victim]}
 hitPlayer(p,target,100,700)
-check(notices[#notices]=='KO · +96 XP' and s.data.coins==20 and observed[1]==1,'Positive first PvP changed')
+check(s.data.coins==20 and observed[1]==1,'Positive first PvP payout changed')
+check(notices[#notices]=='KO · +96 XP · +20 coins','PvP notice omitted credited coins: '..notices[#notices])
+s.data.coins=999999998
+rewardHistory={pairs={}}
+hitPlayer(p,target,100,700)
+check(s.data.coins==1000000000 and notices[#notices]:find('+2 coins',1,true)~=nil,'PvP notice showed nominal coins at cap')
+rewardHistory={pairs={}}
+hitPlayer(p,target,100,700)
+check(notices[#notices]:find('coins',1,true)==nil,'PvP notice showed a coin line at the wallet cap')
 local beforeXP,beforeLevel,beforeCoins=s.data.xp,s.data.level,s.data.coins
 hitPlayer(p,target,100,701)
 check(observed[1]==0 and s.data.xp==beforeXP and s.data.level==beforeLevel and s.data.coins==beforeCoins,'Actual repeat suppression changed')
@@ -166,7 +174,9 @@ if __name__=='__main__':
         if '--negative-controls' in sys.argv:
             mutations=[('return s.data.coins-before','return reward','Claim feedback not actual credit'),('credited-=d.xp;d.xp=0','d.xp=0','Cap overflow credit'),('return reward,credited','return credited,credited','Zero credit erased completion'),('(credited+bonusXP)','(reward+bonus)','KO nominal base/bonus displayed'),('..xpCredit..','..(q.xp*Commerce.Multiplier(p,"xp"))..','Claim feedback not actual credit')]
             mutations.append(('KO · no reward awarded','KO · repeat-opponent reward limited','Tiny first NPC falsely labeled repeat-limited'))
-            mutations.append(('..coinCredit..','..5 ..','Rookie win showed nominal coins at cap'))
+            mutations.append(('..coinCredit..','..(tier and 5 or coinCredit)..','Rookie win showed nominal coins at cap'))
+            mutations.append(('tier or coinCredit>0','tier','Level cap hid earned PvP coins'))
+            mutations.append(('tier or coinCredit>0','tier or victim','PvP notice showed a coin line at the wallet cap'))
             mutations.append(('then "no XP or coins credited"','then "boss reward earned"','Boss victory claimed a reward at both caps'))
             for old,new,expected in mutations:
                 assert old in s,old

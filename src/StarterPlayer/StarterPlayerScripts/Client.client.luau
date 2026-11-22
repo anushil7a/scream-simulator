@@ -1031,6 +1031,7 @@ academy.guideLayout=function(viewport,touch,trackedY)
  end
 end
 function academy.starterCoinAction(data)
+ if Config.ResonanceLayout then return end
  if not academy.NavigationCatalog.Resolve("place","gardens",data) then return end
  local canGuide=false
  local unlocked
@@ -1203,7 +1204,7 @@ render=function()
    end
   end
  elseif selected=="Style" then
-  title.Text="GEAR & BEAM COLOR";subtitle.Text="Earn gear with coins from training and quests."
+  title.Text="GEAR & BEAM COLOR";subtitle.Text=Config.ResonanceLayout and "Earn gear with coins from PvP." or "Earn gear with coins from training and quests."
   local selectedGear=Config.Gear.Selected(data)
   local compactGear=narrow and gui.AbsoluteSize.X>=500
   local function gearCard(item,starter)
@@ -1225,7 +1226,7 @@ render=function()
    local status=equipped and "Equipped · " or owned and "Owned · " or not canBuy and (item.price.." coins · ") or ""
    local detail=string.format("Level %d · +%d%% mic power\n%s%d coins in wallet",item.level,math.floor(item.bonus*100+.5),status,data.coins)
    if starter and not canAct then
-    detail..=coinAction=="claim" and "\nClaim coins in Quests" or coinAction=="guide" and "\nEarn coins with Mar's quests" or coinAction=="objective" and "\nFollow your current quest" or coinAction=="quest" and "\nOpen an unlocked quest" or "\nEarn coins from training or quests"
+    detail..=Config.ResonanceLayout and "\nEarn coins from PvP KOs" or coinAction=="claim" and "\nClaim coins in Quests" or coinAction=="guide" and "\nEarn coins with Mar's quests" or coinAction=="objective" and "\nFollow your current quest" or coinAction=="quest" and "\nOpen an unlocked quest" or "\nEarn coins from training or quests"
    end
    label(c,detail,UDim2.new(1,narrow and not compactGear and -28 or -170,0,compactGear and 42 or 48),UDim2.fromOffset(15,compactGear and 26 or narrow and 57 or 34),13)
    local control=button(c,item.id,stateText,UDim2.fromOffset(135,44),UDim2.new(1,-149,0,narrow and 6 or 50),function()
@@ -1308,7 +1309,11 @@ render=function()
   info(attackHelp,touch and 130 or 100)
   info("VOICE SAFETY\nAvoid profanity. Roblox's profanity rules depend on the game's rating and settings; harassment, threats and hate speech are not allowed. Rule violations may restrict voice or your account.\nRoblox records voice for moderation. The beam mechanic reads volume, not words. Stopping attacks does not mute voice. Use Roblox's mic control to mute, or Report Abuse for violations.",100)
   info(string.format("Third-person camera\n%s: dodge (W/A/S/D) · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
-  info(touch and "Tap TALK near a resident. Follow the on-screen quest prompts. Tap MENU to open the tabs or X to close them." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
+  if Config.ResonanceLayout then
+   info(touch and "Touch and hold the portal prompt to travel. Open MAP from MENU." or "F: hold to use a portal · M: map · B: toggle menu",touch and 80 or 54)
+  else
+   info(touch and "Tap TALK near a resident. Follow the on-screen quest prompts. Tap MENU to open the tabs or X to close them." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
+  end
   info("MICROPHONE\n"..mic.status,60)
   if not mic.eligible and not mic.checkPending then
    local accessCard=card(64)

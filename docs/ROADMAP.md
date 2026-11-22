@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Resonance Hall explains gear earnings and portal controls
+
+- The Hall's Gear screen pointed to training and quests that its local map does not offer, and Settings advertised city quest controls. Gear now points to coins from PvP knockouts and keeps unaffordable gear disabled. Settings describes the Hall's portal input. City Gear shortcuts and Settings instructions retain their existing paths.
+- In scripted local Studio, the Gear copy, price, wallet, and portal instructions fit the iPhone 7 landscape safe area (666 × 316). Scripted holds used the real prompts in both directions, from the Hall to the training landing at Z = 240 and back to Z = 54. Both sessions were closed and the viewport reverted to default. The portals still connect areas in a single unpublished file.
+- The isolated authoritative payout path reproduced a 20-coin knockout whose notice only displayed XP. Knockout and assist notices now show positive coin credit using the actual wallet delta. Focused tests cover split rewards, repeat suppression, level/wallet caps, and partial coin credit. Reward amounts and eligibility are unchanged. This credit check used simulated players. Independent review, 55 credit assertions, 20 payout checks, and 24 reward and gear negative controls passed. The full run passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. Real voice, physical touch, another live client, and shared persistence across places remain unverified.
+
 ## Garden PvP guidance on the first upgrade route
 
 - Eric's neighborhood topic said the stadium was the only PvP area, even though the sampled route to the Beach quest crossed the lower Garden PvP terraces. Eric and Mar now identify the lower terraces in their guidance. The Beach quest warns players before they leave the garden. PvP quest descriptions use the wider area on Map10, and their tracked labels describe the objectives. Combat rules and boundaries are unchanged.

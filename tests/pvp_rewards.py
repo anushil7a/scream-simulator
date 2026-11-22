@@ -43,7 +43,7 @@ check(sessions[one].data.xp==0 and sessions[victim].nextHeal==112,'Per-hit XP or
 check(hitPlayer(two,target,50,101)==30 and h.Health==100 and ejections==1,'Overkill credit or ejection wrong')
 check(sessions[one].data.xp==70 and sessions[two].data.xp==30,'Assist pool not damage-proportional')
 check(sessions[one].data.coins==14 and sessions[two].data.coins==6 and quests.Underdog==1 and quests.ArenaAssist==1,'Coins/underdog/assist events wrong')
-check(notices[one]=='Assist · +70 XP' and notices[two]=='KO · +30 XP','Assist/KO feedback missing')
+check(notices[one]=='Assist · +70 XP · +14 coins' and notices[two]=='KO · +30 XP · +6 coins','Assist/KO feedback missing')
 hitPlayer(two,target,100,102)
 check(ejections==2 and sessions[two].data.xp==30,'Repeat victim paid')
 hitPlayer(two,target,100,161)
