@@ -1571,10 +1571,10 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   end
   return
  end
- if kind=="SustainedCover" or kind=="SustainedEvaded" then
+ if kind=="SustainedCover" or kind=="SustainedEvaded" or kind=="SustainedNoHit" then
   if type(id)=="number" and p:GetAttribute("SustainedActive")==true and id==p:GetAttribute("SustainedSequence") and id~=hitFeedback.sequence then
    academy.attackCueSequence=id;academy.attackCueUntil=os.clock()+.9
-   academy.attackCueText=kind=="SustainedEvaded" and "OPPONENT DODGED" or "BEAM HIT COVER"
+   academy.attackCueText=kind=="SustainedNoHit" and "NO HIT YET" or kind=="SustainedEvaded" and "OPPONENT DODGED" or "BEAM HIT COVER"
   end
   return
  end

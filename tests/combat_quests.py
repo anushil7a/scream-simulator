@@ -32,11 +32,12 @@ local function coins(p,amount)sessions[p].data.coins+=amount;return amount end
 local function xp(p,amount)earned+=amount;if reenter then local f=reenter;reenter=nil;f()end;return amount end
 local QuestLifecycle=realQuestLifecycle
 local function stopQuest(p)QuestLifecycle.Clear(sessions[p],Config.GetQuest) end
-local fixtureHumanoids={};local evadeCues,attackerCues={},{}
+local fixtureHumanoids={};local evadeCues,attackerCues,openCues={},{},{}
 local function parts(player)return nil,nil,fixtureHumanoids[player] end
 local effect={FireClient=function(_,player,kind,humanoid,sequence)
  if kind=="BeamDodged" then table.insert(evadeCues,{player,kind,humanoid})
- elseif kind=="SustainedEvaded" then table.insert(attackerCues,{player,sequence}) end
+ elseif kind=="SustainedEvaded" then table.insert(attackerCues,{player,sequence})
+ elseif kind=="SustainedNoHit" then table.insert(openCues,{player,sequence}) end
 end}
 local task={delay=function()end}
 local fixtureBeam,fixtureEnded,fixtureHits
@@ -218,6 +219,25 @@ if confirmBeamDodge then
  fixtureHits=nil
  stepSustained(p,{sustained={intent={damageTotal=3}}},13.8)
  check(#evadeCues==4 and #attackerCues==3,'A cast with prior damage showed attacker dodge feedback')
+
+ local open={sustained={intent={}}}
+ fixtureBeam={dodged={}}
+ for i=1,3 do stepSustained(p,open,14+i*.2) end
+ check(#openCues==0,'Open cue appeared before four ticks')
+ fixtureBeam.obstruction={}
+ stepSustained(p,open,14.8)
+ fixtureBeam.obstruction=nil
+ for i=1,3 do stepSustained(p,open,14.8+i*.2) end
+ check(#openCues==0,'Obstructed tick did not reset the open streak')
+ stepSustained(p,open,15.6)
+ check(#openCues==1 and openCues[1][1]==p and openCues[1][2]==7,'Four open ticks did not send one private cast-bound cue')
+ for i=1,5 do stepSustained(p,open,15.6+i*.2) end
+ check(#openCues==1,'An open cast repeated its advisory')
+ for _,intent in ipairs({{damageTotal=3},{soccerHit=true},{volleyHit=true},{coverReported=true},{evadeReported=true}}) do
+  local cast={sustained={intent=intent}}
+  for i=1,4 do stepSustained(p,cast,17+i*.2) end
+  check(#openCues==1,'Prior contact or specific cue allowed an open advisory')
+ end
 end
 print('PASS',n,'actual combat quest assertions; fake persistence and engine inputs only')
 """
@@ -239,6 +259,9 @@ if __name__=='__main__':
     values[which]=values[which].replace(old,new,1);return tuple(values)
    return mutate
   controls=[
+   ('early open cue',change(2,'if intent.openTicks==4 then','if intent.openTicks==3 then'),'Open cue appeared before four ticks'),
+   ('open streak reset on cover',change(2,'+1 or nil\n   if intent.openTicks','+1 or intent.openTicks\n   if intent.openTicks'),'Obstructed tick did not reset the open streak'),
+   ('suppress open cue after specific cue',change(2,' and not intent.coverReported and not intent.evadeReported\n   intent.openTicks','\n   intent.openTicks'),'Prior contact or specific cue allowed an open advisory'),
    ('attacker mixed contact gate',change(2,'local noHit=#hits==0 and not intent.damageTotal','local noHit=not intent.damageTotal'),'Mixed hit and evade advertised an attacker dodge'),
    ('missing private dodge cue',change(2,'effect:FireClient(target,"BeamDodged",humanoid)',''),'Actual PvP evade did not send'),
    ('dodge burst rate limit',change(2,'now<(s.nextBeamDodgeCueAt or 0)','false'),'Defender throttle changed quests or attacker feedback'),

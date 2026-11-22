@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Show when a sustained beam is still missing
+
+- In a disposable Studio baseline, two and four open samples left the feedback slot blank. Two wall clips showed **BEAM HIT COVER** and a later clear shot against Rookie produced **3 DAMAGE**. The default beam packets resolved to the existing yellow base.
+- The attacker now sees **NO HIT YET** once after four consecutive server-evaluated open ticks with no hit, dodge, cover or successful activity. Cover, a dodge, or damage can replace the advisory. Ending the cast hides it.
+- The iPhone 7 landscape Studio candidate (666 × 374 viewport) displayed the fitting advisory at four ticks and stayed quiet at two. The same cast switched to **3 DAMAGE** on the next tick after reaiming at Rookie. The covered shot still showed **BEAM HIT COVER**. The fixture used temporary profiles, scripted power, aim and timing, with real server resolution and client HUD rendering. It did not exercise the physical microphone, phone or live network. The emulator was restored and both disposable sessions closed.
+- Independent review cleared the change. Focused runs passed 186 server assertions, 366 client assertions and 47 negative controls. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+
 ## Attackers see when their beam was dodged
 
 - In a guarded two-client Hall baseline the defender saw **BEAM DODGED** with 100 HP, while the attacker saw no outcome. The sustained beam now gives the attacker one private **OPPONENT DODGED** cue per cast when the server resolves a real evade without damage or an activity hit. The existing defender cue and quest credit are independent of the new display.

@@ -103,13 +103,23 @@ hit(coverId,3,anchor)
 check(hitText.Visible and hitText.Text=='3 DAMAGE','Cover hid confirmed damage')
 clock+=.75;send('SustainedCover',nil,coverId);hud()
 check(not hitText.Visible,'Old cover resurfaced after damage')
+local _,openId=make()
+send('SustainedNoHit',nil,openId+1);hud()
+check(not hitText.Visible,'Stale open cue appeared')
+send('SustainedNoHit',nil,openId);hud()
+check(hitText.Visible and hitText.Text=='NO HIT YET' and cues==0 and screenHits==0,'Open advisory missing or played a hit effect')
+attrs.SustainedActive=false;hud()
+check(not hitText.Visible,'Inactive cast showed an open advisory')
+attrs.SustainedActive=true
+send('SustainedCover',nil,openId);hud()
+check(hitText.Visible and hitText.Text=='BEAM HIT COVER','Specific cover cue did not replace the open advisory')
 local _,evadeId=make()
-send('SustainedCover',nil,evadeId);hud()
+send('SustainedNoHit',nil,evadeId);hud()
 send('SustainedEvaded',nil,evadeId);hud()
 check(hitText.Visible and hitText.Text=='OPPONENT DODGED' and cues==0 and screenHits==0,'Opponent dodge cue missing or played a hit effect')
 hit(evadeId,4,anchor)
 check(hitText.Visible and hitText.Text=='4 DAMAGE','Opponent dodge cue hid confirmed damage')
-clock+=.75;send('SustainedEvaded',nil,evadeId);hud()
+clock+=.75;send('SustainedEvaded',nil,evadeId);send('SustainedNoHit',nil,evadeId);hud()
 check(not hitText.Visible,'Old dodge resurfaced after damage')
 make()
 send('SustainedDamageTaken',{});hud()
@@ -330,6 +340,7 @@ def main():
             (event, ' and id==p:GetAttribute("SustainedSequence") and id~=hitFeedback.sequence', ' and id~=hitFeedback.sequence', 'Stale sequence showed cover'),
             (event, '   if id==academy.attackCueSequence then academy.attackCueUntil=nil end', '', 'Old cover resurfaced after damage'),
             (event, '"OPPONENT DODGED" or "BEAM HIT COVER"', '"BEAM HIT COVER" or "BEAM HIT COVER"', 'Opponent dodge cue missing or played a hit effect'),
+            (event, '"NO HIT YET" or kind', '"BEAM HIT COVER" or kind', 'Open advisory missing or played a hit effect'),
             (event, 'local dodged=kind=="BeamDodged"', 'local dodged=false', 'Actual evade did not show the dodge label'),
             (event, 'character:FindFirstChildOfClass("Humanoid")==pos', 'true', 'Foreign Humanoid showed defender cue'),
             (event, 'beamWidth,color,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'beamWidth,Config.Auras.Gold,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'Explicit Color3 lost its override'),

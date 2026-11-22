@@ -541,6 +541,14 @@ local function stepSustained(p,s,now)
     effect:FireClient(p,"SustainedCover",nil,p:GetAttribute("SustainedSequence"))
    end
   end
+  if not intent.openMissReported then
+   local open=noHit and not beam.obstruction and #beam.dodged==0 and not intent.coverReported and not intent.evadeReported
+   intent.openTicks=open and (intent.openTicks or 0)+1 or nil
+   if intent.openTicks==4 then
+    intent.openMissReported=true
+    effect:FireClient(p,"SustainedNoHit",nil,p:GetAttribute("SustainedSequence"))
+   end
+  end
   for _,viewer in ipairs(Players:GetPlayers()) do
    local _,root=parts(viewer)
    if root and (root.Position-beam.origin).Magnitude<=180 then
