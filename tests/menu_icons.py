@@ -85,6 +85,13 @@ for _,name in ipairs(names) do
  local tab=tabs[name];local x,y,w,h=tab.Position.X.Offset,tab.Position.Y.Offset,tab.Size.X.Offset,tab.Size.Y.Offset
  check(y>=44 and y+h<=modal.Size.Y.Offset and x+w<=content.Position.X.Offset-8 and w>=44 and h==44,'Sidebar tabs overlap content or header')
 end
+layout(456,true,150)
+check(academy.sidebarMenu and content.Position.X.Offset==196 and content.Size.X.Offset==-208 and modal.Size.Y.Offset+content.Size.Y.Offset==86,
+ 'Narrow short menu leaves no usable cards')
+for _,name in ipairs(names) do
+ local tab=tabs[name]
+ check(tab.Size.X.Offset>=44 and tab.Position.X.Offset+tab.Size.X.Offset<=content.Position.X.Offset-8,'Narrow sidebar tabs overlap cards')
+end
 layout(543,true,244)
 check(not academy.sidebarMenu and content.Position.X.Offset==20 and tabs.Settings.Position.Y.Offset==tabs.Style.Position.Y.Offset,'Normal menu did not restore at usable height')
 check(#made==allocated,'Layout allocated new icons')
@@ -101,7 +108,7 @@ if __name__=='__main__':
  out=run(source);print(out.stdout,end='');assert out.returncode==0,out.stderr
 
  if '--negative-controls' in sys.argv:
-  cases=[('shape("EmitterInk",2,5,6,11,ink,-18,2)','shape("EmitterInk",1,5,6,11,ink,-18,2)','Rotated glyph outside slot'),('icon.Visible=fits','icon.Visible=false','Incorrect fit fallback'),('padding.PaddingRight=UDim.new(0,fits and (width-total)/2 or 0)','padding.PaddingRight=UDim.new(0,0)','Icon/text group outside padded bounds'),('name=="Screams" and "BEAMS"','name=="Screams" and "WRONG"','Tab label changed'),('academy.tabIcon(tabs[name],name)','academy.tabIcon(tabs[name],"Shop")','Duplicate semantic silhouette'),('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),(' local fits=width>=total+16',' local fits=width>=total+16;Instance.new("Frame")','Layout allocated new icons'),('shortLandscape and width>=500','shortLandscape and width>=620','Wrong compact tab row count'),('local sidebar=shortLandscape and','local sidebar=false and shortLandscape and','Short menu leaves no gear viewport'),('UDim2.fromOffset(208,44)','UDim2.fromOffset(184,44)','Short menu leaves no gear viewport')]
+  cases=[('shape("EmitterInk",2,5,6,11,ink,-18,2)','shape("EmitterInk",1,5,6,11,ink,-18,2)','Rotated glyph outside slot'),('icon.Visible=fits','icon.Visible=false','Incorrect fit fallback'),('padding.PaddingRight=UDim.new(0,fits and (width-total)/2 or 0)','padding.PaddingRight=UDim.new(0,0)','Icon/text group outside padded bounds'),('name=="Screams" and "BEAMS"','name=="Screams" and "WRONG"','Tab label changed'),('academy.tabIcon(tabs[name],name)','academy.tabIcon(tabs[name],"Shop")','Duplicate semantic silhouette'),('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),(' local fits=width>=total+16',' local fits=width>=total+16;Instance.new("Frame")','Layout allocated new icons'),('shortLandscape and width>=500','shortLandscape and width>=620','Wrong compact tab row count'),('local sidebar=shortLandscape and','local sidebar=false and shortLandscape and','Short menu leaves no gear viewport'),('local contentLeft=tabLeft+columns*(tabWidth+tabGap)+4','local contentLeft=tabLeft+columns*(tabWidth+tabGap)','Short menu leaves no gear viewport')]
   for old,new,message in cases:
    assert old in source,old
    out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stdout,out.stderr)

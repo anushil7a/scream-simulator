@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep the first-play HUD and menu usable at 480 safe pixels
+
+- At 480 × 150 safe pixels the old action group began at y = −45, Talk at y = −99 and Gear content had a negative 28-pixel height. The compact touch HUD now starts at 480 pixels wide. It keeps its 44-pixel targets and narrows the Notice or Reward shortcut only below 492 pixels. The short menu uses 56-pixel tabs on that same narrow width so the cards retain the previous minimum width.
+- Native Studio at 480 × 150 measured the action stack at x234/y6, Talk at x378/y0 and Gear's scroller at 244 × 86. All six Gear titles fit, including the high-tier names. The first Gear action fit at scroll position zero. Native font measurement gave NOTICE 37 pixels and REWARD 44 pixels in the 44-pixel shortcut. Lower card copy still requires scrolling.
+- An emulated click on the Gear CTA drew 18 guide markers toward Mar. After staged travel, the actual Talk button opened her dialogue, and an emulated first-view Accept click changed the HUD to VIEW QUEST at 0/3. Matched captures show the menu with and without usable cards. Independent review cleared the layout and menu lifecycle. Focused tests passed 1,404 HUD assertions and 23 controls, 129 navigation assertions and 20 controls, and 696 tab assertions and 10 controls. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds.
+- Two disposable Studio sessions closed and the temporary emulator profile was removed. Viewports below 480 × 150 remain outside this compact layout. Physical touch, real microphones, unassisted travel and live services remain unverified. Continue city release checks with the approved device and voice evidence when available.
+
 ## Make Training City visible from every Hall spawn
 
 - In the unpublished Hall, the portal sign was hidden behind cover from both north spawns and outside the sampled 666 × 353 forward view from both south spawns. Four speaker-mounted signs now show each spawn's correct exit direction. A pale blue non-emissive line follows the exterior walkable lane to the protected cyan apron. The signs say **SAFE AT PORTAL**, since the route crosses PvP space.

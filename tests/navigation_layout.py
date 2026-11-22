@@ -164,6 +164,10 @@ local b=academy.compactObjective
 check(top.Position.y==0 and shop.Size.x==56 and b.Size.x==104 and b.Size.y==44,'Compact navigation lacks a safe touch row')
 check(b.Position.x>=shop.Size.x+6 and questsToggle.Position.x>=b.Position.x+b.Size.x+6,'Compact objective overlaps a navigation sibling')
 check(top.Position.x+questsToggle.Position.x+questsToggle.Size.x<492-246,'Compact navigation overlaps the action stack')
+academy.layoutObjectiveNav({X=480,Y=150},true,true)
+check(questsToggle.Size.x>=44 and questsToggle.Size.y==44 and top.Position.x+questsToggle.Position.x+questsToggle.Size.x<480-246,
+ 'Narrow navigation overlaps the action stack or loses its touch target')
+
 refresh(true);check(b.Visible and b.Text=='ROOKIE GUIDE\n1/3 fighters','Compact idle objective lost the first-spar goal')
 b.Activated();refresh(true)
 check(b.Text=='FOLLOW GUIDE\n1/3 · Clear','Compact training route missing progress or Clear')
@@ -197,7 +201,7 @@ def run(payload):
 result=run(code)
 assert result.returncode==0,result.stderr
 print(result.stdout.strip())
-for old,new,reason in [
+cases = [
     ('math.ceil(w*.4)+8','16','Tracker enters thumbstick lane'),
     ('w-103','w-80','Tracker enters Jump lane'),
     ('if width>=196 then','if width>=212 then','Tracker enters thumbstick lane'),
@@ -216,11 +220,13 @@ for old,new,reason in [
     ('or "Sparring pad"', 'or "Fighter recovering"', 'An unobserved fighter was reported alive or recovering'),
     ('compact and 172 or tight', 'compact and 134 or tight', 'Compact objective overlaps a navigation sibling'),
     ('timer>0 and string.format(" · %ds",timer)', 'false and string.format(" · %ds",timer)', 'Compact guide covered the active quest timer'),
+    ('narrowShortcut and 44 or compact and 56','compact and 56','Narrow navigation overlaps the action stack'),
     ('if not academy.shortObjective or not academy.compactObjective.Visible', 'if not academy.shortObjective', 'A hidden compact objective accepted a click'),
-]:
+]
+for old,new,reason in cases:
     assert code.count(old)==1,old
     result=run(code.replace(old,new))
     assert result.returncode and reason in result.stderr,(old,result.stderr)
-print('PASS 19 tracker, guide, menu and timer negative controls')
+print(f'PASS {len(cases)} tracker, guide, menu and timer negative controls')
 assert 'or noticeView:Overlaps(passive,gui,talkButton)' in s and 'meter,academy.guidePanel}' in s
 assert 'if academy.guideText.Text~=text' in s

@@ -153,7 +153,7 @@ end
 local function overlaps(a,b)
  return a.x<b.x+b.w and b.x<a.x+a.w and a.y<b.y+b.h and b.y<a.y+a.h
 end
-for _,size in ipairs({{492,150},{509,162},{509,204},{509,205},{509,220},{566,238},{566,239},{566,244},{620,259},{620,298},{666,374},{390,700}}) do
+for _,size in ipairs({{480,150},{491,162},{492,150},{509,162},{509,204},{509,205},{509,220},{566,238},{566,239},{566,244},{620,259},{620,298},{666,374},{390,700}}) do
  local width,height=table.unpack(size)
  local root={x=0,y=0,w=width,h=height}
  local controls,cast,dodge,sprint,test,stacked,glyph,talk=current.actions(width,height,true)
@@ -179,7 +179,7 @@ for _,size in ipairs({{492,150},{509,162},{509,204},{509,205},{509,220},{566,238
  check(not overlaps(cast,dodge) and not overlaps(cast,sprint) and not overlaps(dodge,sprint),'Touch combat buttons overlap')
  check(cluster.w==(stacked and 140 or height<300 and 196 or 260),'Compact touch controls occupy the ordinary combat width')
 end
-for _,size in ipairs({{491,162},{510,149}}) do
+for _,size in ipairs({{479,162},{510,149}}) do
  local controls,_,_,_,_,stacked=current.actions(size[1],size[2],true)
  check(not stacked and controls.Size.X.Offset==260,'Compact layout was forced below its supported dimensions')
 end
@@ -284,7 +284,7 @@ def main():
             ('xpScale.Parent=xpText', 'xpScale.Parent=hud', 'XP warning text size constraint missing or misbounded'),
             ('academy.layoutStatusCard(touch and shortLandscape)', 'academy.layoutStatusCard(false)', 'Short touch card retained full footprint'),
             ('stacked and UDim2.new(1,-width-106,0,6)', 'stacked and UDim2.new(1,-width-106,1,-195)', 'Touch action clipped or undersized'),
-            (' and viewport.X>=492 and viewport.Y>=150', '', 'Compact layout was forced below its supported dimensions'),
+            (' and viewport.X>=480 and viewport.Y>=150', '', 'Compact layout was forced below its supported dimensions'),
             ('stacked and UDim2.new(1,-width-106,0,6)', 'stacked and UDim2.new(1,-width-106,0,math.max(0,viewport.Y-156))', 'Stack overlaps the training guide'),
             ('or UDim2.new(1,-98,0,50)', 'or UDim2.new(1,-246,0,50)', 'Stack overlaps the compact TALK button'),
             ('UDim2.new(1,-102,0,0)', 'UDim2.new(1,-102,0,60)', 'Compact TALK has no safe target'),

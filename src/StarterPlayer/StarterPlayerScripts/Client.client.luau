@@ -725,7 +725,7 @@ do
  academy.staminaFill=fill
 end
 function academy.layoutActions(viewport,touch,shortLandscape)
- local compact=touch and shortLandscape and viewport.X>=492 and viewport.Y>=150
+ local compact=touch and shortLandscape and viewport.X>=480 and viewport.Y>=150
  -- Short safe areas need a column beside Jump; an extra row above it gets clipped.
  local stacked=compact and viewport.Y<239
  local width=stacked and 140 or compact and 196 or 260
@@ -965,7 +965,8 @@ local function card(height)
  return c
 end
 function academy.menuContentWidth()
- return math.min(720,gui.AbsoluteSize.X-24)-(academy.sidebarMenu and 220 or 40)
+ local width=math.min(720,gui.AbsoluteSize.X-24)
+ return width-(academy.sidebarMenu and (width<468 and 208 or 220) or 40)
 end
 local function info(text,height) local width=math.max(1,academy.menuContentWidth()-36);local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
 ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)
@@ -1082,9 +1083,10 @@ function academy.layoutObjectiveNav(viewport,touch,stacked)
  top.Position=UDim2.fromOffset(14,compact and 0 or 12)
  shop.Size=UDim2.fromOffset(compact and 56 or tight and 90 or 125,touch and 44 or 36)
  shop.Text=(tight or touch) and "MENU" or "MENU [B]"
- questsToggle.Size=UDim2.fromOffset(compact and 56 or tight and 78 or 95,touch and 44 or 36)
+ local narrowShortcut=compact and viewport.X<492
+ questsToggle.Size=UDim2.fromOffset(narrowShortcut and 44 or compact and 56 or tight and 78 or 95,touch and 44 or 36)
  questsToggle.Position=UDim2.fromOffset(compact and 172 or tight and 98 or 134,0)
- questsToggle.TextSize=compact and 12 or 14
+ questsToggle.TextSize=narrowShortcut and 11 or compact and 12 or 14
 end
 academy.guideMenu=function()
  local c=card(110)
@@ -1911,21 +1913,22 @@ connectClient(Run.RenderStepped,function(dt)
  local columns=(width>=620 or shortLandscape and width>=500) and 6 or 3
  local rows=6/columns
  -- Keep the notice/title strip above both the tab grid and the scrolling cards.
- local sidebar=shortLandscape and width>=468 and viewport.Y>=150 and menuHeight-(tabY+rows*50+18)<88
+ local sidebar=shortLandscape and width>=456 and viewport.Y>=150 and menuHeight-(tabY+rows*50+18)<88
  local sidebarChanged=academy.sidebarMenu~=sidebar
  academy.sidebarMenu=sidebar
  if sidebar then
   columns=3
   modal.Size=UDim2.fromOffset(width,viewport.Y-12)
  end
- local tabWidth=sidebar and 60 or (width-40-(columns-1)*6)/columns
+ local tabWidth=sidebar and (width<468 and 56 or 60) or (width-40-(columns-1)*6)/columns
  local tabLeft,tabGap=sidebar and 12 or 20,sidebar and 4 or 6
  for i,name in ipairs(academy.menuTabs) do
   local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(tabLeft+((i-1)%columns)*(tabWidth+tabGap),tabY+math.floor((i-1)/columns)*50);b.TextSize=(width<620 or sidebar) and 12 or 14
   local decoration=academy.tabIcons[name];academy.layoutTab(b,decoration.icon,decoration.padding,tabWidth)
  end
  if sidebar then
-  content.Position=UDim2.fromOffset(208,44);content.Size=UDim2.new(1,-220,1,-52)
+  local contentLeft=tabLeft+columns*(tabWidth+tabGap)+4
+  content.Position=UDim2.fromOffset(contentLeft,44);content.Size=UDim2.new(1,-contentLeft-12,1,-52)
  else
   content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
  end
