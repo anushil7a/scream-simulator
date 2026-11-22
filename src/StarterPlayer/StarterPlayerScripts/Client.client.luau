@@ -1186,7 +1186,7 @@ local function menuKey()
  elseif selected=="Style" then
   local starterAction,starterQuest=academy.starterCoinAction(data)
   fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=starterAction,starterQuest=starterQuest}
- elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
+ elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil}
  else fields={} end
@@ -1215,7 +1215,7 @@ render=function()
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Shop" then
-  title.Text="PASSES & BOOSTS";subtitle.Text="Permanent perks and 30-minute boosts"
+  title.Text="GAME PASSES";subtitle.Text="Permanent perks and 30-minute boosts"
   shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow,compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
  elseif selected=="Screams" then
   title.Text="BEAM COLLECTION"

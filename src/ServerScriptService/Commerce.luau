@@ -87,7 +87,8 @@ function Commerce.Prompt(player,key)
  if item.key=="Spectrum" and Entitlements.HasSpectrum(player)
   or item.key=="Movement" and Entitlements.HasMovement(player)
   or item.key=="Encore" and Entitlements.HasEncore(player)
-  or item.key=="Afterimage" and Entitlements.HasAfterimage(player) then return end
+  or item.key=="Afterimage" and Entitlements.HasAfterimage(player)
+  or item.key=="CityGlow" and Entitlements.HasCityGlow(player) then return end
  local ok=pcall(function()
   if item.kind=="pass" then Marketplace:PromptGamePassPurchase(player,id)
   else Marketplace:PromptProductPurchase(player,id) end

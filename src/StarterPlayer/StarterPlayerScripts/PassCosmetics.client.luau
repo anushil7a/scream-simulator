@@ -8,12 +8,13 @@ local Config=require(shared:WaitForChild("Config"))
 if not Config.CompactCity or Config.ResonanceLayout then return end
 local Catalog=require(shared:WaitForChild("ShopCatalog"))
 local localFixture=RunService:IsStudio() and game.PlaceId==0 and game.GameId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
-if not localFixture and Catalog.Get("Encore").id<=0 and Catalog.Get("Afterimage").id<=0 then return end
+if not localFixture and Catalog.Get("Encore").id<=0 and Catalog.Get("Afterimage").id<=0 and Catalog.Get("CityGlow").id<=0 then return end
 
 local localPlayer=Players.LocalPlayer
 local gui=localPlayer:WaitForChild("PlayerGui")
 local effect=Storage:WaitForChild("ScreamRemotes"):WaitForChild("Effect")
 local titles,trails={},{}
+local glow
 local violet=Color3.fromRGB(179,151,255)
 local mint=Color3.fromRGB(125,242,255)
 
@@ -66,10 +67,25 @@ local effectConnection=effect.OnClientEvent:Connect(function(kind,origin,userId)
  local now=os.clock();trails[player]={trail=trail,top=top,bottom=bottom,root=root,stopAt=now+.25,endAt=now+.44}
 end)
 
+local function updateGlow(viewer)
+ local character=viewer and localPlayer:GetAttribute("CityGlowPass")==true and localPlayer.Character
+ if glow and glow.Adornee~=character then glow:Destroy();glow=nil end
+ if not character or glow then return end
+ glow=Instance.new("Highlight")
+ glow.Name="CityGlowPassOutline"
+ glow.Adornee=character
+ glow.DepthMode=Enum.HighlightDepthMode.Occluded
+ glow.FillTransparency=1
+ glow.OutlineColor=Color3.fromRGB(255,209,111)
+ glow.OutlineTransparency=.48
+ glow.Parent=character
+end
+
 local nextTitleUpdate=0
 local heartbeat=RunService.Heartbeat:Connect(function()
  local now=os.clock()
  local viewer=safeRoot(localPlayer)
+ updateGlow(viewer)
  for player,record in pairs(trails) do
   if not viewer or GuiService.ReducedMotionEnabled or safeRoot(player)~=record.root or player:GetAttribute("AfterimagePass")~=true or now>=record.endAt then clearTrail(player)
   elseif now>=record.stopAt then record.trail.Enabled=false end
@@ -94,6 +110,7 @@ end)
 local removing=Players.PlayerRemoving:Connect(function(player) clearTitle(player);clearTrail(player) end)
 script.Destroying:Connect(function()
  effectConnection:Disconnect();heartbeat:Disconnect();removing:Disconnect()
+ updateGlow(nil)
  for player in pairs(titles) do clearTitle(player) end
  for player in pairs(trails) do clearTrail(player) end
 end)

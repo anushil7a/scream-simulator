@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Add City Glow to the Game Passes store
+
+- The direct **Passes** HUD button opens **Game Passes**. Spectrum, Freerunner, Encore and Afterimage remain in the store. The new **City Glow** card appears before the two 30-minute boosts.
+- City Glow renders one soft gold outline on the owner's local avatar in safe areas. The occluded outline has no fill, is removed inside PvP, and changes no combat, movement or rewards. Confirmed ownership from the server drives the card and the outline.
+- Suggested default is 59 Robux. That places this personal cosmetic below the shared Encore and Afterimage effects. The store uses the actual Roblox marketplace price when configured and keeps ID 0 offers disabled. No Creator Hub changes or purchases were made.
+- In disposable desktop Studio with a simulated server-owned entitlement, the HUD opened the seven-card shop, the City Glow card showed Owned and the other six actions showed Coming Soon. One local outline appeared in a safe area, dropped to zero in the arena, returned on safe entry and attached once to the new avatar after respawn. Clearing the entitlement removed it. A server inspection found no replicated Highlight. Physical phone, peer-client and live checkout validation remain open.
+
+- Independent review cleared the ownership, checkout and cleanup paths. Final desktop capture from the disposable session confirmed the GLOW badge and full card fit. Full local verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. Both City Glow Studio sessions were closed.
+
 ## Rebuild the six Academy garden tree silhouettes
 
 - The floating foliage in the prior Academy close-up was `LandmarkPlazaGarden-388_-326Cypress2`. Native probes found the same problem in every garden pocket: the two unsupported foliage pieces had 2.08- and 1.54-stud gaps above the soil. Each bed now pairs overlapping canopy lobes on its planted trunk and puts the third, lower foliage mass into the soil. Alternating the tree side varies the silhouette along the route.

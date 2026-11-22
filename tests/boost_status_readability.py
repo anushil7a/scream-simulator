@@ -136,7 +136,7 @@ local function trace(old,current)
 end
 local function layout(f,narrow)
  for index,key in ipairs({'XP','Coins'})do
-  local card=f.cards[index+4];local timer=f.stats().timers[index];local band=timer.band;local status=timer.label;local indicator=timer.indicator
+  local card=f.cards[index+5];local timer=f.stats().timers[index];local band=timer.band;local status=timer.label;local indicator=timer.indicator
   local tint=key=='XP' and {R=173/255,G=139/255,B=1} or {R=1,G=209/255,B=111/255}
   local badge=named(f,card,'Multiplier');local badgeText=children(f,badge)[2]
   check(equal(badge.BackgroundColor3,tint) and badgeText.Text=='2×' and equal(badgeText.TextColor3,ink),'Multiplier badge lost tint/ink identity')
@@ -162,7 +162,7 @@ for _,narrow in ipairs({false,true})do
     local old=baseline();local current=fixture();old.render(data,narrow);current.render(data,narrow)
     trace(old,current);paint(current);layout(current,narrow)
     graph(old,current,old.cards[1],current.cards[1],nil,nil,false);movementCard(old,current,old.cards[4],current.cards[2])
-    for i=1,2 do graph(old,current,old.cards[i+1],current.cards[i+4],old.stats().timers[i],current.stats().timers[i],true)end
+    for i=1,2 do graph(old,current,old.cards[i+1],current.cards[i+5],old.stats().timers[i],current.stats().timers[i],true)end
     for _,now in ipairs({.001,.999,1,59.1,100,100.001})do old.now=now;current.now=now;old.shop.Tick();current.shop.Tick();trace(old,current);paint(current)end
     for _,f in ipairs({old,current})do for _,p in ipairs(f.buttons)do p.Activated:Fire()end end;trace(old,current)
     for index=1,4 do old.finish(index,{IsForSale=true,PriceInRobux=20+index});current.finish(commerceOrder[index],{IsForSale=true,PriceInRobux=20+index})end;trace(old,current)

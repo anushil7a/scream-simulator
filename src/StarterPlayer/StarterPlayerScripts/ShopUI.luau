@@ -132,10 +132,12 @@ function Shop.Render(data,ui,action)
  ui.label(movement,"FREERUNNER",UDim2.new(1,-32,0,28),UDim2.fromOffset(16,12),20,accent)
  ui.label(movement,"Chain jumps and dodges through the safe city. Standard movement rules apply inside the PvP arena.",UDim2.new(1,-32,0,narrow and 70 or 48),UDim2.fromOffset(16,48),14,soft)
  purchaseButton(Catalog.Get("Movement"),movement,data.movementPass,data,ui,action,UDim2.new(1,-32,0,44),UDim2.fromOffset(16,narrow and 142 or 110))
- for index,pass in ipairs({
+ local cosmeticOffers={
   {key="Encore",owned=data.encorePass,tint=gold,preview="ENCORE"},
   {key="Afterimage",owned=data.afterimagePass,tint=violet,preview="›  ›  ›"},
- }) do
+  {key="CityGlow",owned=data.cityGlowPass,tint=gold,preview="GLOW"},
+ }
+ for index,pass in ipairs(cosmeticOffers) do
   local item=Catalog.Get(pass.key)
   local c=ui.card(168);c.Name=pass.key.."Feature";c.LayoutOrder=index+2
   c.BackgroundColor3=Color3.new(1,1,1)
@@ -153,7 +155,7 @@ function Shop.Render(data,ui,action)
  end
  for index,key in ipairs({"XP","Coins"}) do
   local item=Catalog.Get(key);local tint=key=="XP" and violet or gold
-  local c=ui.card(narrow and 262 or 242);c.Name="Boost"..key;c.LayoutOrder=index+4;stroke(c,tint)
+  local c=ui.card(narrow and 262 or 242);c.Name="Boost"..key;c.LayoutOrder=index+2+#cosmeticOffers;stroke(c,tint)
   local badge=ui.frame(c,"Multiplier",UDim2.fromOffset(54,54),UDim2.fromOffset(16,16),tint)
   local badgeText=ui.label(badge,"2×",UDim2.fromScale(1,1),UDim2.new(),27,ink);badgeText.TextXAlignment=Enum.TextXAlignment.Center;badgeText.Font=Enum.Font.GothamBlack
   ui.label(c,item.tag,UDim2.new(1,-100,0,20),UDim2.fromOffset(84,13),12,tint)
@@ -179,7 +181,7 @@ function Shop.Render(data,ui,action)
   end
  end
  local footer=ui.info("New boosts activate automatically on confirmed delivery and stack time, not multiplier. Previously saved boosts remain usable.")
- if footer then footer.LayoutOrder=7 end
+ if footer then footer.LayoutOrder=5+#cosmeticOffers end
  Shop.Tick()
 end
 function Shop.ColorMixer(data,ui,action)

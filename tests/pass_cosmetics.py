@@ -17,7 +17,7 @@ local Vector3={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},V)end}
 local function typeof(v)return getmetatable(v)==V and 'Vector3' or type(v)end
 local function n(...)return {...}end
 local Color3={fromRGB=n};local ColorSequence={new=n};local NumberSequence={new=n};local NumberSequenceKeypoint={new=n}
-local UDim2={fromOffset=n,fromScale=n};local UDim={new=n};local Enum={Font={GothamBold='bold'}}
+local UDim2={fromOffset=n,fromScale=n};local UDim={new=n};local Enum={Font={GothamBold='bold'},HighlightDepthMode={Occluded='occluded'}}
 local nodes={}
 local Instance={new=function(kind)
  local obj={ClassName=kind,Enabled=true}
@@ -27,11 +27,11 @@ end}
 local function alive(name)
  for i=#nodes,1,-1 do local obj=nodes[i];if obj.Name==name and not obj.destroyed then return obj end end
 end
-local settings={EncorePass=false,AfterimagePass=false}
+local settings={EncorePass=false,AfterimagePass=false,CityGlowPass=false}
 local root={Position=Vector3.new(-12,0,0)};local health={Health=100};local head={}
 local character={FindFirstChild=function(_,key)return key=='Head' and head or root end,FindFirstChildOfClass=function()return health end}
 local owner={UserId=1,Character=character,GetAttribute=function(_,name)return settings[name] end}
-local viewer={UserId=2,Character=character,GetAttribute=function()return false end,WaitForChild=function()return {}end}
+local viewer={UserId=2,Character=character,GetAttribute=function(_,name)return name=='CityGlowPass' and settings.CityGlowPass end,WaitForChild=function()return {}end}
 local players={LocalPlayer=viewer,PlayerRemoving=signal(),GetPlayers=function()return {owner,viewer}end,
  GetPlayerByUserId=function(_,id)if id==1 then return owner elseif id==2 then return viewer end end}
 local run={Heartbeat=signal(),IsStudio=function()return false end}
@@ -71,7 +71,20 @@ check(not alive('AfterimagePassTrail') and not alive('EncorePassTitle'),'Cosmeti
 root.Position=Vector3.new(-12,0,0);step(1);dodge(-12);settings.AfterimagePass=false;step(.01)
 check(not alive('AfterimagePassTrail'),'Lost entitlement retained trail')
 health.Health=0;step(.01);check(not alive('EncorePassTitle'),'Dead player kept title')
-health.Health=100;settings.AfterimagePass=true;step(1);dodge(-12);script.Destroying:Fire()
+health.Health=100;settings.AfterimagePass=true;step(1);dodge(-12)
+check(not alive('CityGlowPassOutline'),'Unowned glow appeared')
+settings.CityGlowPass=true;step(.01)
+local glow=alive('CityGlowPassOutline')
+check(glow and glow.Adornee==character and glow.DepthMode=='occluded' and glow.FillTransparency==1,'Owned glow is missing or fills/shows through walls')
+step(.01);check(alive('CityGlowPassOutline')==glow,'Glow duplicated while standing still')
+root.Position=Vector3.new(1,0,0);step(.01)
+check(not alive('CityGlowPassOutline'),'Glow remained inside PvP')
+root.Position=Vector3.new(-12,0,0);step(.01)
+check(alive('CityGlowPassOutline')~=nil,'Glow did not return in safety')
+settings.CityGlowPass=false;step(.01)
+check(not alive('CityGlowPassOutline'),'Glow remained after entitlement cleared')
+settings.CityGlowPass=true;step(.01);script.Destroying:Fire()
+check(not alive('CityGlowPassOutline'),'Destroy left an outline')
 check(not alive('AfterimagePassTrail') and not alive('EncorePassTitle'),'Destroy did not clean effects')
 step(1);dodge(-12);check(not alive('EncorePassTitle') and not alive('AfterimagePassTrail'),'Destroy left callbacks')
 print('PASS '..count..' actual pass cosmetic checks; mocked engine only')

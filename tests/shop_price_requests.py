@@ -7,7 +7,7 @@ setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
  local f={now=0,jobs={},buttons={},sent=0,labels={},cards={}};local os={clock=function()return f.now end,time=function()return 100 end}
- local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement','Encore','Afterimage'})do table.insert(Catalog.Items,{key=key,id=i<=4 and 100+i or 0,suggestedPrice=i==5 and 79 or 99,kind=(i==1 or i>=4) and 'pass' or 'product'})end
+ local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement','Encore','Afterimage','CityGlow'})do table.insert(Catalog.Items,{key=key,id=i<=4 and 100+i or 0,suggestedPrice=i==5 and 79 or 99,kind=(i==1 or i>=4) and 'pass' or 'product'})end
  function Catalog.Get(key)for _,v in ipairs(Catalog.Items)do if v.key==key then return v end end end
  for _,item in ipairs(Catalog.Items)do item.tag='tag';item.name=item.key;item.description='description';item.boost=item.key=='XP' and 'xp' or 'coins'end
  local Config={MovementPassId=104}
@@ -57,7 +57,7 @@ if visual.shop.CompactLandscape then
   local feature=visual.cards[1];local cta=visual.buttons[1]
   local scrollY=math.min(620,xy[2]-76)-(54+50+18)
   check(feature.height<=scrollY and cta.pos.y+cta.size.y<=feature.height and cta.size.y==44,'Spectrum action below first fold or shortened')
-  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==(visual.cards[2].Name=='MovementFeature' and 6 or 4),'Hierarchy or action count changed')
+  check(cta.holder==feature and feature.Name=='SpectrumFeature' and #visual.buttons==(visual.cards[2].Name=='MovementFeature' and (visual.cards[5].Name=='CityGlowFeature' and 7 or 6) or 4),'Hierarchy or action count changed')
  end
  check(not visual.shop.CompactLandscape(643,388) and not visual.shop.CompactLandscape(749,325) and not visual.shop.CompactLandscape(749,431),'Breakpoint leaked')
  visual.render(false,false);check(visual.cards[1].height==260 and visual.buttons[1].pos.y==206,'Desktop hero changed')
@@ -130,20 +130,29 @@ f=fixture();f.items[2].id=0;b=f.draw();check(#f.jobs==0 and b.Text=='COMING SOON
 if visual.shop.CompactLandscape and visual.buttons[3].Name=="BuyEncore" then
  local f=fixture()
  f.render(false,false)
- local order={"BuySpectrum","BuyMovement","BuyEncore","BuyAfterimage","BuyXP","BuyCoins"}
+ local order={"BuySpectrum","BuyMovement","BuyEncore","BuyAfterimage","BuyCityGlow","BuyXP","BuyCoins"}
  for i,name in ipairs(order)do check(f.buttons[i].Name==name and f.cards[i].LayoutOrder==i,'Permanent passes must appear before timed boosts')end
- for i=3,4 do
+ for i=3,5 do
   local b=f.buttons[i]
   check(b.Text=="COMING SOON" and not b.Interactable and b.size.y>=45,'Unconfigured pass needs a disabled state and full target')
   b.callback()
  end
  check(f.sent==0 and #f.jobs==4,'Unconfigured pass attempted price lookup or purchase')
- f.render(true,false,{encorePass=true,afterimagePass=true,savingAvailable=true})
- for i=3,4 do
+ f.render(true,false,{encorePass=true,afterimagePass=true,cityGlowPass=true,savingAvailable=true})
+ for i=3,5 do
   local b=f.buttons[i];check(b.Text=="OWNED" and not b.Interactable,'Owned cosmetic state was lost')
   b.callback()
  end
  check(f.sent==0,'Owned pass attempted purchase')
+ f=fixture()
+ for i=1,4 do f.items[i].id=0 end;f.config.MovementPassId=0;f.items[7].id=107
+ f.render(false,false)
+ check(#f.jobs==1 and f.jobs[1].args[2]==107 and f.jobs[1].args[3]=='pass','City Glow lookup did not use the configured pass price')
+ f.finish(1,{IsForSale=true,PriceInRobux=47})
+ local glow=f.buttons[5]
+ check(glow.Text=='R$ 47' and glow.Interactable,'City Glow did not display its runtime price')
+ glow.callback()
+ check(f.sent==1,'Available City Glow did not request checkout')
  f=fixture();f.items[5].id=105;f.items[6].id=106
  f.render(false,false)
  check(#f.jobs==4 and f.buttons[3].Text~="R$ 79" and f.buttons[4].Text~="R$ 99",'Checkout displayed a suggested price or exceeded request limit')

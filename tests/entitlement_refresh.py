@@ -6,9 +6,9 @@ path='src/ServerScriptService/Entitlements.luau'
 s=subprocess.check_output(['git','show','670948d:'+path],cwd=R,text=True,encoding='utf-8') if args.baseline else (R/path).read_text(encoding='utf-8')
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
-local function fixture(spectrumId,movementId,encoreId,afterimageId)
+local function fixture(spectrumId,movementId,encoreId,afterimageId,cityGlowId)
  local handlers={};local function event(name)return {Connect=function(_,fn)handlers[name]=fn end}end
- local f={calls={},studio=false};local ids={Spectrum=spectrumId,Encore=encoreId,Afterimage=afterimageId}
+ local f={calls={},studio=false};local ids={Spectrum=spectrumId,Encore=encoreId,Afterimage=afterimageId,CityGlow=cityGlowId}
  local config={MovementPassId=movementId,InArena=function(pos)return pos=='arena'end,Get=function(key)return {id=ids[key] or 0}end}
  local services={Players={PlayerRemoving=event('remove')},RunService={IsStudio=function()return f.studio end}}
  services.MarketplaceService={PromptGamePassPurchaseFinished=event('purchase'),UserOwnsGamePassAsync=function(_,id,pass)
@@ -110,7 +110,7 @@ check(not f.E.HasSpectrum(p) and not f.E.HasMovement(p),'Disabled IDs granted ac
 f.studio=true;check(f.E.SetStudioMovement(p,true) and f.E.HasMovement(p),'Studio override broken')
 check(not f.E.CanUseMovement(p,'arena') and f.E.CanUseMovement(p,'safe'),'Arena rule changed')
 f.studio=false;check(not f.E.HasMovement(p),'Studio override leaked live')
-check(p.EncorePass==false and p.AfterimagePass==false,'Disabled cosmetic attributes must be false')
+check(p.EncorePass==false and p.AfterimagePass==false and p.CityGlowPass==false,'Disabled cosmetic attributes must be false')
 f.purchase(p,0,true);check(f.spawned==nil,'Disabled pass event queried ownership')
 for _,pass in ipairs({33,44})do
  f=fixture(0,0,33,44);p={UserId=7,Parent={}}
@@ -134,6 +134,14 @@ for _,pass in ipairs({33,44})do
  co=f.start(p);f.remove(p);f.resume(co,true)
  check(p.EncorePass==false and not f.E.HasEncore(p) and not f.E.HasAfterimage(p),'Departure let a pending cosmetic confirm')
 end
+f=fixture(0,0,0,0,55);p={UserId=7,Parent={}}
+local old=f.start(p)
+f.purchase(p,55,true)
+check(f.spawned and f.calls[#f.calls][2]==55 and not f.E.HasCityGlow(p),'Glow checkout must recheck ownership without granting it')
+f.resume(f.spawned,true);f.resume(old,false)
+check(f.E.HasCityGlow(p),'Stale refresh cleared confirmed glow')
+co=f.start(p);f.resume(co,false)
+check(not f.E.HasCityGlow(p),'Glow did not revoke after confirmed ownership loss')
 print('PASS',n,'actual entitlement coroutine assertions; no live API, purchase or native replication')
 '''
 def run(source,error=None):
@@ -152,6 +160,7 @@ else:
   run(s.replace(guard,'-- omitted first fence',1),'Stale first response overwrote spectrum')
   at=s.index(guard,s.index(guard)+len(guard));run(s[:at]+s[at:].replace(guard,'-- omitted second fence',1),'Stale second response overwrote movement')
   at=s.rindex(guard);run(s[:at]+s[at:].replace(guard,'-- omitted cosmetic fence',1),'Stale Encore refresh changed cosmetics')
+  run(s.replace(' or id==Catalog.Get("CityGlow").id',''),'Glow checkout must recheck ownership without granting it')
   old='refreshIdentity[player]=nil;';assert s.count(old)==1;run(s.replace(old,''),'Departed cache repopulated')
   old='if not player.Parent or departed[player] then return false end';assert s.count(old)==1;run(s.replace(old,'if departed[player] then return false end'),'Detached player began ownership work')
   old='if success then owned[player]=result==true end';assert s.count(old)==1;run(s.replace(old,'if success and result then owned[player]=true end'),'Later legitimate revocation ignored')
