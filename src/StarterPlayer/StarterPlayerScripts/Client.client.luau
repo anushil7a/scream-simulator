@@ -724,6 +724,27 @@ do
  fill.Active=false;fill.Interactable=false;fill.Selectable=false
  academy.staminaFill=fill
 end
+function academy.layoutActions(viewport,touch,shortLandscape)
+ local compact=touch and shortLandscape and viewport.X>=492 and viewport.Y>=150
+ -- Short safe areas need a column beside Jump; an extra row above it gets clipped.
+ local stacked=compact and viewport.Y<239
+ local width=stacked and 140 or compact and 196 or 260
+ local height=touch and 44 or 32
+ local dodgeWidth=stacked and width or compact and 84 or 108
+ local sprintWidth=stacked and width or width-dodgeWidth-8
+ controls.Position=stacked and UDim2.new(1,-width-106,0,6)
+  or UDim2.new(1,-width-14,1,touch and -195 or -102)
+ controls.Size=UDim2.fromOffset(width,stacked and 144 or touch and 96 or 88)
+ castButton.Size=UDim2.fromOffset(width,44)
+ local mark=castButton:FindFirstChild("AcademyIcon_voice")
+ if mark then mark.Visible=sustainedControl~=nil and not stacked end
+ dodgeButton.Position=UDim2.fromOffset(0,stacked and 50 or 52)
+ dodgeButton.Size=UDim2.fromOffset(dodgeWidth,height)
+ sprintButton.Position=UDim2.fromOffset(stacked and 0 or dodgeWidth+8,stacked and 100 or 52)
+ sprintButton.Size=UDim2.fromOffset(sprintWidth,height)
+ academy.stackedTouchActions=stacked
+ return stacked
+end
 local talkTarget
 local nextResidentUi=0
 local function refreshResidentLabels(root,camera,residents)
@@ -1828,17 +1849,18 @@ connectClient(Run.RenderStepped,function(dt)
  local tight=viewport.X<380
  shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "MENU" or "MENU [B]"
  questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
- testButton.Size=UDim2.fromOffset(viewport.X<432 and 86 or 112,44)
+ local stackedActions=academy.layoutActions(viewport,touch,shortLandscape)
+ local testWidth=stackedActions and 84 or viewport.X<432 and 86 or 112
+ testButton.Size=UDim2.fromOffset(testWidth,44)
+ testButton.TextSize=stackedActions and 12 or 14
  local miniLayout=CityMap.MiniLayout(viewport,touch,data.devAccess==true)
  miniMapButton.Size=UDim2.fromOffset(miniLayout.width,miniLayout.height);miniMapButton.Position=UDim2.new(1,-miniLayout.width-14,0,14)
  miniMapHolder.Visible=miniLayout.expanded;miniMapAvailable=miniLayout.available
  local testTop=miniLayout.available and 14+miniLayout.height+8 or (touch and math.clamp(viewport.Y-195-44,0,14) or 14)
- testButton.Position=UDim2.new(1,viewport.X<432 and -100 or -126,0,testTop)
+ testButton.Position=UDim2.new(1,-testWidth-14,0,testTop)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,data.devAccess==true and viewport.X<356 and miniLayout.height+74 or 64) or UDim2.new(0,14,1,-108)
  academy.layoutStatusCard(touch and shortLandscape)
- controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
- talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
- controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
+ talkButton.Size=UDim2.fromOffset(stackedActions and viewport.Y>=205 and 84 or 120,touch and 44 or 34)
  local trackerY=(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64
  local trackerX,trackerTop,trackerWidth,trackerHeight,canShare,centerTracker=academy.trackerLayout(viewport,touch,trackerY)
  academy.guideMayUseTracker=canShare==true
@@ -1855,8 +1877,6 @@ connectClient(Run.RenderStepped,function(dt)
   meter.Size=UDim2.fromOffset(meterWidth,meterHeight)
   meter.Position=UDim2.new(.5,-meterWidth/2,1,-meterHeight-((not touch and viewport.X<820) and 116 or 12))
  end
- dodgeButton.Size=UDim2.fromOffset(108,touch and 44 or 32)
- sprintButton.Size=UDim2.fromOffset(144,touch and 44 or 32)
  local testBottom=testTop+44
  local bottomReserve=(touch and 189 or 96)+14
  local belowHeight=viewport.Y-(testBottom+8)-bottomReserve
@@ -1943,7 +1963,7 @@ connectClient(Run.RenderStepped,function(dt)
    end
   end
   castButton.Text=screamToggleLabel(sustainedControl.armed,touch,status)
-  castButton.TextSize=13
+  castButton.TextSize=academy.stackedTouchActions and 12 or 13
  else
   castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
  end
@@ -2013,7 +2033,9 @@ connectClient(Run.RenderStepped,function(dt)
  -- Keep navigation in MENU. A pending claim or inaccessible notice gets a shortcut.
  questsToggle.Visible=shop.Visible and not modal.Visible and questsToggle.Text~="QUESTS"
  talkButton.Visible=talkTarget~=nil and gameplayVisible
- if noticeView.visible and noticeLayout.moveTalk then
+ if academy.stackedTouchActions and viewport.Y>=205 then
+  talkButton.Position=UDim2.new(1,-98,0,50)
+ elseif noticeView.visible and noticeLayout.moveTalk then
   talkButton.Position=UDim2.fromOffset(noticeLayout.talkX,noticeLayout.talkY)
  elseif noticeLayout.baseTalkX then
   talkButton.Position=UDim2.fromOffset(noticeLayout.baseTalkX,noticeLayout.baseTalkY)

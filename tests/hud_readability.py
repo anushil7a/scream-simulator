@@ -48,6 +48,7 @@ VISIBILITY
  function f.humanoid(h,present)if present==false then p.Character=nil else p.Character={FindFirstChildOfClass=function()return h end}end end
  function f.refresh()refreshHealth()end
  f.hud=hud;f.health=health;f.hf=hf;f.xp=xpText;f.xf=xf;f.stats=stats;f.coins=coins;f.incoming=academy.incomingHit
+ACTIONS_LAYOUT
  return f
 end
 '''
@@ -145,6 +146,45 @@ for _,sample in ipairs({{567,true,300},{390,true,700},{567,false,242}}) do
  current.place(sample[1],sample[2],false,0,true,sample[3])
  check(current.hud.Size.X.Offset==242 and current.hud.Size.Y.Offset==94 and rect(current.coins).w==128,'Standard status card did not restore')
 end
+local function relative(node,parent)
+ local pos,size=node.Position,node.Size
+ return {x=parent.x+pos.X.Scale*parent.w+pos.X.Offset,y=parent.y+pos.Y.Scale*parent.h+pos.Y.Offset,w=size.X.Offset,h=size.Y.Offset}
+end
+local function overlaps(a,b)
+ return a.x<b.x+b.w and b.x<a.x+a.w and a.y<b.y+b.h and b.y<a.y+a.h
+end
+for _,size in ipairs({{509,162},{509,220},{566,238},{566,239},{566,244},{620,259},{620,298},{666,374},{390,700}}) do
+ local width,height=table.unpack(size)
+ local root={x=0,y=0,w=width,h=height}
+ local controls,cast,dodge,sprint,test,stacked,glyph,talk=current.actions(width,height,true)
+ local cluster=relative(controls,root)
+ cast,dodge,sprint,test=relative(cast,cluster),relative(dodge,cluster),relative(sprint,cluster),relative(test,root)
+ check(stacked==(height<239) and glyph.Visible==not stacked,'Short touch action mode or glyph did not restore')
+ local typicalJump={x=width-95,y=height-90,w=70,h=70}
+ local guideStart=160
+ local guide={x=16,y=guideStart,w=290,h=50}
+ if height>=205 and height<239 then
+  talk=relative(talk,root)
+  check(talk.x>=0 and talk.y>=0 and talk.y+talk.h<=height and not overlaps(talk,typicalJump) and not overlaps(talk,test),'Compact TALK has no safe target')
+ end
+ for _,item in ipairs({cast,dodge,sprint}) do
+  check(item.x>=0 and item.y>=0 and item.x+item.w<=width and item.y+item.h<=height and item.h==44 and item.w>=44,'Touch action clipped or undersized')
+  check(not overlaps(item,typicalJump),'Touch actions overlap the sampled Jump rectangle')
+  check(not overlaps(item,test),'Test Tools overlaps a combat control')
+  if stacked and height>=205 then
+   check(not overlaps(item,guide),'Stack overlaps the training guide')
+   check(not overlaps(item,talk),'Stack overlaps the compact TALK button')
+  end
+ end
+ check(not overlaps(cast,dodge) and not overlaps(cast,sprint) and not overlaps(dodge,sprint),'Touch combat buttons overlap')
+ check(cluster.w==(stacked and 140 or height<300 and 196 or 260),'Compact touch controls occupy the ordinary combat width')
+end
+for _,size in ipairs({{491,162},{510,149}}) do
+ local controls,_,_,_,_,stacked=current.actions(size[1],size[2],true)
+ check(not stacked and controls.Size.X.Offset==260,'Compact layout was forced below its supported dimensions')
+end
+local desktop,_,dodge,sprint,_,stacked=current.actions(567,242,false)
+check(not stacked and desktop.Position.X.Offset==-274 and desktop.Position.Y.Offset==-102 and dodge.Size.Y.Offset==32 and sprint.Size.X.Offset==144,'Desktop action geometry changed')
 print('PASS',checks,'actual HUD/baseline/data/geometry/passive assertions; mocked replication/allocations, native fit separate')
 '''
 
@@ -172,7 +212,30 @@ def fixture(source, name):
     if layout_call:
         short = next(line for line in source.splitlines() if 'local shortLandscape=' in line)
         status_layout = short + '\n' + layout_call
-    return SETUP.replace('local function fixture()', 'local function ' + name + '()') + colors + '\n' + helpers + art + hud + progress + TAIL.replace('STATE_UPDATE', update).replace('FRAME_UPDATE', frame).replace('POSITION', position).replace('STATUS_LAYOUT',status_layout).replace('VISIBILITY', visible)
+    actions = ''
+    if 'function academy.layoutActions(' in source:
+        start = source.index('function academy.layoutActions(')
+        layout = source[start:source.index('\nlocal talkTarget', start)]
+        launcher = source[source.index(' local testWidth=stackedActions'):source.index('\n hud.Position=', source.index(' local testWidth=stackedActions'))]
+        talk_size = next(line for line in source.splitlines() if line.startswith(' talkButton.Size='))
+        talk_start = source.index(' if academy.stackedTouchActions and viewport.Y>=205')
+        talk_layout = source[talk_start:source.index('\n for _,passive',talk_start)]
+        actions = '''
+ local mark={}
+ local castButton={Position=UDim2.fromOffset(0,0),FindFirstChild=function()return mark end}
+ local dodgeButton,sprintButton,testButton,sustainedControl={},{},{},{}
+ local miniMapButton,miniMapHolder,miniMapAvailable={},{},false
+ local talkButton,noticeView,noticeLayout={}, {visible=false}, {}
+''' + layout + '''
+ function f.actions(width,height,touch)
+  local viewport={X=width,Y=height}
+  local stackedActions=academy.layoutActions(viewport,touch,height<300 and width>height)
+  local CityMap={MiniLayout=function()return {available=height>=315,width=90,height=44}end}
+''' + launcher + '\n' + talk_size + '\n' + talk_layout + '''
+  return controls,castButton,dodgeButton,sprintButton,testButton,stackedActions,mark,talkButton
+ end
+'''
+    return SETUP.replace('local function fixture()', 'local function ' + name + '()') + colors + '\n' + helpers + art + hud + progress + TAIL.replace('STATE_UPDATE', update).replace('FRAME_UPDATE', frame).replace('POSITION', position).replace('STATUS_LAYOUT',status_layout).replace('VISIBILITY', visible).replace('ACTIONS_LAYOUT', actions)
 
 
 def run(source, baseline, expected=None):
@@ -220,6 +283,11 @@ def main():
             ('xpScale.MaxTextSize=12;xpScale.MinTextSize=9', 'xpScale.MaxTextSize=10;xpScale.MinTextSize=9', 'XP warning text size constraint missing or misbounded'),
             ('xpScale.Parent=xpText', 'xpScale.Parent=hud', 'XP warning text size constraint missing or misbounded'),
             ('academy.layoutStatusCard(touch and shortLandscape)', 'academy.layoutStatusCard(false)', 'Short touch card retained full footprint'),
+            ('stacked and UDim2.new(1,-width-106,0,6)', 'stacked and UDim2.new(1,-width-106,1,-195)', 'Touch action clipped or undersized'),
+            (' and viewport.X>=492 and viewport.Y>=150', '', 'Compact layout was forced below its supported dimensions'),
+            ('stacked and UDim2.new(1,-width-106,0,6)', 'stacked and UDim2.new(1,-width-106,0,math.max(0,viewport.Y-156))', 'Stack overlaps the training guide'),
+            ('talkButton.Position=UDim2.new(1,-98,0,50)', 'talkButton.Position=UDim2.new(1,-246,0,50)', 'Stack overlaps the compact TALK button'),
+            ('stackedActions and 84 or viewport.X<432', 'stackedActions and 112 or viewport.X<432', 'Test Tools overlaps a combat control'),
         ]
         for old, new, expected in cases:
             assert source.count(old) == 1, old

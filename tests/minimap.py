@@ -84,17 +84,20 @@ client=read('src/StarterPlayer/StarterPlayerScripts/Client.client.luau')
 client_checks=''
 if not args.baseline:
  a=client.index('local miniMapButton=');creation=client[a:client.index('local function card(',a)]
- a=client.index(' testButton.Size=');layout=client[a:client.index(' hud.Position=',a)]
+ a=client.index(' local stackedActions=academy.layoutActions');layout=client[a:client.index(' hud.Position=',a)]
  a=client.index(' local miniVisible=');visibility=client[a:client.index(' talkButton.Text=',a)]
  client_setup=r'''
 local gui={};local activated;local opens={};local allocations=0
 local testButton={};local tight=false;local data={devAccess=false}
+local controls,castButton,dodgeButton,sprintButton={}, {FindFirstChild=function()end}, {}, {}
 local GuiService={MenuIsOpen=false};local modal={Visible=false};local micPanel={Visible=false};local conversationPanel={Visible=false}
 local function toggleTab(tab)table.insert(opens,tab)end
 local function button(parent,name,text,size,pos,fn)allocations+=1;activated=fn;return {Parent=parent,Name=name,Text=text,Size=size,Position=pos}end
 local function frame(parent,name,size,pos)allocations+=1;return {Parent=parent,Name=name,Size=size,Position=pos}end
 '''
  client_setup+='\nlocal academy={};local clientDestroyed=false\n'+client[client.index('function academy.canShowTestLauncher()'):client.index('\n-- Flight controls exist only',client.index('function academy.canShowTestLauncher()'))]+'\n'
+ action_start=client.index('function academy.layoutActions(')
+ client_setup+=client[action_start:client.index('\nlocal talkTarget',action_start)]+'\n'
  client_end=r'''
 check(miniMapButton.Name=="MiniMap" and miniMapButton.Text=="MAP",'MAP launcher missing')
 activated();check(#opens==1 and opens[1]=='Map','MAP launcher opens wrong tab')
@@ -104,6 +107,7 @@ local fixedAllocations=#objects
 for _,vp in ipairs({{279,844},{280,844},{320,167},{320,168},{320,314},{320,315},{320,568},{390,844},{430,844},{460,844},{844,390},{820,600}})do
  for _,touch in ipairs({false,true})do
   local viewport={X=vp[1],Y=vp[2]}
+  local shortLandscape=viewport.Y<300 and viewport.X>viewport.Y
 __LAYOUT__
   check(miniMapButton.Position.X.Offset==-miniLayout.width-14 and miniMapButton.Position.Y.Offset==14,'MAP position changed')
   check(miniMapButton.Size.X.Offset==miniLayout.width and miniMapButton.Size.Y.Offset==miniLayout.height,'MAP size wiring changed')
@@ -131,13 +135,12 @@ print('PASS '..checks..' actual minimap module/client assertions; synthetic layo
 '''
  tracker_size=re.search(r'local tracked=label\(gui,"",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  hud_size=re.search(r'local hud=frame\(gui,"CompactHUD",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
- controls_size=re.search(r'local controls=frame\(gui,"Actions",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  tracker_layout=client[client.index('function academy.trackerLayout('):client.index('academy.guideLayout=function(')]
  tracker_rect=client[client.index(' local trackerY='):client.index(' local meterWidth,meterHeight=')]
  client_setup+='\n'+tracker_layout+'\n'
- positions='\n'.join(next(line for line in client.splitlines() if line.startswith(' '+key+'.Position=')) for key in ['hud','controls'])+'\n'+next(line for line in client.splitlines() if line.lstrip().startswith('talkButton.Position=UDim2.new('))+'\n'+next(line for line in client.splitlines() if line.startswith(' controls.Size='))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
+ positions=next(line for line in client.splitlines() if line.startswith(' hud.Position='))+'\n'+next(line for line in client.splitlines() if line.lstrip().startswith('talkButton.Position=UDim2.new(.5'))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
  positions=tracker_rect+positions
- nav=client[client.index(' local tight=viewport.X<380'):client.index(' testButton.Size=')]
+ nav=client[client.index(' local tight=viewport.X<380'):client.index(' local stackedActions=academy.layoutActions')]
  nav_origin=re.search(r'local top=frame\(gui,"Navigation",UDim2.fromOffset\(\d+,\d+\),(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  notice_source=read('src/StarterPlayer/StarterPlayerScripts/NoticeLayout.luau')
  notice_view=read('src/StarterPlayer/StarterPlayerScripts/NoticeView.luau')
@@ -156,7 +159,8 @@ for width=320,1280 do
    for _,testAccess in ipairs({false,true})do
    local data={devAccess=testAccess};local testButton={}
    local viewport={X=width,Y=height}
-   local tracked={Size=__TRACKER__};local hud={Size=__HUD__};local controls={Size=__CONTROLS__};local talkButton={}
+   local shortLandscape=height<300 and width>height
+   local tracked={Size=__TRACKER__};local hud={Size=__HUD__};local talkButton={}
    local top={Position=__NAVORIGIN__};local shop={Position=UDim2.fromOffset(0,0)};local questsToggle={}
 __NAV__
    for _,child in ipairs({shop,questsToggle})do child.Position.X.Offset+=top.Position.X.Offset;child.Position.Y.Offset+=top.Position.Y.Offset end
@@ -212,7 +216,7 @@ __TOAST__
  end
 end
 '''
- sweep=sweep.replace('__TOAST__',toast_geometry).replace('__NAVORIGIN__',nav_origin).replace('__NAV__',nav).replace('__TRACKER__',tracker_size).replace('__HUD__',hud_size).replace('__CONTROLS__',controls_size).replace('__POSITIONS__',positions).replace('__LAYOUT__',layout)
+ sweep=sweep.replace('__TOAST__',toast_geometry).replace('__NAVORIGIN__',nav_origin).replace('__NAV__',nav).replace('__TRACKER__',tracker_size).replace('__HUD__',hud_size).replace('__POSITIONS__',positions).replace('__LAYOUT__',layout)
  client_end=client_end.replace("print('PASS '..checks..' actual minimap",sweep+"print('PASS '..checks..' actual minimap")
  client_checks=client_setup+creation+client_end.replace('__LAYOUT__',layout).replace('__VISIBILITY__',visibility)
 code=setup+source+tests+client_checks
@@ -223,7 +227,7 @@ else:
   cases=[(code.replace('compact and {} or landmarks','{}'),'Modal landmark missing'),(code.replace('compact and {} or landmarks','landmarks'),'Compact landmark clutter'),(code.replace('if view.lastRoot==root and view.nextUpdate and now<view.nextUpdate', 'if false and view.lastRoot==root and view.nextUpdate and now<view.nextUpdate'),'Minimap throttle missing'),(code.replace('view.dot.Visible=false;view.nextUpdate=nil','view.dot.Visible=true;view.nextUpdate=nil'),'Hidden minimap marker retained'),(code.replace('viewport.X-278','viewport.X-200'),'Minimap overlaps left HUD'),(code.replace('miniMapAvailable and gameplayVisible and windowFocused','miniMapAvailable and gameplayVisible and windowFocused and not toast.Visible'),'MAP visibility gate failed'),(code.replace('width=math.min(width,math.max(119,viewport.X-328))',''),'Minimap overlaps quest tracker'),(code.replace('view.lastRoot==root and view.nextUpdate','view.nextUpdate'),'Replacement root throttled'),(code.replace('miniMapAvailable and gameplayVisible','gameplayVisible'),'MAP visibility gate failed'),(code.replace('touch and 315 or 168','touch and 314 or 167',1),'Minimap availability boundary wrong'),(code.replace('touch and 315 or 168','touch and 261 or 168'),'Minimap overlaps Talk button')]
   cases.append((code.replace('width-map.width-22','width-14'),'Resolved TALK overlaps MAP'))
   cases.extend([(code.replace(" for i,v in ipairs(compact and {} or landmarks)"," box(map,'North',.04,.025,.25,.075,cream)\n for i,v in ipairs(compact and {} or landmarks)"),'Retired north decoration retained'),(code.replace("if not compact then arrow=text","if true then arrow=text"),'Compact facing arrow retained')])
-  cases.extend([(code.replace('viewport.X<432 and -100 or -126','viewport.X<432 and -104 or -126'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
+  cases.extend([(code.replace('-testWidth-14,0,testTop','-testWidth-(viewport.X<432 and 18 or 14),0,testTop'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
   cases.append((code.replace('math.clamp(viewport.Y-195-44,0,14)','14'),'Tools overlap short touch controls'))
   for changed,message in cases:
    assert changed!=code,'Mutation did not match: '+message

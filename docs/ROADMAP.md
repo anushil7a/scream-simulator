@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Keep the compact sparring controls on-screen
+
+- At 509 × 162 safe canvas, Beams began 33 pixels above the HUD bounds and its measured rectangle overlapped Test Tools by 1,232 square pixels. The rebuilt 140-pixel column keeps Beams, Dodge and Sprint inside the safe canvas with 44-pixel targets, clear of Test Tools, Jump, health and zone status. The widest sampled Beams status measured 136 pixels. Studio emulated the three action buttons and the Test Tools launcher on the matching layout.
+- At 509 × 220, Talk fit between Test Tools and Jump. The authored Rookie button delivered the real server sparring tip after an emulated click. At 566 × 244, the 196-pixel two-row layout left Guide and Jump clear. The compact variants apply to landscape touch canvases at least 492 × 150. An older Talk placement can still clip below 205 safe pixels, and the tiny Academy tracker can still run off the bottom. Physical devices, default control customizations and real mic input remain open.
+- Critic cleared the final layout after finding a Guide overlap in the earlier stack. Final local checks passed 1,317 HUD assertions and 20 HUD negative controls, 17 minimap controls, 16 navigation controls, all 29 pure/synthetic and 167 mocked-service suites, compilation, and Rojo builds. Disposable Studio sessions closed and temporary device profiles were removed. Next prioritize the visible first-spar objective in the shortest phone layouts.
+
 ## Keep the first beam hit readable over the Academy
 
 - At 666 × 374 in Studio, the old gold **3 DAMAGE** text overlapped Rookie's sign. The compact dark cue moves above the sign. A raised-only version touched the Beams control at 509 × 220, so short aim canvases place the cue in the top-center lane.

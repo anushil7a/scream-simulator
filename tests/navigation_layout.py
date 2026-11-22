@@ -130,7 +130,7 @@ start=s.index(' local guideUsesTracker=false')
 stop=s.index(' local now=workspace:GetServerTimeNow();local protected=',start)
 code=code.replace('__SHARED_RAIL__',s[start:stop])
 start=s.index(' local meterWidth,meterHeight=')
-stop=s.index(' dodgeButton.Size=',start)
+stop=s.index(' local testBottom=',start)
 code=code.replace('__METER_LAYOUT__',s[start:stop])
 def run(payload):
     with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='tmp_layout_',dir=root/'tests',delete=False) as f:
