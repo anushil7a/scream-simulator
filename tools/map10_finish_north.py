@@ -88,10 +88,17 @@ def add(box, disk, line):
 
     # Asymmetric courtyard planting, deliberately outside paths, trainers and boss ring.
     for i, (x, z, scale) in enumerate([(-500,-235,1),(-135,-350,.85),(-365,-330,.8),(-235,-330,.8)]):
+        soil_y, soil_depth = 34.05, .2
+        soil_top = soil_y + soil_depth/2
         b(f'CourtPlanter{i}', [x, 33, z], [13, 2, 13], limestone, material='Marble')
-        b(f'CourtSoil{i}', [x, 34.05, z], [11.3, .2, 11.3], [98, 82, 60])
-        b(f'CourtShrub{i}A', [x-2, 37, z], [9*scale, 6*scale, 9*scale], leaf, shape='Ball')
-        b(f'CourtShrub{i}B', [x+2, 39, z+1], [7*scale, 8*scale, 7*scale], leaf_light, shape='Ball')
+        b(f'CourtSoil{i}', [x, soil_y, z], [11.3, soil_depth, 11.3], [98, 82, 60])
+        for lobe, dx, dz, dimensions, color in (
+            ('A', -1.55, -.55, (8.8, 7.6, 8.3), leaf),
+            ('B', 1.9, 1.35, (7.2, 6.6, 6.8), leaf_light),
+        ):
+            size = [dimension*scale for dimension in dimensions]
+            center_y = soil_top + size[1]/2 - .48
+            b(f'CourtShrub{i}{lobe}', [x+dx, center_y, z+dz], size, color, shape='Ball')
         b(f'CourtPlanterInlay{i}', [x, 33.4, z+6.55], [9, .35, .10], brass)
 
     # Market: canopies retain their original silhouette, now with canvas stripes,

@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Seat the Academy courtyard foliage in its planters
+
+- At the untouched Academy spawn camera, the two closest planters showed clear gaps beneath their foliage. The gaps were about 3.5 pixels each at the sampled desktop viewport, and the fixed close view showed a 17.9-pixel gap under planter 2. A native local ray through the soil and foliage confirmed the elevated bounds. The two foliage lobes per planter now overlap as a low cluster and are seated in the soil.
+- The change adjusts only the eight noncolliding shrub transforms. All four planter colliders, the soil, the route and the finish budget of 1,035 parts stay in place. The finish test rejects a raised shrub and one whose base extends out of its soil bed. The generated preview differs only in those eight rows.
+- Matched local Studio checks put the actual lower foliage surface at Y = 33.67 for all eight lobes against soil at Y = 34.15. The inspector restored temporary ray-query settings after measurement. All 27 Rookie walkway samples remained clear, and the pavilion rays matched baseline. This checked the authored Academy scene in a disposable desktop session. Physical-device visibility and visual acceptance remain open.
+- Independent review cleared the generated diff and placement checks. Argon contributed the overlapping foliage concept. Full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds with matching inputs.
+- Matched spawn and close screenshots were kept in `build/academy_finish/`. Both disposable Studio windows closed. The close shot still shows separate Academy foliage outside the four planter beds, which was outside this geometry pass.
+
 ## Give permanent passes a dedicated entrance and store
 
 - **Passes** opens the in-game store directly from the HUD. The store presents permanent offers before timed boosts, with ownership and sale states on each card. Spectrum and Freerunner retain their existing behavior. The two new offers grant an **Encore** title and an **Afterimage** dodge trail in safe areas. Both are cosmetic and disappear in combat space.

@@ -57,6 +57,36 @@ assert_clear('Amphitheatre west bridge', -70, 90, -346, -314)
 assert_clear('coastal walkway centre', -480, 480, 410, 430)
 assert_clear('coastal pitch', 254, 366, 257.5, 342.5)
 assert_clear('dock centre', -227, -213, 430, 589)
+def assert_planted(planter_parts):
+    for index in range(4):
+        soil = planter_parts[f'NorthCourtSoil{index}']
+        soil_top = soil['position'][1] + soil['size'][1] / 2
+        for suffix in 'AB':
+            shrub = planter_parts[f'NorthCourtShrub{index}{suffix}']
+            x, y, z = shrub['position']
+            sx, sy, sz = shrub['size']
+            assert shrub['shape'] == 'Ball' and not shrub['collidable']
+            assert y - sy/2 <= soil_top - .3 < y, (shrub['id'], 'Foliage lacks soil contact depth')
+            # Bound the ellipsoid's cut at soil height, inside the planter bed.
+            section = math.sqrt(1 - ((y - soil_top) / (sy / 2)) ** 2)
+            assert (abs(x-soil['position'][0]) + sx/2*section < soil['size'][0]/2
+                    and abs(z-soil['position'][2]) + sz/2*section < soil['size'][2]/2), 'Foliage base leaves the soil bed'
+
+planter_parts = {part['id']: part for part in doc['parts'] if part['id'].startswith('NorthCourt')}
+assert_planted(planter_parts)
+if '--negative-controls' in sys.argv:
+    name = 'NorthCourtShrub2A'
+    shrub = planter_parts[name]
+    x, y, z = shrub['position']
+    for position, error in (([x, y+1, z], 'Foliage lacks soil contact depth'),
+                            ([x-4, y, z], 'Foliage base leaves the soil bed')):
+        try:
+            assert_planted({**planter_parts, name: {**shrub, 'position': position}})
+        except AssertionError as exc:
+            assert error in str(exc), exc
+            print('PASS negative control:', error)
+        else:
+            raise AssertionError('Mutation accepted: '+error)
 directory = {part['id']: part for part in doc['parts'] if part['id'].startswith(('NorthAcademyMarquee', 'NorthRookieDirection'))}
 rookie = directory['NorthRookieDirection']
 plaza = directory['NorthAcademyMarquee']
