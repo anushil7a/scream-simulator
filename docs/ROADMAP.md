@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Keep the first beam hit readable over the Academy
+
+- At 666 × 374 in Studio, the old gold **3 DAMAGE** text overlapped Rookie's sign. The compact dark cue moves above the sign. A raised-only version touched the Beams control at 509 × 220, so short aim canvases place the cue in the top-center lane.
+- The rebuilt Studio HUD displayed **3 DAMAGE**, **NO HIT YET**, **BEAM HIT COVER** and **OPPONENT DODGED** at 666 × 374, 566 × 302 and 509 × 220. All four fit at widths of 97–175 pixels and expired. Their rectangles cleared both the zone warning and Beams control. On the narrow views the existing controls can still cover part of the world sign.
+- Native evidence used staged server packets and temporary profiles. Production timing, transport and combat logic keep their existing behavior. Independent review, 374 focused assertions, 37 negative controls and the full suite (29 pure/synthetic, 167 mocked-service, compilation and Rojo builds) passed. Next verify the full first spar during physical-device play and assess the crowded short-window controls.
+
 ## Distinguish the Academy sparring tiers at a glance
 
 - A matched Studio lineup showed the same chest and forearm shapes on all three tiers despite different accent colors. Rookie retains the teal and ivory kit. Brawler gains a clay chest and padded forearms. Elite has a slate chest and two gold shoulder guards. The first posed review exposed a split-looking guard where it sank into its sleeve. The final fit uses shallow oval guards just above the fabric.

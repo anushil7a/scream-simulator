@@ -56,9 +56,33 @@ local attackAudioSettings={Range=100};local stops,pulses,cues,screenHits,screenC
 local attackAudio={Stop=function()stops+=1 end,Remove=function()end,Pulse=function()pulses+=1 end}
 local beamScreenFeedback={Hit=function()screenHits+=1 end,Begin=function()end,Clear=function()screenClears+=1 end}
 local function playGameplayCue(kind)check(kind=='Hit','Hit changed sound cue');cues+=1 end
-local beamFrame=0;local gameplayVisible=true;local hitText={}
+local beamFrame=0;local gameplayVisible=true
 local protectionRemaining=0;local alive=true
 '''
+
+HUD_SETUP = r'''
+aimGui={AbsoluteSize={Y=374}};local dark=Color3.fromRGB(17,25,29)
+local UDim={new=function(scale,offset)return {Scale=scale,Offset=offset}end}
+local function layout(xs,xo,ys,yo)return {X=UDim.new(xs,xo),Y=UDim.new(ys,yo)}end
+UDim2={new=layout,fromOffset=function(x,y)return layout(0,x,0,y)end}
+local Vector2={new=function(x,y)return {X=x,Y=y}end}
+local Enum={AutomaticSize={X='X'},TextXAlignment={Center='Center'},Font={GothamBold='GothamBold'}}
+local decorations={}
+local Instance={new=function(class)local item={};decorations[class]=item;return item end}
+local function label(parent,value,size,position,textSize,color)
+ return {Parent=parent,Text=value,Size=size,Position=position,TextSize=textSize,TextColor3=color,BackgroundTransparency=1}
+end
+'''
+HUD_CHECKS = r'''
+check(hitText.BackgroundColor3==dark and hitText.BackgroundTransparency<=.15,'Combat cue lost its contrast backing')
+check(hitText.AutomaticSize=='X' and hitText.TextWrapped==false and hitText.Size.X.Offset==0,'Combat cue must fit its text')
+check(hitText.AnchorPoint.X==.5 and hitText.Position.X.Scale==.5 and hitText.Position.X.Offset==0,'Combat cue must stay centered')
+check(hitText.Position.Y.Scale==.5 and hitText.Position.Y.Offset<=-78,'Combat cue dropped into the training nameplate lane')
+check(not hitText.Visible and not hitText.Active and not hitText.Selectable and not hitText.Interactable,'Combat cue captured input or appeared early')
+local padding=decorations.UIPadding
+check(padding and padding.Parent==hitText and padding.PaddingLeft.Offset>=8 and padding.PaddingRight.Offset>=8,'Combat cue lacks horizontal padding')
+'''
+
 
 CHECKS = r'''
 local send=callbacks[remotes.Effect.OnClientEvent]
@@ -96,6 +120,10 @@ send('SustainedCover',nil,coverId+1);hud()
 check(not hitText.Visible and academy.attackCueUntil==nil,'Stale sequence showed cover')
 send('SustainedCover',nil,coverId);hud()
 check(hitText.Visible and hitText.Text=='BEAM HIT COVER','Confirmed cover was not shown')
+aimGui.AbsoluteSize.Y=240;hud()
+check(hitText.Position.Y.Scale==0 and hitText.Position.Y.Offset==10,'Short combat cue overlapped the Beams control')
+aimGui.AbsoluteSize.Y=374;hud()
+check(hitText.Position.Y.Scale==.5 and hitText.Position.Y.Offset==-82,'Combat cue did not return to its standard lane')
 attrs.SustainedActive=false;hud()
 check(not hitText.Visible,'Inactive cast showed cover')
 attrs.SustainedActive=true
@@ -298,7 +326,10 @@ print('PASS',checks,'actual Client contact integration checks; real acknowledgem
 
 def build(client, visual):
     helpers, event, render, hud = fragments(client)
-    return support.fixture(visual, SETUP + helpers + event + '\nlocal function frame(dt)\n' + render + '\nend\nlocal function hud()\n' + hud + '\nend\n' + CHECKS)
+    start = client.index('local hitText=label(aimGui,')
+    creation = client[start:client.index('\nlocal ', start + len('local hitText'))]
+    hud_creation = 'local hitText, aimGui, UDim2\ndo\n' + HUD_SETUP + creation.removeprefix('local ') + '\n' + HUD_CHECKS + '\nend\n'
+    return support.fixture(visual, SETUP + hud_creation + helpers + event + '\nlocal function frame(dt)\n' + render + '\nend\nlocal function hud()\n' + hud + '\nend\n' + CHECKS)
 
 
 def run(client, visual, expected=None):
@@ -345,6 +376,7 @@ def main():
             (event, 'character:FindFirstChildOfClass("Humanoid")==pos', 'true', 'Foreign Humanoid showed defender cue'),
             (event, 'beamWidth,color,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'beamWidth,Config.Auras.Gold,attackLevel or 1,data.settings.reducedShake)\n  local style=', 'Explicit Color3 lost its override'),
             (hud, 'if protectionRemaining>0 then academy.defenderCueUntil=nil end', '', 'Defender cue replayed after protection'),
+            (hud, 'aimGui.AbsoluteSize.Y<300', 'false', 'Short combat cue overlapped the Beams control'),
             (hud, 'hitText.Visible=gameplayVisible and (confirmed~=nil or attackCue)', 'hitText.Visible=gameplayVisible and attackCue', 'Cover hid confirmed damage'),
             (render, 'windowFocused and not beamBlocked() and attack', 'attack', 'Blocked frame retained contact'),
             (render, 'attack and attack.acknowledged', 'attack', 'Current-state frame gate retained contact: lost acknowledgement'),
@@ -362,6 +394,13 @@ def main():
             assert fragment.count(old) == 1, old
             assert client.count(fragment) == 1
             run(client.replace(fragment, fragment.replace(old, new)), visual, expected)
+        for old, new, expected in [
+            ('hitText.BackgroundTransparency=.08', 'hitText.BackgroundTransparency=1', 'Combat cue lost its contrast backing'),
+            ('hitText.AutomaticSize=Enum.AutomaticSize.X', 'hitText.AutomaticSize=nil', 'Combat cue must fit its text'),
+            ('UDim2.new(.5,0,.5,-82),16,gold)', 'UDim2.new(.5,0,.5,-48),16,gold)', 'Combat cue dropped into the training nameplate lane'),
+        ]:
+            assert client.count(old) == 1, old
+            run(client.replace(old, new), visual, expected)
         for old, new, expected in [
             ('if not near and distance<=Style.DrawDistance then', 'if false then', 'Converging far beam missed the crowd count'),
             ('math.clamp(offset:Dot(rig.direction),0,rig.length)\n    near=', 'math.max(0,offset:Dot(rig.direction))\n    near=', 'Ray extension beyond the endpoint counted as nearby'),

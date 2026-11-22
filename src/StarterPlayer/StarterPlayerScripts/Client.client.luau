@@ -610,7 +610,15 @@ ownClient(function() aimGui:Destroy() end);if not clientCheckpoint() then return
 local reticle=label(aimGui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.Name="Crosshair";reticle.TextXAlignment=Enum.TextXAlignment.Center
 local hitFeedback=loadClientDependency(script.Parent,"HitFeedback");if not clientCheckpoint() then return end
 hitFeedback=hitFeedback.new();if not clientCheckpoint() then return end
-local hitText=label(aimGui,"",UDim2.fromOffset(210,26),UDim2.new(.5,-105,.5,-48),16,gold);hitText.Name="ConfirmedDamage";hitText.TextXAlignment=Enum.TextXAlignment.Center;hitText.Visible=false
+local hitText=label(aimGui,"",UDim2.fromOffset(0,26),UDim2.new(.5,0,.5,-82),16,gold)
+hitText.Name="ConfirmedDamage";hitText.AnchorPoint=Vector2.new(.5,0);hitText.AutomaticSize=Enum.AutomaticSize.X
+hitText.TextXAlignment=Enum.TextXAlignment.Center;hitText.TextWrapped=false;hitText.Font=Enum.Font.GothamBold
+hitText.BackgroundColor3=dark;hitText.BackgroundTransparency=.08;hitText.BorderSizePixel=0
+hitText.Visible=false;hitText.Active=false;hitText.Selectable=false;hitText.Interactable=false
+do
+ local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,7);corner.Parent=hitText
+ local padding=Instance.new("UIPadding");padding.PaddingLeft=UDim.new(0,10);padding.PaddingRight=padding.PaddingLeft;padding.Parent=hitText
+end
 local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),14,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
 aimInfo.Font=Enum.Font.GothamBold
 aimInfo.TextStrokeColor3=dark;aimInfo.TextStrokeTransparency=.12
@@ -1751,6 +1759,9 @@ connectClient(Run.RenderStepped,function(dt)
  local attackCue=alive and windowFocused and p:GetAttribute("SustainedActive")==true
   and p:GetAttribute("SustainedSequence")==academy.attackCueSequence and os.clock()<(academy.attackCueUntil or 0)
  hitText.Visible=gameplayVisible and (confirmed~=nil or attackCue)
+ if hitText.Visible then
+  hitText.Position=aimGui.AbsoluteSize.Y<300 and UDim2.new(.5,0,0,10) or UDim2.new(.5,0,.5,-82)
+ end
  if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed)
  elseif attackCue then hitText.Text=academy.attackCueText end
  if protectionRemaining>0 then academy.defenderCueUntil=nil end
