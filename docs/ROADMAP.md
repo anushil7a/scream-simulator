@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Aim preview checks the beam path for cover
+
+- A native Studio probe used the existing aim helper and authoritative training resolver against a staged Rookie. With a narrow wall on the aimed line, the old preview reported clear because its ray to the fighter's root missed the wall. The server clipped the beam at 7.51 studs and rejected the hit. Moving the obstacle out of the path restored the hit.
+- The aim preview keeps its sight check to the root and also tests the actual aimed line up to the target's projected distance. It excludes the same player and resident models that the server excludes from beam clipping. In the matched native fixture, the revised helper identified the wall and reported clear for the unobstructed hit. Server damage and range rules were unchanged.
+- Independent review, 80 mocked ray and endpoint assertions, and six negative controls passed. The full run passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. The disposable Studio session closed. Native evidence used the exact preview helper extracted into the fixture alongside the real resolver. It did not sample the rendered label, real microphones or physical phones.
+
 ## Academy pads show the sparring circle
 
 - The three Map10 sparring pads used square green surfaces with corners outside the training radius. Each now has a 64-stud decorative disk above the paving and below the Rookie trail. The original walkable surfaces stay present with their existing collision and dimensions. Both maps draw the same circular ground footprint and retain their tier markers.

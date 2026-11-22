@@ -625,10 +625,25 @@ local function beamTargetRange(root,targetRoot,aimPoint,stats,pvp)
  local currentFar=projection>stats.range or rootDistance>stats.range+2
  return far,currentFar,origin
 end
-local function targetCovered(origin,targetRoot,targetModel)
+local function targetCovered(origin,targetRoot,targetModel,aimPoint)
+ local delta=targetRoot.Position-origin
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
  params.FilterDescendantsInstances={p.Character,targetModel};params.RespectCanCollide=true
- return workspace:Raycast(origin,targetRoot.Position-origin,params)~=nil
+ if workspace:Raycast(origin,delta,params) then return true end
+ local aim=aimPoint-origin
+ if aim.Magnitude<.01 then return false end
+ local direction=aim.Unit
+ local projection=delta:Dot(direction)
+ if projection<=0 then return false end
+ -- The server ignores actors when shortening the actual beam, then checks sight to the root separately.
+ local excluded=game:GetService("CollectionService"):GetTagged("CityResident")
+ table.insert(excluded,targetModel)
+ for _,player in ipairs(Players:GetPlayers()) do
+  if player.Character then table.insert(excluded,player.Character) end
+ end
+ params.FilterDescendantsInstances=excluded
+ local obstruction=workspace:Raycast(origin,direction*projection,params)
+ return obstruction~=nil and obstruction.Distance<projection
 end
 local function playerTargetInfo(target,humanoid,inPvp,targetInPvp,far,now,currentFar,covered)
  if humanoid.Health<=0 then return nil,false end
@@ -1871,7 +1886,7 @@ connectClient(Run.RenderStepped,function(dt)
     local inPvp,targetInPvp=Config.InArena(root.Position),Config.InArena(targetRoot.Position)
     local canFight=inPvp and targetInPvp
     local far,currentFar,origin=beamTargetRange(root,targetRoot,hit.Position,beamStats,true)
-    local text,available=playerTargetInfo(targetPlayer,humanoid,inPvp,targetInPvp,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(origin,targetRoot,object))
+    local text,available=playerTargetInfo(targetPlayer,humanoid,inPvp,targetInPvp,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and not currentFar and targetCovered(origin,targetRoot,object,hit.Position))
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or white
    end
   elseif object and object~=workspace and object:IsA("Model") and object:GetAttribute("NpcId") then
@@ -1879,7 +1894,7 @@ connectClient(Run.RenderStepped,function(dt)
    local npcRoot=object:FindFirstChild("HumanoidRootPart")
    if root and npcRoot then
     local far,currentFar,origin=beamTargetRange(root,npcRoot,hit.Position,beamStats,false)
-    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,currentFar,not far and targetCovered(origin,npcRoot,object),root.Position)
+    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,currentFar,not far and not currentFar and targetCovered(origin,npcRoot,object,hit.Position),root.Position)
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then
