@@ -181,6 +181,7 @@ rig,id=make();hit(id,10,anchor);frame(1/30);clock=sustainedBeams.entries[7].expi
 check(not sustainedBeams.entries[7] and #rig.parts==0 and #rig.contact.parts==0,'Expired client entry retained contact')
 -- Actual event slice: attacker level, not viewer or selected sound, drives both IDs.
 platformReducedMotion=false;data.settings.reducedShake=false
+workspace.CurrentCamera.CFrame.Position=vec(0,10,0)
 for _,level in ipairs({1,10,20,30,40,50,60,70,80,90,100})do
  for _,attacker in ipairs({7,8})do
   send('SustainedBeam',Vector3.zero,attacker,'Gold',Vector3.zAxis,40,7,'TinyAah',level)
@@ -192,6 +193,30 @@ for _,level in ipairs({1,10,20,30,40,50,60,70,80,90,100})do
  end
 end
 rig,id=make()
+beam(8)
+local incomingVisual=sustainedBeams.entries[8].visual
+local function aimCamera(x,z)
+ workspace.CurrentCamera.CFrame.Position=vec(x,0,z)
+ frame(1/30)
+end
+aimCamera(6,14)
+check(#incomingVisual.parts==4 and incomingVisual.color==base,'Incoming close beam kept full detail or lost base yellow')
+check(#rig.parts>5,'Camera guard reduced the owner beam')
+aimCamera(7.5,14)
+check(#incomingVisual.parts==4,'Incoming beam flickered at the camera guard edge')
+aimCamera(8,14)
+check(#incomingVisual.parts>5,'Incoming beam detail did not restore outside the camera guard')
+aimCamera(7.5,14)
+check(#incomingVisual.parts>5,'Camera guard used its exit margin for entry')
+aimCamera(0,50)
+check(#incomingVisual.parts>5,'Camera guard reduced a beam beyond its endpoint')
+aimCamera(6,14)
+check(#incomingVisual.parts==4,'Camera guard did not re-enter near the rendered beam')
+platformReducedMotion=true;aimCamera(7.5,14);platformReducedMotion=false;aimCamera(7.5,14)
+check(#incomingVisual.parts>5,'Camera guard retained stale state after reduced motion')
+
+rig,id=make()
+workspace.CurrentCamera.CFrame.Position=vec(0,10,0)
 beam(8)
 send('SustainedBeam',vec(111,0,0),9,'Gold',Vector3.zAxis,40,7,'TinyAah',100)
 frame(1/30)
@@ -224,6 +249,11 @@ check(#sustainedBeams.entries[8].visual.parts>5,'Ray extension beyond the endpoi
 root.Position=vec(0,0,10) -- Player range admits the packet, but camera still culls it.
 farBeam(181,-1,80)
 check(#sustainedBeams.entries[8].visual.parts>5 and #sustainedBeams.entries[9].visual.parts==0,'Culled beam counted as nearby')
+rig,id=make()
+send('TestBeam',Vector3.zero,7,color,Vector3.zAxis,40,7,nil,100)
+aimCamera(6,14)
+check(#sustainedBeams.entries['test:7'].visual.parts>5,'Camera guard reduced the test beam')
+send('TestBeamEnd',nil,7)
 sustainedBeams:Destroy();sustainedControl:Destroy();BeamVisuals.Clear();check(BeamVisuals.Budget()==0 and made==dead,'Integrated cleanup leaked')
 print('PASS',checks,'actual Client contact integration checks; real acknowledgement/hit/manager/renderer, mocked transport/HUD/audio')
 '''
@@ -278,6 +308,9 @@ def main():
             (render, 'and p:GetAttribute("SustainedActive")==true', '', 'Current-state frame gate retained contact: inactive'),
             (render, 'and p:GetAttribute("SustainedSequence")==attack.sequence', '', 'Current-state frame gate retained contact: mismatch'),
             (render, 'entry.visual.contactSequence==attack.sequence', 'true', 'Current-state frame gate retained contact: contact owner mismatch'),
+            (render, ',incoming)', ',false)', 'Incoming close beam kept full detail or lost base yellow'),
+            (render, 'local incoming=type(id)=="number" and id~=p.UserId', 'local incoming=type(id)=="number"', 'Current accepted hit missing contact'),
+            (render, 'local incoming=type(id)=="number" and id~=p.UserId', 'local incoming=id~=p.UserId or id=="test:"..p.UserId', 'Camera guard reduced the test beam'),
             (render, 'platformReducedMotion,crowded', 'false,crowded', 'OS quiet contact or beam missed quiet mode'),
             (render, 'crowded and id~=p.UserId and id~=ownTestKey', 'crowded', 'Crowded mode removed local detail or hit confirmation'),
             (render, 'crowded and id~=p.UserId and id~=ownTestKey', 'false', 'Crowded mode kept remote secondary geometry'),
@@ -288,7 +321,9 @@ def main():
             run(client.replace(fragment, fragment.replace(old, new)), visual, expected)
         for old, new, expected in [
             ('if not near and distance<=Style.DrawDistance then', 'if false then', 'Converging far beam missed the crowd count'),
-            ('math.clamp(offset:Dot(rig.direction),0,rig.length)', 'math.max(0,offset:Dot(rig.direction))', 'Ray extension beyond the endpoint counted as nearby'),
+            ('math.clamp(offset:Dot(rig.direction),0,rig.length)\n    near=', 'math.max(0,offset:Dot(rig.direction))\n    near=', 'Ray extension beyond the endpoint counted as nearby'),
+            ('math.clamp(offset:Dot(rig.direction),0,rig.length)\n  local separation=', 'math.max(0,offset:Dot(rig.direction))\n  local separation=', 'Camera guard reduced a beam beyond its endpoint'),
+            ('rig.width+(rig.cameraQuiet and .75 or 0)', 'rig.width', 'Incoming beam flickered at the camera guard edge'),
             ('if not near and distance<=Style.DrawDistance then', 'if not near then', 'Culled beam counted as nearby'),
         ]:
             assert visual.count(old) == 1, old

@@ -1764,7 +1764,8 @@ connectClient(Run.RenderStepped,function(dt)
     local crowded=BeamVisuals.IsCrowded(sustainedBeams.entries,viewer)
     local ownTestKey="test:"..p.UserId
     for id,entry in pairs(sustainedBeams.entries) do
-     BeamVisuals.Animate(entry.visual,now,viewer,data.settings.reducedShake,(contactAllowed and entry.visual.contactSequence==attack.sequence)==true,platformReducedMotion,crowded and id~=p.UserId and id~=ownTestKey)
+     local incoming=type(id)=="number" and id~=p.UserId
+     BeamVisuals.Animate(entry.visual,now,viewer,data.settings.reducedShake,(contactAllowed and entry.visual.contactSequence==attack.sequence)==true,platformReducedMotion,crowded and id~=p.UserId and id~=ownTestKey,incoming)
     end
    end
   end

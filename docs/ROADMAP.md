@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Close incoming beams leave room to see
+
+- A two-client local Studio replay at the Old Stadium put a level-100 Megaphone attacker eight studs from the defender. Before the fix, the incoming arcs covered the arena and hid most of the attacker. With the revised player scripts in the same defender client, the yellow beam and hit warning stayed visible while the sides of the arena cleared. Both captures showed 390/480 HP and BEAM HIT YOU. An off-axis capture showed the tier-100 arcs again.
+- The camera switches incoming player beams to the existing reduced-detail rendering near the finite beam segment, with a .75-stud exit margin. The base remains #FFCB63 regardless of visual reference colors. The guard is client-only and does not modify cast timing, damage, audio, or explicit color entitlements.
+- The Client integration suite passed 346 assertions and 28 mutation controls, including guard removal, owner/test exemptions, segment endpoint and exit margin. The full local verification passed 29 pure/synthetic suites, 164 mocked-service suites, production compilation, and review builds. Studio used a disposable local server with synthetic sustained trigger inputs and two rendered clients. Real microphones, physical phones and live-network play remain open. The temporary server probe and all four disposable Studio processes were removed after review.
+
 ## Held gear faces forward during beams
 
 - On the original R15 build, a staged hold moved the hand from Z −.26 to Z +1.51 relative to the avatar and pointed the horn downward. The revised pose brings the equipped right arm forward and keeps the R15 horn near level. R6 uses a shorter reach. The brace blends out on release and yields to dodge. It uses the existing attack state and does not change beam direction, damage, gear bonuses, timing, or the yellow default color.

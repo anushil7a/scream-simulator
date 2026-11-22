@@ -450,9 +450,20 @@ function Visuals.IsCrowded(entries,viewer)
  end
  return false
 end
-function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,suppressSecondary)
+function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,suppressSecondary,guardCamera)
  if not rig.origin then return end
  local distance=(viewer-rig.origin).Magnitude
+ -- Keep nearby incoming beams readable from the defender's camera.
+ if guardCamera and distance<=Style.DrawDistance and not (reduced or rig.reduced or contactReduced) then
+  local offset=viewer-rig.origin
+  local along=math.clamp(offset:Dot(rig.direction),0,rig.length)
+  local separation=offset-rig.direction*along
+  local limit=rig.width+(rig.cameraQuiet and .75 or 0)
+  rig.cameraQuiet=separation:Dot(separation)<=limit*limit
+  reduced=rig.cameraQuiet
+ else
+  rig.cameraQuiet=nil
+ end
  rig.used=0
  rig.contact.used=0
  if contactAllowed==false or distance>Style.DrawDistance or rig.contactBorn and now>=rig.contactBorn+.28 then rig.contactPosition=nil end
