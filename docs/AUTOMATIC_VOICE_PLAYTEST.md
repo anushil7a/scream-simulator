@@ -19,8 +19,8 @@ These are **pending checks**, not completed results. Save your open Studio work 
 1. **Mic and aiming:** verify beams start OFF and speaking cannot attack. With eligible voice input available, deliberately turn beams ON, stay quiet briefly, aim and speak. No setup panel or calibration should be required. Expect automatic onset without holding E, a beam aimed at the mouse (screen center on touch), and silence stopping it. Confirm the live-power meter changes independently of the voice-button timing bar. A meter reaching 100% alone is not a pass.
 2. **Attack boundaries:** sustain one attack up to four seconds, then verify five seconds of cooldown after it ends. Continuous speech through cooldown must not restart it; quiet followed by fresh voice must. Use E or BEAMS ON to turn screams OFF, speak and verify no attack while ordinary voice remains audible. Resume explicitly with BEAMS OFF.
 3. **Interruptions:** during an attack, try dodge, NPC dialogue, text chat and the Roblox menu separately. Damage must stop while blocked. Dodge alone must not scream. Mute, respawn and focus loss must require deliberate voice resume. If real input is unavailable, leave this untested rather than substituting synthetic input and calling it a voice pass.
-4. **Combat and destruction:** use the disposable two-client fixture for safe-zone/arena, five-second spawn protection and blocked attacks during protection. Compare level-locked versus unlocked props, then stand in a damaged prop’s repair volume and verify repair waits until clear. Synthetic fixtures can establish only their named engine checks; real voice/PvP behavior still needs eligible players.
-5. **City and recovery:** talk to a quest giver, walk away, and return. Try a car knockdown with dialogue open: it should close and become available again after recovery. Watch NPC work/sit/walk transitions and busker activity; look for floating, stuck routes or stale speech labels. Open Map at the promenade/pier and across respawn; check the player marker and landmark 7.
+4. **Combat:** use two players in the same authorized test environment. Compare a hit inside Coastal Arena or Central Garden with a blocked hit from safe paving. After a knockout, verify the defender returns to safety, gets five seconds of protection and has to rearm. A second knockout with the same attacker and defender within 60 seconds of the first reward should grant no additional reward.
+5. **City and recovery:** talk to Mar, close her dialogue, travel away and return. Watch the resident's work and walk transitions for stuck routes or stale speech labels. Follow the first garden objective and open Map near the pier and after respawn to check that the marker tracks the player.
 6. **Small-screen UI:** verify movement and menus work without microphone setup; open/close Beams, Quests and Map, and check text wrapping, timing-bar contrast and tap targets. Record the viewport/device. Studio phone emulation is a layout check, not a real phone microphone/performance pass.
 
 ### Tests requiring a separate environment
@@ -172,9 +172,9 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 
 - PvP rewards: with two local clients, KO/reenter against the same opponent inside and after the reward cooldown. Verify ejection/protection works each time while XP/coins/Underdog progress award only when eligible; compare a different opponent and victim levels. Actual hit-branch mocks pass. The current [two-client native fixture](PVP_READINESS_REVIEW.md) passes 14 checks for engine hit geometry, protection/dodge eligibility, safe area, KO ejection/reward and immediate repeat suppression, with an observed failing limiter-disabled control. Aim/power/timestamps/credit are injected and calls bypass RemoteEvents. After-cooldown/different-victim/mixed-level cases, ground cover, real input and network timing remain pending.
 
-- KO confirmation: knock out an arena opponent with automatic voice and verify the named confirmation. Repeat inside reward cooldown and confirm the notice explains withheld repeat rewards; nonlethal hits should not show KO messages. Twelve mocked branch checks pass; native toast/multiplayer behavior remains pending.
+- KO confirmation: knock out an arena opponent with automatic voice. The attacker should see the credited XP and any positive coin credit, and the defender should see **Knocked out · back at the safe hub**. An unrewarded finisher should see **KO · no reward awarded**. A nonlethal hit should enqueue no new KO notice. The [two-client Studio Action check](PVP_READINESS_REVIEW.md#november-22-two-client-action-and-notice-check) verified private, visible outcome notices for a rewarded KO and an unrewarded repeat. Repeat this with real voice on the target devices.
 
-- Destruction confirmation: break a prop with a sustained scream and verify one named repair notice. Sweep across several props during the same scream to confirm no per-tick spam; hit a locked object and then an unlocked prop to verify distinct feedback. Helper tests use synthetic results; native toast/geometry remains pending.
+- Historical destruction fixture: older builds supported prop break and repair feedback. Current Map10 disables object destruction, so prop repair is outside current acceptance testing.
 
 - Resident animation recovery: KO Nick and a working resident, verify local practice props and work poses clear during recovery, then confirm walking/job animations resume normally. Mock frame checks cover suspension/pose clearing, not native Animator/replication timing.
 
@@ -351,11 +351,11 @@ Pending native check: delay attack acknowledgement beyond the client timeout, th
 
 **Historical calibration-era scenario; not a current setup requirement.** Pending native check: with a calibrated microphone, mute and press Calibrate while an attack/capture is active. Check readiness and live power clear immediately, partial calibration/capture stops, and unmute still requires deliberate attack resume. Mocked controller tests cover the pre-Heartbeat state; actual device timing and UI appearance remain untested.
 
-### Destructible tag removal before registration
+### Destructible tag removal before registration (historical fixture)
 
 Pending native check: add CityDestructible to a valid disposable prop and remove it before deferred registration runs. It must remain absent from the destruction registry and reject damage; explicitly re-adding the tag should register it again. Three mocked scheduler checks pass, but native CollectionService ordering is not yet verified.
 
-### All-tier destruction lifecycle
+### All-tier destruction lifecycle (historical fixture)
 
 Pending native check: test a representative bench, bin, tree, bike, house front, apartment front and tower front just below and at their unlock levels. Verify complete break, preserved navigation, occupied-repair deferral and restoration of the actual authored parts. Local service tests cover all seven configurations using simplified mock geometry and simulated deadlines, not physical city geometry or measured balance.
 

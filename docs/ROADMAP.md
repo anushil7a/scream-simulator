@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Verify knockout outcomes through two local clients
+
+- On `aaa7268`, two native Studio clients sent synthetic beam input through the normal Action remote. A first arena KO awarded 96 XP and 20 coins, and a repeat within the 60-second reward cooldown awarded neither. Both KOs ejected, healed and protected the defender. Each intended client received and displayed its own notice. See the [two-client evidence and scope](PVP_READINESS_REVIEW.md#november-22-two-client-action-and-notice-check).
+- The owner checklist now uses the five-second beam cooldown, current safe areas and current KO copy. Independent review verified it against source. No production code changed. Focused checks passed 20 PvP payout checks, 55 reward feedback assertions with ten negative controls, 684 notice view checks and 1,661 queue assertions. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, 97 production compilations and Rojo builds.
+- Local two-client outcomes do not cover the real microphone, physical input, a representative multiplayer soak or persistence. Run the owner/device playtest in an authorized isolated environment before release.
+
 ## Close the temporary all-tester access gate
 
 - The branch preflight previously returned `BLOCKED` because the temporary all-tester switch was enabled. The switch now matches the existing reviewed disabled-module fingerprint. Built candidate provenance records `PASS_LOCAL_DISABLED_CONFIG_ONLY`; the quest-writer fleet gate remains separate. The matching owner retains the existing general commands. City Preview-only cloud beam and flight tools switch off with temporary access. Ordinary testers use normal progression.
