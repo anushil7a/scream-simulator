@@ -12,12 +12,19 @@ local function prompt(p,action,text,object)
  pr.KeyboardKeyCode=Enum.KeyCode.F;pr.MaxActivationDistance=10;pr.HoldDuration=action=="Garden" and 1.5 or .25;pr.RequiresLineOfSight=false;pr.Parent=p
 end
 function City.Build(parent,withMap10Finish)
+ local ocean
  for _,spec in ipairs(Layout.PartSpecs) do
   -- The finishing pass supplies visible crystals and lava channels.
   local id=spec.id
   if withMap10Finish and not spec.collidable
    and (id:match("^Crystal%d+$") or id:match("^LavaFissure%d+$") or id:match("^BranchLava%d+$")) then continue end
-  local p=part(parent,spec.id,spec.size,spec.position,spec.color,spec.collidable)
+  local oceanTile=id=="Sea" or id:match("^SeaHorizon")
+  if oceanTile and not ocean then
+   ocean=Instance.new("Model")
+   ocean.Name="OceanBackdrop";ocean.ModelStreamingMode=Enum.ModelStreamingMode.Persistent;ocean.Parent=parent
+  end
+  local p=part(oceanTile and ocean or parent,spec.id,spec.size,spec.position,spec.color,spec.collidable)
+  if oceanTile then p.CastShadow=false end
   local r=spec.rotation or Vector3.zero;p.CFrame=CFrame.new(spec.position)*CFrame.Angles(0,math.rad(r.Y),0)*CFrame.Angles(math.rad(r.X),0,math.rad(r.Z))
   if spec.shape then p.Shape=Enum.PartType[spec.shape] end
   if spec.material then p.Material=Enum.Material[spec.material] end

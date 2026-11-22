@@ -30,6 +30,14 @@ Layout.GuidanceSpecs={}
 -- MAP10_PARTS_BEGIN
 Layout.PartSpecs={
 {id="Sea",position=Vector3.new(0,-104,40),size=Vector3.new(1380,5,1440),color=Color3.fromRGB(39,162,181),collidable=false,rotation=Vector3.new(0,0,0),material="SmoothPlastic"},
+{id="SeaHorizon-1_-1",position=Vector3.new(-1714,-104,-1704),size=Vector3.new(2048,5,2048),color=Color3.fromRGB(39,162,181),collidable=false,rotation=Vector3.new(0,0,0),material="SmoothPlastic"},
+{id="SeaHorizon-1_0",position=Vector3.new(-1714,-104,40),size=Vector3.new(2048,5,1440),color=Color3.fromRGB(39,162,181),collidable=false,rotation=Vector3.new(0,0,0),material="SmoothPlastic"},
+{id="SeaHorizon-1_1",position=Vector3.new(-1714,-104,1784),size=Vector3.new(2048,5,2048),color=Color3.fromRGB(39,162,181),collidable=false,rotation=Vector3.new(0,0,0),material="SmoothPlastic"},
+{id="SeaHorizon0_-1",position=Vector3.new(0,-104,-1704),size=Vector3.new(1380,5,2048),color=Color3.fromRGB(39,162,181),collidable=false,rotation=Vector3.new(0,0,0),material="SmoothPlastic"},
+{id="SeaHorizon0_1",position=Vector3.new(0,-104,1784),size=Vector3.new(1380,5,2048),color=Color3.fromRGB(39,162,181),collidable=false,rotation=Vector3.new(0,0,0),material="SmoothPlastic"},
+{id="SeaHorizon1_-1",position=Vector3.new(1714,-104,-1704),size=Vector3.new(2048,5,2048),color=Color3.fromRGB(39,162,181),collidable=false,rotation=Vector3.new(0,0,0),material="SmoothPlastic"},
+{id="SeaHorizon1_0",position=Vector3.new(1714,-104,40),size=Vector3.new(2048,5,1440),color=Color3.fromRGB(39,162,181),collidable=false,rotation=Vector3.new(0,0,0),material="SmoothPlastic"},
+{id="SeaHorizon1_1",position=Vector3.new(1714,-104,1784),size=Vector3.new(2048,5,2048),color=Color3.fromRGB(39,162,181),collidable=false,rotation=Vector3.new(0,0,0),material="SmoothPlastic"},
 {id="IslandCore0",position=Vector3.new(-510.0,-48,-10.0),size=Vector3.new(80,96,880),color=Color3.fromRGB(209,173,118),collidable=true,rotation=Vector3.new(0,0,0),material="SmoothPlastic"},
 {id="CliffFacet0_0_-450",position=Vector3.new(-532,-50,-450),size=Vector3.new(39,87,29),color=Color3.fromRGB(156,119,80),collidable=true,rotation=Vector3.new(0,-8,0),material="SmoothPlastic"},
 {id="CliffFacet0_0_430",position=Vector3.new(-532,-50,430),size=Vector3.new(39,87,29),color=Color3.fromRGB(156,119,80),collidable=true,rotation=Vector3.new(0,8,0),material="SmoothPlastic"},

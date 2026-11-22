@@ -31,7 +31,7 @@ local Vector3={new=V,zero=V(0,0,0)}
 local Color3={fromRGB=function(...) return {...} end}
 local cfmt={__mul=function(a,b)return a end}
 local CFrame={new=function(...)return setmetatable({},cfmt) end,Angles=function(...)return setmetatable({},cfmt) end}
-local Enum={Material=setmetatable({},{__index=function(_,k)return k end}),PartType={Cylinder="Cylinder",Ball="Ball"},KeyCode={F="F"}}
+local Enum={ModelStreamingMode={Persistent="Persistent"},Material=setmetatable({},{__index=function(_,k)return k end}),PartType={Cylinder="Cylinder",Ball="Ball"},KeyCode={F="F"}}
 local parts={}
 local Instance={new=function(class)
  local attributes={}

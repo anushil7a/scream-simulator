@@ -634,7 +634,7 @@ return {
  {"CoastBraceA11",Vector3.new(182.5,-20,611),Vector3.new(1.8,1.8,41.340053),Color3.fromRGB(117,80,51),Vector3.new(32.152295,90,0),"Wood","Block"},
  {"CoastBraceB11",Vector3.new(182.5,-20,611),Vector3.new(1.8,1.8,41.340053),Color3.fromRGB(117,80,51),Vector3.new(-32.152295,90,0),"Wood","Block"},
  {"CoastPileExtension12",Vector3.new(200,-65,610),Vector3.new(4.5,74,4.5),Color3.fromRGB(117,80,51),Vector3.new(0,0,0),"Wood","Block"},
- {"CoastPileCap12",Vector3.new(200,0.35,624),Vector3.new(4,1.1,4),Color3.fromRGB(164,119,73),Vector3.new(0,0,0),"Wood","Block"},
+ {"CoastPileCap12",Vector3.new(200,0.35,610),Vector3.new(4,1.1,4),Color3.fromRGB(164,119,73),Vector3.new(0,0,0),"Wood","Block"},
  {"CoastDeckJoint0",Vector3.new(-215,0.14,610),Vector3.new(0.28,0.08,30),Color3.fromRGB(117,80,51),Vector3.new(0,0,0),"SmoothPlastic","Block"},
  {"CoastDeckJoint1",Vector3.new(-195,0.14,610),Vector3.new(0.28,0.08,30),Color3.fromRGB(117,80,51),Vector3.new(0,0,0),"SmoothPlastic","Block"},
  {"CoastDeckJoint2",Vector3.new(-175,0.14,610),Vector3.new(0.28,0.08,30),Color3.fromRGB(117,80,51),Vector3.new(0,0,0),"SmoothPlastic","Block"},

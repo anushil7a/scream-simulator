@@ -179,8 +179,14 @@ City.Build(baseParent)
 City.Build(finishedParent,true)
 local standalone,finished={},{}
 for _,node in ipairs(nodes) do
- if node.Parent==baseParent then standalone[node.Name]=node
- elseif node.Parent==finishedParent then finished[node.Name]=node end
+ local parent=node.Parent
+ if parent and parent.Name=='OceanBackdrop' then
+  assert(parent.ClassName=='Model' and parent.ModelStreamingMode==Enum.ModelStreamingMode.Persistent,'Water must persist across streaming')
+  assert(node.Anchored and not node.CanCollide and not node.CanQuery and not node.CanTouch and not node.CastShadow,'Unexpected ocean part flags')
+  parent=parent.Parent
+ end
+ if parent==baseParent then standalone[node.Name]=node
+ elseif parent==finishedParent then finished[node.Name]=node end
 end
 local omitted=0
 for _,spec in ipairs(Layout.PartSpecs) do

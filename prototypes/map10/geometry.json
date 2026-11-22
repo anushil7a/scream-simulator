@@ -27,6 +27,214 @@
       "shape": null
     },
     {
+      "id": "SeaHorizon-1_-1",
+      "position": [
+        -1714,
+        -104,
+        -1704
+      ],
+      "size": [
+        2048,
+        5,
+        2048
+      ],
+      "color": [
+        39,
+        162,
+        181
+      ],
+      "collidable": false,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "material": "SmoothPlastic",
+      "shape": null
+    },
+    {
+      "id": "SeaHorizon-1_0",
+      "position": [
+        -1714,
+        -104,
+        40
+      ],
+      "size": [
+        2048,
+        5,
+        1440
+      ],
+      "color": [
+        39,
+        162,
+        181
+      ],
+      "collidable": false,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "material": "SmoothPlastic",
+      "shape": null
+    },
+    {
+      "id": "SeaHorizon-1_1",
+      "position": [
+        -1714,
+        -104,
+        1784
+      ],
+      "size": [
+        2048,
+        5,
+        2048
+      ],
+      "color": [
+        39,
+        162,
+        181
+      ],
+      "collidable": false,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "material": "SmoothPlastic",
+      "shape": null
+    },
+    {
+      "id": "SeaHorizon0_-1",
+      "position": [
+        0,
+        -104,
+        -1704
+      ],
+      "size": [
+        1380,
+        5,
+        2048
+      ],
+      "color": [
+        39,
+        162,
+        181
+      ],
+      "collidable": false,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "material": "SmoothPlastic",
+      "shape": null
+    },
+    {
+      "id": "SeaHorizon0_1",
+      "position": [
+        0,
+        -104,
+        1784
+      ],
+      "size": [
+        1380,
+        5,
+        2048
+      ],
+      "color": [
+        39,
+        162,
+        181
+      ],
+      "collidable": false,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "material": "SmoothPlastic",
+      "shape": null
+    },
+    {
+      "id": "SeaHorizon1_-1",
+      "position": [
+        1714,
+        -104,
+        -1704
+      ],
+      "size": [
+        2048,
+        5,
+        2048
+      ],
+      "color": [
+        39,
+        162,
+        181
+      ],
+      "collidable": false,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "material": "SmoothPlastic",
+      "shape": null
+    },
+    {
+      "id": "SeaHorizon1_0",
+      "position": [
+        1714,
+        -104,
+        40
+      ],
+      "size": [
+        2048,
+        5,
+        1440
+      ],
+      "color": [
+        39,
+        162,
+        181
+      ],
+      "collidable": false,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "material": "SmoothPlastic",
+      "shape": null
+    },
+    {
+      "id": "SeaHorizon1_1",
+      "position": [
+        1714,
+        -104,
+        1784
+      ],
+      "size": [
+        2048,
+        5,
+        2048
+      ],
+      "color": [
+        39,
+        162,
+        181
+      ],
+      "collidable": false,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "material": "SmoothPlastic",
+      "shape": null
+    },
+    {
       "id": "IslandCore0",
       "position": [
         -510.0,

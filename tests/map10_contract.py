@@ -24,6 +24,26 @@ rules=(R/'src/ReplicatedStorage/Shared/TrainingRules.luau').read_text()
 radius=int(re.search(r'local Training=\{Radius=(\d+)',rules).group(1))
 homes=[tuple(map(int,m)) for m in re.findall(r'\{x=(-?\d+),y=(-?\d+),z=(-?\d+)\}',next(l for l in layout.splitlines() if l.startswith('Layout.TrainingHomes=')))]
 by_id={part['id']:part for part in parts}
+sea=by_id['Sea']
+water=[p for p in parts if p['id']=='Sea' or p['id'].startswith('SeaHorizon')]
+check(len(water)==9,'Pier sea ends at the inner tile')
+for tile in water:
+ check(not tile['collidable'] and tile['position'][1]==sea['position'][1]
+       and tile['size'][1]==sea['size'][1] and tile['color']==sea['color'],'Sea tile changes shoreline or collision')
+ check(tile['size'][0]<=2048 and tile['size'][2]<=2048,'Sea tile exceeds native part size limit')
+def water_at(x,z):
+ return any(abs(x-p['position'][0])<=p['size'][0]/2 and abs(z-p['position'][2])<=p['size'][2]/2 for p in water)
+for x in (-2600,-690.001,-690,-689.999,689.999,690,690.001,2600):
+ for z in (-2600,-680.001,-680,-679.999,759.999,760,760.001,2600):
+  check(water_at(x,z),'Gap between sea tiles')
+finish=json.loads((R/'prototypes/map10/finish_geometry.json').read_text())
+cap=next(p for p in finish['parts'] if p['id']=='CoastPileCap12')
+pile=by_id['DockPile12']
+check(cap['position'][::2]==pile['position'][::2] and not cap['collidable'],
+      'Outside pier cap must sit on its support without blocking the route')
+pile_top=pile['position'][1]+pile['size'][1]/2
+check(-.5<=cap['position'][1]-cap['size'][1]/2-pile_top<=0,
+      'Outside pier cap must meet the top of its support')
 for index,(x,y,z) in enumerate(homes,1):
  name=f'TrainingPad{index}'
  part=by_id[name]

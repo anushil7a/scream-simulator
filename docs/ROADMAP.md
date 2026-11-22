@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Restore the ocean backdrop from the City pier
+
+- Matched local Studio Edit renders from the timber pier showed the old water abruptly give way to sky behind the deck. Eight tiles extend the existing surface to the distant waterline. A persistent model holds all nine anchored surfaces with collision, touch, queries, and shadows disabled.
+- The outside timber cap was 14 studs from its pile. Native geometry confirmed a 0.20-stud overlap with the support after alignment. A ray still hit the existing DockCross deck and passed through the offshore backdrop. The City build grew from 2,791 to 2,800 descendants.
+- Independent source review confirmed the original routes, terrain, and other finish parts were preserved. Matched Edit-mode views verified the pier composition. A faint line was still visible in the elevated view. A single local Studio client at the map center received all nine tiles while DockCross was streamed out. Game scripts were disabled for that replication check. Live multiplayer streaming and low-end GPU cost remain unmeasured.
+
 ## Let marked training strikes resolve through brief interruptions
 
 - In matched native City runs, changing the temporary player's microphone readiness or inserting brief cover erased the old Rookie warning before impact. With the fix, both warnings stayed through windup and dealt 8 damage to the marked character once exposed at impact. Continuous solid cover kept the warning visible through windup and blocked all damage at impact. All three warnings and their HUD attributes cleared at resolution.

@@ -39,7 +39,16 @@ def tree(n,x,z,y,s=1):
  for i in range(5):
   a=i*math.tau/5;box(n+'Palm'+str(i),[x+math.cos(a)*5*s,y+16*s,z+math.sin(a)*5*s],[15*s,2*s,4*s],grass,False,[0,-math.degrees(a),-12])
 # Irregular contiguous island and visible stratified cliff silhouette, sea outside.
-box('Sea',[0,-104,40],[1380,5,1440],water,False)
+sea_width,sea_depth,horizon_tile=1380,1440,2048
+box('Sea',[0,-104,40],[sea_width,5,sea_depth],water,False)
+# Extend the deep water without raising it through the authored shoreline.
+for column in (-1,0,1):
+ for row in (-1,0,1):
+  if column==0 and row==0:continue
+  x=column*(sea_width+horizon_tile)//2
+  z=40+row*(sea_depth+horizon_tile)//2
+  box(f'SeaHorizon{column}_{row}',[x,-104,z],
+      [horizon_tile if column else sea_width,5,horizon_tile if row else sea_depth],water,False)
 # Non-overlapping strips form an irregular shoreline. Deep offset facets sit below top.
 for i,(l,r,north,south) in enumerate([(-550,-470,-450,430),(-470,-350,-520,480),(-350,-150,-540,510),(-150,80,-520,525),(80,300,-500,510),(300,460,-500,480),(460,530,-430,430)]):
  x=(l+r)/2;z=(north+south)/2

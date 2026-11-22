@@ -35,7 +35,8 @@ def add(box, disk, line):
     # diagonals per bay support the existing cross-dock without changing it.
     for i,x in enumerate(range(-220,201,35)):
         box(f'CoastPileExtension{i}',[x,-65,610],[4.5,74,4.5],timber,material='Wood')
-        box(f'CoastPileCap{i}',[x,.35,624],[4,1.1,4],endgrain,material='Wood')
+        # The final exposed pile stands past the east end of the deck.
+        box(f'CoastPileCap{i}',[x,.35,610 if x>195 else 624],[4,1.1,4],endgrain,material='Wood')
         if i<12:
             beam(f'BraceA{i}',[x,-9,611],[x+35,-31,611],1.8,timber)
             beam(f'BraceB{i}',[x,-31,611],[x+35,-9,611],1.8,timber)
