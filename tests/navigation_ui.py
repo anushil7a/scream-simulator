@@ -90,6 +90,18 @@ local viewport,touch,tracked,devPanel={},true,{Position={Y={Offset=0}}},{Visible
 local showQuest,gameplayVisible=true,true
 local data={level=9}
 local mode,compact,distance='Arrived',true,8
+local health,state=265,'Moving'
+local boss={GetAttribute=function(_,key)
+ if key=='BossHealth' then return health end
+ if key=='BossState' then return state end
+end}
+local encounter=boss
+local bosses={FindFirstChild=function(_,id)
+ assert(id=='metronome','Wrong boss queried for arrival')
+ return encounter
+end}
+local world={FindFirstChild=function(_,name) if name=='BossEncounters' then return bosses end end}
+local workspace={FindFirstChild=function(_,name) if name=='ScreamSimulatorWorld' then return world end end}
 local academy={
  guideLayout=function()return 0,0,245,44,compact end,
  guidePanel={},guideText={},
@@ -111,6 +123,23 @@ data.level=10
 check("Hit boss to join")
 compact=false
 check("Whispering Metronome · Lv 10\nHit boss to join")
+compact=true
+health=0
+check("Boss defeated")
+health,state=265,"Defeated"
+check("Boss defeated")
+state="Idle"
+check("Hit boss to join")
+encounter=nil
+check("Boss unavailable")
+encounter=boss
+health,state=265,nil
+check("Boss unavailable")
+health,state=nil,"Moving"
+check("Boss unavailable")
+health,state=0,"Defeated"
+data.level=9
+check("Requires Lv 10")
 mode,compact,distance="Follow the markers",true,42
 check("Follow the markers · 42 studs")
 mode,distance="Arrived",nil

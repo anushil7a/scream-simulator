@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Boss guides acknowledge a defeat
+
+- With the eligible player five studs from the Metronome waypoint, native Studio showed **Hit boss to join** even at zero boss HP. The actual boss service rejected another hit and recorded a 90-second respawn window. The guide now shows **Boss defeated** when either replicated health or phase confirms the knockout, and **Boss unavailable** if the encounter data is missing. The level requirement still takes precedence for lower-level players.
+- In matched native Studio, **Hit boss to join → Boss defeated → Hit boss to join** fit a visible 194-pixel guide. The fixture staged a level-10 avatar, invoked the real server Hit, and advanced the deadline to exercise the normal respawn step. An earlier asynchronous sample missed visible frames. The final fixture sampled inside the guide's visible render. Source was restored and the disposable Studio closed. This did not exercise voice input, actual phones, or the full wall-clock respawn wait.
+- Independent review, 12 guide state checks, 42 guide lifecycle checks and 8,321 boss-service assertions passed. The previous HUD failed the new defeated-state assertion. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+
 ## Explain how to join a boss fight when the guide arrives
 
 - At five studs from the Metronome waypoint, the native baseline showed **Arrived · 5 studs W** at both level 9 and 10. On a narrow HUD it gave no level requirement or way to join. Boss destinations now carry the encounter catalog's minimum. At arrival the existing panel shows **Requires Lv 10** below the gate and **Hit boss to join** at or above it. The stationary waypoint's distance and bearing clear on arrival. Route guidance elsewhere still shows distance.

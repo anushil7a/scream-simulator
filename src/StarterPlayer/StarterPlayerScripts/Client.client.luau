@@ -1868,7 +1868,22 @@ connectClient(Run.RenderStepped,function(dt)
    end
    if status=="Arrived" and academy.guideTarget.minimumLevel then
     local minimumLevel=academy.guideTarget.minimumLevel
-    status=data.level<minimumLevel and ("Requires Lv "..minimumLevel) or "Hit boss to join"
+    if data.level<minimumLevel then
+     status="Requires Lv "..minimumLevel
+    else
+     local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+     local encounters=world and world:FindFirstChild("BossEncounters")
+     local boss=encounters and encounters:FindFirstChild(selection.id)
+     local health=boss and boss:GetAttribute("BossHealth")
+     local phase=boss and boss:GetAttribute("BossState")
+     if health==0 or phase=="Defeated" then
+      status="Boss defeated"
+     elseif health and health>0 and phase then
+      status="Hit boss to join"
+     else
+      status="Boss unavailable"
+     end
+    end
     distance=nil
    end
    if compact and status=="Route unavailable" then status="No route" end
