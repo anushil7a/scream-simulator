@@ -1764,7 +1764,7 @@ connectClient(Run.RenderStepped,function(dt)
   local now=os.clock();sustainedBeams:Expire(now)
   beamFrame+=dt
   if beamFrame>=1/30 then
-   beamFrame=0
+   beamFrame%=1/30
    local camera=workspace.CurrentCamera
    if camera then
     local attack=sustainedControl.attack

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Beam animation keeps time at uneven frame rates
+
+- The old renderer discarded fractional frame time after every animation update. Feeding the actual Client gate 31 FPS for ten seconds yielded 155 updates. Keeping the remainder brought the result to the 30 Hz target, with at most one update on each rendered frame and no backlog after stalls. The test covers six fixed frame rates, jitter, long frames and operation below 30 FPS. A reset-to-zero mutation reproduced the defect in both the Client and its Studio benchmark.
+- In native desktop Studio at a fixed 666 × 374 emulated viewport, the 24-beam fixture passed 7,829 checks and cleaned up. Regular, crowded and reduced modes each rendered 151 updates at about 30.1 Hz. Script-section p95 was 4.00 ms, 1.12 ms and 0.47 ms respectively. Median frame intervals were about 16.7 ms in all phases. The first two attempts aborted on viewport drift. See [native benchmark results](../tests/evidence/beam-cadence-native-2026-11-21.json) for the completed run.
+- Independent review and the full local verification passed 29 pure/synthetic suites, 164 mocked-service suites, production compilation and review builds. The native scene used synthetic overlapping beam visuals and measured script duration on this PC. Physical-phone, GPU and live multiplayer performance remain open. The viewport was restored and the disposable Studio session closed.
+
 ## Aiming at Rookie explains the sparring boundary
 
 - Outside Rookie's pad, the aim readout previously said **BEYOND CURRENT RANGE** even if the server's full-power beam could reach the fighter. In local Studio the avatar was 34 studs from the pad center and about 19.17 studs from Rookie. The 30-stud beam reached the line of fire, but the server excluded the fighter because of the 32-stud sparring radius.

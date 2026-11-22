@@ -16,6 +16,7 @@ local manager=Beams.new(Visuals.Create,Visuals.Update,Visuals.Destroy)
 local beamFrame=0;local tracked={};local connection,destruction,watchdog
 local done=false;local checks=0;local phase=1;local phaseStart=nil;local nextPulse=0
 local sampleFirst,sampleLast
+local animationUpdates=0
 local names={"baseline","regular24","crowded24","reduced24"};local frames,costs={},{};local rows={}
 local function check(v,m)assert(v,m);checks+=1 end
 local function summary(values)
@@ -64,7 +65,7 @@ camera.CameraType=Enum.CameraType.Scriptable;camera.CFrame=CFrame.lookAt(Vector3
 fixedFrame=camera.CFrame;fixedFov=camera.FieldOfView
 fixedViewport=camera.ViewportSize
 local quality="unknown";pcall(function()quality=tostring(UserSettings():GetService("UserGameSettings").SavedQualityLevel)end)
-print("BEAM_PERFORMANCE_START "..Http:JSONEncode({buildIdentity=buildIdentity,viewport={camera.ViewportSize.X,camera.ViewportSize.Y},savedQualityPreference=quality,rendererQualityControlled=false,warmSeconds=2,sampleSeconds=5,maxBeams=24,animationCadence="accumulated dt >=1/30 then reset0 (Client)",clock="os.clock",units="ms",limitations="Studio frame intervals and instrumented script section elapsed duration only; no GPU/phone/network claim"}))
+print("BEAM_PERFORMANCE_START "..Http:JSONEncode({buildIdentity=buildIdentity,viewport={camera.ViewportSize.X,camera.ViewportSize.Y},savedQualityPreference=quality,rendererQualityControlled=false,warmSeconds=2,sampleSeconds=5,maxBeams=24,animationCadence="30 Hz target; fractional carry, at most one update per frame",clock="os.clock",units="ms",limitations="Studio frame intervals and instrumented script section elapsed duration only; no GPU/phone/network claim"}))
  return true
 end
 connection=Run.RenderStepped:Connect(function(dt)
@@ -80,6 +81,7 @@ connection=Run.RenderStepped:Connect(function(dt)
    return
   end
   local started=os.clock()
+  local animated=false
   if phase>1 then
    if now>=nextPulse then
     nextPulse=now+.2
@@ -92,14 +94,19 @@ connection=Run.RenderStepped:Connect(function(dt)
    manager:Expire(now)
    beamFrame+=dt
    if beamFrame>=1/30 then
-    beamFrame=0
+    beamFrame%=1/30
+    animated=true
     local viewer=camera.CFrame.Position
     local crowded=phase==3 and Visuals.IsCrowded(manager.entries,viewer)
     for id,entry in pairs(manager.entries)do Visuals.Animate(entry.visual,now,viewer,phase==4,false,false,crowded and id~=1)end
    end
   end
   local cost=os.clock()-started
-  if now-phaseStart>=2 then sampleFirst=sampleFirst or now;sampleLast=now;table.insert(frames,dt);table.insert(costs,cost)end
+  if now-phaseStart>=2 then
+   sampleFirst=sampleFirst or now;sampleLast=now
+   table.insert(frames,dt);table.insert(costs,cost)
+   if animated then animationUpdates+=1 end
+  end
   if now-phaseStart>=7 then
    local allocated,cached=Visuals.Budget();local visible,enabledBeams,enabledEmitters=0,0,0
    check(allocated<=Style.MaxParts,"Allocation cap exceeded")
@@ -131,8 +138,10 @@ connection=Run.RenderStepped:Connect(function(dt)
    if phase>1 then check(not manager:Update(25,now,Vector3.zero,Vector3.xAxis,40,7,Color3.new(1,1,1),100,false),"25th admission accepted")end
    local row={buildIdentity=buildIdentity,phase=names[phase],sampleSpanSeconds=sampleLast-sampleFirst,sampledFrameSeconds=0,frame=summary(frames),script=summary(costs),allocated=allocated,cached=cached,visible=visible,count=manager.count,enabledBeams=enabledBeams,enabledEmitters=enabledEmitters}
    for _,value in ipairs(frames)do row.sampledFrameSeconds+=value end
+   row.animationUpdates=animationUpdates
+   row.animationHz=animationUpdates/row.sampledFrameSeconds
    table.insert(rows,row);print("BEAM_PERFORMANCE_ROW "..Http:JSONEncode(row))
-   phase+=1;phaseStart=now;frames={};costs={};nextPulse=0;beamFrame=0;sampleFirst=nil;sampleLast=nil
+   phase+=1;phaseStart=now;frames={};costs={};nextPulse=0;beamFrame=0;sampleFirst=nil;sampleLast=nil;animationUpdates=0
    -- Preserve live entries and pooled Parts across the real reduced-effects transition.
   end
  end,debug.traceback)

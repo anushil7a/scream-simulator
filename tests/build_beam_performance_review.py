@@ -4,7 +4,7 @@ import hashlib,json,subprocess
 def validate_cadence(client,fixture):
  import re
  for name,source in [('Client',client),('Fixture',fixture)]:
-  assert re.search(r'beamFrame\+=dt\s+if beamFrame>=1/30 then\s+beamFrame=0',source),name+' cadence changed'
+  assert re.search(r'beamFrame\+=dt\s+if beamFrame>=1/30 then\s+beamFrame%=1/30',source),name+' cadence changed'
 
 def stamp(fixture,identity):
  token='__BEAM_PERFORMANCE_BUILD_ID__'
@@ -31,8 +31,6 @@ for k,data in snapshot.items():
  if k=='Fixture':data=generated
  p=out/('BeamPerformanceReview.'+k+('.client.luau' if k=='Fixture' else '.luau'));p.write_bytes(data);copies[k]=p.name
  subprocess.run(['luau-compile',str(p)],check=True,stdout=subprocess.DEVNULL,timeout=30)
-client=snapshot['ClientCadence'].decode().replace('\r\n','\n')
-assert 'beamFrame+=dt\n  if beamFrame>=1/30 then\n   beamFrame=0' in client,'Client cadence changed; update fixture before comparison'
 fixture=snapshot['Fixture'].decode();assert 'game.PlaceId==0' in fixture and 'Run:IsStudio()' in fixture
 for forbidden in ['DataStoreService','FireServer','MarketplaceService','SoundService'] : assert forbidden not in fixture
 assert 'task.delay(35' in fixture and 'connection:Disconnect()' in fixture and 'Visuals.Clear()' in fixture

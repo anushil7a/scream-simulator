@@ -1,6 +1,6 @@
 """Actual fixture finish/interrupt callbacks; mocked failures, not native cleanup proof."""
 from pathlib import Path
-import subprocess,tempfile
+import re,subprocess,tempfile
 R=Path(__file__).resolve().parents[1];s=(R/'tests/StudioBeamPerformance.client.luau').read_text()
 finish=s[s.index('local function finish('):s.index('-- Wait for a real, stable viewport')]
 setup=r'''
@@ -41,12 +41,54 @@ mutant=finish.replace(' and coroutine.running()~=watchdog','');assert mutant!=fi
 r=run(setup+mutant+checks);assert r.returncode and 'Watchdog canceled itself' in r.stderr,r.stdout+r.stderr
 print('PASS self-cancel watchdog negative control')
 
+# Run the actual production and fixture gates with deterministic frame intervals.
+client=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
+def cadence_gate(source):
+ match=re.search(r'beamFrame\+=dt\s+if beamFrame>=1/30 then\s+beamFrame[^\n]+',source)
+ assert match, 'Cannot locate the beam animation cadence gate'
+ return match.group()
+
+cadence_setup=r'''
+local beamFrame=0
+local updates=0
+local function step(dt)
+ local previous=updates
+ GATE
+  updates+=1
+ end
+ assert(updates-previous<=1,"Catch-up rendered on the same frame")
+end
+'''
+cadence_checks=r'''
+for _,fps in ipairs({31,50,60,75,90,144})do
+ beamFrame=0;updates=0
+ for _=1,fps*10 do step(1/fps)end
+ assert(updates>=299 and updates<=300,("Beam cadence lost elapsed time at %d FPS: %d updates"):format(fps,updates))
+end
+beamFrame=0;updates=0
+for _=1,100 do step(.019);step(.021)end
+assert(updates>=119 and updates<=120,"Jittered frame cadence drifted")
+beamFrame=0;updates=0
+step(.405);step(.002);step(.002)
+assert(updates==1,"A long frame left catch-up work")
+for _=1,15 do step(1/15)end
+assert(updates==16,"Cadence missed a render opportunity below 30 FPS")
+print('PASS beam cadence at six fixed rates, jitter and stalls; scripted frame intervals')
+'''
+for label,source in [('Client',client),('Studio fixture',s)]:
+ gate=cadence_gate(source)
+ result=run(cadence_setup.replace('GATE',gate)+cadence_checks)
+ assert result.returncode==0,label+': '+result.stderr
+ print(result.stdout.strip()+' ('+label+')')
+ result=run(cadence_setup.replace('GATE',gate.rsplit('beamFrame',1)[0]+'beamFrame=0')+cadence_checks)
+ assert result.returncode and 'Beam cadence lost elapsed time at 31 FPS: 155 updates' in result.stderr,result.stderr
+ print('PASS reset-to-zero control ('+label+')')
+
 # Execute only pure builder contracts, never its build side effects.
 import ast
 builder=ast.parse((R/'tests/build_beam_performance_review.py').read_text())
 ns={}
 exec(compile(ast.Module(body=[n for n in builder.body if isinstance(n,ast.FunctionDef)],type_ignores=[]),'builder-contracts','exec'),ns)
-client=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 ns['validate_cadence'](client,s)
 for c,f in [(client.replace('beamFrame>=1/30','beamFrame>=1/15'),s),(client,s.replace('beamFrame>=1/30','beamFrame>=1/15'))]:
  try:ns['validate_cadence'](c,f)
