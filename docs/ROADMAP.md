@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## The training menu and aim HUD identify the right targets
+
+- In a disposable City playtest, Quests said the pads were in the west courtyard. The Academy spawn is at Z = -260 and the training row at Z = -400. Quests now gives the north-of-spawn direction on Map10 and keeps the west courtyard direction for the legacy layout.
+- A staged in-range aim target previously displayed TRAINING RESIDENT both with and without the replicated fighter marker. In the updated desktop Studio run, the actual aim HUD showed CITY RESIDENT for the ordinary target and TRAINING FIGHTER for the marked target. The aim labels and the quest card reported TextFits. Server damage, combat rewards, pad boundaries and cover are unaffected by the copy change.
+- Independent review passed. Focused coverage passed 30 checks and four mutation controls. The full local run passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. The disposable Studio session closed. The native pass used a staged local target and mouse input. Unassisted navigation, human microphones and physical-phone play remain open.
+
 ## Same-experience arrivals briefly retry the save lease
 
 - A simulated destination joined while the source still held the profile lease. Previously it admitted temporary play even when the source released its final save during the retry window. Roblox-identified arrivals from another place in the same experience now retry a confirmed competing lease using the existing one- and two-second delays. The destination rereads ownership on every attempt. Sustained contention still opens read-only progress, and ordinary joins keep their existing behavior.

@@ -648,7 +648,8 @@ local function residentTargetInfo(model,humanoid,far,currentFar,covered,position
  if not humanoid or humanoid.Health<=0 then return nil,false end
  local home=model:GetAttribute("TrainingHome")
  local outsidePad=typeof(home)=="Vector3" and (position-home).Magnitude>academy.TrainingRules.Radius
- local status=outsidePad and "MOVE TOWARD PAD CENTER" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "TRAINING RESIDENT"
+ local status=outsidePad and "MOVE TOWARD PAD CENTER" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER"
+  or (model:GetAttribute("TrainingTier")~=nil and "TRAINING FIGHTER" or "CITY RESIDENT")
  return string.format("%s\n%s",model:GetAttribute("DisplayName") or model.Name,status),not outsidePad and not far and not currentFar and not covered
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(144,32),UDim2.fromOffset(116,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
@@ -1085,7 +1086,8 @@ render=function()
    end)
   end
   academy.guideMenu()
-  info("COURTYARD TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads in the west courtyard. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
+  local padLocation=Config.CompactCity and "north of Academy spawn" or "in the west courtyard"
+  info("COURTYARD TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads "..padLocation..". Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
   for _,spec in ipairs(Config.Progression.Challenges) do
    local rewardText=data.level>=Config.MaxLevel and "MAX LEVEL · no XP awarded" or ("+"..Config.Progression.ChallengeXP(data.level).." XP on completion")
    info(spec.name.." · "..((data.combatChallenges or {})[spec.id] or 0).."/"..spec.goal.."\n"..rewardText.." · renews automatically",68)

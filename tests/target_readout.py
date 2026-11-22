@@ -46,25 +46,28 @@ text,ready=playerTargetInfo(target,h,true,true,false,10,false)
 check(ready and string.find(text,'ARENA OPPONENT',1,true),'In-range target stayed unavailable')
 h.Health=0;text,ready=playerTargetInfo(target,h,true,true,false,10)
 check(text==nil and not ready,'Dead target retained health readout')
-local residentActive=true;local trainingHome
-local resident={Name='Fallback',GetAttribute=function(_,key)if key=='ResidentActive' then return residentActive end;if key=='TrainingHome' then return trainingHome end;return key=='DisplayName' and 'Gardener' or nil end}
+local residentActive=true;local trainingHome,trainingTier
+local resident={Name='Fallback',GetAttribute=function(_,key)if key=='ResidentActive' then return residentActive end;if key=='TrainingHome' then return trainingHome end;if key=='TrainingTier' then return trainingTier end;return key=='DisplayName' and 'Gardener' or nil end}
 h.Health=40;h.MaxHealth=60
 text,ready=residentTargetInfo(resident,h,false,false)
-check(ready and text=='Gardener\\nTRAINING RESIDENT','Resident name/status missing')
+check(ready and text=='Gardener\\nCITY RESIDENT','Ordinary resident presented as a training fighter')
 text,ready=residentTargetInfo(resident,h,true,true)
 check(not ready and string.find(text,'OUT OF MAX RANGE',1,true),'Resident maximum range ignored')
 text,ready=residentTargetInfo(resident,h,false,true)
 check(not ready and string.find(text,'BEYOND CURRENT RANGE',1,true),'Resident current range ignored')
+trainingTier='rookie'
+text,ready=residentTargetInfo(resident,h,false,false,false,position(10,5,-8))
+check(ready and string.find(text,'TRAINING FIGHTER',1,true),'Training tier did not identify a fighter')
 trainingHome=position(10,5,-8)
 text,ready=residentTargetInfo(resident,h,false,false,false,position(42.01,5,-8))
 check(not ready and string.find(text,'MOVE TOWARD PAD CENTER',1,true),'Outside the sparring pad looked attackable')
 text,ready=residentTargetInfo(resident,h,false,false,false,position(42,5,-8))
-check(ready and string.find(text,'TRAINING RESIDENT',1,true),'Exact sparring radius did not match server')
+check(ready and string.find(text,'TRAINING FIGHTER',1,true),'Exact sparring radius did not match server')
 text,ready=residentTargetInfo(resident,h,false,false,false,position(42,6,-8))
 check(not ready and string.find(text,'MOVE TOWARD PAD CENTER',1,true),'Training pad check ignored height')
 text,ready=residentTargetInfo(resident,h,false,false,true,position(10,5,-8))
 check(not ready and string.find(text,'BEHIND COVER',1,true),'Pad admission masked cover')
-trainingHome=nil
+trainingHome=nil;trainingTier=nil
 residentActive=false;text,ready=residentTargetInfo(resident,h,false,false)
 check(text==nil and not ready,'Recovering resident with live Humanoid retained readout')
 residentActive=true
@@ -104,6 +107,8 @@ readout=source[start:end]
 run(readout)
 if '--negative-controls' in sys.argv:
     for old,new,expected in [
+        ('(model:GetAttribute("TrainingTier")~=nil and "TRAINING FIGHTER" or "CITY RESIDENT")', '"TRAINING RESIDENT"', 'Ordinary resident presented as a training fighter'),
+        ('model:GetAttribute("TrainingTier")~=nil', 'false', 'Training tier did not identify a fighter'),
         ('typeof(home)=="Vector3" and (position-home).Magnitude>academy.TrainingRules.Radius', 'false', 'Outside the sparring pad looked attackable'),
         ('Magnitude>academy.TrainingRules.Radius', 'Magnitude>=academy.TrainingRules.Radius', 'Exact sparring radius did not match server'),
     ]:
