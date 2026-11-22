@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Rejected TALK requests leave an active beam alone
+
+- In a temporary City Studio session, the player closed Mar's dialogue, started beam sequence 1, and tried TALK again before the two-second interaction cooldown expired. Mar's panel stayed closed, but a premature client Stop ended the beam and the sampling point showed 4.77 seconds of cooldown.
+- The client now sends the Talk request after the existing reach and interface checks. Only accepted dialogue interrupts combat. In the matched candidate, the rejected request left sequence 1 active, with no Stop sent and no cooldown. Accepted TALK opened dialogue and stopped the beam with about 4.93 seconds of cooldown remaining when sampled. A second run suppressed all client Stop packets and observed the same accepted server stop. Keeping input high through cooldown did not restart combat. Fresh quiet and a new onset started sequence 2.
+- Native Studio used the normal Client controller, Action remote, resident and server cooldown, with staged positions, focus, aim and synthetic power. This does not exercise physical inputs, real microphones, ordinary proximity voice or a live network. Both disposable sessions closed.
+- Independent review cleared the change. Focused checks passed 68 assertions and five rate-limit controls. The new request regression failed against the old client as intended. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+
 ## Give the City Amphitheatre a consistent name and walking guide
 
 - Native City inspection showed **RESONANCE HALL** on the physical marquee while pin 8 said **Amphitheatre** and the Map offered no guide for that venue. The City marquee now uses **AMPHITHEATRE**. Pin 8 stays at the stage. The optional guide leads to the open approach in front of the sign, eight studs south of the posts. Resonance Hall is the separate guarded PvP prototype.

@@ -739,7 +739,7 @@ local function requestTalk()
  local target=talkTarget
  if not target or not target.Parent or target:GetAttribute("ResidentActive")==false
   or not InteractionRules.CanReachNpc(p.Character,target,13) then return end
- cancelCapture()
+ -- A rejected Talk request should not cancel the current beam.
  action:FireServer("Talk",target:GetAttribute("NpcId") or target.Name)
 end
 local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),requestTalk);talkButton.Visible=false;academy.surface(talkButton,gold)
