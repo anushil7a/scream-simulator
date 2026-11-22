@@ -317,6 +317,7 @@ stats.Name="LevelValue";stats.Font=Enum.Font.GothamBold;stats.TextXAlignment=Enu
 local coins=label(hud,"0 coins",UDim2.fromOffset(128,24),UDim2.fromOffset(102,8),13,white)
 coins.Name="CoinValue";coins.Font=Enum.Font.GothamBold;coins.TextXAlignment=Enum.TextXAlignment.Right;coins.TextWrapped=false
 coins.Active=false;coins.Selectable=false;coins.Interactable=false
+do local scale=Instance.new("UITextSizeConstraint");scale.Name="CoinTextScale";scale.MinTextSize=9;scale.MaxTextSize=13;scale.Parent=coins end
 academy.healthMark=academy.mark(hud,"health",UDim2.fromOffset(12,36),10,Color3.fromRGB(130,211,174))
 local health=label(hud,"100 HP",UDim2.fromOffset(204,18),UDim2.fromOffset(26,32),14)
 health.Name="HealthValue";health.Font=Enum.Font.GothamBold;health.TextWrapped=false
@@ -347,17 +348,23 @@ xpText.TextScaled=true
 do local xpScale=Instance.new("UITextSizeConstraint");xpScale.Name="XPTextScale";xpScale.MaxTextSize=12;xpScale.MinTextSize=9;xpScale.Parent=xpText end
 local xf=frame(frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,82),panel),"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
 academy.progressMark=academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
-function academy.layoutStatusCard(compact)
- hud.Size=UDim2.fromOffset(compact and 218 or 242,compact and 78 or 94)
+function academy.layoutStatusCard(compact,desktopWidth)
+ compact=compact or desktopWidth~=nil
+ local width=desktopWidth or (compact and 218 or 242)
+ local narrow=width<218
+ local warningX=compact and math.min(112,width-92) or 114
+ hud.Size=UDim2.fromOffset(width,compact and 78 or 94)
  levelBadge.Size=UDim2.fromOffset(compact and 68 or 82,compact and 20 or 24)
  levelBadge.Position=UDim2.fromOffset(12,compact and 6 or 8)
- coins.Size=UDim2.fromOffset(compact and 120 or 128,compact and 20 or 24)
+ coins.Size=UDim2.fromOffset(compact and width-98 or 128,compact and 20 or 24)
+ coins.TextScaled=narrow
  coins.Position=UDim2.fromOffset(compact and 86 or 102,compact and 6 or 8)
- health.Size=UDim2.fromOffset(compact and 82 or 204,18)
+ health.Size=UDim2.fromOffset(compact and warningX-30 or 204,18)
  health.Position=UDim2.fromOffset(26,compact and 27 or 32)
  academy.healthMark.Position=UDim2.fromOffset(12,compact and 31 or 36)
- academy.incomingHit.Size=UDim2.fromOffset(compact and 94 or 116,18)
- academy.incomingHit.Position=UDim2.fromOffset(compact and 112 or 114,compact and 27 or 32)
+ academy.incomingHit.Size=UDim2.fromOffset(width-warningX-12,18)
+ academy.incomingHit.Position=UDim2.fromOffset(warningX,compact and 27 or 32)
+ academy.incomingHit.TextSize=narrow and 11 or 13
  hf.Parent.Size=UDim2.new(1,-24,0,compact and 6 or 8)
  hf.Parent.Position=UDim2.fromOffset(12,compact and 46 or 51)
  xpText.Size=UDim2.new(1,-38,0,compact and 15 or 19)
@@ -2032,7 +2039,10 @@ connectClient(Run.RenderStepped,function(dt)
  local testInset=toolsBesideMap and miniLayout.width+22 or splitTalkLane and 10 or 14
  testButton.Position=UDim2.new(1,-testWidth-testInset,0,testTop)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,data.devAccess==true and viewport.X<356 and miniLayout.height+74 or 64) or UDim2.new(0,14,1,-108)
- academy.layoutStatusCard(touch and shortLandscape)
+ -- Desktop combat starts 274px from the right, with the card inset 14px plus an 8px gap.
+ local compactDesktop=not touch and viewport.X>=480 and viewport.X<820 and viewport.Y>=150
+  and (viewport.Y<158 or (viewport.X<530 and viewport.Y<260))
+ academy.layoutStatusCard(touch and shortLandscape,compactDesktop and math.min(218,viewport.X-296) or nil)
  local trackerY=(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64
  local trackerX,trackerTop,trackerWidth,trackerHeight,canShare,centerTracker=academy.trackerLayout(viewport,touch,trackerY)
  academy.guideMayUseTracker=canShare==true

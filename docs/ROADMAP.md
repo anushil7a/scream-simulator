@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Keep the desktop wallet readable beside combat
+
+- In the current City baseline at 491 × 150 safe pixels, the actual Garden claim credited 80 coins while Beams covered the rightmost 27 × 13 pixels of the rendered wallet text. Dodge also covered a small portion of the temporary progress line.
+- Short desktop windows with insufficient room now use the existing compact status rows inside a width bounded by the combat column. The exact currency amount is preserved. The narrow variant gives the incoming-beam warning its own lane and scales only long wallet text within the established font limits. Phone and standard desktop layouts restore their usual dimensions.
+- In a matched disposable Studio replay, the real Garden claim again credited 80 coins. The 195 × 78 card ended eight pixels before Beams and fully fit in the safe area. The complete wallet text, level, health, and temporary progress were visible and clear of the action buttons. The replay used staged travel, real quest holds, and a temporary local profile.
+
+- At 480 × 150, a separate native fit check staged the maximum wallet and combat labels. The exact 1,000,000,000-coin value fit in 86 pixels, level 100 and 480/480 health remained readable, and the staged incoming-beam message fit in its 80-pixel lane. No glyph overlapped combat.
+- Independent review cleared the scoped layout. The HUD suite passed 1,567 assertions with 28 negative controls. The notice and minimap suites passed, and full verification passed 29 pure/synthetic suites, 168 mocked-service suites, 99 production compilations and Rojo builds. Current-world release still needs physical devices, real microphones and isolated persistence evidence.
+
 ## Keep Test Tools clear of Beams in short desktop windows
 
 - In desktop Studio at 491 × 150 safe pixels, the two buttons shared a 112 × 10 strip. An actual click at (399, 52) opened Test Tools from inside Beams. The launcher now ends two pixels above Beams in that viewport, and the same click activates Beams. A separate Test Tools click still opens its panel. The fixture used normal local click callbacks and temporary profiles, without real microphone input.

@@ -107,7 +107,7 @@ local function rect(node)
  return {x=parent.x+pos.X.Scale*parent.w+pos.X.Offset,y=parent.y+pos.Y.Scale*parent.h+pos.Y.Offset,w=size.X.Scale*parent.w+size.X.Offset,h=size.Y.Scale*parent.h+size.Y.Offset}
 end
 check(equal(old.hud.Size,current.hud.Size) and current.hud.Size.X.Offset==242 and current.hud.Size.Y.Offset==94 and old.hud.BackgroundTransparency==current.hud.BackgroundTransparency,'HUD outer allocation changed')
-check(#current.nodes<=#old.nodes+8,'HUD decoration allocation grew unexpectedly')
+check(#current.nodes<=#old.nodes+9,'HUD decoration allocation grew unexpectedly')
 for _,node in ipairs(current.nodes)do
  check(node.ClassName=='Frame' or node.ClassName=='TextLabel' or node.ClassName=='UICorner' or node.ClassName=='UIStroke' or node.ClassName=='UIGradient' or node.ClassName=='UITextSizeConstraint','HUD added input/asset/independent object')
  if node.ClassName=='Frame' or node.ClassName=='TextLabel'then
@@ -196,6 +196,40 @@ for _,height in ipairs({150,156,161,167,168,180,211,219,220}) do
   check(test.Text=='TEST TOOLS' and testRect.y==66,'Desktop Test Tools did not restore under MAP')
  end
 end
+for _,size in ipairs({{480,150},{491,150},{529,180},{491,259},{530,150},{819,157}}) do
+ local width,height=table.unpack(size)
+ local root={x=0,y=0,w=width,h=height}
+ current.place(width,false,false,0,true,height)
+ local group,beam=current.actions(width,height,false)
+ local card=relative(current.hud,root)
+ local beamRect=relative(beam,relative(group,root))
+ local wallet=rect(current.coins);wallet.x+=card.x;wallet.y+=card.y
+ check(not overlaps(wallet,beamRect),'Compact desktop wallet overlaps Beams')
+ check(card.y+card.h<=height,'Compact desktop status card falls below the safe area')
+ check(card.x+card.w+8<=beamRect.x,'Compact desktop status card overlaps combat')
+ local health,hit=rect(current.health),rect(current.incoming)
+ check(health.x+health.w+4<=hit.x and hit.x+hit.w<=card.w and hit.w>=80,
+  'Compact desktop defender cue is clipped or overlaps health')
+ check(wallet.x+wallet.w<=card.x+card.w and current.coins.TextScaled==(card.w<218),
+  'Compact desktop wallet lost its exact currency lane')
+ for _,node in ipairs(current.nodes) do
+  if node.ClassName=='Frame' or node.ClassName=='TextLabel' then
+   local bounds=rect(node)
+   check(bounds.x>=0 and bounds.y>=0 and bounds.x+bounds.w<=card.w and bounds.y+bounds.h<=card.h,
+    'Compact desktop status descendant exceeds card bounds')
+  end
+ end
+end
+for _,size in ipairs({{530,158},{491,260},{820,150}}) do
+ current.place(size[1],false,false,0,true,size[2])
+ check(current.hud.Size.X.Offset==242 and current.hud.Size.Y.Offset==94 and not current.coins.TextScaled,
+  'Normal desktop status card did not restore')
+end
+local coinConstraint
+for _,node in ipairs(current.nodes) do
+ if node.ClassName=='UITextSizeConstraint' and node.Parent==current.coins then coinConstraint=node end
+end
+check(coinConstraint and coinConstraint.MinTextSize==9 and coinConstraint.MaxTextSize==13,'Wallet glyph scaling is unbounded')
 local desktop,_,dodge,sprint,_,stacked=current.actions(567,242,false)
 check(not stacked and desktop.Position.X.Offset==-274 and desktop.Position.Y.Offset==-102 and dodge.Size.Y.Offset==32 and sprint.Size.X.Offset==144,'Desktop action geometry changed')
 print('PASS',checks,'actual HUD/baseline/data/geometry/passive assertions; mocked replication/allocations, native fit separate')
@@ -224,7 +258,9 @@ def fixture(source, name):
     layout_call = next((line for line in source.splitlines() if line.strip().startswith('academy.layoutStatusCard(')), None)
     if layout_call:
         short = next(line for line in source.splitlines() if 'local shortLandscape=' in line)
-        status_layout = short + '\n' + layout_call
+        compact_start = source.find(' local compactDesktop=not touch')
+        sizing = source[compact_start:source.index(layout_call, compact_start)] if compact_start!=-1 else ''
+        status_layout = short + '\n' + sizing + layout_call
     actions = ''
     if 'function academy.layoutActions(' in source:
         start = source.index('function academy.layoutActions(')
@@ -292,11 +328,11 @@ def main():
             ('levelBadge.Interactable=false', 'levelBadge.Interactable=true', 'New header is not passive'),
             ('compact and 46 or 51', 'compact and 46 or 45', 'Health value/track lanes overlap or shrank'),
             ('compact and 15 or 19', 'compact and 15 or 14', 'XP warning lane shrank or overlaps health'),
-            ('compact and 120 or 128', 'compact and 120 or 150', 'HUD descendant exceeds card bounds'),
+            ('compact and width-98 or 128', 'compact and width-98 or 150', 'HUD descendant exceeds card bounds'),
             ('xpText.TextScaled=true', 'xpText.TextScaled=false', 'XP warning label does not scale to fit'),
             ('xpScale.MaxTextSize=12;xpScale.MinTextSize=9', 'xpScale.MaxTextSize=10;xpScale.MinTextSize=9', 'XP warning text size constraint missing or misbounded'),
             ('xpScale.Parent=xpText', 'xpScale.Parent=hud', 'XP warning text size constraint missing or misbounded'),
-            ('academy.layoutStatusCard(touch and shortLandscape)', 'academy.layoutStatusCard(false)', 'Short touch card retained full footprint'),
+            ('academy.layoutStatusCard(touch and shortLandscape,compactDesktop and math.min(218,viewport.X-296) or nil)', 'academy.layoutStatusCard(false,compactDesktop and math.min(218,viewport.X-296) or nil)', 'Short touch card retained full footprint'),
             ('stacked and UDim2.new(1,-width-106,0,6)', 'stacked and UDim2.new(1,-width-106,1,-195)', 'Touch action clipped or undersized'),
             (' and viewport.X>=480 and viewport.Y>=150', '', 'Compact layout was forced below its supported dimensions'),
             ('stacked and UDim2.new(1,-width-106,0,6)', 'stacked and UDim2.new(1,-width-106,0,math.max(0,viewport.Y-156))', 'Stack overlaps the training guide'),
@@ -304,6 +340,9 @@ def main():
             ('UDim2.new(1,-102,0,0)', 'UDim2.new(1,-102,0,60)', 'Compact TALK has no safe target'),
             ('talkButton.Position=viewport.Y<205 and', 'talkButton.Position=splitTalkLane and', 'Compact TALK has no safe target'),
             ('academy.stackedTouchActions and (viewport.Y<205 and 44 or 84) or noticeLayout.baseTalkWidth or 120', 'academy.stackedTouchActions and (viewport.Y<205 and 40 or 84) or noticeLayout.baseTalkWidth or 120', 'Compact TALK has no safe target'),
+            ('compactDesktop and math.min(218,viewport.X-296) or nil', 'nil', 'Compact desktop wallet overlaps Beams'),
+            ('coins.TextScaled=narrow', 'coins.TextScaled=false', 'Compact desktop wallet lost its exact currency lane'),
+            ('compact and math.min(112,width-92) or 114', 'compact and 112 or 114', 'Compact desktop defender cue is clipped or overlaps health'),
             ('else testTop=math.clamp(viewport.Y-148,0,14) end', 'else testTop=14 end', 'Compact desktop Test Tools overlaps Beams'),
             ('local toolsBesideMap=not touch and NoticeLayout.DesktopTestBesideMap(viewport.X,viewport.Y,miniLayout)', 'local toolsBesideMap=false', 'Compact desktop Test Tools overlaps Beams'),
             ('stackedActions and 84 or viewport.X<432', 'stackedActions and 112 or viewport.X<432', 'Test Tools overlaps a combat control'),
