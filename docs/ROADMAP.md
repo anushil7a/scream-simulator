@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Verify quest receipts in the phone emulator
+
+- The current City build displayed the Garden receipt without overlapping actionable controls at 750 × 323 safe pixels in the iPhone 17 Pro Studio preset. At 666 × 316 safe pixels on the iPhone 7 preset, the longer Nick receipt fit at the top of the open Quests menu. Those two receipt layout probes used staged State messages.
+- On the iPhone 7 preset, three native Garden holds followed by an emulated tap on the real Claim action credited 80 coins and 130 XP. Quests stayed open and the titled receipt rendered 24.55 ms after the first observed wallet update. The emulator, local temporary profile and scripted quest travel do not cover a physical device, unassisted discovery or network timing.
+- On the 567 × 221 safe-pixel custom landscape profile, the longer receipt fit in a 473 × 44 modal lane. Closing Quests hid the inline notice and exposed a 45 × 46 Notice launcher. An emulated tap reopened Quests and exposed the same queued receipt without covering Close or the tabs. On the separate forced portrait probe at 299 × 489 safe pixels, the same receipt fit on two lines in a 271 × 44 allocation. These longer-receipt cases used staged State messages. The focused notice and priority suites passed 686 and 236 assertions plus their negative controls. The next release gate is a physical-device opening with an actual voice-eligible listener.
+
 ## Show quest reward receipts beside the wallet update
 
 - The previous Garden replay displayed the wallet update first, then the receipt 9.86 seconds later in the rapid case and 4.05 seconds later in the delayed case. Confirmed claim receipts now take priority over routine HUD notices. Urgent errors and save warnings retain higher priority. Earlier routine notices remain queued within the existing limit. Each receipt includes its quest name and the XP and coins actually credited, so equal payouts stay distinguishable.
