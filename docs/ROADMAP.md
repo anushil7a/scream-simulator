@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Show a movement cue for the first boss
+
+- In a guarded Metronome fight, the short Studio phone viewport showed **SAFE • PvP OFF** during both committed warnings while the camera looked up. The sampled floor footprints were behind the camera. Standing impacts still dealt 19 damage for Pendulum Sweep and 23 for Resonance Kick.
+- The existing nearby boss warning now displays **Leave the sweep lane** or **Avoid the kick zone** according to the committed pattern. In matched native Studio at 567 × 299 with Reduced Effects on, both fit the 190-pixel label and cleared after impact. Stationary hits repeated at 19 and 23 damage. In two separate native runs, scripted movement cleared the actual warning footprints by walking about 3.69 and 3.65 studs respectively. Both received zero damage with dodge immunity cleared. Like the other nearby boss cues, these describe the hazard's shape without designating a target.
+- The local sessions used temporary level-10 profiles, staged framing and scripted opt-in and movement. The emulator was restored and both sessions closed. One early expanded fixture run timed out waiting for a warning. A matched repeat and a separate movement run passed. Physical touch, player recognition, real voice and live-network timing remain open.
+- Independent review, 8,321 service assertions, 748 visual and 46 client warning assertions, and six focused negative controls passed. The first-boss regression failed against the old metadata as intended. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds.
+
 ## Mount the Amphitheatre display on the stage
 
 - Native pre-change inspection measured all 12 loose Equalizer bars with their bottoms at Y = 52. The matched stage camera showed the bars floating across the speaker skyline. The new stage display keeps twelve bars on a dark, 46 × 10 × 4-stud housing at the north edge of the circular stage. Teal bars and warm peaks pick up the speaker palette. The housing is the only new solid; the face and accents are cosmetic. The base inventory grows by two Parts.

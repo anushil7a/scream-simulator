@@ -115,8 +115,12 @@ do
   contexts[14].position=b.center+Vector3.new(25,3,0)
   service:Hit(b,nearest,1,now+2);service:Hit(b,distant,1,now+2);service:Step(now+2)
   check(b.strike and b.strike.kind==(close and "Melee" or "Ranged"),"melee selects a reachable contributor or falls back to ranged")
+  local warning=b.warning
+  check(warning:GetAttribute("BossAttackHint")==(close and "Avoid the kick zone" or "Leave the sweep lane"),
+   "Metronome cue must describe the committed attack after melee fallback")
   local before=#damage
   service:Step(now+2+b.spec.windup+.2)
+  check(not b.warning and warning.destroyed,"Metronome warning survived impact")
   if close then check(#damage==before+1 and damage[#damage].p==nearest and damage[#damage].push==4 and damage[#damage].amount==b.spec.meleeDamage,"only eligible melee victim gets the tuned strike and one shove") end
  end
 end
@@ -210,7 +214,8 @@ for _,spec in ipairs(Catalog.Entries) do
  service:Hit(boss,attacker,1,2002);service.nextStep=0;service:Step(2002)
  local warning=boss.warning
  local hint=warning:GetAttribute("BossAttackHint")
- local expectedHints={BellCascade="Step off the circles",OrganFlames="Step between lanes",TwinSirens="Find the center gap"}
+ local expectedHints={PendulumSweep="Leave the sweep lane",ResonanceKick="Avoid the kick zone",
+  BellCascade="Step off the circles",OrganFlames="Step between lanes",TwinSirens="Find the center gap"}
  check(hint==expectedHints[boss.strike.style],"Wrong escape instruction for the committed pattern")
  check(warning:GetAttribute("BossHintRange")== (hint and spec.radius+spec.moveLeash+1 or nil),"Escape range should include patrol reach")
  contexts[90].position=boss.center+Vector3.new(spec.radius+1,3,0)

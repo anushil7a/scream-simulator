@@ -23,6 +23,8 @@ local laneEdgeColors={
  OrganFlames=Color3.fromRGB(245,225,177),
 }
 local escapeHints={
+ PendulumSweep="Leave the sweep lane",
+ ResonanceKick="Avoid the kick zone",
  BellCascade="Step off the circles",
  OrganFlames="Step between lanes",
  TwinSirens="Find the center gap",
