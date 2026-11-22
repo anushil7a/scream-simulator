@@ -6,6 +6,9 @@ local Catalog={Places={
  {id="spawn",label="Spawn"},{id="training",label="Training"},{id="arena",label="Arena"},
  {id="gardens",label="Gardens"},{id="market",label="Market / café"},{id="coast",label="Coast"},
 }}
+if Config.CompactCity and Config.CityLayout.AmphitheatreEntrance then
+ table.insert(Catalog.Places,{id="amphitheatre",label="Amphitheatre entrance",position=Config.CityLayout.AmphitheatreEntrance})
+end
 local function eligible(q,data)
  local progress=(data.quests or {})[q.id]
  return not q.retired and (q.menuAvailable==true or (data.availableQuests or {})[q.id]==true or data.activeQuest==q.id)
@@ -30,6 +33,7 @@ function Catalog.Resolve(kind,id,data)
   end
   for index,place in ipairs(Catalog.Places) do
    if place.id==id then
+    if place.position then return target(place.position,place.label) end
     local landmark=Config.CityLayout.MapLandmarks[index]
     return landmark and target(Vector3.new(landmark.x,(landmark.y or 0)+3,landmark.z),place.label) or nil
    end

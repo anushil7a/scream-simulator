@@ -48,6 +48,7 @@ def assert_clear(name, x0, x1, z0, z1):
 assert_clear('stadium east gate', -260, -170, 108, 132)
 assert_clear('academy spawn approach', -340, -260, -274, -247)
 assert_clear('academy directory passage', -290, -282, -278, -276)
+assert_clear('Amphitheatre arrival', 108, 116, -233, -225)
 assert_clear('academy training corridor', -475, -125, -413, -387)
 assert_clear('Resonance Hall marquee centre', 107, 117, -243, -231)
 assert_clear('coastal walkway centre', -480, 480, 410, 430)
@@ -152,6 +153,11 @@ for _,p in ipairs(nodes)do
 end
 assert(count==#Data and count>600 and count<=1100,'Total finishing props outside budget')
 assert(labels==6,'Expected six world signs including training direction')
+local amphitheatreSign
+for _,n in ipairs(nodes) do
+ if n.ClassName=='TextLabel' and n.Parent.Parent.Name=='NorthMusicMarquee' then amphitheatreSign=n.Text end
+end
+assert(amphitheatreSign=='AMPHITHEATRE','City marquee disagrees with the Amphitheatre map pin')
 assert(solids==78,'Expected the authored collision parts')
 print('PASS '..count..' actual finishing props, original collision material retained, six occluded world signs')
 local Layout=(function()

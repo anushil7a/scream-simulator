@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Give the City Amphitheatre a consistent name and walking guide
+
+- Native City inspection showed **RESONANCE HALL** on the physical marquee while pin 8 said **Amphitheatre** and the Map offered no guide for that venue. The City marquee now uses **AMPHITHEATRE**. Pin 8 stays at the stage. The optional guide leads to the open approach in front of the sign, eight studs south of the posts. Resonance Hall is the separate guarded PvP prototype.
+- In the iPhone 7 landscape emulator (666 × 374 viewport), the Amphitheatre card and its 116 × 44 Guide button fit in the scrolled Map. The fixture called the same guide selection helper as the button. The live HUD changed from **Follow the markers** to **Arrived**. A scripted Humanoid walked from Academy spawn to within 1.05 studs of the destination in 26.63 seconds, through 83 walking waypoints on a 413.18-stud computed route. It did not jump or relocate. The sign's left edge was partly behind the HUD in one close view. Physical touch, unassisted wayfinding and mobile sightlines remain playtest items.
+- The sign and catalog changes use the existing City guide and leave the 1,037 finishing parts and collision roles in place. Independent review passed. The negative controls caught the old sign name and a guide that fell back to the wrong numbered pin. Full verification passed 29 pure/synthetic suites, 167 mocked-service suites, production compilation and review builds. Both disposable sessions closed and the emulator was reset.
+- The City entrance remains a walking destination. A real cross-place portal and shared profile handoff are later gates for the separate arena.
+
 ## Reduced effects keep the Conductor's warning readable
 
 - The disposable City baseline showed a strong texture halo around two crossing yellow level-100 beams with Reduced Effects enabled. Each template still drew two textured cores. In a matched Studio camera, the final version left more of the nearest Bell Cascade circle and the avatar visible. The quiet beam uses a translucent matte yellow shaft with a thin lit spine and hides imported overlays. Standard effects restored both existing detailed templates after two setting changes.

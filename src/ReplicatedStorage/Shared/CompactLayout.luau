@@ -14,6 +14,7 @@ Layout.SupportHomes={[901]={x=55,y=32,z=-190,lookX=90,lookZ=-330},[902]={x=-40,y
 Layout.Soccer={practiceGoal=V(290,1.05,341.5),center=V(310,1.2,300),origin=V(277,1.2,305.5),min=V(254,0,257.5),max=V(366,0,342.5),lost={V(252,1.2,215.5),V(214,1.2,318.5),V(345,1.2,237.5)},gates={V(300,1.2,285.5),V(315,1.2,310.5),V(295,1.2,333.5),V(338,1.2,314.5)},obstacles={V(287,1.2,295.5),V(307,1.2,296.5),V(305,1.2,323.5),V(317,1.2,326.5)},goals={V(326,1.2,305.5),V(268,1.2,273.5),V(352,1.2,272.5),V(279,1.2,331.5),V(348,1.2,330.5)}}
 Layout.Volley={center=V(80,2,340),serve=V(80,3,324),board=V(55,4,319),min=V(60,0,314),max=V(100,0,366),playerMin=V(53,0,307),playerMax=V(107,0,373),netZ=340,netMinX=60,netMaxX=100,minimumCrossingHeight=9.2,floorBallY=1.1}
 Layout.MapLandmarks={{name="1 Academy",x=-300,y=32,z=-260},{name="2 Training",x=-300,y=32,z=-400},{name="3 Stadium",x=-330,y=0,z=120},{name="4 Gardens",x=-460,y=32,z=-160},{name="5 Market",x=-40,y=16,z=120},{name="6 Coast",x=-220,y=0,z=420},{name="7 Nick pitch",x=310,y=0,z=300},{name="8 Amphitheatre",x=90,y=32,z=-330},{name="9 Volcano",x=350,y=32,z=-80},{name="10 Shrine",x=350,y=64,z=-420}}
+Layout.AmphitheatreEntrance=V(112,35,-229)
 Layout.MapRoads={{name="CoastalWalk",x=0,z=420,width=960,depth=36},{name="GardenSpine",x=-30,z=110,width=400,depth=30},{name="AcademySpine",x=-300,z=-260,width=350,depth=26},{name="GardenWest",x=-90,z=20,width=28,depth=180},{name="SportsApproach",x=300,z=240,width=30,depth=320}}
 Layout.MapRegions={
 {name="Academy",x=-290,z=-300,width=460,depth=400,color=Color3.fromRGB(205,184,140)},

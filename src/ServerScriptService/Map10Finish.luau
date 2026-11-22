@@ -20,7 +20,7 @@ local names={
  StadiumMarquee="COASTAL ARENA",
  NorthAcademyMarquee="ACADEMY PLAZA",
  NorthRookieDirection="←  ROOKIE TRAINING",
- NorthMusicMarquee="RESONANCE HALL",
+ NorthMusicMarquee="AMPHITHEATRE",
  CoastDockMarquee="TIMBER PIER",
  EastShrineMarquee="ECLIPSE SHRINE",
 }
