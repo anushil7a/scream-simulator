@@ -51,9 +51,8 @@ function Map.create(parent,compact)
  local bounds=Layout.Combat
  footprint(map,hall,"HallPvP",(bounds.minX+bounds.maxX)/2,(bounds.minZ+bounds.maxZ)/2,
   bounds.maxX-bounds.minX,bounds.maxZ-bounds.minZ,red)
- local hallEnd=Layout.Hall.z+Layout.Hall.depth/2
- local apron=Layout.Apron
- footprint(map,hall,"SafeApron",0,(apron.startZ+hallEnd)/2,apron.halfWidth*2,hallEnd-apron.startZ,slate)
+ local apron=Layout.ApronFootprint()
+ footprint(map,hall,"SafeApron",apron.x,apron.z,apron.width,apron.depth,slate)
  local desk=Layout.Desk
  footprint(map,hall,"MixingDesk",desk.x,desk.z,desk.width,desk.depth,background)
  for _,speaker in ipairs(Layout.Speakers) do

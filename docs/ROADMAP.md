@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## The Hall portal floor marks the protected arrival area
+
+- The old Hall deck began at Z=51 and was 19 studs wide. The protected apron begins at Z=50 and is 22 studs wide. The floor deck, cyan threshold and map now share the apron footprint. The markings are decorative and the arena keeps 25 solid parts.
+- In local Studio, the original knockout and return arrivals measured about 10.02 and 11.02 studs from the 10-stud portal prompt. Both now land at Z=54, about 8.02 studs from the prompt. A simulated F hold of .70 seconds took the player to the practice landing, and the return prompt brought them to Z=54. One hold made one trip. Knockout recovery still supplied protection, and the apron was safe at both arrivals.
+- Six native PvP boundary samples matched the threshold and both side edges. The geometry fixture walked all eight spawn exits and counted 181 anchored parts, with the same 25 solids. Both local builds, 11 focused checks, two negative controls, independent review and the full checks and builds passed. Studio was closed. This was local synthetic input and movement, and the portal destination is the same-file practice landing.
+
 ## Resonance Hall has a local arena map and portal status
 
 - The old combat preview opened **CITY & COAST**, drew the Timber Pier, and sent players to a Rookie trainer that the Hall does not contain. The guarded preview now draws the speaker cover, mixing desk, PvP floor, protected apron and both cyan portals. The training landing has its own map panel. The position marker switches panels on portal use and disappears between the decks.

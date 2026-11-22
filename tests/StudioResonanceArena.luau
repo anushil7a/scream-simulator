@@ -27,6 +27,25 @@ for _,item in ipairs(world:GetDescendants()) do
 end
 assert(parts<=200 and solid<=28,"The draft exceeded its simple geometry budget")
 assert(world.Hall.ArenaFloor.Size==Vector3.new(176,3,152))
+local layout=require(game.ReplicatedStorage.Shared.ResonanceLayout)
+local apron=world.Hall.TrainingPortalDeck
+local threshold=world.Hall.SafeApronThreshold
+assert(math.abs(apron.Position.Z-apron.Size.Z/2-layout.Apron.startZ)<.01 and apron.Size.X==layout.Apron.halfWidth*2)
+assert(math.abs(threshold.Position.Z-threshold.Size.Z/2-layout.Apron.startZ)<.01 and threshold.Size.X==apron.Size.X)
+local edges=0
+for _,part in ipairs(world.Hall:GetChildren()) do
+ if part.Name=="SafeApronEdge" then
+  assert(math.abs(math.abs(part.Position.X)+part.Size.X/2-layout.Apron.halfWidth)<.01)
+  assert(not part.CanCollide and not part.CanQuery and not part.CastShadow)
+  edges+=1
+ end
+end
+assert(edges==2 and not threshold.CanCollide and not threshold.CanQuery)
+local prompt=assert(world.Hall:FindFirstChild("TrainingPortal",true))
+local entry=Vector3.new(layout.HallEntry.x,3.8,layout.HallEntry.z)
+assert((entry-prompt.Parent.Position).Magnitude<prompt.MaxActivationDistance and layout.IsSafeApron(entry))
+floorAt(entry,"ArenaFloor")
+
 local cover=cast(Vector3.new(0,3.5,-25),Vector3.new(0,0,50))
 assert(cover and cover.Instance.Name=="MixingDesk","Central obstacle does not block chest-height line of sight")
 for _,side in ipairs({-1,1}) do

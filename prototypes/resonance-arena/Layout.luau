@@ -6,6 +6,7 @@ local Layout={
  Apron={halfWidth=11,startZ=50},
  Desk={x=0,z=0,width=28,depth=8},
  HallPortal={x=0,z=65},
+ HallEntry={x=0,z=54},
  PracticePortal={x=0,z=265},
  Speakers={
   {x=53,z=42,width=16,height=12,depth=7},
@@ -14,6 +15,10 @@ local Layout={
 }
 function Layout.Contains(deck,position)
  return math.abs(position.X-deck.x)<=deck.width/2 and math.abs(position.Z-deck.z)<=deck.depth/2
+end
+function Layout.ApronFootprint()
+ local startZ,endZ=Layout.Apron.startZ,Layout.Combat.maxZ
+ return {x=0,z=(startZ+endZ)/2,width=Layout.Apron.halfWidth*2,depth=endZ-startZ}
 end
 function Layout.IsSafeApron(position)
  return position.Z>=Layout.Apron.startZ and math.abs(position.X)<=Layout.Apron.halfWidth

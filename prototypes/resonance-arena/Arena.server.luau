@@ -88,9 +88,20 @@ local function speaker(parent,x,z,face,spec)
  box(parent,"SpeakerHeader",x,height-.65,front+face*.19,width-5,.26,.16,gold,false,neon)
 end
 
-local function portal(parent,name,position,title,body,action,travelTo)
+local function portal(parent,name,position,title,body,action,travelTo,apron)
  local x,y,z=position.X,position.Y,position.Z
- box(parent,name.."Deck",x,y+.03,z-3,19,.06,22,slate,false)
+ if apron then
+  box(parent,name.."Deck",apron.x,y+.035,apron.z,apron.width,.06,apron.depth,slate,false)
+  local stripe=.32
+  local front=apron.z-apron.depth/2
+  box(parent,"SafeApronThreshold",apron.x,y+.072,front+stripe/2,apron.width,.012,stripe,blue,false)
+  for _,side in ipairs({-1,1}) do
+   local edge=apron.x+side*(apron.width-stripe)/2
+   box(parent,"SafeApronEdge",edge,y+.072,apron.z+stripe/2,stripe,.012,apron.depth-stripe,blue,false)
+  end
+ else
+  box(parent,name.."Deck",x,y+.03,z-3,19,.06,22,slate,false)
+ end
  for _,side in ipairs({-1,1}) do
   box(parent,name.."Pillar",x+side*8,y+7,z,2.3,14,3,ink,true)
   box(parent,name.."VerticalLight",x+side*7,y+6,z-1.55,.45,12,.16,blue,false,neon)
@@ -196,7 +207,8 @@ for _,side in ipairs({-1,1}) do
 end
 sign(training,"ArrivalSign",-20,10,258,25,4.8,"TRAINING CITY","LOCAL PREVIEW",blue)
 portal(arena,"TrainingPortal",Vector3.new(Layout.HallPortal.x,0,Layout.HallPortal.z),"TRAINING CITY","RETURN TO PRACTICE","Return to training",
- CFrame.lookAt(Vector3.new(0,3.5,240),Vector3.new(0,3.5,263)))
+ CFrame.lookAt(Vector3.new(0,3.5,240),Vector3.new(0,3.5,263)),Layout.ApronFootprint())
+local entry=Layout.HallEntry
 portal(training,"ArenaPortal",Vector3.new(Layout.PracticePortal.x,0,Layout.PracticePortal.z),"RESONANCE HALL","RETURN TO THE ARENA","Return to arena",
- CFrame.lookAt(Vector3.new(0,3.5,51),Vector3.new(0,3.5,0)))
+ CFrame.lookAt(Vector3.new(entry.x,3.5,entry.z),Vector3.new(entry.x,3.5,0)))
 world.Parent=workspace

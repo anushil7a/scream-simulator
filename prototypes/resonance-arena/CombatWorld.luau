@@ -1,6 +1,7 @@
 -- World adapter for the disposable combat build only.
 assert(game:GetService("RunService"):IsStudio() and game.PlaceId==0 and game.GameId==0)
-local World={Bots={},SafeSpawn=CFrame.lookAt(Vector3.new(0,3.8,52),Vector3.new(0,3.8,0))}
+local entry=require(game:GetService("ReplicatedStorage").Shared.ResonanceLayout).HallEntry
+local World={Bots={},SafeSpawn=CFrame.lookAt(Vector3.new(entry.x,3.8,entry.z),Vector3.new(entry.x,3.8,0))}
 function World.Build()
  local arena=assert(workspace:WaitForChild("ResonanceArena",10),"Resonance Hall geometry did not load")
  for _,object in ipairs(arena:GetDescendants()) do
