@@ -79,9 +79,9 @@ function Service.new(parent,callbacks)
    phase(b,"Defeated")
    if b.warning then b.warning:Destroy();b.warning=nil end;b.strike=nil;b.readyAt=now+Catalog.Respawn
    for id,entry in pairs(b.credit) do
-    local player=self.callbacks.player(id);local ctx=player and self:Valid(b,player,now)
+    local player=self.callbacks.player(id);local identity=player and self.callbacks.rewardIdentity(player)
     local key=b.spec.id..":"..id
-    if ctx and Rules.Eligible(entry,ctx.identity,b.spec,now) and now>=(self.cooldowns[key] or 0) then
+    if identity and Rules.Eligible(entry,identity,b.spec,now) and now>=(self.cooldowns[key] or 0) then
      self.cooldowns[key]=now+Catalog.RewardCooldown;self.callbacks.reward(player,b.spec,math.min(1,entry.damage/b.spec.health))
     end
    end
@@ -108,8 +108,14 @@ function Service.new(parent,callbacks)
    local targets=b.targets;table.clear(targets)
    if next(b.credit)==nil and not b.strike then continue end
    for id,entry in pairs(b.credit) do
-    local p=self.callbacks.player(id);local c=p and self:Valid(b,p,now)
-    if c and c.identity==entry.identity and now-entry.at<=Catalog.CreditExpiry then table.insert(targets,{player=p,context=c}) else b.credit[id]=nil end
+    local p=self.callbacks.player(id)
+    if not p or self.callbacks.rewardIdentity(p)~=entry.identity or now-entry.at>Catalog.CreditExpiry then
+     b.credit[id]=nil
+    else
+     -- Leaving the ring or losing combat eligibility does not erase damage already dealt.
+     local c=self:Valid(b,p,now)
+     if c then table.insert(targets,{player=p,context=c}) end
+    end
    end
    if #targets==0 and b.strike then
     if b.warning then b.warning:Destroy();b.warning=nil end

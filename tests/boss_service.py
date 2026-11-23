@@ -1,6 +1,6 @@
 """Execute actual BossService with deterministic mocked Instances/players, not native physics."""
 from pathlib import Path
-import subprocess,tempfile
+import subprocess,sys,tempfile
 root=Path(__file__).resolve().parents[1]
 cat=(root/'src/ReplicatedStorage/Shared/BossCatalog.luau').read_text()
 layout=(root/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text()
@@ -34,11 +34,12 @@ end}
 tests=r'''
 local checks=0
 local function check(v,message)assert(v,message);checks+=1 end
-local users={};local contexts={};local rewards={};local damage={}
+local users={};local contexts={};local rewards={};local damage={};local rewardIdentities={}
 Catalog.Entries[1].y=32 -- exercise elevated terrain without changing production catalog
 local service=Service.new({}, {
  player=function(id)return users[id]end,
  context=function(p)return contexts[p.UserId]end,
+ rewardIdentity=function(p)return rewardIdentities[p.UserId]end,
  reward=function(p,spec,share)table.insert(rewards,{id=p.UserId,coins=math.floor(spec.coins*share),xp=math.floor(spec.xp*share)})end,
  damage=function(p,amount,now,b,strike)table.insert(damage,{p=p,amount=amount,push=strike.push,kind=strike.kind,serial=strike.serial})end,
 })
@@ -72,7 +73,8 @@ local expected={metronome=10,golem=30,ignis=50,leviathan=70,conductor=95}
 local count=0;for id,level in pairs(expected) do count+=1;check(byId[id] and byId[id].spec.level==level,"exact requested boss level: "..id) end
 check(#service.bosses==count,"exact roster")
 local function player(id,b,level)
- local p={UserId=id};users[id]=p;contexts[id]={identity={},position=b.center+Vector3.new(0,3,8),level=level or b.spec.level};return p
+ local p={UserId=id};local identity={};users[id]=p;rewardIdentities[id]=identity
+ contexts[id]={identity=identity,position=b.center+Vector3.new(0,3,8),level=level or b.spec.level};return p
 end
 for _,b in ipairs(service.bosses) do
  service.nextStep=0
@@ -165,18 +167,51 @@ service:Step(409);check(#damage==before+1 and damage[#damage].p==p,"only partici
 service:Step(412);check(b.strike~=nil,"next strike")
 contexts[3].position=b.center+Vector3.new(b.spec.radius+1,3,0)
 service:Step(414);check(#damage==before+1,"escape ring avoids damage")
-check(b.credit[3]==nil,"escape removes credit")
+check(b.credit[3]~=nil and #b.targets==0,"escape loses attack targeting but keeps earned contribution")
 service:Step(425);check(b.health==b.spec.health and b.strike==nil,"idle reset cleans warning and credit")
 check(b.model:GetAttribute("BossHealth")==b.spec.health,"idle refill replicated to bar")
 contexts[3].position=b.center+Vector3.new(17,3,0)
 service:Hit(b,p,10,427);service:Step(427)
 check(#b.strike.shapes==1,"edge pattern fixed")
-local old=contexts[3].identity;contexts[3].identity={}
+local old=contexts[3].identity;contexts[3].identity={};rewardIdentities[3]=contexts[3].identity
 service:Step(428);check(#damage==before+1 and b.credit[3]==nil,"session identity prevents stale hit")
 local e={identity=old,damage=b.spec.health,at=1}
 check(not Rules.Eligible(e,old,b.spec,22),"expired contribution cannot collect")
 check(not Rules.Eligible(e,{},b.spec,2),"reconnect cannot collect")
 check(not Rules.Eligible({identity=old,damage=1,at=1},old,b.spec,2),"AFK threshold")
+-- Match the same contribution across transient combat state and defeat timing.
+for index,mode in ipairs({"outside","protected","knocked","uncached character","disconnect","rejoin","test mode","expired"}) do
+ local now=2000+index*30
+ Rules.Reset(b,b.spec,now);b.readyAt=0;service.nextStep=0;b.turn=0
+ local id=1000+index
+ local contributor=player(id,b);local finisher=player(id+100,b)
+ local amount=math.floor(b.spec.health*.6)
+ service:Hit(b,contributor,amount,now)
+ local entry=b.credit[id]
+ if mode=="outside" then contexts[id].position=b.center+Vector3.new(b.spec.radius+1,3,0)
+ elseif mode=="disconnect" then users[id]=nil;contexts[id]=nil
+ elseif mode=="rejoin" then player(id,b)
+ elseif mode=="test mode" then contexts[id]=nil;rewardIdentities[id]=nil
+ elseif mode~="expired" then contexts[id]=nil end
+ local defeatAt=now+1
+ if mode=="expired" then
+  service:Hit(b,finisher,1,now+10);defeatAt=now+21
+ end
+ local shouldPay=index<=4
+ if mode~="uncached character" and mode~="disconnect" then
+  service:Step(defeatAt)
+  check((b.credit[id]==entry)==shouldPay,"incorrect contributor retention: "..mode)
+  check(#b.targets<=(mode=="expired" and 1 or 0),"inactive or stale participant remained a target")
+ end
+ local first=#rewards+1
+ service:Hit(b,finisher,b.spec.health,defeatAt+.01)
+ local share
+ for i=first,#rewards do if rewards[i].id==id then share=rewards[i] end end
+ check((share~=nil)==shouldPay,"incorrect contributor payout: "..mode)
+ if share then check(share.coins==math.floor(b.spec.coins*amount/b.spec.health)
+  and share.xp==math.floor(b.spec.xp*amount/b.spec.health),"earned share changed while inactive: "..mode) end
+end
+Rules.Reset(b,b.spec,0);b.readyAt=0;service.nextStep=0
 -- Every shape's true corners/circumference stay inside the public boundary.
 for _,spec in ipairs(Catalog.Entries) do
  check(spec.scale==2.8 and spec.aimHeight==14 and spec.engageHeight==12,"shared scale/range definition")
@@ -373,10 +408,38 @@ end
 check(labelWrites==beforeIdle,"strike/defeat rewrote the identity label")
 print("Boss service: "..checks.." assertions passed (mocked)")
 '''
-code=setup+'\nlocal Layout=(function()\n'+layout+'\nend)()\nlocal script={Parent={CompactLayout="CompactLayout"}}\nlocal function require(name) assert(name=="CompactLayout");return Layout end\nlocal Catalog=(function()\n'+cat+'\nend)()\nlocal Rules=(function()\n'+rules+'\nend)()\nlocal Motion=(function()\n'+motion+'\nend)()\nlocal Patterns=(function()\n'+patterns+'\nend)()\nlocal Service=(function()\nlocal Service={}'+service+'\nend)()\n'+tests
-with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=root/'tests',delete=False) as f:f.write(code);name=f.name
-try:subprocess.run(['luau',name],check=True,cwd=root)
-finally:Path(name).unlink()
+def run_service(source, expected=None):
+    code=setup+'\nlocal Layout=(function()\n'+layout+'\nend)()\nlocal script={Parent={CompactLayout="CompactLayout"}}\nlocal function require(name) assert(name=="CompactLayout");return Layout end\nlocal Catalog=(function()\n'+cat+'\nend)()\nlocal Rules=(function()\n'+rules+'\nend)()\nlocal Motion=(function()\n'+motion+'\nend)()\nlocal Patterns=(function()\n'+patterns+'\nend)()\nlocal Service=(function()\nlocal Service={}'+source+'\nend)()\n'+tests
+    with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=root/'tests',delete=False) as f:
+        f.write(code);name=f.name
+    try:
+        result=subprocess.run(['luau',name],capture_output=True,text=True,cwd=root)
+    finally:
+        Path(name).unlink()
+    if expected:
+        assert result.returncode and expected in result.stderr, result.stdout+result.stderr
+        print('PASS negative control: '+expected)
+    else:
+        print(result.stdout+result.stderr,end='')
+        assert result.returncode==0
+
+run_service(service)
+if '--negative-controls' in sys.argv:
+    for old,new,expected in (
+        ('if c then table.insert(targets,{player=p,context=c}) end',
+         'if c then table.insert(targets,{player=p,context=c}) else b.credit[id]=nil end',
+         'escape loses attack targeting but keeps earned contribution'),
+        ('local identity=player and self.callbacks.rewardIdentity(player)',
+         'local ctx=player and self:Valid(b,player,now);local identity=ctx and ctx.identity',
+         'incorrect contributor payout: outside'),
+        ('self.callbacks.rewardIdentity(p)~=entry.identity or ', '',
+         'session identity prevents stale hit'),
+        ('or now-entry.at>Catalog.CreditExpiry', '',
+         'incorrect contributor retention: expired'),
+    ):
+        assert service.count(old)==1,old
+        run_service(service.replace(old,new),expected)
+
 # Execute actual bootstrap adapter callbacks with service construction intercepted.
 server=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text()
 block=server[server.index('-- Bosses are separate'):server.index('local function stepTraining(')]
@@ -400,7 +463,7 @@ local function audible(c,origin,target,model)assert(c and origin and target and 
 local Config={CompactCity=true,HealQuietSeconds=12,MapMin=V(-30,-10,-30),MapMax=V(30,30,30),InArena=function(p)return p.arena end}
 local sessions={};local fixture=false
 local Players={GetPlayerByUserId=function(_,id)return id end}
-local function canDamageBots(s)return s~=nil and (s.testBaseline==nil or fixture)end
+local function canDamageBots(s)return s~=nil and not s.flight and (s.testBaseline==nil or fixture)end
 local function parts(p)return {},p.root,p.h end
 local rewards={coins=0,xp=0};local function coins(_,n)rewards.coins+=n;return n end;local function xp(_,n)rewards.xp+=n;return n end
 local function state()end
@@ -412,11 +475,22 @@ local p={root={Position=V(0,3,0),CFrame=CFrame.new(V(0,3,0))},h={Health=100}}
 local boss={root={Position=V(0,14,0)},model={}}
 local ranged,melee={}, {push=4}
 sessions[p]={data={level=95},rewardIdentity={},micReady=false,protectedUntil=0,dodgingUntil=0}
+local identity=sessions[p].rewardIdentity
 check(callbacks.context(p,1)~=nil,"mic toggling must not undo participation")
+check(callbacks.rewardIdentity(p)==identity,"live session cannot receive its own reward")
+sessions[p].flight=true;check(callbacks.rewardIdentity(p)==nil,"flight mode can collect")
+sessions[p].flight=nil
 sessions[p].testBaseline={};check(callbacks.context(p,1)==nil,"live test-mode isolation")
+check(callbacks.rewardIdentity(p)==nil,"test profile can collect live contribution")
 fixture=true;check(callbacks.context(p,1)~=nil,"guarded local fixture usable")
 fixture=false;sessions[p].testBaseline=nil;sessions[p].protectedUntil=10
 check(callbacks.context(p,1)==nil,"protected state admission")
+check(callbacks.rewardIdentity(p)==identity,"protection erased the reward owner")
+local root=p.root;p.root=nil
+check(callbacks.context(p,1)==nil and callbacks.rewardIdentity(p)==identity,"missing character erased the reward owner")
+p.root=root;sessions[p].knockedUntil=10
+check(callbacks.rewardIdentity(p)==identity,"knockback erased the reward owner")
+sessions[p].knockedUntil=nil
 callbacks.damage(p,20,1,boss,melee);check(p.h.Health==100,"protected players unharmed")
 sessions[p].protectedUntil=0;sessions[p].dodgingUntil=10
 callbacks.damage(p,20,1,boss,melee);check(p.h.Health==100,"dodge avoids hazard")
@@ -434,6 +508,8 @@ callbacks.damage(p,90,1,boss,melee);check(ejected==1 and shoves==1,"lethal damag
 callbacks.reward(p,{name="Boss",coins=35,xp=100},.31)
 check(rewards.coins==10 and rewards.xp==31,"fractional share rounded down")
 p.root.Position.arena=true;check(callbacks.context(p,1)==nil,"arena isolation")
+check(callbacks.rewardIdentity(p)==identity,"arena entry erased a prior reward owner")
+sessions[p]=nil;check(callbacks.rewardIdentity(p)==nil,"departed session can collect")
 print("Boss bootstrap callbacks: "..checks.." assertions passed (mocked)")
 '''
 with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=root/'tests',delete=False) as f:f.write(setup+pre+block+post);name=f.name

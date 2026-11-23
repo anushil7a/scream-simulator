@@ -1178,6 +1178,10 @@ if Config.CompactCity then
  local knockback=require(script.Parent.BossKnockback)
  bosses=require(script.Parent.BossService).new(workspace.ScreamSimulatorWorld,{
   player=function(id) return Players:GetPlayerByUserId(id) end,
+  rewardIdentity=function(p)
+   local s=sessions[p]
+   return canDamageBots(s) and s.rewardIdentity or nil
+  end,
   context=function(p,now)
    local s=sessions[p];local _,r,h=parts(p)
    if not canDamageBots(s) or not r or h.PlatformStand or Config.InArena(r.Position)
