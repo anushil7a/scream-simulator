@@ -13,7 +13,7 @@ local loadAt,activateAt={},{}
 -- PlayerRemoving can precede Parent clearing; never admit that same object again.
 local departed=setmetatable({},{__mode="k"})
 local function live(player) return player.Parent~=nil and not departed[player] end
-local allowed,changed,store
+local allowed,changed,store,shutdownDeadline
 local function database()
  if Run:IsStudio() then return end
  if not store then
@@ -23,7 +23,7 @@ local function database()
  return store
 end
 local function transact(player,transform)
- if not live(player) then return false end
+ if not live(player) or not allowed(player) then return false end
  local db=database();if not db then return false end
  local id=player.UserId
  while locks[id] do
@@ -35,18 +35,21 @@ local function transact(player,transform)
  locks[id]=true
  local success,result
  for attempt=1,3 do
+  if shutdownDeadline and os.clock()>=shutdownDeadline then break end
   success,result=pcall(function() return db:UpdateAsync("Player_"..id,transform) end)
-  if success then break end
-  task.wait(attempt)
+  if success or attempt==3 then break end
+  local delay=shutdownDeadline and math.min(attempt,shutdownDeadline-os.clock()) or attempt
+  if delay<=0 then break end
+  task.wait(delay)
  end
  if success and result then
-  if live(player) then cache[player]=Ledger.Normalize(result) end
+  if live(player) and not shutdownDeadline then cache[player]=Ledger.Normalize(result) end
  elseif not success then cache[player]=nil end -- never grant from an ambiguous write
  locks[id]=nil
  return success and result~=nil
 end
 function Commerce.Load(player)
- if not live(player) or not database() or not allowed(player) then return end
+ if not live(player) or not allowed(player) or not database() then return end
  if os.clock()<(loadAt[player] or 0) or locks[player.UserId] then return end
  loadAt[player]=os.clock()+15
  local ok=transact(player,Ledger.Normalize)
@@ -54,10 +57,12 @@ function Commerce.Load(player)
 end
 function Commerce.Status(player)
  local d=live(player) and cache[player] or nil
- return {ready=d~=nil and allowed(player),inventory=d and d.inventory or {xp=0,coins=0},ends=d and d.ends or {xp=0,coins=0},serverNow=os.time()}
+ return {ready=d~=nil and allowed(player),inventory=d and d.inventory or {xp=0,coins=0},ends=d and d.ends or {xp=0,coins=0}}
 end
 function Commerce.Multiplier(player,kind) return Ledger.Multiplier(live(player) and cache[player] or nil,kind,os.time()) end
 function Commerce.Busy(player) return locks[player.UserId]==true end
+function Commerce.BeginShutdown(deadline) shutdownDeadline=deadline end
+function Commerce.HasTransactions() return next(locks)~=nil end
 function Commerce.Activate(player,kind)
  if not live(player) or (kind~="xp" and kind~="coins") or not allowed(player) or not cache[player] then return end
  if os.clock()<(activateAt[player] or 0) or locks[player.UserId] then return end
@@ -73,18 +78,28 @@ function Commerce.Prompt(player,key)
  if not live(player) then return end
  local item=Catalog.Get(key)
  if not item or Run:IsStudio() or not allowed(player) then changed(player,"Purchases are unavailable in this session.",nil,true);return end
- local id=item.key=="Movement" and Config.MovementPassId or item.id
- if type(id)~="number" or id<=0 then changed(player,"This unlock is coming soon.",nil,true);return end
+ local id=Catalog.OfferId(item,Config.MovementPassId)
+ if not id then changed(player,"This unlock is coming soon.",nil,true);return end
  if os.clock()<(promptAt[player] or 0) then return end
  promptAt[player]=os.clock()+3
  if item.kind=="product" and not cache[player] then changed(player,"Loading your purchases. Please try again.",nil,true);task.spawn(Commerce.Load,player);return end
  if item.kind=="product" then
   local count=0;for _ in pairs(cache[player].receipts) do count+=1 end
-  if Catalog.Product(id)~=item or count>=Ledger.ReceiptLimit or math.max(os.time(),cache[player].ends[item.boost])>Ledger.MaxExpiry-Ledger.Duration then
+  if count>=Ledger.ReceiptLimit or math.max(os.time(),cache[player].ends[item.boost])>Ledger.MaxExpiry-Ledger.Duration then
    changed(player,"This purchase is currently unavailable.",nil,true);return
   end
  end
- if item.key=="Spectrum" and Entitlements.HasSpectrum(player) or item.key=="Movement" and Entitlements.HasMovement(player) then return end
+ if item.key=="Spectrum" and Entitlements.HasSpectrum(player)
+  or item.key=="Movement" and Entitlements.HasMovement(player)
+  or item.key=="Encore" and Entitlements.HasEncore(player)
+  or item.key=="Afterimage" and Entitlements.HasAfterimage(player)
+  or item.key=="CityGlow" and Entitlements.HasCityGlow(player)
+  or item.key=="SignalDeck" and Entitlements.HasSignalDeck(player)
+  or item.key=="CityCrest" and Entitlements.HasCityCrest(player)
+  or item.key=="PulseFrame" and Entitlements.HasPulseFrame(player)
+  or item.key=="RouteLights" and Entitlements.HasRouteLights(player)
+  or item.key=="HarborBadge" and Entitlements.HasHarborBadge(player)
+  or item.key=="SprintRibbon" and Entitlements.HasSprintRibbon(player) then return end
  local ok=pcall(function()
   if item.kind=="pass" then Marketplace:PromptGamePassPurchase(player,id)
   else Marketplace:PromptProductPurchase(player,id) end
@@ -93,7 +108,10 @@ function Commerce.Prompt(player,key)
 end
 function Commerce.Start(canPurchase,onChanged)
  assert(not allowed,"Commerce already started")
- allowed=canPurchase;changed=onChanged
+ allowed=function(player) return not shutdownDeadline and canPurchase(player) end
+ changed=function(...)
+  if not shutdownDeadline then onChanged(...) end
+ end
  Marketplace.ProcessReceipt=function(receipt)
   local item=Catalog.Product(receipt.ProductId)
   local player=Players:GetPlayerByUserId(receipt.PlayerId)

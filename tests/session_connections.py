@@ -10,7 +10,8 @@ def read(baseline=False):
 def build(baseline=False,mutation=None):
  b=read(baseline)
  if mutation:b=mutation(b)
- joined=b[b.index('local function joined(p)'):b.index('local function joinTracked(p)')]
+ start='local function arrivedFromAnotherPlace(p)' if 'local function arrivedFromAnotherPlace(p)' in b else 'local function joined(p)'
+ joined=b[b.index(start):b.index('local function joinTracked(p)')]
  leaving=b[b.index('local function leaving(p)'):b.index('Players.PlayerRemoving:Connect(',b.index('local function leaving(p)'))]
  shutdown=b[b.index('local function shutdown()'):b.index('game:BindToClose(shutdown)')]
  helper=''
@@ -18,7 +19,7 @@ def build(baseline=False,mutation=None):
  return SETUP+helper+joined+leaving+shutdown+(BASELINE if baseline else CHECKS)
 SETUP=r"""
 local now=0;local os={clock=function()return now end};local closing=false;local joinsInFlight=0;local departuresInFlight=0
-local sessions={};local localFixture=false;local sustainedEnabled=false;local stateCalls=0;local cancels=0;local protects=0
+local game={GameId=0};local sessions={};local localFixture=false;local sustainedEnabled=false;local stateCalls=0;local cancels=0;local protects=0
 local saveHook;local saves=0;local workers={};local disconnects=0
 local task={spawn=function(f,...)
  local co=coroutine.create(f);local ok,err=coroutine.resume(co,...);assert(ok,err)
@@ -27,12 +28,13 @@ end,wait=function(t)coroutine.yield(t)end}
 local Profiles={Default=function()return {level=1}end,Load=function()return {level=1},true end,Save=function(...)
  saves+=1;if saveHook then saveHook(...)end;return true
 end}
-local Entitlements={Refresh=function()end};local Commerce={Load=function()end}
+local Entitlements={Refresh=function()end};local Commerce={Load=function()end,BeginShutdown=function()end,HasTransactions=function()return false end}
 local VoiceCombat={New=function()return {}end,Cancel=function(v)v.capture=nil end}
 local VoiceEligibility={New=function()return {}end}
 local Config={HealQuietSeconds=12,SprintDuration=4,HealthForLevel=function()return 100 end}
 local function state()stateCalls+=1 end
 local function closeConversation()end
+local function toolAuthorized()return false end
 local function cancelSustained()cancels+=1 end
 local function protect()protects+=1 end
 local function stepVoiceEligibility()end;local function dispatchVoiceEligibility()end
@@ -136,7 +138,7 @@ if __name__=='__main__':
  if r.returncode:sys.exit(r.returncode)
  if '--negative-controls' in sys.argv:
   for name,mutation,expected in [
-   ('leave cleanup',lambda b:b.replace(' disconnectSessionSignals(s)\n cancelSustained',' -- removed cleanup\n cancelSustained',1),'Leave save yielded with retained'),
+   ('leave cleanup',lambda b:b[:b.index('local function leaving(p)')]+b[b.index('local function leaving(p)'):].replace('disconnectSessionSignals(s)','',1),'Leave save yielded with retained'),
    ('CharacterAdded disconnect',lambda b:b.replace('added:Disconnect()','do end',1),'Leave save yielded with retained'),
    ('CharacterRemoving disconnect',lambda b:b.replace('removing:Disconnect()','do end',1),'Leave save yielded with retained'),
    ('post-yield spawn fence',lambda b:b.replace(' or sessions[p]~=s or p.Character~=c or s.character==c',' or s.character==c',1),'Stale callback changed replacement'),

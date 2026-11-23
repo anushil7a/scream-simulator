@@ -25,12 +25,15 @@ local Enum={PartType={Cylinder="Cylinder"},Material={Neon="Neon"}}
 local Color3={fromRGB=function(...)return {...} end}
 local transform={__mul=function(a)return a end}
 local CFrame={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},transform) end,Angles=function()return {}end}
-local workspace={}
+local workspace={GetServerTimeNow=function()return 20 end}
+local TrainingRules={Windup=1.1,StrikeRadius=4}
+local now=0
 local function train(ground)
  local r={Position={X=5,Y=(ground or 0)+3,Z=-8}}
- local bot={training={y=ground}}
+ local bot={trainingSurfaceY=(ground or 0)+.26}
+ local c={SetAttribute=function()end}
 '''+bootstrap[a:b]+r'''
- assert(seen.CFrame.Y==(ground or 0)+1.4 and seen.CFrame.X==5 and seen.CFrame.Z==-8,'Dodge warning is buried or misplaced')
+ assert(math.abs(seen.CFrame.Y-(ground or 0)-.33)<.0001 and seen.CFrame.X==5 and seen.CFrame.Z==-8,'Dodge warning is buried or misplaced')
  assert(seen.CanCollide==false and seen.CanTouch==false and seen.CanQuery==false,'Training warning interferes with gameplay')
 end
 train(nil);train(16);train(32);train(64)

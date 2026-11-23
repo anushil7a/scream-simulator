@@ -1,4 +1,3 @@
-local DataStoreService = game:GetService("DataStoreService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Config = require(ReplicatedStorage.Shared.Config)
 
@@ -17,6 +16,11 @@ local RECOVERY_NOTICE="Loaded the last confirmed save. Recent progress may be mi
 local Profiles = {}
 local store
 local storeReady, storeResult = pcall(function()
+    -- A detached local playtest always starts with temporary progress.
+    if RunService:IsStudio() and game.GameId == 0 and game.PlaceId == 0 then
+        return nil
+    end
+    local DataStoreService = game:GetService("DataStoreService")
     return DataStoreService:GetDataStore(RunService:IsStudio() and "ScreamSimulator_Studio_v2" or "ScreamSimulator_v1")
 end)
 if storeReady then
@@ -67,11 +71,12 @@ function Profiles.Sanitize(raw)
     if sound then data.sound=(sound.level<=data.level and sound or Config.SoundForLevel(data.level)).id end
     if type(raw.customColor)=="string" and #raw.customColor==6 and raw.customColor:match("^%x+$") then data.customColor=raw.customColor:upper();data.useCustomColor=raw.useCustomColor==true end
     if type(raw.aura)=="string" and Config.Auras[raw.aura] then data.aura=raw.aura end
+    local questCatalog=Config.ProfileQuestCatalog or Config.Quests
     if type(raw.availableQuests)=="table" then
-        for _,q in ipairs(Config.Quests) do if raw.availableQuests[q.id]==true then data.availableQuests[q.id]=true end end
+        for _,q in ipairs(questCatalog) do if raw.availableQuests[q.id]==true then data.availableQuests[q.id]=true end end
     end
     if type(raw.quests)=="table" then
-        for _,q in ipairs(Config.Quests) do
+        for _,q in ipairs(questCatalog) do
             local old=raw.quests[q.id]
             if type(old)=="table" then data.availableQuests[q.id]=true;data.quests[q.id]={progress=wholeNumber(old.progress,0,0,q.goal),claimed=old.claimed==true} end
         end
@@ -93,7 +98,7 @@ end
 -- Callback retries must recheck the current record, not a cached ownership flag.
 local function commit(userId,session,operation,deadline)
     for attempt=1,3 do
-        if deadline and os.clock()>=deadline then break end
+        if deadline and os.clock()>=deadline then return false,"deadline" end
         local success,result=pcall(function()
             return store:UpdateAsync("Player_"..userId,function(raw)
                 local saved=type(raw)=="table" and raw._save
@@ -113,7 +118,9 @@ local function commit(userId,session,operation,deadline)
         end
         warn("ScreamSimulator profile save failed",userId,attempt)
         if deadline then
-            if attempt<3 then task.wait(math.max(0,math.min(attempt,deadline-os.clock()))) end
+            local remaining=deadline-os.clock()
+            if remaining<=0 then return false,"deadline" end
+            if attempt<3 then task.wait(math.min(attempt,remaining)) end
         else task.wait(attempt) end
     end
     return false,"retry"
@@ -127,9 +134,11 @@ local function usableAcquisition(record,token)
     return type(expires)=="number" and expires<math.huge and expires-os.time()>=MIN_ADMISSION_LIFETIME
 end
 
-function Profiles.Load(userId)
+function Profiles.Load(userId, fromOtherPlace)
     if not store then return Profiles.Default(),false,"Saving is unavailable. This session uses temporary progress." end
-    while locks[userId] do task.wait(.05) end
+    while locks[userId] or (owned[userId] and owned[userId].releasing) do
+        task.wait(.05)
+    end
     local previous=owned[userId]
     if previous and not previous.pending then
         return Profiles.Default(),false,"Your previous session is still saving. Rejoin shortly."
@@ -158,14 +167,19 @@ function Profiles.Load(userId)
     local token=admission.token
     local observed,hadLease
     for attempt=1,3 do
+        local contended=false
         local success,result=pcall(function()
             return store:UpdateAsync("Player_"..userId,function(raw)
+                contended=false
                 observed=type(raw)=="table" and Profiles.Sanitize(raw) or nil
                 hadLease=type(raw)=="table" and type(raw._lease)=="table" and not Lease.Owns(raw,owner,token)
                 if not Lease.CanAcquire(raw,owner,os.time(),token) then
                     -- A terminal local release has finished its bounded retry.
                     -- Only its exact token may be replaced before expiry.
-                    if not (admission.terminalToken and Lease.Owns(raw,owner,admission.terminalToken)) then return nil end
+                    if not (admission.terminalToken and Lease.Owns(raw,owner,admission.terminalToken)) then
+                        contended=true
+                        return nil
+                    end
                 end
                 if Lease.Owns(raw,owner,token) then
                     if usableAcquisition(raw,token) then return raw end
@@ -194,7 +208,7 @@ function Profiles.Load(userId)
                 -- the next bounded attempt; no writable handle exists yet.
                 observed=Profiles.Sanitize(result)
                 warn("ScreamSimulator profile acquisition lifetime too short",userId,attempt)
-            else
+            elseif fromOtherPlace~=true or not contended or attempt==3 then
                 admissions[userId]=nil;locks[userId]=nil
                 return observed or confirmed or Profiles.Default(),false,
                     RECOVERY_NOTICE.." Another session owns this profile; progress here is temporary. Rejoin shortly.",true
@@ -202,6 +216,8 @@ function Profiles.Load(userId)
         else
             warn("ScreamSimulator profile load failed",userId,attempt)
         end
+        -- A place arrival can reach this server before the source has released
+        -- its lease. The existing retry budget still revalidates each attempt.
         -- A callback may have read a durable checkpoint before the write or
         -- response failed. It is safe to display, never to grant ownership.
         confirmed=observed or confirmed
@@ -214,16 +230,27 @@ function Profiles.Load(userId)
         (confirmed and RECOVERY_NOTICE.." " or "Could not confirm a saved profile. ").."Saving is unavailable; progress here is temporary.",confirmed~=nil
 end
 
-function Profiles.Save(userId,data,release)
+function Profiles.Save(userId,data,release,deadline)
     if not store then return false,"unavailable" end
     local session=owned[userId]
     if not session or bindings[data]~=session then return false,"ownership" end
-    while locks[userId] do task.wait(.05) end
-    if owned[userId]~=session or session.pending then return false,"ownership" end
+    if release then
+        if session.releasing or session.pending then return false,"ownership" end
+        -- Reserve the handoff before waiting, regardless of which waiter wakes first.
+        session.releasing=true
+    end
+    while locks[userId] do
+        local remaining=deadline and deadline-os.clock()
+        if remaining and remaining<=0 then break end
+        task.wait(remaining and math.min(.05,remaining) or .05)
+    end
+    if release then session.releasing=nil end
+    if deadline and os.clock()>=deadline then return false,"deadline" end
+    if owned[userId]~=session or session.pending or session.releasing then return false,"ownership" end
     locks[userId]=true
     session.revision+=1
     local operation={snapshot=Profiles.Sanitize(data),release=release==true,revision=session.revision}
-    local ok,reason=commit(userId,session,operation)
+    local ok,reason=commit(userId,session,operation,deadline)
     if release and not ok then
         -- Keep only one frozen final snapshot. Caller tables may change later.
         session.pending=operation

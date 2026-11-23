@@ -97,6 +97,56 @@ for id,move in pairs(moves) do
  local early=attack(move[2],2)
  check(same(get('body',100.3,'Windup',.3,early),get('body',100.3,'Recovery',0,early)),id..' early canceled cast jumps through full tell')
 end
+-- The existing leg translations and body lean must keep a real joint seam.
+for id,shape in pairs({
+ metronome={waist='ClockworkWaist',torso='ClockCase',stride=.79},
+ golem={waist='StoneWaist',torso='StoneChest',stride=1.06},
+}) do
+ local waist,torso
+ local greaves={}
+ for _,entry in ipairs(Data[id]) do
+  if entry.name==shape.waist then waist=entry
+  elseif entry.name==shape.torso then torso=entry
+  elseif entry.name=='Greave' then table.insert(greaves,entry) end
+ end
+ check(waist and waist.kind=='Block' and torso and #greaves==2,'Missing one-part waist joint for '..id)
+ local x,y,z=table.unpack(waist.position)
+ local sx,sy,sz=table.unpack(waist.size)
+ check(y+sy/2>torso.vertices[1][2] and Motion.Group(id,waist.name,x,y)=='body','Waist is detached from torso for '..id)
+ local function checkSeam(now,state,age,cast)
+  local body=Motion.Pose(id,'body',now,state,age,1,false,cast)
+  for _,entry in ipairs(greaves) do
+   local left=entry.vertices[9][1]<0
+   local leg=Motion.Pose(id,left and 'legL' or 'legR',now,state,age,1,false,cast)
+   local joined=false
+   for row=9,12 do
+    local vx,vy,vz=table.unpack(entry.vertices[row])
+    local cap=body:ToObjectSpace(leg*CFrame.new(vx,vy,vz)).Position
+    if math.abs(cap.X-x)<sx/2 and math.abs(cap.Y-y)<sy/2 and math.abs(cap.Z-z)<sz/2 then joined=true end
+   end
+   check(joined,'Animated leg cleared the waist: '..id..' '..state)
+  end
+ end
+ checkSeam(0,'Idle',0)
+ for frame=0,40 do local t=shape.stride*frame/40;checkSeam(t,'Moving',t) end
+ for attackIndex=1,2 do
+  local cast={style=moves[id][attackIndex],serial=3,startAt=100,attackAt=102,impactAt=102,impactSerial=3,recovery=.66}
+  for frame=0,20 do
+   local age=frame*.1;checkSeam(100+age,'Windup',age,cast)
+  end
+  for frame=0,20 do
+   local age=frame*.033;checkSeam(102+age,'Recovery',age,cast)
+  end
+ end
+end
+local shoulderItems={'ShoulderArmor','ShoulderInset','ShoulderMusicStaff','StaffLine','ShoulderNote','OrganPipe','PipeMouth','FlameCore'}
+for _,name in ipairs(shoulderItems) do
+ check(Motion.Group('ignis',name,-1.55)=='armL' and Motion.Group('ignis',name,1.55)=='armR',
+  'Ignis shoulder detail is detached: '..name)
+end
+check(Motion.Group('ignis','AzureFlame',-1.9)=='armL' and Motion.Group('ignis','AzureFlame',1.9)=='armR'
+ and Motion.Group('ignis','AzureFlame',.15)=='flame' and Motion.Group('ignis','HelmFlameCore',.1)=='flame',
+ 'Ignis pipe flames must track the shoulders independently of the helm')
 local visualScale=2.8 -- current production candidate, double the previous 1.4
 for id in pairs(Data)do
  local center=v(20,64,-30);local m=model(center);created={}
@@ -197,8 +247,8 @@ saved=false;Gui.ReducedMotionEnabled=true;check(comfort(),'OS reduced ignored')
 Gui=setmetatable({},{__index=function()error('unavailable')end});check(comfort(),'OS failure not quiet')
 print('PASS persisted game/OS comfort handoff')
 """
-def run(m=motion,c=controller,expected=None):
- code=pre+'\nlocal Data=(function()\n'+data+'\nend)()\nlocal Appearance=(function()\nlocal Appearance='+render+'\nend)()\nlocal Motion=(function()\n'+m+'\nend)()\nlocal Controller=(function()\n'+c+'\nend)()\n'+checks
+def run(m=motion,c=controller,d=data,expected=None):
+ code=pre+'\nlocal Data=(function()\n'+d+'\nend)()\nlocal Appearance=(function()\nlocal Appearance='+render+'\nend)()\nlocal Motion=(function()\n'+m+'\nend)()\nlocal Controller=(function()\n'+c+'\nend)()\n'+checks
  with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False)as f:f.write(code);p=Path(f.name)
  try:result=subprocess.run(['luau',str(p)],capture_output=True,text=True)
  finally:p.unlink()
@@ -211,3 +261,8 @@ run(m=motion.replace('if reduced or state=="Defeated" or not actor then','if sta
 run(m=motion.replace('math.max(0,step)*lift','step*lift'),expected='walking foot sank')
 run(m=motion.replace('attack.serial==attack.impactSerial','true'),expected='stale impact replayed')
 run(c=controller.replace('(candidate.home or candidate.center)','candidate.center'),expected='LOD follows moving core')
+
+run(d=data.replace('["name"]="ClockworkWaist"','["name"]="MissingWaist"'),expected='Missing one-part waist joint for metronome')
+run(d=data.replace('["size"]={2.56,1.06,1.66}','["size"]={2.56,0.3,1.66}'),expected='Waist is detached from torso for metronome')
+run(m=motion.replace('ShoulderMusicStaff=true,',''),expected='Ignis shoulder detail is detached: ShoulderMusicStaff')
+run(m=motion.replace('math.abs(x)>1','math.abs(x)>2'),expected='Ignis pipe flames must track the shoulders independently of the helm')

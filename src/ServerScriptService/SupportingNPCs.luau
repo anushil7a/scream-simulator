@@ -18,7 +18,7 @@ NPCs.Roster={
   "If a fight gets too much, step away and reset. You can practice dodging with the arena coach first."}},
  {index=904,name="Archivist Lyra",role="Local",x=-290,z=65,lookX=-270,lookZ=65,concept="NPC-09",shirt={30,112,117},hair={163,184,202},kind="archivist",action="Cataloguing resonance notes",lines={
   "The training pads are north of here. Start with the lowest recommendation and learn the red strike warning.",
-  "Your scream styles unlock as you level. Check the style menu when you reach each ten-level milestone.",
+  "New beams unlock as you level. Check Beams when you reach each ten-level milestone.",
   "Open the full Map for all five boss rings and their required levels. Step into a ring and land a beam when you want to join."}},
 }
 local map10Directions={

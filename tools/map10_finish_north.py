@@ -44,7 +44,6 @@ def add(box, disk, line):
             b(f'Pavilion{i}FriezeX{side}', [x + side * width * .40, 57, z], [1.4, 2, width * .88], ivory)
         ridge_y = 66 + math.sin(math.radians(22)) * width * .295
         b(f'Pavilion{i}Ridge', [x, ridge_y + .45, z], [2.0, 1.1, width + 12], deep_teal)
-        b(f'Pavilion{i}Entablature', [x, 59.6, z + width * .50 + 2], [width + 6, .7, 1], brass)
         # An acoustic crest suspended on the existing front frieze.
         b(f'Pavilion{i}Crest', [x, 56.9, z + width * .40 + .85], [5, 3.2, .22], deep_teal)
         b(f'Pavilion{i}CrestInlay', [x, 56.9, z + width * .40 + 1], [.7, 2.5, .10], brass)
@@ -66,12 +65,55 @@ def add(box, disk, line):
         rail(f'FountainPavingSpoke{i}', [-300 + math.sin(a)*32, 32.19, -300 + math.cos(a)*32],
              [-300 + math.sin(a)*37, 32.19, -300 + math.cos(a)*37], .7, .10, brass)
 
+    # The first route passes inside the west court, clear of the planter and boss.
+    route = [(-320, -268), (-360, -294), (-399, -332), (-420, -368), (-420, -384)]
+    for index, ((ax, az), (bx, bz)) in enumerate(zip(route, route[1:])):
+        length = math.hypot(bx - ax, bz - az)
+        dx, dz = (bx - ax) / length, (bz - az) / length
+        lx, lz = -dz, dx
+
+        def point(along, across, y):
+            return [ax + along * dx + across * lx, y, az + along * dz + across * lz]
+
+        # Clear the angled stone and edge at the turn into the pad.
+        start = 2 if index == len(route) - 2 else 1
+        end = length - 1
+        rail(f'RookiePathStone{index}', point(start, 0, 32.26),
+             point(end, 0, 32.26), 9, .05, [211, 200, 171])
+        for side in (-1, 1):
+            rail(f'RookiePathEdge{index}_{side}', point(start, side * 4, 32.30),
+                 point(end, side * 4, 32.30), .50, .03, deep_teal)
+            rail(f'RookiePathArrow{index}_{side}', point(length / 2 - 1.3, side * 1.8, 32.32),
+                 point(length / 2 + 1.3, 0, 32.32), .48, .035, brass)
+
+    # Slate inlays on the far edge stay visible when the approach billboard is behind the camera.
+    # Offset them from the approach centerline so the avatar does not hide the names.
+    for tier, x, accent in (
+        ('Rookie', -420, (111, 196, 180)),
+        ('Brawler', -300, (219, 120, 94)),
+        ('Elite', -180, (240, 192, 89)),
+    ):
+        name = f'TrainingInlay{tier}'
+        label_x = x + 10.5
+        # Top SurfaceGui reads along local Z. South approach needs -90° yaw.
+        b(name, [label_x, 32.28, -420.8], [5.4, .04, 18], slate, rot=[0, -90, 0], material='Slate')
+        for side in (-1, 1):
+            b(f'{name}Trim{side}', [label_x + side * 9.23, 32.28, -420.8],
+              [.38, .04, 5.4], accent, material='SmoothPlastic')
+
     # Asymmetric courtyard planting, deliberately outside paths, trainers and boss ring.
     for i, (x, z, scale) in enumerate([(-500,-235,1),(-135,-350,.85),(-365,-330,.8),(-235,-330,.8)]):
+        soil_y, soil_depth = 34.05, .2
+        soil_top = soil_y + soil_depth/2
         b(f'CourtPlanter{i}', [x, 33, z], [13, 2, 13], limestone, material='Marble')
-        b(f'CourtSoil{i}', [x, 34.05, z], [11.3, .2, 11.3], [98, 82, 60])
-        b(f'CourtShrub{i}A', [x-2, 37, z], [9*scale, 6*scale, 9*scale], leaf, shape='Ball')
-        b(f'CourtShrub{i}B', [x+2, 39, z+1], [7*scale, 8*scale, 7*scale], leaf_light, shape='Ball')
+        b(f'CourtSoil{i}', [x, soil_y, z], [11.3, soil_depth, 11.3], [98, 82, 60])
+        for lobe, dx, dz, dimensions, color in (
+            ('A', -1.55, -.55, (8.8, 7.6, 8.3), leaf),
+            ('B', 1.9, 1.35, (7.2, 6.6, 6.8), leaf_light),
+        ):
+            size = [dimension*scale for dimension in dimensions]
+            center_y = soil_top + size[1]/2 - .48
+            b(f'CourtShrub{i}{lobe}', [x+dx, center_y, z+dz], size, color, shape='Ball')
         b(f'CourtPlanterInlay{i}', [x, 33.4, z+6.55], [9, .35, .10], brass)
 
     # Market: canopies retain their original silhouette, now with canvas stripes,
@@ -109,7 +151,7 @@ def add(box, disk, line):
                   rot=[0,90,0],material='Metal' if k==0 else 'SmoothPlastic',shape='Cylinder')
         for side in (-1,1):
             b(f'Audio{i}Corner{side}',[x+side*12.7,64,z+9.4],[.8,60,.5],violet)
-    for i in range(1,8):
+    for i in (1, 2, 3, 4, 5, 7):
         a = i * math.pi/4
         x,z=90+math.sin(a)*126,-330+math.cos(a)*126
         b(f'MusicFacade{i}',[x,38,z],[64,10,1.0],plum,rot=[0,math.degrees(a),0])

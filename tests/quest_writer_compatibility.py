@@ -179,8 +179,47 @@ def main():
     ok,output=probe_writer(old_config,(PIN/'Profiles.luau').read_text(),(PIN/'ProfileLease.luau').read_text())
     assert not ok and 'Writer altered quest' in output and 'at writer load' in output,output
     print('PASS historical writer lifecycle probe rejects claim/progress loss')
+    review_builder=(ROOT/'tests/build_sustained_review.py').read_text()
+    hall_catalog='\n'.join(line for line in review_builder.splitlines()
+                           if line.startswith(('Config.ProfileQuestCatalog=', 'Config.Quests=')))
+    quest_lookup, = (line for line in current_config.splitlines() if line.startswith('function Config.GetQuest('))
+    hall_checks=r"""
+assert(#probeConfig.Quests==0 and probeConfig.GetQuest("garden")==nil,"Hall offered a City quest")
+local seed=P.Default();seed.coins=177;seed.level=20;seed.xp=7
+local partial,completed,claimed,sprint="garden","beach","arena_assist","sprint"
+local states={partial,completed,claimed,sprint}
+for _,id in ipairs(states) do seed.availableQuests[id]=true end
+local goal=Config.GetQuest(completed).goal
+seed.quests[partial]={progress=1,claimed=false}
+seed.quests[completed]={progress=goal,claimed=false}
+seed.quests[claimed]={progress=1,claimed=true}
+local function verify(profile)
+ for _,id in ipairs(states) do
+  assert(profile.availableQuests[id]==true,"Hall lost City quest discovery: "..id)
+ end
+ local quests=profile.quests
+ assert(quests[partial] and quests[partial].progress==1 and not quests[partial].claimed,"Hall changed partial City progress")
+ assert(quests[completed] and quests[completed].progress==goal and not quests[completed].claimed,"Hall changed an unclaimed City reward")
+ assert(quests[claimed] and quests[claimed].progress==1 and quests[claimed].claimed,"Hall changed a claimed City reward")
+ assert(quests[sprint]==nil,"Hall started a discovery-only City quest")
+ assert(profile.coins==177 and profile.level==20 and profile.xp==7,"Hall changed unrelated economy")
+end
+durable=seed;now+=10;clock+=10
+local hall,allowed=probe.Load(7);assert(allowed,"Hall simulation did not acquire its fake lease")
+verify(hall);verify(durable)
+assert(probe.Save(7,hall,true),"Hall simulation did not release its fake lease");verify(durable)
+local reloaded,writable=loadProfiles().Load(7);assert(writable,"City simulation did not reacquire its fake lease")
+verify(reloaded);verify(durable)
+print("PASS Hall round trip preserves four City quest states and economy while the active Hall quest catalog stays empty")
+"""
+    def hall_probe(catalog):
+        return fixture.run(writer_probe_source(current_profiles,current_lease,catalog+'\n'+quest_lookup)+hall_checks)
+    result=hall_probe(hall_catalog);print(result.stdout+result.stderr,end='');assert result.returncode==0
     if args.negative_controls:
-        availability='for _,q in ipairs(Config.Quests) do if raw.availableQuests[q.id]==true then data.availableQuests[q.id]=true end end'
+        removed=hall_probe('Config.Quests={}')
+        assert removed.returncode and 'Hall lost City quest discovery' in removed.stderr,removed.stdout+removed.stderr
+        print('PASS negative control: missing Hall profile catalog erased City quest state')
+        availability='for _,q in ipairs(questCatalog) do if raw.availableQuests[q.id]==true then data.availableQuests[q.id]=true end end'
         assert current_profiles.count(availability)==1
         changed=current_profiles.replace(availability,'-- intentionally omit discovered-only preservation')
         ok,output=probe_writer(current_config,changed,current_lease)
@@ -197,7 +236,7 @@ def main():
         ok,output=probe_writer(current_config,destructive,current_lease)
         assert not ok and 'Writer altered quest' in output,output
         print('PASS negative control: in_place_raw_mutation')
-        hanging=current_profiles.replace('function Profiles.Load(userId)','function Profiles.Load(userId) while true do end')
+        hanging=current_profiles.replace('function Profiles.Load(userId, fromOtherPlace)','function Profiles.Load(userId, fromOtherPlace) while true do end')
         assert hanging!=current_profiles
         ok,output=probe_writer(current_config,hanging,current_lease,timeout=.2)
         assert not ok and 'timeout' in output,output

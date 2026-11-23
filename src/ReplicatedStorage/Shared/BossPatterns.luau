@@ -61,7 +61,7 @@ function Patterns.Build(id,turn,x,z,radius,leash)
    name="Baton sweep · step back or aside";style="BatonSweep";push=6
    shapes={forward(7,15,7)}
   else
-   name="Six-bell cascade · stand in a gap";style="BellCascade"
+   name="Step off the circles";style="BellCascade"
    for i=1,6 do local t=i*math.pi/3+((turn-1)/2%2)*math.pi/6;table.insert(shapes,disk(math.sin(t)*(room-4.5),math.cos(t)*(room-4.5),4.5)) end
   end
  end

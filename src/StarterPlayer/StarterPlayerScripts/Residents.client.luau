@@ -55,6 +55,7 @@ table.insert(connections,Collection:GetInstanceRemovedSignal("CityResident"):Con
 for _,model in ipairs(Collection:GetTagged("CityResident")) do register(model) end
 table.insert(connections,Run.PreSimulation:Connect(function(dt)
  local camera=workspace.CurrentCamera;if not camera then return end
+ local now
  for model,rig in pairs(rigs) do
   if not model:IsDescendantOf(workspace) or model:GetAttribute("ResidentActive")==false then
    if not rig.suspended then suspendRig(rig);rig.suspended=true end
@@ -74,31 +75,39 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
   if rig.elapsed<interval then continue end
   local elapsed=math.min(rig.elapsed,.2);rig.elapsed=0
   local poseAlpha=1-math.exp(-elapsed*14)
-  local speed=Vector3.new(root.AssemblyLinearVelocity.X,0,root.AssemblyLinearVelocity.Z).Magnitude
+  local velocity=root.AssemblyLinearVelocity
+  local speed=Vector3.new(velocity.X,0,velocity.Z).Magnitude
   local seated=humanoid.SeatPart~=nil
-  local moving=not seated and humanoid.Health>0 and speed>.4 and humanoid.FloorMaterial~=Enum.Material.Air
+  local alive=humanoid.Health>0
+  local moving=not seated and alive and speed>.4 and humanoid.FloorMaterial~=Enum.Material.Air
   rig.blend+=((moving and 1 or 0)-rig.blend)*math.min(elapsed*10,1)
   rig.phase+=elapsed*math.max(6,speed*1.2)
   local swing=math.sin(rig.phase)*.42*rig.blend
-  local now=workspace:GetServerTimeNow();local role=model:GetAttribute("Role")
-  local working=model:GetAttribute("Working") and humanoid.Health>0 and not moving
+  now=now or workspace:GetServerTimeNow()
+  local role=model:GetAttribute("Role")
+  local workRequested=model:GetAttribute("Working")
+  local working=workRequested and alive and not moving
+  local closeIdle=distance<180 and not moving
+  local gesturing=closeIdle and model:GetAttribute("Gesturing")
+  local reading=seated and model:GetAttribute("Reading")
+  local applauding=alive and not moving and not seated and model:GetAttribute("Applauding")
+  local animationSeed=model:GetAttribute("AnimationSeed") or 1
   local workAge=(now-(model:GetAttribute("WorkStarted") or now))%(role=="Soccer" and 6.5 or 5)
   local routine=model:GetAttribute("PracticeRoutine") or "Miss"
   rig.rootJoint=rig.rootJoint and rig.rootJoint.Parent and rig.rootJoint or torso:FindFirstChild("RootJoint")
   if rig.rootJoint then
    local stumble=working and role=="Soccer" and routine=="Trip" and workAge>=1.3 and workAge<4.3 and math.sin((workAge-1.3)/3*math.pi) or 0
    local gaitBob=math.sin(rig.phase*2)*.035*rig.blend
-   local breath=math.sin(now*1.7+(model:GetAttribute("AnimationSeed") or 1))*.012*(1-rig.blend)
+   local breath=math.sin(now*1.7+animationSeed)*.012*(1-rig.blend)
    local workLean=working and (role=="Gardener" or role=="Sanitation") and .09 or 0
    local pose=CFrame.new(0,gaitBob+breath,0)*CFrame.Angles(-.65*stumble-workLean-.05*rig.blend,0,math.sin(workAge*8)*.12*stumble)
    rig.rootJoint.Transform=rig.rootJoint.Transform:Lerp(pose,poseAlpha)
   end
   rig.neck=rig.neck and rig.neck.Parent and rig.neck or torso:FindFirstChild("Neck")
   if rig.neck then
-   local reading=seated and model:GetAttribute("Reading")==true
-   local idle=not moving and not working and not seated and not model:GetAttribute("Gesturing")
-   local glance=idle and distance<100 and math.sin(now*.55+(model:GetAttribute("AnimationSeed") or 1))* .13 or 0
-   rig.neck.Transform=rig.neck.Transform:Lerp(CFrame.Angles(reading and -.22 or working and -.06 or 0,glance,0),poseAlpha)
+   local idle=not moving and not working and not seated and not gesturing
+   local glance=idle and distance<100 and math.sin(now*.55+animationSeed)* .13 or 0
+   rig.neck.Transform=rig.neck.Transform:Lerp(CFrame.Angles(reading==true and -.22 or working and -.06 or 0,glance,0),poseAlpha)
   end
   if rig.practiceBall then
    local visible=working and distance<180
@@ -127,9 +136,9 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
    if not joint or not joint.Parent then joint=torso:FindFirstChild(name);rig.joints[i]=joint end
    if not joint then continue end
    local angle=(i==1 or i==4) and swing or -swing
-   if distance<180 and not moving then
-    if model:GetAttribute("Gesturing") and i==1 then angle=-.8+math.sin(now*5)*.15 end
-    if model:GetAttribute("Working") then
+   if closeIdle then
+    if gesturing and i==1 then angle=-.8+math.sin(now*5)*.15 end
+    if workRequested then
      if role=="CafeWorker" and i<=2 then angle=-.8+(i==2 and math.sin(now*3)*.15 or 0)
      elseif role=="Sanitation" and i==2 then angle=model:GetAttribute("Repairing") and (-.9+math.sin(now*5)*.4) or (-.15+math.sin(now*2)*.3)
      elseif role=="BeachWorker" and i==2 then angle=-.7+math.sin(now*2.5)*.2
@@ -151,15 +160,15 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
      elseif role=="Vendor" and i<=2 then angle=-.6+math.sin(now*2+i)*.3 end
     end
    end
-   if role=="CafeWorker" and model:GetAttribute("WorkStep")==2 and i==1 then angle=-.8 end
+   if role=="CafeWorker" and i==1 and model:GetAttribute("WorkStep")==2 then angle=-.8 end
    if seated then
-    if i>=3 then angle=-math.pi/2 elseif model:GetAttribute("Reading") and i==1 then angle=-1.15 else angle=-.15 end
+    if i>=3 then angle=-math.pi/2 elseif reading and i==1 then angle=-1.15 else angle=-.15 end
    end
    -- These custom R6 joints have no rotated basis: positive X bends toward -Z.
-   if model:GetAttribute("Applauding") and humanoid.Health>0 and not moving and not seated and i<=2 then
+   if applauding and i<=2 then
     -- Bring both hands together in front of the chest; phase offsets keep
     -- several spectators from clapping in perfect synchronization.
-    local inward=.55+math.sin(now*9+(model:GetAttribute("AnimationSeed") or 1))*.2
+    local inward=.55+math.sin(now*9+animationSeed)*.2
     joint.Transform=joint.Transform:Lerp(CFrame.Angles(1.15,0,(i==1 and 1 or -1)*inward),poseAlpha)
    else
     joint.Transform=joint.Transform:Lerp(CFrame.Angles(-angle,0,0),poseAlpha)

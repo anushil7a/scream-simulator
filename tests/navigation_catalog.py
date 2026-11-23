@@ -12,7 +12,8 @@ setup=strings('tests/compact_world.py')['setup'];setup=setup[:setup.index('local
 s=strings('tests/compact_integration.py')
 source=setup+s['pre']+read('src/ReplicatedStorage/Shared/CompactLayout.luau')+s['bridge']+read('src/ReplicatedStorage/Shared/Config.luau')+'\nend)()\n'
 source+='script.Parent.CompactLayout="CompactLayout"\nlocal BossCatalog=(function()\n'+read('src/ReplicatedStorage/Shared/BossCatalog.luau')+'\nend)()\n'
-source+='local require=function(name) if name=="Config" then return Config elseif name=="BossCatalog" then return BossCatalog else error(name) end end\nlocal Nav=(function()\n'+read('src/ReplicatedStorage/Shared/NavigationCatalog.luau')+'\nend)()\n'
+source+='local TrainingRules=(function()\n'+read('src/ReplicatedStorage/Shared/TrainingRules.luau')+'\nend)()\n'
+source+='local require=function(name) if name=="Config" then return Config elseif name=="BossCatalog" then return BossCatalog elseif name=="TrainingRules" then return TrainingRules else error(name) end end\nlocal Nav=(function()\n'+read('src/ReplicatedStorage/Shared/NavigationCatalog.luau')+'\nend)()\n'
 # Frozen actual production source from 9507e84 provides a differential oracle.
 source+='local scanCount=0\nlocal Before=(function()\nlocal table=setmetatable({find=function(t,v) scanCount+=1;return table.find(t,v) end},{__index=table})\n'+read('tests/fixtures/navigation_catalog_before_index.luau')+'\nend)()\n'
 source+=r'''
@@ -25,8 +26,30 @@ local givers=Nav.IndexQuestGivers(bots)
 check(Nav.Resolve('quest','nick',data)==nil,'hidden revealed')
 check(Nav.Resolve('boss','invalid',data)==nil,'invalid boss')
 check(Nav.Resolve('boss','leviathan',data).label=='Seagull Siren Captain · Lv 70','captain navigation name/level')
-for _,b in ipairs(BossCatalog.Entries) do eq(Nav.Resolve('boss',b.id,data).position,Vector3.new(b.x,(b.y or 0)+3,b.z)) end
+for _,b in ipairs(BossCatalog.Entries) do
+ local guide=Nav.Resolve('boss',b.id,data)
+ eq(guide.position,Vector3.new(b.x,(b.y or 0)+3,b.z))
+ check(guide.minimumLevel==b.level,'Boss guide minimum differs from encounter catalog')
+end
 for _,place in ipairs(Nav.Places) do check(Nav.Resolve('place',place.id,data)~=nil,'place missing') end
+local function checkTraining(level,index,label)
+ local home=Layout.TrainingHomes[index]
+ local guide=Nav.Resolve('place','training',{level=level})
+ check(guide and guide.label==label,'wrong training guide label at level '..tostring(level))
+ eq(guide.position,Vector3.new(home.x,home.y+3,home.z))
+end
+checkTraining(nil,1,'Rookie Training · Lv 1')
+checkTraining(1,1,'Rookie Training · Lv 1')
+checkTraining(24,1,'Rookie Training · Lv 1')
+checkTraining(25,2,'Brawler Training · Lv 25')
+checkTraining(59,2,'Brawler Training · Lv 25')
+checkTraining(60,3,'Elite Training · Lv 60')
+checkTraining(100,3,'Elite Training · Lv 60')
+local amphitheatre=Nav.Resolve('place','amphitheatre',data)
+check(amphitheatre and amphitheatre.label=='Amphitheatre entrance','Amphitheatre guide missing or misnamed')
+eq(amphitheatre.position,Vector3.new(112,35,-229))
+check(Layout.MapLandmarks[8].name=='8 Amphitheatre' and Layout.MapLandmarks[8].z==-330,'Map pin moved away from the venue')
+check(Nav.Resolve('place','resonance',data)==nil,'Local PvP preview advertised from the City')
 check(Nav.Resolve('place','nick',data)==nil,'hidden place exposed')
 check(Nav.QuestTargets(session,givers).nick==nil,'hidden server target')
 for _,q in ipairs(Config.Quests) do data.availableQuests[q.id]=true end
@@ -111,5 +134,8 @@ check(next(Nav.QuestTargets(session,givers))==nil,'legacy targets')
 check(Nav.Resolve('boss','golem',data)==nil and Nav.Resolve('place','spawn',data)==nil,'legacy resolve')
 print('Navigation catalog assertions passed')
 '''
-with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=ROOT/'tests') as f:
- f.write(source);f.flush();subprocess.run(['luau',f.name],cwd=ROOT,check=True)
+with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=ROOT/'tests',delete=False) as f:
+ f.write(source)
+ path=Path(f.name)
+try: subprocess.run(['luau',str(path)],cwd=ROOT,check=True)
+finally: path.unlink()

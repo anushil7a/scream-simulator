@@ -1,10 +1,14 @@
 -- Read-only destinations. Selection belongs to the client, never to quest acceptance.
 local Config=require(script.Parent:WaitForChild("Config"))
 local BossCatalog=require(script.Parent:WaitForChild("BossCatalog"))
+local TrainingRules=require(script.Parent:WaitForChild("TrainingRules"))
 local Catalog={Places={
  {id="spawn",label="Spawn"},{id="training",label="Training"},{id="arena",label="Arena"},
  {id="gardens",label="Gardens"},{id="market",label="Market / café"},{id="coast",label="Coast"},
 }}
+if Config.CompactCity and Config.CityLayout.AmphitheatreEntrance then
+ table.insert(Catalog.Places,{id="amphitheatre",label="Amphitheatre entrance",position=Config.CityLayout.AmphitheatreEntrance})
+end
 local function eligible(q,data)
  local progress=(data.quests or {})[q.id]
  return not q.retired and (q.menuAvailable==true or (data.availableQuests or {})[q.id]==true or data.activeQuest==q.id)
@@ -18,11 +22,20 @@ function Catalog.Resolve(kind,id,data)
  data=data or {}
  if kind=="boss" then
   for _,boss in ipairs(BossCatalog.Entries) do
-   if boss.id==id then return target(Vector3.new(boss.x,(boss.y or 0)+3,boss.z),boss.name.." · Lv "..boss.level) end
+   if boss.id==id then
+    return {position=Vector3.new(boss.x,(boss.y or 0)+3,boss.z),label=boss.name.." · Lv "..boss.level,minimumLevel=boss.level}
+   end
   end
  elseif kind=="place" then
+  if id=="training" then
+   local tier=TrainingRules.Recommended(data.level or 1)
+   local index=table.find(TrainingRules.Tiers,tier)
+   local home=Config.CityLayout.TrainingHomes[index]
+   return home and target(Vector3.new(home.x,home.y+3,home.z),tier.name.." Training · Lv "..tier.level)
+  end
   for index,place in ipairs(Catalog.Places) do
    if place.id==id then
+    if place.position then return target(place.position,place.label) end
     local landmark=Config.CityLayout.MapLandmarks[index]
     return landmark and target(Vector3.new(landmark.x,(landmark.y or 0)+3,landmark.z),place.label) or nil
    end

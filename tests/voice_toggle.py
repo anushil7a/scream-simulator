@@ -5,11 +5,15 @@ import sys
 import tempfile
 root=Path(__file__).resolve().parents[1]
 s=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text();a=s.index('local function toggleVoice()');b=s.index('local function releaseCapture(',a)
-respawn_line=next(line for line in s.splitlines() if line.startswith('connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough'))
+respawn_line=next(line for line in s.splitlines() if line.startswith('connectClient(p.CharacterRemoving,') and 'hitFeedback:DiscardThrough' in line)
+suspend_start=s.index('local function suspendGameplay()')
+suspend=s[suspend_start:s.index('connectClient(UIS.WindowFocusReleased',suspend_start)]
+protection_start=s.index('connectClient(p:GetAttributeChangedSignal("ProtectionEnds")')
+protection=s[protection_start:s.index('\n;(function()',protection_start)]
+
 setup='''
 local unavailable=false;local windowFocused=true
-local lockController={Clear=function()end}
-local academy={lockLostUntil=0} -- Presentation dependency; voice assertions remain unchanged.
+local academy={lockLostUntil=0,incomingHit={}} -- Presentation dependency; voice assertions remain unchanged.
 local blocked=function()return unavailable end
 local beamBlocked=blocked;local voiceEligibilityHint=function()return nil end
 local calls=0;local sustainedControl={armed=false}
@@ -19,7 +23,8 @@ local notices={};local function notify(message)table.insert(notices,message)end
 checks='''
 local checks=0;local function check(v,msg)assert(v,msg);checks+=1 end
 toggleVoice();check(sustainedControl.armed and calls==1,'Available gameplay could not arm')
-check(notices[1]:find('Normal speech',1,true) and notices[1]:find('OFF',1,true) and notices[1]:find('voice chat is unchanged',1,true),'ON notice omits speech risk or talk control')
+check(notices[1]:match('^[^\\n]+\\n[^\\n]+$')~=nil,'ON notice regressed from two short lines')
+check(notices[1]:find('Speech can fire',1,true) and notices[1]:find('OFF to talk',1,true),'ON notice omits speech risk or talk control')
 unavailable=true;toggleVoice();check(not sustainedControl.armed and calls==2,'Unavailable gameplay prevented pause')
 toggleVoice();check(not sustainedControl.armed and calls==2,'Menu/protection/mic block allowed hidden arming')
 unavailable=false;windowFocused=false;toggleVoice();check(not sustainedControl.armed and calls==2,'Unfocused toggle armed voice')
@@ -75,11 +80,19 @@ check(server.protocol.active~=nil,'ON failed after cooldown and fresh quiet')
 toggleVoice();local finalCount=#sent;advance(1,.8)
 check(#sent==finalCount and not server.protocol.active,'OFF repeatedly stopped or restarted')
 -- Dispatch the actual CharacterRemoving callback with mocked character services.
-local removalCallback;local p={CharacterRemoving={}}
-local function connectClient(_,callback)removalCallback=callback end
+local removalCallback,protectionCallback;local p={CharacterRemoving={}}
+local protectionEnds=0
+function p:GetAttribute(name)assert(name=="ProtectionEnds");return protectionEnds end
+function p:GetAttributeChangedSignal(name)return name end
+local function connectClient(signal,callback)
+ if signal==p.CharacterRemoving then removalCallback=callback else protectionCallback=callback end
+end
 local hitFeedback={DiscardThrough=function()end}
-local function setSprint()end;local function cancelCapture()end;local closeConversation=nil
+local sprintStops,captureCancels=0,0
+local function setSprint()sprintStops+=1 end
+local function cancelCapture()captureCancels+=1 end;local closeConversation=nil
 __RESPAWN_CALLBACK__
+__PROTECTION_CALLBACK__
 removalCallback();sustainedControl:ObserveAvailability(false);sustainedControl:ObserveAvailability(true)
 advance(.4,0);advance(.4,.8)
 check(not sustainedControl.armed and #sent==finalCount,'Actual removal callback lost OFF choice on respawn-like recovery')
@@ -90,9 +103,46 @@ check(not sustainedControl.armed and not server.protocol.active and sent[#sent]=
 sustainedControl:ObserveAvailability(false);sustainedControl:ObserveAvailability(true)
 advance(11,0);advance(.4,.8)
 check(not sustainedControl.armed and not server.protocol.active and mic.ready,'Respawn-like recovery resumed attacks or disabled mic')
+toggleVoice();advance(.4,0);advance(.4,.8)
+check(server.protocol.active~=nil,'Protected return setup did not start an attack')
+local sprintBefore,captureBefore=sprintStops,captureCancels
+protectionEnds=now+5;protectionCallback()
+check(not sustainedControl.armed and not server.protocol.active and sent[#sent]=='SustainedStop','Same-avatar protection did not stop and disarm')
+check(sprintStops==sprintBefore+1 and captureCancels==captureBefore+1,'Protected return left locomotion or capture running')
+local beforeQuiet=#sent
+advance(6,0);advance(.4,.8)
+check(not server.protocol.active and #sent==beforeQuiet and mic.ready,'Protected return automatically restarted or disabled the mic')
+toggleVoice();advance(.4,0);advance(.4,.8)
+check(server.protocol.active~=nil,'Deliberate re-arm failed after protected return')
+protectionEnds=0;protectionCallback()
+check(sustainedControl.armed and server.protocol.active,'Cleared protection update disarmed an active cast')
+protectionEnds=now-1;protectionCallback()
+check(not sustainedControl.armed and not server.protocol.active,'Late protection grant did not disarm')
+-- Deliver Begin after the local OFF, then expose its live acknowledgement before Stop arrives.
+protectionEnds=0;advance(6,0);toggleVoice();advance(.4,0)
+local deliver=sustainedControl.send
+local pending={}
+sustainedControl.send=function(verb,arg)table.insert(pending,{verb,arg})end
+advance(.4,.8)
+check(#pending==1 and pending[1][1]=='SustainedBegin' and sustainedControl.attack
+ and not server.protocol.active,'Delayed Begin setup did not leave a cast pending')
+local delayedSequence=pending[1][2].sequence
+toggleVoice()
+check(not sustainedControl.armed and not sustainedControl.attack and #pending==2
+ and pending[2][1]=='SustainedStop' and pending[2][2]==delayedSequence,'OFF did not queue a matching Stop for delayed Begin')
+deliver(table.unpack(pending[1]))
+check(server.protocol.active and server.protocol.active.sequence==delayedSequence,'Server did not accept in-flight Begin')
+advance(.1,.8) -- The controller now sees the old sequence active with a Stop still in transit.
+check(not sustainedControl.armed and not sustainedControl.attack and #pending==2
+ and server.protocol.active,'Late acknowledgement resumed local attack or emitted another request')
+deliver(table.unpack(pending[2]))
+check(not server.protocol.active and server.protocol.nextStart>now,'Delayed Stop did not end the matching cast and start cooldown')
+advance(7,.8)
+check(not sustainedControl.armed and not server.protocol.active and #pending==2
+ and now>server.protocol.nextStart and mic.power==.8,'Continued loud input restarted Beams after delayed Stop')
 print('PASS '..checks..' actual voice toggle checks with mocked availability')
 '''
-checks=checks.replace('__RESPAWN_CALLBACK__',respawn_line)
+checks=checks.replace('__RESPAWN_CALLBACK__',respawn_line).replace('__PROTECTION_CALLBACK__',suspend+protection)
 def run(payload, expected_failure=None):
     with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.voice_toggle_',dir=root/'tests',delete=False) as f:
         path=Path(f.name);f.write(payload)
@@ -102,7 +152,8 @@ def run(payload, expected_failure=None):
             assert result.returncode!=0 and expected_failure in result.stderr, result.stdout+result.stderr
             print('PASS negative control caught: '+expected_failure)
         else:
-            print(result.stdout,end='');result.check_returncode()
+            assert result.returncode==0,result.stdout+result.stderr
+            print(result.stdout,end='')
     finally:
         path.unlink()
 
@@ -110,7 +161,7 @@ payload=setup+s[a:b]+checks
 run(payload)
 if '--negative-controls' in sys.argv:
     # Isolated fault injection into actual controller instances; production files untouched.
-    needle="toggleVoice()\ncheck(not sustainedControl.armed and not sustainedControl.attack"
+    needle="toggleVoice()\ncheck(not sustainedControl.armed and not sustainedControl.attack and not server.protocol.active"
     assert payload.count(needle)==1
     run(payload.replace(needle,"sustainedControl.Cancel=function()end\n"+needle),
         'OFF did not explicitly stop the active attack')
@@ -118,3 +169,22 @@ if '--negative-controls' in sys.argv:
     assert payload.count(needle)==1
     run(payload.replace(needle,'sustainedControl:SetArmed(true)\n'+needle),
         'Availability/respawn-like recovery re-enabled OFF')
+
+    needle='  suspendGameplay()'
+    assert payload.count(needle)==1
+    run(payload.replace(needle,'  setSprint(false)'),
+        'Same-avatar protection did not stop and disarm')
+    needle=' and (p:GetAttribute("ProtectionEnds") or 0)>0'
+    assert payload.count(needle)==1
+    run(payload.replace(needle,''),
+        'Cleared protection update disarmed an active cast')
+    run(payload.replace(needle,' and (p:GetAttribute("ProtectionEnds") or 0)>now'),
+        'Late protection grant did not disarm')
+    needle='deliver(table.unpack(pending[2]))'
+    assert payload.count(needle)==1
+    run(payload.replace(needle,'deliver("SustainedStop",delayedSequence+1)'),
+        'Delayed Stop did not end the matching cast and start cooldown')
+    needle='advance(.1,.8) -- The controller now sees'
+    assert payload.count(needle)==1
+    run(payload.replace(needle,'sustainedControl.armed=true;'+needle),
+        'Late acknowledgement resumed local attack or emitted another request')

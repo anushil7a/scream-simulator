@@ -1,0 +1,427 @@
+{
+  "productionCommit": "24c182d6396c47ecb4be1edd9c6d3b787a053441",
+  "placeBuild": "CityOverlapLoadReview.rbxl",
+  "artifactSha256": "62b66ebfc1027ad4197b8a7e88ac0ec07d757c2d673eb2ed15d38d2c5df194ed",
+  "phases": [
+    "idle before",
+    "beam cycling",
+    "idle after"
+  ],
+  "phaseDurationSeconds": 30,
+  "intervalUnits": "milliseconds",
+  "scope": "Unpublished four-client Studio test on one host with temporary profiles and staged aim, power and game input focus through normal Action remotes. Academy safe paving excludes PvP target resolution. The bundle retains HollowPurple but omits the unused StarterBeam and FireBeam binaries. Frame and heartbeat intervals do not identify CPU or GPU time. Packet delivery does not establish visual readability, live server capacity, real voice, physical device behavior or saves.",
+  "nativeResult": {
+    "players": 4,
+    "clients": {
+      "Player1": {
+        "camera": "-327, 45, -230, 0.841178536, 0.0750780404, -0.535520375, -0, 0.990315139, 0.138838619, 0.540757596, -0.116788067, 0.833031714",
+        "template": true,
+        "focusEvents": {
+          "gained": 0,
+          "lost": 0
+        },
+        "beamLevels": {
+          "100": true
+        },
+        "phases": [
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "samples": 0
+            },
+            "packets": [],
+            "all": {
+              "p50": 66.65059924125671,
+              "samples": 449,
+              "p95": 68.05460155010223,
+              "max": 69.19030100107193
+            },
+            "viewport": {
+              "1274.40002, 634.400024": true
+            },
+            "viewYawDrift": 0
+          },
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "p50": 66.65480136871338,
+              "samples": 221,
+              "p95": 68.04689764976501,
+              "max": 82.8075036406517
+            },
+            "packets": {
+              "-4": 64,
+              "-2": 63,
+              "-1": 63,
+              "-3": 63
+            },
+            "all": {
+              "p50": 66.66319817304611,
+              "samples": 449,
+              "p95": 68.03549826145172,
+              "max": 82.8075036406517
+            },
+            "viewport": {
+              "1274.40002, 634.400024": true
+            },
+            "viewYawDrift": 0
+          },
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "samples": 0
+            },
+            "packets": [],
+            "all": {
+              "p50": 66.63800030946732,
+              "samples": 449,
+              "p95": 68.02140176296234,
+              "max": 69.03950124979019
+            },
+            "viewport": {
+              "1274.40002, 634.400024": true
+            },
+            "viewYawDrift": 0
+          }
+        ],
+        "sequences": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "Player3": {
+        "camera": "-327, 45, -230, 0.841178536, 0.0750780404, -0.535520375, -0, 0.990315139, 0.138838619, 0.540757596, -0.116788067, 0.833031714",
+        "template": true,
+        "focusEvents": {
+          "gained": 0,
+          "lost": 0
+        },
+        "beamLevels": {
+          "100": true
+        },
+        "phases": [
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "samples": 0
+            },
+            "packets": [],
+            "all": {
+              "p50": 66.66100025177002,
+              "samples": 449,
+              "p95": 68.12319904565811,
+              "max": 69.83110308647156
+            },
+            "viewport": {
+              "1274.40002, 671.200012": true
+            },
+            "viewYawDrift": 0
+          },
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "p50": 66.65939837694168,
+              "samples": 222,
+              "p95": 68.01780313253403,
+              "max": 68.41330230236053
+            },
+            "packets": {
+              "-4": 64,
+              "-2": 63,
+              "-1": 63,
+              "-3": 63
+            },
+            "all": {
+              "p50": 66.65139645338058,
+              "samples": 449,
+              "p95": 68.156898021698,
+              "max": 69.1440999507904
+            },
+            "viewport": {
+              "1274.40002, 671.200012": true
+            },
+            "viewYawDrift": 0
+          },
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "samples": 0
+            },
+            "packets": [],
+            "all": {
+              "p50": 66.63119792938232,
+              "samples": 449,
+              "p95": 67.98169761896133,
+              "max": 68.96889954805374
+            },
+            "viewport": {
+              "1274.40002, 671.200012": true
+            },
+            "viewYawDrift": 0
+          }
+        ],
+        "sequences": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "Player2": {
+        "camera": "-327, 45, -230, 0.841178536, 0.0750780404, -0.535520375, -0, 0.990315139, 0.138838619, 0.540757596, -0.116788067, 0.833031714",
+        "template": true,
+        "focusEvents": {
+          "gained": 0,
+          "lost": 0
+        },
+        "beamLevels": {
+          "100": true
+        },
+        "phases": [
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "samples": 0
+            },
+            "packets": [],
+            "all": {
+              "p50": 66.67870283126831,
+              "samples": 449,
+              "p95": 68.07979941368103,
+              "max": 69.54789906740189
+            },
+            "viewport": {
+              "1274.40002, 634.400024": true
+            },
+            "viewYawDrift": 0
+          },
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "p50": 66.62189960479736,
+              "samples": 222,
+              "p95": 67.96219944953918,
+              "max": 69.09939646720886
+            },
+            "packets": {
+              "-4": 64,
+              "-2": 63,
+              "-1": 63,
+              "-3": 63
+            },
+            "all": {
+              "p50": 66.6934996843338,
+              "samples": 449,
+              "p95": 67.99980252981186,
+              "max": 69.09939646720886
+            },
+            "viewport": {
+              "1274.40002, 634.400024": true
+            },
+            "viewYawDrift": 0
+          },
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "samples": 0
+            },
+            "packets": [],
+            "all": {
+              "p50": 66.65810197591782,
+              "samples": 449,
+              "p95": 68.16200166940689,
+              "max": 69.22779977321625
+            },
+            "viewport": {
+              "1274.40002, 634.400024": true
+            },
+            "viewYawDrift": 0
+          }
+        ],
+        "sequences": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "Player4": {
+        "camera": "-327, 45, -230, 0.841178536, 0.0750780404, -0.535520375, -0, 0.990315139, 0.138838619, 0.540757596, -0.116788067, 0.833031714",
+        "template": true,
+        "focusEvents": {
+          "gained": 0,
+          "lost": 0
+        },
+        "beamLevels": {
+          "100": true
+        },
+        "phases": [
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "samples": 0
+            },
+            "packets": [],
+            "all": {
+              "p50": 66.65010005235672,
+              "samples": 447,
+              "p95": 68.06889921426773,
+              "max": 200.16629993915558
+            },
+            "viewport": {
+              "1274.40002, 671.200012": true
+            },
+            "viewYawDrift": 0
+          },
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "p50": 66.64080172777176,
+              "samples": 221,
+              "p95": 68.31470131874084,
+              "max": 69.62460279464722
+            },
+            "packets": {
+              "-4": 64,
+              "-2": 63,
+              "-1": 63,
+              "-3": 63
+            },
+            "all": {
+              "p50": 66.6474997997284,
+              "samples": 449,
+              "p95": 68.28060001134872,
+              "max": 69.62460279464722
+            },
+            "viewport": {
+              "1274.40002, 671.200012": true
+            },
+            "viewYawDrift": 0
+          },
+          {
+            "cameraDrift": 0,
+            "threePlus": {
+              "samples": 0
+            },
+            "packets": [],
+            "all": {
+              "p50": 66.66959822177887,
+              "samples": 449,
+              "p95": 68.08000057935715,
+              "max": 69.057896733284
+            },
+            "viewport": {
+              "1274.40002, 671.200012": true
+            },
+            "viewYawDrift": 0
+          }
+        ],
+        "sequences": [
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    "aims": {
+      "Player1": "-306, 37.5, -279",
+      "Player3": "-298, 37.5, -279",
+      "Player2": "-302, 37.5, -279",
+      "Player4": "-294, 37.5, -279"
+    },
+    "worldInstances": 3023,
+    "studioOnly": true,
+    "npcs": 18,
+    "ok": true,
+    "level": 100,
+    "positions": {
+      "Player1": "-306, 36, -244",
+      "Player3": "-298, 36, -244",
+      "Player2": "-302, 36, -244",
+      "Player4": "-294, 36, -244"
+    },
+    "server": [
+      {
+        "secondsByActive": [
+          29.98447126429528,
+          0,
+          0,
+          0,
+          0
+        ],
+        "all": {
+          "p50": 16.907332465052605,
+          "samples": 1799,
+          "p95": 18.05642992258072,
+          "max": 19.921591505408287
+        },
+        "threePlus": {
+          "samples": 0
+        },
+        "framesByActive": [
+          1799,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "secondsByActive": [
+          14.867939734831452,
+          0.14947879780083895,
+          0.16532734874635935,
+          0.1676785871386528,
+          14.630565379746258
+        ],
+        "all": {
+          "p50": 16.919607296586037,
+          "samples": 1799,
+          "p95": 18.026459962129593,
+          "max": 19.722819328308105
+        },
+        "threePlus": {
+          "p50": 16.896333545446396,
+          "samples": 888,
+          "p95": 18.045522272586823,
+          "max": 19.431449472904205
+        },
+        "framesByActive": [
+          892,
+          9,
+          10,
+          10,
+          878
+        ]
+      },
+      {
+        "secondsByActive": [
+          29.978998325765133,
+          0,
+          0,
+          0,
+          0
+        ],
+        "all": {
+          "p50": 16.90155267715454,
+          "samples": 1799,
+          "p95": 18.067553639411926,
+          "max": 19.63486336171627
+        },
+        "threePlus": {
+          "samples": 0
+        },
+        "framesByActive": [
+          1799,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  }
+}

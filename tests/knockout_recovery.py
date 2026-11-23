@@ -10,7 +10,10 @@ setup='''
 local Vector3={zero='zero'};local os={clock=function()return 50 end}
 local Config={HealthForLevel=function(level)return level==100 and 135 or 100 end,HealQuietSeconds=10}
 local World={SafeSpawn='hub'};local messages,protected=0,0
-local state=function()messages+=1 end
+local Queue=require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue')
+local notices=Queue.new()
+local lastMessage
+local state=function(_,message,_,urgent)messages+=1;lastMessage=message;notices:Push(message,urgent) end
 local protect=function(p,s)protected+=1;s.protectedUntil=55 end
 local sessions={}
 '''
@@ -36,6 +39,22 @@ check(s.dodgingUntil==0 and s.knockedUntil==0 and not s.premiumRoll and not s.sp
 check(p.attributes.DodgeEnds==0 and p.attributes.DodgeStarted==0 and p.attributes.KnockdownEnds==0 and p.attributes.Sprinting==false,'KO retained animation attributes')
 check(s.nextDodge==64 and s.sprintCharge==3,'KO reset movement budgets')
 check(protected==1 and s.protectedUntil==55 and s.nextHeal==60 and messages==1,'KO protection/heal/status changed')
+check(lastMessage=='Knocked out · back at the safe hub','City knockout destination changed')
+World.SafeSpawn='hallApron';World.SafeSpawnLabel='the Training City portal'
+Config.ResonanceLayout={}
+notices=Queue.new()
+local arrival='Arrival rehearsal. Safe arrival. The blue line marks the arena. The portal behind you leads to City training.'
+notices:Push(arrival)
+notices:Step(1/60,true)
+eject(p,h)
+check(character.position=='hallApron' and lastMessage=='Knocked out · back at the Training City portal',
+ 'Hall knockout does not name the Training City portal')
+check(notices:Step(1/60,true)==lastMessage and notices.pending[1].text==arrival,
+ 'Hall knockout waited behind unread arrival guidance')
+local saveWarning='Saving is unavailable. Rejoin before continuing progression.'
+notices:Push(saveWarning,true,'save')
+check(notices:Step(1/60,true)==saveWarning,'Hall knockout outranked a save warning')
+World.SafeSpawn='hub';World.SafeSpawnLabel=nil;Config.ResonanceLayout=nil
 h.Health=42;s.dodgingUntil=70;s.knockedUntil=71;s.sprintRequested=true;s.premiumRoll=true
 root.AssemblyLinearVelocity='falling';root.AssemblyAngularVelocity='spinning';h.PlatformStand=true;h.AutoRotate=false
 resetMovement(p,s,h,root)

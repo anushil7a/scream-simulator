@@ -6,6 +6,8 @@ import argparse,subprocess,tempfile
 R=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
 path='src/ServerScriptService/Commerce.luau';source=(R/path).read_text()
+bootstrap=(R/'src/ServerScriptService/Bootstrap.server.luau').read_text()
+shutdown=bootstrap[bootstrap.index('local function shutdown()'):bootstrap.index('game:BindToClose(shutdown)')]
 setup=r'''
 local Ledger=require('../src/ReplicatedStorage/Shared/BoostLedger')
 local Catalog=require('../src/ReplicatedStorage/Shared/ShopCatalog');Catalog.Get('XP').id=101;Catalog.Get('Coins').id=102
@@ -28,13 +30,18 @@ local function fixture(seed)
  local game={GetService=function(_,name)return services[name]end};local script={Parent={Entitlements=Entitlements}}
  local require=function(v)return v end;local os={clock=function()return f.clock end,time=function()return f.now end}
  local Enum={ProductPurchaseDecision={NotProcessedYet='pending',PurchaseGranted='granted'}}
- local task={spawn=function(fn,...)fn(...)end,wait=function(seconds)f.clock+=seconds;f.now+=seconds;coroutine.yield('wait')end}
+ local task={spawn=function(fn,...)fn(...)end,wait=function(seconds)f.lastWait=seconds;f.clock+=seconds;f.now+=seconds;coroutine.yield('wait')end}
  local Commerce=(function()
 '''
 endsetup=r'''
 end)()
 Commerce.Start(function(player)return player.eligible end,function(player,message)table.insert(f.notices,{player=player,message=message})end)
 f.api=Commerce
+local sessions={};local closing=false;local shutdownSaveDeadline
+local departuresInFlight,joinsInFlight=0,0
+__SHUTDOWN__
+f.shutdown=shutdown
+function f.deadline()return shutdownSaveDeadline end
 function f.resume(co,...)local ok,value=coroutine.resume(co,...);assert(ok,value);return value end
 function f.start(fn)local co=coroutine.create(fn);local value=f.resume(co);return co,value end
 function f.receipt(id)return market.ProcessReceipt({PlayerId=7,ProductId=101,PurchaseId=id})end
@@ -118,16 +125,61 @@ f.remove(p);f.resume(co);check(f.noticeCount(p)==before and not f.api._Cache(p),
 f=fixture();f.suspend=true;owner=f.start(function()return f.receipt('own')end);waiter=f.start(function()return f.receipt('wait')end)
 f.player.eligible=false;check(f.resume(waiter)=='pending' and f.calls==1 and f.api.Busy(f.player),'Unavailable waiter wrote or released lock')
 f.resume(owner)
+-- Shutdown must keep waiting for purchase work after the player/profile leaves.
+f=fixture();f.suspend=true
+owner,why=f.start(function()return f.receipt('draining')end)
+waiter,waitWhy=f.start(function()return f.receipt('queued')end)
+check(why=='store' and waitWhy=='wait' and f.calls==1,'Shutdown fixture did not queue one receipt')
+local close,closeWhy=f.start(f.shutdown)
+check(closeWhy=='wait' and coroutine.status(close)=='suspended','Shutdown returned while a purchase transaction was in flight')
+check(f.resume(waiter)=='pending' and f.calls==1,'Receipt queued before shutdown started a write')
+f.remove();local replacement=f.rejoin()
+check(f.receipt('after-close')=='pending' and f.calls==1,'Shutdown admitted new commerce after rejoin')
+check(f.resume(close)=='wait' and coroutine.status(close)=='suspended','Shutdown ignored the departed purchase transaction')
+check(f.resume(owner)=='granted' and f.raw.receipts.draining and f.raw.ends.xp==1900,
+ 'Confirmed purchase was not acknowledged during shutdown')
+f.resume(close);check(coroutine.status(close)=='dead' and not f.api.Busy(replacement),'Shutdown retained completed commerce')
+
+-- The old owner can reconcile a lost receipt response within the same budget.
+f=fixture();f.suspend=true;f.lost=1
+owner=f.start(function()return f.receipt('reconciled')end)
+close=f.start(f.shutdown)
+check(f.resume(owner)=='wait' and f.raw.receipts.reconciled,'Closing canceled an admitted commit')
+local durableExpiry=f.raw.ends.xp
+check(f.resume(owner)=='store' and f.calls==2,'Closing blocked a retry with time left')
+check(f.resume(owner)=='granted' and f.raw.ends.xp==durableExpiry,'Closing retry extended a durable receipt twice')
+check(not f.api._Cache(f.player) and #f.notices==0,'Closing restored customer cache or sent a toast')
+f.resume(close);check(coroutine.status(close)=='dead','Close did not finish after a reconciled receipt')
+
+-- A failed/lost response near the deadline cannot start one more attempt.
+f=fixture();f.suspend=true;f.lost=1
+owner=f.start(function()return f.receipt('later-replay')end)
+close=f.start(f.shutdown)
+f.clock=f.deadline()-.03
+check(f.resume(owner)=='wait' and math.abs(f.lastWait-.03)<.001,'Ledger retry sleep exceeded the shutdown budget')
+f.resume(close);check(coroutine.status(close)=='dead' and f.api.Busy(f.player),'Shutdown did not respect deadline during an unresolved receipt')
+check(f.resume(owner)=='pending' and f.calls==1 and not f.api.Busy(f.player),'Deadline admitted another retry or acknowledged an ambiguous receipt')
+durableExpiry=f.raw.ends.xp
+local fresh=fixture(f.raw)
+check(fresh.receipt('later-replay')=='granted' and fresh.raw.ends.xp==durableExpiry,'Next-server replay extended a durable receipt twice')
+
+-- A positive confirmation already in flight may still be acknowledged.
+f=fixture();f.suspend=true
+owner=f.start(function()return f.receipt('late-confirmed')end)
+close=f.start(f.shutdown);f.clock=f.deadline()+.1
+f.resume(close);check(coroutine.status(close)=='dead','Slow receipt extended shutdown deadline')
+check(f.resume(owner)=='granted' and f.calls==1 and f.raw.receipts['late-confirmed'],
+ 'Late confirmed receipt was discarded or retried')
 print('PASS',n,'actual Commerce lifecycle assertions; coroutine/store/player mocks, not native GC')
 '''
 baselines={
 'cache':r'''local f=fixture();f.suspend=true;local co=f.start(function()return f.receipt('r')end);f.remove();f.resume(co);assert(f.api._Cache(f.player) and f.noticeCount(f.player)==1);print('REPRO departed cache and changed callback recreated while Parent remains true')''',
 'wait':r'''local f=fixture();f.suspend=true;local owner=f.start(function()return f.receipt('owner')end);local waiter=f.start(function()return f.receipt('waiter')end);f.remove();f.player.eligible=false;for i=1,100 do assert(f.resume(waiter)=='wait')end;assert(f.calls==1);print('REPRO100 departed lock polls with no new durable write')'''}
-def run(s,error=None,body=checks):
+def run(s,error=None,body=checks,close_source=shutdown):
  # Read-only membership observer catches retention even if public accessors hide it.
  assert s.count('return Commerce')==1
  s=s.replace('return Commerce','Commerce._Cache=function(player)return cache[player]~=nil end\nreturn Commerce')
- with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.commerce_lifecycle_',dir=R/'tests',encoding='utf-8',delete=False)as t:t.write(setup+s+endsetup+body);q=Path(t.name)
+ with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.commerce_lifecycle_',dir=R/'tests',encoding='utf-8',delete=False)as t:t.write(setup+s+endsetup.replace("__SHUTDOWN__",close_source)+body);q=Path(t.name)
  try:r=subprocess.run(['luau',str(q)],capture_output=True,text=True,timeout=15)
  finally:q.unlink()
  out=r.stdout+r.stderr
@@ -142,7 +194,7 @@ else:
   mutations=[
    ('function Commerce.Busy(player) return locks[player.UserId]==true end','function Commerce.Busy(player) return live(player) and locks[player.UserId]==true end','Removal hid actual owner lock: receipt'),
    ('departed[player]=true;','', 'Departed result resurrected private cache: receipt'),
-   ('if live(player) then cache[player]=Ledger.Normalize(result) end','if player.Parent then cache[player]=Ledger.Normalize(result) end','Departed result resurrected private cache: receipt'),
+   ('if live(player) and not shutdownDeadline then cache[player]=Ledger.Normalize(result) end','if player.Parent and not shutdownDeadline then cache[player]=Ledger.Normalize(result) end','Departed result resurrected private cache: receipt'),
    ('if ok and live(player) then changed(player) end','if ok then changed(player) end','Departed result invoked notification: load'),
    ('if live(player) then changed(player,ok and','if true then changed(player,ok and','Departed result invoked notification: activate'),
    ('if live(player) then changed(player,"Boost purchase processed.','if true then changed(player,"Boost purchase processed.','Departed result invoked notification: receipt'),
@@ -154,4 +206,19 @@ else:
    ('function Commerce.Prompt(player,key)\n if not live(player) then return end','function Commerce.Prompt(player,key)','Departed admission started work or notification')]
   for old,new,error in mutations:
    assert old in source,old;run(source.replace(old,new),error)
+  run(source,'Shutdown returned while a purchase transaction was in flight',
+      close_source=shutdown.replace(' or Commerce.HasTransactions()', ''))
+  for old,new,error in (
+      ('return not shutdownDeadline and canPurchase(player)','return canPurchase(player)',
+       'Receipt queued before shutdown started a write'),
+      ('if shutdownDeadline and os.clock()>=shutdownDeadline then break end','if false then break end',
+       'Deadline admitted another retry'),
+      ('local delay=shutdownDeadline and math.min(attempt,shutdownDeadline-os.clock()) or attempt','local delay=attempt',
+       'Ledger retry sleep exceeded the shutdown budget'),
+      ('if live(player) and not shutdownDeadline then cache[player]=Ledger.Normalize(result) end',
+       'if live(player) then cache[player]=Ledger.Normalize(result) end',
+       'Closing restored customer cache or sent a toast'),
+  ):
+   assert source.count(old)==1,old
+   run(source.replace(old,new),error)
 

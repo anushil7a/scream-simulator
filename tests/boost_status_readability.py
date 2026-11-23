@@ -35,6 +35,7 @@ CLIENT_CARD
  local ui={card=function(h)local p=card(h);table.insert(f.cards,p);return p end,frame=frame,label=label}
  ui.button=function(...)local p=button(...);table.insert(f.buttons,p);return p end
  ui.info=function(text)f.info=text end
+ ui.jump=function()end
  local action={FireServer=function(_,verb,key)f.sent+=1;table.insert(f.actions,{verb,key})end}
  local function module()
 '''
@@ -65,11 +66,21 @@ local properties={'ClassName','Name','Size','Position','BackgroundColor3','Borde
 local function graph(old,current,a,b,oldTimer,newTimer,boost)
  for _,key in ipairs(properties)do
   local exception=boost and ((a==oldTimer.label.Parent and key=='Size') or (a.Name=='Multiplier' and key=='BackgroundColor3') or (a.Parent and a.Parent.Name=='Multiplier' and key=='TextColor3') or (a.ClassName=='TextButton' and key=='Position'))
-  if exception and key=='Size'then check(equal(a.Size.X,b.Size.X) and a.Size.Y.Scale==b.Size.Y.Scale,'Boost card width/scale changed')
+  if b.Name=='BuySpectrum' and key=='Size'then
+   check(equal(a.Size.Y,b.Size.Y) and b.Size.X.Scale==1 and b.Size.X.Offset==-114,'Spectrum checkout lost its row allocation')
+  elseif exception and key=='Size'then check(equal(a.Size.X,b.Size.X) and a.Size.Y.Scale==b.Size.Y.Scale,'Boost card width/scale changed')
   elseif exception and key=='Position'then check(equal(a.Position.X,b.Position.X) and a.Position.Y.Scale==b.Position.Y.Scale,'Boost button horizontal allocation changed')
-  elseif not exception then check(equal(a[key],b[key]),'Protected UI property changed: '..tostring(a.Name)..' '..key)end
+  elseif not exception then
+   local brandedLabel=key=='Text' and type(a.Text)=='string' and (a.Text:find(' / ',1,true)~=nil or a.Text=='FREERUNNER')
+   local purchaseState=a.ClassName=='TextButton' and string.sub(a.Name,1,3)=='Buy'
+     and (key=='BackgroundColor3' or key=='Selectable' or key=='Interactable')
+   if not brandedLabel and not purchaseState then
+    check(equal(a[key],b[key]),'Protected UI property changed: '..tostring(a.Name)..' '..key)
+   end
+  end
  end
- local aa=children(old,a,boost and oldTimer.label or nil);local bb=children(current,b,boost and newTimer.band or nil)
+ local omitted=boost and newTimer.band or (b.Name=='SpectrumFeature' and named(current,b,'BrowseTimedBoosts') or nil)
+ local aa=children(old,a,boost and oldTimer.label or nil);local bb=children(current,b,omitted)
  check(#aa==#bb,'Unrelated UI nodes changed')
  for i,p in ipairs(aa)do graph(old,current,p,bb[i],oldTimer,newTimer,boost)end
 end
@@ -96,11 +107,27 @@ local function paint(f)
   check(equal(timer.indicator.BackgroundColor3,active and green or soft),'Status indicator paint does not match confirmed state')
  end
 end
+local commerceOrder={1,3,4,2}
+local function actionCounts(actions)
+ local counts={}
+ for _,a in ipairs(actions)do local key=table.concat(a,':');counts[key]=(counts[key] or 0)+1 end
+ return counts
+end
+local function buttonsByName(buttons)
+ local index={}
+ for _,b in ipairs(buttons)do index[b.Name]=b end
+ return index
+end
 local function trace(old,current)
  check(old.info==current.info,'Unrelated shop footer changed')
- check(old.sent==current.sent and equal(old.actions,current.actions),'Purchase/activation behavior diverged from baseline')
+ check(old.sent==current.sent and equal(actionCounts(old.actions),actionCounts(current.actions)),'Purchase/activation behavior diverged from baseline')
  check(#old.jobs==#current.jobs and old.stats().flight==current.stats().flight and #old.stats().views==#current.stats().views,'Price API/cache behavior changed')
- for i,job in ipairs(old.jobs)do check(job.args[2]==current.jobs[i].args[2] and job.args[3]==current.jobs[i].args[3],'Price API arguments changed')end
+ local function requests(jobs)
+  local counts={}
+  for _,job in ipairs(jobs)do local key=job.args[2]..':'..job.args[3];counts[key]=(counts[key] or 0)+1 end
+  return counts
+ end
+ check(equal(requests(old.jobs),requests(current.jobs)),'Price API arguments changed')
  check(equal(old.stats().records,current.stats().records),'Price record/cache state changed')
  check(#old.stats().timers==#current.stats().timers,'Timer ownership changed')
  for i,timer in ipairs(old.stats().timers)do
@@ -108,11 +135,13 @@ local function trace(old,current)
   for _,key in ipairs({'ready','ends','serverNow','received'})do check(timer[key]==other[key],'Captured timer snapshot changed')end
   check(timer.label.Text==other.label.Text,'Timer text/arithmetic diverged from baseline')
  end
- for i,b in ipairs(old.buttons)do check(b.Text==current.buttons[i].Text and b.AutoButtonColor==current.buttons[i].AutoButtonColor,'Purchase/activation state changed')end
+ local currentButtons=buttonsByName(current.buttons)
+ for _,b in ipairs(old.buttons)do local nextButton=currentButtons[b.Name];check(b.Text==nextButton.Text and b.AutoButtonColor==nextButton.AutoButtonColor,'Purchase/activation state changed')end
 end
 local function layout(f,narrow)
  for index,key in ipairs({'XP','Coins'})do
-  local card=f.cards[index+1];local timer=f.stats().timers[index];local band=timer.band;local status=timer.label;local indicator=timer.indicator
+  local timer=f.stats().timers[index];local band=timer.band;local card=band.Parent;local status=timer.label;local indicator=timer.indicator
+  check(card.Name=='Boost'..key,'Boost status belongs to the wrong offer')
   local tint=key=='XP' and {R=173/255,G=139/255,B=1} or {R=1,G=209/255,B=111/255}
   local badge=named(f,card,'Multiplier');local badgeText=children(f,badge)[2]
   check(equal(badge.BackgroundColor3,tint) and badgeText.Text=='2×' and equal(badgeText.TextColor3,ink),'Multiplier badge lost tint/ink identity')
@@ -137,11 +166,15 @@ for _,narrow in ipairs({false,true})do
     local data={savingAvailable=saving,shop={ready=ready,inventory={xp=saved and 3 or 0,coins=saved and 1 or 0},ends={xp=200,coins=100.001},serverNow=100}}
     local old=baseline();local current=fixture();old.render(data,narrow);current.render(data,narrow)
     trace(old,current);paint(current);layout(current,narrow)
-    graph(old,current,old.cards[1],current.cards[1],nil,nil,false);movementCard(old,current,old.cards[4],current.cards[4])
-    for i=1,2 do graph(old,current,old.cards[i+1],current.cards[i+1],old.stats().timers[i],current.stats().timers[i],true)end
+    graph(old,current,old.cards[1],current.cards[1],nil,nil,false)
+    local movement
+    for _,card in ipairs(current.cards)do if card.Name=='MovementFeature'then movement=card;break end end
+    check(movement~=nil,'Movement card semantic name missing')
+    movementCard(old,current,old.cards[4],movement)
+    for i=1,2 do graph(old,current,old.cards[i+1],current.stats().timers[i].band.Parent,old.stats().timers[i],current.stats().timers[i],true)end
     for _,now in ipairs({.001,.999,1,59.1,100,100.001})do old.now=now;current.now=now;old.shop.Tick();current.shop.Tick();trace(old,current);paint(current)end
     for _,f in ipairs({old,current})do for _,p in ipairs(f.buttons)do p.Activated:Fire()end end;trace(old,current)
-    for index=1,4 do old.finish(index,{IsForSale=true,PriceInRobux=20+index});current.finish(index,{IsForSale=true,PriceInRobux=20+index})end;trace(old,current)
+    for index=1,4 do old.finish(index,{IsForSale=true,PriceInRobux=20+index});current.finish(commerceOrder[index],{IsForSale=true,PriceInRobux=20+index})end;trace(old,current)
     for _,f in ipairs({old,current})do for _,p in ipairs(f.buttons)do p.Activated:Fire()end end;trace(old,current)
     for _,f in ipairs({old,current})do
      local stale=f.buttons;local timer=f.stats().timers[1];local text=timer.label.Text
@@ -169,6 +202,17 @@ for _,mode in ipairs({'clear','rerender','detach'})do
  end
  trace(old,current);paint(current)
 end
+-- A quiet server may send no new State while a player closes and reopens the shop.
+local reopen=fixture()
+local same={savingAvailable=true,shop={ready=true,inventory={},ends={xp=200},serverNow=100,receivedAt=0}}
+reopen.render(same,false)
+check(reopen.stats().timers[1].label.Text=='ACTIVE · 01:40 remaining','Initial boost clock incorrect')
+reopen.now=35.5;reopen.shop.Tick()
+check(reopen.stats().timers[1].label.Text=='ACTIVE · 01:05 remaining','Boost clock failed to advance without new State')
+reopen.render(same,true)
+check(reopen.stats().timers[1].label.Text=='ACTIVE · 01:05 remaining','Reopening the shop restarted the previous packet clock')
+reopen.now=100;reopen.render(same,false)
+check(reopen.stats().timers[1].label.Text=='Not active','Reopening resurrected an expired boost')
 local missing=fixture();missing.render({},true);paint(missing);for _,timer in ipairs(missing.stats().timers)do check(timer.label.Text=='Boost status unavailable','Missing ledger presented inactive/active')end
 print('PASS',n,'boost state/layout/frozen9138743 graph/behavior assertions; actual constructors, mocked API/clock, no native glyph evidence')
 '''
@@ -181,7 +225,8 @@ def build(source, baseline):
     head = head[:start] + VIEW + head[head.index(' local task=', start):]
     client = (ROOT / 'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text(encoding='utf-8-sig')
     helpers = client[client.index('local function frame(parent,'):client.index('-- Presentation only: no subscriptions,')]
-    card = client[client.index('local function card(height)'):client.index('local function info(text,')]
+    card_end = 'function academy.menuContentWidth(' if 'function academy.menuContentWidth(' in client else 'local function info(text,'
+    card = client[client.index('local function card(height)'):client.index(card_end)]
     head = head[:head.index(' local ui={')] + UI.replace('CLIENT_HELPERS', helpers).replace('CLIENT_CARD', card)
     old = (head + baseline[:baseline.index('function Shop.ColorMixer(')] + TAIL).replace('local function fixture()', 'local function baseline()', 1)
     return old + head[head.index('local function fixture()'):] + source[:source.index('function Shop.ColorMixer(')] + TAIL + CHECKS
@@ -210,11 +255,13 @@ def main():
     args = parser.parse_args()
     source = (ROOT / PATH).read_text(encoding='utf-8-sig')
     baseline = subprocess.check_output(['git', 'show', BASE + ':' + PATH], cwd=ROOT, text=True, encoding='utf-8')
-    # Approved movement rename is unrelated to boost-state layout invariance.
+    # Approved movement copy changes are unrelated to boost-state layout invariance.
     baseline = baseline.replace("Chain jumps and rolls through the safe city", "Chain jumps and dodges through the safe city")
+    baseline = baseline.replace("Standard movement rules apply inside the PvP arena.", "Standard movement rules apply in PvP areas.")
     run(source, baseline)
     if args.negative_controls:
         cases = [
+            ('received=shop.receivedAt or os.clock()', 'received=os.clock()', 'Reopening the shop restarted the previous packet clock'),
             ('timer.ready and remaining>0', 'timer.ready and remaining>=0', 'Status text paint does not match confirmed state'),
             ('timer.indicator.BackgroundColor3=active and Color3.fromRGB(112,230,174) or soft', 'timer.indicator.BackgroundColor3=soft', 'Status indicator paint does not match confirmed state'),
             ('timer.band.BackgroundColor3=active and Color3.fromRGB(18,42,40) or ink', 'timer.band.BackgroundColor3=ink', 'Status band paint does not match confirmed state'),

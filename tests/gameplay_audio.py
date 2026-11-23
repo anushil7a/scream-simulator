@@ -34,7 +34,8 @@ end
 local game={GetService=function(_,name)
  if name=="SoundService" then return soundService end
  if name=="ContentProvider" then return content end
- return {Shared={GameplayAudioConfig="settings"}}
+ local shared={GameplayAudioConfig="settings",WaitForChild=function(self,key)return assert(self[key],key) end}
+ return {Shared=shared,WaitForChild=function(self,key)return assert(self[key],key) end}
 end}
 local script={Parent={WaitForChild=function()return "mix" end}}
 local require=function(name)return name=="settings" and settings or RealMix end

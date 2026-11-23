@@ -84,17 +84,23 @@ client=read('src/StarterPlayer/StarterPlayerScripts/Client.client.luau')
 client_checks=''
 if not args.baseline:
  a=client.index('local miniMapButton=');creation=client[a:client.index('local function card(',a)]
- a=client.index(' testButton.Size=');layout=client[a:client.index(' hud.Position=',a)]
- a=client.index(' local miniVisible=');visibility=client[a:client.index(' talkButton.Text=',a)]
+ a=client.index(' local stackedActions=academy.layoutActions');layout=client[a:client.index(' hud.Position=',a)]
+ a=client.index(' local miniVisible=');visibility=client[a:client.index('\nend)',a)]
  client_setup=r'''
 local gui={};local activated;local opens={};local allocations=0
-local testButton={};local tight=false;local data={devAccess=false}
+local testButton={};local data={devAccess=false}
+local Config={CompactCity=true};local top,shop,questsToggle={}, {}, {}
+local controls,castButton,dodgeButton,sprintButton={}, {FindFirstChild=function()end}, {}, {}
 local GuiService={MenuIsOpen=false};local modal={Visible=false};local micPanel={Visible=false};local conversationPanel={Visible=false}
 local function toggleTab(tab)table.insert(opens,tab)end
 local function button(parent,name,text,size,pos,fn)allocations+=1;activated=fn;return {Parent=parent,Name=name,Text=text,Size=size,Position=pos}end
 local function frame(parent,name,size,pos)allocations+=1;return {Parent=parent,Name=name,Size=size,Position=pos}end
 '''
- client_setup+='\nlocal academy={};local clientDestroyed=false\n'+client[client.index('function academy.canShowTestLauncher()'):client.index('\n-- Flight controls exist only',client.index('function academy.canShowTestLauncher()'))]+'\n'
+ client_setup+='\nlocal academy={passesToggle={},compactObjective={}};local clientDestroyed=false\n'+client[client.index('function academy.canShowTestLauncher()'):client.index('\n-- Flight controls exist only',client.index('function academy.canShowTestLauncher()'))]+'\n'
+ action_start=client.index('function academy.layoutActions(')
+ client_setup+=client[action_start:client.index('\nlocal talkTarget',action_start)]+'\n'
+ nav_start=client.index('function academy.refreshMenuCaption(')
+ client_setup+=client[nav_start:client.index('\nacademy.guideMenu=',nav_start)]+'\n'
  client_end=r'''
 check(miniMapButton.Name=="MiniMap" and miniMapButton.Text=="MAP",'MAP launcher missing')
 activated();check(#opens==1 and opens[1]=='Map','MAP launcher opens wrong tab')
@@ -104,6 +110,7 @@ local fixedAllocations=#objects
 for _,vp in ipairs({{279,844},{280,844},{320,167},{320,168},{320,314},{320,315},{320,568},{390,844},{430,844},{460,844},{844,390},{820,600}})do
  for _,touch in ipairs({false,true})do
   local viewport={X=vp[1],Y=vp[2]}
+  local shortLandscape=viewport.Y<300 and viewport.X>viewport.Y
 __LAYOUT__
   check(miniMapButton.Position.X.Offset==-miniLayout.width-14 and miniMapButton.Position.Y.Offset==14,'MAP position changed')
   check(miniMapButton.Size.X.Offset==miniLayout.width and miniMapButton.Size.Y.Offset==miniLayout.height,'MAP size wiring changed')
@@ -131,10 +138,11 @@ print('PASS '..checks..' actual minimap module/client assertions; synthetic layo
 '''
  tracker_size=re.search(r'local tracked=label\(gui,"",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
  hud_size=re.search(r'local hud=frame\(gui,"CompactHUD",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
- controls_size=re.search(r'local controls=frame\(gui,"Actions",(UDim2.fromOffset\(\d+,\d+\))',client)[1]
- positions='\n'.join(next(line for line in client.splitlines() if line.startswith(' '+key+'.Position=')) for key in ['tracked','hud','controls','talkButton'])+'\n'+next(line for line in client.splitlines() if line.startswith(' controls.Size='))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
- nav=client[client.index(' local tight=viewport.X<380'):client.index(' testButton.Size=')]
- nav_origin=re.search(r'local top=frame\(gui,"Navigation",UDim2.fromOffset\(\d+,\d+\),(UDim2.fromOffset\(\d+,\d+\))',client)[1]
+ tracker_layout=client[client.index('function academy.trackerLayout('):client.index('academy.guideLayout=function(')]
+ tracker_rect=client[client.index(' local trackerY='):client.index(' local meterWidth,meterHeight=')]
+ client_setup+='\n'+tracker_layout+'\n'
+ positions=next(line for line in client.splitlines() if line.startswith(' hud.Position='))+'\n'+next(line for line in client.splitlines() if line.lstrip().startswith('talkButton.Position=UDim2.new(.5'))+'\n'+next(line for line in client.splitlines() if line.startswith(' talkButton.Size='))
+ positions=tracker_rect+positions
  notice_source=read('src/StarterPlayer/StarterPlayerScripts/NoticeLayout.luau')
  notice_view=read('src/StarterPlayer/StarterPlayerScripts/NoticeView.luau')
  height_expression=re.search(r'self.panelHeight=([^;]+);self.overflow',notice_view)[1].replace('self.textHeight','(textHeight+8)')
@@ -147,23 +155,31 @@ local function rectangle(o,viewport)
 end
 local function overlaps(a,b)return a.x<b.x+b.w and b.x<a.x+a.w and a.y<b.y+b.h and b.y<a.y+a.h end
 for width=320,1280 do
- for _,height in ipairs({167,168,240,261,314,315,320,360,390,568,640,844})do
+ for _,height in ipairs({167,168,239,240,241,242,261,314,315,320,360,390,568,640,844})do
   for _,touch in ipairs({false,true})do
    for _,testAccess in ipairs({false,true})do
    local data={devAccess=testAccess};local testButton={}
    local viewport={X=width,Y=height}
-   local tracked={Size=__TRACKER__};local hud={Size=__HUD__};local controls={Size=__CONTROLS__};local talkButton={}
-   local top={Position=__NAVORIGIN__};local shop={Position=UDim2.fromOffset(0,0)};local questsToggle={}
-__NAV__
-   for _,child in ipairs({shop,questsToggle})do child.Position.X.Offset+=top.Position.X.Offset;child.Position.Y.Offset+=top.Position.Y.Offset end
+   local shortLandscape=height<300 and width>height
+   local tracked={Size=__TRACKER__};local hud={Size=__HUD__};local talkButton={};local noticeLayout={}
+   shop.Position=UDim2.fromOffset(0,0)
 __LAYOUT__
+   for _,child in ipairs({shop,academy.passesToggle,questsToggle})do child.Position.X.Offset+=top.Position.X.Offset;child.Position.Y.Offset+=top.Position.Y.Offset end
 __POSITIONS__
    local m=rectangle(miniMapButton,viewport)
    check(miniLayout.available==(width>=280 and height>=(touch and 315 or 168)),'Minimap availability boundary wrong')
+   if touch and testAccess and not miniLayout.available and height>=239 then
+    local tools=rectangle(testButton,viewport)
+    check(tools.y>=0 and not overlaps(tools,rectangle(controls,viewport)),'Tools overlap short touch controls')
+    local talk=NoticeLayout.Get(width,height,touch,miniLayout,testAccess,true)
+    if talk.baseTalkX then
+     check(not overlaps(tools,{x=talk.baseTalkX,y=talk.baseTalkY,w=talk.baseTalkWidth or 120,h=44}),'Tools overlap relocated short TALK')
+    end
+   end
    if miniLayout.available then
    check(not overlaps(m,rectangle(tracked,viewport)),'Minimap overlaps quest tracker')
    check(not overlaps(m,rectangle(hud,viewport)),'Minimap overlaps actual HUD')
-   check(not overlaps(m,rectangle(shop,viewport)) and not overlaps(m,rectangle(questsToggle,viewport)),'Minimap overlaps interactive navigation')
+   check(not overlaps(m,rectangle(shop,viewport)) and not overlaps(m,rectangle(questsToggle,viewport)) and not overlaps(m,rectangle(academy.passesToggle,viewport)),'Minimap overlaps interactive navigation')
    if touch then check(not overlaps(m,rectangle(controls,viewport)),'Minimap overlaps actual touch controls '..width..'x'..height)end
    check(not overlaps(m,rectangle(talkButton,viewport)),'Minimap overlaps Talk button')
    for _,textHeight in ipairs({18,30,60,10000})do
@@ -171,10 +187,11 @@ __TOAST__
     if layout.available then
      check(not overlaps(m,notice),'Minimap overlaps visible notice viewport')
      if testAccess then check(not overlaps(rectangle(testButton,viewport),notice),'Tools overlap visible notice viewport')end
-     check(not overlaps(rectangle(shop,viewport),notice) and not overlaps(rectangle(questsToggle,viewport),notice),'Notice overlaps navigation')
+     check(not overlaps(rectangle(shop,viewport),notice) and not overlaps(rectangle(questsToggle,viewport),notice) and not overlaps(rectangle(academy.passesToggle,viewport),notice),'Notice overlaps navigation')
      if touch then check(not overlaps(rectangle(controls,viewport),notice),'Notice overlaps touch controls')end
      local talk=rectangle(talkButton,viewport)
-     if layout.moveTalk then talk.x=layout.talkX;talk.y=layout.talkY end
+     if layout.moveTalk then talk.x=layout.talkX;talk.y=layout.talkY
+     elseif layout.baseTalkX then talk.x=layout.baseTalkX;talk.y=layout.baseTalkY;talk.w=layout.baseTalkWidth or talk.w end
      check(not overlaps(talk,notice),'Notice overlaps resolved TALK')
      check(not overlaps(talk,m),'Resolved TALK overlaps MAP')
      if testAccess then check(not overlaps(talk,rectangle(testButton,viewport)),'Resolved TALK overlaps tools')end
@@ -187,10 +204,11 @@ __TOAST__
    end
    if testAccess then
     local t=rectangle(testButton,viewport)
-    check(t.y>=m.y+m.h+8 and not overlaps(m,t),'Tools overlap minimap')
+    check((t.y>=m.y+m.h+8 or t.x+t.w<=m.x-8) and not overlaps(m,t),'Tools overlap minimap')
     check(not overlaps(t,rectangle(hud,viewport)),'Tools overlap HUD '..width..'x'..height..' touch='..tostring(touch))
     check(not overlaps(t,rectangle(tracked,viewport)),'Tools overlap quest tracker '..width..'x'..height..' touch='..tostring(touch))
     if touch then check(not overlaps(t,rectangle(controls,viewport)),'Tools overlap touch controls')end
+    if not touch and width>=480 then check(not overlaps(t,rectangle(controls,viewport)),'Tools overlap desktop controls')end
     check(not overlaps(t,rectangle(talkButton,viewport)),'Tools overlap Talk button')
    end
    end
@@ -199,7 +217,7 @@ __TOAST__
  end
 end
 '''
- sweep=sweep.replace('__TOAST__',toast_geometry).replace('__NAVORIGIN__',nav_origin).replace('__NAV__',nav).replace('__TRACKER__',tracker_size).replace('__HUD__',hud_size).replace('__CONTROLS__',controls_size).replace('__POSITIONS__',positions).replace('__LAYOUT__',layout)
+ sweep=sweep.replace('__TOAST__',toast_geometry).replace('__TRACKER__',tracker_size).replace('__HUD__',hud_size).replace('__POSITIONS__',positions).replace('__LAYOUT__',layout)
  client_end=client_end.replace("print('PASS '..checks..' actual minimap",sweep+"print('PASS '..checks..' actual minimap")
  client_checks=client_setup+creation+client_end.replace('__LAYOUT__',layout).replace('__VISIBILITY__',visibility)
 code=setup+source+tests+client_checks
@@ -210,7 +228,8 @@ else:
   cases=[(code.replace('compact and {} or landmarks','{}'),'Modal landmark missing'),(code.replace('compact and {} or landmarks','landmarks'),'Compact landmark clutter'),(code.replace('if view.lastRoot==root and view.nextUpdate and now<view.nextUpdate', 'if false and view.lastRoot==root and view.nextUpdate and now<view.nextUpdate'),'Minimap throttle missing'),(code.replace('view.dot.Visible=false;view.nextUpdate=nil','view.dot.Visible=true;view.nextUpdate=nil'),'Hidden minimap marker retained'),(code.replace('viewport.X-278','viewport.X-200'),'Minimap overlaps left HUD'),(code.replace('miniMapAvailable and gameplayVisible and windowFocused','miniMapAvailable and gameplayVisible and windowFocused and not toast.Visible'),'MAP visibility gate failed'),(code.replace('width=math.min(width,math.max(119,viewport.X-328))',''),'Minimap overlaps quest tracker'),(code.replace('view.lastRoot==root and view.nextUpdate','view.nextUpdate'),'Replacement root throttled'),(code.replace('miniMapAvailable and gameplayVisible','gameplayVisible'),'MAP visibility gate failed'),(code.replace('touch and 315 or 168','touch and 314 or 167',1),'Minimap availability boundary wrong'),(code.replace('touch and 315 or 168','touch and 261 or 168'),'Minimap overlaps Talk button')]
   cases.append((code.replace('width-map.width-22','width-14'),'Resolved TALK overlaps MAP'))
   cases.extend([(code.replace(" for i,v in ipairs(compact and {} or landmarks)"," box(map,'North',.04,.025,.25,.075,cream)\n for i,v in ipairs(compact and {} or landmarks)"),'Retired north decoration retained'),(code.replace("if not compact then arrow=text","if true then arrow=text"),'Compact facing arrow retained')])
-  cases.extend([(code.replace('viewport.X<432 and -100 or -126','viewport.X<432 and -104 or -126'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
+  cases.extend([(code.replace('or splitTalkLane and 10 or 14','or splitTalkLane and 10 or viewport.X<432 and 18 or 14'),'Tools overlap Talk button'),(code.replace('viewport.X<356 and miniLayout.height+74','viewport.X<0 and miniLayout.height+74'),'Tools overlap HUD')])
+  cases.append((code.replace('math.clamp(viewport.Y-195-44,0,14)','14'),'Tools overlap short touch controls'))
   for changed,message in cases:
    assert changed!=code,'Mutation did not match: '+message
    run(changed,message)

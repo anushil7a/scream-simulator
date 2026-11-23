@@ -272,8 +272,10 @@ end
 local function trainerOutfit(model,torso,leftArm,rightArm,leftLeg,rightLeg,tier)
     local navy=Color3.fromRGB(31,48,67)
     local ivory=Color3.fromRGB(238,230,207)
-    local accent=tier.id=="elite" and Color3.fromRGB(240,192,89)
-        or tier.id=="brawler" and Color3.fromRGB(219,120,94) or Color3.fromRGB(111,196,180)
+    local elite,brawler=tier.id=="elite",tier.id=="brawler"
+    local accent=elite and Color3.fromRGB(240,192,89)
+        or brawler and Color3.fromRGB(219,120,94) or Color3.fromRGB(111,196,180)
+    local chest=elite and Color3.fromRGB(72,97,118) or brawler and Color3.fromRGB(160,79,63) or ivory
     torso.Color=navy;leftLeg.Color=navy;rightLeg.Color=navy
     for _,name in ipairs({"LeftSleeve","RightSleeve"}) do
         local sleeve=model:FindFirstChild(name);if sleeve then sleeve.Color=navy end
@@ -282,13 +284,20 @@ local function trainerOutfit(model,torso,leftArm,rightArm,leftLeg,rightLeg,tier)
     for _,name in ipairs({"Jacket","FighterArmband"}) do
         local old=model:FindFirstChild(name);if old then old.Transparency=1 end
     end
-    accessory(model,torso,"AcademyChestLeft",Vector3.new(.73,1.28,.18),CFrame.new(-.48,.12,-.58),ivory,Enum.Material.SmoothPlastic)
-    accessory(model,torso,"AcademyChestRight",Vector3.new(.73,1.28,.18),CFrame.new(.48,.12,-.58),ivory,Enum.Material.SmoothPlastic)
+    accessory(model,torso,"AcademyChestLeft",Vector3.new(.73,1.28,.18),CFrame.new(-.48,.12,-.58),chest,Enum.Material.SmoothPlastic)
+    accessory(model,torso,"AcademyChestRight",Vector3.new(.73,1.28,.18),CFrame.new(.48,.12,-.58),chest,Enum.Material.SmoothPlastic)
     accessory(model,torso,"AcademyCenter",Vector3.new(.22,.96,.2),CFrame.new(0,.16,-.59),accent,Enum.Material.SmoothPlastic)
     accessory(model,torso,"AcademyBack",Vector3.new(1.72,1.3,.16),CFrame.new(0,.1,.57),ivory,Enum.Material.SmoothPlastic)
     accessory(model,torso,"AcademyBelt",Vector3.new(2.04,.26,1.04),CFrame.new(0,-.77,0),accent,Enum.Material.SmoothPlastic)
-    accessory(model,leftArm,"AcademyWristLeft",Vector3.new(1.06,.58,1.06),CFrame.new(0,-.66,0),accent,Enum.Material.SmoothPlastic)
-    accessory(model,rightArm,"AcademyWristRight",Vector3.new(1.06,.58,1.06),CFrame.new(0,-.66,0),accent,Enum.Material.SmoothPlastic)
+    local wrapSize=brawler and Vector3.new(1.23,.98,1.19) or Vector3.new(1.06,.58,1.06)
+    local wrapOffset=CFrame.new(0,brawler and -.48 or -.66,0)
+    accessory(model,leftArm,"AcademyWristLeft",wrapSize,wrapOffset,accent)
+    accessory(model,rightArm,"AcademyWristRight",wrapSize,wrapOffset,accent)
+    if elite then
+        local guard=Vector3.new(1.30,.26,1.17)
+        accessory(model,leftArm,"AcademyGuardLeft",guard,CFrame.new(-.12,1.11,0),accent,nil,Enum.PartType.Ball)
+        accessory(model,rightArm,"AcademyGuardRight",guard,CFrame.new(.12,1.11,0),accent,nil,Enum.PartType.Ball)
+    end
     accessory(model,torso,"AcademyCollar",Vector3.new(1.14,.18,1.04),CFrame.new(0,.85,0),ivory,Enum.Material.SmoothPlastic)
     -- Large readable seams and protective kit; welded per limb, never across joints.
     accessory(model,torso,"AcademySeamLeft",Vector3.new(.07,1.12,.06),CFrame.new(-.73,.12,-.7),navy)
@@ -585,6 +594,7 @@ local function makeBot(parent, index, x, z, role, job, training, groundY)
     model:SetAttribute("Role", role)
     local avatarRng = Random.new(8044 + index * 479)
     local home=Vector3.new(x,training and (Config.CompactCity and (training.y or 0)+3.2 or 4.2) or job and job.stations[1].position.Y or (Config.CompactCity and (groundY or 0)+3 or 3.9),z)
+    if training then model:SetAttribute("TrainingHome",home) end
     local cf = CFrame.new(home)
     local skin = skinColors[avatarRng:NextInteger(1, #skinColors)]
     local shirt = shirtColors[avatarRng:NextInteger(1, #shirtColors)]
@@ -741,6 +751,7 @@ local function makeBot(parent, index, x, z, role, job, training, groundY)
         humanoid.WalkSpeed=TrainingRules.RoamSpeed
         bot.trainingRoamStep=index
         model:SetAttribute("TrainingTier",training.id)
+        Collection:AddTag(head,"TrainingAimHead")
         nameLabel.Parent.MaxDistance=65
         return bot
     end
@@ -947,8 +958,9 @@ function World.Build()
     PhysicsService:CollisionGroupSetCollidable("Residents","Residents",false)
     atmosphere()
     local parent=Instance.new("Model");parent.Name="ScreamSimulatorWorld";parent.Parent=workspace
-    local layout=City.Build(parent);World.WalkPoints=layout.walk;World.ActivityPoints=layout.activities;World.SafeSpawn=layout.spawn
-    if Config.CityLayout and Config.CityLayout.MapId == "Map10" then
+    local finishMap10=Config.CityLayout and Config.CityLayout.MapId=="Map10"
+    local layout=City.Build(parent,finishMap10);World.WalkPoints=layout.walk;World.ActivityPoints=layout.activities;World.SafeSpawn=layout.spawn
+    if finishMap10 then
         require(script.Parent.Map10Finish).Build(parent)
     end
     table.clear(World.Seats);for _,item in ipairs(parent:GetDescendants()) do if item:IsA("Seat") then table.insert(World.Seats,item) end end
@@ -964,17 +976,26 @@ function World.Build()
     -- Dedicated sparring pads sit outside PvP and do not recruit city workers.
     for index,originalTier in ipairs(TrainingRules.Tiers) do
         local tier=originalTier;local padColor=C.green
+        local paintSurface
         if Config.CompactCity then
             tier=table.clone(originalTier);local home=Config.CityLayout.TrainingHomes[index];tier.x=home.x;tier.z=home.z;tier.y=home.y or 0
             for _,spec in ipairs(Config.CityLayout.PartSpecs) do
-                if spec.id=="TrainingPad"..index then padColor=spec.color;break end
+                if spec.id=="TrainingPad"..index then
+                    padColor=spec.color
+                    local thickness=spec.shape=="Cylinder" and spec.size.X or spec.size.Y
+                    paintSurface=spec.position.Y+thickness/2
+                    break
+                end
             end
         end
         local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,Config.CompactCity and (tier.y or 0)+.1 or 1.1,tier.z),padColor,Enum.Material.SmoothPlastic)
+        if finishMap10 then pad.Transparency=1;pad.CastShadow=false end
         local sign=part(parent,"TrainingSign_"..tier.id,Vector3.new(1,1,1),Vector3.new(tier.x,(tier.y or 0)+7,tier.z+30),C.gold,nil,false);sign.Transparency=1
         local words=billboard(sign,tier.name.." · recommended Lv "..tier.level.."\n"..tier.health.." HP · "..tier.xp.." base XP\nHit to spar · move out of red strikes",Vector3.zero,280)
         words.Parent.Size=UDim2.fromOffset(280,76);words.Parent.MaxDistance=100
-        makeBot(parent,#World.Bots+1,tier.x,tier.z,"Fighter",nil,tier)
+        local bot=makeBot(parent,#World.Bots+1,tier.x,tier.z,"Fighter",nil,tier)
+        local padSurface=pad.Position.Y+pad.Size.Y/2
+        bot.trainingSurfaceY=math.max(padSurface,paintSurface or padSurface)
     end
     if Config.CompactCity then
         for _,original in ipairs(SupportingNPCs.Roster) do

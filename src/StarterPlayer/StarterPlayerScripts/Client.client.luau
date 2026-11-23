@@ -120,6 +120,9 @@ local screamEffectsUsed=false
 ownClient(function() if screamEffectsUsed then ScreamEffects.Clear() end end)
 local remotes=RS:WaitForChild("ScreamRemotes");if not clientCheckpoint() then return end
 local action=remotes:WaitForChild("Action");if not clientCheckpoint() then return end
+-- Required channels can replicate separately from the folder.
+remotes:WaitForChild("State");if not clientCheckpoint() then return end
+remotes:WaitForChild("Effect");if not clientCheckpoint() then return end
 local playerGui=p:WaitForChild("PlayerGui");if not clientCheckpoint() then return end
 local gui=Instance.new("ScreenGui");ownClient(function() gui:Destroy() end);if not clientCheckpoint() then return end
 gui.Name="ScreamUI";gui.ResetOnSpawn=false;gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling;gui.Parent=playerGui
@@ -161,7 +164,6 @@ local function button(parent,name,text,size,pos,callback,color)
 end
 -- Presentation only: no subscriptions, assets, input handlers or independent lifetime.
 local academy={}
-academy.lockLostUntil=0
 function academy.surface(object,accent)
  local stroke=Instance.new("UIStroke");stroke.Name="AcademyEdge";stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;stroke.Color=accent or Color3.fromRGB(89,110,114);stroke.Transparency=.45;stroke.Thickness=1;stroke.Parent=object
  local shade=Instance.new("UIGradient");shade.Name="AcademyDepth";shade.Color=ColorSequence.new(Color3.new(1,1,1),Color3.fromRGB(183,196,201));shade.Rotation=90;shade.Parent=object
@@ -246,6 +248,8 @@ local renderedMenuKey,renderedTab
 local renderRevision=0
 local function closeMenu()
  modal.Visible=false
+ academy.menuNoticeRequested=nil
+ academy.menuQuestFocus=nil
  if academy.refreshTestLauncher then academy.refreshTestLauncher() end
  clearShop()
  -- Retain the previous tab/scroll position, but rebuild its subscriptions on reopen.
@@ -254,17 +258,32 @@ end
 button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function() closeMenu() end)
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 do local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content end
-local selected="Shop";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
+local selected="Style";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
+academy.hideMap=Config.ResonanceLayout~=nil
 local conversationPanel,showConversation,closeConversation
 local observedMicInterruption=0
-local lockController
-local function toggleTab(name)
- if lockController then lockController:Clear();academy.lockLostUntil=0 end
+function academy.gearUpgrade(data)
+ local highestOwned
+ for index,item in ipairs(Config.Gear.Items) do
+  if Config.Gear.Owned(data,item.id) then highestOwned=index end
+ end
+ return highestOwned and Config.Gear.Items[highestOwned+1]
+end
+local function toggleTab(name,resetScroll,focusQuest)
+ if name=="Map" and academy.hideMap then return end
  local opening=not modal.Visible or selected~=name
  selected=name;if not opening then closeMenu();return end;modal.Visible=true
+ academy.menuQuestFocus=name=="Quests" and focusQuest or nil
  if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end
  if academy.refreshTestLauncher then academy.refreshTestLauncher() end
  if opening then
+  if name=="Style" then
+   -- Keep item positions stable across a purchase response while this tab is open.
+   local nextUpgrade=academy.gearUpgrade(data)
+   if nextUpgrade~=academy.nextGearUpgrade then resetScroll=true end
+   academy.nextGearUpgrade=nextUpgrade
+  end
+  if resetScroll then renderedTab=nil;renderedMenuKey=nil end
   if name=="Shop" then action:FireServer("ShopRefresh") end
   if closeConversation then closeConversation() end
   if devPanel then devPanel.Visible=false end
@@ -272,11 +291,26 @@ local function toggleTab(name)
  end
 end
 local function toggle()
- if modal.Visible then closeMenu() else toggleTab(selected) end
+ if modal.Visible then closeMenu()
+ elseif academy.starterGearReady then toggleTab("Style",true)
+ else toggleTab(selected) end
 end
-local shop=button(top,"ShopToggle","SHOP  [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),function() toggleTab("Shop") end,gold);shop.TextColor3=dark
-local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests") end)
+local shop=button(top,"ShopToggle","MENU [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),toggle,gold);shop.TextColor3=dark
+local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function()
+ academy.menuNoticeRequested=academy.noticeShortcut
+ toggleTab("Quests",true)
+end)
+questsToggle.Visible=false
 academy.surface(shop);academy.surface(questsToggle)
+academy.passesToggle=button(top,"PassesToggle","PASSES",UDim2.fromOffset(64,46),UDim2.fromOffset(80,0),function()
+ if academy.passesToggle.Visible and not modal.Visible and not GuiService.MenuIsOpen then toggleTab("Shop",true) end
+end,Color3.fromRGB(78,55,27))
+academy.passesToggle.TextColor3=gold;academy.passesToggle.Visible=false
+academy.surface(academy.passesToggle,gold)
+do
+ local signal=frame(academy.passesToggle,"StoreSignal",UDim2.fromOffset(24,2),UDim2.new(.5,-12,1,-8),gold)
+ signal.Interactable=false;signal.Active=false;signal.Selectable=false
+end
 local function questLauncherText()
  local count=0
  for _,quest in ipairs(Config.Quests)do
@@ -295,9 +329,17 @@ stats.Name="LevelValue";stats.Font=Enum.Font.GothamBold;stats.TextXAlignment=Enu
 local coins=label(hud,"0 coins",UDim2.fromOffset(128,24),UDim2.fromOffset(102,8),13,white)
 coins.Name="CoinValue";coins.Font=Enum.Font.GothamBold;coins.TextXAlignment=Enum.TextXAlignment.Right;coins.TextWrapped=false
 coins.Active=false;coins.Selectable=false;coins.Interactable=false
-academy.mark(hud,"health",UDim2.fromOffset(12,36),10,Color3.fromRGB(130,211,174))
+do local scale=Instance.new("UITextSizeConstraint");scale.Name="CoinTextScale";scale.MinTextSize=9;scale.MaxTextSize=13;scale.Parent=coins end
+academy.healthMark=academy.mark(hud,"health",UDim2.fromOffset(12,36),10,Color3.fromRGB(130,211,174))
 local health=label(hud,"100 HP",UDim2.fromOffset(204,18),UDim2.fromOffset(26,32),14)
 health.Name="HealthValue";health.Font=Enum.Font.GothamBold;health.TextWrapped=false
+academy.incomingHit=label(hud,"BEAM HIT YOU",UDim2.fromOffset(116,18),UDim2.fromOffset(114,32),13,Color3.fromRGB(255,157,146))
+academy.incomingHit.Name="IncomingBeamHit"
+academy.incomingHit.Font=Enum.Font.GothamBold
+academy.incomingHit.TextXAlignment=Enum.TextXAlignment.Right
+academy.incomingHit.TextWrapped=false
+academy.incomingHit.Visible=false
+academy.incomingHit.Active=false;academy.incomingHit.Selectable=false;academy.incomingHit.Interactable=false
 local hf=frame(frame(hud,"HealthTrack",UDim2.fromOffset(218,8),UDim2.fromOffset(12,51),panel),"Fill",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(105,224,158))
 local displayedHealth,displayedMaximum
 local function refreshHealth()
@@ -317,8 +359,33 @@ local xpText=label(hud,"0 / 103 XP",UDim2.new(1,-38,0,19),UDim2.fromOffset(26,61
 xpText.TextScaled=true
 do local xpScale=Instance.new("UITextSizeConstraint");xpScale.Name="XPTextScale";xpScale.MaxTextSize=12;xpScale.MinTextSize=9;xpScale.Parent=xpText end
 local xf=frame(frame(hud,"XPTrack",UDim2.fromOffset(218,4),UDim2.fromOffset(12,82),panel),"Fill",UDim2.fromScale(0,1),UDim2.new(),gold)
-academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
-local zone=label(gui,"SAFE • PvP OFF",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.TextXAlignment=Enum.TextXAlignment.Center
+academy.progressMark=academy.mark(hud,"progress",UDim2.fromOffset(12,64),10,gold)
+function academy.layoutStatusCard(compact,desktopWidth)
+ compact=compact or desktopWidth~=nil
+ local width=desktopWidth or (compact and 218 or 242)
+ local narrow=width<218
+ local warningX=compact and math.min(112,width-92) or 114
+ hud.Size=UDim2.fromOffset(width,compact and 78 or 94)
+ levelBadge.Size=UDim2.fromOffset(compact and 68 or 82,compact and 20 or 24)
+ levelBadge.Position=UDim2.fromOffset(12,compact and 6 or 8)
+ coins.Size=UDim2.fromOffset(compact and width-98 or 128,compact and 20 or 24)
+ coins.TextScaled=narrow
+ coins.Position=UDim2.fromOffset(compact and 86 or 102,compact and 6 or 8)
+ health.Size=UDim2.fromOffset(compact and warningX-30 or 204,18)
+ health.Position=UDim2.fromOffset(26,compact and 27 or 32)
+ academy.healthMark.Position=UDim2.fromOffset(12,compact and 31 or 36)
+ academy.incomingHit.Size=UDim2.fromOffset(width-warningX-12,18)
+ academy.incomingHit.Position=UDim2.fromOffset(warningX,compact and 27 or 32)
+ academy.incomingHit.TextSize=narrow and 11 or 13
+ hf.Parent.Size=UDim2.new(1,-24,0,compact and 6 or 8)
+ hf.Parent.Position=UDim2.fromOffset(12,compact and 46 or 51)
+ xpText.Size=UDim2.new(1,-38,0,compact and 15 or 19)
+ xpText.Position=UDim2.fromOffset(26,compact and 53 or 61)
+ academy.progressMark.Position=UDim2.fromOffset(12,compact and 55 or 64)
+ xf.Parent.Size=UDim2.new(1,-24,0,4)
+ xf.Parent.Position=UDim2.fromOffset(12,compact and 70 or 82)
+end
+local zone=label(gui,"SAFE • PvP OFF",UDim2.fromOffset(240,28),UDim2.new(.5,-120,0,12),13);zone.Name="ZoneStatus";zone.TextXAlignment=Enum.TextXAlignment.Center
 zone.BackgroundColor3=dark;zone.BackgroundTransparency=.08
 do local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=zone end
 academy.surface(zone)
@@ -329,10 +396,32 @@ function academy.refreshZone()
  local position=root and root.Position
  local enabled=position and Config.InArena(position)==true or false
  local garden=enabled and Config.InGardenPvp and Config.InGardenPvp(position)==true
- local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or "SAFE • PvP OFF"
- if zone.Text~=value then
-  zone.Text=value;zone.TextColor3=enabled and Color3.fromRGB(255,140,139) or white
+ local bossHint=not enabled and position and p:GetAttribute("BossCombatHint")
+ local strikeAt=not enabled and not bossHint and position and character:GetAttribute("TrainingStrikeAt")
+ local trainingHint=false
+ if type(strikeAt)=="number" and workspace:GetServerTimeNow()<strikeAt then
+  local center=character:GetAttribute("TrainingStrikeCenter")
+  local humanoid=character:FindFirstChildOfClass("Humanoid")
+  if typeof(center)=="Vector3" and humanoid and humanoid.Health>0 then
+   trainingHint=academy.TrainingRules.ContainsStrike(center,position)
+  end
  end
+ local layout=Config.ResonanceLayout
+ local hallShield=layout and enabled and workspace:GetServerTimeNow()<(p:GetAttribute("ProtectionEnds") or 0)
+ local pvpAhead=not layout and not enabled and not bossHint and not trainingHint and position
+  and academy.guide and academy.guide:HasPvPAhead()
+ local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or bossHint or trainingHint and "MOVE OR DODGE"
+  or pvpAhead and "SAFE • PvP AHEAD" or "SAFE • PvP OFF"
+ if layout and position then
+  if enabled then value=hallShield and "PvP • SPAWN SHIELD" or "RESONANCE HALL • PvP ON"
+  elseif not Config.ResonanceTravel and layout.Contains(layout.Practice,position) then value="TRAINING LANDING • SAFE"
+  elseif layout.Contains(layout.Hall,position) and layout.IsSafeApron(position) then value="TRAINING PORTAL • SAFE" end
+ end
+ if zone.Text~=value then
+  zone.Text=value
+  zone.TextColor3=hallShield and gold or (enabled or trainingHint) and Color3.fromRGB(255,140,139) or (bossHint or pvpAhead) and gold or white
+ end
+ return enabled
 end
 function academy.layoutZone(viewport,touch)
  if touch or viewport.X<820 then
@@ -365,6 +454,20 @@ noticeView=noticeView.new(gui,toast)
 ownClient(function() noticeView:Destroy() end);if not clientCheckpoint() then return end
 
 local function notify(t,urgent,key) notifications:Push(t,urgent,key) end
+do
+ local function ambient(entry)
+  return entry and not entry.urgent and (entry.key=="welcome" or entry.key=="travelArrival")
+ end
+ function academy.deferArrivalNotice(shortLandscape,arenaActive)
+  if not (academy.hideMap and shortLandscape and (modal.Visible or arenaActive) and not academy.menuNoticeRequested
+   and ambient(notifications.active)) then return false end
+  -- A deferred welcome must never hold up the result of an action in the menu.
+  for _,entry in ipairs(notifications.pending) do
+   if not ambient(entry) then return false end
+  end
+  return true
+ end
+end
 local nextCast=0;local sequence=0;local captureSource=nil
 local sustainedControl,sustainedRules
 local voiceAccessInterrupted=false
@@ -385,7 +488,6 @@ do
 end
 local windowFocused=true
 local function cancelCapture()
- if lockController then lockController:Clear();academy.lockLostUntil=0 end
  if sustainedControl then sustainedControl:Cancel();return end
  captureSource=nil;mic:Cancel();action:FireServer("CancelCast")
 end
@@ -407,55 +509,14 @@ local function beginCapture(source)
  if sustainedControl or captureSource or beamBlocked() or os.clock()<nextCast then return end
  if mic:Begin() then sequence+=1;captureSource=source;action:FireServer("BeginCast",sequence) end
 end
-do
- local LockOn=loadClientDependency(script.Parent,"LockOn");if not clientCheckpoint() then return end
- local TrainingRules=loadClientDependency(RS.Shared,"TrainingRules");if not clientCheckpoint() then return end
- local lockHomes={}
- for index,tier in ipairs(TrainingRules.Tiers) do
-  local home=Config.CompactCity and Config.CityLayout.TrainingHomes[index]
-  lockHomes[tier.id]=Vector3.new(home and home.x or tier.x,home and ((home.y or 0)+3.2) or 4.2,home and home.z or tier.z)
- end
- lockController=LockOn.new({world=workspace,players=Players,collection=game:GetService("CollectionService"),
-  localPlayer=p,trainingHomes=lockHomes,trainingRadius=TrainingRules.Radius,inArena=Config.InArena})
+local function usesCenterAim()
+ local input=UIS.PreferredInput
+ return input==Enum.PreferredInput.Touch or input==Enum.PreferredInput.Gamepad
 end
-ownClient(function() lockController:Destroy() end);if not clientCheckpoint() then return end
-connectClient(p.CharacterRemoving,function() lockController:Clear();academy.lockLostUntil=0 end)
-local function lockContext(power)
- local character=p.Character;local root=character and character:FindFirstChild("HumanoidRootPart")
- local head=character and character:FindFirstChild("Head")
- local origin=root and root.Position+Vector3.new(0,1,0)
- if root and head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
- return {character=character,position=root and root.Position,origin=origin,camera=workspace.CurrentCamera,
-  range=Config.VoiceCombat.Stats(data.level,power or mic.power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).range,
-  now=workspace:GetServerTimeNow(),allowed=not clientDestroyed and windowFocused and not beamBlocked()
-   and (not sustainedControl or sustainedControl.armed==true)}
-end
--- Presentation only: both aim sampling and marker updates can consume a lost lock.
-function academy.resolveLock(context)
- local hadTarget=lockController.target~=nil
- local point,target=lockController:Resolve(context)
- if point or not context.allowed then academy.lockLostUntil=0
- elseif hadTarget then academy.lockLostUntil=os.clock()+.8 end
- return point,target
-end
-local nextLockAcquire=0
-local function toggleLock()
- if clientDestroyed then return end
- if not lockController.target then
-  local now=os.clock();if now<nextLockAcquire then return end;nextLockAcquire=now+.2
- end
- lockController:Toggle(lockContext())
- academy.lockLostUntil=0
-end
-local function aimRay(power)
- local locked,target=academy.resolveLock(lockContext(power))
- if locked then
-  local origin=lockContext(power).origin
-  return {Origin=origin,Direction=(locked-origin).Unit},{Position=locked,Instance=target}
- end
+local function aimRay()
  local camera=workspace.CurrentCamera
  if not camera or camera.ViewportSize.X<2 or camera.ViewportSize.Y<2 then return nil end
- local location=UIS.TouchEnabled and camera.ViewportSize/2 or UIS:GetMouseLocation()
+ local location=usesCenterAim() and camera.ViewportSize/2 or UIS:GetMouseLocation()
  local ray=camera:ViewportPointToRay(location.X,location.Y)
  local params=RaycastParams.new();params.FilterDescendantsInstances={p.Character};params.FilterType=Enum.RaycastFilterType.Exclude;params.RespectCanCollide=true
  return ray,workspace:Raycast(ray.Origin,ray.Direction*1000,params)
@@ -475,7 +536,13 @@ if remotes:GetAttribute("AutomaticVoice")==true then
  ownClient(function() sustainedControl:Destroy() end);if not clientCheckpoint() then return end
 end
 local function voiceEligibilityHint(compact)
- if data.voiceEligible==true then return nil end
+ if data.voiceEligible==true then
+  local input=mic.input
+  if input and input.Parent and input.Muted then
+   return compact and "MIC MUTED\nUnmute in Roblox" or "Beams stay OFF. Unmute in Roblox, then turn Beams on.",true
+  end
+  return nil
+ end
  if data.voiceStatus=="denied" then
   return compact and "VOICE ACCESS REQUIRED\nCheck Roblox voice settings" or "Beams OFF: Roblox voice access is not enabled. Check Roblox voice settings; server checks repeat. Voice chat is unchanged."
  end
@@ -487,7 +554,6 @@ end
 -- Process every server transition, not only the last state visible next frame.
 local function observeVoiceEligibility(nextData)
  if nextData.voiceEligible==true then return end
- lockController:Clear();academy.lockLostUntil=0
  if nextData.voiceStatus=="denied" or nextData.voiceStatus=="unavailable" then voiceAccessInterrupted=true end
  if sustainedControl then sustainedControl:SetArmed(false)
  elseif captureSource then cancelCapture() end
@@ -496,28 +562,34 @@ local function toggleVoice()
  if not sustainedControl then return end
  -- Pausing is always allowed; arming must be an available gameplay action.
  if not sustainedControl.armed and (not windowFocused or beamBlocked()) then
-  notify(voiceEligibilityHint() or "Beams stay OFF. Wait for live microphone input and gameplay to be ready, then turn them on.",true,"voice");return
+  local hint,inputMuted=voiceEligibilityHint()
+  if inputMuted then academy.muteNoticePending=true end
+  notify(hint or "Beams stay OFF. Wait for live microphone input and gameplay to be ready, then turn them on.",true,inputMuted and "micMuted" or "voice");return
  end
+ academy.beamController=nil
  sustainedControl:SetArmed(not sustainedControl.armed)
- if not sustainedControl.armed then lockController:Clear();academy.lockLostUntil=0 end
- notify(sustainedControl.armed and "Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
+ notify(sustainedControl.armed and "Speech can fire.\nOFF to talk."
   or "Beams OFF. Talk freely without attacking. Voice chat is unchanged.",false,"voice")
 end
-local function screamToggleLabel(armed,touch)
- return (armed and "BEAMS: ON" or "BEAMS: OFF").."\n"..(touch and "Tap" or "[E]")..(armed and " to turn off" or " to turn on")
+local function screamToggleLabel(armed,touch,status,gamepad)
+ local prompt=gamepad and "[RB/R1]" or touch and "Tap" or "[E]"
+ local title=armed and "BEAMS: ON" or "BEAMS: OFF"
+ if gamepad and status then title..=" "..prompt end
+ return title.."\n"..(status or prompt..(armed and " to turn off" or " to turn on"))
 end
 local function releaseCapture(source)
  if captureSource~=source then return end
  captureSource=nil
  if beamBlocked() then cancelCapture();return end
  local power,reason=mic:Release();if power<.08 then action:FireServer("CancelCast");notify(reason or "Use your voice while holding attack.",true,"capture");return end
- local ray,hit=aimRay(power)
+ local ray,hit=aimRay()
  if not ray then action:FireServer("CancelCast");return end
  action:FireServer("Cast",{sequence=sequence,power=power,aim=hit and hit.Position or ray.Origin+ray.Direction*1000})
  nextCast=os.clock()+4
 end
 local function dodge()
- cancelCapture()
+ -- The legacy hold input cancels on this gesture. Automatic beams wait for the server.
+ if not sustainedControl then cancelCapture() end
  if not blocked() then
   local character=p.Character;local root=character and character:FindFirstChild("HumanoidRootPart")
   local humanoid=character and character:FindFirstChildOfClass("Humanoid")
@@ -535,11 +607,39 @@ local function dodge()
  end
 end
 local controls=frame(gui,"Actions",UDim2.fromOffset(260,88),UDim2.new(1,-274,1,-102));controls.BackgroundTransparency=1
-local castButton=button(controls,"Cast","BEAM  [E]",UDim2.fromOffset(144,44),UDim2.fromOffset(116,0),toggleVoice,gold);castButton.TextColor3=dark
+local castButton=button(controls,"Cast","BEAM  [E]",UDim2.fromOffset(260,44),UDim2.fromOffset(0,0),toggleVoice,gold);castButton.TextColor3=dark
 castButton.TextWrapped=true;castButton.Selectable=true
-academy.surface(castButton)
-local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-12,0,3),UDim2.new(0,6,1,-6),panel)
+academy.surface(castButton,gold)
+do
+ local mark=academy.mark(castButton,"voice",UDim2.fromOffset(15,12),20,muted)
+ mark.Visible=sustainedControl~=nil
+ if sustainedControl then
+  castButton.TextColor3=white
+  local edge=castButton.AcademyEdge
+  local glyphs=mark:GetChildren()
+  local faces={
+   off={panel,muted},
+   armed={Color3.fromRGB(62,48,30),gold},
+   firing={Color3.fromRGB(22,60,49),Color3.fromRGB(104,222,157)},
+   cooldown={Color3.fromRGB(38,49,60),Color3.fromRGB(158,191,207)},
+  }
+  local current
+  function academy.setBeamFace(armed,firing,cooldown)
+   local mode=not armed and "off" or firing and "firing" or cooldown and "cooldown" or "armed"
+   if mode==current then return end
+   current=mode
+   local face,accent=table.unpack(faces[mode])
+   castButton.BackgroundColor3=face;edge.Color=accent
+   for _,bar in ipairs(glyphs) do bar.BackgroundColor3=accent end
+  end
+  academy.setBeamFace(false,false,false)
+ end
+end
+academy.pulseFrame=ShopUI.PulseFrame(castButton,frame)
+local voiceTimeTrack=frame(castButton,"VoiceTimeTrack",UDim2.new(1,-60,0,3),UDim2.new(0,48,1,-6),dark)
+voiceTimeTrack.Active=false;voiceTimeTrack.Interactable=false;voiceTimeTrack.Selectable=false
 local voiceTimeFill=frame(voiceTimeTrack,"RemainingOrRecovery",UDim2.fromScale(0,1),UDim2.new(),muted)
+voiceTimeFill.Active=false;voiceTimeFill.Interactable=false;voiceTimeFill.Selectable=false
 voiceTimeTrack.Visible=false
 castButton.InputBegan:Connect(function(input)
  if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then beginCapture(input) end
@@ -553,16 +653,50 @@ local meterFill=academy.reactor.fill
 if sustainedControl then
  local threshold=frame(academy.reactor.track,"VoiceStartThreshold",UDim2.fromOffset(2,7),UDim2.new(sustainedControl.gate.OnPower,0,.5,0),white)
  threshold.AnchorPoint=Vector2.new(.5,.5);threshold.ZIndex=meterFill.ZIndex+1
+ threshold.Visible=false;academy.voiceThreshold=threshold
 end
 local aimGui=Instance.new("ScreenGui");aimGui.Name="ScreamAim";aimGui.ResetOnSpawn=false;aimGui.ScreenInsets=Enum.ScreenInsets.None;aimGui.Parent=p.PlayerGui
 ownClient(function() aimGui:Destroy() end);if not clientCheckpoint() then return end
 local reticle=label(aimGui,"+",UDim2.fromOffset(24,24),UDim2.new(.5,-12,.5,-12),22,white);reticle.Name="Crosshair";reticle.TextXAlignment=Enum.TextXAlignment.Center
 local hitFeedback=loadClientDependency(script.Parent,"HitFeedback");if not clientCheckpoint() then return end
 hitFeedback=hitFeedback.new();if not clientCheckpoint() then return end
-local hitText=label(aimGui,"",UDim2.fromOffset(210,26),UDim2.new(.5,-105,.5,-48),16,gold);hitText.Name="ConfirmedDamage";hitText.TextXAlignment=Enum.TextXAlignment.Center;hitText.Visible=false
-local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),13,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
+local hitText=label(aimGui,"",UDim2.fromOffset(0,26),UDim2.new(.5,0,.5,-82),16,gold)
+hitText.Name="ConfirmedDamage";hitText.AnchorPoint=Vector2.new(.5,0);hitText.AutomaticSize=Enum.AutomaticSize.X
+hitText.TextXAlignment=Enum.TextXAlignment.Center;hitText.TextWrapped=false;hitText.Font=Enum.Font.GothamBold
+hitText.BackgroundColor3=dark;hitText.BackgroundTransparency=.08;hitText.BorderSizePixel=0
+hitText.Visible=false;hitText.Active=false;hitText.Selectable=false;hitText.Interactable=false
+do
+ local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,7);corner.Parent=hitText
+ local padding=Instance.new("UIPadding");padding.PaddingLeft=UDim.new(0,10);padding.PaddingRight=padding.PaddingLeft;padding.Parent=hitText
+end
+local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),14,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
+aimInfo.Font=Enum.Font.GothamBold
+aimInfo.TextStrokeColor3=dark;aimInfo.TextStrokeTransparency=.12
 local reportedReady=nil;local readyReportAt=0
-local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,44),UDim2.fromOffset(0,0),dodge);academy.surface(dodgeButton)
+local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,32),UDim2.fromOffset(0,52),dodge);academy.surface(dodgeButton)
+function academy.trainingHeadAt(ray,distance)
+ local picked
+ for _,head in ipairs(game:GetService("CollectionService"):GetTagged("TrainingAimHead")) do
+  local model=head.Parent
+  if not model or model:GetAttribute("ResidentActive")==false then continue end
+  local origin=head.CFrame:PointToObjectSpace(ray.Origin)
+  local direction=head.CFrame:VectorToObjectSpace(ray.Direction)
+  local half=head.Size/2
+  local enter,leave=0,distance
+  for _,axis in ipairs({"X","Y","Z"}) do
+   local start,speed,extent=origin[axis],direction[axis],half[axis]
+   if math.abs(speed)<.00001 then
+    if math.abs(start)>extent then enter=math.huge;break end
+   else
+    local a,b=(-extent-start)/speed,(extent-start)/speed
+    enter=math.max(enter,math.min(a,b));leave=math.min(leave,math.max(a,b))
+    if enter>leave then break end
+   end
+  end
+  if enter<=leave and enter<distance then picked=model;distance=enter end
+ end
+ return picked
+end
 local sprinting=false
 local nextSprintSend=0
 local function setSprint(requested)
@@ -571,82 +705,138 @@ local function setSprint(requested)
   or modal.Visible or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible)
   or not humanoid or humanoid.Health<=0 or humanoid.PlatformStand or humanoid.Sit or humanoid.SeatPart
   or workspace:GetServerTimeNow()<(p:GetAttribute("KnockdownEnds") or 0)) then requested=false end
+ if not requested then academy.sprintController=nil end
  -- Reconcile a held request after a transient quota rejection; never retry OFF.
  local now=os.clock()
  if sprinting==requested and (not requested or now<nextSprintSend) then return end
  sprinting=requested;nextSprintSend=now+.5;action:FireServer("Sprint",requested)
 end
-local function targetCovered(root,targetRoot,targetModel)
+local function previewAttackOrigin(root)
  local character=p.Character;local head=character and character:FindFirstChild("Head")
- local origin=root.Position+Vector3.new(0,1,0)
- if head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then origin=head.Position end
- local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
- params.FilterDescendantsInstances={character,targetModel};params.RespectCanCollide=true
- return workspace:Raycast(origin,targetRoot.Position-origin,params)~=nil
+ if head and head:IsA("BasePart") and (head.Position-root.Position).Magnitude<5 then return head.Position end
+ return root.Position+Vector3.new(0,1,0)
 end
-local function playerTargetInfo(target,humanoid,canFight,far,now,currentFar,covered)
+local function beamTargetRange(root,targetRoot,aimPoint,stats,pvp)
+ local origin=previewAttackOrigin(root)
+ local aim=aimPoint-origin
+ local projection=aim.Magnitude>=.01 and (targetRoot.Position-origin):Dot(aim.Unit) or math.huge
+ local rootDistance=pvp and (targetRoot.Position-root.Position).Magnitude or 0
+ local far=projection<0 or projection>stats.maxRange or rootDistance>stats.maxRange+2
+ local currentFar=projection>stats.range or rootDistance>stats.range+2
+ return far,currentFar,origin
+end
+local function targetCovered(origin,targetRoot,targetModel,aimPoint)
+ local delta=targetRoot.Position-origin
+ local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude
+ params.FilterDescendantsInstances={p.Character,targetModel};params.RespectCanCollide=true
+ if workspace:Raycast(origin,delta,params) then return true end
+ local aim=aimPoint-origin
+ if aim.Magnitude<.01 then return false end
+ local direction=aim.Unit
+ local projection=delta:Dot(direction)
+ if projection<=0 then return false end
+ -- The server ignores actors when shortening the actual beam, then checks sight to the root separately.
+ local excluded=game:GetService("CollectionService"):GetTagged("CityResident")
+ table.insert(excluded,targetModel)
+ for _,player in ipairs(Players:GetPlayers()) do
+  if player.Character then table.insert(excluded,player.Character) end
+ end
+ params.FilterDescendantsInstances=excluded
+ local obstruction=workspace:Raycast(origin,direction*projection,params)
+ return obstruction~=nil and obstruction.Distance<projection
+end
+local function playerTargetInfo(target,humanoid,inPvp,targetInPvp,far,now,currentFar,covered,localShielded)
  if humanoid.Health<=0 then return nil,false end
  local protection=math.max(0,(target:GetAttribute("ProtectionEnds") or 0)-now)
  local rolling=now<(target:GetAttribute("DodgeEnds") or 0)
- local status=not canFight and "SAFE · PvP OFF"
+ local status=not inPvp and (targetInPvp and "YOU ARE OUTSIDE PvP" or "BOTH OUTSIDE PvP")
+  or not targetInPvp and "TARGET OUTSIDE PvP"
+  or localShielded and "YOUR SPAWN SHIELD"
   or protection>0 and string.format("PROTECTED · %.1fs",protection)
   or rolling and "DODGING" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "ARENA OPPONENT"
  local level=target:GetAttribute("ScreamLevel")
  local name=target.DisplayName..(type(level)=="number" and string.format(" · LV %d",level) or "")
  return string.format("%s\n%s",name,status),
-  canFight and protection<=0 and not rolling and not far and not currentFar and not covered
+  inPvp and targetInPvp and not localShielded and protection<=0 and not rolling and not far and not currentFar and not covered
 end
-local function residentTargetInfo(model,humanoid,far,currentFar,covered)
+local function residentTargetInfo(model,humanoid,far,currentFar,covered,position)
  if model:GetAttribute("ResidentActive")==false then return nil,false end
  if not humanoid or humanoid.Health<=0 then return nil,false end
- local status=far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "TRAINING RESIDENT"
- return string.format("%s\n%s",model:GetAttribute("DisplayName") or model.Name,status),not far and not currentFar and not covered
+ local home=model:GetAttribute("TrainingHome")
+ local outsidePad=typeof(home)=="Vector3" and (position-home).Magnitude>academy.TrainingRules.Radius
+ local status=outsidePad and "MOVE TOWARD PAD CENTER" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER"
+  or (model:GetAttribute("TrainingTier")~=nil and "TRAINING FIGHTER" or "CITY RESIDENT")
+ return string.format("%s\n%s",model:GetAttribute("DisplayName") or model.Name,status),not outsidePad and not far and not currentFar and not covered
 end
-local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(164,32),UDim2.fromOffset(96,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
-local lockButton=button(controls,"LockTarget","LOCK [R]",UDim2.fromOffset(88,44),UDim2.fromOffset(0,52),toggleLock)
-lockButton.TextSize=12;lockButton.TextWrapped=true;lockButton.Selectable=true;academy.surface(lockButton)
-local lockMarker=label(aimGui,"",UDim2.fromOffset(108,28),UDim2.new(),13,gold)
-lockMarker.Name="LockedTarget";lockMarker.AnchorPoint=Vector2.new(.5,1);lockMarker.Visible=false
-lockMarker.TextXAlignment=Enum.TextXAlignment.Center
-lockMarker.BackgroundColor3=dark;lockMarker.BackgroundTransparency=0;lockMarker.Font=Enum.Font.GothamBold
+local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(144,32),UDim2.fromOffset(116,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
 do
- local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,5);corner.Parent=lockMarker
- local edge=Instance.new("UIStroke");edge.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;edge.Color=gold;edge.Thickness=1;edge.Parent=lockMarker
- local words=label(lockMarker,"LOCKED",UDim2.new(1,-32,1,0),UDim2.fromOffset(28,0),13,gold)
- words.Name="LockText";words.Font=Enum.Font.GothamBold;words.TextXAlignment=Enum.TextXAlignment.Center
- local symbol=Instance.new("Frame");symbol.Name="LockSymbol";symbol.BackgroundTransparency=1;symbol.BorderSizePixel=0
- symbol.Position=UDim2.fromOffset(10,8);symbol.Size=UDim2.fromOffset(12,12);symbol.Parent=lockMarker
- local outline=Instance.new("UIStroke");outline.Color=gold;outline.Thickness=1;outline.Parent=symbol
- local dot=Instance.new("Frame");dot.Name="Center";dot.BackgroundColor3=gold;dot.BorderSizePixel=0;dot.Position=UDim2.fromOffset(5,5);dot.Size=UDim2.fromOffset(2,2);dot.Parent=symbol
+ local track=frame(sprintButton,"StaminaTrack",UDim2.new(1,-18,0,3),UDim2.new(0,9,1,-6),dark)
+ local fill=frame(track,"Stamina",UDim2.fromScale(1,1),UDim2.new(),Color3.fromRGB(130,211,174))
+ track.Active=false;track.Interactable=false;track.Selectable=false
+ fill.Active=false;fill.Interactable=false;fill.Selectable=false
+ academy.staminaFill=fill
 end
-
+function academy.layoutActions(viewport,touch,shortLandscape)
+ local compact=touch and shortLandscape and viewport.X>=448 and viewport.Y>=150
+ -- Short safe areas need a column beside Jump; an extra row above it gets clipped.
+ local stacked=compact and viewport.Y<239
+ local width=stacked and math.min(140,viewport.X-346) or compact and math.min(196,viewport.X-264) or 260
+ local height=touch and 44 or 32
+ local dodgeWidth=stacked and width or compact and 84 or 108
+ local sprintWidth=stacked and width or width-dodgeWidth-8
+ controls.Position=stacked and UDim2.new(1,-width-106,0,6)
+  or UDim2.new(1,-width-14,1,touch and -195 or -102)
+ controls.Size=UDim2.fromOffset(width,stacked and 144 or touch and 96 or 88)
+ castButton.Size=UDim2.fromOffset(width,44)
+ castButton.TextWrapped=stacked and width<140
+ local mark=castButton:FindFirstChild("AcademyIcon_voice")
+ if mark then mark.Visible=sustainedControl~=nil and not stacked end
+ dodgeButton.Position=UDim2.fromOffset(0,stacked and 50 or 52)
+ dodgeButton.Size=UDim2.fromOffset(dodgeWidth,height)
+ sprintButton.Position=UDim2.fromOffset(stacked and 0 or dodgeWidth+8,stacked and 100 or 52)
+ sprintButton.Size=UDim2.fromOffset(sprintWidth,height)
+ academy.stackedTouchActions=stacked
+ return stacked
+end
 local talkTarget
 local nextResidentUi=0
 local function refreshResidentLabels(root,camera,residents)
  local nearest,best=nil,13
- local speaker,speechDistance=nil,24
- local damaged,damageDistance=nil,18
- local visible={}
+ local speechDistance,damageDistance=24,math.huge
+ local nearestPlate,damagedPlate,speaker
+ local enabled=table.create(3)
  for _,bot in ipairs(residents) do
   local r=bot:FindFirstChild("HumanoidRootPart");local head=bot:FindFirstChild("Head");local h=bot:FindFirstChildOfClass("Humanoid")
   if not head then continue end
   local nameplate=head:FindFirstChild("Nameplate");local speech=head:FindFirstChild("SpeechBubble")
-  if nameplate then nameplate.Enabled=false end
-  if speech then speech.Enabled=false end
+  if nameplate and nameplate.Enabled then table.insert(enabled,nameplate) end
+  if speech and speech.Enabled then table.insert(enabled,speech) end
   if not r or not root or not camera or not h or h.Health<=0 or bot:GetAttribute("ResidentActive")==false then continue end
   local distance=(r.Position-root.Position).Magnitude
   local _,onScreen=camera:WorldToViewportPoint(head.Position)
   if not onScreen then continue end
-  visible[bot]={nameplate=nameplate,speech=speech}
-  if distance<best and InteractionRules.CanReachNpc(root.Parent,bot,13) then nearest=bot;best=distance end
-  if h.Health<h.MaxHealth and distance<damageDistance then damaged=bot;damageDistance=distance end
+  if distance<best and InteractionRules.CanReachNpc(root.Parent,bot,13) then
+   nearest=bot;best=distance
+   -- Compact Talk already carries this healthy trainer's name.
+   nearestPlate=(nameplate~=academy.talkNameplate or h.Health<h.MaxHealth) and nameplate or nil
+  end
+  if h.Health<h.MaxHealth and distance<damageDistance then
+   local home=bot:GetAttribute("TrainingHome")
+   -- A fighter can take beam damage farther away than an ordinary nameplate.
+   if distance<18 or typeof(home)=="Vector3" and (root.Position-home).Magnitude<=academy.TrainingRules.Radius then
+    damagedPlate=nameplate;damageDistance=distance
+   end
+  end
   local words=speech and speech:FindFirstChildOfClass("TextLabel")
-  if words and words.Visible and distance<speechDistance then speaker=bot;speechDistance=distance end
+  if words and words.Visible and distance<speechDistance then speaker=speech;speechDistance=distance end
  end
- -- A single interaction name, at most one additional hurt resident, and one
- -- speech bubble keep crowds readable. Occlusion still uses native billboards.
- for _,bot in pairs({nearest,damaged}) do local item=visible[bot];if item and item.nameplate then item.nameplate.Enabled=true end end
- if speaker and visible[speaker].speech then visible[speaker].speech.Enabled=true end
+ -- Apply each visibility change once after choosing the interaction, damage and speech winners.
+ for _,board in ipairs(enabled) do
+  if board~=nearestPlate and board~=damagedPlate and board~=speaker then board.Enabled=false end
+ end
+ if nearestPlate and not nearestPlate.Enabled then nearestPlate.Enabled=true end
+ if damagedPlate and not damagedPlate.Enabled then damagedPlate.Enabled=true end
+ if speaker and not speaker.Enabled then speaker.Enabled=true end
  return nearest
 end
 local function requestTalk()
@@ -655,10 +845,44 @@ local function requestTalk()
  local target=talkTarget
  if not target or not target.Parent or target:GetAttribute("ResidentActive")==false
   or not InteractionRules.CanReachNpc(p.Character,target,13) then return end
- cancelCapture()
+ -- A rejected Talk request should not cancel the current beam.
  action:FireServer("Talk",target:GetAttribute("NpcId") or target.Name)
 end
 local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),requestTalk);talkButton.Visible=false;academy.surface(talkButton,gold)
+local function liveTalkHumanoid(target)
+ if not target or not target.Parent or target:GetAttribute("ResidentActive")==false then return nil end
+ local humanoid=target:FindFirstChildOfClass("Humanoid")
+ return humanoid and humanoid.Health>0 and humanoid or nil
+end
+function academy.presentTalk(button,target,touch,shortLandscape,gamepad)
+ local width=button.Size.X.Offset
+ local caption=gamepad and width>=84 and "TALK [LT/L2]" or (touch or width<72 or gamepad) and "TALK" or "TALK [T]"
+ local textSize=14
+ local previous=academy.talkNameplate
+ local compact=button.Visible and shortLandscape and width>=84
+ local humanoid=(previous or compact) and liveTalkHumanoid(target)
+ local replacement
+ if compact and humanoid and target:GetAttribute("TrainingTier") then
+  local head=target:FindFirstChild("Head")
+  local plate=head and head:FindFirstChild("Nameplate")
+  local identity=plate and plate:FindFirstChild("Identity")
+  if identity and identity.Text~="" then
+   caption..="\n"..identity.Text
+   textSize=12
+   -- A hurt fighter still needs the world-space HP and its background.
+   if humanoid.Health>=humanoid.MaxHealth then replacement=plate end
+  end
+ end
+ if previous and previous~=replacement and humanoid and previous:IsDescendantOf(target) then previous.Enabled=true end
+ academy.talkNameplate=replacement
+ if replacement and replacement.Enabled then replacement.Enabled=false end
+ if button.TextSize~=textSize then button.TextSize=textSize end
+ if button.Text~=caption then button.Text=caption end
+end
+ownClient(function()
+ local plate=academy.talkNameplate
+ if plate and plate.Parent and liveTalkHumanoid(plate.Parent.Parent) then plate.Enabled=true end
+end)
 local localFlightTools=Run:IsStudio() and game.PlaceId==0 and game.GameId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
 -- Display capability is server-produced, not client authorization. Nil fallback
 -- exists only for unchanged disposable local UI startup fixtures.
@@ -720,7 +944,7 @@ do
     local camera=workspace.CurrentCamera
     if not camera or camera.ViewportSize.X<2 or camera.ViewportSize.Y<2 then return nil end
     local ray=camera:ViewportPointToRay(camera.ViewportSize.X/2,camera.ViewportSize.Y/2)
-    -- No microphone, lock, or UI-position raycast. The server excludes the
+    -- No microphone or UI-position raycast. The server excludes the
     -- character and clips this far-point intent against authoritative cover.
     return ray.Origin+ray.Direction*1000
    end,
@@ -819,18 +1043,20 @@ connectClient(Run.Heartbeat,function()
  action:FireServer("FlightInput",{x=x,y=y,z=z})
 end)
 ownClient(function() if p:GetAttribute("TestFlight")==true then action:FireServer("FlightStop") end end)
--- Everyone sees the same navigation; authorized test controls sit below it.
--- Keep a separate view: modal renders replace mapDot but never this HUD map.
-local miniMapButton=button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end)
-miniMapButton.TextSize=12;miniMapButton.TextYAlignment=Enum.TextYAlignment.Top;miniMapButton.Visible=false
-do
+-- The City keeps a separate HUD map when the menu replaces its map view.
+local miniMapButton=not academy.hideMap and button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end) or nil
+local miniMapHolder,miniMapView
+if miniMapButton then
+ miniMapButton.TextSize=12;miniMapButton.TextYAlignment=Enum.TextYAlignment.Top;miniMapButton.Visible=false
  local miniMapPadding=Instance.new("UIPadding");miniMapPadding.PaddingTop=UDim.new(0,10);miniMapPadding.Parent=miniMapButton
+ miniMapHolder=frame(miniMapButton,"MiniMapHolder",UDim2.new(1,-16,1,-42),UDim2.fromOffset(8,34));miniMapHolder.BackgroundTransparency=1
+ miniMapView=CityMap.create(miniMapHolder,true)
 end
-local miniMapHolder=frame(miniMapButton,"MiniMapHolder",UDim2.new(1,-16,1,-42),UDim2.fromOffset(8,34));miniMapHolder.BackgroundTransparency=1
-local miniMapView=CityMap.create(miniMapHolder,true)
 local miniMapAvailable=false
+academy.noMiniMapLayout={width=0,height=0,available=false}
 -- Hide the HUD map before menu dispatch/render; keep normal restoration frame-owned.
 function academy.hideMiniMapForMenu()
+ if not miniMapButton then return end
  miniMapButton.Visible=false
  CityMap.MiniUpdate(miniMapView,nil,os.clock(),false)
 end
@@ -839,35 +1065,215 @@ local function card(height)
  local edge=Instance.new("UIStroke");edge.Color=Color3.fromRGB(64,91,125);edge.Transparency=.65;edge.Parent=c
  return c
 end
-local function info(text,height) local width=math.min(720,gui.AbsoluteSize.X-24)-76;local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
+function academy.menuContentWidth()
+ local width=math.min(720,gui.AbsoluteSize.X-24)
+ return width+content.Size.X.Offset
+end
+local function info(text,height) local width=math.max(1,academy.menuContentWidth()-36);local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
 ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)
 -- Guidance is session-local and can only be selected by an explicit button.
 academy.NavigationCatalog=loadClientDependency(shared,"NavigationCatalog");if not clientCheckpoint() then return end
+academy.TrainingRules=loadClientDependency(shared,"TrainingRules");if not clientCheckpoint() then return end
 academy.BossCatalog=loadClientDependency(shared,"BossCatalog");if not clientCheckpoint() then return end
 academy.NavigationGuide=loadClientDependency(script.Parent,"NavigationGuide");if not clientCheckpoint() then return end
-academy.guide=academy.NavigationGuide.new(gui)
+academy.guide=academy.NavigationGuide.new(gui,function(ground)
+ -- Apply the City combat bounds to a standing avatar above the validated ground sample.
+ return not Config.ResonanceLayout and Config.InArena(ground+Vector3.new(0,3,0))
+end,function(ground)
+ return not Config.InArena(ground+Vector3.new(0,3,0))
+end)
 ownClient(function() academy.guide:Destroy() end);if not clientCheckpoint() then return end
 academy.guidePanel=frame(gui,"SelectedGuide",UDim2.fromOffset(290,62),UDim2.fromOffset(16,120));academy.guidePanel.Visible=false
 academy.surface(academy.guidePanel)
 academy.guideText=label(academy.guidePanel,"",UDim2.new(1,-86,1,-8),UDim2.fromOffset(6,4),12)
 academy.clearGuide=function()
- academy.guideSelection=nil;academy.guideTarget=nil;academy.guide:Clear();academy.guidePanel.Visible=false
+ academy.guideSelection=nil;academy.guideTarget=nil;academy.marPosition=nil;academy.guide:Clear();academy.guidePanel.Visible=false
  renderedMenuKey=nil
 end
 button(academy.guidePanel,"ClearGuide","CLEAR",UDim2.fromOffset(72,44),UDim2.new(1,-78,.5,-22),academy.clearGuide)
+function academy.resolveGuide(kind,id)
+ if kind~="mar" then return academy.NavigationCatalog.Resolve(kind,id,data) end
+ local area=academy.NavigationCatalog.Resolve("place","gardens",data)
+ if not area then return nil end
+ local position=academy.marPosition
+ return {position=position or area.position,label=position and "Mar Soler" or "Mar's work area"}
+end
 academy.refreshGuide=function()
  local selection=academy.guideSelection
  if not selection then return end
- local target=academy.NavigationCatalog.Resolve(selection.kind,selection.id,data)
+ local target=academy.resolveGuide(selection.kind,selection.id)
  if not target then academy.clearGuide();return end
  local previous=academy.guideTarget
+ local moving=selection.kind=="mar" and previous~=nil
+ if moving and previous.label==target.label and (previous.position-target.position).Magnitude<3 then return end
  if not previous or previous.position~=target.position or previous.label~=target.label then
-  academy.guideTarget=target;academy.guide:SetTarget(target)
+  academy.guideTarget=target;academy.guide:SetTarget(target,moving)
  end
 end
-academy.selectGuide=function(kind,id)
- if not academy.NavigationCatalog.Resolve(kind,id,data) then return end
+function academy.refreshMarGuide(playerRoot,residents)
+ if not academy.guideSelection or academy.guideSelection.kind~="mar" then return end
+ academy.marPosition=nil
+ for _,resident in ipairs(residents) do
+  if resident.Parent and resident:GetAttribute("DisplayName")=="Mar Soler" and resident:GetAttribute("ResidentActive")~=false then
+   local root=resident:FindFirstChild("HumanoidRootPart")
+   local humanoid=resident:FindFirstChildOfClass("Humanoid")
+   if playerRoot and root and humanoid and humanoid.Health>0 and (root.Position-playerRoot.Position).Magnitude<=90 then
+    academy.marPosition=root.Position;break
+   end
+  end
+ end
+ academy.refreshGuide()
+end
+function academy.refreshTrainingGuide(residents)
+ local selection=academy.guideSelection
+ academy.trainingGuideFighter=nil
+ if not selection or selection.kind~="place" or selection.id~="training" then return end
+ local tier=academy.TrainingRules.Recommended(data.level).id
+ for _,resident in ipairs(residents) do
+  if resident.Parent and resident:GetAttribute("TrainingTier")==tier then
+   academy.trainingGuideFighter=resident
+   return
+  end
+ end
+end
+academy.selectGuide=function(kind,id,sourceButton)
+ if not academy.resolveGuide(kind,id) then return end
+ -- Leaving the HUD selected routes the left stick to UI instead of walking.
+ if sourceButton and GuiService.SelectedObject==sourceButton then GuiService.SelectedObject=nil end
+ if kind~="mar" then academy.marPosition=nil
+ elseif not academy.guideSelection or academy.guideSelection.kind~="mar" then academy.guideTarget=nil end
  academy.guideSelection={kind=kind,id=id};academy.refreshGuide();renderedMenuKey=nil
+end
+function academy.canGuideTraining()
+ return Config.CompactCity==true and not data.activeQuest and not academy.guideSelection
+end
+academy.trainingGuideButton=button(tracked,"GuideTraining","GUIDE",UDim2.fromOffset(78,44),UDim2.new(1,-78,.5,-22),function()
+ if academy.trainingGuideButton.Visible and academy.canGuideTraining() then academy.selectGuide("place","training",academy.trainingGuideButton) end
+end)
+academy.trainingGuideButton.TextColor3=gold
+academy.trainingGuideButton.Visible=false
+academy.compactObjective=button(top,"CompactObjective","",UDim2.fromOffset(104,44),UDim2.fromOffset(62,0),function()
+ if not academy.shortObjective or not academy.compactObjective.Visible
+  or GuiService.MenuIsOpen or modal.Visible or devPanel.Visible or conversationPanel.Visible then return end
+ if data.activeQuest then toggleTab("Quests",true,data.activeQuest)
+ elseif academy.guideSelection then academy.clearGuide()
+ elseif academy.canGuideTraining() then academy.selectGuide("place","training",academy.compactObjective) end
+end)
+academy.compactObjective.Visible=false
+academy.compactObjective.TextSize=12
+academy.surface(academy.compactObjective,gold)
+function academy.trainingNeedsCloser()
+ local selection=academy.guideSelection
+ local fighter=academy.trainingGuideFighter
+ if not selection or selection.kind~="place" or selection.id~="training" or not fighter or not fighter.Parent
+  or fighter:GetAttribute("ResidentActive")~=true or academy.guide:GetStatus()~="Arrived" then return false end
+ local fighterRoot=fighter:FindFirstChild("HumanoidRootPart")
+ local character=p.Character
+ local root=character and character:FindFirstChild("HumanoidRootPart")
+ if not root or not fighterRoot then return false end
+ -- Give the player a good position for a beam that just clears the voice gate.
+ local launchRange=Config.VoiceCombat.Stats(data.level,sustainedControl.gate.OnPower,
+  data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).range
+ return (fighterRoot.Position-previewAttackOrigin(root)).Magnitude>launchRange
+end
+function academy.trainingArrival(ready,short,voiceCooldown)
+ if ready==false then return short and "FIGHTER RESTING" or "Fighter recovering" end
+ if ready~=true then return short and "SPARRING PAD" or "Sparring pad" end
+ if not sustainedControl then return short and "HIT TO SPAR" or "Hit the fighter to spar" end
+ local _,inputMuted=voiceEligibilityHint(true)
+ if inputMuted or not windowFocused or data.micReady~=true or beamBlocked() then
+  return short and "CHECK BEAMS" or "Check the Beams button"
+ end
+ if not sustainedControl.armed then return short and "BEAMS OFF" or "Turn Beams on to spar" end
+ if voiceCooldown>0 then return short and "COOLDOWN" or "Wait for cooldown" end
+ local attack=sustainedControl.attack
+ if attack then
+  if attack.acknowledged then return short and "BEAM ACTIVE" or "Beam in progress" end
+  return short and "BEAM STARTING" or "Starting beam…"
+ end
+ if sustainedControl.gate.needsQuiet or os.clock()<(sustainedControl.unconfirmedUntil or 0) then
+  return short and "GO QUIET" or "Go quiet, then speak"
+ end
+ if sustainedControl.gate.onset>0 then return short and "KEEP SPEAKING" or "Keep speaking" end
+ if academy.trainingNeedsCloser() then return short and "MOVE CLOSER" or "Move closer to the fighter" end
+ return short and "AIM & SPEAK" or "Aim at the fighter and speak"
+end
+function academy.compactObjectiveText(voiceCooldown)
+ local quest=Config.GetQuest(data.activeQuest)
+ if quest then
+  local saved=data.quests[quest.id]
+  local timer=data.questTime or 0
+  return string.format("VIEW QUEST\n%d/%d%s",saved and saved.progress or 0,quest.goal,timer>0 and string.format(" · %ds",timer) or "")
+ end
+ local count=(data.combatChallenges or {}).fighters or 0
+ local selection=academy.guideSelection
+ if not selection then return string.upper(data.training or "Rookie").." GUIDE\n"..count.."/3 fighters" end
+ local status=academy.guide:GetStatus()
+ local heading=status=="Route unavailable" and "NO ROUTE" or status=="Arrived" and "ARRIVED" or "FOLLOW GUIDE"
+ if selection.kind=="place" and selection.id=="training" then
+  if status=="Arrived" then
+   local fighter=academy.trainingGuideFighter
+   local ready=fighter and fighter.Parent and fighter:GetAttribute("ResidentActive")
+   heading=academy.trainingArrival(ready,true,voiceCooldown)
+  end
+  return heading.."\n"..count.."/3 · Clear"
+ end
+ return heading.."\nClear guide"
+end
+function academy.refreshCompactObjective(limited,voiceCooldown)
+ local objective=academy.compactObjective
+ objective.Size=UDim2.fromOffset(limited and 52 or 104,46)
+ objective.TextSize=limited and 11 or 12
+ local text=academy.compactObjectiveText(voiceCooldown)
+ if limited then
+  local headline,detail=string.match(text,"([^\n]+)\n(.*)")
+  local shortTitle=({["VIEW QUEST"]="QUEST",["FOLLOW GUIDE"]="GUIDE",["FIGHTER RESTING"]="RESTING",["HIT TO SPAR"]="SPAR",["SPARRING PAD"]="SPAR",
+   ["CHECK BEAMS"]="Beams",["BEAMS OFF"]="Beam off",["COOLDOWN"]="Wait",["GO QUIET"]="Quiet",
+   ["BEAM ACTIVE"]="Beam",["BEAM STARTING"]="Starting",["KEEP SPEAKING"]="Speak",["AIM & SPEAK"]="Aim",["MOVE CLOSER"]="Closer"})[headline]
+  local progress,seconds=detail:match("^(%d+/%d+) · (%d+s)$")
+  if headline=="VIEW QUEST" and seconds then text=progress.."\n"..seconds
+  elseif not data.activeQuest and academy.guideSelection then
+   local routeStatus=({["FOLLOW GUIDE"]="En route",["NO ROUTE"]="No route",["ARRIVED"]="Arrived"})[headline]
+   local count=detail:match("^%d+/%d+")
+   text="CLEAR\n"..(routeStatus or shortTitle or "Guide")
+   if count then text..="\n"..count end
+  else
+   local footer=detail:match("^[%d/]+") or ""
+   local destination=not data.activeQuest and (data.training or "Rookie").."\n" or ""
+   text=destination..(shortTitle or "GUIDE").."\n"..footer
+  end
+ end
+ objective.Text=text
+end
+function academy.refreshMenuCaption(width,touch,gamepad)
+ if gamepad==nil then gamepad=academy.gamepad end
+ local narrow=width<74
+ local menuText=(narrow or touch) and "MENU" or gamepad and "MENU [Y/△]" or "MENU [B]"
+ if academy.starterGearReady then menuText..=narrow and "\nGEAR" or "\nGEAR READY" end
+ shop.Text=menuText
+ shop.TextSize=academy.starterGearReady and 11 or narrow and 12 or 14
+end
+function academy.layoutObjectiveNav(viewport,touch,stacked,gamepad)
+ local tight=viewport.X<380
+ -- The desktop tracker starts at y160 and needs 50 pixels. Its action fits in the top rail here.
+ local shortDesktop=not touch and viewport.X>=480 and viewport.X<820 and viewport.Y>=150 and viewport.Y<210
+ local compact=(stacked or shortDesktop) and Config.CompactCity==true and not Config.ResonanceLayout
+ academy.shortObjective=compact
+ local narrowNav=stacked or tight or compact
+ local menuWidth=compact and 45 or narrowNav and 50 or 74
+ local passesWidth=compact and 52 or narrowNav and 60 or 64
+ top.Position=UDim2.fromOffset(14,stacked and 0 or (touch or viewport.X<820) and 2 or 12)
+ shop.Size=UDim2.fromOffset(menuWidth,touch and 46 or 36)
+ academy.refreshMenuCaption(menuWidth,touch,gamepad)
+ academy.passesToggle.Size=UDim2.fromOffset(passesWidth,46)
+ academy.passesToggle.Position=UDim2.fromOffset(menuWidth+6,0)
+ academy.passesToggle.TextSize=narrowNav and 11 or 13
+ local nextX=menuWidth+passesWidth+12
+ local shortcutWidth=compact and 45 or narrowNav and 54 or 78
+ questsToggle.Size=UDim2.fromOffset(shortcutWidth,touch and 46 or 36)
+ questsToggle.Position=UDim2.fromOffset(nextX+(compact and 58 or 0),0)
+ questsToggle.TextSize=narrowNav and 10 or 13
+ academy.compactObjective.Position=UDim2.fromOffset(nextX,0)
 end
 academy.guideMenu=function()
  local c=card(110)
@@ -875,6 +1281,23 @@ academy.guideMenu=function()
  button(c,"ClearGuide","CLEAR GUIDE",UDim2.fromOffset(140,44),UDim2.fromOffset(14,58),function() academy.clearGuide();render() end)
 end
 -- On landscape phones the left rail may have no room above touch controls.
+function academy.trackerLayout(viewport,touch,defaultY)
+ local w,h=viewport.X,viewport.Y
+ local canShare=touch and w>h and h>=315 and h<346 and w-274>=314 and defaultY+50<=h-102
+ if touch and h>=239 and h<346 and w>h and not canShare then
+  -- Keep the Guide target out of the stock movement frame and clear of Jump.
+  local left,right=math.ceil(w*.4)+8,w-103
+  local width=math.min(290,right-left)
+  if width>=196 then
+   return math.floor((left+right-width)/2),math.max(defaultY,h-91),width,60,true,true
+  end
+ end
+ if not touch and h>=defaultY+68 and defaultY+50>h-102 then
+  local width=math.min(290,w-274-8-16)
+  if width>=212 then return 16,defaultY,width,60,true end
+ end
+ return 16,defaultY,290,50,canShare
+end
 academy.guideLayout=function(viewport,touch,trackedY)
  local w,h=viewport.X,viewport.Y
  if w>=230 and trackedY+118<h-(touch and 260 or 120) then
@@ -886,15 +1309,40 @@ academy.guideLayout=function(viewport,touch,trackedY)
   return math.floor((left+right-width)/2),48,width,48,true
  end
 end
+function academy.starterCoinAction(data)
+ if Config.ResonanceLayout then return end
+ if not academy.NavigationCatalog.Resolve("place","gardens",data) then return end
+ local canGuide=false
+ local unlocked
+ for _,id in ipairs({"garden","beach"}) do
+  local quest=Config.GetQuest(id)
+  local progress=(data.quests or {})[id]
+  if quest and not quest.retired and not (progress and progress.claimed) then
+   local active=data.activeQuest==id
+   if (active or (data.availableQuests or {})[id]) and (progress and progress.progress or 0)>=quest.goal then return "claim" end
+   canGuide=true
+   if not unlocked and (data.availableQuests or {})[id] then unlocked=id end
+  end
+ end
+ local active=data.activeQuest
+ if (active=="garden" or active=="beach") and academy.NavigationCatalog.Resolve("quest",active,data) then return "objective" end
+ if canGuide and not active then
+  if unlocked then return "quest",unlocked end
+  return "guide"
+ end
+end
 local function menuKey()
  local fields
- if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped,megaphone=data.megaphoneEquipped}
+ if selected=="Screams" then fields={level=data.level,sound=data.sound,amplifier=data.amplifierEquipped,megaphone=data.megaphoneEquipped,signalDeck=data.signalDeckPass}
  elseif selected=="Quests" then fields={quests=data.quests,active=data.activeQuest,available=data.availableQuests,navigation=data.questNavigation,challenges=data.combatChallenges,level=data.level}
- elseif selected=="Style" then fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped}
- elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
- elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
+ elseif selected=="Style" then
+  local starterAction,starterQuest=academy.starterCoinAction(data)
+  fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=starterAction,starterQuest=starterQuest}
+ elseif selected=="Shop" then fields={featureLayout=ShopUI.FeatureLayout(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,signalDeck=data.signalDeckPass,cityCrest=data.cityCrestPass,pulseFrame=data.pulseFramePass,routeLights=data.routeLightsPass,harborBadge=data.harborBadgePass,sprintRibbon=data.sprintRibbonPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
+ elseif selected=="Settings" then fields={input=UIS.PreferredInput.Name,settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
+ elseif selected=="Map" then fields={level=data.level,cityCrest=data.cityCrestPass}
  else fields={} end
- return selected..":"..gui.AbsoluteSize.X..":"..game:GetService("HttpService"):JSONEncode(fields)
+ return selected..":"..gui.AbsoluteSize.X..":"..content.Size.X.Offset..":"..tostring(academy.sidebarMenu==true)..":"..game:GetService("HttpService"):JSONEncode(fields)
 end
 render=function()
  if selected=="Screams" then
@@ -915,32 +1363,63 @@ render=function()
  end
  clearShop()
  mapDot=nil
- narrow=gui.AbsoluteSize.X-24<620
+ narrow=academy.sidebarMenu==true or gui.AbsoluteSize.X-24<620
+ if academy.gamepad and modal.Visible and not GuiService.MenuIsOpen then
+  local focused=GuiService.SelectedObject
+  -- Move focus before the selected card is destroyed and Roblox picks a neighboring tab.
+  if focused and focused:IsDescendantOf(content) then GuiService.SelectedObject=tabs[selected] end
+ end
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Shop" then
-  title.Text="THE AMPLIFIER";subtitle.Text="SIGNATURE COLORS / POWER YOUR PROGRESS"
-  shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,narrow=narrow,compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
+  title.Text="PASS SHOP";subtitle.Text="Permanent unlocks and 30-minute boosts"
+  local function jump(to)
+   local target=content:FindFirstChild(to)
+   if not target then return end
+   local offset=content.CanvasPosition.Y+target.AbsolutePosition.Y-content.AbsolutePosition.Y
+   local maximum=math.max(0,content.AbsoluteCanvasSize.Y-content.AbsoluteWindowSize.Y)
+   scroll=Vector2.new(0,math.clamp(offset,0,maximum))
+   content.CanvasPosition=scroll
+  end
+  shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,jump=jump,narrow=narrow,featureLayout=ShopUI.FeatureLayout(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
  elseif selected=="Screams" then
   title.Text="BEAM COLLECTION"
-  local nextStyle
+  local nextStyle,voiceOnlyEquipped
   for _,style in ipairs(Config.Sounds) do
    if style.level>data.level and (not nextStyle or style.level<nextStyle.level) then nextStyle=style end
+   if sustainedRules and style.id==data.sound then
+    voiceOnlyEquipped=not attackAudioSettings.AssetForLevel(style.level)
+   end
   end
-  local progress=nextStyle and string.format("Next style: %s · level %d",nextStyle.name,nextStyle.level) or "All beam styles unlocked"
-  local stats=Config.VoiceCombat.Stats(data.level,1,false)
-  if nextStyle then
-   local nextStats=Config.VoiceCombat.Stats(nextStyle.level,1,false)
-   progress..=string.format("\nAt level %d: %d HP · %.1f max DPS",nextStyle.level,nextStats.health,nextStats.maxDps)
+  local milestone=card(voiceOnlyEquipped and 86 or 70)
+  milestone.Name="BeamMilestone"
+  if data.signalDeckPass==true then ShopUI.SignalDeckSkin(milestone) end
+  local heading=sustainedRules and "BEAM SOUNDS" or "BEAM STYLES"
+  if nextStyle then heading=sustainedRules and "NEXT SOUND" or "NEXT STYLE" end
+  local detail=nextStyle and (nextStyle.name.." · Lv "..nextStyle.level) or "All unlocked"
+  local gearWidth=narrow and 92 or 112
+  local textInset=gearWidth+38
+  label(milestone,heading,UDim2.new(1,-textInset,0,19),UDim2.fromOffset(14,8),12,gold)
+  label(milestone,detail,UDim2.new(1,-textInset,0,34),UDim2.fromOffset(14,28),15)
+  button(milestone,"OpenBeamGear","VIEW GEAR",UDim2.fromOffset(gearWidth,44),UDim2.new(1,-gearWidth-14,.5,-22),function() toggleTab("Style") end)
+  if voiceOnlyEquipped then
+   label(milestone,"NOW · VOICE ONLY",UDim2.new(1,-textInset,0,16),UDim2.fromOffset(14,62),11,muted)
   end
-  info(progress..string.format("\nNow: %d HP · %.1f max DPS",stats.health,stats.maxDps))
   local maximum=Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier)
   local combatSummary=sustainedRules and string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %.1f DPS · %.2f studs",data.level,maximum.maxDps,maximum.maxRange)
    or string.format("CURRENT BEAM · LEVEL %d\nFULL-POWER LIMITS: %d damage · %.2f studs",data.level,maximum.damage,maximum.maxRange)
+  if nextStyle then
+   local nextStats=Config.VoiceCombat.Stats(nextStyle.level,1,false)
+   local forecast=sustainedRules and string.format("%.1f max DPS",nextStats.maxDps) or (nextStats.damage.." damage")
+   combatSummary..=string.format("\nAT LEVEL %d: %d HP · %s",nextStyle.level,nextStats.health,forecast)
+  end
   info(combatSummary,narrow and 112 or 82)
   info("Sound styles change audio, not damage or range. These limits use your current level for the next attack. Lower voice power and cover shorten reach. DPS requires full power and continuous contact.",narrow and 150 or 96)
   for _,s in ipairs(Config.Sounds) do
-   local c=card(sustainedRules and (narrow and 108 or 64) or (narrow and 150 or 76));label(c,s.name.."  /  LEVEL "..s.level,UDim2.new(1,narrow and -28 or -156,0,(narrow or sustainedRules) and 44 or 26),UDim2.fromOffset(14,8),17,gold)
+   local c=card(sustainedRules and (narrow and 108 or 64) or (narrow and 150 or 76))
+   if data.signalDeckPass==true then ShopUI.SignalDeckSkin(c) end
+   local voiceOnly=sustainedRules and not attackAudioSettings.AssetForLevel(s.level)
+   label(c,s.name.."  /  LEVEL "..s.level..(voiceOnly and "\nVOICE ONLY" or ""),UDim2.new(1,narrow and -28 or -156,0,(narrow or sustainedRules) and 44 or 26),UDim2.fromOffset(14,8),17,gold)
    if not sustainedRules then
    label(c,s.description,UDim2.new(1,narrow and -28 or -158,0,narrow and 40 or 25),UDim2.fromOffset(14,narrow and 54 or 36),13)
    end
@@ -948,24 +1427,57 @@ render=function()
    local b=button(c,s.id,data.sound==s.id and "EQUIPPED" or unlocked and "EQUIP" or "LEVEL "..s.level,UDim2.fromOffset(116,37),UDim2.new(1,-130,0,sustainedRules and (narrow and 60 or 14) or (narrow and 102 or 21)),function() if unlocked then action:FireServer("EquipSound",s.id) end end)
    if not unlocked then b.TextColor3=muted end
   end
+ elseif selected=="Quests" and Config.ResonanceLayout then
+  title.Text="RESONANCE HALL";subtitle.Text="Combat & travel"
+  local travel=Config.ResonanceTravel and "Follow the cyan portal signs. This preview stays in the Hall."
+   or "Follow the cyan portal signs. Use the return portal to come back."
+  info("PVP FLOOR\nFight past the safe apron once your spawn shield ends.\n\nTRAINING CITY\n"..travel,92)
  elseif selected=="Quests" then
   title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
+  local current=Config.GetQuest(data.activeQuest)
+  local function readyToClaim(quest)
+   if not quest then return false end
+   local available=quest==current or quest.retired==true or quest.menuAvailable==true or (data.availableQuests and data.availableQuests[quest.id])
+   local progress=available and data.quests[quest.id]
+   return progress and not progress.claimed and progress.progress>=quest.goal
+  end
+  local reward=readyToClaim(current) and current or nil
+  if not reward then
+   for _,quest in ipairs(Config.Quests) do
+    if readyToClaim(quest) then reward=quest;break end
+   end
+  end
+  if reward then
+   local payout=data.level>=Config.MaxLevel and (reward.coins.." coins (base)")
+    or string.format("%d coins · %d XP (base)",reward.coins,reward.xp)
+   local textBounds=Vector2.new(math.max(1,academy.menuContentWidth()-166),10000)
+   local nameHeight=math.max(19,TextService:GetTextSize(reward.name,15,Enum.Font.GothamMedium,textBounds).Y+2)
+   local payoutHeight=math.max(16,TextService:GetTextSize(payout,12,Enum.Font.GothamMedium,textBounds).Y+2)
+   local c=card(math.max(60,nameHeight+payoutHeight+18))
+   label(c,reward.name,UDim2.new(1,-158,0,nameHeight),UDim2.fromOffset(14,8),15,gold)
+   label(c,payout,UDim2.new(1,-158,0,payoutHeight),UDim2.fromOffset(14,nameHeight+10),12,muted)
+   local actionName=reward==current and not reward.retired and "ActiveQuestAction" or "ReadyQuestAction"
+   button(c,actionName,"CLAIM",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,1),function()
+    action:FireServer("ClaimQuest",reward.id)
+   end)
+  end
   academy.guideMenu()
-  info("COURTYARD TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads in the west courtyard. Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
+  local padLocation=Config.CompactCity and "north of Academy spawn" or "in the west courtyard"
+  info("COURTYARD TRAINING · "..(data.training or "Rookie").." recommended\nThree sparring pads "..padLocation..". Hit a fighter to start. Move out of red strikes or dodge. No PvP on the pads; training fighters can knock you out.")
   for _,spec in ipairs(Config.Progression.Challenges) do
    local rewardText=data.level>=Config.MaxLevel and "MAX LEVEL · no XP awarded" or ("+"..Config.Progression.ChallengeXP(data.level).." XP on completion")
    info(spec.name.." · "..((data.combatChallenges or {})[spec.id] or 0).."/"..spec.goal.."\n"..rewardText.." · renews automatically",68)
   end
   info("Training: contribute at least 10% damage. You must be no more than 20 levels above the fighter's reward band (Rookie 1-24, Brawler 25-59, Elite 60-100). Each qualifying KO or assist counts once. Environment cover is static. PvP XP is shared by damage; weak and repeated opponents pay less.")
-  if data.activeQuest and not (Config.GetQuest(data.activeQuest) and Config.GetQuest(data.activeQuest).retired==true) then
-   local current=Config.GetQuest(data.activeQuest);local c=card(96)
-   local progress=current and data.quests[current.id]
-   local rewardReady=progress and not progress.claimed and progress.progress>=current.goal
-   label(c,(rewardReady and "COMPLETE: " or "CURRENT: ")..(current and current.name or data.activeQuest),UDim2.new(1,-28,0,38),UDim2.fromOffset(14,6),14,gold)
-   button(c,"ActiveQuestAction",rewardReady and "CLAIM" or "ABANDON",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,50),function()
-    if rewardReady then action:FireServer("ClaimQuest",current.id) else action:FireServer("AbandonQuest") end
+  if data.activeQuest and not (current and current.retired==true) and (not reward or current~=reward) then
+   local c=card(96)
+   label(c,"CURRENT: "..(current and current.name or data.activeQuest),UDim2.new(1,-28,0,38),UDim2.fromOffset(14,6),14,gold)
+   button(c,"ActiveQuestAction","ABANDON",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,50),function()
+    action:FireServer("AbandonQuest")
    end)
   end
+  local currentProgress=current and data.quests[current.id]
+  local unfinished=current and not current.retired and not (currentProgress and (currentProgress.claimed or currentProgress.progress>=current.goal))
   local combatEvents={Crowd=true,Evade=true,Underdog=true,PracticeBeam=true,ArenaAssist=true}
   local questGroups={{title="BEAM COMBAT TASKS",combat=true},{title="OPTIONAL CITY ACTIVITIES",combat=false}}
   for _,group in ipairs(questGroups) do
@@ -978,43 +1490,100 @@ render=function()
     if q.hidden and not available then continue end
     if not headingShown then info(group.title,50);headingShown=true end
     local restarting=available and not v.claimed and v.progress>0 and v.progress<q.goal and data.activeQuest~=q.id
+    local switching=unfinished and q~=current and available and not q.retired and not v.claimed and v.progress<q.goal
     local description=q.retired==true and "Earned reward available." or q.description
+    if switching then description..="\n\nReplaces "..current.name..". Unfinished progress resets." end
     if restarting then description..="\n\nRestarting resets this unfinished progress." end
     if not available then description..="\n\nTo unlock: meet "..(q.giver or "a resident").." and use Talk." end
-    local textWidth=math.min(720,gui.AbsoluteSize.X-24)-48-(narrow and 28 or 158)
-    local nameHeight=math.max(26,TextService:GetTextSize(q.name,17,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+4)
+    local focused=q.id==academy.menuQuestFocus
+    local focusedStart=focused and q~=current and available and not v.claimed and v.progress<q.goal
+    local canGuide=not focusedStart and academy.NavigationCatalog.Resolve("quest",q.id,data)~=nil
+    local headerGuide=narrow and focused and q==current and canGuide
+    local headerAction=headerGuide or narrow and focusedStart
+    local contentWidth=academy.menuContentWidth()-8
+    local nameMargin=narrow and not headerAction and 28 or 158
+    local textWidth=math.max(1,contentWidth-(narrow and 28 or 158))
+    local nameHeight=math.max(26,TextService:GetTextSize(q.name,17,Enum.Font.GothamMedium,Vector2.new(math.max(1,contentWidth-nameMargin),10000)).Y+4)
     local descriptionHeight=math.max(49,TextService:GetTextSize(description,13,Enum.Font.GothamMedium,Vector2.new(textWidth,10000)).Y+8)
-    local descriptionY=12+nameHeight;local rewardY=descriptionY+descriptionHeight+5
-    local actionY=narrow and rewardY+34 or 32
-    local canGuide=academy.NavigationCatalog.Resolve("quest",q.id,data)~=nil
-    local c=card(narrow and actionY+(canGuide and 100 or 48) or math.max(canGuide and 164 or 150,rewardY+35))
-    label(c,q.name,UDim2.new(1,narrow and -28 or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
+    local descriptionY=math.max(12+nameHeight,headerAction and 56 or 0)
+    local rewardY=descriptionY+descriptionHeight+5
+    local actionY=headerAction and 6 or narrow and rewardY+34 or 32
+    local guideToMar=not available and (q.id=="garden" or q.id=="beach") and academy.NavigationCatalog.Resolve("place","gardens",data)~=nil
+    local height=math.max(canGuide and 164 or 150,rewardY+35)
+    if narrow then
+     height=headerAction and rewardY+36 or actionY+(canGuide and 100 or guideToMar and 54 or 48)
+    end
+    local c=card(height)
+    if q.id==academy.menuQuestFocus and not (academy.sidebarMenu and q==reward) then c.LayoutOrder=-1 end
+    label(c,q.name,UDim2.new(1,narrow and -nameMargin or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
     label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
     label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
-    button(c,q.id,not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "ACTIVE" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,38),UDim2.new(1,-130,0,actionY),function()
-     if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
-    end)
+    if not headerGuide then
+     button(c,q.id,guideToMar and "GUIDE TO MAR" or not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "ACTIVE" or switching and "SWITCH" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,(switching or focusedStart) and 44 or (guideToMar and 44 or 38)),UDim2.new(1,-130,0,actionY),function()
+      if guideToMar then academy.selectGuide("mar","gardens");closeMenu();return end
+      if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
+     end)
+    end
     if canGuide then
-     button(c,"Guide_"..q.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,actionY+46),function()
+     button(c,"Guide_"..q.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,headerGuide and actionY or actionY+46),function()
       academy.selectGuide("quest",q.id);closeMenu()
      end)
     end
    end
   end
  elseif selected=="Style" then
-  title.Text="YOUR SIGNATURE";subtitle.Text="Choose the color of your beam effects."
-  shopUsed=true;ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
-  info("Earned-coin gear · one active bonus · normalized power capped at 100%. Buy once, then equip freely.",90)
-  for _,item in ipairs(Config.Gear.Items) do
-   local selectedGear=Config.Gear.Selected(data)
+  title.Text="GEAR & BEAM COLOR";subtitle.Text=Config.ResonanceLayout and "Earn gear with coins from PvP." or "Earn gear with coins from training and quests."
+  local selectedGear=Config.Gear.Selected(data)
+  local sidebarGear=academy.sidebarMenu==true
+  local compactGear=not sidebarGear and narrow and gui.AbsoluteSize.X>=500
+  local function gearCard(item,starter)
    local owned=Config.Gear.Owned(data,item.id)
    local locked=data.level<item.level
-   local c=card(narrow and 166 or 116)
-   label(c,string.upper(item.name),UDim2.new(1,-28,0,30),UDim2.fromOffset(15,8),16,gold)
-   label(c,string.format("Level %d · +%d%% mic power\n%d earned coins · one-time purchase",item.level,math.floor(item.bonus*100+.5),item.price),UDim2.new(1,narrow and -28 or -174,0,62),UDim2.fromOffset(15,42),13)
-   button(c,item.id,locked and ("LEVEL "..item.level) or selectedGear and selectedGear.id==item.id and "UNEQUIP" or owned and "EQUIP" or tostring(item.price).." COINS",UDim2.fromOffset(135,38),UDim2.new(1,-149,0,narrow and 116 or 55),function()
-    if not locked then action:FireServer("Gear",item.id) end
+   local remaining=owned and 0 or math.max(0,item.price-data.coins)
+   local canAct=not locked and remaining==0
+   local equipped=selectedGear and selectedGear.id==item.id
+   local canBuy=canAct and not owned
+   local coinAction=starter and not locked and remaining>0 and academy.starterCoinAction(data) or nil
+   local shortfall="NEED "..remaining.." COINS"
+   local stateText=locked and ("LEVEL "..item.level) or equipped and "UNEQUIP" or owned and "EQUIP"
+    or coinAction=="claim" and ("VIEW REWARDS\n"..shortfall) or coinAction=="guide" and ("GUIDE TO MAR\n"..shortfall)
+    or coinAction=="objective" and ("GUIDE QUEST\n"..shortfall)
+    or coinAction=="quest" and ("VIEW QUEST\n"..shortfall)
+    or remaining>0 and shortfall or ("BUY & EQUIP\n"..item.price.." COINS")
+   local c=card(sidebarGear and 96 or compactGear and 72 or narrow and 116 or 110)
+   label(c,string.upper(item.name),UDim2.new(1,sidebarGear and -142 or narrow and -168 or -28,0,sidebarGear and 38 or compactGear and 20 or narrow and 44 or 28),
+    UDim2.fromOffset(sidebarGear and 12 or 15,6),sidebarGear and (gui.AbsoluteSize.X<480 and 12 or 14) or 16,gold)
+   local status=equipped and "Equipped · " or owned and "Owned · " or not canBuy and (item.price.." coins · ") or ""
+   local detail=Config.Gear.BonusLabel(item).."\n"..status..data.coins.." coins in wallet"
+   if starter and not canAct then
+    detail..=Config.ResonanceLayout and "\nEarn coins from PvP KOs" or coinAction=="claim" and "\nClaim coins in Quests" or coinAction=="guide" and "\nEarn coins with Mar's quests" or coinAction=="objective" and "\nFollow your current quest" or coinAction=="quest" and "\nOpen an unlocked quest" or "\nEarn coins from training or quests"
+   end
+   label(c,detail,UDim2.new(1,(sidebarGear or narrow and not compactGear) and -28 or -170,0,sidebarGear and 44 or compactGear and 42 or 48),
+    UDim2.fromOffset(sidebarGear and 12 or 15,sidebarGear and 50 or compactGear and 26 or narrow and 57 or 34),sidebarGear and 12 or 13)
+   local buttonWidth=sidebarGear and 112 or 135
+   local control=button(c,item.id,stateText,UDim2.fromOffset(buttonWidth,44),UDim2.new(1,-buttonWidth-14,0,(sidebarGear or narrow) and 6 or 50),function()
+    if canAct then
+     action:FireServer("Gear",{id=item.id,intent=canBuy and "buy" or equipped and "unequip" or "equip"});return
+    end
+    local currentAction,questId=academy.starterCoinAction(data)
+    if coinAction and currentAction==coinAction then
+     if coinAction=="claim" then toggleTab("Quests",true)
+     elseif coinAction=="objective" then academy.selectGuide("quest",data.activeQuest);closeMenu()
+     elseif coinAction=="quest" then toggleTab("Quests",true,questId)
+     else academy.selectGuide("mar","gardens");closeMenu() end
+    end
    end)
+   control.Interactable=canAct or coinAction~=nil
+   if not control.Interactable then control.TextColor3=muted end
+  end
+  local starter=Config.Gear.Get("Megaphone")
+  local nextUpgrade=academy.nextGearUpgrade
+  if nextUpgrade then gearCard(nextUpgrade,false) end
+  if starter then gearCard(starter,true) end
+  shopUsed=true;ShopUI.ColorMixer(data,{card=card,frame=frame,label=label,button=button},action)
+  info("Gear boosts reach and damage below full power. The bonus applies once your voice triggers an attack. Equip one item at a time.",90)
+  for _,item in ipairs(Config.Gear.Items) do
+   if item~=starter and item~=nextUpgrade then gearCard(item,false) end
   end
   info("Movement pass: repeated jumps (24-stud height limit) and consecutive rolls only in safe areas. Arena cooldowns always apply."..(Config.MovementPassId==0 and " Purchase setup is not available yet." or ""),70)
   local base=card(76)
@@ -1024,9 +1593,23 @@ render=function()
    info("Your saved "..data.aura.." color is still equipped. Choosing yellow replaces this legacy selection; the old free palette is no longer selectable.")
   end
  elseif selected=="Map" then
-  title.Text="CITY & COAST";subtitle.Text="Red: PvP • Pale café path: safe."
-  local c=card(300)
+  title.Text="CITY & COAST"
+  subtitle.Text="Red: PvP • Pale café path: safe."
+  local trainingTarget=academy.NavigationCatalog.Resolve("place","training",data)
+  if trainingTarget then
+   local trainingCard=card(narrow and 106 or 70)
+   label(trainingCard,trainingTarget.label,UDim2.new(1,narrow and -28 or -160,0,44),UDim2.fromOffset(14,8),14,gold)
+   button(trainingCard,"GuidePlace_training","GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,narrow and 54 or 13),function() academy.selectGuide("place","training");closeMenu() end)
+  end
+  local height=300
+  local c=card(height)
+  local crest=data.cityCrestPass==true and Config.CompactCity and not Config.ResonanceLayout
+  if crest then
+   c.Size=UDim2.new(1,-8,0,height+30);c.Name="CityCrestMap"
+   ShopUI.CityCrestSkin(c,{frame=frame,label=label})
+  end
   local holder=frame(c,"MapHolder",UDim2.new(1,-26,1,-26),UDim2.fromOffset(13,13));holder.BackgroundTransparency=1
+  if crest then holder.Size=UDim2.new(1,-26,1,-56);holder.Position=UDim2.fromOffset(13,43) end
   mapDot=CityMap.create(holder)
   CityMap.update(mapDot,p.Character and p.Character:FindFirstChild("HumanoidRootPart"))
   info(CityMap.mapHelp,64)
@@ -1041,6 +1624,7 @@ render=function()
    button(c,"GuideBoss_"..boss.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,narrow and 60 or 14),function() academy.selectGuide("boss",boss.id);closeMenu() end)
   end
   for _,place in ipairs(academy.NavigationCatalog.Places) do
+   if place.id=="training" then continue end
    local c=card(70)
    label(c,place.label,UDim2.new(1,-160,0,50),UDim2.fromOffset(14,10),14)
    button(c,"GuidePlace_"..place.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,13),function() academy.selectGuide("place",place.id);closeMenu() end)
@@ -1057,15 +1641,29 @@ render=function()
    local note=label(recapCard,"Live DPS and fight total · this session",UDim2.new(1,-24,0,20),UDim2.fromOffset(12,50),12,muted)
    note.TextXAlignment=Enum.TextXAlignment.Center
   end
-  local touch=UIS.TouchEnabled
+  local touch=UIS.PreferredInput==Enum.PreferredInput.Touch
+  local gamepad=UIS.PreferredInput==Enum.PreferredInput.Gamepad
   local attackHelp
   if sustainedControl then
-   attackHelp=string.format("Beams start OFF. BEAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each beam.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap BEAMS" or "E / BEAMS")
+   local toggleBinding=gamepad and "RB/R1" or touch and "Tap BEAMS" or "E / BEAMS"
+   attackHelp=string.format("Beams start OFF. BEAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each beam.",sustainedRules.MaxDuration,sustainedRules.Cooldown,toggleBinding)
+  elseif gamepad then attackHelp="Hold RB/R1, speak into your mic, then release to fire through the center reticle."
   else attackHelp=touch and "Hold BEAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / BEAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
   info("VOICE SAFETY\nAvoid profanity. Roblox's profanity rules depend on the game's rating and settings; harassment, threats and hate speech are not allowed. Rule violations may restrict voice or your account.\nRoblox records voice for moderation. The beam mechanic reads volume, not words. Stopping attacks does not mute voice. Use Roblox's mic control to mute, or Report Abuse for violations.",100)
-  info(string.format("Third-person camera\n%s: dodge (W/A/S/D) · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
-  info(touch and "Tap TALK near a resident. Use the on-screen prompts for quest interactions. SHOP opens and closes the menu." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
+  if gamepad then
+   info(string.format("Left stick: walk · Right stick: aim the beam\nLB/L1: dodge · %.0fs arena cooldown\nHold L3 while moving to sprint for up to %.0fs. Rest %.0fs when empty. Refill starts after %.0fs without sprint.",Config.DodgeCooldown,Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),110)
+   local worldHelp=Config.ResonanceLayout and "Follow the signs and use the Training City portal prompt." or "LT/L2: talk near a resident. Follow the quest prompts."
+   info(worldHelp.."\nY/Triangle: menu · B/Circle: close",80)
+  else
+   local direction=touch and "move to choose a direction" or "W/A/S/D"
+   info(string.format("Third-person camera\n%s: dodge (%s) · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",direction,Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
+   if Config.ResonanceLayout then
+    info(touch and "Touch and hold the Training City portal prompt. Follow the signs around the Hall." or "F: hold at the Training City portal · B: toggle menu",touch and 80 or 54)
+   else
+    info(touch and "Tap TALK near a resident. Follow the on-screen quest prompts. Tap MENU to open the tabs or X to close them." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
+   end
+  end
   info("MICROPHONE\n"..mic.status,60)
   if not mic.eligible and not mic.checkPending then
    local accessCard=card(64)
@@ -1073,7 +1671,10 @@ render=function()
     if not mic.eligible and not mic.checkPending then mic:Check() end
    end)
   end
-  local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
+  if not Config.ResonanceLayout then
+   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
+   info("City audio controls surf and street music.",42)
+  end
   local audioCard=card(58);local audioButton
   local function audioLabel()return "BEAM SFX: "..attackAudio.level end
   audioButton=button(audioCard,"AttackAudio",audioLabel(),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
@@ -1086,7 +1687,7 @@ render=function()
    gameplayAudio:SetEnabled(not gameplayAudio.enabled);cueContext();cueButton.Text=cueLabel()
   end)
   info("This also mutes boss warnings. Packaged boss fallbacks play only when available; custom hit/dodge/level cues still await upload.",72)
-  info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
+  info("Manage live voice with Roblox's microphone and listener controls.",54)
   local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
  end
  -- Restore only after AutomaticCanvasSize has measured the replacement cards.
@@ -1096,16 +1697,30 @@ render=function()
   content.CanvasPosition=Vector2.new(0,math.clamp(scroll.Y,0,math.max(0,content.AbsoluteCanvasSize.Y-content.AbsoluteWindowSize.Y)))
  end)
 end
-for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs[name]=button(modal,name,name=="Screams" and "BEAMS" or name:upper(),UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function() if clientDestroyed or not modal.Visible then return end;selected=name;render() end)
+academy.menuTabs={"Style","Screams","Quests","Shop","Map","Settings"}
+if academy.hideMap then table.remove(academy.menuTabs,table.find(academy.menuTabs,"Map")) end
+for i,name in ipairs(academy.menuTabs) do
+ local tabText=name=="Style" and "GEAR" or name=="Screams" and "BEAMS" or name=="Quests" and Config.ResonanceLayout and "RULES" or name=="Shop" and "STORE" or name:upper()
+ tabs[name]=button(modal,name,tabText,UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function()
+  if clientDestroyed or not modal.Visible then return end
+  if selected~=name then toggleTab(name) end
+ end)
  local icon,padding=academy.tabIcon(tabs[name],name);academy.tabIcons[name]={icon=icon,padding=padding}
 end
 local conversationNPC,conversationUntil
 local conversationRevision=0
+local conversationView={compact=false}
 conversationPanel=frame(gui,"Conversation",UDim2.fromOffset(460,300),UDim2.fromScale(.5,.5));conversationPanel.AnchorPoint=Vector2.new(.5,.5);conversationPanel.Visible=false;conversationPanel.ZIndex=10
 academy.surface(conversationPanel,gold)
 local conversationName=label(conversationPanel,"",UDim2.new(1,-80,0,36),UDim2.fromOffset(18,12),19,gold)
 local conversationList=Instance.new("ScrollingFrame");conversationList.Size=UDim2.new(1,-36,1,-66);conversationList.Position=UDim2.fromOffset(18,54);conversationList.BackgroundTransparency=1;conversationList.BorderSizePixel=0;conversationList.ScrollBarThickness=4;conversationList.AutomaticCanvasSize=Enum.AutomaticSize.Y;conversationList.CanvasSize=UDim2.new();conversationList.Parent=conversationPanel
-do local conversationLayout=Instance.new("UIListLayout");conversationLayout.Padding=UDim.new(0,10);conversationLayout.SortOrder=Enum.SortOrder.LayoutOrder;conversationLayout.Parent=conversationList end
+conversationView.listLayout=Instance.new("UIListLayout")
+conversationView.listLayout.Padding=UDim.new(0,10);conversationView.listLayout.SortOrder=Enum.SortOrder.LayoutOrder;conversationView.listLayout.Parent=conversationList
+function conversationView.orderOptions()
+ if not conversationView.intro then return end
+ conversationView.intro.LayoutOrder=conversationView.compact and conversationView.secondaryOrder or 1
+ conversationView.hint.LayoutOrder=conversationView.compact and conversationView.secondaryOrder+1 or 2
+end
 closeConversation=function()
  conversationRevision+=1
  if conversationPanel.Visible then action:FireServer("EndConversation") end
@@ -1123,9 +1738,21 @@ local function refreshConversation()
  if modal.Visible or not root or not humanoid or humanoid.Health<=0 or humanoid.PlatformStand or not npcRoot or not npcHumanoid or npcHumanoid.Health<=0 or npcHumanoid.PlatformStand or npc:GetAttribute("ResidentActive")==false
   or (root.Position-npcRoot.Position).Magnitude>18 or os.clock()>=conversationUntil then closeConversation() end
 end
-button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
+conversationView.close=button(conversationPanel,"Close","X",UDim2.fromOffset(38,34),UDim2.new(1,-50,0,12),closeConversation)
+function conversationView.layout(viewport)
+ conversationView.compact=viewport.X>viewport.Y and viewport.Y<205
+ conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-(conversationView.compact and 16 or 36)))
+ conversationList.Size=UDim2.new(1,-36,1,conversationView.compact and -52 or -66)
+ conversationList.Position=UDim2.fromOffset(18,conversationView.compact and 46 or 54)
+ conversationView.listLayout.Padding=UDim.new(0,conversationView.compact and 6 or 10)
+ conversationName.Position=UDim2.fromOffset(18,conversationView.compact and 4 or 12)
+ conversationView.close.Size=conversationView.compact and UDim2.fromOffset(44,44) or UDim2.fromOffset(38,34)
+ conversationView.close.Position=conversationView.compact and UDim2.new(1,-50,0,0) or UDim2.new(1,-50,0,12)
+ conversationView.orderOptions()
+end
 showConversation=function(info)
  academy.testLauncherBlocked=true;if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end;academy.refreshTestLauncher();cancelCapture();closeMenu();if devPanel then devPanel.Visible=false end
+ if info.name=="Mar Soler" and academy.guideSelection and academy.guideSelection.kind=="mar" then academy.clearGuide() end
  conversationRevision+=1;local revision=conversationRevision
  conversationNPC=info.npc;conversationUntil=os.clock()+20;conversationName.Text=info.name
  for _,child in ipairs(conversationList:GetChildren()) do if child:IsA("GuiObject") then child:Destroy() end end
@@ -1140,7 +1767,7 @@ showConversation=function(info)
    return callback(...)
   end);b.TextWrapped=true;b.LayoutOrder=order;return b
  end
- choice("Tell me about this neighborhood",function() line.Text=info.hint end)
+ local hint=choice("Tell me about this neighborhood",function() line.Text=info.hint end)
  for _,product in ipairs(info.products or {}) do
   words(product.description,muted)
   local b=choice(product.owned and (product.name.." · owned") or ("Buy "..product.name.." · "..product.price.." coins"),function()
@@ -1163,24 +1790,73 @@ showConversation=function(info)
    choice("Guide me: "..q.name,function() academy.selectGuide("quest",q.id);closeConversation() end)
   end
  end
+ conversationView.intro,conversationView.hint=nil,nil
+ if info.quests and #info.quests>0 then
+  conversationView.intro,conversationView.hint,conversationView.secondaryOrder=line,hint,order+1
+  order+=2
+  conversationView.orderOptions()
+ end
  if Config.CompactCity~=false then choice("Choose a boss or place to guide me to",function() toggleTab("Map") end) end
  choice("See you later",closeConversation)
  conversationList.CanvasPosition=Vector2.zero;conversationPanel.Visible=true
  academy.testLauncherBlocked=false;academy.refreshTestLauncher()
 end
+local function refreshQuestObject(object)
+ if not object:IsA("BasePart") then return end
+ local action=object:GetAttribute("QuestAction")
+ local collected=data.collected and data.collected[object.Name]==true
+ if action~="Litter" and action~="Garden" and (action~=nil or not collected) then return end
+ -- A collected marker may stream in before its QuestAction attribute.
+ local bottle=action~="Garden" and object:FindFirstChild("BottleVisual")
+ if action=="Litter" or bottle then
+  local transparency=collected and 1 or 0
+  object.LocalTransparencyModifier=transparency
+  if bottle then
+   for _,piece in bottle:GetChildren() do
+    if piece:IsA("BasePart") then piece.LocalTransparencyModifier=transparency end
+   end
+  end
+ end
+ local prompt=object:FindFirstChildOfClass("ProximityPrompt")
+ if prompt then prompt.Enabled=not collected end
+end
 local function refreshQuestObjects()
  local world=workspace:FindFirstChild("ScreamSimulatorWorld")
  local objects=world and world:FindFirstChild("QuestObjects")
  if not objects then return end
- for _,object in objects:GetChildren() do
-  if object:IsA("BasePart") and object:GetAttribute("QuestAction")=="Litter" then
-   local hidden=data.collected and data.collected[object.Name]==true
-   object.LocalTransparencyModifier=hidden and 1 or 0
-   local prompt=object:FindFirstChildOfClass("ProximityPrompt")
-   if prompt then prompt.Enabled=not hidden end
-  end
- end
+ for _,object in objects:GetChildren() do refreshQuestObject(object) end
 end
+function academy.layoutCityTravelPrompt(prompt,viewport)
+ local landscapeOffset=prompt:GetAttribute("LandscapeUIOffset")
+ if typeof(landscapeOffset)~="Vector2" or viewport.X<=0 or viewport.Y<=0 then return end
+ -- In portrait, lifting the portal places it behind the Academy Guide.
+ local offset=viewport.Y>viewport.X and Vector2.zero or landscapeOffset
+ if prompt.UIOffset~=offset then prompt.UIOffset=offset end
+end
+-- Reapply this player's collection state if a marker loads after its state packet.
+connectClient(game:GetService("ProximityPromptService").PromptShown,function(prompt)
+ academy.layoutCityTravelPrompt(prompt,gui.AbsoluteSize)
+ local object=prompt.Parent
+ if not object or not data.collected or data.collected[object.Name]~=true then return end
+ local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+ local objects=world and world:FindFirstChild("QuestObjects")
+ if objects and object.Parent==objects then refreshQuestObject(object) end
+end)
+-- Streamed markers, prompts and bottle art may arrive in separate events.
+connectClient(workspace.DescendantAdded,function(piece)
+ if not data.collected or not next(data.collected) then return end
+ local parent=piece.Parent
+ if not parent then return end
+ local marker
+ if piece:IsA("ProximityPrompt") then marker=parent
+ elseif piece:IsA("BasePart") then
+  if parent.Name=="BottleVisual" then marker=parent.Parent else marker=piece end
+ end
+ if not marker or not data.collected[marker.Name] then return end
+ local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+ local objects=world and world:FindFirstChild("QuestObjects")
+ if objects and marker.Parent==objects then refreshQuestObject(marker) end
+end)
 local function saveStatus()
  if data.testSession then return "TEST SESSION · progress is temporary" end
  if data.recoveryWarning then
@@ -1200,10 +1876,13 @@ local function progressLabel(compact)
 end
 local trackedQuestText=""
 local lastMilestone=nil
+local starterGear={}
 connectClient(remotes.State.OnClientEvent,function(nextData)
  observeVoiceEligibility(nextData)
  cueContext();gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())
  data=nextData
+ if data.shop then data.shop.receivedAt=os.clock() end
+ academy.pulseFrame.Visible=data.pulseFramePass==true
  if academy.refreshTesterTools then academy.refreshTesterTools() end
  p:SetAttribute("BossReducedEffects",not data.settings or data.settings.reducedShake~=false)
  academy.refreshGuide() -- Update only a destination the player already chose.
@@ -1212,6 +1891,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
   local progress=data.quests[quest.id]
   if progress and not progress.claimed and progress.progress>=quest.goal then unclaimed+=1 end
  end
+ if unclaimed==0 then notifications:Remove("questClaim") end
  questsToggle.Text=unclaimed>0 and ("QUESTS "..unclaimed) or "QUESTS"
  questsToggle.TextColor3=unclaimed>0 and gold or white
  refreshQuestObjects();stats.Text="LEVEL "..data.level;coins.Text=data.coins.." coins";refreshHealth()
@@ -1219,32 +1899,82 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  academy.refreshZone()
  academy.refreshTestLauncher()
  local q=Config.GetQuest(data.activeQuest);local v=q and data.quests[q.id]
- tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie").." · west courtyard\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3 · Quests for challenges")
+ local trainingHint=Config.CompactCity==true and "" or " · west courtyard"
+ local challengeHint=Config.CompactCity==true and "" or " · Quests for challenges"
+ tracked.Text=q and (q.name.."\n"..(data.questStep or "").."\n"..(v and v.progress or 0).."/"..q.goal..(data.questTime>0 and "  •  "..data.questTime.."s left" or "")) or ("Train: "..(data.training or "Rookie")..trainingHint.."\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3"..challengeHint)
  trackedQuestText=tracked.Text
  if data.savingAvailable==true and not data.savingDelayed then notifications:Remove("save") end
  local newMilestone=data.milestone and data.milestone~=lastMilestone
  if newMilestone then
   lastMilestone=data.milestone;notify(data.milestone)
  end
- if data.message and (not newMilestone or data.messageUrgent) then notify(data.message,data.messageUrgent,data.messageKey=="save" and "save" or nil) end
+ local key=data.messageKey
+ if data.message and (not newMilestone or data.messageUrgent or key=="trainingReceipt") then
+  if key~="questClaim" or unclaimed>0 then
+   notify(data.message,data.messageUrgent,(key=="save" or key=="questClaim" or key=="questReceipt" or key=="trainingReceipt" or key=="welcome") and key or nil)
+  end
+ end
+ local gearReady=false
+ if Config.CompactCity and not Config.ResonanceLayout then
+  local item=Config.Gear.Get("Megaphone")
+  local ready=item and not data.testSession and data.level>=item.level
+   and data.coins>=item.price and not Config.Gear.Owned(data,item.id)
+  gearReady=ready==true
+  if not ready then
+   starterGear.pending=nil
+   notifications:Remove("starterGear")
+  elseif not starterGear.shown and starterGear.lastCoins and starterGear.lastCoins<item.price then
+   starterGear.pending=item.name.." ready to buy · MENU → GEAR"
+  end
+  starterGear.lastCoins=not data.testSession and data.coins or nil
+ end
+ if (academy.starterGearReady==true)~=gearReady then
+  academy.starterGearReady=gearReady
+  academy.refreshMenuCaption(shop.Size.X.Offset,UIS.TouchEnabled)
+ end
  if data.conversation then showConversation(data.conversation) end
  if modal.Visible then render() end
 end)
 connectClient(UIS.InputBegan,function(input,processed)
  if processed or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() then return end
  local k=input.KeyCode
+ local inputType=input.UserInputType
+ if inputType and string.match(inputType.Name,"^Gamepad%d+$") then
+  if not windowFocused then return end
+  if k==Enum.KeyCode.ButtonY then toggle()
+  elseif k==Enum.KeyCode.ButtonR1 then
+   if sustainedControl then
+    toggleVoice()
+    if sustainedControl.armed then academy.beamController=inputType end
+   else beginCapture(inputType) end
+  elseif k==Enum.KeyCode.ButtonL1 then dodge()
+  elseif k==Enum.KeyCode.ButtonL2 then requestTalk()
+  elseif k==Enum.KeyCode.ButtonL3 and not academy.sprintController then
+   setSprint(true)
+   if sprinting then academy.sprintController=inputType end
+  elseif k==Enum.KeyCode.ButtonB then
+   if modal.Visible then closeMenu()
+   elseif conversationPanel and conversationPanel.Visible then closeConversation()
+   elseif not devPanel.Visible then
+    local selection=GuiService.SelectedObject
+    if selection and selection:IsDescendantOf(gui) then GuiService.SelectedObject=nil end
+   end
+  end
+  return
+ end
  if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
- elseif k==Enum.KeyCode.R or k==Enum.KeyCode.ButtonR3 then toggleLock()
  elseif k==Enum.KeyCode.M then toggleTab("Map")
  elseif k==Enum.KeyCode.LeftShift then setSprint(true)
  elseif k==Enum.KeyCode.T then requestTalk() end
 end)
 connectClient(UIS.InputEnded,function(input)
  if input.KeyCode==Enum.KeyCode.E then releaseCapture("keyboard")
+ elseif input.KeyCode==Enum.KeyCode.ButtonR1 and captureSource and captureSource==input.UserInputType then releaseCapture(captureSource)
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
+ if input.KeyCode==Enum.KeyCode.ButtonL3 and academy.sprintController and academy.sprintController==input.UserInputType then setSprint(false) end
  if input.KeyCode==Enum.KeyCode.LeftShift then setSprint(false) end
 end)
-connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
+connectClient(p.CharacterRemoving,function() academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil;academy.defenderCoverUntil=nil;academy.attackCueUntil=nil;academy.incomingHit.Visible=false;hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
 connectClient(UIS.WindowFocused,function() windowFocused=true end)
 local function suspendGameplay()
  if sustainedControl then sustainedControl:SetArmed(false) end
@@ -1252,7 +1982,67 @@ local function suspendGameplay()
 end
 connectClient(UIS.WindowFocusReleased,function() windowFocused=false;suspendGameplay() end)
 connectClient(GuiService.MenuOpened,suspendGameplay)
-connectClient(p:GetAttributeChangedSignal("ProtectionEnds"),function() setSprint(false) end)
+connectClient(UIS.GamepadDisconnected,function(inputType)
+ if academy.sprintController==inputType then setSprint(false) end
+ if captureSource==inputType then cancelCapture() end
+ if sustainedControl and academy.beamController==inputType then
+  academy.beamController=nil
+  sustainedControl:SetArmed(false)
+ end
+end)
+do
+ local scope,previous
+ for _,panelRoot in ipairs({modal,conversationPanel}) do
+  panelRoot.SelectionGroup=true
+  panelRoot.SelectionBehaviorUp=Enum.SelectionBehavior.Stop
+  panelRoot.SelectionBehaviorDown=Enum.SelectionBehavior.Stop
+  panelRoot.SelectionBehaviorLeft=Enum.SelectionBehavior.Stop
+  panelRoot.SelectionBehaviorRight=Enum.SelectionBehavior.Stop
+ end
+ local function visibleSelection(selection,root)
+  if not selection or not selection.Selectable or not selection.Interactable or not selection:IsDescendantOf(root) then return false end
+  local ancestor=selection
+  while ancestor~=gui do
+   if ancestor:IsA("GuiObject") and not ancestor.Visible then return false end
+   ancestor=ancestor.Parent
+  end
+  return true
+ end
+ local function restoreFocus()
+  local selection=GuiService.SelectedObject
+  if not selection or selection:IsDescendantOf(scope) then
+   GuiService.SelectedObject=visibleSelection(previous,gui) and previous or nil
+  end
+  scope,previous=nil,nil
+ end
+ function academy.updateControllerFocus()
+  if GuiService.MenuIsOpen then return end
+  local active=academy.gamepad and (modal.Visible and modal or conversationPanel.Visible and conversationPanel)
+  if scope and scope~=active then restoreFocus() end
+  if not active then return end
+  local selection=GuiService.SelectedObject
+  if scope~=active then
+   previous=selection
+   scope=active
+  end
+  if not visibleSelection(selection,active) then
+   local tab=active==modal and tabs[selected]
+   GuiService.SelectedObject=visibleSelection(tab,active) and tab or active==modal and modal.Close or conversationView.close
+  end
+ end
+ ownClient(function()
+  local selection=GuiService.SelectedObject
+  if selection and selection:IsDescendantOf(gui) then GuiService.SelectedObject=nil end
+ end)
+end
+connectClient(p:GetAttributeChangedSignal("ProtectionEnds"),function()
+ -- A positive update is a server protection grant, even if it arrives late.
+ if sustainedControl and (p:GetAttribute("ProtectionEnds") or 0)>0 then
+  suspendGameplay()
+ else
+  setSprint(false)
+ end
+end)
 ;(function()
 local function fxPart(position,color,size)
  local f=Instance.new("Part");f.Anchored=true;f.CanCollide=false;f.CanTouch=false;f.CanQuery=false;f.Material=Enum.Material.Neon;f.Color=color;f.Size=size;f.Position=position;f.Transparency=.3;f.Parent=workspace;Debris:AddItem(f,1.1);return f
@@ -1288,12 +2078,44 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   local key="test:"..tostring(id)
   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
   if not Players:GetPlayerByUserId(id) or not root or (root.Position-pos).Magnitude>180 or length<.05 then sustainedBeams:Remove(key);return end
-  sustainedBeams:Update(key,os.clock(),pos,direction,length,beamWidth,(typeof(aura)=="Color3" and aura or gold),attackLevel or 1,data.settings.reducedShake)
+  local color=typeof(aura)=="Color3" and aura or Config.Auras[aura] or Config.Auras.Gold
+  sustainedBeams:Update(key,os.clock(),pos,direction,length,beamWidth,color,attackLevel or 1,data.settings.reducedShake)
+  return
+ end
+ if kind=="SustainedDamageTaken" or kind=="BeamDodged" or kind=="BeamBodyBlocked" then
+  local character=p.Character
+  if pos and character and character:FindFirstChildOfClass("Humanoid")==pos then
+   local now=os.clock()
+   local expires=now+1.4
+   if kind=="BeamBodyBlocked" then
+    if now>=math.max(academy.defenderHitUntil or 0,academy.defenderDodgeUntil or 0) then
+     academy.defenderCoverUntil=expires
+    end
+   else
+    academy.defenderCoverUntil=nil
+    if kind=="BeamDodged" then
+     -- A damage cue can be throttled during this window. Do not leave a dodge-only tail.
+     local hitUntil=academy.defenderHitUntil
+     academy.defenderDodgeUntil=hitUntil and hitUntil>now and hitUntil or expires
+    else academy.defenderHitUntil=expires end
+   end
+  end
+  return
+ end
+ if kind=="SustainedCover" or kind=="SustainedEvaded" or kind=="SustainedNoHit" then
+  -- A new obstruction can end a damaging beam's contact. Old cover cannot override a newer hit.
+  local freshCover=kind=="SustainedCover" and aura==hitFeedback.total
+  if type(id)=="number" and p:GetAttribute("SustainedActive")==true and id==p:GetAttribute("SustainedSequence")
+   and id>hitFeedback.discardedThrough and (id~=hitFeedback.sequence or freshCover) then
+   academy.attackCueSequence=id;academy.attackCueUntil=os.clock()+.9
+   academy.attackCueText=kind=="SustainedNoHit" and "NO HIT YET" or kind=="SustainedEvaded" and "OPPONENT DODGED" or "BEAM HIT COVER"
+  end
   return
  end
  if kind=="SustainedHit" then
   if hitFeedback:Accept(id,aura,os.clock()) then
    playGameplayCue("Hit");beamScreenFeedback:Hit(os.clock(),screenFeedbackAllowed())
+   if id==academy.attackCueSequence then academy.attackCueUntil=nil end
    if sustainedBeams and typeof(pos)=="Vector3" then
     local attack=sustainedControl and sustainedControl.attack
     local entry=sustainedBeams.entries[p.UserId];local now=os.clock()
@@ -1320,14 +2142,14 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  if kind=="SustainedBeam" then
   if not sustainedBeams then return end
   local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-  if not Players:GetPlayerByUserId(id) or not root or (root.Position-pos).Magnitude>180 or length<.05 then
+  local distance=root and (root.Position-pos).Magnitude
+  if not Players:GetPlayerByUserId(id) or not distance or distance>180 or length<.05 then
    sustainedBeams:Remove(id);attackAudio:Remove(id);return
   end
-  sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,(typeof(aura)=="Color3" and aura or Config.Auras[aura] or gold),attackLevel or 1,data.settings.reducedShake)
-  if (root.Position-pos).Magnitude<=attackAudioSettings.Range then
-   local style=type(audioStyleId)=="string" and Config.GetSound(audioStyleId)
-   attackAudio:Pulse(id,os.clock(),pos,id==p.UserId,style and style.level)
-  else attackAudio:Remove(id) end
+  local color=typeof(aura)=="Color3" and aura or Config.Auras[aura] or Config.Auras.Gold
+  sustainedBeams:Update(id,os.clock(),pos,direction,length,beamWidth,color,attackLevel or 1,data.settings.reducedShake)
+  local style=distance<=attackAudioSettings.Range and type(audioStyleId)=="string" and Config.GetSound(audioStyleId)
+  attackAudio:Pulse(id,os.clock(),pos,id==p.UserId,style and style.level,distance)
   return
  end
  local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart");if not root or (root.Position-pos).Magnitude>180 then return end
@@ -1353,19 +2175,31 @@ local lastViewport,lastTouch,lastDevAccess
 -- Visible modal buttons keep the pointer available while interacting with panels.
 modal.Close.Modal=true;conversationPanel.Close.Modal=true
 connectClient(Run.RenderStepped,function(dt)
+ -- The optional gear hint yields to payouts and other notices already waiting.
+ if starterGear.pending and not notifications.active then
+  notify(starterGear.pending,false,"starterGear")
+  starterGear.pending=nil;starterGear.shown=true
+ end
  local notice=notifications:Step(0,false)
  if notice~=toast.Text then toast.Text=notice;toastWidth=0 end
  -- NoticeView owns full-text visibility and readable dwell.
  ShopUI.Tick()
- refreshHealth();academy.refreshZone()
+ refreshHealth()
  local viewport=gui.AbsoluteSize
+ if viewport~=lastViewport then
+  for _,prompt in game:GetService("CollectionService"):GetTagged("CityTravelPortal") do
+   academy.layoutCityTravelPrompt(prompt,viewport)
+  end
+ end
  local touch=UIS.TouchEnabled
+ academy.gamepad=UIS.PreferredInput==Enum.PreferredInput.Gamepad
+ academy.updateControllerFocus()
  local layoutChanged=viewport~=lastViewport or touch~=lastTouch or data.devAccess~=lastDevAccess
  if layoutChanged then lastViewport=viewport;lastTouch=touch;lastDevAccess=data.devAccess end
- if layoutChanged then conversationPanel.Size=UDim2.fromOffset(math.min(460,viewport.X-24),math.min(340,viewport.Y-36)) end
+ if layoutChanged then conversationView.layout(viewport) end
  refreshConversation()
  saveNotice.Text=saveStatus()
- saveNotice.Visible=not modal.Visible and viewport.X>=820
+ saveNotice.Visible=saveNotice.Text~="" and not modal.Visible and viewport.X>=820
  local progress=progressLabel(viewport.X<820)
  if xpText.Text~=progress then xpText.Text=progress end
  -- Consume every observed input interruption before availability can recover.
@@ -1390,7 +2224,7 @@ connectClient(Run.RenderStepped,function(dt)
   voiceCooldown=math.max(0,(p:GetAttribute("SustainedReadyAt") or 0)-workspace:GetServerTimeNow())
   voiceActive=p:GetAttribute("SustainedActive")==true
   sustainedControl:Step(dt,os.clock(),mic.power,alive and windowFocused and not beamBlocked(),
-   voiceCooldown<=0 and data.micReady==true,voiceActive,p:GetAttribute("SustainedSequence"))
+   data.micReady==true,voiceActive,p:GetAttribute("SustainedSequence"),voiceCooldown>0)
  end
  if captureSource and beamBlocked() then cancelCapture() end
  if captureSource and mic.captureStarted and os.clock()-mic.captureStarted>Config.VoiceCombat.CaptureExpiry then
@@ -1398,82 +2232,180 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if sprinting then setSprint(true) end
  local gameplayVisible=not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
- academy.guide:Step(p.Character and p.Character:FindFirstChild("HumanoidRootPart"),os.clock(),gameplayVisible and not devPanel.Visible)
+ do
+  local root=character and character:FindFirstChild("HumanoidRootPart")
+  local routeLights=data.routeLightsPass==true and root~=nil and not Config.InArena(root.Position)
+  academy.guide:Step(root,os.clock(),gameplayVisible and alive and not devPanel.Visible,routeLights)
+ end
+ local arenaActive=academy.refreshZone()
 
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
- if GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
- local eligibilityHint=voiceEligibilityHint(true)
+ if UIS.TouchEnabled and GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
+ local eligibilityHint,inputMuted=voiceEligibilityHint(true)
+ if academy.muteNoticePending and not inputMuted then
+  notifications:Remove("micMuted")
+  academy.muteNoticePending=false
+ end
  tracked.Text=trackedQuestText
+ local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+ if os.clock()>=nextResidentUi then
+  nextResidentUi=os.clock()+.1
+  local residents=game:GetService("CollectionService"):GetTagged("CityResident")
+  talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,residents)
+  academy.refreshMarGuide(root,residents)
+  academy.refreshTrainingGuide(residents)
+ end
  local confirmed=hitFeedback:Read(os.clock())
- hitText.Visible=gameplayVisible and confirmed~=nil
- if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed) end
- meter.Visible=gameplayVisible and viewport.Y>=315;reticle.Visible=UIS.TouchEnabled and gameplayVisible
+ local attackCue=alive and windowFocused and p:GetAttribute("SustainedActive")==true
+  and p:GetAttribute("SustainedSequence")==academy.attackCueSequence and os.clock()<(academy.attackCueUntil or 0)
+ hitText.Visible=gameplayVisible and (confirmed~=nil or attackCue)
+ if hitText.Visible then
+  hitText.Position=(academy.shortObjective or aimGui.AbsoluteSize.Y<300) and UDim2.new(.5,0,0,10) or UDim2.new(.5,0,.5,-82)
+ end
+ if confirmed then hitText.Text=string.format("%d DAMAGE",confirmed)
+ elseif attackCue then hitText.Text=academy.attackCueText end
+ if protectionRemaining>0 then academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil;academy.defenderCoverUntil=nil end
+ do
+  local now=os.clock()
+  local hit=now<(academy.defenderHitUntil or 0)
+  local dodged=now<(academy.defenderDodgeUntil or 0)
+  local covered=now<(academy.defenderCoverUntil or 0)
+  local menuHit=hit and modal.Visible and windowFocused and alive and not GuiService.MenuIsOpen and not conversationPanel.Visible
+  local close=modal.Close
+  local closeText=menuHit and "HIT\nCLOSE" or "X"
+  if close.Text~=closeText then
+   close.Text=closeText
+   close.TextSize=menuHit and 11 or 14
+   close.TextColor3=menuHit and Color3.fromRGB(255,157,146) or white
+  end
+  academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and (hit or dodged or covered)
+  if academy.incomingHit.Visible then
+   local text=hit and (dodged and "HIT + DODGE" or "BEAM HIT YOU") or dodged and "BEAM DODGED" or "BODY BLOCK"
+   if academy.incomingHit.Text~=text then
+    academy.incomingHit.Text=text
+    academy.incomingHit.TextColor3=hit and Color3.fromRGB(255,157,146) or dodged and Color3.fromRGB(147,236,192) or Color3.fromRGB(168,221,255)
+   end
+  end
+ end
+ local showVoiceMeter=viewport.Y>=315 and not (not touch and viewport.X>=820 and talkTarget~=nil)
+ local compactVoice=not showVoiceMeter
+ meter.Visible=gameplayVisible and showVoiceMeter;reticle.Visible=usesCenterAim() and gameplayVisible
  local power=academy.VoiceReactor.Power(captureSource and mic:CapturePower() or mic.power)
  academy.reactor:Step(power,dt,data.settings.reducedShake or platformReducedMotion,mic.ready and (not sustainedControl or sustainedControl.armed))
- local range=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).range
+ local beamStats=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier)
+ local range=beamStats.range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
  local captureHint=captureSource and (captureRemaining>0 and string.format("Speak now • %.1fs left",captureRemaining) or "Window ended • release to fire") or "Hold attack before speaking"
  if sustainedControl then
-  captureHint=not alive and "Respawning • beams OFF"
-   or not windowFocused and "Window inactive • attack paused"
-   or protectionRemaining>0 and string.format("Spawn protection • %.1fs",protectionRemaining)
-   or (knocked or humanoid.PlatformStand) and "Recovering • attack unavailable"
-   or rolling and "Rolling • attack cancelled"
-   or UIS:GetFocusedTextBox()~=nil and "Typing • attack paused"
-   or data.micReady~=true and "Connecting microphone…"
-   or not sustainedControl.armed and (touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
-   or voiceCooldown>0 and string.format("Cooldown • %.1fs",voiceCooldown)
-   or sustainedControl.attack and (voiceActive and string.format("Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
-   or os.clock()<(sustainedControl.unconfirmedUntil or 0) and "Not confirmed • quiet, then retry"
-   or sustainedControl.gate.needsQuiet and "Armed • quiet before speaking"
-   or sustainedControl.gate.onset>0 and "Voice detected • keep speaking"
-   or "ON · normal speech can attack"
+  captureHint=not alive and (compactVoice and "Respawning" or "Respawning • beams OFF")
+   or not windowFocused and (compactVoice and "Attack paused" or "Window inactive • attack paused")
+   or protectionRemaining>0 and string.format(compactVoice and "Protected %.1fs" or "Spawn protection • %.1fs",protectionRemaining)
+   or (knocked or humanoid.PlatformStand) and (compactVoice and "Recovering" or "Recovering • attack unavailable")
+   or rolling and (compactVoice and "Rolling" or "Rolling • attack cancelled")
+   or UIS:GetFocusedTextBox()~=nil and (compactVoice and "Typing · paused" or "Typing • attack paused")
+   or compactVoice and devPanel.Visible and "Close Test Tools"
+   or academy.VoiceReactor.InputStatus(mic,data.micReady,compactVoice)
+   or not sustainedControl.armed and (compactVoice and (academy.gamepad and "Press to turn on" or touch and "Tap to turn on" or "[E] to turn on")
+    or touch and "Beams OFF • tap to turn on" or "Beams OFF • E to turn on")
+   or voiceCooldown>0 and string.format(sustainedControl.gate.needsQuiet and "Cooldown %.1fs · go quiet" or "Cooldown %.1fs",voiceCooldown)
+   or sustainedControl.attack and (voiceActive and string.format(compactVoice and "Firing · %.1fs" or "Attacking • %.1fs left",math.max(0,(p:GetAttribute("SustainedEndsAt") or 0)-serverNow)) or "Starting attack…")
+   or os.clock()<(sustainedControl.unconfirmedUntil or 0) and (compactVoice and "Go quiet, then retry" or "Not confirmed • quiet, then retry")
+   or sustainedControl.gate.needsQuiet and "Go quiet"
+   or sustainedControl.gate.onset>0 and (compactVoice and "Keep speaking" or "Voice detected • keep speaking")
+   or academy.trainingNeedsCloser() and "Move closer"
+   or "Aim and speak"
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
-   or (not sustainedControl.armed or voiceCooldown>0 or blocked()) and muted or gold
+   or (not sustainedControl.armed or voiceCooldown>0 or sustainedControl.gate.needsQuiet or blocked()) and muted or gold
+  academy.voiceThreshold.Visible=sustainedControl.armed and voiceCooldown<=0 and windowFocused
+   and data.micReady==true and not inputMuted and not beamBlocked()
  end
- meterText.Text=academy.VoiceReactor.Status(
+ meterText.Text=inputMuted and eligibilityHint or academy.VoiceReactor.Status(
   string.format("%s %d%%\n%s",captureSource and "BEAM POWER" or "LIVE MIC",math.floor(power*100),captureHint),
   eligibilityHint,sustainedControl and not sustainedControl.armed,viewport.X,viewport.Y,touch)
+ local shortLandscape=viewport.Y<300 and viewport.X>viewport.Y
  if layoutChanged then
  academy.layoutZone(viewport,touch)
- local meterWidth,meterHeight=academy.VoiceReactor.Layout(viewport.X,touch,viewport.Y)
- meter.Size=UDim2.fromOffset(meterWidth,meterHeight);meter.Position=UDim2.new(.5,-meterWidth/2,1,-meterHeight-((not touch and viewport.X<820) and 116 or 12))
  local short=viewport.Y<550
  menuScale.Scale=1
  local width=math.min(720,viewport.X-24)
- modal.Size=UDim2.fromOffset(width,math.min(620,viewport.Y-76));modal.Position=UDim2.new(.5,0,0,64)
+ local menuHeight=math.min(620,viewport.Y-(shortLandscape and 16 or 76))
+ modal.Size=UDim2.fromOffset(width,menuHeight)
+ modal.Position=UDim2.new(.5,0,0,shortLandscape and 8 or 64)
+ modal.Close.Position=UDim2.new(1,-56,0,shortLandscape and 0 or 10)
+ title.Position=UDim2.fromOffset(22,shortLandscape and 4 or 15)
  title.TextSize=width<620 and 20 or 23
  subtitle.Visible=not short;subtitle.Size=UDim2.new(1,-44,0,width<620 and 42 or 25)
- local tabY=short and 54 or width<620 and 102 or 88
- local columns=width<620 and 3 or 6;local rows=math.ceil(6/columns)
- local tabWidth=(width-40-(columns-1)*6)/columns
- for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do
-  local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(20+((i-1)%columns)*(tabWidth+6),tabY+math.floor((i-1)/columns)*50);b.TextSize=width<620 and 12 or 14
+ local tabY=shortLandscape and 44 or short and 54 or width<620 and 102 or 88
+ local columns=(width>=620 or shortLandscape and width>=500) and #academy.menuTabs or 3
+ local rows=math.ceil(#academy.menuTabs/columns)
+ -- Keep the notice/title strip above both the tab grid and the scrolling cards.
+ local sidebar=shortLandscape and width>=424 and viewport.Y>=150 and menuHeight-(tabY+rows*50+18)<88
+ local sidebarChanged=academy.sidebarMenu~=sidebar
+ academy.sidebarMenu=sidebar
+ if sidebar then
+  columns=(width<456 and viewport.Y>=200) and 2 or 3
+  modal.Size=UDim2.fromOffset(width,viewport.Y-12)
+ end
+ local tabWidth=sidebar and (width<468 and 56 or 60) or (width-40-(columns-1)*6)/columns
+ local tabLeft,tabGap=sidebar and 12 or 20,sidebar and 4 or 6
+ for i,name in ipairs(academy.menuTabs) do
+  local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(tabLeft+((i-1)%columns)*(tabWidth+tabGap),tabY+math.floor((i-1)/columns)*50);b.TextSize=(width<620 or sidebar) and 12 or 14
   local decoration=academy.tabIcons[name];academy.layoutTab(b,decoration.icon,decoration.padding,tabWidth)
  end
- content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
- if width~=lastLayoutWidth or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) then
+ local previousContentOffset=content.Size.X.Offset
+ if sidebar then
+  local contentLeft=tabLeft+columns*(tabWidth+tabGap)+4
+  content.Position=UDim2.fromOffset(contentLeft,44);content.Size=UDim2.new(1,-contentLeft-12,1,-52)
+ else
+  content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
+ end
+ if width~=lastLayoutWidth or sidebarChanged or content.Size.X.Offset~=previousContentOffset or (selected=="Shop" and ShopUI.FeatureLayout(viewport.X,viewport.Y)~=academy.shopFeatureLayout) then
   lastLayoutWidth=width
-  academy.shopCompactLandscape=ShopUI.CompactLandscape(viewport.X,viewport.Y)
+  academy.shopFeatureLayout=ShopUI.FeatureLayout(viewport.X,viewport.Y)
   if modal.Visible then render() end
  end
  -- Keep desktop controls compact; smaller displays retain readable button text.
- local tight=viewport.X<380
- shop.Size=UDim2.fromOffset(tight and 90 or 125,touch and 44 or 36);shop.Text=(tight or touch) and "SHOP" or "SHOP [B]"
- questsToggle.Size=UDim2.fromOffset(tight and 78 or 95,touch and 44 or 36);questsToggle.Position=UDim2.fromOffset(tight and 98 or 134,0)
- testButton.Size=UDim2.fromOffset(viewport.X<432 and 86 or 112,44)
- local miniLayout=CityMap.MiniLayout(viewport,touch,data.devAccess==true)
- miniMapButton.Size=UDim2.fromOffset(miniLayout.width,miniLayout.height);miniMapButton.Position=UDim2.new(1,-miniLayout.width-14,0,14)
- miniMapHolder.Visible=miniLayout.expanded;miniMapAvailable=miniLayout.available
- testButton.Position=UDim2.new(1,viewport.X<432 and -100 or -126,0,miniLayout.available and 14+miniLayout.height+8 or 14)
+ local stackedActions=academy.layoutActions(viewport,touch,shortLandscape)
+ academy.layoutObjectiveNav(viewport,touch,stackedActions,academy.gamepad)
+ local splitTalkLane=stackedActions and viewport.Y<205
+ local miniLayout=academy.hideMap and academy.noMiniMapLayout or CityMap.MiniLayout(viewport,touch,data.devAccess==true)
+ local toolsBesideMap=not touch and NoticeLayout.DesktopTestBesideMap(viewport.X,viewport.Y,miniLayout)
+ local testWidth=(splitTalkLane or toolsBesideMap) and 44 or stackedActions and 84 or viewport.X<432 and 86 or 112
+ testButton.Size=UDim2.fromOffset(testWidth,44)
+ testButton.TextSize=stackedActions and 12 or 14
+ testButton.Text=(splitTalkLane or toolsBesideMap) and "TEST" or "TEST TOOLS"
+ if miniMapButton then
+  miniMapButton.Size=UDim2.fromOffset(miniLayout.width,miniLayout.height);miniMapButton.Position=UDim2.new(1,-miniLayout.width-14,0,14)
+  miniMapHolder.Visible=miniLayout.expanded;miniMapAvailable=miniLayout.available
+ end
+ local testTop
+ if toolsBesideMap then testTop=14
+ elseif miniLayout.available then testTop=14+miniLayout.height+8
+ elseif touch then testTop=math.clamp(viewport.Y-195-44,0,14)
+ else testTop=math.clamp(viewport.Y-148,0,14) end
+ local testInset=toolsBesideMap and miniLayout.width+22 or splitTalkLane and 10 or 14
+ testButton.Position=UDim2.new(1,-testWidth-testInset,0,testTop)
  hud.Position=(touch or viewport.X<820) and UDim2.fromOffset(14,data.devAccess==true and viewport.X<356 and miniLayout.height+74 or 64) or UDim2.new(0,14,1,-108)
- controls.Position=UDim2.new(1,-274,1,touch and -195 or -102)
- talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
- talkButton.Size=UDim2.fromOffset(120,touch and 44 or 34)
- controls.Size=UDim2.fromOffset(260,touch and 96 or 88)
- tracked.Position=UDim2.fromOffset(16,(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64)
- sprintButton.TextSize=touch and 12 or 14;sprintButton.Size=UDim2.fromOffset(164,touch and 44 or 32)
- local testTop=miniLayout.available and 14+miniLayout.height+8 or 14
+ -- Desktop combat starts 274px from the right, with the card inset 14px plus an 8px gap.
+ local compactDesktop=not touch and viewport.X>=480 and viewport.X<820 and viewport.Y>=150
+  and (viewport.Y<158 or (viewport.X<530 and viewport.Y<260))
+ academy.layoutStatusCard(touch and shortLandscape,compactDesktop and math.min(218,viewport.X-296) or nil)
+ local trackerY=(touch or viewport.X<820) and math.max(data.devAccess==true and viewport.X<356 and miniLayout.height+170 or 160,data.devAccess==true and viewport.X<406 and miniLayout.height+74 or 0) or 64
+ local trackerX,trackerTop,trackerWidth,trackerHeight,canShare,centerTracker=academy.trackerLayout(viewport,touch,trackerY)
+ academy.guideMayUseTracker=canShare==true
+ tracked.Position=UDim2.fromOffset(trackerX,trackerTop)
+ tracked.Size=UDim2.fromOffset(trackerWidth,trackerHeight)
+ local meterWidth,meterHeight=academy.VoiceReactor.Layout(viewport.X,touch,viewport.Y)
+ local slimMeter=centerTracker and viewport.Y>=315
+ meter.RecentAmplitude.Visible=not slimMeter
+ if slimMeter then
+  -- Keep live power under the status card while the guide occupies the bottom center.
+  meter.Size=UDim2.fromOffset(math.min(meterWidth,trackerX-22),56)
+  meter.Position=UDim2.fromOffset(14,trackerY+4)
+ else
+  meter.Size=UDim2.fromOffset(meterWidth,meterHeight)
+  meter.Position=UDim2.new(.5,-meterWidth/2,1,-meterHeight-((not touch and viewport.X<820) and 116 or 12))
+ end
  local testBottom=testTop+44
  local bottomReserve=(touch and 189 or 96)+14
  local belowHeight=viewport.Y-(testBottom+8)-bottomReserve
@@ -1491,26 +2423,80 @@ connectClient(Run.RenderStepped,function(dt)
  -- Keep the fight readable without hiding a running quest deadline.
  local combatQuest=data.activeQuest=="arena" or data.activeQuest=="dodge" or data.activeQuest=="crowd" or data.activeQuest=="practice_beams" or data.activeQuest=="arena_assist"
  local showQuest=not data.inWarZone or combatQuest or (data.questTime or 0)>0
+ academy.compactObjective.Visible=academy.shortObjective and gameplayVisible and showQuest
+  and not devPanel.Visible and (tracked.Text~="" or academy.guideTarget~=nil)
+ local guideUsesTracker=false
  do
   local x,y,w,h,compact=academy.guideLayout(viewport,touch,tracked.Position.Y.Offset)
-  academy.guidePanel.Visible=x~=nil and gameplayVisible and not devPanel.Visible and academy.guideTarget~=nil
+  if not x and academy.guideMayUseTracker and not data.activeQuest and showQuest then
+   -- The selected route takes the idle objective's lane only while it needs it.
+   x,y=tracked.Position.X.Offset,tracked.Position.Y.Offset
+   w,h=tracked.Size.X.Offset,tracked.Size.Y.Offset
+   guideUsesTracker=true
+  end
+  academy.guidePanel.Visible=not academy.shortObjective and x~=nil and gameplayVisible and not devPanel.Visible and academy.guideTarget~=nil
   if academy.guidePanel.Visible then
    academy.guidePanel.Position=UDim2.fromOffset(x,y);academy.guidePanel.Size=UDim2.fromOffset(w,h)
    local status,distance,bearing=academy.guide:GetStatus()
+   local selection=academy.guideSelection
+   local heading=compact and "" or academy.guideTarget.label.."\n"
+   if status=="Arrived" and selection.kind=="place" and selection.id=="training" then
+    local fighter=academy.trainingGuideFighter
+    local ready=fighter and fighter.Parent and fighter:GetAttribute("ResidentActive")
+    status=academy.trainingArrival(ready,false,voiceCooldown)
+    distance=nil
+    if guideUsesTracker then
+     heading=""
+     status..="\nFighters "..((data.combatChallenges or {}).fighters or 0).."/3"
+    end
+   end
+   if status=="Arrived" and academy.guideTarget.minimumLevel then
+    local minimumLevel=academy.guideTarget.minimumLevel
+    if data.level<minimumLevel then
+     status="Requires Lv "..minimumLevel
+    else
+     local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+     local encounters=world and world:FindFirstChild("BossEncounters")
+     local boss=encounters and encounters:FindFirstChild(selection.id)
+     local health=boss and boss:GetAttribute("BossHealth")
+     local phase=boss and boss:GetAttribute("BossState")
+     if health==0 or phase=="Defeated" then
+      status="Boss defeated"
+     elseif health and health>0 and phase then
+      status="Hit boss to join"
+     else
+      status="Boss unavailable"
+     end
+    end
+    distance=nil
+   end
    if compact and status=="Route unavailable" then status="No route" end
    local suffix=distance and (" · "..math.floor(distance).." studs"..(bearing and (" "..bearing) or "")) or ""
-   local text=(compact and "" or academy.guideTarget.label.."\n")..status..suffix
+   local text=heading..status..suffix
    if academy.guideText.Text~=text then academy.guideText.Text=text end
   end
  end
- tracked.Visible=gameplayVisible and tracked.Text~="" and showQuest;zone.Visible=gameplayVisible
+ tracked.Visible=not academy.shortObjective and gameplayVisible and tracked.Text~="" and showQuest and not Config.ResonanceLayout
+  and not (guideUsesTracker and academy.guidePanel.Visible)
+ zone.Visible=gameplayVisible
+ academy.trainingGuideButton.Visible=tracked.Visible and not devPanel.Visible and academy.canGuideTraining()
  local now=workspace:GetServerTimeNow();local protected=math.max(0,(p:GetAttribute("ProtectionEnds") or 0)-now)
- castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
  if sustainedControl then
-  -- Keep the toggle state visible even during protection/cooldown; those gates
-  -- still control attacks, but never disguise an OFF choice as a mic mute.
-  castButton.Text=screamToggleLabel(sustainedControl.armed,touch)
-  castButton.TextSize=12
+  -- Keep the next voice action on the toggle when the meter has no lane.
+  local status
+  if compactVoice or inputMuted or not mic.ready or data.micReady~=true or sustainedControl.armed and (voiceActive or voiceCooldown>0) then
+   status=captureHint
+   if inputMuted then
+    status="Unmute in Roblox"
+   elseif eligibilityHint then
+    status=data.voiceStatus=="denied" and "Check voice settings"
+     or data.voiceStatus=="unavailable" and "Voice check delayed" or "Checking voice"
+   end
+  end
+  castButton.Text=screamToggleLabel(sustainedControl.armed,touch,status,academy.gamepad)
+  castButton.TextSize=academy.stackedTouchActions and 12 or 13
+ else
+  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or academy.gamepad and "HOLD BEAM [RB/R1]" or "HOLD BEAM [E]"
  end
  -- Keep attack duration/cooldown distinct from live microphone loudness.
  voiceTimeTrack.Visible=sustainedControl~=nil and alive and protected<=0 and (voiceActive or (voiceCooldown or 0)>0)
@@ -1525,71 +2511,106 @@ connectClient(Run.RenderStepped,function(dt)
   end
   voiceTimeFill.Size=UDim2.fromScale(math.clamp(fraction,0,1),1)
  end
- castButton.BackgroundColor3=(sustainedControl and not sustainedControl.armed or protected>0) and muted or gold
- local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or (touch and "DODGE" or "DODGE [Q]")
- local rest=p:GetAttribute("SprintCooldown") or 0;sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",p:GetAttribute("SprintCharge") or 10)..(touch and "" or " [SHIFT]")
+ if academy.setBeamFace then
+  local armed=sustainedControl.armed and windowFocused and data.micReady==true and not beamBlocked()
+  academy.setBeamFace(armed,voiceActive and sustainedControl.attack~=nil,voiceCooldown>0)
+ else
+  castButton.BackgroundColor3=protected>0 and muted or gold
+ end
+ local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now)
+ local dodgeStatus
+ if protected>0 then dodgeStatus="SHIELDED"
+ elseif cd<=0 then
+  if not alive or not root or root.Anchored or rolling or knocked or humanoid.PlatformStand or humanoid.Sit or humanoid.SeatPart then
+   dodgeStatus="WAIT"
+  elseif humanoid.FloorMaterial==Enum.Material.Air then dodgeStatus="LAND FIRST" end
+ end
+ dodgeButton.TextSize=dodgeStatus and 12 or 14
+ if dodgeStatus then dodgeButton.Text="DODGE\n"..dodgeStatus
+ elseif cd>0 then dodgeButton.Text=string.format("DODGE %.1fs",cd)
+ else dodgeButton.Text=academy.gamepad and "DODGE [LB/L1]" or touch and "DODGE" or "DODGE [Q]" end
+ local rest=p:GetAttribute("SprintCooldown") or 0;local charge=p:GetAttribute("SprintCharge") or Config.SprintDuration
+ sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",charge)..(academy.gamepad and " [L3]" or touch and "" or " [SHIFT]")
+ academy.staminaFill.Size=UDim2.fromScale(math.clamp(charge/Config.SprintDuration,0,1),1)
  aimInfo.Visible=gameplayVisible
  if sustainedBeams then
   local now=os.clock();sustainedBeams:Expire(now)
   beamFrame+=dt
   if beamFrame>=1/30 then
-   beamFrame=0
+   beamFrame%=1/30
    local camera=workspace.CurrentCamera
    if camera then
     local attack=sustainedControl.attack
     local contactAllowed=windowFocused and not beamBlocked() and attack and attack.acknowledged and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==attack.sequence
-    for _,entry in pairs(sustainedBeams.entries) do
-     BeamVisuals.Animate(entry.visual,now,camera.CFrame.Position,data.settings.reducedShake,(contactAllowed and entry.visual.contactSequence==attack.sequence)==true,platformReducedMotion)
+    local viewer=camera.CFrame.Position
+    local avatar=alive and root and root.Position or nil
+    local crowded=BeamVisuals.IsCrowded(sustainedBeams.entries,viewer)
+    local ownTestKey="test:"..p.UserId
+    for id,entry in pairs(sustainedBeams.entries) do
+     local incoming=type(id)=="number" and id~=p.UserId
+     BeamVisuals.Animate(entry.visual,now,viewer,data.settings.reducedShake,(contactAllowed and entry.visual.contactSequence==attack.sequence)==true,platformReducedMotion,crowded and id~=p.UserId and id~=ownTestKey,incoming,avatar)
     end
    end
   end
  end
  -- A current local acknowledgement, not visual-packet arrival order, owns launch feedback.
  local screenAttack=sustainedControl and sustainedControl.attack
- if screenAttack and screenAttack.acknowledged and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==screenAttack.sequence then
-  beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),Config.Auras.Gold,screenFeedbackAllowed())
- end
- local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
- if os.clock()>=nextResidentUi then
-  nextResidentUi=os.clock()+.1
-  talkTarget=refreshResidentLabels(root,workspace.CurrentCamera,game:GetService("CollectionService"):GetTagged("CityResident"))
+ if screenAttack and screenAttack.acknowledged and screenAttack.sequence>beamScreenFeedback.sequence
+  and p:GetAttribute("SustainedActive")==true and p:GetAttribute("SustainedSequence")==screenAttack.sequence then
+  local launchColor=Config.Auras[data.aura] or Config.Auras.Gold
+  if data.spectrumPass==true and data.useCustomColor==true and type(data.customColor)=="string"
+   and data.customColor:match("^%x%x%x%x%x%x$") then
+   launchColor=Color3.fromHex(data.customColor)
+  end
+  beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),launchColor,screenFeedbackAllowed())
  end
  -- Pause queue time while covered, too small, interacting, or overflow remains unseen.
- local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,CityMap.MiniLayout(viewport,touch,data.devAccess==true),data.devAccess==true,talkTarget~=nil)
- if modal.Visible then noticeLayout=NoticeLayout.Modal(viewport.X,viewport.Y) end
+ local noticeMap=not academy.hideMap and CityMap.MiniLayout(viewport,touch,data.devAccess==true) or nil
+ local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,noticeMap,data.devAccess==true,talkTarget~=nil,
+  hud.Visible and hud.AbsolutePosition-gui.AbsolutePosition,hud.AbsoluteSize,
+  math.max(tracked.Visible and tracked.AbsolutePosition.Y+tracked.AbsoluteSize.Y or 0,
+   academy.guidePanel.Visible and academy.guidePanel.AbsolutePosition.Y+academy.guidePanel.AbsoluteSize.Y or 0)-gui.AbsolutePosition.Y)
+ if modal.Visible then noticeLayout=NoticeLayout.Modal(viewport.X,viewport.Y,shortLandscape) end
  local noticeVisible=(gameplayVisible or modal.Visible) and windowFocused and not GuiService.MenuIsOpen
  local noticeNow=os.clock()
- noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active)
+ local noticeDeferred=academy.deferArrivalNotice(shortLandscape,arenaActive)
+ noticeView:Update(notice,noticeLayout,noticeVisible and not noticeDeferred,noticeNow,viewport.X<820 and 14 or 16,notifications.active)
  local nextNotice=notifications:Step(dt,noticeView:CanAdvance())
- if nextNotice~=notice then notice=nextNotice;noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active) end
- shop.Visible=not (modal.Visible and noticeView.visible);questsToggle.Visible=shop.Visible
- questsToggle.Text=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
+ if nextNotice~=notice then
+  notice=nextNotice;noticeDeferred=academy.deferArrivalNotice(shortLandscape,arenaActive)
+  noticeView:Update(notice,noticeLayout,noticeVisible and not noticeDeferred,noticeNow,viewport.X<820 and 14 or 16,notifications.active)
+ end
+ title.Visible=not (shortLandscape and modal.Visible and noticeView.visible)
+ shop.Visible=not GuiService.MenuIsOpen and not (conversationPanel and conversationPanel.Visible)
+  and not (modal.Visible and (noticeView.visible or shortLandscape))
+ local questShortcut=notice~="" and (not noticeLayout.available or noticeDeferred) and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
+ -- Keep navigation in MENU. A pending claim or inaccessible notice gets a shortcut.
+ academy.noticeShortcut=questShortcut=="NOTICE"
+ local hiddenWin=questShortcut=="NOTICE" and notifications.active and notifications.active.key=="trainingReceipt"
+ questsToggle.Text=hiddenWin and "WIN" or academy.shortObjective and questShortcut~="NOTICE" and questShortcut~="QUESTS" and "REWARD" or questShortcut
+ questsToggle.Visible=shop.Visible and not modal.Visible and questShortcut~="QUESTS"
+ academy.passesToggle.Visible=shop.Visible and gameplayVisible and not devPanel.Visible
+ if academy.compactObjective.Visible then academy.refreshCompactObjective(questsToggle.Visible,voiceCooldown) end
  talkButton.Visible=talkTarget~=nil and gameplayVisible
- -- Preserve the interaction target; passive mic art must never sit under TALK.
- if not touch and viewport.X>=820 and talkButton.Visible then meter.Visible=false end
- talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
- if noticeView.visible and noticeLayout.moveTalk then talkButton.Position=UDim2.fromOffset(noticeLayout.talkX,noticeLayout.talkY) end
+ talkButton.Size=UDim2.fromOffset(academy.stackedTouchActions and (viewport.Y<205 and 44 or 84) or noticeLayout.baseTalkWidth or 120,touch and 44 or 34)
+ if academy.stackedTouchActions then
+  -- The top lane is the only shared space above the stock Jump button on the shortest canvas.
+  talkButton.Position=viewport.Y<205 and UDim2.new(1,-102,0,0) or UDim2.new(1,-98,0,50)
+ elseif noticeView.visible and noticeLayout.moveTalk then
+  talkButton.Position=UDim2.fromOffset(noticeLayout.talkX,noticeLayout.talkY)
+ elseif noticeLayout.baseTalkX then
+  talkButton.Position=UDim2.fromOffset(noticeLayout.baseTalkX,noticeLayout.baseTalkY)
+ else
+  talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
+ end
+ academy.presentTalk(talkButton,talkTarget,touch,shortLandscape,academy.gamepad)
  for _,passive in ipairs({hud,tracked,zone,saveNotice,meter,academy.guidePanel})do
   if noticeView:Overlaps(passive,gui) or noticeView:Overlaps(passive,gui,talkButton) then passive.Visible=false end
  end
  if academy.damageReadout.phase then
   academy.damageReadout:Step(noticeNow,dt,gameplayVisible and windowFocused and alive and not devPanel.Visible,
-   gui,hud,tracked,academy.guidePanel,miniMapButton,testButton,noticeView.root,talkButton,meter,controls,zone,saveNotice)
+   gui,hud,tracked,academy.guidePanel,testButton,noticeView.root,talkButton,meter,controls,zone,saveNotice,miniMapButton)
  end
- local lockedPoint=academy.resolveLock(lockContext())
- lockMarker.Visible=lockedPoint~=nil and gameplayVisible
- if lockedPoint then
-  -- Nudge only the caption inward at screen edges; aim still uses the exact target.
-  local view=workspace.CurrentCamera.ViewportSize
-  local insetX,insetY=lockMarker.Size.X.Offset/2+8,lockMarker.Size.Y.Offset+8
-  lockMarker.Visible=lockMarker.Visible and view.X>=insetX*2 and view.Y>=insetY+8
-  if lockMarker.Visible then
-   local screen=workspace.CurrentCamera:WorldToViewportPoint(lockedPoint)
-   lockMarker.Position=UDim2.fromOffset(math.clamp(screen.X,insetX,view.X-insetX),math.clamp(screen.Y-24,insetY,view.Y-8))
-  end
- end
- lockButton.Text=lockedPoint and "UNLOCK" or (os.clock()<academy.lockLostUntil and "LOCK LOST\n" or "AIM CENTER\n")..(touch and "LOCK" or UIS.GamepadEnabled and "LOCK [R3]" or "LOCK [R]")
- lockButton.BackgroundColor3=lockedPoint and gold or panel;lockButton.TextColor3=lockedPoint and dark or white
  beamScreenFeedback:Step(os.clock(),screenFeedbackAllowed(),data.settings.reducedShake or platformReducedMotion)
  cueContext();gameplayAudio:Step(os.clock(),dt)
  -- Audio consumes frame dt; keep ducking/calibration/fades outside the slow HUD gate.
@@ -1597,28 +2618,31 @@ connectClient(Run.RenderStepped,function(dt)
  elapsed+=dt;if elapsed<.15 then return end;elapsed=0
  aimInfo.Text=""
  if aimInfo.Visible then
-  local _,hit=aimRay();local object=hit and hit.Instance
+  local ray,hit=aimRay();local object=hit and hit.Instance
   while object and object~=workspace and not object:GetAttribute("RequiredLevel")
    and not (object:IsA("Model") and (Players:GetPlayerFromCharacter(object) or object:GetAttribute("NpcId"))) do object=object.Parent end
+  if ray and (not object or object==workspace) then object=academy.trainingHeadAt(ray,hit and hit.Distance or 1000) end
   local targetPlayer=object and object~=workspace and object:IsA("Model") and Players:GetPlayerFromCharacter(object)
   if targetPlayer and targetPlayer~=p then
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
    local targetRoot=object:FindFirstChild("HumanoidRootPart");local humanoid=object:FindFirstChildOfClass("Humanoid")
    if root and targetRoot and humanoid then
-    local canFight=Config.InArena(root.Position) and Config.InArena(targetRoot.Position)
-    local far=(targetRoot.Position-root.Position).Magnitude>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).maxRange+2
-    local currentFar=(targetRoot.Position-root.Position).Magnitude>range+2
-    local text,available=playerTargetInfo(targetPlayer,humanoid,canFight,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and targetCovered(root,targetRoot,object))
-    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
+    local inPvp,targetInPvp=Config.InArena(root.Position),Config.InArena(targetRoot.Position)
+    local localShielded=protectionRemaining>0
+    local canFight=inPvp and targetInPvp and not localShielded
+    local far,currentFar,origin=beamTargetRange(root,targetRoot,hit.Position,beamStats,true)
+    local covered=canFight and not far and not currentFar and targetCovered(origin,targetRoot,object,hit.Position)
+    local text,available=playerTargetInfo(targetPlayer,humanoid,inPvp,targetInPvp,far,serverNow,currentFar,covered,localShielded)
+    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or white
    end
   elseif object and object~=workspace and object:IsA("Model") and object:GetAttribute("NpcId") then
    local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
    local npcRoot=object:FindFirstChild("HumanoidRootPart")
    if root and npcRoot then
-    local distance=(npcRoot.Position-root.Position).Magnitude
-    local far=distance>Config.VoiceCombat.Stats(data.level,1,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).maxRange+2
-    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,distance>range+2,not far and targetCovered(root,npcRoot,object))
-    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or muted
+    local aimPoint=hit and hit.Position or ray.Origin+ray.Direction*1000
+    local far,currentFar,origin=beamTargetRange(root,npcRoot,aimPoint,beamStats,false)
+    local text,available=residentTargetInfo(object,object:FindFirstChildOfClass("Humanoid"),far,currentFar,not far and not currentFar and targetCovered(origin,npcRoot,object,aimPoint),root.Position)
+    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or white
    end
   elseif object and object~=workspace and object:GetAttribute("RequiredLevel") then
    local required=object:GetAttribute("RequiredLevel");local hp=object:GetAttribute("ObjectHealth") or 0
@@ -1641,17 +2665,17 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if mapDot then CityMap.update(mapDot,root) end
  local miniVisible=miniMapAvailable and gameplayVisible and windowFocused and not modal.Visible and not (conversationPanel and conversationPanel.Visible) and not academy.testLauncherBlocked
- miniMapButton.Visible=miniVisible
+ if miniMapButton then miniMapButton.Visible=miniVisible end
  academy.refreshTestLauncher()
  CityMap.MiniUpdate(miniMapView,root,os.clock(),miniVisible and miniMapHolder.Visible)
- talkButton.Text=touch and "TALK" or "TALK [T]"
- talkButton.Visible=talkTarget~=nil and gameplayVisible
- -- Preserve the interaction target; passive mic art must never sit under TALK.
- if not touch and viewport.X>=820 and talkButton.Visible then meter.Visible=false end
 end)
 end)()
 if not clientCheckpoint() then return end
 action:FireServer("Sync")
+
+connectClient(UIS:GetPropertyChangedSignal("PreferredInput"),function()
+ if modal.Visible and selected=="Settings" then render() end
+end)
 
 -- JumpRequest supports the built-in keyboard, controller and touch jump controls.
 connectClient(UIS.JumpRequest,function()

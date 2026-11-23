@@ -1,0 +1,22 @@
+{
+  "name": "ResonanceArena_LOCAL_ONLY",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Shared": {
+        "$className": "Folder",
+        "ResonanceLayout": { "$path": "prototypes/resonance-arena/Layout.luau" }
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "ResonanceArena": { "$path": "prototypes/resonance-arena/Arena.server.luau" },
+      "PortalTravel": { "$path": "prototypes/resonance-arena/PortalTravel.luau" }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "$properties": { "CameraMinZoomDistance": 6 }
+    }
+  }
+}

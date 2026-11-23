@@ -4,14 +4,15 @@ import argparse, ast, subprocess, tempfile
 root=Path(__file__).resolve().parents[1]
 source=(root/'src/StarterPlayer/StarterPlayerScripts/ShopUI.luau').read_text(encoding='utf-8')
 start=source.index(' for index,key in ipairs({"XP","Coins"}) do')
-render=source[start:source.index(' local movement=',start)]
-footer=next(line for line in source.splitlines() if line.startswith(' ui.info("New boosts activate'))
+render=source[start:source.index(' local footer=',start)]
+footer=next(line for line in source.splitlines() if line.startswith(' local footer=ui.info("New boosts activate'))
 tick=source[source.index('function Shop.Tick()'):source.index('local function purchaseButton(')]
 setup='''
 local Catalog=require('../src/ReplicatedStorage/Shared/ShopCatalog')
 local checks=0;local function check(ok,msg)assert(ok,msg);checks+=1 end
 local clock=0;local os={clock=function()return clock end,time=function()return 100 end}
 local timers={};local priceViews={};local Shop={};local generation=0
+local cosmeticOffers={{key='Encore'},{key='Afterimage'},{key='CityGlow'}}
 local UDim2={new=function(sx,ox,sy,oy)return {sx=sx,ox=ox,sy=sy,oy=oy}end,fromOffset=function(x,y)return {x=x,y=y}end,fromScale=function(x,y)return {sx=x,sy=y}end}
 local Enum={TextXAlignment={Center=1},Font={GothamBlack=1,GothamBold=2}}
 local Color3={fromRGB=function(r,g,b)return {R=r/255,G=g/255,B=b/255}end}

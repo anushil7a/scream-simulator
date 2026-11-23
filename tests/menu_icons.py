@@ -3,13 +3,19 @@ from pathlib import Path
 import subprocess,tempfile,sys
 R=Path(__file__).resolve().parents[1]
 source=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
-def build(c):
+def build(c, hall=False):
  helpers=c[c.index('local academy={}'):c.index('local top=frame(')]
- a=c.index('for i,name in ipairs({"Shop","Screams","Quests","Style","Map","Settings"}) do tabs')
+ a=c.index('academy.menuTabs=')
  register=c[a:c.index('local conversationNPC',a)]
- a=c.index(' local columns=width<620');layout=c[a:c.index(' content.Position=',a)]
+ a=c.index(' local columns=', c.index(' local tabY='));layout=c[a:c.index(' -- Keep desktop controls compact',a)]
  selection=next(x for x in c.splitlines() if 'for name,b in pairs(tabs) do b.BackgroundColor3=' in x)
- return SETUP+helpers+'\n'+register+'\nlocal function layout(width) local tabY=88\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+CHECKS
+ mode='\nConfig.ResonanceLayout={}\n' if hall else '\n'
+ map_availability=next(line for line in c.splitlines() if line.startswith('academy.hideMap='))
+ city_audio_start=c.index('\n  end\n',c.index('"RetryVoiceAccess"'))+len('\n  end\n')
+ city_audio=c[city_audio_start:c.index('  local audioCard=',city_audio_start)]
+ rules_start=c.index(' elseif selected=="Quests" and Config.ResonanceLayout then\n')+len(' elseif selected=="Quests" and Config.ResonanceLayout then\n')
+ rules=c[rules_start:c.index(' elseif selected=="Quests" then',rules_start)]
+ return SETUP+mode+helpers+'\n'+map_availability+'\n'+register+'\nlocal function layout(width,shortLandscape,height) local viewport={Y=height or 650};local tabY=height and 44 or 88;local menuHeight=viewport.Y-16;local layoutChanged=true;modal.Size=UDim2.fromOffset(width,menuHeight)\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+(HALL_CHECKS if hall else CHECKS)+AUDIO_SETUP+city_audio+AUDIO_CHECKS+(RULES_SETUP+rules+RULES_CHECKS if hall else "")
 SETUP=r'''
 local made={};local Instance={new=function(class)local o={ClassName=class,PaddingLeft={Scale=0,Offset=0},PaddingRight={Scale=0,Offset=0}};table.insert(made,o);return o end}
 local UDim={new=function(s,o)return {Scale=s,Offset=o}end}
@@ -20,18 +26,20 @@ local ColorSequence={new=function(a,b)return {a,b}end}
 local Enum={ApplyStrokeMode={Border='Border'},TextXAlignment={Right='Right',Center='Center',Left='Left'}}
 local metrics=1;local TextService={GetTextSize=function(_,text,size,font,bounds)return {X=#text*size*.55*metrics,Y=size}end}
 local gold='gold';local muted='muted';local panel='panel';local white='white'
-local modal={Visible=true};local tabs={};local selected='Shop';local clientDestroyed=false;local renders=0
+local Config={};local modal={Visible=true};local content={Size=UDim2.new(1,-40,1,-148)};
+local ShopUI={FeatureLayout=function()return nil end};local lastLayoutWidth=0;local tabs={};local selected='Shop';local clientDestroyed=false;local renders=0
 local function render()renders+=1 end
+local function toggleTab(name)selected=name;render() end
 local function button(parent,name,text,size,pos,callback)
  local b={Name=name,Text=text,Size=size,Position=pos,callback=callback,Font='font',TextSize=14,ZIndex=1,Parent=parent};return b
 end
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 '''
 CHECKS=r'''
-local names={'Shop','Screams','Quests','Style','Map','Settings'}
+local names={'Style','Screams','Quests','Shop','Map','Settings'}
 local signatures={};local totalFrames=0
 for _,name in ipairs(names)do
- local b=tabs[name];check(b~=nil and b.Text==(name=='Screams' and 'BEAMS' or string.upper(name)),'Tab label changed')
+ local b=tabs[name];check(b~=nil and b.Text==(name=='Style' and 'GEAR' or name=='Screams' and 'BEAMS' or name=='Shop' and 'STORE' or string.upper(name)),'Tab label changed')
  local icons={};for _,o in ipairs(made)do if o.Parent==b and o.ClassName=='Frame' then table.insert(icons,o)end end
  check(#icons==1,'Missing or duplicate tab icon');local icon=icons[1]
  check(icon.Size.X.Offset==20 and icon.Size.Y.Offset==20,'Icon bounds changed')
@@ -53,10 +61,14 @@ for _,name in ipairs(names)do
  clientDestroyed=true;b.callback();check(renders==previous+1,'Destroyed callback activated');clientDestroyed=false
 end
 local allocated=#made
-for _,viewport in ipairs({320,390,640,820,1280})do
+for _,view in ipairs({{320,false},{390,false},{523,true},{524,true},{567,true},{640,false},{820,false},{1280,false}})do
+ local viewport,shortLandscape=view[1],view[2]
  local width=math.min(720,viewport-24)
+ local singleRow=viewport>=644 or shortLandscape and viewport>=524
  for _,metricScale in ipairs({1,3})do metrics=metricScale
- layout(width)
+ layout(width,shortLandscape)
+ check((tabs.Settings.Position.Y.Offset==tabs.Style.Position.Y.Offset)==singleRow,'Wrong compact tab row count')
+ check(tabs.Style.Position.X.Offset==20 and tabs.Style.Position.Y.Offset==88,'Gear not first in the navigation')
  for _,name in ipairs(names)do
   local b=tabs[name];local icon,padding
   for _,o in ipairs(made)do if o.Parent==b then if o.ClassName=='Frame'then icon=o elseif o.ClassName=='UIPadding'then padding=o end end end
@@ -64,7 +76,7 @@ for _,viewport in ipairs({320,390,640,820,1280})do
   local textWidth=math.ceil(#b.Text*b.TextSize*.55*metrics)
   local expected=20+6+textWidth+16<=b.Size.X.Offset
   check(icon.Visible==expected,'Incorrect fit fallback')
-  check(b.Size.Y.Offset==44,'Input target height changed')
+  check(b.Size.Y.Offset==44 and b.Size.X.Offset>=44,'Navigation target smaller than 44 pixels')
   if expected then
    local x=icon.Position.X.Offset;local right=b.Size.X.Offset-padding.PaddingRight.Offset
    check(x>=8 and right<=b.Size.X.Offset-8,'Icon/text group outside padded bounds')
@@ -74,20 +86,134 @@ for _,viewport in ipairs({320,390,640,820,1280})do
  end
  end
 end
+layout(485,true,162)
+check(academy.sidebarMenu and content.Position.X.Offset==208 and content.Position.Y.Offset==44 and modal.Size.Y.Offset+content.Size.Y.Offset>=96,'Short menu leaves no gear viewport')
+for _,name in ipairs(names) do
+ local tab=tabs[name];local x,y,w,h=tab.Position.X.Offset,tab.Position.Y.Offset,tab.Size.X.Offset,tab.Size.Y.Offset
+ check(y>=44 and y+h<=modal.Size.Y.Offset and x+w<=content.Position.X.Offset-8 and w>=44 and h==44,'Sidebar tabs overlap content or header')
+end
+layout(456,true,150)
+check(academy.sidebarMenu and content.Position.X.Offset==196 and content.Size.X.Offset==-208 and modal.Size.Y.Offset+content.Size.Y.Offset==86,
+ 'Narrow short menu leaves no usable cards')
+for _,name in ipairs(names) do
+ local tab=tabs[name]
+ check(tab.Size.X.Offset>=44 and tab.Position.X.Offset+tab.Size.X.Offset<=content.Position.X.Offset-8,'Narrow sidebar tabs overlap cards')
+end
+layout(431,true,218)
+check(academy.sidebarMenu and content.Position.Y.Offset==44 and modal.Size.Y.Offset+content.Size.Y.Offset==154,
+ 'Narrow landscape clips the first gear action')
+check(content.Position.X.Offset==136 and content.Size.X.Offset==-148,
+ 'Narrow landscape failed to make room for card labels')
+for _,name in ipairs(names) do
+ local tab=tabs[name];local x,y,w,h=tab.Position.X.Offset,tab.Position.Y.Offset,tab.Size.X.Offset,tab.Size.Y.Offset
+ check(y>=44 and y+h<=modal.Size.Y.Offset and x+w<=content.Position.X.Offset-8 and w>=44 and h==44,
+  'Narrow landscape tabs overlap content or header')
+end
+selected='Quests'
+local layoutRenders=renders
+layout(431,true,199)
+check(renders==layoutRenders+1 and content.Size.X.Offset==-208,'Narrow sidebar failed to reflow cards on height change')
+layout(431,true,198)
+check(renders==layoutRenders+1,'Narrow sidebar rerendered without a change in card width')
+layout(424,true,150)
+check(academy.sidebarMenu and content.Position.X.Offset==196 and modal.Size.Y.Offset+content.Size.Y.Offset==86,
+ 'Shortest supported menu clips the first gear action')
+layout(543,true,244)
+check(not academy.sidebarMenu and content.Position.X.Offset==20 and tabs.Settings.Position.Y.Offset==tabs.Style.Position.Y.Offset,'Normal menu did not restore at usable height')
 check(#made==allocated,'Layout allocated new icons')
 for _,name in ipairs(names)do select(name);for other,b in pairs(tabs)do check(b.BackgroundColor3==(other==name and Color3.fromRGB(64,93,99) or panel),'Selection highlight changed')end end
 print('PASS '..n..' actual icon/registration/layout assertions; synthetic text metrics only')
 '''
-def run(c):
- with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:f.write(build(c));p=Path(f.name)
- try:return subprocess.run(['luau',str(p)],text=True,capture_output=True,timeout=15)
+HALL_CHECKS=r'''
+check(not tabs.Map and #academy.menuTabs==5,'Hall registered a Map tab')
+check(tabs.Quests.Text=="RULES" and tabs.Style and tabs.Screams and tabs.Shop and tabs.Settings,'Hall lost its other menu tabs')
+layout(543,true,241)
+check(tabs.Settings.Position.Y.Offset==tabs.Style.Position.Y.Offset
+ and tabs.Settings.Position.X.Offset+tabs.Settings.Size.X.Offset<=543-20.0+1e-6,'Hall desktop tabs did not reflow into five columns')
+layout(431,true,218)
+check(academy.sidebarMenu and content.Position.X.Offset>tabs.Settings.Position.X.Offset+tabs.Settings.Size.X.Offset,
+ 'Hall short landscape tabs block its content')
+print('PASS '..n..' Hall tab registration and reflow checks')
+'''
+AUDIO_SETUP=r'''
+local volume, nextVolume, help
+local data={settings={volume=.55}}
+local action={FireServer=function(_,name,payload)
+ check(name=="SetSettings","City audio action changed");nextVolume=payload.volume
+end}
+local function card()return {}end
+local function info(text)help=text end
+local function button(_,name,text,size,position,callback)
+ check(name=="Volume","Unexpected control in City audio section")
+ volume={text=text,callback=callback}
+end
+'''
+AUDIO_CHECKS=r'''
+if Config.ResonanceLayout then
+ check(not volume and not help,"Hall exposed City Audio")
+else
+ check(volume and volume.text=="CITY AUDIO: 55%" and help=="City audio controls surf and street music.","City lost its audio control")
+ volume.callback()
+ check(math.abs(nextVolume-.8)<.00001,"City volume did not update")
+end
+print("PASS world-specific City Audio control")
+'''
+RULES_SETUP=r'''
+local title,subtitle={},{}
+local cards={}
+local function info(text)table.insert(cards,text)end
+local function renderRules()
+ table.clear(cards)
+'''
+RULES_CHECKS=r'''
+end
+for _,rehearsal in ipairs({false,true})do
+ Config.ResonanceTravel=rehearsal
+ renderRules()
+ local combat,portal=(cards[1] or ""):match("^(.-)\n\n(.*)$")
+ check(#cards==1 and combat and portal,"Hall Rules need a single combat and travel card")
+ check(combat:find("safe apron",1,true) and combat:find("spawn shield",1,true),"Hall Rules lack combat guidance")
+ check(portal:find("cyan portal",1,true),"Hall Rules lost portal guidance")
+ check((portal:find("stays in the Hall",1,true)~=nil)==rehearsal,"Hall Rules describe the wrong travel mode")
+ check((portal:find("return portal",1,true)~=nil)==not rehearsal,"Hall Rules give the wrong route back")
+end
+print("PASS Hall combat and portal rules in both playable modes")
+'''
+def run(c, hall=False):
+ with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:p=Path(f.name)
+ try:
+  p.write_text(build(c,hall),encoding='utf-8')
+  return subprocess.run(['luau',str(p)],text=True,capture_output=True,timeout=15)
  finally:p.unlink()
 if __name__=='__main__':
  out=run(source);print(out.stdout,end='');assert out.returncode==0,out.stderr
+ out=run(source,hall=True);print(out.stdout,end='');assert out.returncode==0,out.stderr
 
  if '--negative-controls' in sys.argv:
-  cases=[('shape("EmitterInk",2,5,6,11,ink,-18,2)','shape("EmitterInk",1,5,6,11,ink,-18,2)','Rotated glyph outside slot'),('icon.Visible=fits','icon.Visible=false','Incorrect fit fallback'),('padding.PaddingRight=UDim.new(0,fits and (width-total)/2 or 0)','padding.PaddingRight=UDim.new(0,0)','Icon/text group outside padded bounds'),('name=="Screams" and "BEAMS"','name=="Screams" and "WRONG"','Tab label changed'),('academy.tabIcon(tabs[name],name)','academy.tabIcon(tabs[name],"Shop")','Duplicate semantic silhouette'),('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),(' local fits=width>=total+16',' local fits=width>=total+16;Instance.new("Frame")','Layout allocated new icons')]
+  cases=[('shape("EmitterInk",2,5,6,11,ink,-18,2)','shape("EmitterInk",1,5,6,11,ink,-18,2)','Rotated glyph outside slot'),('icon.Visible=fits','icon.Visible=false','Incorrect fit fallback'),('padding.PaddingRight=UDim.new(0,fits and (width-total)/2 or 0)','padding.PaddingRight=UDim.new(0,0)','Icon/text group outside padded bounds'),('name=="Screams" and "BEAMS"','name=="Screams" and "WRONG"','Tab label changed'),('academy.tabIcon(tabs[name],name)','academy.tabIcon(tabs[name],"Shop")','Duplicate semantic silhouette'),('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),(' local fits=width>=total+16',' local fits=width>=total+16;Instance.new("Frame")','Layout allocated new icons'),('shortLandscape and width>=500','shortLandscape and width>=620','Wrong compact tab row count'),('local sidebar=shortLandscape and','local sidebar=false and shortLandscape and','Short menu leaves no gear viewport'),('local contentLeft=tabLeft+columns*(tabWidth+tabGap)+4','local contentLeft=tabLeft+columns*(tabWidth+tabGap)','Short menu leaves no gear viewport')]
+  cases.extend([
+   ('shortLandscape and width>=424 and viewport.Y>=150',
+    'shortLandscape and width>=456 and viewport.Y>=150','Narrow landscape clips the first gear action'),
+   ('columns=(width<456 and viewport.Y>=200) and 2 or 3',
+    'columns=3','Narrow landscape failed to make room for card labels'),
+   (' or content.Size.X.Offset~=previousContentOffset','',
+    'Narrow sidebar failed to reflow cards on height change'),
+  ])
   for old,new,message in cases:
    assert old in source,old
    out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stdout,out.stderr)
-  print('PASS 7 menu icon negative controls')
+  out=run(source.replace('if academy.hideMap then table.remove','if false then table.remove'),hall=True)
+  assert out.returncode and 'Hall registered a Map tab' in out.stderr,out.stderr
+  audio_guard='if not Config.ResonanceLayout then\n   local c=card(58);button(c,"Volume"'
+  assert audio_guard in source
+  out=run(source.replace(audio_guard,audio_guard.replace('not Config.ResonanceLayout','true')),hall=True)
+  assert out.returncode and 'Hall exposed City Audio' in out.stderr,out.stderr
+  rules_mutations=[
+   ('Fight past the safe apron once your spawn shield ends.','Fight on the floor.','Hall Rules lack combat guidance'),
+   ('local travel=Config.ResonanceTravel and "Follow the cyan portal','local travel=true and "Follow the cyan portal','Hall Rules describe the wrong travel mode'),
+  ]
+  for old,new,message in rules_mutations:
+   assert old in source,old
+   out=run(source.replace(old,new,1),hall=True)
+   assert out.returncode and message in out.stderr,out.stderr
+  print(f'PASS {len(cases)+2+len(rules_mutations)} menu icon negative controls')

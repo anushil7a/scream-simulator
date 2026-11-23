@@ -1,8 +1,8 @@
 # Automatic voice candidate — manual checks
 
-## Current input flow (November 13)
+## Current input flow
 
-Beams start **OFF**. Deliberately use **E / BEAMS ON/OFF** to enable attacks, then allow fresh quiet before speaking. **Normal speech may trigger attacks while ON.** OFF stops attacks without muting the microphone or ordinary proximity voice. No calibration, setup panel or mic-testing area is required. Mic readiness and server voice eligibility still gate attacks, not movement. Actual microphone sensitivity and comfortable-speech behavior remain unverified. Historical calibration-specific checks below are retained as evidence context, not current setup instructions.
+Beams start **OFF**. Use **E** on keyboard, the **BEAMS** button on touch, or **RB/R1** on controller to enable attacks, then allow fresh quiet before speaking. **Normal speech may trigger attacks while ON.** OFF stops attacks without muting the microphone or ordinary proximity voice. No calibration, setup panel or mic-testing area is required. Mic readiness and server voice eligibility still gate attacks, not movement. Actual microphone sensitivity and comfortable-speech behavior remain unverified. Historical calibration-specific checks below are retained as evidence context, not current setup instructions.
 
 ## Owner-selected attack audio review
 
@@ -16,18 +16,18 @@ Review builds now include matching `build/<name>.provenance.json` files with sou
 
 These are **pending checks**, not completed results. Save your open Studio work first. Open the disposable local file, start Play and let the city generate. Stop at a reproducible failure in a step; other independent checks may still proceed. Unavailable microphone input is not a reason to enable live APIs or change production settings.
 
-1. **Mic and aiming:** verify beams start OFF and speaking cannot attack. With eligible voice input available, deliberately turn beams ON, stay quiet briefly, aim and speak. No setup panel or calibration should be required. Expect automatic onset without holding E, a beam aimed at the mouse (screen center on touch), and silence stopping it. Confirm the live-power meter changes independently of the voice-button timing bar. A meter reaching 100% alone is not a pass.
-2. **Attack boundaries:** sustain one attack up to four seconds, then verify five seconds of cooldown after it ends. Continuous speech through cooldown must not restart it; quiet followed by fresh voice must. Use E or BEAMS ON to turn screams OFF, speak and verify no attack while ordinary voice remains audible. Resume explicitly with BEAMS OFF.
+1. **Mic and aiming.** Verify beams start OFF and speaking cannot attack. With eligible voice input available, deliberately turn Beams ON, stay quiet briefly, aim and speak. Expect automatic onset and silence stopping the beam. On mouse, aim with the pointer. On touch and controller, aim through the center reticle. The controller's left stick walks and the right stick turns the camera to aim. Confirm the live-power meter changes independently of the voice-button timing bar.
+2. **Attack boundaries.** Sustain one attack up to four seconds, then verify five seconds of cooldown after it ends. Continuous speech through cooldown must wait for quiet and fresh voice before a new attack. Turn Beams OFF with the same control, then speak and verify ordinary voice remains audible while attacks stay off. Resume only by turning Beams ON again.
 3. **Interruptions:** during an attack, try dodge, NPC dialogue, text chat and the Roblox menu separately. Damage must stop while blocked. Dodge alone must not scream. Mute, respawn and focus loss must require deliberate voice resume. If real input is unavailable, leave this untested rather than substituting synthetic input and calling it a voice pass.
-4. **Combat and destruction:** use the disposable two-client fixture for safe-zone/arena, five-second spawn protection and blocked attacks during protection. Compare level-locked versus unlocked props, then stand in a damaged prop’s repair volume and verify repair waits until clear. Synthetic fixtures can establish only their named engine checks; real voice/PvP behavior still needs eligible players.
-5. **City and recovery:** talk to a quest giver, walk away, and return. Try a car knockdown with dialogue open: it should close and become available again after recovery. Watch NPC work/sit/walk transitions and busker activity; look for floating, stuck routes or stale speech labels. Open Map at the promenade/pier and across respawn; check the player marker and landmark 7.
+4. **Combat:** use two players in the same authorized test environment. Compare a hit inside Coastal Arena or Central Garden with a blocked hit from safe paving. After a knockout, verify the defender returns to safety, gets five seconds of protection and has to rearm. A second knockout with the same attacker and defender within 60 seconds of the first reward should grant no additional reward.
+5. **City and recovery:** talk to Mar, close her dialogue, travel away and return. Watch the resident's work and walk transitions for stuck routes or stale speech labels. Follow the first garden objective and open Map near the pier and after respawn to check that the marker tracks the player.
 6. **Small-screen UI:** verify movement and menus work without microphone setup; open/close Beams, Quests and Map, and check text wrapping, timing-bar contrast and tap targets. Record the viewport/device. Studio phone emulation is a layout check, not a real phone microphone/performance pass.
 
 ### Tests requiring a separate environment
 
 - **Live proximity voice:** two eligible accounts/devices, near/far listening and a real scream-driven hit. Hearing your own mic loopback is not required.
 - **Legitimate saves/migration:** an explicitly approved test environment using normal profiles and legitimate earned progress. Disposable fixtures intentionally do not save. Do not publish a fixture or experiment with production keys to perform this check.
-- **Performance:** use the labeled PerformanceReview collector described below, and native client profiling on representative desktop/phone hardware. No measured performance result exists for this candidate.
+- **Performance:** use the labeled PerformanceReview collector described below and profile representative desktop and phone hardware. The [four-client Studio overlap test](../tests/evidence/city-overlap-load-2026-11-22.json) gives a local beam replication and timing reference. It has no PvP target-resolution workload. The [three-client repeated Stadium test](../tests/evidence/stadium-repeated-casts-native-2026-11-22.json) covers real local PvP damage, defender feedback and cleanup with scripted input. Both ran on one PC. Device performance and representative multiplayer are still pending.
 
 ### Record one result per scenario
 
@@ -50,7 +50,7 @@ Use two voice-eligible accounts/devices when available. Use comfortable speech; 
 
 ## City/NPC review (pending)
 
-Compare street-height views at the waterfront, Born lanes and Eixample. Check that district color is readable and not excessively bright. Watch a resident pass a newly blocked route: it must stop/replan rather than skip waypoints. Check transitions between walking, work, sitting, applause and Nick's stumble. Test occupied benches and destroyed paths. No measured FPS claim has been made for this candidate.
+Compare street-height views at the Academy, Central Garden, Stadium and Timber Pier. Watch a resident approach a blocked route in a disposable local fixture and verify it stops or replans. Check transitions between walking, work, sitting, applause and Nick's stumble. Test occupied benches.
 
 Record commit/build, devices, exact reproduction steps and expected/observed behavior. Synthetic unit tests and prior native geometry fixtures do not establish microphone, device or visual passes.
 
@@ -64,17 +64,17 @@ Record commit/build, devices, exact reproduction steps and expected/observed beh
 
 - KO recovery: knock out a moving/sprinting player and a player recovering from a car hit. At the safe hub, confirm no carried momentum/spin, ragdoll or stale roll animation, and no delayed car recovery repositioning. Protection must last five seconds; dodge cooldown/sprint charge must not reset as a reward for being knocked out. Mocked reset checks pass; native physics/ownership check pending.
 
-- Dialogue interruption: start an automatic scream, then talk to a reachable resident. The server should stop the attack immediately and reject further attack pulses while the conversation is active. Close the conversation, become quiet and speak again after cooldown; combat should recover. Also verify leaving range and resident removal cannot permanently lock attacks. Mocked availability tests pass; native network/interaction check pending.
+- Dialogue interruption: start an automatic beam, then try TALK while the resident cannot accept, such as during their two-second interaction cooldown. The cast should continue if the dialogue does not open. When the resident accepts, the server should stop the beam and begin its cooldown. Close the panel, wait out cooldown, go quiet and speak again. Also verify leaving range and resident removal cannot permanently lock attacks. The local Studio check used scripted power and the normal Talk remote. Repeat with real input and network play.
 
 - Respawn state: reset during a scream, roll, car knockdown and NPC conversation. Confirm the old attack stops, the new avatar is upright with five-second protection, mic pause/resume works, no stale roll/knockdown animation remains, and duplicate initialization cannot refill health. Mocked server lifecycle tests pass; native reset/character-loading checks pending.
 
-- Aimed-player readout: aim at another player in first/third person and on phone. Verify level/health, safe-area/protected/rolling/out-of-max-range labels, clearing when aiming away, and no display through solid cover. Check accessories resolve to their owning character and three lines fit. Text logic passes mocked checks; native ray/UI review pending.
+- Aimed-player readout: aim at another player in third person on desktop and phone. Verify wheel and pinch zoom stay outside first person. Verify level/health, safe-area/protected/rolling/out-of-max-range labels, clearing when aiming away, and no display through solid cover. Check accessories resolve to their owning character and three lines fit. Text logic passes mocked checks; native ray/UI review pending.
 
 - Sprint stamina: hold sprint while stationary, walking into a solid wall, jumping vertically, seated, rolling and recovering from a car hit. Charge must not drain without available horizontal movement. Moving sprint should last ten seconds before a five-second break; inspect start/stop responsiveness under replication. Fourteen synthetic helper checks pass; native physics and control feel remain pending.
 
 - Roll interruption: in a disposable place, roll into a moving car and confirm the roll task does not restore turning/ownership during knockdown. Reset mid-roll and repeat premium rolls outside PvP; older tasks must not move or restore controls for a newer roll. Ten mocked cleanup checks pass; native physics/network-ownership transitions remain pending.
 
-- Destruction level feedback: below level 26, aim an automatic scream at a small tree. Confirm one required-level message for the whole attack, no damage/reward, and no message flicker on subsequent ticks. Repeat after unlocking the tier and confirm normal damage. Synthetic response checks pass; native targeting/HUD behavior remains pending.
+- Solid scenery: aim a beam at a wall or other solid obstruction in the current City. Confirm that it stops at the surface, the scenery stays intact, and the cast grants no destruction reward.
 
 **Historical calibration-era scenario; not a current setup requirement.** - Microphone teardown: in a disposable client, remove the gameplay client/controller during calibration or a ready microphone session; check its analyzer stays removed and no queued retry recreates it. Rejoining should create a fresh controller and require calibration. Twenty-two mocked lifecycle checks pass; hardware and native event ordering remain pending.
 
@@ -161,6 +161,7 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 - Progression summary: open Screams at levels 9/10, 25/26 and 99/100. Verify next style/destruction tier advances at each unlock, max level reads correctly, and the summary wraps cleanly on mobile without hiding equip controls. Source/build checks pass; visual layout remains pending.
 
 - Quest controls: on touch, confirm Talk omits the keyboard shortcut and garden/beach instructions direct players to the visible interaction prompt. Verify the prompt remains usable and descriptions wrap in the quest list/dialogue. Full build checks pass; native touch activation/layout remains pending.
+- Quest receipts: on a physical phone, claim the completed Garden task in Quests and record whether the titled receipt appears with the wallet credit while Close and the tabs are still usable. If the safe gameplay area exposes a Notice shortcut after closing early, reopen it and verify the retained receipt is readable. Record the device and orientation. The matched Studio emulator checks are documented in the roadmap.
 
 - Quest prompt availability: disable or remove a prompt while a player is interacting in a disposable test. Verify no progress is awarded from a stale callback and a valid re-enabled nearby prompt works once. Nine mocked handler checks pass; native prompt event ordering remains pending.
 
@@ -172,9 +173,9 @@ Seven synthetic statistics checks pass and the fixture compiles/builds. No engin
 
 - PvP rewards: with two local clients, KO/reenter against the same opponent inside and after the reward cooldown. Verify ejection/protection works each time while XP/coins/Underdog progress award only when eligible; compare a different opponent and victim levels. Actual hit-branch mocks pass. The current [two-client native fixture](PVP_READINESS_REVIEW.md) passes 14 checks for engine hit geometry, protection/dodge eligibility, safe area, KO ejection/reward and immediate repeat suppression, with an observed failing limiter-disabled control. Aim/power/timestamps/credit are injected and calls bypass RemoteEvents. After-cooldown/different-victim/mixed-level cases, ground cover, real input and network timing remain pending.
 
-- KO confirmation: knock out an arena opponent with automatic voice and verify the named confirmation. Repeat inside reward cooldown and confirm the notice explains withheld repeat rewards; nonlethal hits should not show KO messages. Twelve mocked branch checks pass; native toast/multiplayer behavior remains pending.
+- KO confirmation: knock out an arena opponent with automatic voice. The attacker should see the credited XP and any positive coin credit, and the defender should see **Knocked out · back at the safe hub**. An unrewarded finisher should see **KO · no reward awarded**. A nonlethal hit should enqueue no new KO notice. The [two-client Studio Action check](PVP_READINESS_REVIEW.md#november-22-two-client-action-and-notice-check) verified private, visible outcome notices for a rewarded KO and an unrewarded repeat. Repeat this with real voice on the target devices.
 
-- Destruction confirmation: break a prop with a sustained scream and verify one named repair notice. Sweep across several props during the same scream to confirm no per-tick spam; hit a locked object and then an unlocked prop to verify distinct feedback. Helper tests use synthetic results; native toast/geometry remains pending.
+- Historical destruction fixture: older builds supported prop break and repair feedback. Current Map10 disables object destruction, so prop repair is outside current acceptance testing.
 
 - Resident animation recovery: KO Nick and a working resident, verify local practice props and work poses clear during recovery, then confirm walking/job animations resume normally. Mock frame checks cover suspension/pose clearing, not native Animator/replication timing.
 
@@ -351,11 +352,11 @@ Pending native check: delay attack acknowledgement beyond the client timeout, th
 
 **Historical calibration-era scenario; not a current setup requirement.** Pending native check: with a calibrated microphone, mute and press Calibrate while an attack/capture is active. Check readiness and live power clear immediately, partial calibration/capture stops, and unmute still requires deliberate attack resume. Mocked controller tests cover the pre-Heartbeat state; actual device timing and UI appearance remain untested.
 
-### Destructible tag removal before registration
+### Destructible tag removal before registration (historical fixture)
 
 Pending native check: add CityDestructible to a valid disposable prop and remove it before deferred registration runs. It must remain absent from the destruction registry and reject damage; explicitly re-adding the tag should register it again. Three mocked scheduler checks pass, but native CollectionService ordering is not yet verified.
 
-### All-tier destruction lifecycle
+### All-tier destruction lifecycle (historical fixture)
 
 Pending native check: test a representative bench, bin, tree, bike, house front, apartment front and tower front just below and at their unlock levels. Verify complete break, preserved navigation, occupied-repair deferral and restoration of the actual authored parts. Local service tests cover all seven configurations using simplified mock geometry and simulated deadlines, not physical city geometry or measured balance.
 

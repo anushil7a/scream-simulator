@@ -5,12 +5,16 @@ do
  local storage=game:GetService("ServerStorage")
  local invoke=Instance.new("BindableFunction");invoke.Name="BossArenaReview";invoke.Parent=storage
  local rules=require(ReplicatedStorage.Shared.BossRules)
+ local patterns=require(ReplicatedStorage.Shared.BossPatterns)
  local motion=require(ReplicatedStorage.Shared.BossMotion)
  local busy=false
  invoke.OnInvoke=function(id,mode)
   assert(not busy,"A boss test is already active")
   local beamMode=mode=="beam" or mode=="beam-low"
-  assert(mode=="melee" or mode=="ranged" or mode=="dodge" or beamMode,"Unrecognized local diagnostic mode")
+  local bellGap=id=="conductor" and (mode=="gap" or mode=="gap-alt")
+  local gapMode=bellGap or mode=="gap" and (id=="leviathan" or id=="ignis")
+  local ranged=mode=="ranged" or gapMode
+  assert(mode=="melee" or ranged or mode=="dodge" or beamMode,"Unrecognized local diagnostic mode")
   local ps=Players:GetPlayers()
   assert(#ps==1 and sessions[ps[1]] and sessions[ps[1]].canSave~=true,"Single temporary local participant required")
   local p=ps[1];local s=sessions[p];local c,r,h=parts(p)
@@ -26,8 +30,9 @@ do
    b.readyAt=0
    b.motion=motion.New()
   end
-  local distance=beamMode and 13 or mode=="ranged" and (id=="conductor" and chosen.spec.radius-9 or math.min(23,chosen.spec.radius-3)) or 7
-  local point=chosen.center+Vector3.new(0,0,distance)
+  local distance=beamMode and 13 or ranged and (id=="conductor" and chosen.spec.radius-9 or math.min(23,chosen.spec.radius-3)) or 7
+  local angle=mode=="gap-alt" and math.pi/6 or 0
+  local point=chosen.center+Vector3.new(math.sin(angle)*distance,0,math.cos(angle)*distance)
   local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c};params.RespectCanCollide=true
   local floor=workspace:Raycast(point+Vector3.new(0,3,0),Vector3.new(0,-6,0),params)
   -- Ignis's authored crater pad intentionally rises .30 studs above the home.
@@ -46,7 +51,7 @@ do
   print("BOSSQA_BALANCE",id,"level",s.data.level,"playerHP",h.MaxHealth,"bossHP",chosen.spec.health,"ranged",chosen.spec.damage,"melee",chosen.spec.meleeDamage)
   c:PivotTo(CFrame.lookAt(start,Vector3.new(chosen.center.X,start.Y,chosen.center.Z)))
   r.AssemblyLinearVelocity=Vector3.zero
-  chosen.turn=(mode=="ranged" and 0 or 1);chosen.nextAttack=os.clock()+1.3;chosen.recoverUntil=0
+  chosen.turn=(mode=="gap-alt" and 2 or ranged and 0 or 1);chosen.nextAttack=os.clock()+1.3;chosen.recoverUntil=0
   if beamMode then
    -- Solo budget endpoint: no retaliation, no human aim or audio claims.
    -- Actual server clock, adapter, beam/cover resolver, boss health and rewards.
@@ -99,28 +104,57 @@ do
     repeat task.wait(.035) until os.clock()>limit or chosen.attackSerial and chosen.attackSerial>previous
     assert(chosen.strike and chosen.attackSerial>previous,"Actual BossService cast failed")
     local strike=chosen.strike
-    local expected=mode=="ranged" and "Ranged" or "Melee"
+    local expected=ranged and "Ranged" or "Melee"
     assert(strike.kind==expected,"Wrong attack branch for diagnostic case")
     local expectedLabel=chosen.spec.name.." · Lv "..chosen.spec.level
     assert(chosen.label.Text==expectedLabel and chosen.warning,"Missing identity or ground warning")
     print("BOSSQA_NAMEPLATE",chosen.label.Text)
     print("BOSSQA_WINDUP",id,mode,strike.style,strike.kind,#strike.shapes,strike.serial)
-    if mode=="dodge" then s.dodgingUntil=strike.at+.18 end -- immunity negative control, not physical Q
+    local gapHealth
+    if gapMode then
+     gapHealth=h.Health
+     local markers=chosen.warning:GetChildren()
+     local initial=r.Position-chosen.center
+     assert(patterns.Hits(strike,initial.X,initial.Z),"Gap scenario did not begin inside the damage area")
+     local target
+     if bellGap then
+      assert(strike.style=="BellCascade" and #markers==6,"Expected six committed bell circles")
+      target=chosen.center+Vector3.new(strike.x,0,strike.z)
+     elseif id=="ignis" then
+      assert(strike.style=="OrganFlames" and #markers==3,"Expected three committed organ lanes")
+      local angle=strike.shapes[2].angle
+      target=r.Position+Vector3.new(math.cos(angle)*4,0,-math.sin(angle)*4)
+     else
+      assert(strike.style=="TwinSirens" and #markers==2,"Expected two committed siren lanes")
+      local center=(markers[1].Position+markers[2].Position)/2
+      local along=markers[1].CFrame.LookVector
+      target=center+along*(r.Position-center):Dot(along)
+     end
+     r:SetNetworkOwner(nil)
+     target=Vector3.new(target.X,r.Position.Y,target.Z)
+     h:MoveTo(target)
+     repeat task.wait(.025) until (r.Position-target).Magnitude<1.5 or os.clock()>strike.at-.18
+     local safe=r.Position-chosen.center
+     assert(s.dodgingUntil==0 and not patterns.Hits(strike,safe.X,safe.Z),"Ordinary movement failed to reach the safe gap before impact")
+     print("BOSSQA_GAP",id,Vector3.new(safe.X-initial.X,0,safe.Z-initial.Z).Magnitude)
+    elseif mode=="dodge" then s.dodgingUntil=strike.at+.18 end -- immunity negative control, not physical Q
     while os.clock()<strike.at-.075 do task.wait(.025) end
-    local before=r.Position;local health=h.Health
+    local before=r.Position;local health=gapHealth or h.Health
     repeat task.wait(.025) until os.clock()>limit or chosen.model:GetAttribute("BossAttackImpactSerial")==strike.serial
     assert(chosen.model:GetAttribute("BossAttackImpactSerial")==strike.serial,"No confirmed attack resolution")
     task.wait(.12)
     local after=r.Position;local offset=Vector3.new(after.X-before.X,0,after.Z-before.Z).Magnitude
     local damage=health-h.Health
     print("BOSSQA_RESULT",id,mode,strike.style,strike.kind,"damage",damage,"shove",offset,"HP",h.Health,"ground",tostring(h.FloorMaterial))
-    if mode=="dodge" then assert(damage==0 and offset<.25,"Dodge immunity regression")
+    if gapMode then assert(damage==0 and s.dodgingUntil==0,"Safe gap inflicted damage")
+    elseif mode=="dodge" then assert(damage==0 and offset<.25,"Dodge immunity regression")
     elseif mode=="melee" then assert(damage==chosen.spec.meleeDamage and offset>=strike.push-.3,"Expected balanced grounded melee displacement")
     else assert(damage==chosen.spec.damage and offset<.25,"Expected balanced ranged hit without shove") end
     print("BOSSQA_PASS",id,mode)
     chosen.credit={};chosen.nextAttack=os.clock()+30
     s.dodgingUntil=0
    end,debug.traceback)
+   if gapMode and r.Parent then r:SetNetworkOwnershipAuto() end
    busy=false
    if not ok then warn("BOSSQA_FAILED",id,mode,why) end
   end)

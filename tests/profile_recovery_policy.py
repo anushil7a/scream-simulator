@@ -286,7 +286,7 @@ if __name__=='__main__':
             ('if not Lease.Owns(raw,owner,session.token) then return nil end','-- omitted token guard','Old recovery overwrote or stole newer owner save'),
             ('saved.revision>=operation.revision','false','Old same-acquisition revision could overwrite newer save'),
             (' or bindings[data]~=session','','Old handle overwrote newer acquisition'),
-            ('if deadline and os.clock()>=deadline then break end','-- omitted deadline','Recovery continued issuing requests past deadline'),
+            ('commit(userId,previous,previous.pending,os.clock()+RECOVERY_WINDOW)','commit(userId,previous,previous.pending)','Recovery continued issuing requests past deadline'),
             ('if type(saved)=="table" and saved.token==session.token and saved.revision==operation.revision then return raw end','-- omitted committed-operation recognition','Lost release response was not reconciled idempotently'),
             ('lease.owner==owner and (token==nil or lease.token==token)','lease.owner==owner','Same-job distinct acquisition stole active lease'),
             ('snapshot=Profiles.Sanitize(data)','snapshot=data','Retained snapshot recovery failed or used mutated caller data'),

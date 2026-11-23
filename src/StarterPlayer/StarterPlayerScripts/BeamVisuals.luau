@@ -1,10 +1,14 @@
 -- One animated rig per attacker. Parts are pooled across attacks, never per pulse.
-local Style=require(game:GetService("ReplicatedStorage").Shared.BeamStyle)
+local Style=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("BeamStyle"))
 local Visuals={}
 local pool,live={},{}
+local spareVfx={}
 local allocated=0
-local detailCount=0
-local decoration={}
+-- Reserve five core Parts per admitted beam and one local confirmed-hit burst.
+local coreLimit,contactLimit=24*5,16
+local limits={core=coreLimit,contact=contactLimit,detail=Style.MaxParts-coreLimit-contactLimit}
+local inUse={core=0,contact=0,detail=0}
+local partKind={}
 local white=Color3.fromRGB(245,252,255)
 local isRoblox=typeof(game)=="Instance"
 local cachedTemplatesFolder=nil
@@ -235,8 +239,8 @@ local function buildHollowPurpleVfx(template)
   if source:IsA("Beam") and #vfx.beams<5 then
    local beam=source:Clone();beam:ClearAllChildren()
    beam.Attachment0=startAtt;beam.Attachment1=endAtt;beam.Parent=startAnchor
-   -- Keep source colors, width ratios, curves and emission. Do not bleach violet.
-   trackBeam(vfx,beam,#vfx.beams<2)
+   -- Preserve width ratios, curves and emission from the reference.
+   trackBeam(vfx,beam,source.Name=="CoreSpine" or source.Name=="CoreFlow")
   elseif source:IsA("ParticleEmitter") and #vfx.emitters<4 then
    local emitter=source:Clone();emitter:ClearAllChildren();emitter.Parent=midAnchor
    trackEmitter(vfx,emitter,false,nil,12)
@@ -259,16 +263,24 @@ local function buildVfxForStyle(styleId)
  local t=templates:FindFirstChild("StarterBeam")
  return t and buildStarterVfx(t) or nil
 end
-local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet,distance,spec)
- local styleId=spec.id
- local vfx=rig.vfx
- if vfx and vfx.styleId~=styleId then destroyVfx(rig);vfx=nil end
- if not vfx then
-  vfx=buildVfxForStyle(styleId)
-  if not vfx then return end
-  rig.vfx=vfx
+local function applyTemplateTint(vfx,tint)
+ if vfx.tint==tint then return end
+ vfx.tint=tint
+ local core=ColorSequence.new(tint)
+ local accent=ColorSequence.new(tint:Lerp(white,.32))
+ for _,entry in ipairs(vfx.beams) do
+  entry.inst.Color=entry.isCore and core or accent
  end
- if vfx.root.Parent~=workspace then vfx.root.Parent=workspace end
+ for _,entry in ipairs(vfx.emitters) do
+  entry.inst.Color=accent
+ end
+end
+local function syncVfxGeometry(vfx,origin,finish,dir,length,width,far)
+ if vfx.origin==origin and vfx.direction==dir and vfx.length==length and vfx.width==width and vfx.far==far then
+  return
+ end
+ vfx.origin=origin;vfx.direction=dir;vfx.length=length;vfx.width=width
+ local styleId=vfx.styleId
  local up=math.abs(dir.Y)>.98 and Vector3.zAxis or Vector3.yAxis
  local mid=(origin+finish)*.5
  vfx.startAnchor.CFrame=CFrame.lookAt(origin,finish,up)
@@ -280,57 +292,6 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
   else
    vfx.midAnchor.Size=Vector3.new(math.max(.6,width*.4),math.max(.6,width*.4),math.max(1,length*.9))
    vfx.midAnchor.CFrame=CFrame.lookAt(mid,finish,up)
-  end
- end
- local wScale,pScale,sScale
- if styleId=="hollow_purple" then
-  wScale=math.clamp((width*.80)/13.61538,.08,.42)
-  pScale=math.clamp(width/13.61538,.08,.52)
-  sScale=math.clamp(length/44,.05,1.5)
-  if vfx.ampAtt then vfx.ampAtt.Position=Vector3.new(-width*.45,0,0) end
-  if vfx.revAtt then vfx.revAtt.Position=Vector3.new(width*.45,0,0) end
- elseif styleId=="firebeam" then
-  wScale=math.clamp((width*.48)/15,.08,.30)
-  pScale=wScale*1.3
-  sScale=wScale*1.3
- else
-  wScale=math.clamp((width*.42)/1.5,.45,2.2)
-  pScale=math.clamp(wScale*.85,.45,1.6)
-  sScale=pScale
- end
- local far=quiet or distance>Style.FarDistance
- local scale=Style.WidthScale(rig.level,far)
- -- Normalize against the actual selected recipe, not a guessed pack width.
- -- Family switches at 40/80 must not shrink a newly earned milestone.
- local widest=.001
- for _,entry in ipairs(vfx.beams) do
-  if not far or entry.isCore then widest=math.max(widest,entry.baseW0,entry.baseW1) end
- end
- wScale=width*.6*scale/widest
- pScale*=math.min(scale,1.5)
- local bucket=wScale
- local rescale=vfx.lastBucket~=bucket
- if rescale then vfx.lastBucket=bucket end
- for _,entry in ipairs(vfx.beams) do
-  local b=entry.inst
-  b.Enabled=not far or entry.isCore
-   b.TextureSpeed=far and 0 or entry.baseTextureSpeed
-  if rescale then
-   local factor=entry.isCore and wScale or (styleId=="hollow_purple" and entry.baseCurve0~=0 and wScale*.58 or wScale)
-   b.Width0=entry.baseW0*factor
-   b.Width1=entry.baseW1*factor
-  end
- end
- for _,entry in ipairs(vfx.emitters) do
-  local em=entry.inst
-  if far and em.Enabled then em:Clear() end
-   -- Endpoint particle clusters read as the rejected firing spheres. Only
-   -- reviewed column emitters remain; lightning is original pooled geometry.
-   em.Enabled=not far and vfx.midAnchor~=nil and em.Parent==vfx.midAnchor
-   em.Rate=math.min(entry.baseRate,60/math.max(1,#vfx.emitters))
-  if rescale then
-   em.Size=scaleNumberSequence(entry.baseSize,pScale)
-   em.Speed=scaleNumberRange(entry.baseSpeed,sScale)
   end
  end
  for _,off in ipairs(vfx.attOffsets) do
@@ -349,10 +310,88 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet
    mesh.CFrame=CFrame.lookAt(mid,finish,up)*CFrame.Angles(0,math.pi/2,0)
   end
  end
-
 end
-local function take(detail)
- if detail and detailCount>=Style.MaxParts-24*5 then return end
+local function syncVfx(rig,origin,finish,dir,length,width,distance,spec,suppressSecondary)
+ local styleId=spec.id
+ local vfx=rig.vfx
+ if vfx and vfx.styleId~=styleId then destroyVfx(rig);vfx=nil end
+ if not vfx then
+  vfx=spareVfx[styleId]
+  spareVfx[styleId]=nil
+  vfx=vfx or buildVfxForStyle(styleId)
+  if not vfx then return end
+  rig.vfx=vfx
+ end
+ applyTemplateTint(vfx,rig.color)
+ local wScale,pScale,sScale
+ if styleId=="hollow_purple" then
+  pScale=math.clamp(width/13.61538,.08,.52)
+  sScale=math.clamp(length/44,.05,1.5)
+ elseif styleId=="firebeam" then
+  wScale=math.clamp((width*.48)/15,.08,.30)
+  pScale=wScale*1.3
+  sScale=wScale*1.3
+ else
+  wScale=math.clamp((width*.42)/1.5,.45,2.2)
+  pScale=math.clamp(wScale*.85,.45,1.6)
+  sScale=pScale
+ end
+ local far=distance>Style.FarDistance
+ local showSecondary=not far and not suppressSecondary
+ local crowded=not far and suppressSecondary
+ local scale=Style.WidthScale(rig.level,far or crowded)
+ -- Normalize against the actual selected recipe, not a guessed pack width.
+ -- Family switches at 40/80 must not shrink a newly earned milestone.
+ local widest=.001
+ for _,entry in ipairs(vfx.beams) do
+  if not far or entry.isCore then widest=math.max(widest,entry.baseW0,entry.baseW1) end
+ end
+ wScale=width*.6*scale/widest
+ -- Keep the imported shafts distinct without flooding a shared target with glow.
+ if crowded then wScale*=.55 end
+ pScale*=math.min(scale,1.5)
+ local bucket=wScale
+ local rescale=vfx.lastBucket~=bucket
+ if rescale then vfx.lastBucket=bucket end
+ local visibilityChanged=vfx.showSecondary~=showSecondary
+ local motionChanged=vfx.far~=far
+ if visibilityChanged or motionChanged or rescale then
+  for _,entry in ipairs(vfx.beams) do
+   local b=entry.inst
+   if visibilityChanged then b.Enabled=showSecondary or entry.isCore end
+   if motionChanged then b.TextureSpeed=far and 0 or entry.baseTextureSpeed end
+   if rescale then
+    local factor=entry.isCore and wScale or (styleId=="hollow_purple" and entry.baseCurve0~=0 and wScale*.58 or wScale)
+    b.Width0=entry.baseW0*factor
+    b.Width1=entry.baseW1*factor
+   end
+  end
+ end
+ local speedChanged=vfx.lastSpeedScale~=sScale
+ if speedChanged then vfx.lastSpeedScale=sScale end
+ if visibilityChanged or rescale or speedChanged then
+  for _,entry in ipairs(vfx.emitters) do
+   local em=entry.inst
+   if visibilityChanged then
+    if not showSecondary and em.Enabled then em:Clear() end
+    -- Only reviewed column emitters remain; lightning uses pooled geometry.
+    em.Enabled=showSecondary and vfx.midAnchor~=nil and em.Parent==vfx.midAnchor
+    if vfx.showSecondary==nil then em.Rate=math.min(entry.baseRate,60/#vfx.emitters) end
+   end
+   if rescale then
+    em.Size=scaleNumberSequence(entry.baseSize,pScale)
+   end
+   if speedChanged then em.Speed=scaleNumberRange(entry.baseSpeed,sScale) end
+  end
+ end
+ vfx.showSecondary=showSecondary
+ syncVfxGeometry(vfx,origin,finish,dir,length,width,far)
+ vfx.far=far
+ -- A reused root becomes visible only after its new pose and style are ready.
+ if vfx.root.Parent~=workspace then vfx.root.Parent=workspace end
+end
+local function take(kind)
+ if inUse[kind]>=limits[kind] then return end
  local part=table.remove(pool)
  if not part then
   if allocated>=Style.MaxParts then return end
@@ -361,11 +400,12 @@ local function take(detail)
   part.CanTouch=false;part.CanQuery=false;part.CastShadow=false
   part.Material=Enum.Material.Neon;part.TopSurface=Enum.SurfaceType.Smooth;part.BottomSurface=Enum.SurfaceType.Smooth
  end
- if detail then decoration[part]=true;detailCount+=1 end
+ partKind[part]=kind;inUse[kind]+=1
  return part
 end
 local function release(part)
- if decoration[part] then decoration[part]=nil;detailCount-=1 end
+ local kind=partKind[part]
+ partKind[part]=nil;inUse[kind]-=1
  part.Parent=nil;table.insert(pool,part)
 end
 function Visuals.Create()
@@ -386,10 +426,10 @@ function Visuals.Contact(rig,position,now,sequence)
  rig.contactBasis=CFrame.lookAt(position,position+rig.direction,math.abs(rig.direction.Y)>.98 and Vector3.zAxis or Vector3.yAxis)
  return true
 end
-local function draw(rig,shape,size,cf,color,alpha,material,detail)
+local function draw(rig,shape,size,cf,color,alpha,material,kind)
  local nextIndex=rig.used+1
  local part=rig.parts[nextIndex]
- if not part then part=take(detail or nextIndex>5);if not part then return end;rig.parts[nextIndex]=part end
+ if not part then part=take(kind or (nextIndex>5 and "detail" or "core"));if not part then return end;rig.parts[nextIndex]=part end
  -- Count successful allocations only. Native tint/contact loops must never visit holes.
  rig.used=nextIndex
  -- A pooled slot may previously have been a non-emissive shell or a Neon detail.
@@ -397,15 +437,50 @@ local function draw(rig,shape,size,cf,color,alpha,material,detail)
  if isRoblox then part.LocalTransparencyModifier=0 end
  part.Shape=shape;part.Size=size;part.CFrame=cf;part.Color=color;part.Transparency=alpha;part.Parent=workspace
 end
-local function line(rig,a,b,thickness,color,alpha,material,detail)
+local function line(rig,a,b,thickness,color,alpha,material,kind)
  local delta=b-a;local length=delta.Magnitude;if length<.001 then return end
  local direction=delta/length
  draw(rig,Enum.PartType.Cylinder,Vector3.new(length,thickness,thickness),
-  CFrame.lookAt((a+b)*.5,b,math.abs(direction.Y)>.98 and Vector3.zAxis or Vector3.yAxis)*CFrame.Angles(0,math.pi/2,0),color,alpha,material,detail)
+  CFrame.lookAt((a+b)*.5,b,math.abs(direction.Y)>.98 and Vector3.zAxis or Vector3.yAxis)*CFrame.Angles(0,math.pi/2,0),color,alpha,material,kind)
 end
-function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
+function Visuals.IsCrowded(entries,viewer)
+ local nearby=0
+ for _,entry in pairs(entries) do
+  local rig=entry.visual
+  if rig.origin then
+   local offset=viewer-rig.origin
+   local distance=offset.Magnitude
+   local near=distance<=Style.FarDistance
+   if not near and distance<=Style.DrawDistance then
+    local along=math.clamp(offset:Dot(rig.direction),0,rig.length)
+    near=(offset-rig.direction*along).Magnitude<=Style.FarDistance
+   end
+   if near then
+    nearby+=1
+    if nearby==3 then return true end
+   end
+  end
+ end
+ return false
+end
+local function nearRenderedSegment(rig,point,radius)
+ local offset=point-rig.origin
+ local along=math.clamp(offset:Dot(rig.direction),0,rig.length)
+ local separation=offset-rig.direction*along
+ return separation:Dot(separation)<=radius*radius
+end
+function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,suppressSecondary,guardCamera,avatar)
  if not rig.origin then return end
  local distance=(viewer-rig.origin).Magnitude
+ -- Protect the camera and the local silhouette when an incoming beam crosses either.
+ if guardCamera and distance<=Style.DrawDistance and not (reduced or rig.reduced or contactReduced) then
+  local margin=rig.proximityQuiet and .75 or 0
+  rig.proximityQuiet=nearRenderedSegment(rig,viewer,rig.width+margin)
+   or (avatar~=nil and nearRenderedSegment(rig,avatar,rig.width*.5+1+margin))
+  reduced=rig.proximityQuiet
+ else
+  rig.proximityQuiet=nil
+ end
  rig.used=0
  rig.contact.used=0
  if contactAllowed==false or distance>Style.DrawDistance or rig.contactBorn and now>=rig.contactBorn+.28 then rig.contactPosition=nil end
@@ -422,21 +497,38 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
   local pulse=(quiet or distance>Style.FarDistance) and 1 or 1+.035*math.sin(age*9)
   local detailed=not quiet and distance<=Style.FarDistance
   local high=tier>=8
-  -- Quiet mode retains its simple silhouette. Regular energy has a slim hot spine
-  -- inside a non-emissive tinted body: Neon is reserved for the thin spine/details.
-  line(rig,origin,finish,radius*(detailed and 1.35 or 1.65)*pulse,detailed and color:Lerp(Color3.fromRGB(0,0,0),.35) or color,quiet and .72 or detailed and (high and .78 or .55) or .68,detailed and Enum.Material.SmoothPlastic or nil)
-  line(rig,origin,finish,radius*.85,color,quiet and .32 or detailed and (high and .7 or .18) or .12,detailed and Enum.Material.SmoothPlastic or nil)
-  line(rig,origin,finish,radius*(detailed and .10 or .28),detailed and color:Lerp(white,.72) or white,quiet and .45 or .08)
-  if quiet or distance>Style.FarDistance then
-   line(rig,finish-dir*math.min(length,.12),finish,radius*.8,color,.55)
+  local quietCollar=quiet and high and distance<=Style.FarDistance
+  if quiet then
+   -- A matte shaft and thin lit spine leave floor warnings readable.
+   if quietCollar then
+    -- Use the normally hidden shell slot for a short, still cue at the caster.
+    local offset=math.min(length*.2,.7)
+    line(rig,origin+dir*offset,origin+dir*math.min(length,offset+1.15),radius*.72,color,.42,Enum.Material.SmoothPlastic)
+   else
+    line(rig,origin,finish,radius*.72,color,.83,Enum.Material.SmoothPlastic)
+   end
+   line(rig,origin,finish,radius*.42,color,.48,Enum.Material.SmoothPlastic)
+   line(rig,origin,finish,radius*.13,color:Lerp(white,.35),.45)
+   line(rig,finish-dir*math.min(length,.12),finish,radius*.34,color,.78,Enum.Material.SmoothPlastic)
   else
-   -- An energy termination lens, not a hit-confirmation flash. Stay within range.
-   local depth=math.min(length,radius*.22)
-   line(rig,finish-dir*depth,finish,radius*1.25,color,.18,Enum.Material.SmoothPlastic)
+   line(rig,origin,finish,radius*(detailed and 1.35 or 1.65)*pulse,detailed and color:Lerp(Color3.fromRGB(0,0,0),.35) or color,detailed and (high and .78 or .55) or .68,detailed and Enum.Material.SmoothPlastic or nil)
+   line(rig,origin,finish,radius*.85,color,detailed and (high and .7 or .18) or .12,detailed and Enum.Material.SmoothPlastic or nil)
+   line(rig,origin,finish,radius*(detailed and .10 or .28),detailed and color:Lerp(white,.72) or white,.08)
+   if detailed then
+    -- Keep the endpoint close to the spine so large beams don't hide the defender.
+    local diameter=math.min(radius*1.25,width*.65)
+    local depth=math.min(length,radius*.22,diameter*.18)
+    local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .58
+    line(rig,finish-dir*depth,finish,diameter,color,endAlpha,Enum.Material.SmoothPlastic)
+   else
+    line(rig,finish-dir*math.min(length,.12),finish,radius*.8,color,.55)
+   end
   end
   if not quiet and distance<=Style.FarDistance then
    -- Thin axial ignition streak, never a launch sphere.
    line(rig,origin,origin+dir*math.min(length,1.5),radius*.12,color,.18,Enum.Material.SmoothPlastic)
+  end
+  if detailed and not suppressSecondary then
    local function offset(angle,r) return (right*math.cos(angle)+up*math.sin(angle))*r end
    local function collarOffset(angle,r)
     if spec.collar=="diamond" then r/=math.abs(math.cos(angle))+math.abs(math.sin(angle))
@@ -498,37 +590,43 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced)
     local angle=(i-.5)*math.pi*2/count
     local radial=contactRight*math.cos(angle)+contactUp*math.sin(angle)
     local from=center+radial*inner;local to=center+radial*extent
-    line(rig.contact,from,to,backThickness,color:Lerp(Color3.fromRGB(0,0,0),.8),quietContact and .15 or .1+fade*.82,Enum.Material.SmoothPlastic,true)
-    line(rig.contact,from-contactDir*.12,to-contactDir*.12,coreThickness,coreColor,quietContact and .3 or .05+fade*.9,Enum.Material.Neon,true)
+    line(rig.contact,from,to,backThickness,color:Lerp(Color3.fromRGB(0,0,0),.8),quietContact and .15 or .1+fade*.82,Enum.Material.SmoothPlastic,"contact")
+    line(rig.contact,from-contactDir*.12,to-contactDir*.12,coreThickness,coreColor,quietContact and .3 or .05+fade*.9,Enum.Material.Neon,"contact")
    end
   end
   if isRoblox then
    local styleSpec=Style.StyleForLevel(rig.level)
-   local pCol=styleColor(styleSpec.primary,color)
-   local sCol=styleColor(styleSpec.secondary,white)
-   syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet or contactReduced,distance,styleSpec)
-   local hasVfx=rig.vfx~=nil
+   local accent=color:Lerp(white,.32)
+   if quiet then
+    -- Imported core textures still bloom even when their motion is stopped.
+    if rig.vfx and rig.vfx.root.Parent then rig.vfx.root.Parent=nil end
+   else
+    syncVfx(rig,origin,finish,dir,length,width,distance,styleSpec,suppressSecondary)
+   end
+   local hasVfx=not quiet and rig.vfx~=nil
    for i=1,rig.used do
     local p=rig.parts[i]
-    if i==1 or (i==2 and hasVfx) then
+    if i==1 then
+     p.LocalTransparencyModifier=quietCollar and 0 or 1
+    elseif i==2 and hasVfx then
      p.LocalTransparencyModifier=1
-    elseif decoration[p] then
+    elseif partKind[p]=="detail" then
      -- Native templates must not erase the ten-level lightning progression.
-     p.Color=pCol:Lerp(sCol,.35);p.LocalTransparencyModifier=0
+     p.Color=color:Lerp(accent,.35);p.LocalTransparencyModifier=0
     elseif i==2 then
-     p.Color=pCol;p.LocalTransparencyModifier=.35
+     p.Color=color;p.LocalTransparencyModifier=.35
     elseif i==3 then
-     p.Color=pCol:Lerp(white,.55);p.LocalTransparencyModifier=hasVfx and .25 or .1
+     p.Color=color:Lerp(white,.55);p.LocalTransparencyModifier=hasVfx and .25 or .1
     elseif i==4 then
-     p.Color=sCol;p.LocalTransparencyModifier=.2
+     p.Color=accent;p.LocalTransparencyModifier=.2
     elseif i==5 then
-     p.Color=pCol;p.LocalTransparencyModifier=.2
+     p.Color=color;p.LocalTransparencyModifier=.2
     end
    end
    for i=1,rig.contact.used do
     local cp=rig.contact.parts[i]
     cp.LocalTransparencyModifier=0
-    cp.Color=i%2==1 and pCol:Lerp(Color3.fromRGB(0,0,0),.8) or pCol:Lerp(white,.45)
+    cp.Color=i%2==1 and color:Lerp(Color3.fromRGB(0,0,0),.8) or color:Lerp(white,.45)
    end
   end
  elseif isRoblox then
@@ -540,7 +638,18 @@ end
 function Visuals.Destroy(rig)
  if not live[rig] then return end
  live[rig]=nil
- if isRoblox then destroyVfx(rig) end
+ local vfx=rig.vfx
+ if vfx and not spareVfx[vfx.styleId] then
+  for _,entry in ipairs(vfx.emitters) do entry.inst:Clear() end
+  vfx.root.Parent=nil
+  -- A new cast refreshes its detached geometry before it becomes visible.
+  vfx.origin=nil
+  vfx.lastBucket=nil
+  spareVfx[vfx.styleId]=vfx
+  rig.vfx=nil
+ else
+  destroyVfx(rig)
+ end
  for _,part in ipairs(rig.parts) do release(part) end
  for _,part in ipairs(rig.contact.parts) do release(part) end
  table.clear(rig.parts)
@@ -548,6 +657,8 @@ function Visuals.Destroy(rig)
 end
 function Visuals.Clear()
  for rig in pairs(live) do Visuals.Destroy(rig) end
+ for _,vfx in pairs(spareVfx) do vfx.root:Destroy() end
+ table.clear(spareVfx)
  for _,part in ipairs(pool) do part:Destroy() end
  table.clear(pool);allocated=0
 end

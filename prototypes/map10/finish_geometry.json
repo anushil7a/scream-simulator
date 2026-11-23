@@ -1,10 +1,10 @@
 {
  "groups": {
-  "North": 283,
+  "North": 307,
   "East": 219,
-  "Coast": 240,
-  "Stadium": 152,
-  "Landmark": 134
+  "Coast": 270,
+  "Stadium": 144,
+  "Landmark": 130
  },
  "parts": [
   {
@@ -439,32 +439,6 @@
     35,
     91,
     94
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "NorthPavilion0Entablature",
-   "position": [
-    -450,
-    59.6,
-    -436.0
-   ],
-   "size": [
-    50,
-    0.7,
-    1
-   ],
-   "color": [
-    187,
-    137,
-    62
    ],
    "rotation": [
     0,
@@ -970,32 +944,6 @@
    "collidable": false
   },
   {
-   "id": "NorthPavilion1Entablature",
-   "position": [
-    -300,
-    59.6,
-    -429.0
-   ],
-   "size": [
-    64,
-    0.7,
-    1
-   ],
-   "color": [
-    187,
-    137,
-    62
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
    "id": "NorthPavilion1Crest",
    "position": [
     -300,
@@ -1490,32 +1438,6 @@
    "collidable": false
   },
   {
-   "id": "NorthPavilion2Entablature",
-   "position": [
-    -140,
-    59.6,
-    -436.0
-   ],
-   "size": [
-    50,
-    0.7,
-    1
-   ],
-   "color": [
-    187,
-    137,
-    62
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
    "id": "NorthPavilion2Crest",
    "position": [
     -140,
@@ -1999,32 +1921,6 @@
     35,
     91,
     94
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "NorthPavilion3Entablature",
-   "position": [
-    -490,
-    59.6,
-    -160.0
-   ],
-   "size": [
-    42,
-    0.7,
-    1
-   ],
-   "color": [
-    187,
-    137,
-    62
    ],
    "rotation": [
     0,
@@ -2894,6 +2790,760 @@
    "collidable": false
   },
   {
+   "id": "NorthRookiePathStone0",
+   "position": [
+    -340.0,
+    32.26,
+    -281.0
+   ],
+   "size": [
+    9,
+    0.05,
+    45.707441767506225
+   ],
+   "color": [
+    211,
+    200,
+    171
+   ],
+   "rotation": [
+    -0.0,
+    -123.02386755579667,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge0_-1",
+   "position": [
+    -342.17995340238167,
+    32.3,
+    -277.64622553479745
+   ],
+   "size": [
+    0.5,
+    0.03,
+    45.707441767506225
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -123.02386755579667,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow0_-1",
+   "position": [
+    -340.49048951553584,
+    32.32,
+    -280.24540074532945
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.162277660168387
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -157.7190210870303,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge0_1",
+   "position": [
+    -337.82004659761833,
+    32.3,
+    -284.35377446520255
+   ],
+   "size": [
+    0.5,
+    0.03,
+    45.707441767506225
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -123.02386755579667,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow0_1",
+   "position": [
+    -339.50951048446416,
+    32.32,
+    -281.75459925467055
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.162277660168389
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -88.32871402456219,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathStone1",
+   "position": [
+    -379.5,
+    32.26,
+    -313.0
+   ],
+   "size": [
+    9,
+    0.05,
+    52.45181356024789
+   ],
+   "color": [
+    211,
+    200,
+    171
+   ],
+   "rotation": [
+    -0.0,
+    -134.2559407971113,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge1_-1",
+   "position": [
+    -382.2914589076417,
+    32.3,
+    -310.13508164742035
+   ],
+   "size": [
+    0.5,
+    0.03,
+    52.45181356024789
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -134.2559407971113,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow1_-1",
+   "position": [
+    -380.1280782542194,
+    32.32,
+    -312.3553933706696
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.162277660168359
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -168.9510943283453,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge1_1",
+   "position": [
+    -376.7085410923583,
+    32.3,
+    -315.86491835257965
+   ],
+   "size": [
+    0.5,
+    0.03,
+    52.45181356024789
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -134.2559407971113,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow1_1",
+   "position": [
+    -378.8719217457806,
+    32.32,
+    -313.6446066293304
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.1622776601683893
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -99.56078726587775,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathStone2",
+   "position": [
+    -409.5,
+    32.26,
+    -350.0
+   ],
+   "size": [
+    9,
+    0.05,
+    39.67733196834948
+   ],
+   "color": [
+    211,
+    200,
+    171
+   ],
+   "rotation": [
+    -0.0,
+    -149.74356283647072,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge2_-1",
+   "position": [
+    -412.95511560359375,
+    32.3,
+    -347.98451589790363
+   ],
+   "size": [
+    0.5,
+    0.03,
+    39.67733196834948
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -149.74356283647072,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow2_-1",
+   "position": [
+    -410.2774010108086,
+    32.32,
+    -349.5465160770283
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.162277660168354
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    175.56128363229578,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge2_1",
+   "position": [
+    -406.04488439640625,
+    32.3,
+    -352.01548410209637
+   ],
+   "size": [
+    0.5,
+    0.03,
+    39.67733196834948
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    -149.74356283647072,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow2_1",
+   "position": [
+    -408.7225989891914,
+    32.32,
+    -350.4534839229717
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.162277660168429
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -115.04840930523528,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathStone3",
+   "position": [
+    -420.0,
+    32.26,
+    -376.5
+   ],
+   "size": [
+    9,
+    0.05,
+    13.0
+   ],
+   "color": [
+    211,
+    200,
+    171
+   ],
+   "rotation": [
+    -0.0,
+    180.0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge3_-1",
+   "position": [
+    -424.0,
+    32.3,
+    -376.5
+   ],
+   "size": [
+    0.5,
+    0.03,
+    13.0
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    180.0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow3_-1",
+   "position": [
+    -420.9,
+    32.32,
+    -376.0
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.1622776601684044
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    145.3048464687661,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathEdge3_1",
+   "position": [
+    -416.0,
+    32.3,
+    -376.5
+   ],
+   "size": [
+    0.5,
+    0.03,
+    13.0
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    -0.0,
+    180.0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthRookiePathArrow3_1",
+   "position": [
+    -419.1,
+    32.32,
+    -376.0
+   ],
+   "size": [
+    0.48,
+    0.035,
+    3.1622776601684044
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    -0.0,
+    -145.3048464687661,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayRookie",
+   "position": [
+    -409.5,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    5.4,
+    0.04,
+    18
+   ],
+   "color": [
+    44,
+    67,
+    72
+   ],
+   "rotation": [
+    0,
+    -90,
+    0
+   ],
+   "material": "Slate",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayRookieTrim-1",
+   "position": [
+    -418.73,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    111,
+    196,
+    180
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayRookieTrim1",
+   "position": [
+    -400.27,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    111,
+    196,
+    180
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayBrawler",
+   "position": [
+    -289.5,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    5.4,
+    0.04,
+    18
+   ],
+   "color": [
+    44,
+    67,
+    72
+   ],
+   "rotation": [
+    0,
+    -90,
+    0
+   ],
+   "material": "Slate",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayBrawlerTrim-1",
+   "position": [
+    -298.73,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    219,
+    120,
+    94
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayBrawlerTrim1",
+   "position": [
+    -280.27,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    219,
+    120,
+    94
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayElite",
+   "position": [
+    -169.5,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    5.4,
+    0.04,
+    18
+   ],
+   "color": [
+    44,
+    67,
+    72
+   ],
+   "rotation": [
+    0,
+    -90,
+    0
+   ],
+   "material": "Slate",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayEliteTrim-1",
+   "position": [
+    -178.73,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    240,
+    192,
+    89
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTrainingInlayEliteTrim1",
+   "position": [
+    -160.27,
+    32.28,
+    -420.8
+   ],
+   "size": [
+    0.38,
+    0.04,
+    5.4
+   ],
+   "color": [
+    240,
+    192,
+    89
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
    "id": "NorthCourtPlanter0",
    "position": [
     -500,
@@ -2917,7 +3567,7 @@
    ],
    "material": "Marble",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "NorthCourtSoil0",
@@ -2948,14 +3598,14 @@
   {
    "id": "NorthCourtShrub0A",
    "position": [
-    -502,
-    37,
-    -235
+    -501.55,
+    37.47,
+    -235.55
    ],
    "size": [
-    9,
-    6,
-    9
+    8.8,
+    7.6,
+    8.3
    ],
    "color": [
     67,
@@ -2974,14 +3624,14 @@
   {
    "id": "NorthCourtShrub0B",
    "position": [
-    -498,
-    39,
-    -234
+    -498.1,
+    36.97,
+    -233.65
    ],
    "size": [
-    7,
-    8,
-    7
+    7.2,
+    6.6,
+    6.8
    ],
    "color": [
     103,
@@ -3047,7 +3697,7 @@
    ],
    "material": "Marble",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "NorthCourtSoil1",
@@ -3078,14 +3728,14 @@
   {
    "id": "NorthCourtShrub1A",
    "position": [
-    -137,
-    37,
-    -350
+    -136.55,
+    36.9,
+    -350.55
    ],
    "size": [
-    7.6499999999999995,
-    5.1,
-    7.6499999999999995
+    7.48,
+    6.46,
+    7.055000000000001
    ],
    "color": [
     67,
@@ -3104,14 +3754,14 @@
   {
    "id": "NorthCourtShrub1B",
    "position": [
-    -133,
-    39,
-    -349
+    -133.1,
+    36.475,
+    -348.65
    ],
    "size": [
-    5.95,
-    6.8,
-    5.95
+    6.12,
+    5.609999999999999,
+    5.779999999999999
    ],
    "color": [
     103,
@@ -3177,7 +3827,7 @@
    ],
    "material": "Marble",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "NorthCourtSoil2",
@@ -3208,14 +3858,14 @@
   {
    "id": "NorthCourtShrub2A",
    "position": [
-    -367,
-    37,
-    -330
+    -366.55,
+    36.71,
+    -330.55
    ],
    "size": [
-    7.2,
-    4.800000000000001,
-    7.2
+    7.040000000000001,
+    6.08,
+    6.640000000000001
    ],
    "color": [
     67,
@@ -3234,14 +3884,14 @@
   {
    "id": "NorthCourtShrub2B",
    "position": [
-    -363,
-    39,
-    -329
+    -363.1,
+    36.31,
+    -328.65
    ],
    "size": [
-    5.6000000000000005,
-    6.4,
-    5.6000000000000005
+    5.760000000000001,
+    5.28,
+    5.44
    ],
    "color": [
     103,
@@ -3307,7 +3957,7 @@
    ],
    "material": "Marble",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "NorthCourtSoil3",
@@ -3338,14 +3988,14 @@
   {
    "id": "NorthCourtShrub3A",
    "position": [
-    -237,
-    37,
-    -330
+    -236.55,
+    36.71,
+    -330.55
    ],
    "size": [
-    7.2,
-    4.800000000000001,
-    7.2
+    7.040000000000001,
+    6.08,
+    6.640000000000001
    ],
    "color": [
     67,
@@ -3364,14 +4014,14 @@
   {
    "id": "NorthCourtShrub3B",
    "position": [
-    -233,
-    39,
-    -329
+    -233.1,
+    36.31,
+    -328.65
    ],
    "size": [
-    5.6000000000000005,
-    6.4,
-    5.6000000000000005
+    5.760000000000001,
+    5.28,
+    5.44
    ],
    "color": [
     103,
@@ -6794,58 +7444,6 @@
    "collidable": false
   },
   {
-   "id": "NorthMusicFacade6",
-   "position": [
-    -36.0,
-    38,
-    -330.0
-   ],
-   "size": [
-    64,
-    10,
-    1.0
-   ],
-   "color": [
-    47,
-    31,
-    67
-   ],
-   "rotation": [
-    0,
-    270.0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "NorthMusicFacadeInlay6",
-   "position": [
-    -36.0,
-    41,
-    -329.98
-   ],
-   "size": [
-    48,
-    0.75,
-    1.2
-   ],
-   "color": [
-    113,
-    62,
-    154
-   ],
-   "rotation": [
-    0,
-    270.0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
    "id": "NorthMusicFacade7",
    "position": [
     0.9045455704949887,
@@ -7212,14 +7810,14 @@
   {
    "id": "NorthAcademyMarquee",
    "position": [
-    -282,
-    35.7,
+    -286,
+    44.68,
     -277
    ],
    "size": [
-    12,
-    1.75,
-    0.32
+    10.6,
+    1.42,
+    0.3
    ],
    "color": [
     34,
@@ -7236,25 +7834,25 @@
    "collidable": false
   },
   {
-   "id": "NorthAcademyMarqueePostL",
+   "id": "NorthRookieDirection",
    "position": [
-    -287.05,
-    33.5,
+    -286,
+    46.7,
     -277
    ],
    "size": [
-    0.8,
-    3.4,
-    0.8
+    12.8,
+    2.06,
+    0.34
    ],
    "color": [
-    154,
-    119,
-    73
+    35,
+    91,
+    94
    ],
    "rotation": [
     0,
-    0,
+    180,
     0
    ],
    "material": "Metal",
@@ -7262,15 +7860,15 @@
    "collidable": false
   },
   {
-   "id": "NorthAcademyMarqueePostR",
+   "id": "NorthAcademyMarqueePostL",
    "position": [
-    -276.95,
-    33.5,
+    -291.05,
+    39,
     -277
    ],
    "size": [
     0.8,
-    3.4,
+    14.4,
     0.8
    ],
    "color": [
@@ -7285,7 +7883,33 @@
    ],
    "material": "Metal",
    "shape": null,
-   "collidable": false
+   "collidable": true
+  },
+  {
+   "id": "NorthAcademyMarqueePostR",
+   "position": [
+    -280.95,
+    39,
+    -277
+   ],
+   "size": [
+    0.8,
+    14.4,
+    0.8
+   ],
+   "color": [
+    154,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Metal",
+   "shape": null,
+   "collidable": true
   },
   {
    "id": "NorthMusicMarquee",
@@ -7337,7 +7961,7 @@
    ],
    "material": "Metal",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "NorthMusicMarqueePostR",
@@ -7363,7 +7987,7 @@
    ],
    "material": "Metal",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "EastLava0Shoulder",
@@ -13060,6 +13684,786 @@
    "collidable": false
   },
   {
+   "id": "CoastPavingJoint-440",
+   "position": [
+    -440,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-400",
+   "position": [
+    -400,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-360",
+   "position": [
+    -360,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-320",
+   "position": [
+    -320,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-280",
+   "position": [
+    -280,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-240",
+   "position": [
+    -240,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-200",
+   "position": [
+    -200,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-160",
+   "position": [
+    -160,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-120",
+   "position": [
+    -120,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-80",
+   "position": [
+    -80,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-40",
+   "position": [
+    -40,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint0",
+   "position": [
+    0,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint40",
+   "position": [
+    40,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint80",
+   "position": [
+    80,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint120",
+   "position": [
+    120,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint160",
+   "position": [
+    160,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint200",
+   "position": [
+    200,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint240",
+   "position": [
+    240,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint280",
+   "position": [
+    280,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint320",
+   "position": [
+    320,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint360",
+   "position": [
+    360,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint400",
+   "position": [
+    400,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint440",
+   "position": [
+    440,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingPierInlay-1",
+   "position": [
+    -235.5,
+    0.232,
+    427.0
+   ],
+   "size": [
+    0.32,
+    0.02,
+    20
+   ],
+   "color": [
+    180,
+    164,
+    139
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingPierInlay1",
+   "position": [
+    -204.5,
+    0.232,
+    427.0
+   ],
+   "size": [
+    0.32,
+    0.02,
+    20
+   ],
+   "color": [
+    180,
+    164,
+    139
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastDeckSurfaceDockMain",
+   "position": [
+    -220,
+    0.12,
+    516.0
+   ],
+   "size": [
+    32,
+    0.04,
+    156.0
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "WoodPlanks",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastDeckSurfaceDockCross",
+   "position": [
+    -20,
+    0.12,
+    610.0
+   ],
+   "size": [
+    430,
+    0.04,
+    32.0
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "WoodPlanks",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastDeckSurfaceDockMainTail",
+   "position": [
+    -220,
+    0.12,
+    628.0
+   ],
+   "size": [
+    32,
+    0.04,
+    4.0
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "WoodPlanks",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastDeckSurfaceDockCrossWestSeam",
+   "position": [
+    -235.5,
+    0.12,
+    610.0
+   ],
+   "size": [
+    1,
+    0.04,
+    32.0
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "WoodPlanks",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastDeckSurfaceDockShelterPlatform",
+   "position": [
+    -258,
+    0.12,
+    535.0
+   ],
+   "size": [
+    44,
+    0.04,
+    40.0
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "WoodPlanks",
+   "shape": null,
+   "collidable": false
+  },
+  {
    "id": "CoastSandSlope0",
    "position": [
     -490,
@@ -16106,7 +17510,7 @@
    "position": [
     200,
     0.35,
-    624
+    610
    ],
    "size": [
     4,
@@ -17737,7 +19141,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat0_0",
@@ -17763,7 +19167,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat0_1.3",
@@ -17789,7 +19193,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchBack0",
@@ -17815,7 +19219,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot0_-1",
@@ -17841,7 +19245,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot0_1",
@@ -17867,7 +19271,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat1_-1.3",
@@ -17893,7 +19297,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat1_0",
@@ -17919,7 +19323,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat1_1.3",
@@ -17945,7 +19349,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchBack1",
@@ -17971,7 +19375,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot1_-1",
@@ -17997,7 +19401,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot1_1",
@@ -18023,7 +19427,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat2_-1.3",
@@ -18049,7 +19453,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat2_0",
@@ -18075,7 +19479,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat2_1.3",
@@ -18101,7 +19505,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchBack2",
@@ -18127,7 +19531,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot2_-1",
@@ -18153,7 +19557,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot2_1",
@@ -18179,7 +19583,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat3_-1.3",
@@ -18205,7 +19609,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat3_0",
@@ -18231,7 +19635,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchSlat3_1.3",
@@ -18257,7 +19661,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchBack3",
@@ -18283,7 +19687,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot3_-1",
@@ -18309,7 +19713,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBenchFoot3_1",
@@ -18335,7 +19739,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanter0",
@@ -18361,7 +19765,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil0",
@@ -18491,7 +19895,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil1",
@@ -18621,7 +20025,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil2",
@@ -18751,7 +20155,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil3",
@@ -18881,7 +20285,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil4",
@@ -19011,7 +20415,7 @@
    ],
    "material": "SmoothPlastic",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastPlanterSoil5",
@@ -19141,7 +20545,7 @@
    ],
    "material": "Wood",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBollardCap0",
@@ -19193,7 +20597,7 @@
    ],
    "material": "Wood",
    "shape": "Cylinder",
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "CoastBollardCap1",
@@ -21143,7 +22547,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress0_0Stem",
@@ -21169,7 +22573,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress0_0Cornice",
@@ -21247,7 +22651,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress0_1Stem",
@@ -21273,7 +22677,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress0_1Cornice",
@@ -21351,7 +22755,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress1_0Stem",
@@ -21377,7 +22781,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress1_0Cornice",
@@ -21455,7 +22859,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress1_1Stem",
@@ -21481,7 +22885,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress1_1Cornice",
@@ -21559,7 +22963,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress3_0Stem",
@@ -21585,7 +22989,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress3_0Cornice",
@@ -21663,7 +23067,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress3_1Stem",
@@ -21689,7 +23093,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress3_1Cornice",
@@ -21767,7 +23171,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress4_0Stem",
@@ -21793,7 +23197,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress4_0Cornice",
@@ -21871,7 +23275,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress4_1Stem",
@@ -21897,7 +23301,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress4_1Cornice",
@@ -21975,7 +23379,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress5_0Stem",
@@ -22001,7 +23405,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress5_0Cornice",
@@ -22079,7 +23483,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress5_1Stem",
@@ -22105,7 +23509,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress5_1Cornice",
@@ -22183,7 +23587,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress6_0Stem",
@@ -22209,7 +23613,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress6_0Cornice",
@@ -22287,7 +23691,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress6_1Stem",
@@ -22313,7 +23717,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress6_1Cornice",
@@ -22391,7 +23795,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress7_0Stem",
@@ -22417,7 +23821,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress7_0Cornice",
@@ -22495,7 +23899,7 @@
    ],
    "material": "Concrete",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress7_1Stem",
@@ -22521,7 +23925,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumButtress7_1Cornice",
@@ -22599,7 +24003,7 @@
    ],
    "material": "Slate",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumEntry-1Stone",
@@ -22625,7 +24029,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumEntry-1Seat",
@@ -22654,84 +24058,6 @@
    "collidable": false
   },
   {
-   "id": "StadiumEntry-1Lantern",
-   "position": [
-    -220.2,
-    11,
-    86
-   ],
-   "size": [
-    1.4,
-    4.9,
-    4
-   ],
-   "color": [
-    53,
-    68,
-    71
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Metal",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumEntry-1LanternLens",
-   "position": [
-    -221,
-    11,
-    86
-   ],
-   "size": [
-    0.24,
-    3.65,
-    2.75
-   ],
-   "color": [
-    255,
-    218,
-    151
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Neon",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumEntry-1GlazedPanel",
-   "position": [
-    -210.4,
-    9,
-    86
-   ],
-   "size": [
-    0.2,
-    9,
-    4.5
-   ],
-   "color": [
-    37,
-    102,
-    104
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Metal",
-   "shape": null,
-   "collidable": false
-  },
-  {
    "id": "StadiumEntry1Plinth",
    "position": [
     -215,
@@ -22755,7 +24081,7 @@
    ],
    "material": "Slate",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumEntry1Stone",
@@ -22781,7 +24107,7 @@
    ],
    "material": "Sandstone",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "StadiumEntry1Seat",
@@ -22806,84 +24132,6 @@
     0
    ],
    "material": "Concrete",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumEntry1Lantern",
-   "position": [
-    -220.2,
-    11,
-    154
-   ],
-   "size": [
-    1.4,
-    4.9,
-    4
-   ],
-   "color": [
-    53,
-    68,
-    71
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Metal",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumEntry1LanternLens",
-   "position": [
-    -221,
-    11,
-    154
-   ],
-   "size": [
-    0.24,
-    3.65,
-    2.75
-   ],
-   "color": [
-    255,
-    218,
-    151
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Neon",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumEntry1GlazedPanel",
-   "position": [
-    -210.4,
-    9,
-    154
-   ],
-   "size": [
-    0.2,
-    9,
-    4.5
-   ],
-   "color": [
-    37,
-    102,
-    104
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "Metal",
    "shape": null,
    "collidable": false
   },
@@ -23174,32 +24422,6 @@
    "collidable": false
   },
   {
-   "id": "StadiumCorner-246_36Z",
-   "position": [
-    -246,
-    0.206,
-    36
-   ],
-   "size": [
-    0.28,
-    0.03,
-    8
-   ],
-   "color": [
-    237,
-    221,
-    191
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
    "id": "StadiumCorner-246_204X",
    "position": [
     -246,
@@ -23210,32 +24432,6 @@
     8,
     0.03,
     0.28
-   ],
-   "color": [
-    237,
-    221,
-    191
-   ],
-   "rotation": [
-    0,
-    0,
-    0
-   ],
-   "material": "SmoothPlastic",
-   "shape": null,
-   "collidable": false
-  },
-  {
-   "id": "StadiumCorner-246_204Z",
-   "position": [
-    -246,
-    0.206,
-    204
-   ],
-   "size": [
-    0.28,
-    0.03,
-    8
    ],
    "color": [
     237,
@@ -23930,9 +25126,9 @@
   {
    "id": "LandmarkPlazaGarden-388_-326Stone",
    "position": [
-    -388,
+    -379,
     32.68,
-    -326
+    -352
    ],
    "size": [
     1.1,
@@ -23956,9 +25152,9 @@
   {
    "id": "LandmarkPlazaGarden-388_-326Soil",
    "position": [
-    -388,
+    -379,
     33.27,
-    -326
+    -352
    ],
    "size": [
     0.18,
@@ -23982,14 +25178,14 @@
   {
    "id": "LandmarkPlazaGarden-388_-326Cypress0",
    "position": [
-    -391,
-    37.36,
-    -327
+    -379.15,
+    38.6,
+    -351.6
    ],
    "size": [
-    3.84,
-    8,
-    3.92
+    4.8,
+    4.4,
+    4.6
    ],
    "color": [
     91,
@@ -23999,7 +25195,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24008,14 +25204,14 @@
   {
    "id": "LandmarkPlazaGarden-388_-326Trunk1",
    "position": [
-    -386,
-    36,
-    -324
+    -377,
+    35.95,
+    -350
    ],
    "size": [
-    0.7,
+    0.85,
     5.3,
-    0.7
+    0.85
    ],
    "color": [
     111,
@@ -24034,14 +25230,14 @@
   {
    "id": "LandmarkPlazaGarden-388_-326Cypress1",
    "position": [
-    -386,
-    38.2,
-    -324
+    -377,
+    39.15,
+    -350
    ],
    "size": [
-    4.8,
-    10,
-    4.9
+    6.4,
+    6,
+    6.2
    ],
    "color": [
     62,
@@ -24051,7 +25247,7 @@
    "rotation": [
     0,
     0,
-    6
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24060,14 +25256,14 @@
   {
    "id": "LandmarkPlazaGarden-388_-326Cypress2",
    "position": [
-    -385,
-    36.1,
-    -330
+    -381.9,
+    34.84,
+    -354.9
    ],
    "size": [
-    2.4,
-    5,
-    2.45
+    4.4,
+    3.8,
+    4
    ],
    "color": [
     118,
@@ -24077,7 +25273,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24138,14 +25334,14 @@
   {
    "id": "LandmarkPlazaGarden-216_-326Cypress0",
    "position": [
-    -219,
-    37.36,
-    -327
+    -215.85,
+    38.6,
+    -325.6
    ],
    "size": [
-    3.84,
-    8,
-    3.92
+    4.8,
+    4.4,
+    4.6
    ],
    "color": [
     91,
@@ -24155,7 +25351,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24164,14 +25360,14 @@
   {
    "id": "LandmarkPlazaGarden-216_-326Trunk1",
    "position": [
-    -214,
-    36,
+    -218,
+    35.95,
     -324
    ],
    "size": [
-    0.7,
+    0.85,
     5.3,
-    0.7
+    0.85
    ],
    "color": [
     111,
@@ -24190,14 +25386,14 @@
   {
    "id": "LandmarkPlazaGarden-216_-326Cypress1",
    "position": [
-    -214,
-    38.2,
+    -218,
+    39.15,
     -324
    ],
    "size": [
-    4.8,
-    10,
-    4.9
+    6.4,
+    6,
+    6.2
    ],
    "color": [
     62,
@@ -24207,7 +25403,7 @@
    "rotation": [
     0,
     0,
-    6
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24216,14 +25412,14 @@
   {
    "id": "LandmarkPlazaGarden-216_-326Cypress2",
    "position": [
-    -213,
-    36.1,
-    -330
+    -213.1,
+    34.84,
+    -328.9
    ],
    "size": [
-    2.4,
-    5,
-    2.45
+    4.4,
+    3.8,
+    4
    ],
    "color": [
     118,
@@ -24233,7 +25429,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24294,14 +25490,14 @@
   {
    "id": "LandmarkPlazaGarden-400_-369Cypress0",
    "position": [
-    -403,
-    37.36,
-    -370
+    -400.15,
+    38.6,
+    -368.6
    ],
    "size": [
-    3.84,
-    8,
-    3.92
+    4.8,
+    4.4,
+    4.6
    ],
    "color": [
     91,
@@ -24311,7 +25507,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24321,13 +25517,13 @@
    "id": "LandmarkPlazaGarden-400_-369Trunk1",
    "position": [
     -398,
-    36,
+    35.95,
     -367
    ],
    "size": [
-    0.7,
+    0.85,
     5.3,
-    0.7
+    0.85
    ],
    "color": [
     111,
@@ -24347,13 +25543,13 @@
    "id": "LandmarkPlazaGarden-400_-369Cypress1",
    "position": [
     -398,
-    38.2,
+    39.15,
     -367
    ],
    "size": [
-    4.8,
-    10,
-    4.9
+    6.4,
+    6,
+    6.2
    ],
    "color": [
     62,
@@ -24363,7 +25559,7 @@
    "rotation": [
     0,
     0,
-    6
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24372,14 +25568,14 @@
   {
    "id": "LandmarkPlazaGarden-400_-369Cypress2",
    "position": [
-    -397,
-    36.1,
-    -373
+    -402.9,
+    34.84,
+    -371.9
    ],
    "size": [
-    2.4,
-    5,
-    2.45
+    4.4,
+    3.8,
+    4
    ],
    "color": [
     118,
@@ -24389,7 +25585,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24450,14 +25646,14 @@
   {
    "id": "LandmarkPlazaGarden-205_-369Cypress0",
    "position": [
-    -208,
-    37.36,
-    -370
+    -204.85,
+    38.6,
+    -368.6
    ],
    "size": [
-    3.84,
-    8,
-    3.92
+    4.8,
+    4.4,
+    4.6
    ],
    "color": [
     91,
@@ -24467,7 +25663,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24476,14 +25672,14 @@
   {
    "id": "LandmarkPlazaGarden-205_-369Trunk1",
    "position": [
-    -203,
-    36,
+    -207,
+    35.95,
     -367
    ],
    "size": [
-    0.7,
+    0.85,
     5.3,
-    0.7
+    0.85
    ],
    "color": [
     111,
@@ -24502,14 +25698,14 @@
   {
    "id": "LandmarkPlazaGarden-205_-369Cypress1",
    "position": [
-    -203,
-    38.2,
+    -207,
+    39.15,
     -367
    ],
    "size": [
-    4.8,
-    10,
-    4.9
+    6.4,
+    6,
+    6.2
    ],
    "color": [
     62,
@@ -24519,7 +25715,7 @@
    "rotation": [
     0,
     0,
-    6
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24528,14 +25724,14 @@
   {
    "id": "LandmarkPlazaGarden-205_-369Cypress2",
    "position": [
-    -202,
-    36.1,
-    -373
+    -202.1,
+    34.84,
+    -371.9
    ],
    "size": [
-    2.4,
-    5,
-    2.45
+    4.4,
+    3.8,
+    4
    ],
    "color": [
     118,
@@ -24545,7 +25741,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24606,14 +25802,14 @@
   {
    "id": "LandmarkPlazaGarden-469_-218Cypress0",
    "position": [
-    -472,
-    37.36,
-    -219
+    -469.15,
+    38.6,
+    -217.6
    ],
    "size": [
-    3.84,
-    8,
-    3.92
+    4.8,
+    4.4,
+    4.6
    ],
    "color": [
     91,
@@ -24623,7 +25819,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24633,13 +25829,13 @@
    "id": "LandmarkPlazaGarden-469_-218Trunk1",
    "position": [
     -467,
-    36,
+    35.95,
     -216
    ],
    "size": [
-    0.7,
+    0.85,
     5.3,
-    0.7
+    0.85
    ],
    "color": [
     111,
@@ -24659,13 +25855,13 @@
    "id": "LandmarkPlazaGarden-469_-218Cypress1",
    "position": [
     -467,
-    38.2,
+    39.15,
     -216
    ],
    "size": [
-    4.8,
-    10,
-    4.9
+    6.4,
+    6,
+    6.2
    ],
    "color": [
     62,
@@ -24675,7 +25871,7 @@
    "rotation": [
     0,
     0,
-    6
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24684,14 +25880,14 @@
   {
    "id": "LandmarkPlazaGarden-469_-218Cypress2",
    "position": [
-    -466,
-    36.1,
-    -222
+    -471.9,
+    34.84,
+    -220.9
    ],
    "size": [
-    2.4,
-    5,
-    2.45
+    4.4,
+    3.8,
+    4
    ],
    "color": [
     118,
@@ -24701,7 +25897,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24762,14 +25958,14 @@
   {
    "id": "LandmarkPlazaGarden-128_-217Cypress0",
    "position": [
-    -131,
-    37.36,
-    -218
+    -127.85,
+    38.6,
+    -216.6
    ],
    "size": [
-    3.84,
-    8,
-    3.92
+    4.8,
+    4.4,
+    4.6
    ],
    "color": [
     91,
@@ -24779,7 +25975,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24788,14 +25984,14 @@
   {
    "id": "LandmarkPlazaGarden-128_-217Trunk1",
    "position": [
-    -126,
-    36,
+    -130,
+    35.95,
     -215
    ],
    "size": [
-    0.7,
+    0.85,
     5.3,
-    0.7
+    0.85
    ],
    "color": [
     111,
@@ -24814,14 +26010,14 @@
   {
    "id": "LandmarkPlazaGarden-128_-217Cypress1",
    "position": [
-    -126,
-    38.2,
+    -130,
+    39.15,
     -215
    ],
    "size": [
-    4.8,
-    10,
-    4.9
+    6.4,
+    6,
+    6.2
    ],
    "color": [
     62,
@@ -24831,7 +26027,7 @@
    "rotation": [
     0,
     0,
-    6
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -24840,14 +26036,14 @@
   {
    "id": "LandmarkPlazaGarden-128_-217Cypress2",
    "position": [
-    -125,
-    36.1,
-    -221
+    -125.1,
+    34.84,
+    -219.9
    ],
    "size": [
-    2.4,
-    5,
-    2.45
+    4.4,
+    3.8,
+    4
    ],
    "color": [
     118,
@@ -24857,7 +26053,7 @@
    "rotation": [
     0,
     0,
-    -4
+    0
    ],
    "material": "Grass",
    "shape": "Ball",
@@ -25065,110 +26261,6 @@
    "rotation": [
     -9,
     212.0,
-    7
-   ],
-   "material": "Slate",
-   "shape": "Wedge",
-   "collidable": false
-  },
-  {
-   "id": "LandmarkBasalt4Long",
-   "position": [
-    291.5,
-    78.8,
-    74.62624243200128
-   ],
-   "size": [
-    31,
-    16,
-    32
-   ],
-   "color": [
-    72,
-    64,
-    70
-   ],
-   "rotation": [
-    6,
-    131.0,
-    -10
-   ],
-   "material": "Basalt",
-   "shape": "Wedge",
-   "collidable": false
-  },
-  {
-   "id": "LandmarkBasalt4Cut",
-   "position": [
-    284.70577136594005,
-    74.3,
-    69.52816622064796
-   ],
-   "size": [
-    19,
-    10,
-    25
-   ],
-   "color": [
-    66,
-    63,
-    72
-   ],
-   "rotation": [
-    -9,
-    242.0,
-    7
-   ],
-   "material": "Slate",
-   "shape": "Wedge",
-   "collidable": false
-  },
-  {
-   "id": "LandmarkBasalt5Long",
-   "position": [
-    245.01477371937628,
-    92.8,
-    13.499999999999986
-   ],
-   "size": [
-    31,
-    19,
-    32
-   ],
-   "color": [
-    82,
-    72,
-    75
-   ],
-   "rotation": [
-    9,
-    161.0,
-    -4
-   ],
-   "material": "Basalt",
-   "shape": "Wedge",
-   "collidable": false
-  },
-  {
-   "id": "LandmarkBasalt5Cut",
-   "position": [
-    242.24682452694515,
-    88.3,
-    7.669872981077792
-   ],
-   "size": [
-    19,
-    10,
-    25
-   ],
-   "color": [
-    94,
-    77,
-    76
-   ],
-   "rotation": [
-    -9,
-    272.0,
     7
    ],
    "material": "Slate",
@@ -25537,7 +26629,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm0Canopy0",
@@ -25745,7 +26837,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm1Canopy0",
@@ -25953,7 +27045,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm2Canopy0",
@@ -26161,7 +27253,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm3Canopy0",
@@ -26369,7 +27461,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm4Canopy0",
@@ -26577,7 +27669,7 @@
    ],
    "material": "Wood",
    "shape": null,
-   "collidable": false
+   "collidable": true
   },
   {
    "id": "LandmarkCoastPalm5Canopy0",

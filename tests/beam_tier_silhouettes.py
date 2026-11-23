@@ -60,8 +60,8 @@ for _,e in ipairs(cases)do
   for _,p in ipairs(r.parts)do check(not p.CanCollide and not p.CanQuery and not p.CanTouch and not p.CastShadow,'Cosmetic became physical')end
   radius=7*(.24+s.tier*.012)*StyleSource.WidthScale(level,true)
   Visuals.Animate(r,r.born+age,Vector3.zero,true)
-  check(#r.parts==4 and near(r.parts[1].Size.Y,radius*1.65) and r.parts[1].Transparency==.72,'Reduced geometry changed')
-  for _,p in ipairs(r.parts)do check(p.Material==Enum.Material.Neon,'Reduced material changed')end
+  check(#r.parts==4 and near(r.parts[1].Size.Y,radius*.72) and r.parts[1].Transparency==(level>=80 and .42 or .83) and near(r.parts[1].Size.X,level>=80 and 1.15 or 40),'Reduced geometry changed')
+  for i,p in ipairs(r.parts)do check(p.Material==(i==3 and Enum.Material.Neon or Enum.Material.SmoothPlastic),'Reduced material changed')end
   Visuals.Animate(r,r.born+age,vec(0,0,111),false)
   check(#r.parts==4 and near(r.parts[1].Size.Y,radius*1.65) and r.parts[1].Transparency==.68,'Far geometry changed')
   Visuals.Destroy(r)

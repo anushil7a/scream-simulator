@@ -13,7 +13,7 @@ EXPECTED_COMMON = [
  'wait:PlayerScripts/BeamScreenFeedback','require:BeamScreenFeedback','wait:PlayerScripts/NotificationQueue','require:NotificationQueue',
  'wait:PlayerScripts/NoticeLayout','require:NoticeLayout','wait:PlayerScripts/NoticeView','require:NoticeView']
 EXPECTED_AUTO = ['wait:Shared/SustainedAttack','require:SustainedAttack','wait:Shared/VoiceActivation','require:VoiceActivation','wait:PlayerScripts/SustainedControls','require:SustainedControls']
-EXPECTED_TAIL = ['wait:PlayerScripts/VoiceReactor','require:VoiceReactor','wait:PlayerScripts/HitFeedback','require:HitFeedback','wait:Shared/NavigationCatalog','require:NavigationCatalog','wait:Shared/BossCatalog','require:BossCatalog','wait:PlayerScripts/NavigationGuide','require:NavigationGuide','wait:PlayerScripts/BeamVisuals','require:BeamVisuals']
+EXPECTED_TAIL = ['wait:PlayerScripts/VoiceReactor','require:VoiceReactor','wait:PlayerScripts/HitFeedback','require:HitFeedback','wait:Shared/NavigationCatalog','require:NavigationCatalog','wait:Shared/TrainingRules','require:TrainingRules','wait:Shared/BossCatalog','require:BossCatalog','wait:PlayerScripts/NavigationGuide','require:NavigationGuide','wait:PlayerScripts/BeamVisuals','require:BeamVisuals']
 SETUP=r'''
 local RealControls=require("../src/StarterPlayer/StarterPlayerScripts/SustainedControls")
 local RealTestBeamTools=require("../src/StarterPlayer/StarterPlayerScripts/TestBeamTools")
@@ -40,7 +40,7 @@ local methods={}
 local mt={__index=function(t,k)
  if methods[k] then return methods[k] end
  if k=="Parent" or k=="dead" then return nil end
- if k=='Destroying' or k=='ChildAdded' or k=='AncestryChanged' or k=='Activated' or k=='InputBegan' or k=='InputEnded' or k=='OnClientEvent' or k=='CharacterAdded' or k=='CharacterRemoving' or k=='PlayerRemoving' or k=='Heartbeat' or k=='RenderStepped' or k=='JumpRequest' or k=='WindowFocusReleased' or k=='WindowFocused' or k=='MenuOpened' then local s=signal(t.Name..'.'..k);rawset(t,k,s);return s end
+ if k=='Destroying' or k=='ChildAdded' or k=='AncestryChanged' or k=='Activated' or k=='InputBegan' or k=='InputEnded' or k=='OnClientEvent' or k=='CharacterAdded' or k=='CharacterRemoving' or k=='PlayerRemoving' or k=='Heartbeat' or k=='RenderStepped' or k=='GamepadDisconnected' or k=='JumpRequest' or k=='WindowFocusReleased' or k=='WindowFocused' or k=='MenuOpened' then local s=signal(t.Name..'.'..k);rawset(t,k,s);return s end
  for _,o in ipairs(objects)do if rawget(o,"Parent")==t and rawget(o,"Name")==k then return o end end
  return nil
 end}
@@ -63,10 +63,12 @@ function methods:GetPropertyChangedSignal(n)local k='property:'..n;if not rawget
 methods.GetAttributeChangedSignal=methods.GetPropertyChangedSignal
 function methods:FireServer(verb,...)table.insert(commands,verb)end
 local game=object('game');local workspace=object('Workspace',game)
+workspace.DescendantAdded=signal('Workspace.DescendantAdded')
 workspace.CurrentCamera=object('Camera',workspace);workspace.CurrentCamera.ViewportSize={X=640,Y=360}
 function workspace:GetServerTimeNow()return 100 end
 local services={};function game:GetService(n)assert(services[n],'Missing service '..n);return services[n] end
-for _,n in ipairs({'Players','ReplicatedStorage','UserInputService','RunService','TweenService','Debris','TextService','GuiService','HttpService','CollectionService'})do services[n]=object(n,game)end
+for _,n in ipairs({'Players','ReplicatedStorage','UserInputService','RunService','TweenService','Debris','TextService','GuiService','HttpService','CollectionService','ProximityPromptService'})do services[n]=object(n,game)end
+services.ProximityPromptService.PromptShown=signal('PromptShown')
 local player=object('Player',services.Players);services.Players.LocalPlayer=player
 player.CameraMode='original';player.CameraMinZoomDistance=.5;player.CameraMaxZoomDistance=12
 player.PlayerGui=object('PlayerGui',player);player.Character=nil
@@ -95,25 +97,28 @@ local function resource(name)
  function o:Pulse()end
  if name~='NotificationQueue' and name~='HitFeedback' and name~='VoiceActivation' then table.insert(owned,o)end;if variant=="late-"..name then script.Destroying:Fire()end;return o
 end
-for _,n in ipairs({'DodgeVisuals','CityMap','Config','DamageReadout','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','LockOn','TrainingRules','VoiceReactor','NavigationCatalog','BossCatalog','NavigationGuide','TestBeamTools'})do
+for _,n in ipairs({'DodgeVisuals','CityMap','Config','DamageReadout','FirstBeamGuide','InteractionRules','Microphone','AttackAudio','AttackAudioConfig','GameplayAudio','GameplayAudioConfig','ShopUI','ScreamEffects','BeamScreenFeedback','NotificationQueue','NoticeLayout','NoticeView','SustainedAttack','VoiceActivation','SustainedControls','HitFeedback','BeamVisuals','SustainedBeams','VoiceReactor','NavigationCatalog','TrainingRules','BossCatalog','NavigationGuide','TestBeamTools'})do
  local node=object(n,shared);shared[n]=node;scriptParent[n]=node
  modules[n]={new=function(...)return resource(n)end,Clear=function()singletonClears[n]=(singletonClears[n] or 0)+1;table.insert(cleanupOrder,n)end}
 end
 modules.TestBeamTools=RealTestBeamTools
 modules.DodgeVisuals={Destroy=function()end,Play=function()end}
 modules.Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLevel=100,MicroSpeakerPrice=200,MovementPassId=0,XPToNext=function()return 100 end,Auras={Gold={}}}
-modules.TrainingRules={Tiers={{id='rookie',x=0,z=0}},Radius=32}
 modules.DamageReadout.new=function(parent) return {root=object("DamageReadout",parent),Clear=function()end} end
 modules.VoiceReactor.new=function(parent)
  local root=object('MicPower',parent)
  return {root=root,text=object('Status',root),fill=object('Fill',root),track=object('Track',root)}
 end
 modules.CityMap.create=function()return {}end
+modules.CityMap.MiniUpdate=function()end
 modules.Config.GetSound=function()return {effect='fixture',level=1}end
+modules.NavigationCatalog.Resolve=function()return nil end
+modules.TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
 modules.AttackAudioConfig.Range=100
 modules.ShopUI.Render=function()renders+=1 end;modules.ShopUI.ColorMixer=function()renders+=1 end
 -- This lifecycle fixture only checks the desktop port, not Shop layout.
-modules.ShopUI.CompactLandscape=function()return false end
+modules.ShopUI.FeatureLayout=function()return nil end
+modules.ShopUI.PulseFrame=function()return {Visible=false} end
 modules.ScreamEffects.Render=function()renders+=1 end
 modules.BeamVisuals.Create=function()renders+=1;return {}end
 modules.SustainedBeams.new=function(create)
@@ -165,9 +170,13 @@ local sync=0;for _,verb in ipairs(commands)do if verb=='Sync'then sync+=1 end en
 if (pauseAt==0 and not string.find(variant,'late-',1,true)) or INVALIDATE=='reparent' then
  assert(frames==1 and sync==1,'Normal startup did not reach EOF exactly once')
  if variant=='used-shop' or variant=='used-style' or variant=='used-shop-switch' then
-  local modal;for _,o in ipairs(objects)do if o.Name=='Menu' then modal=o end end
-  assert(modal);modal.Visible=true
-  modal[variant=='used-style' and 'Style' or 'Shop'].Activated:Fire()
+  local modal,launcher
+  for _,o in ipairs(objects)do
+   if o.Name=='Menu' then modal=o elseif o.Name=='ShopToggle' then launcher=o end
+  end
+  assert(modal and launcher)
+  if variant=='used-style' then launcher.Activated:Fire()
+  else modal.Visible=true;modal.Shop.Activated:Fire() end
   assert(renders==1,'Actual registered tab did not use Shop module')
   if variant=='used-shop-switch' then modal.Style.Activated:Fire();assert(renders==2 and singletonClears.ShopUI==1,'Ordinary render Clear changed')end
   terminalShopClears=singletonClears.ShopUI or 0
@@ -195,7 +204,7 @@ def run(source,automatic=True,pause=0,mode='destroy',fixed=False,variant='normal
  # This does not run or simulate the rest of RenderStepped.
  if variant in ('touch-owned','touch-replacement'):
   line=next(line for line in source.splitlines() if 'lastTouchControls=showTouchControls;' in line)
-  source+='\nlocal showTouchControls=false\n'+line+'\n'
+  source+='\nUIS.TouchEnabled=true\nlocal showTouchControls=false\n'+line+'\n'
   if variant=='touch-replacement':source+='showTouchControls=true\n'+line+'\nGuiService.TouchControlsEnabled=false\n'
  text=SETUP.replace('VARIANT',repr(variant)).replace('FIXED',str(fixed).lower()).replace('AUTO',str(automatic).lower()).replace('PAUSE',str(pause))+source+TAIL.replace('INVALIDATE',repr(mode))
  with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:f.write(text);path=Path(f.name)
@@ -208,8 +217,11 @@ if __name__=='__main__':
  for auto in [False,True]:
   r=run(source,auto,fixed=not args.baseline);assert r.returncode==0,r.stdout+r.stderr
   boundaries=re.findall(r'^BOUNDARY (\d+) (.+)$',r.stdout,re.M)
-  expected=([name for name in EXPECTED_COMMON if args.baseline or name not in ('wait:Shared/FirstBeamGuide','require:FirstBeamGuide')])+([] if args.baseline else ['wait:PlayerScripts/LockOn','require:LockOn','wait:Shared/TrainingRules','require:TrainingRules'])+(EXPECTED_AUTO if auto else [])+([name for name in EXPECTED_TAIL if not args.baseline or not any(module in name for module in ("VoiceReactor","NavigationCatalog","BossCatalog","NavigationGuide"))])+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
-  if not args.baseline: expected[2:2]=['wait:PlayerScripts/DodgeVisuals','require:DodgeVisuals']
+  expected=([name for name in EXPECTED_COMMON if args.baseline or name not in ('wait:Shared/FirstBeamGuide','require:FirstBeamGuide')])+(EXPECTED_AUTO if auto else [])+([name for name in EXPECTED_TAIL if not args.baseline or not any(module in name for module in ("VoiceReactor","NavigationCatalog","TrainingRules","BossCatalog","NavigationGuide"))])+(['wait:PlayerScripts/SustainedBeams','require:SustainedBeams'] if auto else [])
+  if not args.baseline:
+   expected[2:2]=['wait:PlayerScripts/DodgeVisuals','require:DodgeVisuals']
+   remote_boundary=expected.index('wait:Player/PlayerGui')
+   expected[remote_boundary:remote_boundary]=['wait:ScreamRemotes/State','wait:ScreamRemotes/Effect']
   if not args.baseline:
    insert=expected.index('require:NoticeView')+1;expected[insert:insert]=['wait:PlayerScripts/DamageReadout','require:DamageReadout']
    insert=expected.index('require:HitFeedback')+1;expected[insert:insert]=['wait:PlayerScripts/TestBeamTools','require:TestBeamTools']
@@ -226,9 +238,9 @@ if __name__=='__main__':
  print(f'PASS {total} whole-script boundary scenarios; '+('historical continuation reproduced' if args.baseline else 'terminal cleanup and in-DataModel reparent controls'))
 
  if not args.baseline:
-  for variant in ['touch-owned','touch-replacement','used-shop','used-style','used-shop-switch','used-effects','used-beams','active-stop','cleanup-error','replacement','late-gui','late-Microphone','late-AttackAudio','late-GameplayAudio','late-BeamScreenFeedback','late-NoticeView','late-SustainedControls','late-SustainedBeams','late-LockOn','late-NavigationGuide']:
+  for variant in ['touch-owned','touch-replacement','used-shop','used-style','used-shop-switch','used-effects','used-beams','active-stop','cleanup-error','replacement','late-gui','late-Microphone','late-AttackAudio','late-GameplayAudio','late-BeamScreenFeedback','late-NoticeView','late-SustainedControls','late-SustainedBeams','late-NavigationGuide']:
    r=run(source,True,fixed=True,variant=variant);assert r.returncode==0,variant+'\n'+r.stdout+r.stderr
-  print('PASS 20 actual ownership/late-constructor/Controls cancellation scenarios')
+  print('PASS 19 actual ownership/late-constructor/Controls cancellation scenarios')
   if args.negative_controls:
    mutations=[('table.insert(clientConnections,script.Destroying:Connect(retireClient))','',1,'destroy','normal'),('if not clientDestroyed and not script:IsDescendantOf(game) then retireClient() end','',1,'ancestor','normal'),('if clientDestroyed then attemptClientCleanup(cleanup) else table.insert(clientCleanups,cleanup) end','if not clientDestroyed then table.insert(clientCleanups,cleanup) end',0,'destroy','late-Microphone'),('if shopUsed then ShopUI.Clear() end','ShopUI.Clear()',0,'destroy','normal'),('if screamEffectsUsed then ScreamEffects.Clear() end','ScreamEffects.Clear()',0,'destroy','normal'),('if beamVisualsUsed then BeamVisuals.Clear() end','BeamVisuals.Clear()',0,'destroy','normal')]
    mutations += [('screamEffectsUsed=true;ScreamEffects.Render(', 'ScreamEffects.Render(',0,'destroy','used-effects'),('if verb=="SustainedStop" or not clientDestroyed then','if not clientDestroyed then',0,'destroy','active-stop'),('local ok=pcall(callback)','callback();local ok=true',0,'destroy','cleanup-error')]

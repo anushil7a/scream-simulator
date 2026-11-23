@@ -1,0 +1,350 @@
+{
+  "productionCommit": "de9228ac01888e6412f59a3b5e80c3c758cb637d",
+  "artifactSha256": "bc43574dc8566eb021722b85a4c10e9b72e7357434ad4d69f363e8849aa346f0",
+  "scope": "Unpublished Studio fixture with three local clients and one server on one PC. Staged stationary level-100 players and aim. Synthetic inputs called the normal Action RemoteEvent with local microphone and focus gating isolated by the fixture. Temporary profiles. Timing is frame and heartbeat intervals, not CPU/GPU attribution, internet capacity, physical touch, microphone, or persistence.",
+  "phaseOrder": [
+    "idle 0\u20138s",
+    "combat 8\u201330s incl gaps",
+    "recovery 30\u201338s",
+    "two active within windows"
+  ],
+  "players": 3,
+  "viewportPixels": [
+    567,
+    299
+  ],
+  "castStartSeconds": [
+    8,
+    16,
+    24
+  ],
+  "defenderHealth": {
+    "initial": 480,
+    "final": 274,
+    "includesNaturalRegeneration": true
+  },
+  "epochs": [
+    {
+      "start": 8,
+      "overlap": 0.5676100961863995,
+      "damageA": 51,
+      "damageB": 51,
+      "damageSteps": 4,
+      "damageWhileBoth": 102,
+      "afterMaxActive": 0
+    },
+    {
+      "start": 16,
+      "overlap": 0.5650924993678927,
+      "damageA": 51,
+      "damageB": 51,
+      "damageSteps": 4,
+      "damageWhileBoth": 102,
+      "afterMaxActive": 0
+    },
+    {
+      "start": 24,
+      "overlap": 0.5658925985917449,
+      "damageA": 49,
+      "damageB": 49,
+      "damageSteps": 4,
+      "damageWhileBoth": 98,
+      "afterMaxActive": 0
+    }
+  ],
+  "serverHeartbeat": [
+    {
+      "p95ms": 18.05678941309452,
+      "count": 479,
+      "p50ms": 16.941944137215614
+    },
+    {
+      "p95ms": 18.036378547549248,
+      "count": 1321,
+      "p50ms": 16.948914155364037
+    },
+    {
+      "p95ms": 18.025290220975876,
+      "count": 480,
+      "p50ms": 16.949357464909554
+    },
+    {
+      "p95ms": 17.992151901125908,
+      "count": 102,
+      "p50ms": 16.88096672296524
+    }
+  ],
+  "clients": {
+    "Player1": {
+      "role": "attacker",
+      "frames": [
+        {
+          "p50ms": 16.67740009725094,
+          "p95ms": 17.833499237895012,
+          "count": 473
+        },
+        {
+          "p50ms": 16.697699204087257,
+          "p95ms": 17.683299258351326,
+          "count": 1320
+        },
+        {
+          "p50ms": 16.693200916051865,
+          "p95ms": 17.59430021047592,
+          "count": 480
+        },
+        {
+          "p50ms": 16.704600304365158,
+          "p95ms": 17.772499471902847,
+          "count": 101
+        }
+      ],
+      "focusEvents": {
+        "gained": 2,
+        "lost": 0
+      },
+      "epochs": [
+        {
+          "packets": {
+            "-1": 2,
+            "-2": 2
+          },
+          "ends": {
+            "-1": true,
+            "-2": true
+          },
+          "damagePackets": 0,
+          "warnings": [],
+          "peakEnergy": 81,
+          "peakTemplates": 1,
+          "cleanupSampleAt": 11.107925176620483,
+          "cleanupActive": 0,
+          "cleanupEnergy": 0,
+          "cleanupTemplates": 0
+        },
+        {
+          "packets": {
+            "-1": 2,
+            "-2": 2
+          },
+          "ends": {
+            "-1": true,
+            "-2": true
+          },
+          "damagePackets": 0,
+          "warnings": [],
+          "peakEnergy": 81,
+          "peakTemplates": 1,
+          "cleanupSampleAt": 19.107969045639038,
+          "cleanupActive": 0,
+          "cleanupEnergy": 0,
+          "cleanupTemplates": 0
+        },
+        {
+          "packets": {
+            "-1": 2,
+            "-2": 2
+          },
+          "ends": {
+            "-1": true,
+            "-2": true
+          },
+          "damagePackets": 0,
+          "warnings": [],
+          "peakEnergy": 81,
+          "peakTemplates": 1,
+          "cleanupSampleAt": 27.10719609260559,
+          "cleanupActive": 0,
+          "cleanupEnergy": 0,
+          "cleanupTemplates": 0
+        }
+      ]
+    },
+    "Player2": {
+      "role": "attacker",
+      "frames": [
+        {
+          "p50ms": 66.61660224199295,
+          "p95ms": 68.21729987859726,
+          "count": 118
+        },
+        {
+          "p50ms": 66.60579890012741,
+          "p95ms": 68.10899823904037,
+          "count": 330
+        },
+        {
+          "p50ms": 66.57200306653976,
+          "p95ms": 67.76320189237595,
+          "count": 120
+        },
+        {
+          "p50ms": 66.4902999997139,
+          "p95ms": 67.94480234384537,
+          "count": 24
+        }
+      ],
+      "focusEvents": {
+        "gained": 0,
+        "lost": 0
+      },
+      "epochs": [
+        {
+          "packets": {
+            "-1": 2,
+            "-2": 2
+          },
+          "ends": {
+            "-1": true,
+            "-2": true
+          },
+          "damagePackets": 0,
+          "warnings": [],
+          "peakEnergy": 154,
+          "peakTemplates": 2,
+          "cleanupSampleAt": 11.101314067840576,
+          "cleanupActive": 0,
+          "cleanupEnergy": 0,
+          "cleanupTemplates": 0
+        },
+        {
+          "packets": {
+            "-1": 2,
+            "-2": 2
+          },
+          "ends": {
+            "-1": true,
+            "-2": true
+          },
+          "damagePackets": 0,
+          "warnings": [],
+          "peakEnergy": 154,
+          "peakTemplates": 2,
+          "cleanupSampleAt": 19.166287183761597,
+          "cleanupActive": 0,
+          "cleanupEnergy": 0,
+          "cleanupTemplates": 0
+        },
+        {
+          "packets": {
+            "-1": 2,
+            "-2": 2
+          },
+          "ends": {
+            "-1": true,
+            "-2": true
+          },
+          "damagePackets": 0,
+          "warnings": [],
+          "peakEnergy": 154,
+          "peakTemplates": 2,
+          "cleanupSampleAt": 27.16625213623047,
+          "cleanupActive": 0,
+          "cleanupEnergy": 0,
+          "cleanupTemplates": 0
+        }
+      ]
+    },
+    "Player3": {
+      "role": "defender",
+      "frames": [
+        {
+          "p50ms": 66.70980155467987,
+          "p95ms": 67.88589805364609,
+          "count": 118
+        },
+        {
+          "p50ms": 66.67649745941162,
+          "p95ms": 67.78279691934586,
+          "count": 330
+        },
+        {
+          "p50ms": 66.72900170087814,
+          "p95ms": 68.0055022239685,
+          "count": 120
+        },
+        {
+          "p50ms": 66.62970036268234,
+          "p95ms": 67.6748976111412,
+          "count": 24
+        }
+      ],
+      "focusEvents": {
+        "gained": 0,
+        "lost": 0
+      },
+      "epochs": [
+        {
+          "packets": {
+            "-1": 2,
+            "-2": 2
+          },
+          "ends": {
+            "-1": true,
+            "-2": true
+          },
+          "damagePackets": 1,
+          "warnings": {
+            "BEAM HIT YOU": true
+          },
+          "peakEnergy": 8,
+          "peakTemplates": 0,
+          "cleanupSampleAt": 11.162911176681519,
+          "cleanupActive": 0,
+          "cleanupEnergy": 0,
+          "cleanupTemplates": 0
+        },
+        {
+          "packets": {
+            "-1": 2,
+            "-2": 2
+          },
+          "ends": {
+            "-1": true,
+            "-2": true
+          },
+          "damagePackets": 1,
+          "warnings": {
+            "BEAM HIT YOU": true
+          },
+          "peakEnergy": 8,
+          "peakTemplates": 0,
+          "cleanupSampleAt": 19.162196159362793,
+          "cleanupActive": 0,
+          "cleanupEnergy": 0,
+          "cleanupTemplates": 0
+        },
+        {
+          "packets": {
+            "-1": 2,
+            "-2": 2
+          },
+          "ends": {
+            "-1": true,
+            "-2": true
+          },
+          "damagePackets": 1,
+          "warnings": {
+            "BEAM HIT YOU": true
+          },
+          "peakEnergy": 8,
+          "peakTemplates": 0,
+          "cleanupSampleAt": 27.162142038345337,
+          "cleanupActive": 0,
+          "cleanupEnergy": 0,
+          "cleanupTemplates": 0
+        }
+      ]
+    }
+  },
+  "longWindowControl": {
+    "artifactSha256": "780abc29bf0ef66a89e6ede56b40f50d6b6b4ce2bb2ff7f4e4437cfb97d3f4ba",
+    "passedPlannedRepeatedSameTargetCheck": false,
+    "observedDamageByWindow": [
+      256,
+      204,
+      0
+    ],
+    "note": "The second window exhausted the defender, whose sampled health returned to 480. The third window caused no damage to that defender, so this run was excluded from same-target comparison."
+  }
+}

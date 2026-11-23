@@ -18,6 +18,50 @@ local function part(parent,name,size,position,color)
  local p=Instance.new("Part");p.Name=name;p.Size=size;p.Position=position;p.Color=color
  p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.Parent=parent;return p
 end
+local laneEdgeColors={
+ TwinSirens=Color3.fromRGB(37,44,54),
+ OrganFlames=Color3.fromRGB(245,225,177),
+}
+local escapeHints={
+ PendulumSweep="Leave the sweep lane",
+ ResonanceKick="Avoid the kick zone",
+ FaultLine="Step into a gap",
+ WooferSlam="Leave the circle",
+ OrganFlames="Step between lanes",
+ Backdraft="Leave the circle",
+ TwinSirens="Find the center gap",
+ CutlassBroadside="Step back or aside",
+ BellCascade="Step off the circles",
+ BatonSweep="Step back or aside",
+}
+local function markLaneEdges(marker,color)
+ local width,length=marker.Size.X,marker.Size.Z
+ local thickness=.25
+ local function edge(x,z,w,l)
+  local p=part(marker,"LaneEdge",Vector3.new(w,.05,l),marker.Position,color)
+  p.CFrame=marker.CFrame*CFrame.new(x,marker.Size.Y/2+.035,z)
+  p.Material=Enum.Material.SmoothPlastic;p.CastShadow=false
+ end
+ for _,side in ipairs({-1,1}) do
+  edge(side*(width-thickness)/2,0,thickness,length)
+  edge(0,side*(length-thickness)/2,width-2*thickness,thickness)
+ end
+end
+local function markBellRim(marker)
+ local rim=Instance.new("CylinderHandleAdornment")
+ rim.Name="BellRim"
+ rim.Adornee=marker
+ rim.Color3=Color3.fromRGB(44,25,52)
+ rim.Radius=marker.Size.Y/2
+ rim.InnerRadius=rim.Radius-.28
+ rim.Angle=360
+ rim.Height=.03
+ rim.DoubleSided=true
+ rim.AlwaysOnTop=false
+ -- The warning cylinder's local +X is its top face.
+ rim.CFrame=CFrame.new(marker.Size.X/2+.04,0,0)*CFrame.Angles(0,math.pi/2,0)
+ rim.Parent=marker
+end
 function Service.new(parent,callbacks)
  local self={bosses={},callbacks=callbacks,cooldowns={}}
  local folder=Instance.new("Folder");folder.Name="BossEncounters";folder.Parent=parent
@@ -55,9 +99,9 @@ function Service.new(parent,callbacks)
    phase(b,"Defeated")
    if b.warning then b.warning:Destroy();b.warning=nil end;b.strike=nil;b.readyAt=now+Catalog.Respawn
    for id,entry in pairs(b.credit) do
-    local player=self.callbacks.player(id);local ctx=player and self:Valid(b,player,now)
+    local player=self.callbacks.player(id);local identity=player and self.callbacks.rewardIdentity(player)
     local key=b.spec.id..":"..id
-    if ctx and Rules.Eligible(entry,ctx.identity,b.spec,now) and now>=(self.cooldowns[key] or 0) then
+    if identity and Rules.Eligible(entry,identity,b.spec,now) and now>=(self.cooldowns[key] or 0) then
      self.cooldowns[key]=now+Catalog.RewardCooldown;self.callbacks.reward(player,b.spec,math.min(1,entry.damage/b.spec.health))
     end
    end
@@ -84,8 +128,14 @@ function Service.new(parent,callbacks)
    local targets=b.targets;table.clear(targets)
    if next(b.credit)==nil and not b.strike then continue end
    for id,entry in pairs(b.credit) do
-    local p=self.callbacks.player(id);local c=p and self:Valid(b,p,now)
-    if c and c.identity==entry.identity and now-entry.at<=Catalog.CreditExpiry then table.insert(targets,{player=p,context=c}) else b.credit[id]=nil end
+    local p=self.callbacks.player(id)
+    if not p or self.callbacks.rewardIdentity(p)~=entry.identity or now-entry.at>Catalog.CreditExpiry then
+     b.credit[id]=nil
+    else
+     -- Leaving the ring or losing combat eligibility does not erase damage already dealt.
+     local c=self:Valid(b,p,now)
+     if c then table.insert(targets,{player=p,context=c}) end
+    end
    end
    if #targets==0 and b.strike then
     if b.warning then b.warning:Destroy();b.warning=nil end
@@ -141,7 +191,16 @@ function Service.new(parent,callbacks)
     b.model:SetAttribute("BossAttackSerial",strike.serial)
     phase(b,"Windup",startAt)
     strike.at=now+b.spec.windup;b.strike=strike;b.nextAttack=now+b.spec.interval
-    local warning=Instance.new("Folder");warning.Name="DodgeWarning";warning.Parent=b.model;b.warning=warning
+    local warning=Instance.new("Folder");warning.Name="DodgeWarning"
+    warning:SetAttribute("BossAttackSerial",strike.serial)
+    warning:SetAttribute("BossMarkerCount",#strike.shapes)
+    local hint=escapeHints[strike.style]
+    if hint then
+     warning:SetAttribute("BossAttackHint",hint)
+     -- The visible Core can patrol away from someone still inside the arena.
+     warning:SetAttribute("BossHintRange",b.spec.radius+b.spec.moveLeash+1)
+    end
+    local edgeColor=laneEdgeColors[strike.style]
     for _,shape in ipairs(strike.shapes) do
      local pos=b.center+Vector3.new(shape.x,.5,shape.z)
      local size=shape.kind=="disk" and Vector3.new(.12,shape.radius*2,shape.radius*2) or Vector3.new(shape.width,.12,shape.length)
@@ -149,7 +208,10 @@ function Service.new(parent,callbacks)
      if shape.kind=="disk" then marker.Shape=Enum.PartType.Cylinder;marker.CFrame=CFrame.new(pos)*CFrame.Angles(0,0,math.pi/2)
      else marker.CFrame=CFrame.new(pos)*CFrame.Angles(0,shape.angle,0) end
      marker.Material=Enum.Material.Neon;marker.Transparency=strike.kind=="Melee" and .27 or .45
+     if edgeColor then markLaneEdges(marker,edgeColor) end
+     if strike.style=="BellCascade" then markBellRim(marker) end
     end
+    warning.Parent=b.model;b.warning=warning
    end
   end
  end

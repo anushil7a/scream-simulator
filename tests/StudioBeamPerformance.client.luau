@@ -16,7 +16,8 @@ local manager=Beams.new(Visuals.Create,Visuals.Update,Visuals.Destroy)
 local beamFrame=0;local tracked={};local connection,destruction,watchdog
 local done=false;local checks=0;local phase=1;local phaseStart=nil;local nextPulse=0
 local sampleFirst,sampleLast
-local names={"baseline","regular24","reduced24"};local frames,costs={},{};local rows={}
+local animationUpdates=0
+local names={"baseline","regular24","crowded24","reduced24"};local frames,costs={},{};local rows={}
 local function check(v,m)assert(v,m);checks+=1 end
 local function summary(values)
  table.sort(values);local n=#values;assert(n>0,"No samples")
@@ -64,7 +65,7 @@ camera.CameraType=Enum.CameraType.Scriptable;camera.CFrame=CFrame.lookAt(Vector3
 fixedFrame=camera.CFrame;fixedFov=camera.FieldOfView
 fixedViewport=camera.ViewportSize
 local quality="unknown";pcall(function()quality=tostring(UserSettings():GetService("UserGameSettings").SavedQualityLevel)end)
-print("BEAM_PERFORMANCE_START "..Http:JSONEncode({buildIdentity=buildIdentity,viewport={camera.ViewportSize.X,camera.ViewportSize.Y},savedQualityPreference=quality,rendererQualityControlled=false,warmSeconds=2,sampleSeconds=5,maxBeams=24,animationCadence="accumulated dt >=1/30 then reset0 (Client)",clock="os.clock",units="ms",limitations="Studio frame intervals and instrumented script section elapsed duration only; no GPU/phone/network claim"}))
+print("BEAM_PERFORMANCE_START "..Http:JSONEncode({buildIdentity=buildIdentity,viewport={camera.ViewportSize.X,camera.ViewportSize.Y},savedQualityPreference=quality,rendererQualityControlled=false,warmSeconds=2,sampleSeconds=5,maxBeams=24,animationCadence="30 Hz target; fractional carry, at most one update per frame",clock="os.clock",units="ms",limitations="Studio frame intervals and instrumented script section elapsed duration only; no GPU/phone/network claim"}))
  return true
 end
 connection=Run.RenderStepped:Connect(function(dt)
@@ -74,43 +75,77 @@ connection=Run.RenderStepped:Connect(function(dt)
   if not fixedViewport and not settleCamera(now) then return end
   check(camera.ViewportSize==fixedViewport,"Viewport changed; comparison invalid")
   check(workspace.CurrentCamera==camera and camera.CameraType==Enum.CameraType.Scriptable and camera.CFrame==fixedFrame and camera.FieldOfView==fixedFov,"Camera changed; comparison invalid")
-  if phase==4 then
+  if phase>#names then
    manager:Expire(now)
    if manager.count==0 then finish(true)end
    return
   end
   local started=os.clock()
+  local animated=false
   if phase>1 then
    if now>=nextPulse then
     nextPulse=now+.2
-    for id=1,24 do check(manager:Update(id,now,Vector3.new(0,8,0),-Vector3.zAxis,40,7,Color3.fromRGB(70,220,255),100,phase==3),"Admission rejected")end
+    for id=1,24 do
+     local x=((id-1)%6-2.5)*2
+     local z=math.floor((id-1)/6)*2
+     check(manager:Update(id,now,Vector3.new(x,8,z),Vector3.new(-x*.24,0,-40),40,7,Color3.fromRGB(70,220,255),100,phase==4),"Admission rejected")
+    end
    end
    manager:Expire(now)
    beamFrame+=dt
    if beamFrame>=1/30 then
-    beamFrame=0
-    for _,entry in pairs(manager.entries)do Visuals.Animate(entry.visual,now,camera.CFrame.Position,phase==3)end
+    beamFrame%=1/30
+    animated=true
+    local viewer=camera.CFrame.Position
+    local crowded=phase==3 and Visuals.IsCrowded(manager.entries,viewer)
+    for id,entry in pairs(manager.entries)do Visuals.Animate(entry.visual,now,viewer,phase==4,false,false,crowded and id~=1)end
    end
   end
   local cost=os.clock()-started
-  if now-phaseStart>=2 then sampleFirst=sampleFirst or now;sampleLast=now;table.insert(frames,dt);table.insert(costs,cost)end
+  if now-phaseStart>=2 then
+   sampleFirst=sampleFirst or now;sampleLast=now
+   table.insert(frames,dt);table.insert(costs,cost)
+   if animated then animationUpdates+=1 end
+  end
   if now-phaseStart>=7 then
-   local allocated,cached=Visuals.Budget();local visible=0
+   local allocated,cached=Visuals.Budget();local visible,enabledBeams,enabledEmitters=0,0,0
    check(allocated<=Style.MaxParts,"Allocation cap exceeded")
-   for _,entry in pairs(manager.entries)do
+   for id,entry in pairs(manager.entries)do
+    local vfx=entry.visual.vfx
+    if phase==4 then
+     check(not vfx or vfx.root.Parent==nil,"Reduced effects kept a template in the visible scene")
+    else
+     check(vfx and vfx.root.Parent==workspace and vfx.styleId=="hollow_purple","Production Hollow Purple template missing")
+     local detailed=phase==2 or (phase==3 and id==1)
+     local cores,emitters=0,0
+     for _,beam in ipairs(vfx.beams)do
+      check(beam.inst.Enabled==(beam.isCore or detailed),"Unexpected template visibility")
+      if beam.inst.Enabled then
+       enabledBeams+=1
+       if beam.isCore then cores+=1 end
+      end
+     end
+     for _,emitter in ipairs(vfx.emitters)do if emitter.inst.Enabled then emitters+=1 end end
+     check(cores==2,"Template core missing on one or more rigs")
+     check((detailed and emitters>0) or (not detailed and emitters==0),"Unexpected template emission")
+     if phase==3 then check(detailed and #entry.visual.parts>5 or not detailed and #entry.visual.parts==5,"Crowded geometry wrong")end
+     enabledEmitters+=emitters
+    end
     for _,part in ipairs(entry.visual.parts)do
      tracked[part]=true;visible+=1
      check(part.Parent==workspace and not part.CanCollide and not part.CanQuery and not part.CanTouch,"Invalid cosmetic part")
     end
-    check(#entry.visual.parts>=(phase==3 and 4 or 5),"Core starved")
+    check(#entry.visual.parts>=(phase==4 and 4 or 5),"Core starved")
    end
    check(manager.count==(phase==1 and 0 or 24),"Manager cardinality")
-   if phase==3 then check(visible==96,"Reduced geometry count")end
+   if phase==4 then check(visible==96,"Reduced geometry count")end
    if phase>1 then check(not manager:Update(25,now,Vector3.zero,Vector3.xAxis,40,7,Color3.new(1,1,1),100,false),"25th admission accepted")end
-   local row={buildIdentity=buildIdentity,phase=names[phase],sampleSpanSeconds=sampleLast-sampleFirst,sampledFrameSeconds=0,frame=summary(frames),script=summary(costs),allocated=allocated,cached=cached,visible=visible,count=manager.count}
+   local row={buildIdentity=buildIdentity,phase=names[phase],sampleSpanSeconds=sampleLast-sampleFirst,sampledFrameSeconds=0,frame=summary(frames),script=summary(costs),allocated=allocated,cached=cached,visible=visible,count=manager.count,enabledBeams=enabledBeams,enabledEmitters=enabledEmitters}
    for _,value in ipairs(frames)do row.sampledFrameSeconds+=value end
+   row.animationUpdates=animationUpdates
+   row.animationHz=animationUpdates/row.sampledFrameSeconds
    table.insert(rows,row);print("BEAM_PERFORMANCE_ROW "..Http:JSONEncode(row))
-   phase+=1;phaseStart=now;frames={};costs={};nextPulse=0;beamFrame=0;sampleFirst=nil;sampleLast=nil
+   phase+=1;phaseStart=now;frames={};costs={};nextPulse=0;beamFrame=0;sampleFirst=nil;sampleLast=nil;animationUpdates=0
    -- Preserve live entries and pooled Parts across the real reduced-effects transition.
   end
  end,debug.traceback)

@@ -1,0 +1,104 @@
+{
+  "productionCommit": "46121b98227d30192bcd7c009d6d32a91e1d96ba",
+  "scope": "Unpublished Studio tests with temporary profiles. Scripted level, position, attack or cue, and VirtualInput mouse press and release. No direct Close callback used by any passing replay. Physical phone touch, real voice, and network over the internet remain untested.",
+  "desktopPair": {
+    "fixtureSha256": "676482abe3f44484f208ca1485b43012bd69da9843f41130033be7108a907842",
+    "clients": 2,
+    "usableViewport": [
+      567,
+      241
+    ],
+    "touchEnabled": false,
+    "input": "Synthetic level-100 attack through normal Action remote with server hit resolution.",
+    "privateDefenderHit": {
+      "healthBefore": 480,
+      "healthAfter": 457,
+      "menuOpen": true
+    },
+    "notice": {
+      "rect": [
+        20,
+        8,
+        473,
+        44
+      ],
+      "canvas": [
+        473,
+        273
+      ],
+      "inputBegan": 1,
+      "visibleRectAfterClose": [
+        264,
+        66,
+        169,
+        65
+      ]
+    },
+    "close": {
+      "rect": [
+        499,
+        8,
+        44,
+        44
+      ],
+      "textFits": true,
+      "noticeGapPixels": 6,
+      "pointerDismissedMenu": true
+    },
+    "restoredCue": {
+      "text": "BEAM HIT YOU",
+      "textFits": true,
+      "secondsAfterPrivateHit": 0.101
+    }
+  },
+  "touchEmulatorSolo": {
+    "fixtureSha256": "6b84771bbba16a3049e1815ced1a7ae7d2166f995e46162fba9aee97027b2f02",
+    "clients": 1,
+    "usableViewport": [
+      455,
+      218
+    ],
+    "touchEnabled": true,
+    "input": "Staged HP reduction and private Effect cue after natural protection. This pass covers native UI only.",
+    "notice": {
+      "rect": [
+        20,
+        8,
+        361,
+        44
+      ],
+      "canvas": [
+        361,
+        355
+      ],
+      "pointerSelectionInSeparateEarlierRun": 1,
+      "shortcutAfterCloseTested": false
+    },
+    "close": {
+      "rect": [
+        387,
+        8,
+        44,
+        44
+      ],
+      "textFits": true,
+      "noticeGapPixels": 6,
+      "pointerDismissedMenu": true
+    },
+    "restoredCue": {
+      "text": "BEAM HIT YOU",
+      "textFits": true,
+      "rect": [
+        126,
+        91,
+        94,
+        18
+      ],
+      "observedTransitionSeconds": 0.2
+    }
+  },
+  "controls": [
+    "The paired clients did not inherit the touch layout. The touch emulator was tested separately.",
+    "In the earlier touch run a staged private hit during spawn protection produced no defender warning. After natural expiry the same UI displayed the cue."
+  ]
+}

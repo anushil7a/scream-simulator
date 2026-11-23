@@ -38,3 +38,10 @@ Source: `tools/progression_gear_blender.py`; generated `build/Progression-Gear-B
 A future authorized local Studio test imports with Upload to Roblox OFF, Add to Workspace ON, Package OFF into a disposable place. Stop if upload is required. Inspect warnings, actual stud scale, normals, shading and axes. Copy verified Models to `ServerStorage/GearTemplates` named `MosaicMic`, `StreetBoombox`, `SonicCannon`, `CelestialOrgan`; original replacement names `AcademyMegaphoneAccessory` and `MicroSpeakerAccessory`. Loader clones named template, pivots hand models to palm or Organ to torso back, then sets noncolliding/massless and welds parts. Source model origins are artist-defined; actual R6/R15 grip offsets still need native fitting. No manifest asset path until a verified local import exists.
 
 Test equip/unequip/swap, respawn, R6/R15, template missing, multiple purchases/remote spam, low coins/locked tiers, phone card scrolling, two clients and physical microphone. Confirm asset/material ownership/load and performance before considering removal of fallback geometry. No Studio, upload, publish, GitHub push or desktop checkout change in this pass.
+
+## Local Academy Megaphone preview
+
+1. Open the guarded `build/SustainedLocalPlay.rbxl` in Studio. Rebuild it with `python tests/build_sustained_review.py` if needed.
+2. Import `assets/drafts/academy-megaphone/AcademyMegaphone.fbx`. In the importer, turn **Upload to Roblox** off, leave **Import Only as a Model**, **Set Pivot to Scene Origin**, and **Add to Workspace** on, and keep the root name `AcademyMegaphone`.
+3. Paste the contents of `assets/drafts/academy-megaphone/PrepareLocalTemplate.luau` into Studio's command bar in Edit mode. It prepares the five parts under `ServerStorage/GearTemplates/AcademyMegaphoneAccessory`. Use a fresh local copy if a template with that name is already installed.
+4. Press Play and equip the Academy Megaphone through Gear. Re-import the FBX on another PC to reproduce the preview. Cross-machine loading of a saved place's existing mesh references remains unverified.

@@ -32,7 +32,10 @@ def main():
         subprocess.run(['git','-C',str(dest),'-c','core.autocrlf=false','checkout','--quiet','--detach',commit],check=True)
         for name in SUITES:
             print('Checking preserved compact-city '+name,flush=True)
-            subprocess.run([sys.executable,str(dest/'tests'/name)],cwd=dest,check=True)
+            command = [sys.executable, str(dest/'tests'/name)]
+            if name == 'coastal_art.py':
+                command.extend(('--baseline', '--negative-controls'))
+            subprocess.run(command, cwd=dest, check=True)
     print(f'PASS: {len(SUITES)} archived compact-city suites and two exact archived source files; not Map 10 coverage.')
 
 if __name__ == '__main__':

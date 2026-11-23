@@ -7,7 +7,8 @@ constructor=client[client.index(' sustainedControl=sustainedControl.new('):clien
 constructor=constructor.replace('sustainedControl=sustainedControl.new(', 'sustainedControl=Controls.new(',1)
 
 toggle=client[client.index('local function toggleVoice()'):client.index('local function releaseCapture(')]
-removal=next(line for line in client.splitlines() if line.startswith('connectClient(p.CharacterRemoving,function() hitFeedback:DiscardThrough'))
+mute_clear=client[client.index(' if academy.muteNoticePending'):client.index(' tracked.Text=trackedQuestText')]
+removal=next(line for line in client.splitlines() if line.startswith('connectClient(p.CharacterRemoving,') and 'hitFeedback:DiscardThrough' in line)
 start=client.index('local function suspendGameplay()')
 suspend=client[start:client.index('connectClient(UIS.WindowFocusReleased',start)]
 assert 'sustainedControl:SetArmed(false)' in suspend
@@ -16,18 +17,18 @@ local Queue=require('../src/StarterPlayer/StarterPlayerScripts/NotificationQueue
 local Controls=require('../src/StarterPlayer/StarterPlayerScripts/SustainedControls')
 local VoiceActivation=require('../src/ReplicatedStorage/Shared/VoiceActivation')
 local clientDestroyed=false
-local lockController={Clear=function()end}
-local academy={lockLostUntil=0} -- Presentation dependency; voice-notice assertions remain unchanged.
+local academy={lockLostUntil=0,incomingHit={}} -- Presentation dependency; voice-notice assertions remain unchanged.
 local notifications=Queue.new();local sustainedControl;local windowFocused=true
 local action={FireServer=function()end};local unavailable=false
 local function blocked()return unavailable end
-local beamBlocked=blocked;local voiceEligibilityHint=function()return nil end
+local beamBlocked=blocked;local inputMuted=false
+local voiceEligibilityHint=function()if inputMuted then return "Beams stay OFF. Unmute in Roblox, then turn Beams on.",true end end
 local function notify(text,urgent,key)notifications:Push(text,urgent,key)end
 local p={CharacterRemoving={}};local removalCallback
 local function connectClient(_,fn)removalCallback=fn end
 local hitFeedback={DiscardThrough=function()end};local function setSprint()end
 local function cancelCapture()end;local closeConversation=nil
-'''+constructor+toggle+removal+suspend+'''
+'''+constructor+toggle+removal+suspend+'\nlocal function renderMuteNotice()\n'+mute_clear+'\nend\n'+'''
 local checks=0;local function check(ok,msg)assert(ok,msg);checks+=1 end
 local function noVoice(reason)
  check(not (notifications.active and notifications.active.key=='voice'),reason..': stale active voice notice')
@@ -37,13 +38,14 @@ for _,kind in ipairs({'respawn','unavailable','suspend'}) do
  notifications=Queue.new();sustainedControl:SetArmed(false)
  notify('Saving is unavailable',true);toggleVoice()
  check(sustainedControl.armed and #notifications.pending==1,'Setup did not queue ON behind warning')
+ local armedText=notifications.pending[1].text
  if kind=='respawn' then removalCallback()
  elseif kind=='unavailable' then sustainedControl:ObserveAvailability(false)
  else suspendGameplay() end
  check(not sustainedControl.armed,'Lifecycle did not disarm')
  noVoice(kind)
  check(notifications:Step(1/60,true)=='Saving is unavailable','Clearing guidance lost save warning')
- for _=1,400 do check(notifications:Step(1/60,true)~='Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged.','Disarmed ON guidance replayed') end
+ for _=1,400 do check(notifications:Step(1/60,true)~=armedText,'Disarmed ON guidance replayed') end
 end
 -- Active ON is withdrawn too, without removing unrelated queued feedback.
 notifications=Queue.new();toggleVoice();notify('Reward');notifications:Step(1/60,true)
@@ -56,6 +58,11 @@ sustainedControl:ObserveAvailability(true);noVoice('initial arm')
 toggleVoice();local current=notifications.active
 sustainedControl:ObserveAvailability(true)
 check(notifications.active==current and current.key=='voice','No-op availability removed valid OFF guidance')
+notifications=Queue.new();notify('Saving is unavailable',true,'save')
+unavailable=true;inputMuted=true;toggleVoice();renderMuteNotice()
+check(notifications.pending[1].key=='micMuted','Muted input has no queued recovery guidance')
+inputMuted=false;renderMuteNotice()
+check(#notifications.pending==0 and notifications.active.key=='save','Recovered input left a stale mute notice or removed the save warning')
 print('PASS '..checks..' voice notice lifecycle assertions; synthetic timing and callbacks')
 '''
 def run(source,failure=None):
@@ -71,6 +78,7 @@ def run(source,failure=None):
  finally:path.unlink()
 run(payload)
 if '--negative-controls' in sys.argv:
+ run(payload.replace('notifications:Remove("micMuted")',''),'Recovered input left a stale mute notice')
  needle='function() notifications:Remove("voice") end'
  assert payload.count(needle)==1
  run(payload.replace(needle,'function() end'),'respawn: stale queued voice notice')

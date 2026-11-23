@@ -5,6 +5,7 @@ task.spawn(function()
   local description=Instance.new("HumanoidDescription")
   local model=game.Players:CreateHumanoidModelFromDescriptionAsync(description,kind);description:Destroy()
   model.Name="PoseRig"..kind.Name
+  model.ModelStreamingMode=Enum.ModelStreamingMode.Persistent
   local animate=model:FindFirstChild("Animate");if animate then animate.Disabled=true end
   model.Parent=workspace
   model:PivotTo(CFrame.new(kind==Enum.HumanoidRigType.R6 and -5 or 5,6,560))

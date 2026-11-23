@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 root=Path(__file__).resolve().parents[1]
-s=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text();a=s.index('local function restoreBot(');b=s.index('local function destructionHint(',a)
+s=(root/'src/ServerScriptService/Bootstrap.server.luau').read_text();a=s.index('local function clearTrainingStrike(');b=s.index('local function destructionHint(',a)
 setup='''
 local queue={};local task={delay=function(seconds,fn)assert(seconds==8);table.insert(queue,fn)end}
 local Config={BotMaxHealth=60,BotRespawnSeconds=8}

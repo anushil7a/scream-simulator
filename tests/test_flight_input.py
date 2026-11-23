@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile,subprocess
 r=Path(__file__).resolve().parents[1]
 s=(r/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
-a=s.index('local flightUp=false;');b=s.index('-- Everyone sees the same navigation',a)
+a=s.index('local flightUp=false;');b=s.index('local miniMapButton=',a)
 setup=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local capability=true;local localFlightTools=false;local clientDestroyed=false

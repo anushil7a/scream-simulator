@@ -1,7 +1,7 @@
 -- Cosmetic timing/mixing only. No voice recording, damage or server requests.
 local Mix={};Mix.__index=Mix
-function Mix.new(settings,create,update,destroy)
- return setmetatable({settings=settings,create=create,update=update,destroy=destroy,
+function Mix.new(settings,create,update,destroy,canMix,canCreate)
+ return setmetatable({settings=settings,create=create,update=update,destroy=destroy,canMix=canMix,canCreate=canCreate,
   entries={},count=0,enabled=true,level="NORMAL",duck=1},Mix)
 end
 function Mix:Remove(id)
@@ -20,16 +20,26 @@ end
 function Mix:SetEnabled(enabled)
  return self:SetLevel(enabled==true and "NORMAL" or "OFF")
 end
-function Mix:Pulse(id,now,position,isLocal,tier)
+function Mix:Pulse(id,now,position,isLocal,tier,distance)
  if self.destroyed or not self.enabled then return false end
  local entry=self.entries[id]
  if entry and entry.stopped then return false end -- never revive a fading attack
  if not entry then
-  if self.count>=self.settings.Limit then return false end
+  if distance and distance>self.settings.Range then return false end
+  if self.count>=self.settings.Limit then
+   -- A local cast can replace the farthest remote. Remote casts can only reclaim distant remote slots.
+   local farId,farthest=nil,isLocal and -math.huge or self.settings.Range
+   for otherId,other in pairs(self.entries) do
+    local otherDistance=other.distance or 0
+    if not other.isLocal and otherDistance>farthest then farId,farthest=otherId,otherDistance end
+   end
+   if not farId or not self.canCreate or not self.canCreate(tier) then return false end
+   self:Remove(farId)
+  end
   local sound=self.create(position,tier);if not sound then return false end
   entry={sound=sound,started=now,isLocal=isLocal};self.entries[id]=entry;self.count+=1
  end
- entry.position=position;entry.lastPulse=now
+ entry.position=position;entry.lastPulse=now;entry.distance=distance
  return true
 end
 function Mix:Stop(id,now)
@@ -49,7 +59,12 @@ function Mix:Step(now,dt,voiceActive,calibrating)
  local budget=self.level=="LOW" and self.settings.LowVolume or self.settings.TotalVolume
  -- Louder listening must not raise the old voice-active feedback ceiling.
  if voiceActive then budget=math.min(budget,self.settings.LowVolume) end
- local gain=calibrating and 0 or budget/math.max(1,self.count)*self.duck
+ local audible=0
+ for _,entry in pairs(self.entries) do
+  entry.audible=(not entry.distance or entry.distance<=self.settings.Range) and (not self.canMix or self.canMix(entry.sound,entry.stopped~=nil))
+  if entry.audible then audible+=1 end
+ end
+ local gain=calibrating and 0 or budget/math.max(1,audible)*self.duck
  for _,entry in pairs(self.entries) do
   local age=math.max(0,now-entry.started)
   local envelope=math.clamp(age/self.settings.FadeIn,0,1)
@@ -58,7 +73,7 @@ function Mix:Step(now,dt,voiceActive,calibrating)
    local release=math.clamp((now-entry.stopped)/self.settings.FadeOut,0,1)
    envelope*=1-release
   end
-  self.update(entry.sound,entry.position,gain*envelope*(entry.isLocal and self.settings.LocalMultiplier or 1),pitch)
+  self.update(entry.sound,entry.position,(entry.audible and gain or 0)*envelope*(entry.isLocal and self.settings.LocalMultiplier or 1),pitch,entry.stopped~=nil)
  end
 end
 function Mix:Destroy()

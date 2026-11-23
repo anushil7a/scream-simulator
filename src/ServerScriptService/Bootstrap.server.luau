@@ -28,6 +28,7 @@ local QuestLifecycle=require(ReplicatedStorage.Shared.QuestLifecycle)
 local QuestGuide=require(ReplicatedStorage.Shared.QuestGuide)
 local NavigationCatalog=require(ReplicatedStorage.Shared.NavigationCatalog)
 local Equipment=require(script.Parent.Equipment)
+local StateSnapshot=require(script.Parent.StateSnapshot)
 -- Only disposable local fixtures bypass persistent profiles. Attack mode is independent.
 local localFixture=RunService:IsStudio() and game.PlaceId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
 local function onlinePreviewTools()
@@ -89,6 +90,7 @@ end
 local sessions={}
 local bosses
 local closing=false
+local shutdownSaveDeadline
 local joinsInFlight=0
 local rewardHistory={pairs={}} -- survives reconnects in this server
 local testRewardHistory={pairs={}} -- temporary fights never consume normal-play anti-farm history
@@ -135,7 +137,7 @@ local function beamColor(p,s)
  if s.data.useCustomColor and s.data.customColor and Entitlements.HasSpectrum(p) then return Color3.fromHex(s.data.customColor) end
  return s.data.aura
 end
-local function state(p,message,conversation,messageUrgent,messageKey)
+local function state(p,message,conversation,messageUrgent,messageKey,changedOnly)
  local s=sessions[p];if not s or not p.Parent then return end
  if p:GetAttribute("ScreamLevel")~=s.data.level then p:SetAttribute("ScreamLevel",s.data.level) end
  local _,r,h=parts(p)
@@ -144,17 +146,23 @@ local function state(p,message,conversation,messageUrgent,messageKey)
  local deliveryStop=Config.GetDeliveryStop(s.deliveryStop)
  local step=QuestGuide.Step(quest,progress and progress.progress or 0,s.carrying,s.raceStart~=nil,soccer and soccer.detail,deliveryStop and deliveryStop.name)
  Equipment.SyncGear(p,Config.Gear.Selected(s.data))
- stateRemote:FireClient(p,{coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
- shop=Commerce.Status(p),spectrumPass=Entitlements.HasSpectrum(p),customColor=s.data.customColor,useCustomColor=s.data.useCustomColor,
+ local packet={coins=s.data.coins,level=s.data.level,xp=s.data.xp,xpNext=Config.XPToNext(s.data.level),sound=s.data.sound,aura=s.data.aura,
+ shop=Commerce.Status(p),spectrumPass=Entitlements.HasSpectrum(p),encorePass=Entitlements.HasEncore(p),afterimagePass=Entitlements.HasAfterimage(p),cityGlowPass=Entitlements.HasCityGlow(p),signalDeckPass=Entitlements.HasSignalDeck(p),cityCrestPass=Entitlements.HasCityCrest(p),pulseFramePass=Entitlements.HasPulseFrame(p),routeLightsPass=Entitlements.HasRouteLights(p),harborBadgePass=Entitlements.HasHarborBadge(p),sprintRibbonPass=Entitlements.HasSprintRibbon(p),customColor=s.data.customColor,useCustomColor=s.data.useCustomColor,
  combatChallenges=s.data.combatChallenges,training=TrainingRules.Recommended(s.data.level).name,milestone=s.milestone,
  gearOwned=s.data.gearOwned,gearEquipped=s.data.gearEquipped,gearMultiplier=Config.Gear.Multiplier(s.data),amplifierOwned=s.data.amplifierOwned,amplifierEquipped=s.data.amplifierEquipped,megaphoneOwned=s.data.megaphoneOwned,megaphoneEquipped=s.data.megaphoneEquipped,movementPass=Entitlements.HasMovement(p),achievements=s.data.achievements,
- questNavigation=NavigationCatalog.QuestTargets(s,questGivers),availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
+ questNavigation=NavigationCatalog.QuestTargets(s,questGivers),availableQuests=not Config.ResonanceLayout and s.data.availableQuests or {},quests=not Config.ResonanceLayout and s.data.quests or {},collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  voiceEligible=VoiceEligibility.Allowed(s.voiceEligibility,os.clock()),voiceStatus=VoiceEligibility.Status(s.voiceEligibility,os.clock()),
- castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
+ micReady=s.micReady,
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,flying=s.flight~=nil,
  testBeamAvailable=s.testBeamAvailable==true,testBeamDamageAvailable=s.testBeamAvailable==true,
- testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=messageKey=="save" and "save" or nil})
+ testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt" or messageKey=="trainingReceipt" or messageKey=="welcome") and messageKey or nil}
+ if changedOnly and StateSnapshot.Equal(packet,s.lastStatePacket) then return end
+ local snapshot=StateSnapshot.Copy(packet)
+ -- Timestamp only outgoing packets. Time alone does not change the boost ledger.
+ packet.shop.serverNow=os.time()
+ stateRemote:FireClient(p,packet)
+ s.lastStatePacket=snapshot
 end
 -- No remote can enqueue voice checks. Retry state belongs only to live sessions;
 -- at most eight actual API calls exist, with one new start per quarter-second.
@@ -241,7 +249,18 @@ local function questProgress(p,event,amount)
  local s=sessions[p];if not s or not s.activeQuest then return end
  local q=Config.GetQuest(s.activeQuest);if not q or q.retired==true or q.event~=event then return end
  local v=s.data.quests[q.id];if not v or v.claimed or v.progress>=q.goal then return end
- v.progress=math.min(q.goal,v.progress+(amount or 1));state(p,v.progress==q.goal and "Quest complete! Claim your reward in Quests." or nil)
+ v.progress=math.min(q.goal,v.progress+(amount or 1))
+ if v.progress==q.goal then state(p,"Quest complete! Claim your reward in Quests.",nil,false,"questClaim")
+ else state(p) end
+end
+local function confirmBeamDodge(target,now)
+ questProgress(target,"Evade")
+ local s=sessions[target]
+ if not s or now<(s.nextBeamDodgeCueAt or 0) then return end
+ local _,_,humanoid=parts(target)
+ if not humanoid then return end
+ s.nextBeamDodgeCueAt=now+1
+ effect:FireClient(target,"BeamDodged",humanoid)
 end
 local function combatChallenge(p,id,quiet)
  local s=sessions[p];if not s then return 0,0 end
@@ -285,17 +304,23 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
   local factor=Config.Progression.RewardFactor(rs.data.level,tier and TrainingRules.RewardLevel(tier,rs.data.level) or targetLevel)
   local repeatFactor=victim and Credit.RepeatFactor(rs.testBaseline and testRewardHistory or rewardHistory,id,victim.UserId,now) or 1
   local reward=math.floor(pool*share*factor*repeatFactor)
+  local hallKnockout=Config.ResonanceLayout~=nil and victim~=nil and recipient==finisher
   if reward>0 then
    local underdog=targetLevel>=rs.data.level
-   local credited=xp(recipient,reward);coins(recipient,math.floor((victim and 20 or 5)*share*factor*repeatFactor))
+   local credited=xp(recipient,reward)
+   local coinCredit=coins(recipient,math.floor((victim and 20 or 5)*share*factor*repeatFactor))
    if victim and recipient==finisher and underdog then questProgress(recipient,"Underdog") end
    if victim and recipient~=finisher and underdog and meaningful[id] then questProgress(recipient,"ArenaAssist") end
    local bonus,bonusXP=0,0
    if tier and factor>=.5 and meaningful[id] then
     bonus,bonusXP=combatChallenge(recipient,"fighters",true)
    end
-   state(recipient,(recipient==finisher and "KO" or "Assist").." · +"..(credited+bonusXP).." XP"..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
-  elseif recipient==finisher then state(recipient,"KO · no reward awarded") end
+   local summary=recipient==finisher and "KO" or "Assist"
+   if tier then summary=tier.name..(recipient==finisher and " defeated" or " assist") end
+   local receipt=tier and recipient==finisher and (credited+bonusXP>0 or coinCredit>0) and "trainingReceipt" or nil
+   state(recipient,summary.." · +"..(credited+bonusXP).." XP"..((tier or coinCredit>0) and " · +"..coinCredit.." coins" or "")
+    ..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""),nil,hallKnockout,receipt)
+  elseif recipient==finisher then state(recipient,"KO · no reward awarded",nil,hallKnockout) end
  end
 end
 local function stopQuest(p)
@@ -338,11 +363,13 @@ local function eject(p,h)
  h.Health=Config.HealthForLevel(s.data.level)
  resetMovement(p,s,h,root)
  character:PivotTo(World.SafeSpawn);protect(p,s)
- s.nextHeal=os.clock()+Config.HealQuietSeconds;state(p,"Knocked out · back at the safe hub")
+ s.nextHeal=os.clock()+Config.HealQuietSeconds
+ state(p,"Knocked out · back at "..(World.SafeSpawnLabel or "the safe hub"),nil,Config.ResonanceLayout~=nil)
 end
 local function audible(c,origin,target,targetModel)
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c,targetModel};params.RespectCanCollide=true
- return workspace:Raycast(origin,target-origin,params)==nil
+ local hit=workspace:Raycast(origin,target-origin,params)
+ return hit==nil,hit
 end
 -- Bigger visual silhouettes need a taller aim envelope, not a larger
 -- engagement circle. Callers still require the same server CanHit gate.
@@ -435,9 +462,23 @@ local function resolveSustained(ctx,direction,stats,now)
   for _,p in ipairs(players) do
    local ts=sessions[p];local c,r,h=parts(p)
    if p~=ctx.player and sameCombatMode(sessions[ctx.player],ts) and r and Rules.CanTarget(ctx.position,r.Position,ts.protectedUntil,now,stats.range+2)
-    and Rules.InBeam(ctx.origin,direction,r.Position,length,stats.width,1) and audible(ctx.character,ctx.origin,r.Position,c) then
-    if now<ts.dodgingUntil and not ts.premiumRoll then table.insert(dodged,p)
-    else add("player:"..p.UserId,{player=p,session=ts,humanoid=h}) end
+    and Rules.InBeam(ctx.origin,direction,r.Position,length,stats.width,1) then
+    local clear,hit=audible(ctx.character,ctx.origin,r.Position,c)
+    if clear then
+     if now<ts.dodgingUntil and not ts.premiumRoll then table.insert(dodged,p)
+     else add("player:"..p.UserId,{player=p,session=ts,humanoid=h}) end
+    elseif hit and h and now>=ts.dodgingUntil and now>=(ts.nextBeamBodyBlockCueAt or 0) then
+     local ancestor=hit.Instance
+     while ancestor and ancestor~=workspace do
+      local blocker=ancestor:IsA("Model") and Players:GetPlayerFromCharacter(ancestor)
+      if blocker and blocker~=p and blocker~=ctx.player and blocker.Character==ancestor then
+       ts.nextBeamBodyBlockCueAt=now+1
+       effect:FireClient(p,"BeamBodyBlocked",h)
+       break
+      end
+      ancestor=ancestor.Parent
+     end
+    end
    end
   end
  end
@@ -462,14 +503,26 @@ local function resolveSustained(ctx,direction,stats,now)
  end
  return ids,details,{origin=ctx.origin,direction=direction,length=length,width=stats.width,power=stats.power,obstruction=obstruction,dodged=dodged}
 end
+local function clearTrainingStrike(bot)
+ local strike=bot.strike
+ bot.strike=nil
+ if strike and strike.warning then strike.warning:Destroy() end
+ if strike and strike.cueUntil and strike.character:GetAttribute("TrainingStrikeAt")==strike.cueUntil then
+  strike.character:SetAttribute("TrainingStrikeAt",nil)
+  strike.character:SetAttribute("TrainingStrikeCenter",nil)
+ end
+ return strike
+end
 local function restoreBot(bot)
  if not bot.model.Parent then return end
  bot.recoveryVersion=(bot.recoveryVersion or 0)+1
- bot.health=bot.maxHealth or Config.BotMaxHealth;bot.alive=true;bot.credit={};bot.trainingTarget=nil;bot.strike=nil;World.UpdateBot(bot)
+ clearTrainingStrike(bot)
+ bot.health=bot.maxHealth or Config.BotMaxHealth;bot.alive=true;bot.credit={};bot.trainingTarget=nil;World.UpdateBot(bot)
 end
 local function knockOutBot(bot)
  if not bot.alive then return end
- bot.trainingTarget=nil;bot.strike=nil;bot.alive=false;bot.recoveryVersion=(bot.recoveryVersion or 0)+1
+ clearTrainingStrike(bot)
+ bot.trainingTarget=nil;bot.alive=false;bot.recoveryVersion=(bot.recoveryVersion or 0)+1
  local version=bot.recoveryVersion
  task.delay(Config.BotRespawnSeconds,function()
   if bot.model.Parent and not bot.alive and bot.recoveryVersion==version then restoreBot(bot) end
@@ -496,15 +549,42 @@ local function stepSustained(p,s,now)
  if beam and not ended then
   intent.evaded=intent.evaded or {}
   for _,target in ipairs(beam.dodged) do
-   if not intent.evaded[target.UserId] then intent.evaded[target.UserId]=true;questProgress(target,"Evade") end
+   if not intent.evaded[target.UserId] then
+    intent.evaded[target.UserId]=true
+    confirmBeamDodge(target,now)
+   end
   end
   -- One successful impulse per activity per scream, not five impulses per second.
   if not intent.soccerHit then intent.soccerHit=Soccer.Hit(p,beam.origin,beam.direction,beam.length,beam.width,beam.power)==true end
   if not intent.volleyHit then intent.volleyHit=BeachVolley.Hit(p,beam.origin,beam.direction,beam.length,beam.width,beam.power)==true end
+  local noContact=#hits==0 and not intent.soccerHit and not intent.volleyHit
+  local noHit=noContact and not intent.damageTotal
+  if noHit and #beam.dodged>0 and not intent.evadeReported then
+   intent.evadeReported=true
+   effect:FireClient(p,"SustainedEvaded",nil,p:GetAttribute("SustainedSequence"))
+  elseif not intent.coverReported and not intent.evadeReported then
+   local blocked=beam.obstruction and noContact and #beam.dodged==0
+   intent.coverTicks=blocked and (intent.coverTicks or 0)+1 or nil
+   if intent.coverTicks==2 then
+    intent.coverReported=true
+    local lastDamage=intent.damageTotal and math.floor(intent.damageTotal+.5)
+    effect:FireClient(p,"SustainedCover",nil,p:GetAttribute("SustainedSequence"),lastDamage)
+   end
+  end
+  if not intent.openMissReported then
+   local open=noHit and not beam.obstruction and #beam.dodged==0 and not intent.coverReported and not intent.evadeReported
+   intent.openTicks=open and (intent.openTicks or 0)+1 or nil
+   if intent.openTicks==4 then
+    intent.openMissReported=true
+    effect:FireClient(p,"SustainedNoHit",nil,p:GetAttribute("SustainedSequence"))
+   end
+  end
+  local tint
   for _,viewer in ipairs(Players:GetPlayers()) do
    local _,root=parts(viewer)
    if root and (root.Position-beam.origin).Magnitude<=180 then
-    effect:FireClient(viewer,"SustainedBeam",beam.origin,p.UserId,beamColor(p,s),beam.direction,beam.length,beam.width,intent.audioStyleId,intent.level)
+    tint=tint or beamColor(p,s)
+    effect:FireClient(viewer,"SustainedBeam",beam.origin,p.UserId,tint,beam.direction,beam.length,beam.width,intent.audioStyleId,intent.level)
    end
   end
  end
@@ -528,7 +608,15 @@ local function stepSustained(p,s,now)
    if h.Health<=hit.damage then
     awardCombatKO(ts.credit,p,ts.data.level,h.MaxHealth,Config.PlayerKOXP(ts.data.level),now,target.player)
     eject(target.player,h)
-   else h.Health-=hit.damage end
+   else
+    local previous=h.Health
+    h.Health-=hit.damage
+    if h.Health<previous and now>=(ts.nextBeamCueAt or 0) then
+     -- Refresh the 1.4-second defender cue at most once per second across all beams.
+     ts.nextBeamCueAt=now+1
+     effect:FireClient(target.player,"SustainedDamageTaken",h)
+    end
+   end
   elseif target.boss then
    dealt+=bosses:Hit(target.boss,p,hit.damage,now)
   elseif target.object then
@@ -632,7 +720,7 @@ local function cast(p,request)
   for _,target in ipairs(Players:GetPlayers()) do
    local ts=sessions[target];local tc,tr,th=parts(target)
    if target~=p and sameCombatMode(s,ts) and tr and Rules.CanTarget(r.Position,tr.Position,ts.protectedUntil,now,sound.range+2) and Rules.InBeam(origin,direction,tr.Position,length,sound.width,1) and audible(c,origin,tr.Position,tc) then
-    if now<ts.dodgingUntil and not ts.premiumRoll then evades+=1;questProgress(target,"Evade")
+    if now<ts.dodgingUntil and not ts.premiumRoll then evades+=1;confirmBeamDodge(target,now)
     else
      playerHits+=1;summaryDamage+=math.min(sound.damage,th.Health)
      ts.nextHeal=now+Config.HealQuietSeconds
@@ -661,8 +749,9 @@ local function finishDodge(p,s,c,r,h,started,now)
 end
 local function dodge(p,sideIntent)
  local s=sessions[p];local c,r,h=parts(p);local now=os.clock()
- if s then cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0) end
  if not s or not r or r.Anchored or h.Sit or h.SeatPart or h.PlatformStand or now<s.nextDodge or now<(s.knockedUntil or 0) or h.FloorMaterial==Enum.Material.Air then return end
+ -- An invalid roll request must leave the current attack intact.
+ cancelSustained(p,s,now);VoiceCombat.Cancel(s.voice);p:SetAttribute("CaptureStarted",0)
  local cooldown=Entitlements.CanUseMovement(p,r.Position) and Config.DodgeDuration or Config.DodgeCooldown
  s.nextDodge=now+cooldown;s.dodgingUntil=now+Config.DodgeDuration
  s.lastDodge=now;s.premiumRoll=cooldown<Config.DodgeCooldown
@@ -698,8 +787,8 @@ local function closeConversation(p)
  if bot and bot.talkingTo==p then bot.talkingTo=nil;bot.socialUntil=0 end
  if s then s.conversationBot=nil end
 end
-local function gearAction(p,s,id,toggle)
- local ok,message=Config.Gear.Act(s.data,id,toggle)
+local function gearAction(p,s,id,intent)
+ local ok,message=Config.Gear.Act(s.data,id,intent)
  state(p,message,nil,not ok)
 end
 local function megaphone(p,s,toggle) gearAction(p,s,"Megaphone",toggle) end
@@ -749,8 +838,11 @@ local function talk(p,id)
    local q=Config.GetQuest(id);local progress=s.data.quests[id]
    if q then table.insert(choices,{id=id,name=q.name,description=q.description,claimed=progress and progress.claimed==true,complete=progress and progress.progress>=q.goal}) end
   end
-  local hints={Gardener="The raised flowerbeds in Rambla Gardens need water. Use the interaction prompt beside each bed after accepting my task.",Vendor="The café sends orders along the waterfront. Collect one, then check your objective for its destination.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker="Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
-  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena.",quests=choices,products=b.role=="Vendor" and Config.Gear.Products(s.data) or nil});return
+  local gardenPvp=Config.HasGardenPvp()
+  local pvpHint=gardenPvp and "PvP is active in the stadium arena and on marked lower Garden terraces. Check the map for red areas." or "Player combat stays inside the central arena."
+  local gardenHint=gardenPvp and "Water each flowerbed with its prompt. On the way to the beach, check the PvP status on the lower Garden terraces." or "The raised flowerbeds in Rambla Gardens need water. Use the interaction prompt beside each bed after accepting my task."
+  local hints={Gardener=gardenHint,Vendor="The café sends orders along the waterfront. Collect one, then check your objective for its destination.",Soccer="I call it an assist when I miss. Your microphone can steer a training ball; softer shots give you more control.",BeachWorker="Please keep the sand clear. You can follow the promenade to the pier and the hidden courts beyond it.",Busker=gardenPvp and pvpHint or "Come for the music, stay for the beach. The central arena is the only place where players can damage each other."}
+  state(p,message,{npc=b.model,name=b.name,line=message,hint=hints[b.role] or (gardenPvp and pvpHint or "Explore the courtyards, shops and waterfront. Some residents offer tasks; player combat stays inside the central arena."),quests=choices,products=b.role=="Vendor" and Config.Gear.Products(s.data) or nil});return
  end end
 end
 local function dev(p,command)
@@ -830,7 +922,8 @@ local function interactQuest(p,obj)
   if not s or s.flight or not r or not marker or not marker:IsA("BasePart") or (r.Position-marker.Position).Magnitude>12 then return end
   local active=Config.GetQuest(s.activeQuest)
   local progress=active and s.data.quests[active.id]
-  if progress and (progress.claimed or progress.progress>=active.goal) then state(p,"Task complete · claim your reward in Quests.");return end
+  if progress and progress.claimed then return end
+  if progress and progress.progress>=active.goal then state(p,"Task complete · claim your reward in Quests.",nil,false,"questClaim");return end
   local kind=marker:GetAttribute("QuestAction")
   if kind=="Garden" and s.activeQuest=="garden" then
    if s.collected[marker.Name] then state(p,"This bed is already watered.");return end
@@ -961,7 +1054,11 @@ action.OnServerEvent:Connect(function(p,verb,arg)
  elseif verb=="Talk" then talk(p,arg)
  elseif verb=="DevCommand" then dev(p,arg)
  elseif verb=="EquipSound" then local sound=type(arg)=="string" and Config.GetSound(arg);if sound and sound.level<=s.data.level then s.data.sound=sound.id;state(p,sound.name.." equipped") end
- elseif verb=="Gear" then if type(arg)=="string" then gearAction(p,s,arg,true) end
+ elseif verb=="Gear" then
+  if type(arg)=="string" then gearAction(p,s,arg,true)
+  elseif type(arg)=="table" and type(arg.id)=="string" and (arg.intent=="buy" or arg.intent=="equip" or arg.intent=="unequip") then
+   gearAction(p,s,arg.id,arg.intent)
+  end
  elseif verb=="MicroSpeaker" then microSpeaker(p,s,true)
  elseif verb=="Megaphone" then megaphone(p,s,true)
  elseif verb=="VendorPurchase" then vendorPurchase(p,s,arg)
@@ -981,31 +1078,43 @@ action.OnServerEvent:Connect(function(p,verb,arg)
    if not root or (root.Position-(Config.CompactCity and Config.CityLayout.Soccer.center or Vector3.new(647,4,547))).Magnitude>90 then state(p,"Return to Nick's coastal court to start.");return end
   end
   if q then local v=s.data.quests[q.id];if not v then v={progress=0,claimed=false};s.data.quests[q.id]=v end
-   if not v.claimed and v.progress>=q.goal then state(p,"Task complete · claim your reward.");return end
+   if not v.claimed and v.progress>=q.goal then state(p,"Task complete · claim your reward.",nil,false,"questClaim");return end
    if s.activeQuest==q.id then state(p,"Task already active · continue your current attempt.");return end
    if not v.claimed then stopQuest(p);v.progress=0;s.activeQuest=q.id;state(p,q.name.." accepted")
     if q.id=="nick" then Soccer.Start(p,function(message) state(p,message) end,function()
-     if sessions[p]==s and s.activeQuest=="nick" then s.questDeadline=nil;questProgress(p,"Soccer");state(p,"Nick: WE DID IT! Claim your reward in Quests.") end
+     if sessions[p]==s and s.activeQuest=="nick" then s.questDeadline=nil;questProgress(p,"Soccer");state(p,"Nick: WE DID IT!") end
     end,function() if sessions[p]==s and s.activeQuest=="nick" then stopQuest(p);state(p,"Nick: Attempt ended. Return to the court and accept my task to try again.") end end) end
    end end
  elseif verb=="AbandonQuest" then stopQuest(p);state(p,"Task abandoned. Unfinished progress was reset; earned rewards remain claimable.")
  elseif verb=="ClaimQuest" then
   local q=type(arg)=="string" and Config.GetQuest(arg);local v=q and s.data.quests[q.id]
-  if v and not v.claimed and v.progress>=q.goal then v.claimed=true;if q.id=="nick" then s.data.achievements.NickChampion=true end;local coinCredit=coins(p,q.coins);local xpCredit=xp(p,q.xp);if s.activeQuest==q.id then stopQuest(p) end;state(p,"Quest reward · +"..xpCredit.." XP · +"..coinCredit.." coins") end
+  if v and not v.claimed and v.progress>=q.goal then
+   v.claimed=true
+   if q.id=="nick" then s.data.achievements.NickChampion=true end
+   local coinCredit=coins(p,q.coins);local xpCredit=xp(p,q.xp)
+   if s.activeQuest==q.id then stopQuest(p) end
+   state(p,"Quest reward · +"..xpCredit.." XP · +"..coinCredit.." coins · "..q.name,nil,false,"questReceipt")
+  end
  elseif verb=="SetSettings" and type(arg)=="table" then
   if type(arg.volume)=="number" and arg.volume==arg.volume then s.data.settings.volume=math.clamp(arg.volume,0,1) end
   if type(arg.reducedShake)=="boolean" then s.data.settings.reducedShake=arg.reducedShake end;state(p)
  end
 end)
+local function arrivedFromAnotherPlace(p)
+ if game.GameId==0 then return false end
+ local join=p:GetJoinData()
+ local source=join.SourcePlaceId
+ return join.SourceGameId==game.GameId and type(source)=="number" and source>0 and source~=game.PlaceId
+end
 local function joined(p)
  if closing then return end
  task.spawn(Entitlements.Refresh,p)
  local data,save,loadMessage,recoveryWarning
  if localFixture then data,save,loadMessage=Profiles.Default(),false,"Local sustained prototype · saving disabled"
- else data,save,loadMessage,recoveryWarning=Profiles.Load(p.UserId) end
+ else data,save,loadMessage,recoveryWarning=Profiles.Load(p.UserId,arrivedFromAnotherPlace(p)) end
  if closing or not p.Parent then
   if save then
-   local completed,ok,reason=pcall(Profiles.Save,p.UserId,data,true)
+   local completed,ok,reason=pcall(Profiles.Save,p.UserId,data,true,shutdownSaveDeadline)
    if not completed or not ok then
     warn("ScreamSimulator late profile release failed",p.UserId,completed and reason or ok)
    end
@@ -1013,7 +1122,7 @@ local function joined(p)
   return
  end
  local s={data=data,canSave=save,recoveryWarning=recoveryWarning,rewardIdentity={},voice=VoiceCombat.New(),voiceEligibility=VoiceEligibility.New(localFixture,os.clock(),p.UserId),micReady=false,protectedUntil=0,nextCast=0,nextDodge=0,dodgingUntil=0,nextAction=0,nextHeal=os.clock()+Config.HealQuietSeconds,
- botRewards={},credit={},collected={},sprintRequested=false,sprintRunning=false,sprintRegenAt=0,sprintCharge=Config.SprintDuration,sprintLockedUntil=0,lastStep=os.clock()};sessions[p]=s
+ botRewards={},credit={},collected={},sprintRequested=false,sprintRunning=false,sprintRegenAt=0,sprintCharge=Config.SprintDuration,sprintLockedUntil=0,lastStep=os.clock(),nextAutosaveAt=save and os.clock()+30 or nil};sessions[p]=s
  -- Visibility cache only. Every activation, pulse and tick rechecks the dynamic server guard.
  s.testBeamAvailable=toolAuthorized(p)
  task.spawn(Commerce.Load,p)
@@ -1029,7 +1138,7 @@ local function joined(p)
   s.jumpPower=h.JumpPower;s.jumpHeight=h.JumpHeight
   h.MaxHealth=Config.HealthForLevel(s.data.level);h.Health=h.MaxHealth;h.WalkSpeed=16
   s.sprintCharge=Config.SprintDuration;s.sprintRequested=false;s.sprintRunning=false;s.sprintRegenAt=0;s.lastStep=os.clock();s.sprintLockedUntil=0;s.dodgingUntil=0;s.knockedUntil=0;s.premiumRoll=false
-  s.nextHeal=os.clock()+Config.HealQuietSeconds
+  s.nextHeal=os.clock()+Config.HealQuietSeconds;s.nextBeamCueAt=nil;s.nextBeamBodyBlockCueAt=nil
   p:SetAttribute("DodgeEnds",0);p:SetAttribute("DodgeStarted",0);p:SetAttribute("KnockdownEnds",0)
   p:SetAttribute("Sprinting",false);p:SetAttribute("SprintCooldown",0);p:SetAttribute("SprintCharge",Config.SprintDuration)
   protect(p,s);state(p)
@@ -1043,7 +1152,8 @@ local function joined(p)
  end)
  s.characterAddedConnection=p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
  stepVoiceEligibility(p,s,os.clock());dispatchVoiceEligibility(os.clock())
- state(p,loadMessage or "Welcome · train for XP, unlock beam styles, and explore the coast")
+ state(p,loadMessage or "Welcome · train for XP, unlock beam styles, and explore the coast",nil,false,
+  (localFixture or not loadMessage) and "welcome" or nil)
 end
 local function joinTracked(p)
  if closing then return end
@@ -1067,7 +1177,7 @@ local function leaving(p)
  sessions[p]=nil
  if s.canSave then
   departuresInFlight+=1
-  local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true)
+  local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true,shutdownSaveDeadline)
   departuresInFlight-=1
   if not completed or not ok then warn("ScreamSimulator departure save failed",p.UserId,completed and reason or ok) end
  end
@@ -1078,13 +1188,22 @@ if Config.CompactCity then
  local knockback=require(script.Parent.BossKnockback)
  bosses=require(script.Parent.BossService).new(workspace.ScreamSimulatorWorld,{
   player=function(id) return Players:GetPlayerByUserId(id) end,
+  rewardIdentity=function(p)
+   local s=sessions[p]
+   return canDamageBots(s) and s.rewardIdentity or nil
+  end,
   context=function(p,now)
    local s=sessions[p];local _,r,h=parts(p)
    if not canDamageBots(s) or not r or h.PlatformStand or Config.InArena(r.Position)
     or now<s.protectedUntil or now<(s.knockedUntil or 0) then return nil end
    return {position=r.Position,level=s.data.level,identity=s.rewardIdentity}
   end,
-  reward=function(p,spec,share) coins(p,math.floor(spec.coins*share));xp(p,math.floor(spec.xp*share));state(p,spec.name.." defeated · boss reward earned") end,
+  reward=function(p,spec,share)
+   local coinCredit=coins(p,math.floor(spec.coins*share))
+   local xpCredit=xp(p,math.floor(spec.xp*share))
+   local reward=if xpCredit==0 and coinCredit==0 then "no XP or coins credited" else "+"..xpCredit.." XP · +"..coinCredit.." coins"
+   state(p,spec.name.." defeated · "..reward)
+  end,
   damage=function(p,amount,now,boss,strike)
    local s=sessions[p];local c,r,h=parts(p)
    if not s or not r or not h or now<s.dodgingUntil or now<s.protectedUntil then return end
@@ -1111,30 +1230,46 @@ local function stepTraining(now)
  for _,bot in ipairs(World.Bots) do
   if not bot.training or not bot.alive then continue end
   if now-(bot.lastTrainingHit or now)>TrainingRules.ResetAfter and bot.health<bot.maxHealth then restoreBot(bot) end
-  local p=bot.trainingTarget;local s=p and sessions[p];local c,r,h
+  -- Hits during a windup select the next target, not the strike already on the ground.
+  local strike=bot.strike
+  local p=if strike then strike.target else bot.trainingTarget
+  local s=p and sessions[p];local c,r,h
   if p then c,r,h=parts(p) end
-  local valid=s and not s.flight and r and s.micReady and not Config.InArena(r.Position) and (r.Position-bot.start).Magnitude<=TrainingRules.Radius
-   and now>=s.protectedUntil and now>=(s.knockedUntil or 0) and audible(bot.model,bot.root.Position,r.Position,c)
-  if not valid then bot.strike=nil;bot.trainingTarget=nil;continue end
-  if bot.strike then
-   if now>=bot.strike.at then
-    local strike=bot.strike;bot.strike=nil
-    local delta=r.Position-strike.position
-    if TrainingRules.Hits(Vector3.new(delta.X,0,delta.Z).Magnitude,now<s.protectedUntil,now<s.dodgingUntil) then
+  local valid=s and not s.flight and r and not Config.InArena(r.Position) and (r.Position-bot.start).Magnitude<=TrainingRules.Radius
+   and now>=s.protectedUntil and now>=(s.knockedUntil or 0)
+  if not valid or (strike and strike.character~=c)
+   or (not strike and (not s.micReady or not audible(bot.model,bot.root.Position,r.Position,c))) then
+   clearTrainingStrike(bot)
+   if bot.trainingTarget==p then bot.trainingTarget=nil end
+   continue
+  end
+  if strike then
+   if now>=strike.at then
+    clearTrainingStrike(bot)
+    -- An announced strike resolves against the same character; cover matters at impact.
+    if TrainingRules.Hits(strike.position,r.Position,now<s.protectedUntil,now<s.dodgingUntil)
+     and audible(bot.model,bot.root.Position,r.Position,c) then
      s.nextHeal=now+Config.HealQuietSeconds
      if h.Health<=bot.training.damage then eject(p,h) else h.Health-=bot.training.damage;state(p) end
     end
+   else
+    local remaining=math.clamp((strike.at-now)/TrainingRules.Windup,0,1)
+    strike.warning.Transparency=.24+.41*remaining
    end
   elseif now>=(bot.nextStrike or 0) then
    bot.nextStrike=now+TrainingRules.AttackInterval
-   bot.strike={at=now+TrainingRules.Windup,position=r.Position}
    -- Replicated, bounded warning disc; never collides or blocks the player's beam.
    local disc=Instance.new("Part");disc.Name="TrainingStrikeWarning";disc.Anchored=true
    disc.CanCollide=false;disc.CanTouch=false;disc.CanQuery=false;disc.Shape=Enum.PartType.Cylinder
-   local warningY=(bot.training.y or 0)+1.4
-   disc.Size=Vector3.new(.1,8,8);disc.CFrame=CFrame.new(r.Position.X,warningY,r.Position.Z)*CFrame.Angles(0,0,math.pi/2)
-   disc.Color=Color3.fromRGB(255,90,70);disc.Material=Enum.Material.Neon;disc.Transparency=.45;disc.Parent=workspace
-   game:GetService("Debris"):AddItem(disc,TrainingRules.Windup)
+   local center=Vector3.new(r.Position.X,bot.trainingSurfaceY,r.Position.Z)
+   local diameter=TrainingRules.StrikeRadius*2
+   disc.Size=Vector3.new(.1,diameter,diameter);disc.CFrame=CFrame.new(center.X,center.Y+.07,center.Z)*CFrame.Angles(0,0,math.pi/2)
+   disc.Color=Color3.fromRGB(255,90,70);disc.Material=Enum.Material.Neon;disc.Transparency=.65;disc.CastShadow=false;disc.Parent=workspace
+   local cueUntil=workspace:GetServerTimeNow()+TrainingRules.Windup
+   bot.strike={at=now+TrainingRules.Windup,position=center,warning=disc,target=p,character=c,cueUntil=cueUntil}
+   c:SetAttribute("TrainingStrikeCenter",bot.strike.position)
+   c:SetAttribute("TrainingStrikeAt",cueUntil)
+   game:GetService("Debris"):AddItem(disc,TrainingRules.Windup+.5)
   end
  end
 end
@@ -1201,7 +1336,12 @@ task.spawn(function()
    -- Crossing into PvP immediately restores the full dodge cooldown.
    if r and Config.InArena(r.Position) and s.lastDodge then
     if s.premiumRoll then s.premiumRoll=false;s.dodgingUntil=0;p:SetAttribute("DodgeEnds",0) end
-    s.nextDodge=math.max(s.nextDodge,s.lastDodge+Config.DodgeCooldown);p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+math.max(0,s.nextDodge-now)) end
+    local deadline=s.lastDodge+Config.DodgeCooldown
+    if deadline>s.nextDodge then
+     s.nextDodge=deadline
+     if deadline>now then p:SetAttribute("DodgeReady",workspace:GetServerTimeNow()+(deadline-now)) end
+    end
+   end
    if s.sustained and s.sustained.protocol.active then stepSustained(p,s,os.clock()) end
    if s.damageSummary then
     if h and not s.flight then stepDamageSummary(p,s,os.clock()) else clearDamageSummary(p,s) end
@@ -1219,18 +1359,20 @@ task.spawn(function()
      p.Character:PivotTo(World.SafeSpawn);protect(p,s)
      r.AssemblyLinearVelocity=Vector3.zero;r.AssemblyAngularVelocity=Vector3.zero
      state(p,"Returned to the safe courtyard")
-    elseif not Config.CompactCity and r.Position.Z>600 and (r.Position.Z>780 or math.abs(r.Position.X)>700) then
+    elseif not Config.CompactCity and not Config.ResonanceLayout and r.Position.Z>600 and (r.Position.Z>780 or math.abs(r.Position.X)>700) then
      resetMovement(p,s,h,r);running=false
      p.Character:PivotTo(CFrame.new(math.clamp(r.Position.X,-670,670),5,594));protect(p,s)
      state(p,"Lifeguard rescue · stay inside the gold buoys.")
     elseif r.Position.Y< -20 then
-     resetMovement(p,s,h,r);running=false;p.Character:PivotTo(World.SafeSpawn);protect(p,s)
-     state(p,"Rescued · back at the safe hub")
+     local rescue,notice
+     if World.FallRescue then rescue,notice=World.FallRescue(r.Position) end
+     resetMovement(p,s,h,r);running=false;p.Character:PivotTo(rescue or World.SafeSpawn);protect(p,s)
+     state(p,notice or "Rescued · back at "..(World.SafeSpawnLabel or "the safe hub"))
     end
    end
    if s.questDeadline and now>s.questDeadline then stopQuest(p);state(p,"Time's up · accept the task again to restart.") end
    p:SetAttribute("SprintCharge",s.sprintCharge);p:SetAttribute("SprintCooldown",math.max(0,s.sprintLockedUntil-now));p:SetAttribute("Sprinting",running==true)
-   if tick%5==0 then state(p) end
+   if tick%5==0 then state(p,nil,nil,nil,nil,true) end
   end
  end
 end)
@@ -1247,11 +1389,38 @@ local function autosave(p,s)
   if first then state(p,"Save delayed. Your progress is still in this server; saving will retry automatically.",nil,true,"save") end
  end
 end
-task.spawn(function() while true do task.wait(60);for p,s in pairs(sessions) do if s.canSave then task.spawn(autosave,p,s) end end end end)
+local function stepAutosaves(now)
+ if closing then return end
+ local player,session
+ for p,s in pairs(sessions) do
+  if s.canSave and p.Parent and not s.autosaveInFlight and now>=s.nextAutosaveAt
+   and (not session or s.nextAutosaveAt<session.nextAutosaveAt) then
+   player,session=p,s
+  end
+ end
+ if not session then return end
+ -- Pace starts, including after a slow frame, without stacking a player's saves.
+ session.nextAutosaveAt=now+60
+ session.autosaveInFlight=true
+ task.defer(function()
+  if not closing and sessions[player]==session and player.Parent and session.canSave then
+   autosave(player,session)
+  end
+  session.autosaveInFlight=false
+ end)
+end
+task.spawn(function()
+ while not closing do
+  task.wait(.25)
+  stepAutosaves(os.clock())
+ end
+end)
 local function shutdown()
- closing=true
- local pending=0
  local deadline=os.clock()+25
+ shutdownSaveDeadline=deadline
+ closing=true
+ Commerce.BeginShutdown(deadline)
+ local pending=0
  local finalSaves={}
  -- Freeze gameplay before any final save can yield or release its lease.
  -- In-flight joins see closing and release their acquired profile instead.
@@ -1267,12 +1436,16 @@ local function shutdown()
   if s.canSave then
    pending+=1
    task.spawn(function()
-    local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true)
+    local completed,ok,reason=pcall(Profiles.Save,p.UserId,s.testBaseline or s.data,true,deadline)
     pending-=1
     if not completed or not ok then warn("ScreamSimulator shutdown save failed",completed and reason or ok) end
    end)
   end
  end
- while (pending>0 or departuresInFlight>0 or joinsInFlight>0) and os.clock()<deadline do task.wait(.1) end
+ while pending>0 or departuresInFlight>0 or joinsInFlight>0 or Commerce.HasTransactions() do
+  local remaining=deadline-os.clock()
+  if remaining<=0 then break end
+  task.wait(math.min(.1,remaining))
+ end
 end
 game:BindToClose(shutdown)

@@ -11,8 +11,14 @@ config=(shared/'Config.luau').read_text()
 city=(server/'CompactCity.luau').read_text()
 combat=(server/'CombatRules.luau').read_text().split('\n',1)[1]
 catalog=(shared/'BossCatalog.luau').read_text()
-authority='\n'.join(line for line in config.splitlines() if line.startswith(('function Config.InGardenPvp(', 'function Config.InArena(')))
-assert len(authority.splitlines())==2
+authority='\n'.join(line for line in config.splitlines() if line.startswith(('function Config.HasGardenPvp(', 'function Config.InGardenPvp(', 'function Config.InArena(')))
+assert len(authority.splitlines())==3
+bootstrap=(server/'Bootstrap.server.luau').read_text()
+hint_start=bootstrap.index('  local gardenPvp=Config.HasGardenPvp()')
+hint_end=bootstrap.index('  state(p,message,{npc=b.model',hint_start)
+dialogue=bootstrap[hint_start:bootstrap.index(';return',hint_end)]
+dialogue='\nlocal function hintFor(role)\n local b={role=role};local result\n local function state(_,_,packet)result=packet.hint end\n'+dialogue+'\n return result\nend\n'
+
 setup=r'''
 local checks=0
 local function check(value,msg) assert(value,msg);checks+=1 end
@@ -25,7 +31,7 @@ local Vector3={new=V,zero=V(0,0,0)}
 local Color3={fromRGB=function(...) return {...} end}
 local cfmt={__mul=function(a,b)return a end}
 local CFrame={new=function(...)return setmetatable({},cfmt) end,Angles=function(...)return setmetatable({},cfmt) end}
-local Enum={Material=setmetatable({},{__index=function(_,k)return k end}),PartType={Cylinder="Cylinder",Ball="Ball"},KeyCode={F="F"}}
+local Enum={ModelStreamingMode={Persistent="Persistent"},Material=setmetatable({},{__index=function(_,k)return k end}),PartType={Cylinder="Cylinder",Ball="Ball"},KeyCode={F="F"}}
 local parts={}
 local Instance={new=function(class)
  local attributes={}
@@ -155,7 +161,11 @@ local north,south,safe,lower=V(0,19,94),V(0,19,126),V(0,19,96),V(0,3,94)
 check(Rules.CanTarget(north,south,4,4,40),"existing targeted PvP permission can't enter new garden")
 check(not Rules.CanTarget(north,south,5,4,40) and not Rules.CanTarget(north,south,4,4,3),"protection or distance rules changed")
 check(not Rules.CanTarget(north,safe,0,1,40) and not Rules.CanTarget(lower,north,0,1,40),"safe route or another level allows targeting")
+for _,role in ipairs({"Busker","Local","Gardener"}) do
+ check(hintFor(role):find("lower Garden terraces",1,true)~=nil,"Map10 dialogue hid Garden PvP for "..role)
+end
 Config.CompactCity=false
+check(hintFor("Busker"):find("central arena",1,true) and not hintFor("Gardener"):find("PvP",1,true),"Legacy dialogue inherited a Garden warning")
 check(not Config.InGardenPvp(north) and not Config.InArena(north),"garden leaked into noncompact variant")
 Config.CompactCity=true
 Layout.MapId="HistoricalFixture"
@@ -164,7 +174,7 @@ print("PASS "..checks.." actual-source geometry, cosmetic marking and PvP author
 '''
 def module(name,content):
     return f'\nlocal {name}=(function()\n{content}\nend)()\n'
-src=setup+module('Layout',layout)+links+authority+module('Bosses',catalog)+module('City',city)+module('Rules',combat)+checks
+src=setup+module('Layout',layout)+links+authority+module('Bosses',catalog)+module('City',city)+module('Rules',combat)+dialogue+checks
 with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=ROOT/'tests',delete=False) as f:
     f.write(src);path=Path(f.name)
 try:

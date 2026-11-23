@@ -1,5 +1,15 @@
 # Native PvP reward validation
 
+## November 22 two-client Action and notice check
+
+- Source `aaa7268aa280dea02eeabb26942d4e721fb67c58`, guarded local Studio place `CityKONoticeTransportReview.rbxl`, one local server and two local clients. The fixture staged level-1 avatars in Coastal Arena with an eight-stud clear beam path, used synthetic ready/focus and sent standard beam actions through `ScreamRemotes.Action`. The server determined damage, credit, protection, ejection and the reward. Both local clients displayed the production notification view. The first attempt acknowledged a cast but never damaged the defender while the mic controller still ran alongside synthetic input. The scoped rerun disconnected microphone input in the disposable clients before injecting readiness and beam power.
+- First KO: defender began at 100 HP, reached an observed 3 HP, then returned to the safe hub with 100 HP and spawn protection. The attacker received and displayed **KO · +96 XP · +20 coins** and went from level 1, 0 XP, 0 coins to level 2, 25 XP, 20 coins. The defender received and displayed **Knocked out · back at the safe hub**.
+- Repeat KO: after natural protection and normal attacks on the same defender within the reward cooldown, the defender reached an observed 1 HP, then returned to the hub at 100 HP under protection. The attacker received and displayed **KO · no reward awarded**. Level, XP and coins did not change. The defender again displayed the hub notice. Neither client received the other player's KO notice. Each fight used two acknowledged casts and took about 12.1 seconds after staging, with 51 and 52 pulse requests respectively.
+- Local fixture source is under `build/ko_transport/`. Studio version `0.748.0.7481526` ran the guarded test with `StudioTestService:ExecuteMultiplayerTestAsync(2, "CityKONoticeTransportReview")`. The local server and both clients were stopped, and the test editor was closed. The retained runner log excerpt is truncated, so the full round results above are from the native tool return.
+- This verifies native local RemoteEvent delivery, server outcomes and visible toasts for a staged pair. The check did not timestamp notice arrival against intermediate health. Actual microphone onset, the normal pulse scheduler, physical input, cross-place transfer, a representative multiplayer soak and actual saves remain unverified.
+
+## Earlier resolver fixture
+
 Started from clean local/fetched `44e310427a45667f2babaa21677e31c39b5f3d30`. The current server combat/reward path had mocked checks but the recorded two-client native pass predated current tuning. Reused the existing guarded `SustainedNativeFixture` rather than adding a new framework. No production behavior changed.
 
 ## Reproduced test weakness
@@ -25,7 +35,7 @@ Normal/restored runs must pass 14 checks; the negative run must fail specificall
 
 Native engine avatars, raycasts, arena/protection/dodge checks, health, KO ejection and reward helpers are exercised. Attack power, aim, anchored positions, eligibility timestamps and pre-KO damage credit are injected; the helper calls the adapter directly, bypassing client pulse scheduling/RemoteEvent transport. This is not real-voice input, physical dodge timing, internet latency, mixed-level balance, real saves or a representative multiplayer soak. The airborne arena test geometry is intentional isolation, not authored ground-cover validation.
 
-The minimum remaining core-input check is two people using two voice-eligible accounts/devices (desktop plus physical phone preferred), with microphones/headphones and an explicitly authorized isolated environment containing the exact candidate. Verify calibrated speech and quiet-stop, four-second cap/ten-second cooldown, OFF mid-attack preserving audible proximity conversation, then mute/focus/respawn and deliberate rearm. Real persistence needs separate authorization and isolated keys/environment; no live DataStore access is needed or permitted for this fixture. Native performance sampling remains a separate useful offline task, not evidence supplied by this combat test.
+The minimum remaining core-input check is two people using two voice-eligible accounts/devices (desktop plus physical phone preferred), with microphones/headphones and an explicitly authorized isolated environment containing the exact candidate. Start with Beams OFF, opt in, then check comfortable speech and quiet-stop without calibration, the four-second cap and five-second cooldown. Turn beams OFF mid-attack and confirm the other player can still hear ordinary proximity conversation. Test mute, focus, respawn and deliberate rearm. Real persistence needs separate authorization and isolated keys. Measure native performance separately from this combat test.
 
 ## Actual November 10 results and review
 

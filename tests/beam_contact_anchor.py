@@ -18,7 +18,7 @@ local function serial(v)
 end
 '''
 ENV=r'''
-local calls,contacts={},{}
+local calls,contacts,defenderCues={},{},{}
 local function recordDamage()end
 local VoiceCombat=require('../src/ReplicatedStorage/Shared/VoiceCombat')
 local Config={HealQuietSeconds=12,PlayerKOXP=function(level)return level*2 end}
@@ -61,6 +61,10 @@ local Destruction={Damage=function(o,level,damage)
  o.health=math.max(0,o.health-damage);return {health=o.health}
 end}
 local effect={FireClient=function(_,who,kind,position,...)
+ if kind=='SustainedDamageTaken' then
+  table.insert(defenderCues,{who=who,humanoid=position,health=h.Health})
+  return
+ end
  if kind=='SustainedHit'then table.insert(contacts,position or false);position='advisory omitted'end
  log('effect',who.UserId,kind,position,table.pack(...))
 end,FireAllClients=function(_,...)log('all-effect',...)end}
@@ -89,15 +93,37 @@ elseif case=='ended'then ended={reason='duration'}end
 '''
 FINISH=r'''
 stepSustained(p,s,10)
-if case=='repeat'then stepSustained(p,s,10.2)end
-return {calls=calls,intent=s.sustained.intent,nextHeal=s.nextHeal,health=h.Health,defender=defender,botHealth=bot.health,botAlive=bot.alive,botCredit=bot.credit,trainingTarget=bot.trainingTarget and bot.trainingTarget.UserId,lastTrainingHit=bot.lastTrainingHit,objectHealth=object.health,rewards=s.botRewards,playerRoot=type(playerRoot)=='table' and playerRoot.Position or playerRoot,botRoot=botRoot.Position},contacts
+if case=='repeat'then queuedHits[1].firstHit=false;stepSustained(p,s,10.2)end
+if case=='reentry'then
+ queuedHits={}
+ stepSustained(p,s,11.4)
+ queuedHits={{id='player',damage=3,firstHit=false}}
+ stepSustained(p,s,12)
+end
+if case=='other-attacker'then
+ local partner={UserId=4,GetAttribute=p.GetAttribute}
+ local otherSession={sustained={intent={level=10,damageTotal=0,audioStyleId='TinyAah'}},data={level=10},botRewards={},nextHeal=1}
+ stepSustained(partner,otherSession,10.2)
+end
+defender.nextBeamCueAt=nil -- Omit presentation-only state from damage/reward comparison.
+return {calls=calls,intent=s.sustained.intent,nextHeal=s.nextHeal,health=h.Health,defender=defender,botHealth=bot.health,botAlive=bot.alive,botCredit=bot.credit,trainingTarget=bot.trainingTarget and bot.trainingTarget.UserId,lastTrainingHit=bot.lastTrainingHit,objectHealth=object.health,rewards=s.botRewards,playerRoot=type(playerRoot)=='table' and playerRoot.Position or playerRoot,botRoot=botRoot.Position},contacts,defenderCues,victim,h
 end
 '''
 CASES=r'''
 local nilCue={['missing-root']=true,['bad-root']=true,['wrong-class']=true,['detached-root']=true,['bad-character']=true,['bad-position']=true,['nan-position']=true,['infinite-position']=true,['invalid-first']=true,object=true}
 local absent={miss=true,['no-hurt']=true,['object-rejected']=true}
-for _,case in ipairs({'player','fatal-player','bot','fatal-bot','resident','multi','reversed','zero-first','no-hurt','miss','missing-root','bad-root','wrong-class','detached-root','bad-character','bad-position','nan-position','infinite-position','invalid-first','object','object-rejected','fractional','ended','repeat'})do
- local a,old=oldStep(case);local b,new=newStep(case)
+for _,case in ipairs({'player','fatal-player','bot','fatal-bot','resident','multi','reversed','zero-first','no-hurt','miss','missing-root','bad-root','wrong-class','detached-root','bad-character','bad-position','nan-position','infinite-position','invalid-first','object','object-rejected','fractional','ended','repeat','reentry','other-attacker'})do
+ local a,old,oldCues=oldStep(case);local b,new,cues,victim,h=newStep(case)
+ local shouldCue=case~='fatal-player' and case~='bot' and case~='fatal-bot' and case~='resident' and not absent[case]
+  and case~='object' and case~='zero-first'
+ local count=case=='reentry' and 2 or shouldCue and 1 or 0
+ check(#oldCues==0 and #cues==count,'Incorrect defender cue count: '..case)
+ if shouldCue then
+  local cue=cues[1]
+  check(cue.who==victim and cue.humanoid==h,'Defender cue sent to wrong player or life: '..case)
+  check(cue.health==(case=='fractional' and 99.75 or 97),'Defender cue sent before actual health loss: '..case)
+ end
+ if case=='reentry' then check(cues[2].who==victim and cues[2].humanoid==h and cues[2].health==94,'Returning damage did not refresh the private cue after health loss') end
  check(serial(a)==serial(b),'Damage/state/call order differs: '..case)
  check(#old==#new,'Effect count differs: '..case)
  for _,v in ipairs(old)do check(v==false,'Baseline had a world anchor')end
@@ -108,7 +134,7 @@ for _,case in ipairs({'player','fatal-player','bot','fatal-bot','resident','mult
   check(serial(new[1])==serial(expected),'Wrong/pre-eject contact snapshot: '..case)
  end
 end
-print('PASS '..checks..' actual server anchor/damage differential assertions;24cases, no native collision proof')
+print('PASS '..checks..' actual server anchor/damage differential assertions;26 cases, no native collision proof')
 '''
 
 def run(s):
@@ -127,12 +153,27 @@ if __name__=='__main__':
  new=new.replace(boss_branch,'',1)
  # Separate private damage telemetry is exercised by its own tests, not part of old feedback comparison.
  new=new.replace('  if not target.object then summaryDamage+=dealt-dealtBefore end\n','',1)
+ new=new.replace('''   else
+    local previous=h.Health
+    h.Health-=hit.damage
+    if h.Health<previous and now>=(ts.nextBeamCueAt or 0) then
+     -- Refresh the 1.4-second defender cue at most once per second across all beams.
+     ts.nextBeamCueAt=now+1
+     effect:FireClient(target.player,"SustainedDamageTaken",h)
+    end
+   end''','   else h.Health-=hit.damage end',1)
  a='  if target.player then';b='\n  end\n end\n if dealt>0 then'
  assert old[old.index(a):old.index(b)+len('\n  end')]==new[new.index(a,new.index('local position=')):new.index('\n  if dealt>dealtBefore')],'Damage/reward branch text changed'
  print('PASS unchanged damage/reward branch source contract')
  result=run(source);print(result.stdout,end='');assert result.returncode==0,result.stderr
  if '--negative-controls' in sys.argv:
   mutations=[('"SustainedHit",contactPosition,','"SustainedHit",nil,','Wrong/pre-eject contact'),('dealt>dealtBefore and not contactChosen','true','Wrong/pre-eject contact'),('not contactChosen','true','Wrong/pre-eject contact'),('contactPosition=position','contactPosition=targetRoot and targetRoot.Position','Wrong/pre-eject contact'),(' or not VoiceCombat.IsFinite(position.Y)','', 'Malformed/object first contact'),('math.floor(intent.damageTotal+.5)','math.floor(intent.damageTotal+1.5)','Damage/state/call order differs')]
+  mutations.extend([
+   ('h.Health<previous and now>=(ts.nextBeamCueAt or 0)','hit.firstHit and h.Health<previous','Incorrect defender cue count: reentry'),
+   ('h.Health<previous and now>=(ts.nextBeamCueAt or 0)','h.Health<previous','Incorrect defender cue count: repeat'),
+   ('FireClient(target.player,"SustainedDamageTaken",h)','FireClient(p,"SustainedDamageTaken",h)','Defender cue sent to wrong player or life'),
+   ('   else\n    local previous=h.Health\n    h.Health-=hit.damage','   else\n    local previous=h.Health', 'Incorrect defender cue count'),
+  ])
   for old,new,reason in mutations:
    assert source.count(old)==1,old
    result=run(source.replace(old,new,1));assert result.returncode and reason in result.stderr,(old,result.stdout,result.stderr)

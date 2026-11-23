@@ -1,0 +1,144 @@
+{
+  "scope": "Local desktop Studio client at a fixed iPhone 7 emulated viewport. Synthetic converging L100 visual rigs. Desktop frame intervals and instrumented script duration, without physical-device or GPU measurements.",
+  "priorAttempts": "Two desktop-viewport attempts aborted cleanly when the viewport changed after initial readiness.",
+  "started": {
+    "limitations": "Studio frame intervals and instrumented script section elapsed duration only; no GPU/phone/network claim",
+    "animationCadence": "30 Hz target; fractional carry, at most one update per frame",
+    "buildIdentity": "c890e4ce3da04af4e49fd030a812652f1a64330883cf4bd7ab897fb16aa94800",
+    "units": "ms",
+    "clock": "os.clock",
+    "maxBeams": 24,
+    "warmSeconds": 2,
+    "viewport": [
+      666,
+      374
+    ],
+    "sampleSeconds": 5,
+    "rendererQualityControlled": false,
+    "savedQualityPreference": "Enum.SavedQualitySetting.QualityLevel6"
+  },
+  "rows": [
+    {
+      "visible": 0,
+      "script": {
+        "p50": 0.000100000761449337,
+        "p95": 0.000200001522898674,
+        "p99": 0.000200001522898674,
+        "max": 0.00029999500839039683,
+        "n": 301
+      },
+      "phase": "baseline",
+      "allocated": 0,
+      "animationHz": 0,
+      "buildIdentity": "c890e4ce3da04af4e49fd030a812652f1a64330883cf4bd7ab897fb16aa94800",
+      "animationUpdates": 0,
+      "sampleSpanSeconds": 4.998945999999705,
+      "cached": 0,
+      "count": 0,
+      "enabledBeams": 0,
+      "frame": {
+        "p50": 16.692299395799637,
+        "p95": 17.660100013017654,
+        "p99": 17.933299764990807,
+        "max": 17.99659989774227,
+        "n": 301
+      },
+      "enabledEmitters": 0,
+      "sampledFrameSeconds": 5.016252381727099
+    },
+    {
+      "visible": 496,
+      "script": {
+        "p50": 3.627799997047987,
+        "p95": 4.004299997177441,
+        "p99": 4.289099997549783,
+        "max": 5.413899998529814,
+        "n": 301
+      },
+      "phase": "regular24",
+      "allocated": 496,
+      "animationHz": 30.101314113582266,
+      "buildIdentity": "c890e4ce3da04af4e49fd030a812652f1a64330883cf4bd7ab897fb16aa94800",
+      "animationUpdates": 151,
+      "sampleSpanSeconds": 5.000090599998657,
+      "cached": 0,
+      "count": 24,
+      "enabledBeams": 120,
+      "frame": {
+        "p50": 16.72999933362007,
+        "p95": 17.839500680565834,
+        "p99": 18.396800383925438,
+        "max": 18.53889971971512,
+        "n": 301
+      },
+      "enabledEmitters": 96,
+      "sampledFrameSeconds": 5.0163922887295485
+    },
+    {
+      "visible": 192,
+      "script": {
+        "p50": 0.9402999930898659,
+        "p95": 1.1203999965800904,
+        "p99": 1.18599999404978,
+        "max": 1.3768999997409992,
+        "n": 301
+      },
+      "phase": "crowded24",
+      "allocated": 496,
+      "animationHz": 30.10059165157397,
+      "buildIdentity": "c890e4ce3da04af4e49fd030a812652f1a64330883cf4bd7ab897fb16aa94800",
+      "animationUpdates": 151,
+      "sampleSpanSeconds": 4.99967270000343,
+      "cached": 304,
+      "count": 24,
+      "enabledBeams": 51,
+      "frame": {
+        "p50": 16.650399193167686,
+        "p95": 17.542099580168724,
+        "p99": 17.851799726486206,
+        "max": 18.18769983947277,
+        "n": 301
+      },
+      "enabledEmitters": 4,
+      "sampledFrameSeconds": 5.016512690111995
+    },
+    {
+      "visible": 96,
+      "script": {
+        "p50": 0.35819999902741984,
+        "p95": 0.4706999970949255,
+        "p99": 0.5409000004874542,
+        "max": 0.7308999993256293,
+        "n": 301
+      },
+      "phase": "reduced24",
+      "allocated": 496,
+      "animationHz": 30.099016622439365,
+      "buildIdentity": "c890e4ce3da04af4e49fd030a812652f1a64330883cf4bd7ab897fb16aa94800",
+      "animationUpdates": 151,
+      "sampleSpanSeconds": 4.99949000000197,
+      "cached": 400,
+      "count": 24,
+      "enabledBeams": 48,
+      "frame": {
+        "p50": 16.66809991002083,
+        "p95": 17.59590022265911,
+        "p99": 18.124699592590332,
+        "max": 18.45029927790165,
+        "n": 301
+      },
+      "enabledEmitters": 0,
+      "sampledFrameSeconds": 5.016775195486844
+    }
+  ],
+  "result": {
+    "ok": true,
+    "checks": 7829,
+    "rows": 4,
+    "buildIdentity": "c890e4ce3da04af4e49fd030a812652f1a64330883cf4bd7ab897fb16aa94800",
+    "studioOnly": true,
+    "gpuTiming": false,
+    "disconnected": true,
+    "cleanupErrors": []
+  }
+}

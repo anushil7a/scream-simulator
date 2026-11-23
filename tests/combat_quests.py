@@ -32,10 +32,16 @@ local function coins(p,amount)sessions[p].data.coins+=amount;return amount end
 local function xp(p,amount)earned+=amount;if reenter then local f=reenter;reenter=nil;f()end;return amount end
 local QuestLifecycle=realQuestLifecycle
 local function stopQuest(p)QuestLifecycle.Clear(sessions[p],Config.GetQuest) end
-local function parts()return nil,nil end
+local fixtureHumanoids={};local evadeCues,attackerCues,openCues={},{},{}
+local function parts(player)return nil,nil,fixtureHumanoids[player] end
+local effect={FireClient=function(_,player,kind,humanoid,sequence)
+ if kind=="BeamDodged" then table.insert(evadeCues,{player,kind,humanoid})
+ elseif kind=="SustainedEvaded" then table.insert(attackerCues,{player,sequence})
+ elseif kind=="SustainedNoHit" then table.insert(openCues,{player,sequence}) end
+end}
 local task={delay=function()end}
-local fixtureBeam,fixtureEnded
-local sustained={Step=function()return {},fixtureEnded,{},fixtureBeam end}
+local fixtureBeam,fixtureEnded,fixtureHits
+local sustained={Step=function()return fixtureHits or {},fixtureEnded,{},fixtureBeam end}
 local function sustainedContext()return {}end
 local function sustainedEnd()end
 local function resolveSustained()end
@@ -54,7 +60,7 @@ local legacy={nick={1,1800,1200,'Soccer'},garden={3,130,80,'Garden'},beach={6,10
 check(#Config.Quests==10,'Unexpected quest catalog size')
 local crowd=Config.GetQuest('crowd').description
 check(crowd:find('3 different NPCs',1,true) and crowd:find('residents or training fighters',1,true) and crowd:find('during one beam',1,true) and crowd:find('do not need to be hit at the same instant',1,true),'Crowd copy lost distinct-target/non-simultaneous clarification')
-for _,row in ipairs({{'crowd','Hit 3 different NPCs during one beam'},{'arena_assist','Assist an equal/higher-level arena KO'}})do
+for _,row in ipairs({{'crowd','Hit 3 different NPCs during one beam'},{'arena_assist','Assist an equal/higher-level player KO'}})do
  local q=Config.GetQuest(row[1]);check(realGuide.Step(q,0)==row[2],'Quest guide objective mismatch')
  check(realGuide.Step(q,q.goal):find('claim in Quests',1,true)~=nil,'Completed quest guide missing claim')
 end
@@ -184,6 +190,55 @@ check(P.Save(7,restartData,true),'Restart fixture final release failed')
 local catalog=Config.Quests;local old={};for _,q in ipairs(catalog)do if legacy[q.id]then table.insert(old,q)end end
 Config.Quests=old;local rollback=P.Sanitize(seed);Config.Quests=catalog
 check(rollback.quests.practice_beams==nil and rollback.quests.arena_assist==nil,'Rollback sanitation assumption changed')
+if confirmBeamDodge then
+ local defender={UserId=21}
+ p.GetAttribute=function()return 7 end
+ local ds=session(defender,nil)
+ local humanoid={};fixtureHumanoids[defender]=humanoid
+ local first={sustained={intent={}}}
+ local second={sustained={intent={}}}
+ fixtureBeam={dodged={}}
+ stepSustained(p,first,10)
+ check(#evadeCues==0 and #attackerCues==0,'Empty roll showed a dodge confirmation')
+ fixtureBeam.dodged={defender}
+ stepSustained(p,first,10)
+ check(#evadeCues==1 and evadeCues[1][1]==defender and evadeCues[1][2]=='BeamDodged' and evadeCues[1][3]==humanoid,
+  'Actual PvP evade did not send one private life-bound cue without a quest')
+ check(#attackerCues==1 and attackerCues[1][1]==p and attackerCues[1][2]==7,'Attacker did not get a private cast-bound cue')
+ ds.activeQuest='dodge';ds.data.quests.dodge={progress=0,claimed=false}
+ stepSustained(p,second,10.25)
+ check(#evadeCues==1 and #attackerCues==2 and ds.data.quests.dodge.progress==1,'Defender throttle changed quests or attacker feedback')
+ stepSustained(p,first,11.25)
+ stepSustained(p,second,11.3)
+ check(#evadeCues==1 and #attackerCues==2 and ds.data.quests.dodge.progress==1,'Cast replay renewed a dodge cue or quest')
+ stepSustained(p,{sustained={intent={}}},11.4)
+ check(#evadeCues==2 and #attackerCues==3 and ds.data.quests.dodge.progress==2,'Later cast failed to award its real evade')
+ fixtureHits={{id="another target",damage=3}}
+ stepSustained(p,{sustained={intent={}}},12.6)
+ check(#evadeCues==3 and #attackerCues==3 and ds.data.quests.dodge.progress==3,'Mixed hit and evade advertised an attacker dodge')
+ fixtureHits=nil
+ stepSustained(p,{sustained={intent={damageTotal=3}}},13.8)
+ check(#evadeCues==4 and #attackerCues==3,'A cast with prior damage showed attacker dodge feedback')
+
+ local open={sustained={intent={}}}
+ fixtureBeam={dodged={}}
+ for i=1,3 do stepSustained(p,open,14+i*.2) end
+ check(#openCues==0,'Open cue appeared before four ticks')
+ fixtureBeam.obstruction={}
+ stepSustained(p,open,14.8)
+ fixtureBeam.obstruction=nil
+ for i=1,3 do stepSustained(p,open,14.8+i*.2) end
+ check(#openCues==0,'Obstructed tick did not reset the open streak')
+ stepSustained(p,open,15.6)
+ check(#openCues==1 and openCues[1][1]==p and openCues[1][2]==7,'Four open ticks did not send one private cast-bound cue')
+ for i=1,5 do stepSustained(p,open,15.6+i*.2) end
+ check(#openCues==1,'An open cast repeated its advisory')
+ for _,intent in ipairs({{damageTotal=3},{soccerHit=true},{volleyHit=true},{coverReported=true},{evadeReported=true}}) do
+  local cast={sustained={intent=intent}}
+  for i=1,4 do stepSustained(p,cast,17+i*.2) end
+  check(#openCues==1,'Prior contact or specific cue allowed an open advisory')
+ end
+end
 print('PASS',n,'actual combat quest assertions; fake persistence and engine inputs only')
 """
 def run(code):
@@ -204,12 +259,19 @@ if __name__=='__main__':
     values[which]=values[which].replace(old,new,1);return tuple(values)
    return mutate
   controls=[
+   ('early open cue',change(2,'if intent.openTicks==4 then','if intent.openTicks==3 then'),'Open cue appeared before four ticks'),
+   ('open streak reset on cover',change(2,'+1 or nil\n   if intent.openTicks','+1 or intent.openTicks\n   if intent.openTicks'),'Obstructed tick did not reset the open streak'),
+   ('suppress open cue after specific cue',change(2,' and not intent.coverReported and not intent.evadeReported\n   intent.openTicks','\n   intent.openTicks'),'Prior contact or specific cue allowed an open advisory'),
+   ('attacker mixed contact gate',change(2,'local noHit=noContact and not intent.damageTotal','local noHit=not intent.damageTotal'),'Mixed hit and evade advertised an attacker dodge'),
+   ('missing private dodge cue',change(2,'effect:FireClient(target,"BeamDodged",humanoid)',''),'Actual PvP evade did not send'),
+   ('dodge burst rate limit',change(2,'now<(s.nextBeamDodgeCueAt or 0)','false'),'Defender throttle changed quests or attacker feedback'),
+   ('cast dodge deduplication',change(2,'if not intent.evaded[target.UserId] then','if true then'),'Cast replay renewed a dodge cue'),
    ('retired acceptance gate',change(2,'if q and q.retired==true then return end',''),'Retired restart altered dormant progress'),
    ('retired progress gate',change(2,' or q.retired==true',''),'Retired objective progressed'),
    ('assist finisher gate',change(2,'victim and recipient~=finisher and underdog and meaningful[id]','victim and underdog and meaningful[id]'),'Finisher counted as assist'),
    ('assist level gate',change(2,'victim and recipient~=finisher and underdog and meaningful[id]','victim and recipient~=finisher and meaningful[id]'),'Ineligible assist progressed'),
    ('menu acceptance gate',change(2,'q.menuAvailable~=true and not s.data.availableQuests[q.id]','not s.data.availableQuests[q.id]'),'Menu quest requires'),
-   ('claim flag before reward',change(2,'v.claimed=true;if q.id=="nick"','if q.id=="nick"'),'Reentrant/repeated claim'),
+   ('claim flag before reward',change(2,'v.claimed=true\n   if q.id=="nick"','if q.id=="nick"'),'Reentrant/repeated claim'),
    ('new saved quest preservation',change(1,'local old=raw.quests[q.id]','local old=q.id~="practice_beams" and raw.quests[q.id]'),'Saved quest state lost')]
   for name,mutation,expected in controls:
    failed=run(build(mutation=mutation));output=failed.stdout+failed.stderr

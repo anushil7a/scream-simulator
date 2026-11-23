@@ -6,7 +6,7 @@ import subprocess, tempfile, sys
 ROOT=Path(__file__).resolve().parents[1]
 PATH='src/ServerScriptService/Bootstrap.server.luau'
 BASE='b0099a0'
-def build(s):
+def build(s, *, include_boss):
     helpers=s[s.index('local function coins('):s.index('local function stopQuest(')]
     a=s.index(' elseif verb=="ClaimQuest" then')+len(' elseif verb=="ClaimQuest" then')
     claim=s[a:s.index(' elseif verb=="SetSettings"',a)]
@@ -16,7 +16,11 @@ def build(s):
     pvp='local function hitPlayer(p,target,damage,now) local s=sessions[p];local dealt=0;local hit={damage=damage};local intent={level=s.data.level}\n'+s[a:b]+'\n end\nend\n'
     a=s.index('   local bot=target.bot',s.index('local function stepSustained'));b=s.index('   if not bot.training then',a)
     bot='local function hitBot(p,bot,damage,now) local target={bot=bot};local hit={damage=damage,firstHit=false};local dealt=0;local context={};local World={UpdateBot=function()end,ReactToScream=function()end};local function knockOutBot()end\n'+s[a:b]+'\nend\n'
-    return SETUP+helpers+pvp+bot+'\nlocal function claim(p,s,arg)\n'+claim+'\nend\nlocal function nick(p) local s=sessions[p];local b={name="Nick Booty"};local message="hello"\n'+nick+'\nreturn message end\n'+CHECKS
+    boss=''
+    if include_boss:
+        a=s.index('  reward=function(p,spec,share)')
+        boss='local '+s[a:s.index('  damage=function(',a)].strip().removesuffix(',')+'\n'
+    return SETUP+helpers+pvp+bot+boss+'\nlocal function claim(p,s,arg)\n'+claim+'\nend\nlocal function nick(p) local s=sessions[p];local b={name="Nick Booty"};local message="hello"\n'+nick+'\nreturn message end\n'+CHECKS+(BOSS_CHECKS if include_boss else '')+"\nprint('PASS '..checks..' actual reward credit assertions')\n"
 SETUP=r'''
 local Progression=require('../src/ReplicatedStorage/Shared/Progression')
 local Credit=require('../src/ReplicatedStorage/Shared/CombatCredit')
@@ -24,12 +28,15 @@ local TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
 local p={UserId=1};local victim={UserId=2,DisplayName='Opponent'};local helper={UserId=3};local sessions={};local notices={};local calls={xp=0,coins=0};local multiplier=1;local once=false
 local Commerce={Multiplier=function(_,kind)calls[kind]+=1;if once and calls[kind]>1 then return 1 end;return multiplier end}
 local Config={HealQuietSeconds=12,PlayerKOXP=Progression.PlayerKOXP,MaxLevel=100,Sounds={},Progression=Progression,XPToNext=Progression.XPToNext,HealthForLevel=function()return 100 end}
-local q={id='test',goal=1,xp=120,coins=50,event='Underdog'}
+local q={id='test',name='Test quest',goal=1,xp=120,coins=50,event='Underdog'}
 Config.GetQuest=function(id)if id==q.id then return q end end
 local VoiceCombat={Stats=function()return {health=100,maxDps=1}end}
 local function parts()return nil,nil,nil end
 local function eject(_,h)h.Health=h.MaxHealth end
-local function state(player,message)if player==p then table.insert(notices,message or '')end end
+local messageKey
+local function state(player,message,_,_,key)
+ if player==p then table.insert(notices,message or '');messageKey=key end
+end
 local function stopQuest(p)sessions[p].activeQuest=nil end
 local localFixture=false;local rewardHistory={pairs={}}
 local Players={GetPlayerByUserId=function(_,id)if id==1 then return p elseif id==2 then return victim elseif id==3 then return helper end end}
@@ -43,7 +50,7 @@ end
 CHECKS=r'''
 local s=reset(100,0,999999990);claim(p,s,'test')
 check(s.data.coins==1000000000 and s.data.xp==0,'Claim cap mutation changed')
-check(notices[#notices]=='Quest reward · +0 XP · +10 coins','Claim feedback not actual credit')
+check(string.find(notices[#notices],'Quest reward · +0 XP · +10 coins',1,true)==1,'Claim feedback not actual credit')
 check(s.data.quests.test.claimed,'Cap claim not consumed')
 local n=#notices;claim(p,s,'test');check(#notices==n,'Claim replay paid/notified')
 s=reset(100,0,999999999);multiplier=2
@@ -51,7 +58,7 @@ check(nick(p):find('+1 coins',1,true)~=nil,'FoundNick capped notice')
 check(s.data.achievements.FoundNick and calls.coins==1,'FoundNick grant missing')
 nick(p);check(calls.coins==1,'FoundNick replay')
 s=reset(1,0,0);multiplier=2;once=true;claim(p,s,'test')
-check(notices[#notices]=='Quest reward · +240 XP · +100 coins','Multiplier reread changed feedback')
+check(string.find(notices[#notices],'Quest reward · +240 XP · +100 coins',1,true)==1,'Multiplier reread changed feedback')
 check(calls.xp==1 and calls.coins==1,'Feedback-only multiplier call')
 s=reset(99,Progression.XPToNext(99)-7,0);multiplier=2
 check(xp(p,50.9)==7 and s.data.level==100 and s.data.xp==0,'Cap overflow credit')
@@ -74,13 +81,13 @@ s=reset(10,0,0);multiplier=2;once=true;s.data.combatChallenges.fighters=2
 ledger={};recordCredit(ledger,p,100,100,150)
 awardCombatKO(ledger,p,10,100,100,150,nil,TrainingRules.Tiers[1])
 local actual=s.data.xp;for level=10,s.data.level-1 do actual+=Progression.XPToNext(level) end
-check(notices[#notices]=='KO · +'..actual..' XP · challenge completed & renewed','Expiring boost KO notice differs from cumulative awarded progression')
+check(notices[#notices]:find('+'..actual..' XP',1,true) and notices[#notices]:find('challenge completed & renewed',1,true),'Expiring boost KO notice differs from cumulative awarded progression')
 check(calls.xp==2 and calls.coins==1,'Expiring boost feedback reread multiplier or skipped grant')
 check(s.data.combatChallenges.fighters==0 and actual>200 and s.data.level<100,'Expiring boost challenge renewal or uncapped setup invalid')
 s=reset(100,0,0);s.activeQuest='test';s.data.quests.test.progress=0
 ledger={};recordCredit(ledger,p,100,100,200);awardCombatKO(ledger,p,100,100,100,200,victim,nil)
 check(s.data.quests.test.progress==1,'Cap suppressed nominal eligible quest event')
-check(notices[#notices]=='KO · +0 XP','Cap KO mislabeled limited')
+check(notices[#notices]=='KO · +0 XP · +20 coins','Level cap hid earned PvP coins')
 s=reset(100,0,0);s.data.combatChallenges.fighters=2
 local nominal,credited=combatChallenge(p,'fighters',false)
 check(nominal>0 and credited==0 and notices[#notices]:find('+0 XP',1,true)~=nil,'Challenge return/notice contract')
@@ -101,6 +108,7 @@ s=fresh();local rookie=TrainingRules.Tiers[1];local bot={health=1,maxHealth=80,t
 recordCredit(bot.credit,helper,79,80,500);hitBot(p,bot,10,500)
 check(bot.health==0 and s.data.xp==0 and s.data.coins==0,'Tiny NPC payout changed')
 check(notices[#notices]=='KO · no reward awarded','Tiny first NPC falsely labeled repeat-limited')
+check(messageKey==nil,'Zero payout NPC triggered a training receipt')
 check(next(rewardHistory.pairs)==nil and next(observed)==nil,'NPC started repeat history')
 check(s.data.combatChallenges.fighters==nil and next(bot.credit)==nil,'Zero NPC reward gates/consumed credit changed')
 s=fresh();local h={Health=1,MaxHealth=100};local target={player=victim,humanoid=h,session=sessions[victim]}
@@ -110,7 +118,16 @@ check(notices[#notices]=='KO · no reward awarded','Tiny first PvP falsely label
 check(rewardHistory.pairs['1:2'].count==1 and rewardHistory.pairs['1:2'].last==600,'First zero payout changed existing repeat accounting')
 s=fresh();h={Health=100,MaxHealth=100};target={player=victim,humanoid=h,session=sessions[victim]}
 hitPlayer(p,target,100,700)
-check(notices[#notices]=='KO · +96 XP' and s.data.coins==20 and observed[1]==1,'Positive first PvP changed')
+check(s.data.coins==20 and observed[1]==1,'Positive first PvP payout changed')
+check(notices[#notices]=='KO · +96 XP · +20 coins','PvP notice omitted credited coins: '..notices[#notices])
+check(messageKey==nil,'PvP payout triggered a training receipt')
+s.data.coins=999999998
+rewardHistory={pairs={}}
+hitPlayer(p,target,100,700)
+check(s.data.coins==1000000000 and notices[#notices]:find('+2 coins',1,true)~=nil,'PvP notice showed nominal coins at cap')
+rewardHistory={pairs={}}
+hitPlayer(p,target,100,700)
+check(notices[#notices]:find('coins',1,true)==nil,'PvP notice showed a coin line at the wallet cap')
 local beforeXP,beforeLevel,beforeCoins=s.data.xp,s.data.level,s.data.coins
 hitPlayer(p,target,100,701)
 check(observed[1]==0 and s.data.xp==beforeXP and s.data.level==beforeLevel and s.data.coins==beforeCoins,'Actual repeat suppression changed')
@@ -122,30 +139,51 @@ check(observed[1]==0 and s.data.xp==0 and s.data.coins==0,'Full history payout c
 check(rewardHistory.pairs['1:2']==nil,'Full history created extra pair')
 check(notices[#notices]=='KO · no reward awarded','Full history new pair falsely labeled repeat-limited')
 s=fresh();bot={health=80,maxHealth=80,training=rookie,credit={}};hitBot(p,bot,80,900)
-check(s.data.xp==48 and s.data.coins==5 and notices[#notices]=='KO · +48 XP','Positive first NPC changed')
+check(s.data.xp==48 and s.data.coins==5 and notices[#notices]=='Rookie defeated · +48 XP · +5 coins','Rookie win omitted actual reward')
+check(messageKey=='trainingReceipt','Rewarded training win omitted the receipt category')
 check(s.canSave==false and s.testBaseline==nil,'Keep Playing ordinary session changed')
-print('PASS '..checks..' actual reward credit assertions')
+s=fresh();s.data.coins=999999998;multiplier=2
+bot={health=80,maxHealth=80,training=rookie,credit={}}
+hitBot(p,bot,80,900)
+check(s.data.level==2 and s.data.xp==96-Progression.XPToNext(1) and s.data.coins==1000000000 and notices[#notices]=='Rookie defeated · +96 XP · +2 coins','Rookie win showed nominal coins at cap')
+check(calls.coins==1 and calls.xp==1,'Rookie feedback recomputed payout')
 '''
-def run(source):
+BOSS_CHECKS=r'''
+local captain={name='Seagull Siren Captain',xp=103,coins=23}
+s=reset(100,0,1000000000);reward(p,captain,1)
+check(s.data.xp==0 and s.data.coins==1000000000,'Boss zero-credit grant changed')
+check(notices[#notices]=='Seagull Siren Captain defeated · no XP or coins credited','Boss victory claimed a reward at both caps')
+s=reset(100,0,999999998);multiplier=2;reward(p,captain,.5)
+check(s.data.coins==1000000000 and notices[#notices]=='Seagull Siren Captain defeated · +0 XP · +2 coins','Boss victory displayed nominal capped coins')
+s=reset(70,0,0);multiplier=2;once=true;reward(p,captain,.5)
+check(s.data.xp==102 and s.data.coins==22 and notices[#notices]=='Seagull Siren Captain defeated · +102 XP · +22 coins','Boss victory lost the credited share or boost')
+check(calls.xp==1 and calls.coins==1,'Boss victory feedback repeated a grant or multiplier lookup')
+'''
+def run(source, *, include_boss=True):
+    fixture=build(source,include_boss=include_boss)
     with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=ROOT/'tests',delete=False,encoding='utf-8') as f:
-        path=Path(f.name);f.write(build(source))
+        path=Path(f.name);f.write(fixture)
     try:return subprocess.run(['luau',str(path)],cwd=ROOT,text=True,capture_output=True,timeout=20)
     finally:path.unlink()
 if __name__=='__main__':
     s=(ROOT/PATH).read_text(encoding='utf-8')
     if '--zero-baseline' in sys.argv:
         old=subprocess.check_output(['git','show','befa611:'+PATH],cwd=ROOT).decode()
-        result=run(old);assert result.returncode and 'Tiny first NPC falsely labeled repeat-limited' in result.stderr,result.stdout+result.stderr
+        result=run(old,include_boss=False);assert result.returncode and 'Tiny first NPC falsely labeled repeat-limited' in result.stderr,result.stdout+result.stderr
         print('PASS befa611 baseline: actual tiny first NPC KO mislabeled repeat-limited')
     elif '--baseline' in sys.argv:
         old=subprocess.check_output(['git','show',BASE+':'+PATH],cwd=ROOT).decode()
-        result=run(old);assert result.returncode and 'Claim feedback not actual credit' in result.stderr,result.stdout+result.stderr
+        result=run(old,include_boss=False);assert result.returncode and 'Claim feedback not actual credit' in result.stderr,result.stdout+result.stderr
         print('PASS historical baseline: actual claim credited10coins/0XP but displayed50coins/120XP')
     else:
         result=run(s);print(result.stdout,end='');assert result.returncode==0,result.stderr
         if '--negative-controls' in sys.argv:
             mutations=[('return s.data.coins-before','return reward','Claim feedback not actual credit'),('credited-=d.xp;d.xp=0','d.xp=0','Cap overflow credit'),('return reward,credited','return credited,credited','Zero credit erased completion'),('(credited+bonusXP)','(reward+bonus)','KO nominal base/bonus displayed'),('..xpCredit..','..(q.xp*Commerce.Multiplier(p,"xp"))..','Claim feedback not actual credit')]
             mutations.append(('KO · no reward awarded','KO · repeat-opponent reward limited','Tiny first NPC falsely labeled repeat-limited'))
+            mutations.append(('..coinCredit..','..(tier and 5 or coinCredit)..','Rookie win showed nominal coins at cap'))
+            mutations.append(('tier or coinCredit>0','tier','Level cap hid earned PvP coins'))
+            mutations.append(('tier or coinCredit>0','tier or victim','PvP notice showed a coin line at the wallet cap'))
+            mutations.append(('then "no XP or coins credited"','then "boss reward earned"','Boss victory claimed a reward at both caps'))
             for old,new,expected in mutations:
                 assert old in s,old
                 r=run(s.replace(old,new,1));assert r.returncode and expected in r.stderr,r.stdout+r.stderr

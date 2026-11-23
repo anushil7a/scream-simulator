@@ -11,6 +11,33 @@ local function reduced()
  local ok,value=pcall(function()return Gui.ReducedMotionEnabled end)
  return not ok or value==true or Players.LocalPlayer:GetAttribute("BossReducedEffects")~=false
 end
+local visibleHint
+local function updateHint(player,root,models,now)
+ local message
+ if root and models then
+  local nearest=math.huge
+  for _,model in ipairs(models) do
+   local core=model:FindFirstChild("Core")
+   local warning=core and model:FindFirstChild("DodgeWarning")
+   local hint=warning and warning:GetAttribute("BossAttackHint")
+   if type(hint)~="string" or model:GetAttribute("BossState")~="Windup" then continue end
+   local serial=model:GetAttribute("BossAttackSerial")
+   local deadline=model:GetAttribute("BossAttackAt")
+   local range=warning:GetAttribute("BossHintRange")
+   local delta=root.Position-core.Position
+   local distance=delta.X^2+delta.Z^2
+   local expected=warning:GetAttribute("BossMarkerCount")
+   if type(serial)=="number" and warning:GetAttribute("BossAttackSerial")==serial
+    and model:GetAttribute("BossAttackImpactSerial")~=serial and type(deadline)=="number" and deadline>now
+    and type(range)=="number" and math.abs(delta.Y)<=14 and distance<=range^2 and distance<nearest
+    and type(expected)=="number" and expected>=1 and expected<=16 and #warning:GetChildren()==expected then
+    message=hint;nearest=distance
+   end
+  end
+ end
+ if message==visibleHint then return end
+ player:SetAttribute("BossCombatHint",message);visibleHint=message
+end
 local elapsed=0
 connection=Run.Heartbeat:Connect(function(dt)
  if stopped then return end
@@ -18,8 +45,10 @@ connection=Run.Heartbeat:Connect(function(dt)
  local player=Players.LocalPlayer;local root=player.Character and player.Character:FindFirstChild("HumanoidRootPart")
  local world=workspace:FindFirstChild("ScreamSimulatorWorld");local bosses=world and world:FindFirstChild("BossEncounters")
  local now=workspace:GetServerTimeNow();local seen={};local count=0
- if root and bosses and not reduced() then
-  for _,model in ipairs(bosses:GetChildren()) do
+ local models=root and bosses and bosses:GetChildren()
+ updateHint(player,root,models,now)
+ if models and not reduced() then
+  for _,model in ipairs(models) do
    local core=model:FindFirstChild("Core")
    if core and (core.Position-root.Position).Magnitude<=Effects.Distance and count<5 then
     count+=1;seen[model]=true
@@ -31,12 +60,21 @@ connection=Run.Heartbeat:Connect(function(dt)
     if not s and type(serial)=="number" and warning and model:GetAttribute("BossState")=="Windup"
      and type(deadline)=="number" and deadline>now and deadline-now<=4
      and model:GetAttribute("BossAttackImpactSerial")~=serial then
-     local markers={}
-     for _,p in ipairs(warning:GetChildren()) do
-      if p:IsA("BasePart") and #markers<16 then table.insert(markers,{position=p.Position,frame=p.CFrame,size=p.Size,disk=p.Shape==Enum.PartType.Cylinder}) end
-     end
-     if #markers>0 then
-      s={serial=serial,markers=markers,mode="warning",effect=Effects.Build(workspace,model.Name,markers,false)};states[model]=s
+     -- Replication can expose the folder before all of its committed parts.
+     local expected=warning:GetAttribute("BossMarkerCount")
+     if warning:GetAttribute("BossAttackSerial")==serial and type(expected)=="number" and expected>=1 and expected<=16 then
+      local children=warning:GetChildren()
+      if #children==expected then
+       local markers={}
+       for _,p in ipairs(children) do
+        if p:IsA("Part") and p.Name=="Hazard" then
+         table.insert(markers,{position=p.Position,frame=p.CFrame,size=p.Size,disk=p.Shape==Enum.PartType.Cylinder})
+        end
+       end
+       if #markers==expected then
+        s={serial=serial,markers=markers,mode="warning",effect=Effects.Build(workspace,model.Name,markers,false)};states[model]=s
+       end
+      end
      end
     end
     if s then
@@ -53,7 +91,7 @@ connection=Run.Heartbeat:Connect(function(dt)
      end
      if s then
       if (s.mode=="impact" and now-s.at>Effects.Lifetime) or (s.mode=="awaiting" and now>s.untilAt) then clear(model)
-      elseif s.effect then s.effect:Step(s.mode=="impact" and now-s.at or 0) end
+      elseif s.mode=="impact" then s.effect:Step(now-s.at) end
      end
     end
    end
@@ -64,4 +102,5 @@ end)
 script.Destroying:Connect(function()
  stopped=true;if connection then connection:Disconnect() end
  for model in pairs(states) do clear(model) end
+ if visibleHint then Players.LocalPlayer:SetAttribute("BossCombatHint",nil)end
 end)

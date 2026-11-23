@@ -1,7 +1,7 @@
 local Marketplace=game:GetService("MarketplaceService")
 local UIS=game:GetService("UserInputService")
-local Catalog=require(game:GetService("ReplicatedStorage").Shared.ShopCatalog)
-local Config=require(game:GetService("ReplicatedStorage").Shared.Config)
+local Catalog=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("ShopCatalog"))
+local Config=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config"))
 local Shop={}
 local connections,timers={},{}
 local prices,priceViews={},{}
@@ -43,6 +43,7 @@ local violet=Color3.fromRGB(173,139,255)
 local gold=Color3.fromRGB(255,209,111)
 local ink=Color3.fromRGB(9,14,28)
 local soft=Color3.fromRGB(160,178,208)
+local purchaseGreen=Color3.fromRGB(32,84,67)
 function Shop.Clear()
  generation+=1
  for _,connection in ipairs(connections) do connection:Disconnect() end
@@ -53,6 +54,30 @@ local function stroke(parent,color,thickness)
 end
 local function gradient(parent,colors,rotation)
  local g=Instance.new("UIGradient");g.Color=ColorSequence.new(colors);g.Rotation=rotation or 0;g.Parent=parent;return g
+end
+function Shop.PulseFrame(button,frame)
+ local trim=frame(button,"PulseFrameTrim",UDim2.fromScale(1,1),UDim2.new(),ink)
+ trim.BackgroundTransparency=1;trim.Visible=false
+ trim.Active=false;trim.Interactable=false;trim.Selectable=false
+ for _,side in ipairs({0,1}) do
+  local rail=frame(trim,"PulseEdge",UDim2.new(0,2,1,-16),UDim2.new(side,side==0 and 5 or -7,0,8),violet)
+  rail.Active=false;rail.Interactable=false;rail.Selectable=false
+ end
+ return trim
+end
+function Shop.SignalDeckSkin(card)
+ card.BackgroundColor3=Color3.fromRGB(19,34,62)
+ stroke(card,accent,2)
+ local signal=Instance.new("Frame")
+ signal.Name="SignalDeckTrim";signal.Size=UDim2.new(0,3,1,-20);signal.Position=UDim2.fromOffset(5,10)
+ signal.BackgroundColor3=accent;signal.BorderSizePixel=0;signal.Interactable=false;signal.Active=false;signal.Parent=card
+end
+function Shop.CityCrestSkin(card,ui)
+ card.BackgroundColor3=Color3.fromRGB(44,37,32);stroke(card,gold,2)
+ local crest=ui.frame(card,"AcademyCrest",UDim2.fromOffset(12,12),UDim2.fromOffset(17,15),gold)
+ crest.Rotation=45;crest.Interactable=false
+ local name=ui.label(card,"ACADEMY CITY MAP",UDim2.new(1,-58,0,28),UDim2.fromOffset(38,7),12,gold)
+ name.Font=Enum.Font.GothamBold
 end
 function Shop.Tick()
  for _,view in ipairs(priceViews) do updatePrice(view) end
@@ -69,8 +94,8 @@ function Shop.Tick()
  end
 end
 local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
- local id=item.key=="Movement" and Config.MovementPassId or item.id
- local configured=type(id)=="number" and id==id and id>0 and id<math.huge and id%1==0
+ local id=Catalog.OfferId(item,Config.MovementPassId)
+ local configured=id~=nil
  local text=owned and "OWNED" or not configured and "COMING SOON" or "CHECKING PRICE…"
  local available=false;local revision=generation
  local b
@@ -78,6 +103,8 @@ local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
   if revision==generation and b and b.Parent and available then action:FireServer("ShopPurchase",item.key) end
  end,owned and Color3.fromRGB(32,75,73) or ink)
  b.TextSize=13;stroke(b,accent)
+ if ui.featureLayout=="short" and item.key=="Spectrum" then b.TextWrapped=true end
+ b.Interactable=false;b.Selectable=false
  -- Disabled configuration is an identity change, even if the same ID returns later.
  if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end
  if owned or not configured then b.AutoButtonColor=false;return end
@@ -85,23 +112,46 @@ local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
   if revision~=generation or not b.Parent then return end
   available=info~=nil and info.IsForSale==true and data.savingAvailable==true
   b.Text=available and ("R$ "..tostring(info.PriceInRobux)) or data.savingAvailable~=true and "TEST / UNAVAILABLE" or pending and "CHECKING PRICE." or "UNAVAILABLE"
-  b.AutoButtonColor=available
+  b.AutoButtonColor=available;b.Interactable=available;b.Selectable=available
+  b.BackgroundColor3=available and purchaseGreen or ink
  end
  -- Only the fixed catalog creates records; changing an ID invalidates old results.
- if Catalog.Get(item.key)~=item or type(id)~="number" or id~=id or id<=0 or id>=math.huge or id%1~=0 then apply(nil,false);return end
  local key=item.kind..":"..id;local record=prices[item.key]
  if not record or record.key~=key then record={itemKey=item.key,key=key};prices[item.key]=record end
  local view={record=record,id=id,kind=item.kind=="pass" and Enum.InfoType.GamePass or Enum.InfoType.Product,apply=apply}
  table.insert(priceViews,view);updatePrice(view)
 end
 function Shop.CompactLandscape(width,height)
- return width>=644 and height>=326 and height<=430
+ return width>=644 and height>=316 and height<=430
+end
+function Shop.FeatureLayout(width,height)
+ if width>=448 and height>=150 and height<300 then return "short" end
+ if Shop.CompactLandscape(width,height) then return "compact" end
 end
 function Shop.Render(data,ui,action)
  Shop.Clear()
  local narrow=ui.narrow
- local compact=ui.compactLandscape==true
- local hero=ui.card(compact and 124 or narrow and 300 or 260);hero.Name="SpectrumFeature"
+ local revision=generation
+ local function shortcut(parent,name,text,size,position,target,tint)
+  local button=ui.button(parent,name,text,size,position,function()
+   if revision==generation then ui.jump(target) end
+  end,ink)
+  button.TextSize=12;button.TextColor3=tint;stroke(button,tint)
+ end
+ local compact=ui.featureLayout=="compact"
+ local short=ui.featureLayout=="short"
+ local function section(name,title,detail,tint,order,link,target)
+  local c=ui.card(64);c.Name=name;c.LayoutOrder=order
+  c.BackgroundColor3=Color3.fromRGB(18,29,48)
+  local line=ui.frame(c,"SectionAccent",UDim2.fromOffset(3,28),UDim2.fromOffset(8,13),tint)
+  line.Interactable=false
+  local textWidth=target and -108 or -36
+  local heading=ui.label(c,title,UDim2.new(1,textWidth,0,20),UDim2.fromOffset(20,7),14,tint)
+  heading.Font=Enum.Font.GothamBlack
+  ui.label(c,detail,UDim2.new(1,textWidth,0,32),UDim2.fromOffset(20,26),12,soft)
+  if target then shortcut(c,"Browse"..target,link,UDim2.fromOffset(70,44),UDim2.new(1,-78,0,10),target,tint) end
+ end
+ local hero=ui.card((short or compact) and 112 or narrow and 300 or 260);hero.Name="SpectrumFeature";hero.LayoutOrder=10
  local textScale,textOffset=compact and .48 or 1,compact and -24 or -32
  local function heroLabel(text,height,y,size,color)
   return ui.label(hero,text,UDim2.new(textScale,textOffset,0,height),UDim2.fromOffset(16,y),size,color)
@@ -109,25 +159,76 @@ function Shop.Render(data,ui,action)
  hero.BackgroundColor3=Color3.new(1,1,1)
  gradient(hero,{ColorSequenceKeypoint.new(0,Color3.fromRGB(30,49,76)),ColorSequenceKeypoint.new(1,Color3.fromRGB(39,24,61))},25)
  stroke(hero,accent)
- heroLabel("01 / MAKE IT YOURS",20,compact and 8 or 12,12,accent)
- local heading=heroLabel("SPECTRUM",38,compact and 23 or 35,30);heading.Font=Enum.Font.GothamBlack
- heroLabel("One pass. Choose your beam hue.",compact and 24 or 38,compact and 61 or 78,15)
- local beam=ui.frame(hero,"SpectrumBeam",UDim2.new(compact and .52 or 1,compact and -38 or -48,0,12),compact and UDim2.new(.48,14,0,29) or UDim2.fromOffset(24,137),Color3.new(1,1,1))
- local keys={};for i=0,6 do table.insert(keys,ColorSequenceKeypoint.new(i/6,Color3.fromHSV(i/6,.8,1))) end
- gradient(beam,keys)
- ui.frame(beam,"HotCore",UDim2.new(1,0,0,3),UDim2.fromOffset(0,4),Color3.new(1,1,1))
- for i=1,4 do
-  local ring=ui.frame(hero,"EnergyRing",UDim2.fromOffset(14,42),UDim2.new(compact and .48+.52*i/5 or i/5,-7,0,compact and 14 or 122),accent)
-  ring.BackgroundTransparency=1;stroke(ring,Color3.fromHSV(i/5,.5,1),2)
+ if short then
+  local heading=heroLabel("SPECTRUM",26,5,20)
+  heading.Font=Enum.Font.GothamBlack
+  heroLabel("Choose your beam hue.",22,84,13,soft)
+ else
+  heroLabel("PERMANENT PASS · BEAM COLOR",20,compact and 8 or 12,12,accent)
+  local heading=heroLabel("SPECTRUM",compact and 28 or 38,compact and 23 or 35,compact and 24 or 30);heading.Font=Enum.Font.GothamBlack
+  heroLabel("One pass. Choose your beam hue.",compact and 16 or 38,compact and 50 or 78,compact and 12 or 15)
+  local beam=ui.frame(hero,"SpectrumBeam",UDim2.new(compact and .52 or 1,compact and -38 or -48,0,12),compact and UDim2.new(.48,14,0,29) or UDim2.fromOffset(24,137),Color3.new(1,1,1))
+  local keys={};for i=0,6 do table.insert(keys,ColorSequenceKeypoint.new(i/6,Color3.fromHSV(i/6,.8,1))) end
+  gradient(beam,keys)
+  ui.frame(beam,"HotCore",UDim2.new(1,0,0,3),UDim2.fromOffset(0,4),Color3.new(1,1,1))
+  for i=1,4 do
+   local ring=ui.frame(hero,"EnergyRing",UDim2.fromOffset(14,42),UDim2.new(compact and .48+.52*i/5 or i/5,-7,0,compact and 14 or 122),accent)
+   ring.BackgroundTransparency=1;stroke(ring,Color3.fromHSV(i/5,.5,1),2)
+  end
+  if not compact then heroLabel("Yellow base. Saved colors are kept.",narrow and 42 or 30,167,13,soft) end
  end
- heroLabel("Yellow base. Saved colors are kept.",compact and 24 or narrow and 42 or 30,compact and 86 or 167,13,soft)
- purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,UDim2.new(compact and .52 or 1,-32,0,44),compact and UDim2.new(.48,16,0,66) or UDim2.fromOffset(16,narrow and 238 or 206))
+ local actionY=short and 36 or compact and 68 or narrow and 238 or 206
+ purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,
+  UDim2.new(compact and .52 or 1,short and -108 or compact and -32 or -114,0,44),
+  compact and UDim2.new(.48,16,0,actionY) or UDim2.fromOffset(16,actionY))
+ shortcut(hero,"BrowseTimedBoosts","BOOSTS ↓",UDim2.fromOffset(short and 68 or 74,44),
+  compact and UDim2.fromOffset(16,actionY) or UDim2.new(1,short and -84 or -90,0,actionY),"BoostsSection",violet)
+ section("PassesSection","PERMANENT PERKS","Movement and cosmetics",accent,15)
+ local movement=ui.card(narrow and 202 or 170);movement.Name="MovementFeature";movement.LayoutOrder=20
+ movement.BackgroundColor3=Color3.new(1,1,1)
+ gradient(movement,{ColorSequenceKeypoint.new(0,Color3.fromRGB(22,44,68)),ColorSequenceKeypoint.new(1,Color3.fromRGB(16,26,44))},25)
+ stroke(movement,accent)
+ ui.label(movement,"FREERUNNER",UDim2.new(1,-32,0,28),UDim2.fromOffset(16,12),20,accent)
+ ui.label(movement,"Chain jumps and dodges through the safe city. Standard movement rules apply in PvP areas.",UDim2.new(1,-32,0,narrow and 70 or 48),UDim2.fromOffset(16,48),14,soft)
+ purchaseButton(Catalog.Get("Movement"),movement,data.movementPass,data,ui,action,UDim2.new(1,-32,0,44),UDim2.fromOffset(16,narrow and 142 or 110))
+ local cosmeticOffers={
+  {key="Encore",owned=data.encorePass,tint=gold,preview="ENCORE"},
+  {key="Afterimage",owned=data.afterimagePass,tint=violet,preview="›  ›  ›"},
+  {key="CityGlow",owned=data.cityGlowPass,tint=gold,preview="GLOW"},
+  {key="SignalDeck",owned=data.signalDeckPass,tint=accent,preview="BEAMS"},
+  {key="CityCrest",owned=data.cityCrestPass,tint=gold,preview="MAP"},
+  {key="PulseFrame",owned=data.pulseFramePass,tint=violet,preview="[ PULSE ]"},
+  {key="RouteLights",owned=data.routeLightsPass,tint=accent,preview="●  ●  ●"},
+  {key="HarborBadge",owned=data.harborBadgePass,tint=accent,preview="HARBOR"},
+  {key="SprintRibbon",owned=data.sprintRibbonPass,tint=violet,preview="»  »  »"},
+ }
+ for index,pass in ipairs(cosmeticOffers) do
+  local item=Catalog.Get(pass.key)
+  local c=ui.card(narrow and 162 or 104);c.Name=pass.key.."Feature";c.LayoutOrder=(index+2)*10
+  c.BackgroundColor3=Color3.new(1,1,1)
+  gradient(c,{ColorSequenceKeypoint.new(0,Color3.fromRGB(28,43,75)),ColorSequenceKeypoint.new(1,Color3.fromRGB(44,27,65))},25)
+  stroke(c,pass.tint)
+  local trim=ui.frame(c,"CardTrim",UDim2.fromOffset(3,76),UDim2.fromOffset(6,12),pass.tint)
+  trim.Active=false;trim.Interactable=false;trim.Selectable=false
+  local name=ui.label(c,item.name,UDim2.new(1,-32,0,26),UDim2.fromOffset(16,10),18)
+  name.Font=Enum.Font.GothamBlack
+  local plate=ui.frame(c,"PerkPreview",UDim2.fromOffset(74,22),UDim2.new(1,-90,0,12),ink)
+  plate.Visible=not narrow
+  name.Size=UDim2.new(1,narrow and -32 or -112,0,26)
+  stroke(plate,pass.tint)
+  local preview=ui.label(plate,pass.preview,UDim2.fromScale(1,1),UDim2.new(),12,pass.tint)
+  preview.TextXAlignment=Enum.TextXAlignment.Center;preview.Font=Enum.Font.GothamBold
+  ui.label(c,item.description,UDim2.new(1,narrow and -32 or -178,0,narrow and 56 or 48),UDim2.fromOffset(16,42),14,soft)
+  purchaseButton(item,c,pass.owned,data,ui,action,narrow and UDim2.new(1,-32,0,46) or UDim2.fromOffset(126,46),
+   narrow and UDim2.fromOffset(16,106) or UDim2.new(1,-142,0,44))
+ end
+ section("BoostsSection","TIMED BOOSTS","30 min · Counts down offline",violet,(#cosmeticOffers+2)*10+5,"PASSES ↑","SpectrumFeature")
  for index,key in ipairs({"XP","Coins"}) do
   local item=Catalog.Get(key);local tint=key=="XP" and violet or gold
-  local c=ui.card(narrow and 262 or 242);c.Name="Boost"..key;stroke(c,tint)
+  local c=ui.card(narrow and 262 or 242);c.Name="Boost"..key;c.LayoutOrder=(index+2+#cosmeticOffers)*10;stroke(c,tint)
   local badge=ui.frame(c,"Multiplier",UDim2.fromOffset(54,54),UDim2.fromOffset(16,16),tint)
   local badgeText=ui.label(badge,"2×",UDim2.fromScale(1,1),UDim2.new(),27,ink);badgeText.TextXAlignment=Enum.TextXAlignment.Center;badgeText.Font=Enum.Font.GothamBlack
-  ui.label(c,"0"..(index+1).." / "..item.tag,UDim2.new(1,-100,0,20),UDim2.fromOffset(84,13),12,tint)
+  ui.label(c,item.tag,UDim2.new(1,-100,0,20),UDim2.fromOffset(84,13),12,tint)
   ui.label(c,item.name,UDim2.new(1,-100,0,32),UDim2.fromOffset(84,34),narrow and 18 or 22)
   ui.label(c,item.description.." Starts automatically on confirmed delivery.",UDim2.new(1,-32,0,narrow and 56 or 40),UDim2.fromOffset(16,80),14,soft)
   local shop=data.shop or {};local inventory=shop.inventory or {};local ends=shop.ends or {}
@@ -138,7 +239,7 @@ function Shop.Render(data,ui,action)
   indicator.Active=false;indicator.Selectable=false;indicator.Interactable=false
   local status=ui.label(band,shop.ready==true and "Not active" or "Boost status unavailable",UDim2.new(1,-32,1,0),UDim2.fromOffset(20,0),14,soft)
   status.Name="BoostStatusText";status.Font=Enum.Font.GothamBold
-  table.insert(timers,{label=status,band=band,indicator=indicator,ready=shop.ready==true,ends=ends[item.boost] or 0,serverNow=shop.serverNow or os.time(),received=os.clock()})
+  table.insert(timers,{label=status,band=band,indicator=indicator,ready=shop.ready==true,ends=ends[item.boost] or 0,serverNow=shop.serverNow or os.time(),received=shop.receivedAt or os.clock()})
   local y=narrow and 202 or 182
   local count=inventory[item.boost] or 0
   purchaseButton(item,c,false,data,ui,action,UDim2.new(count>0 and .5 or 1,count>0 and -22 or -32,0,44),UDim2.fromOffset(16,y))
@@ -149,14 +250,8 @@ function Shop.Render(data,ui,action)
    end,ink);b.TextSize=13;b.TextColor3=tint;b.AutoButtonColor=shop.ready==true
   end
  end
- local movement=ui.card(narrow and 202 or 170);movement.Name="MovementFeature"
- movement.BackgroundColor3=Color3.new(1,1,1)
- gradient(movement,{ColorSequenceKeypoint.new(0,Color3.fromRGB(22,44,68)),ColorSequenceKeypoint.new(1,Color3.fromRGB(16,26,44))},25)
- stroke(movement,accent)
- ui.label(movement,"04 / FREERUNNER",UDim2.new(1,-32,0,28),UDim2.fromOffset(16,12),20,accent)
- ui.label(movement,"Chain jumps and dodges through the safe city. Standard movement rules apply inside the PvP arena.",UDim2.new(1,-32,0,narrow and 70 or 48),UDim2.fromOffset(16,48),14,soft)
- purchaseButton(Catalog.Get("Movement"),movement,data.movementPass,data,ui,action,UDim2.new(1,-32,0,44),UDim2.fromOffset(16,narrow and 142 or 110))
- ui.info("New boosts activate automatically on confirmed delivery and stack time, not multiplier. Previously saved boosts remain usable.")
+ local footer=ui.info("New boosts activate automatically on confirmed delivery and stack time, not multiplier. Previously saved boosts remain usable.")
+ if footer then footer.LayoutOrder=(5+#cosmeticOffers)*10 end
  Shop.Tick()
 end
 function Shop.ColorMixer(data,ui,action)
@@ -168,7 +263,7 @@ function Shop.ColorMixer(data,ui,action)
  local color=data.customColor and Color3.fromHex(data.customColor) or Config.Auras[data.aura] or Config.Auras.Gold
  local hue=color:ToHSV()
  ui.label(c,"HUE",UDim2.new(1,-32,0,20),UDim2.fromOffset(16,110),12,soft)
- local bar=ui.frame(c,"HUE",UDim2.new(1,-32,0,44),UDim2.fromOffset(16,134),Color3.new(1,1,1));bar.Active=true
+ local bar=ui.frame(c,"HUE",UDim2.new(1,-136,0,44),UDim2.fromOffset(68,134),Color3.new(1,1,1));bar.Active=true
  local colors={};for j=0,6 do table.insert(colors,ColorSequenceKeypoint.new(j/6,Color3.fromHSV(j/6,1,1))) end
  gradient(bar,colors)
  local knob=ui.frame(bar,"Thumb",UDim2.fromOffset(10,44),UDim2.new(),Color3.new(1,1,1));stroke(knob,ink)
@@ -181,18 +276,30 @@ function Shop.ColorMixer(data,ui,action)
   knob.Position=UDim2.new(hue,-10*hue,.5,-22)
  end
  local dragInput
- local function setHue(input)
-  hue=math.clamp((input.Position.X-bar.AbsolutePosition.X)/math.max(1,bar.AbsoluteSize.X),0,1)
+ local function setHue(value)
+  hue=value
   color=Color3.fromHSV(hue,1,1);update()
  end
+ local function setPointerHue(input)
+  setHue(math.clamp((input.Position.X-bar.AbsolutePosition.X)/math.max(1,bar.AbsoluteSize.X),0,1))
+ end
+ local previous=ui.button(c,"HuePrevious","‹",UDim2.fromOffset(44,44),UDim2.fromOffset(16,134),function()
+  if revision==generation then setHue((hue-1/24)%1) end
+ end,ink)
+ local nextHue=ui.button(c,"HueNext","›",UDim2.fromOffset(44,44),UDim2.new(1,-60,0,134),function()
+  if revision==generation then setHue((hue+1/24)%1) end
+ end,ink)
+ previous.TextSize=24;nextHue.TextSize=24
+ previous.NextSelectionRight=nextHue;nextHue.NextSelectionLeft=previous
+ stroke(previous,violet);stroke(nextHue,violet)
  table.insert(connections,bar.InputBegan:Connect(function(input)
   if revision~=generation or dragInput then return end
   if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
-   dragInput=input;setHue(input)
+   dragInput=input;setPointerHue(input)
   end
  end))
  table.insert(connections,UIS.InputChanged:Connect(function(input)
-  if revision==generation and dragInput and (input==dragInput or input.UserInputType==Enum.UserInputType.MouseMovement and dragInput.UserInputType==Enum.UserInputType.MouseButton1) then setHue(input) end
+  if revision==generation and dragInput and (input==dragInput or input.UserInputType==Enum.UserInputType.MouseMovement and dragInput.UserInputType==Enum.UserInputType.MouseButton1) then setPointerHue(input) end
  end))
  table.insert(connections,UIS.InputEnded:Connect(function(input) if input==dragInput then dragInput=nil end end))
  local equip=ui.button(c,"EquipCustom",data.spectrumPass and "EQUIP COLOR" or "PASS REQUIRED",UDim2.new(1,-32,0,44),UDim2.fromOffset(16,232),function()

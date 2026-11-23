@@ -12,6 +12,8 @@ local services={RunService={IsStudio=function() return studio end},Players={Play
 local game={ReplicatedStorage={Shared={Config={}}},GetService=function(_,name) return services[name] end}
 local function require(_) return config end
 config.Get=function()return {id=0}end
+config.OfferId=function()return nil end
+config.Pass=function()return nil end
 local Entitlements=(function()
 '''
 checks = '''

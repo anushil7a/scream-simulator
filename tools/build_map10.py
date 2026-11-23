@@ -17,10 +17,17 @@ def ramp(n,a,b,width=32,c=cream):
  center=[(a[i]+b[i])/2-normal[i] for i in range(3)]
  if abs(dy)<1e-8:center[1]+=.08 # reveal flat bridge surface above coplanar land
  box(n,center,[width,2,l],c,True,[-math.degrees(math.atan2(dy,h)),math.degrees(math.atan2(dx,dz)),0])
-def ring(n,x,z,r,y,h,c,gaps=(),width=8):
+def ring(n,x,z,r,y,h,c,gaps=(),width=8,foundation=None):
  for i in range(8):
   if i in gaps:continue
-  a=i*math.pi/4;box(n+str(i),[x+math.sin(a)*r,y+h/2+i*.007,z+math.cos(a)*r],[2*r*math.tan(math.pi/8)+2,h,width],c,True,[0,math.degrees(a),0])
+  a=i*math.pi/4
+  center_y=y+h/2+i*.007
+  height=h
+  if foundation is not None:
+   height=center_y+h/2-foundation
+   center_y=foundation+height/2
+  box(n+str(i),[x+math.sin(a)*r,center_y,z+math.cos(a)*r],
+      [2*r*math.tan(math.pi/8)+2,height,width],c,True,[0,math.degrees(a),0])
 def pavilion(n,x,z,y,w=45):
  box(n+'Plinth',[x,y+.3,z],[w+6,.6,w+6],cream)
  for dx in [-w*.36,w*.36]:
@@ -32,7 +39,16 @@ def tree(n,x,z,y,s=1):
  for i in range(5):
   a=i*math.tau/5;box(n+'Palm'+str(i),[x+math.cos(a)*5*s,y+16*s,z+math.sin(a)*5*s],[15*s,2*s,4*s],grass,False,[0,-math.degrees(a),-12])
 # Irregular contiguous island and visible stratified cliff silhouette, sea outside.
-box('Sea',[0,-104,40],[1380,5,1440],water,False)
+sea_width,sea_depth,horizon_tile=1380,1440,2048
+box('Sea',[0,-104,40],[sea_width,5,sea_depth],water,False)
+# Extend the deep water without raising it through the authored shoreline.
+for column in (-1,0,1):
+ for row in (-1,0,1):
+  if column==0 and row==0:continue
+  x=column*(sea_width+horizon_tile)//2
+  z=40+row*(sea_depth+horizon_tile)//2
+  box(f'SeaHorizon{column}_{row}',[x,-104,z],
+      [horizon_tile if column else sea_width,5,horizon_tile if row else sea_depth],water,False)
 # Non-overlapping strips form an irregular shoreline. Deep offset facets sit below top.
 for i,(l,r,north,south) in enumerate([(-550,-470,-450,430),(-470,-350,-520,480),(-350,-150,-540,510),(-150,80,-520,525),(80,300,-500,510),(300,460,-500,480),(460,530,-430,430)]):
  x=(l+r)/2;z=(north+south)/2
@@ -63,26 +79,39 @@ terrace('CentralGardenTerrace',-250,190,-180,210,16,grass,[(58,102,150,210),(-25
 terrace('AmphitheatrePlateau',-65,245,-495,-165,32,dark,[(-65,-60,-495,-165),(200,245,-275,-165)])
 terrace('VolcanoPlateau',200,510,-275,135,32,dark,[(200,300,23,57)])
 # Main gentle routes connect all terrace levels, exact endpoints used by QA.
-routes=[('AcademyGarden',[-90,32,-170],[-90,16,-70],36),('GardenCoast',[80,16,150],[80,0,250],40),('GardenArena',[-190,16,110],[-290,0,110],36),('AcademyAmphitheatre',[-70,32,-330],[90,32,-330],32),('VolcanoBridgeNorth',[90,32,-190],[300,32,-180],28),('VolcanoBridgeSouth',[170,16,40],[300,32,40],30),('ShrineAscent',[450,32,-250],[450,64,-420],26),('ShrineApproach',[450,64,-420],[350,64,-420],28)]
+# GardenCoast spans the full 58..102 notch so the ramp edges support the avatar.
+routes=[('AcademyGarden',[-90,32,-170],[-90,16,-70],36),('GardenCoast',[80,16,150],[80,0,250],44),('GardenArena',[-190,16,110],[-290,0,110],36),('AcademyAmphitheatre',[-70,32,-330],[90,32,-330],32),('VolcanoBridgeNorth',[90,32,-190],[300,32,-180],28),('VolcanoBridgeSouth',[170,16,40],[300,32,40],30),('ShrineAscent',[450,32,-250],[450,64,-420],26),('ShrineApproach',[450,64,-420],[350,64,-420],28)]
 for n,a,b,w in routes:ramp(n,a,b,w)
 # Road ribbons and central switchback with planted islands.
 for n,pos,sz in [('AcademySpine',[-300,32.13,-260],[350,.2,26]),('AcademyTraining',[-300,32.14,-400],[360,.2,26]),('GardenSpine',[-10,16.13,110],[360,.2,30]),('GardenNorth',[-30,16.14,-60],[320,.2,28]),('GardenWest',[-90,16.15,20],[28,.2,180]),('GardenEast',[100,16.16,25],[28,.2,180]),('CoastalWalk',[0,.12,420],[960,.2,36]),('CoastArena',[-430,.13,260],[30,.2,280]),('SportsApproach',[300,.14,240],[30,.2,320])]:box(n,pos,sz,cream,False)
 # Academy open pavilions with readable fountain and training clear pads.
 for i,(x,z,w) in enumerate([(-450,-460,44),(-300,-460,58),(-140,-460,44),(-490,-180,36)]):pavilion('AcademyPavilion'+str(i),x,z,32,w)
-for i,x in enumerate([-420,-300,-180]):box('TrainingPad'+str(i+1),[x,32.12,-400],[64,.15,64],[148,181,145],False)
+# Raise the sparring circles over the cream road and under the Rookie trail.
+for i,x in enumerate([-420,-300,-180]):disk('TrainingPad'+str(i+1),x,32.185,-400,32,.15,[148,181,145],False)
 disk('FountainBasin',-300,33,-300,19,2,cream);disk('FountainWater',-300,34.1,-300,16,.2,water,False);disk('FountainPedestal',-300,37,-300,3,6,cream);disk('FountainBowl',-300,40,-300,9,2,cream)
 # Stadium: octagonal bowl, east entrance, clear central PvP square and static cover.
 for k in range(5):ring('ArenaTier'+str(k),-330,120,112+k*7,k*3,3,[166+k*9,166+k*8,145+k*7],gaps=(2,))
 box('ArenaFloor',[-330,.08,120],[180,.16,180],[190,178,141],False)
 for n,pos,sz in [('N',[-330,.2,30],[180,.15,2]),('S',[-330,.2,210],[180,.15,2]),('W',[-420,.2,120],[2,.15,180]),('E',[-240,.2,120],[2,.15,180])]:box('PvPBoundary'+n,pos,sz,[191,80,67],False)
 for i,(x,z) in enumerate([(-380,70),(-280,70),(-380,170),(-280,170)]):box('ArenaCover'+str(i),[x,3,z],[12,6,12],[126,120,102])
-# Purple amphitheatre bowl / speakers / equalizer panels, southern entrance.
-for k in range(5):ring('MusicTier'+str(k),90,-330,84+k*8,32+k*3,3,purple,gaps=(0,))
+# The southern opening and the Academy bridge both reach the stage.
+# Solid risers sit on the existing deck under the original seat tops.
+for k,color in enumerate(([92,68,114],[99,73,123],[106,78,132],[113,83,140],[120,88,148])):
+ ring('MusicTier'+str(k),90,-330,84+k*8,32+k*3,3,color,gaps=(0,6),foundation=32)
 disk('MusicStage',90,32.3,-330,50,.6,[51,43,72]);disk('MusicNeonRing',90,32.65,-330,26,.1,[179,105,240],False)
 for i,(x,z) in enumerate([(-30,-410),(90,-470),(210,-410)]):
  box('SpeakerTower'+str(i),[x,64,z],[28,64,18],dark)
- for h in [46,70,86]:disk('Speaker'+str(i)+str(h),x,h,z-9.3,8,1,purple,False);p[-1]['rotation']=[90,0,0]
-for i in range(12):box('Equalizer'+str(i),[18+i*12,58+(i%4)*3,-456],[5,12+(i%4)*6,2],teal,False)
+ # The cylinder axle faces +Z, with its back slightly inset into the tower.
+ for h in (46,70,86):
+  box(f'Speaker{i}{h}',[x,h,z+9.4],[1,16,16],purple,False,[0,-90,0],shape='Cylinder')
+# Static level-meter artwork on the back of the circular stage.
+box('EqualizerHousing',[90,37.6,-369],[46,10,4],[43,39,58])
+box('EqualizerFace',[90,37.65,-366.93],[42.8,7.8,.14],[27,31,47],False)
+heights=(1.8,2.7,3.7,5.2,6.5,4.6,4.6,6.5,5.2,3.7,2.7,1.8)
+for i,height in enumerate(heights):
+ x=90+(i-(len(heights)-1)/2)*3.2
+ color=[230,190,112] if height==max(heights) else [101,195,177]
+ box(f'EqualizerBar{i}',[x,34.4+height/2,-366.78],[2.1,height,.16],color,False)
 # Lava crust with safe18-radius boss center reserved; cosmetic lava is not damage.
 for i in range(12):
  if i in (4,5):continue # Open southwest bridge gate, no rock over its landing.

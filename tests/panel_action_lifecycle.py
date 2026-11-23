@@ -15,7 +15,7 @@ local function copy(t)if type(t)~='table'then return t end;local out={};for k,v 
 local function node()return {Parent=true,Visible=true,GetChildren=function()return {}end,Destroy=function(self)self.Parent=nil end}end
 local Color3={fromRGB=function()return {}end};local Vector2={new=function(x,y)return {X=x,Y=y}end,zero={X=0,Y=0}}
 local UDim2={new=function()return {}end,fromOffset=function()return {}end,fromScale=function()return {}end}
-local Enum={Font={GothamMedium=1},AutomaticSize={Y=1}};local TextService={GetTextSize=function()return {Y=30}end}
+local Enum={Font={GothamMedium=1},AutomaticSize={Y=1},PreferredInput={Touch={Name="Touch"},Gamepad={Name="Gamepad"},KeyboardAndMouse={Name="KeyboardAndMouse"}}};local TextService={GetTextSize=function()return {Y=30}end}
 local buttons={};local function button(parent,name,text,size,pos,callback,color)local b=node();b.Text=text;b.callback=callback;b.color=color;buttons[name]=b;return b end
 local function card()return node()end;local function label(_,text)local n=node();n.Text=text;return n end;local function frame()return node()end;local function info()end
 local Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLevel=100,MicroSpeakerPrice=200,MovementPassId=0,Auras={Gold={}},Progression={Challenges={}},Quests={}}
@@ -32,7 +32,7 @@ local clientDestroyed=false;local modal=node();modal.Visible=false;local gui={Ab
 local content=node();content.CanvasPosition={X=0,Y=40};content.AbsoluteCanvasSize={Y=600};content.AbsoluteWindowSize={Y=200}
 
 -- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
-local academy={damageReadout={available=false},refreshTestLauncher=function()end,guideMenu=function()end,NavigationCatalog={Resolve=function()return nil end},tabIcons={},tabIcon=function()return {},{} end}
+local academy={menuContentWidth=function()return 684 end,damageReadout={available=false},refreshTestLauncher=function()end,guideMenu=function()end,NavigationCatalog={Resolve=function()return nil end},tabIcons={},tabIcon=function()return {},{} end,gearUpgrade=function()return nil end}
 local title,subtitle={},{};local selected='Quests';local render;local tabs={};local devPanel=node();local narrow=false
 local conversationPanel=node();conversationPanel.Visible=false;local showConversation,closeConversation;local conversationName=node();local conversationList=node()
 local muted,gold,panel,white={},{},{},{};local version=0;local data
@@ -47,7 +47,7 @@ local function cancelCapture()effects.cancel+=1 end
 local function setSprint()effects.sprint+=1 end
 local mic={status="unavailable",eligible=false,checkPending=false,Check=function()effects.retry+=1 end,Calibrate=function()effects.calibrate+=1 end}
 local sustainedControl={SetArmed=function()effects.disarm+=1 end};local sustainedRules={MaxDuration=4,Cooldown=5}
-local UIS={TouchEnabled=false};Config.DodgeCooldown=3;Config.SprintDuration=4;Config.SprintRecovery=3;Config.SprintRegenDelay=1
+local UIS={TouchEnabled=false,PreferredInput=Enum.PreferredInput.KeyboardAndMouse};Config.DodgeCooldown=3;Config.SprintDuration=4;Config.SprintRecovery=3;Config.SprintRegenDelay=1
 local attackAudio={level='NORMAL'};local gameplayAudio={enabled=true};local gameplayAudioSettings={Ready=function()return false end}
 '''
 def assemble(client):
@@ -57,19 +57,22 @@ def assemble(client):
  toggle=client[client.index('local function toggleTab('):client.index('\nlocal shop=button(top,')]
  render=client[client.index('render=function()'):client.index('\nlocal conversationNPC,conversationUntil')]
  convdecl=client[client.index('local conversationNPC,conversationUntil'):].split('conversationPanel=frame',1)[0]
+ orderconv=client[client.index('function conversationView.orderOptions()'):client.index('closeConversation=function()')] if 'function conversationView.orderOptions()' in client else ''
  closeconv=client[client.index('closeConversation=function()'):client.index('local function refreshConversation()')]
  show=client[client.index('showConversation=function(info)'):client.index('\nlocal function refreshQuestObjects()')]
  stop=server[server.index('local function stopQuest(p)'):server.index('local function protect(p,s)')]
- micro=server[server.index('local function gearAction(p,s,id,toggle)'):server.index('local function vendorPurchase(p,s,arg)')]
+ micro=server[server.index('local function gearAction(p,s,id,intent)'):server.index('local function vendorPurchase(p,s,arg)')]
  branches=server[server.index(' elseif verb=="SetAura" and'):server.index(' elseif verb=="SetSettings" and')]
- dispatch='local function dispatch(verb,arg) if verb=="Gear" then gearAction(p,s,arg,true) elseif verb=="MicroSpeaker" then microSpeaker(p,s,true)'+branches+' end end\n'
- return '\n'.join([setup,stop,micro,dispatch,ui,shop_lifecycle,close,toggle,render,convdecl,closeconv,show,open_helper])+r'''
+ gear=server[server.index(' elseif verb=="Gear" then'):server.index(' elseif verb=="Megaphone" then')]
+ dispatch='local function dispatch(verb,arg) if false then return'+gear+branches+' end end\n'
+ return '\n'.join([setup,stop,micro,dispatch,ui,shop_lifecycle,close,toggle,render,convdecl,orderconv,closeconv,show,open_helper])+r'''
 local f={s=s,sent=sent,modal=modal,conversation=conversationPanel,effects=effects}
 function f.open(tab)snapshot();toggleTab(tab)end
 function f.tab(tab)tabs[tab].callback()end
 function f.rerender()snapshot();render()end
 function f.button(name)return buttons[name].callback end
 function f.close()closeMenu()end
+function f.gearRequest(arg)dispatch("Gear",arg)end
 function f.destroy()clientDestroyed=true end
 function f.dialogue(id,complete)
  snapshot();showConversation({npc={},name='NPC',line='Hello',hint='Hint',quests={{id=id,name=id,description='Task',complete=complete==true,claimed=false}}})
@@ -112,6 +115,33 @@ f.rerender();f.button('practice_beams')();check(f.s.activeQuest=='practice_beams
 f.s.data.quests.practice_beams.progress=3;f.rerender();local claim=f.button('practice_beams');claim();claim();check(f.s.data.coins==2025 and f.s.data.xp==60 and f.s.data.quests.practice_beams.claimed,'Claim duplicate/authority changed')
 f.tab('Style');f.button('MicroSpeaker')();check(f.s.data.coins==2025-require("../src/ReplicatedStorage/Shared/GearCatalog").Get("MicroSpeaker").price and f.s.data.amplifierOwned,'Current Style purchase blocked')
 f.button('BaseColor')();check(f.s.data.aura=='Gold','Current legacy-color action blocked')
+
+f=fixture();f.s.data.coins=130;f.open('Style')
+local buy=f.button('Megaphone')
+buy();buy()
+check(f.s.data.coins==30 and f.s.data.megaphoneOwned and f.s.data.gearEquipped=='Megaphone','Repeated Buy & Equip removed the purchased gear')
+f.rerender()
+local unequip=f.button('Megaphone')
+unequip();unequip()
+check(f.s.data.coins==30 and f.s.data.gearEquipped==nil and not f.s.data.megaphoneEquipped,'Repeated Unequip reversed the gear selection')
+f.gearRequest({id='Megaphone',intent='buy'})
+check(f.s.data.gearEquipped==nil,'Old Buy equipped already owned gear')
+f.rerender()
+local equip=f.button('Megaphone')
+equip();equip()
+check(f.s.data.gearEquipped=='Megaphone' and f.s.data.megaphoneEquipped and f.s.data.coins==30,'Repeated Equip did not leave gear selected')
+f.gearRequest({id='MicroSpeaker',intent='unequip'})
+check(f.s.data.gearEquipped=='Megaphone','Unequip cleared a different equipped item')
+f=fixture();f.s.data.coins=130
+f.gearRequest({id='Megaphone',intent='unknown'})
+check(f.s.data.coins==130 and not f.s.data.megaphoneOwned,'Malformed Gear request mutated ownership')
+f.gearRequest({id='Megaphone',intent='equip'})
+check(f.s.data.coins==130 and not f.s.data.megaphoneOwned,'Equip bought unowned gear')
+f.gearRequest({id='MicroSpeaker',intent='buy'})
+check(f.s.data.coins==130 and not f.s.data.amplifierOwned,'Unaffordable Buy charged or unlocked gear')
+f.gearRequest('Megaphone');f.gearRequest('Megaphone')
+check(f.s.data.coins==30 and f.s.data.megaphoneOwned and not f.s.data.gearEquipped,'Legacy Gear string lost toggle semantics')
+
 f=fixture();f.dialogue('practice_beams');f.npcAction()();check(f.s.activeQuest=='practice_beams' and not f.conversation.Visible,'Current NPC accept blocked')
 f.s.data.quests.practice_beams.progress=3;f.dialogue('practice_beams',true);local claim=f.npcAction();claim();claim();check(f.s.data.coins==2025 and f.s.data.xp==60,'NPC claim duplicate/authority changed')
 f=fixture();f.s.data.availableQuests.garden=false;f.dialogue('garden');f.npcAction()();check(f.s.activeQuest=='garden' and f.s.data.quests.garden.progress==1,'Server discovery gate changed')
@@ -135,7 +165,9 @@ print('PASS',n,'registered panel callbacks with actual quest/style server helper
 def run(client,error=None,case=None):
  code=assemble(client).replace('return buttons.Choice.callback','return buttons.QuestChoice.callback')
  if not a.baseline:
-  choice=client[client.index(' local function choice(text,callback)'):client.index(' choice("Tell me about this neighborhood"')]
+  choice_start=client.index(' local function choice(text,callback)')
+  choice_end=client.index('\n', client.index('\n end', choice_start)+1)
+  choice=client[choice_start:choice_end]
   probe='function f.forwardNpc(...) local order=0;local revision=conversationRevision;conversationPanel.Visible=true;'+choice+' local b=choice("probe",function(...)return ... end);return b.callback(...) end\n'
   code=code.replace('return f\nend',probe+'return f\nend')
  code+=tail(case)
@@ -156,6 +188,9 @@ if a.baseline:
 else:
  run(c)
  if a.negative_controls:
+  gear_intent='action:FireServer("Gear",{id=item.id,intent=canBuy and "buy" or equipped and "unequip" or "equip"})'
+  assert c.count(gear_intent)==1
+  run(c.replace(gear_intent,'action:FireServer("Gear",item.id)'),'Repeated Buy & Equip removed the purchased gear')
   for scope,word,error in [('modal','clientDestroyed or ','Menu stale abandon: destroy'),('modal','not modal.Visible or ','Menu stale abandon: hidden'),('modal',' or revision~=renderRevision','Menu stale abandon: reopen'),('conversation','clientDestroyed or ','NPC stale accept: destroy'),('conversation','not conversationPanel.Visible or ','NPC stale accept: hidden'),('conversation',' or revision~=conversationRevision','NPC stale accept: reopen')]:
    guard='if clientDestroyed or not '+('modal.Visible or revision~=renderRevision' if scope=='modal' else 'conversationPanel.Visible or revision~=conversationRevision')+' then return end'
    assert c.count(guard)==1;run(c.replace(guard,guard.replace(word,'')),error)

@@ -8,20 +8,22 @@ p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.a
 name='src/StarterPlayer/StarterPlayerScripts/Client.client.luau'
 src=subprocess.check_output(['git','show','899b0b8:'+name],cwd=ROOT,text=True,encoding='utf-8') if args.baseline else (ROOT/name).read_text(encoding='utf-8')
 setup_line='' # Mandatory setup panel retired; disclosure remains in Settings.
-info_start=src.index('local function info(')
+info_start=src.index('local function info(' if args.baseline else 'function academy.menuContentWidth(')
 info_end='\nscript.Destroying:Connect(' if args.baseline else '\nownClient('
 info=src[info_start:src.index(info_end,info_start)]
 a=src.index('  title.Text="SETTINGS & CONTROLS"');b=src.index('\n end\n -- Restore only after AutomaticCanvasSize',a);settings=src[a:b]
 a=src.index(' local key=menuKey()',src.index('render=function()'));b=src.index(' if selected=="Shop" then',a);prefix=src[a:b]
-a=src.index(' -- Restore only after AutomaticCanvasSize');b=src.index('\nfor i,name in ipairs',a);tail=src[a:b]
+a=src.index(' -- Restore only after AutomaticCanvasSize')
+b=src.index('\nacademy.menuTabs=',a) if '\nacademy.menuTabs=' in src else src.index('\nfor i,name in ipairs',a)
+tail=src[a:b]
 a=b+1;b=src.index('\nlocal conversationNPC',a);tabs_source=src[a:b]
 setup=r'''
 local checks=0;local function check(ok,msg)assert(ok,msg);checks+=1 end
 local UDim2={new=function(xs,xo,ys,yo)return {X={Scale=xs or 0,Offset=xo or 0},Y={Scale=ys or 0,Offset=yo or 0}}end,fromOffset=function(x,y)return {X={Offset=x},Y={Offset=y}}end}
 local Vector2={new=function(x,y)return {X=x,Y=y}end,zero={X=0,Y=0}}
-local Color3={fromRGB=function(...)return {...}end};local Enum={Font={GothamMedium=1}}
+local Color3={fromRGB=function(...)return {...}end};local Enum={Font={GothamMedium=1},PreferredInput={Touch="touch",Gamepad="gamepad",KeyboardAndMouse="keyboard"}}
 local gui={AbsoluteSize={X=390}};local micPanel={};local muted={};local gold={};local panel={}
-local content={children={},CanvasPosition={X=0,Y=0},AbsoluteCanvasSize={Y=1500},AbsoluteWindowSize={Y=400}}
+local content={Size={X={Offset=-40}},children={},CanvasPosition={X=0,Y=0},AbsoluteCanvasSize={Y=1500},AbsoluteWindowSize={Y=400}}
 function content:GetChildren()return self.children end
 local cards,labels,buttons={}, {}, {};local destructions=0
 local function card(height)
@@ -36,7 +38,7 @@ local measured={}
 local TextService={GetTextSize=function(_,text,size,font,dimensions)
  local height=math.ceil(#text*7.5/math.max(1,dimensions.X))*18;measured[text]=height;return {Y=height}
 end}
-local sustainedControl;local sustainedRules={MaxDuration=4,Cooldown=5};local UIS={TouchEnabled=false}
+local sustainedControl;local sustainedRules={MaxDuration=4,Cooldown=5};local UIS={TouchEnabled=false,PreferredInput=Enum.PreferredInput.KeyboardAndMouse}
 local Config={DodgeCooldown=3,SprintDuration=5,SprintRecovery=4,SprintRegenDelay=2}
 local mic={status='unavailable',eligible=false,Check=function(self)self.count=(self.count or 0)+1 end};local modal={Visible=true}
 local cancellations,sprints=0,0;local function cancelCapture()cancellations+=1 end;local function setSprint()sprints+=1 end
@@ -49,6 +51,7 @@ local gameplayAudio={enabled=true,SetEnabled=function(self,v)self.enabled=v end}
 local academy={damageReadout={available=false},tabIcons={},tabIcon=function()return {},{} end}
 local title,subtitle={},{};local tabs={};local ShopUI={Clear=function()end};local mapDot
 local selected='Settings';local renderedMenuKey,renderedTab;local renderRevision=0;local narrow;local render
+local function toggleTab(name)selected=name;render()end -- Modal navigation is covered by shop_modal_lifecycle.py.
 local function menuKey()return selected..':'..gui.AbsoluteSize.X..':'..tostring(sustainedControl)..':'..tostring(UIS.TouchEnabled)end
 local pending={};local task={spawn=function(fn)table.insert(pending,fn)end};local Run={Heartbeat={Wait=function()end}}
 local function flush()for _,fn in ipairs(pending)do fn()end;pending={}end
@@ -70,7 +73,7 @@ for _,automatic in ipairs({false,true})do
  sustainedControl=automatic and {SetArmed=function(self,v)self.armed=v end} or nil
  for _,width in ipairs({320,390,844,1280})do
   for _,touch in ipairs({false,true})do
-   gui.AbsoluteSize.X=width;UIS.TouchEnabled=touch;selected='Settings';renderedMenuKey=nil;cards={};content.children={};labels={};buttons={};modal.Visible=true
+   gui.AbsoluteSize.X=width;UIS.TouchEnabled=touch;UIS.PreferredInput=touch and Enum.PreferredInput.Touch or Enum.PreferredInput.KeyboardAndMouse;selected='Settings';renderedMenuKey=nil;cards={};content.children={};labels={};buttons={};modal.Visible=true
    render();flush()
    local safety,found
    for i,c in ipairs(cards)do if c.labels[1] and string.find(c.labels[1].Text,'VOICE SAFETY',1,true) then check(not safety,'Duplicate safety card');safety=c;found=i end end
@@ -80,6 +83,10 @@ for _,automatic in ipairs({false,true})do
    check(not string.find(text,'automatically banned',1,true) and not string.find(text,'we record',1,true),'Safety notice invents enforcement or recording')
    check(safety.height>=measured[text]+24,'Safety card fails measured height growth')
    check(safety.labels[1].Size.Y.Scale==1 and safety.labels[1].Size.Y.Offset==-20,'Safety label no longer fills dynamic card')
+   local navigation=touch and 'Tap MENU to open the tabs or X to close them.' or 'B: toggle menu'
+   local navigationShown=false
+   for _,item in ipairs(labels) do if string.find(item.Text,navigation,1,true) then navigationShown=true;break end end
+   check(navigationShown,'Settings control help disagrees with the menu launcher')
    for _,id in ipairs({'RetryVoiceAccess','Volume','AttackAudio','GameplayAudio','ReducedFX'})do check(buttons[id]~=nil,'Existing settings control removed')end
    local old=#cards;render();flush();check(#cards==old,'Unchanged menu duplicated safety notice')
    content.CanvasPosition={X=0,Y=220};renderedMenuKey=nil;render();flush();check(content.CanvasPosition.Y==220,'Same-tab rebuild lost scroll')
@@ -108,7 +115,7 @@ if args.baseline:run(code,'VoiceSafety card missing')
 else:
  run(code)
  if args.negative_controls:
-  cases=[(assemble(settings_text=settings.replace('VOICE SAFETY','OTHER NOTICE')),'VoiceSafety card missing'),(assemble(settings_text=settings.replace('Stopping attacks does not mute voice','Stopping attacks mutes voice')),'Safety notice missing required distinction: Stopping attacks does not mute voice'),(assemble(info_text=info.replace('math.max(height or 70,fit)','height or 70')),'Safety card fails measured height growth')]
+  cases=[(assemble(settings_text=settings.replace('VOICE SAFETY','OTHER NOTICE')),'VoiceSafety card missing'),(assemble(settings_text=settings.replace('Stopping attacks does not mute voice','Stopping attacks mutes voice')),'Safety notice missing required distinction: Stopping attacks does not mute voice'),(assemble(info_text=info.replace('math.max(height or 70,fit)','height or 70')),'Safety card fails measured height growth'),(assemble(settings_text=settings.replace('Tap MENU to open the tabs or X to close them.','SHOP opens and closes the menu.')),'Settings control help disagrees with the menu launcher')]
   for changed,message in cases:
    assert changed!=code,'Mutation missing: '+message
    run(changed,message)

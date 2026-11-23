@@ -1,6 +1,6 @@
 """Execute actual four-way server math with synthetic ray/block hits, not native physics."""
 from pathlib import Path
-import tempfile,subprocess
+import sys,tempfile,subprocess
 r=Path(__file__).resolve().parents[1]
 code=r'''
 local n=0;local function check(v,m)assert(v,m);n+=1 end
@@ -56,6 +56,8 @@ print('PASS '..n..' actual dodge math checks with mocked geometry; native physic
 client=(r/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 start=client.index('local function dodge()')
 fragment=client[start:client.index('local controls=',start)]
+start=client.index(' local cd=math.max(0,(p:GetAttribute("DodgeReady")')
+label=client[start:client.index(' local rest=p:GetAttribute("SprintCooldown")',start)]
 code += r'''
 local keys={};local blockedNow=false;local calls={};local move=Vector3.new(0,0,0)
 local root={CFrame={RightVector=Vector3.new(1,0,0),LookVector=Vector3.new(0,0,-1)}}
@@ -63,7 +65,8 @@ local h={MoveDirection=move};local c={FindFirstChild=function()return root end,F
 local p={Character=c};local UIS={IsKeyDown=function(_,key)return keys[key]end}
 local Enum={KeyCode={A='A',D='D',W='W',S='S'}}
 local action={FireServer=function(_,verb,side)table.insert(calls,{verb,side})end}
-local function cancelCapture()end
+local sustainedControl={}
+local cancels=0;local function cancelCapture()cancels+=1 end
 local function blocked()return blockedNow end
 ''' + fragment + r'''
 for _,case in ipairs({
@@ -78,11 +81,56 @@ for _,case in ipairs({
  check(calls[#calls][1]=='Dodge' and calls[#calls][2]==case[4],'desktop/joystick/fallback intent')
 end
 local count=#calls;blockedNow=true;dodge();check(#calls==count,'blocked input escaped')
+check(cancels==0,'Automatic Dodge input cancelled capture before server acceptance')
+sustainedControl=nil;blockedNow=false;dodge()
+check(cancels==1 and #calls==count+1,'Legacy Dodge lost immediate capture cancel')
 print('PASS desktop/joystick/default intent using actual client function')
+local dodgeButton={}
+local academy={}
+local now=10
+local protected,rolling,knocked,alive,touch=0,false,false,true,false
+local deadline=0
+function p:GetAttribute(name)assert(name=='DodgeReady');return deadline end
+Enum.Material={Air='air'}
+local humanoid={FloorMaterial='ground'}
+local function updateDodgeLabel()
+''' + label + r'''
+ return dodgeButton.Text
+end
+check(updateDodgeLabel()=='DODGE [Q]','Grounded desktop dodge lost its key hint')
+academy.gamepad=true;check(updateDodgeLabel()=='DODGE [LB/L1]','Grounded controller dodge lost its key hint');academy.gamepad=false
+touch=true;check(updateDodgeLabel()=='DODGE','Grounded touch dodge lost its ready label')
+protected=4
+check(updateDodgeLabel()=='DODGE\nSHIELDED','Shielded dodge looked ready')
+protected=0;humanoid.FloorMaterial='air'
+check(updateDodgeLabel()=='DODGE\nLAND FIRST','Airborne dodge looked ready')
+deadline=12.5
+check(updateDodgeLabel()=='DODGE 2.5s','Airborne reminder hid the active cooldown')
+deadline=0;humanoid.FloorMaterial='ground';humanoid.SeatPart={}
+check(updateDodgeLabel()=='DODGE\nWAIT','Seated dodge looked ready')
+humanoid.SeatPart=nil;check(updateDodgeLabel()=='DODGE','Landed dodge did not become ready')
+print('PASS eight dodge HUD readiness checks with mocked attributes')
 '''
-with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=r/'tests',delete=False) as f:f.write(code);p=Path(f.name)
-try:subprocess.run(['luau',str(p)],check=True,cwd=r)
-finally:p.unlink()
+def run(payload):
+ with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=r/'tests',delete=False) as f:
+  f.write(payload);p=Path(f.name)
+ try:
+  return subprocess.run(['luau',str(p)],cwd=r,capture_output=True,text=True)
+ finally:
+  p.unlink()
+
+result=run(code)
+assert result.returncode==0,result.stderr
+print(result.stdout.strip())
+if '--negative-controls' in sys.argv:
+ for old,new,error in [
+  ('if protected>0 then dodgeStatus="SHIELDED"','if false then dodgeStatus="SHIELDED"','Shielded dodge looked ready'),
+  ('elseif humanoid.FloorMaterial==Enum.Material.Air then dodgeStatus="LAND FIRST"','elseif false then dodgeStatus="LAND FIRST"','Airborne dodge looked ready'),
+ ]:
+  assert code.count(old)==1,old
+  result=run(code.replace(old,new))
+  assert result.returncode!=0 and error in result.stderr,result.stderr
+  print('PASS control: '+error)
 s=(r/'src/ServerScriptService/Bootstrap.server.luau').read_text()
 assert 'DodgeMotion.Step(workspace' in s and 'CFrame.new(target)*facing' in s
 assert 'then dodge(p,arg);return' in s

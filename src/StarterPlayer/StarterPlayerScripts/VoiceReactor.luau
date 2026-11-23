@@ -18,6 +18,18 @@ function Reactor.Layout(width,touch,height)
  end
  return wide and 300 or math.min(230,math.max(140,width-28)),wide and 96 or 84
 end
+function Reactor.InputStatus(mic,serverReady,compact)
+ if not mic.ready then
+  local input=mic.input
+  if input and input.Parent then
+   if input.Active==false then return "Mic inactive" end
+   if mic.signalUnavailable then return "No mic signal" end
+  elseif mic.eligible then return "Waiting for mic input" end
+ end
+ if not mic.ready or serverReady~=true then
+  return compact and "Connecting mic" or "Connecting microphone…"
+ end
+end
 function Reactor.Status(defaultText,unavailable,off,width,height,touch)
  local compact=Reactor.CompactPortrait(width,height,touch)
  if unavailable then

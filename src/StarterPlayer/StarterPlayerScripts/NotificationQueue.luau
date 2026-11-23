@@ -12,11 +12,14 @@ end
 function Queue:Push(text,urgent,key)
  if type(text)~="string" or text=="" then return end
  urgent=urgent==true
- if self.active and self.active.text==text then return end
- for _,entry in ipairs(self.pending) do if entry.text==text then return end end
- -- Stateful keys coalesce obsolete guidance; save has one highest-priority entry.
- if key then self:Remove(key) end
- local priority=key=="save" and 2 or urgent and 1 or 0
+ local receipt=key=="questReceipt" or key=="trainingReceipt"
+ -- Each confirmed reward is a separate event, even if the amounts match.
+ if not receipt then
+  if self.active and self.active.text==text then return end
+  for _,entry in ipairs(self.pending) do if entry.text==text then return end end
+  if key then self:Remove(key) end
+ end
+ local priority=key=="save" and 2 or urgent and 1 or receipt and .5 or 0
  local entry={text=text,urgent=urgent,key=key,priority=priority,remaining=duration(text)}
  if self.active and priority>self.active.priority then
   self.active.remaining=duration(self.active.text);self.active.presented=false

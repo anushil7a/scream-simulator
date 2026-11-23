@@ -6,18 +6,70 @@ local function part(parent,name,size,position,color,solid)
  p.Anchored=true;p.Material=Enum.Material.SmoothPlastic;p.CanCollide=solid;p.CanTouch=false;p.CanQuery=solid;p.Parent=parent
  return p
 end
+local plantOffsets={{-5,-6},{.4,-5.5},{5,-5},{-3.4,1.5},{3.5,4.5}}
+local petalOffsets={{-.67,0},{.67,0},{0,-.67},{0,.67}}
+local flowerColors={Color3.fromRGB(239,141,112),Color3.fromRGB(244,194,112),Color3.fromRGB(183,137,209)}
+local function plantGarden(soil,bedIndex)
+ soil.Color=Color3.fromRGB(127,97,71);soil.Material=Enum.Material.Ground
+ local garden=Instance.new("Model");garden.Name="GardenPlantings";garden.ModelStreamingMode=Enum.ModelStreamingMode.Atomic
+ local top=soil.Position.Y+soil.Size.Y/2
+ for index,offset in ipairs(plantOffsets) do
+  local x,z=soil.Position.X+offset[1],soil.Position.Z+offset[2]
+  local function layer(name,y,size,color,dx,dz)
+   local planting=part(garden,name..index,size,V(x+(dx or 0),top+y,z+(dz or 0)),color,false)
+   planting.Shape=Enum.PartType.Ball;planting.CastShadow=false
+  end
+  layer("Leaves",.29,V(3.6,.74,2.85),Color3.fromRGB(77,132,79))
+  local color=flowerColors[(bedIndex+index-1)%#flowerColors+1]
+  for petal,direction in ipairs(petalOffsets) do
+   local size=direction[1]~=0 and V(1.55,.48,1.18) or V(1.18,.48,1.55)
+   layer("Petal"..petal.."_",.69,size,color,direction[1],direction[2])
+  end
+  layer("Center",.92,V(.88,.40,.88),Color3.fromRGB(253,222,151))
+ end
+ garden.Parent=soil
+end
+local function dressBottle(marker,index)
+ local model=Instance.new("Model");model.Name="BottleVisual";model.ModelStreamingMode=Enum.ModelStreamingMode.Atomic
+ -- This row of pickups sits on the flat Map10 beach at Y = 0.
+ local frame=CFrame.new(marker.Position.X,.31,marker.Position.Z)*CFrame.Angles(0,math.rad(27+index*48),0)
+ local function section(name,offset,length,diameter,color)
+  local p=part(model,name,V(length,diameter,diameter),marker.Position,color,false)
+  p.Shape=Enum.PartType.Cylinder;p.CFrame=frame*CFrame.new(offset,0,0);p.CastShadow=false
+ end
+ local blue=Color3.fromRGB(34,111,142)
+ section("Body",0,.96,.66,blue)
+ section("Label",-.19,.36,.68,Color3.fromRGB(244,229,174))
+ section("Neck",.55,.38,.30,blue)
+ section("Cap",.79,.17,.39,Color3.fromRGB(34,55,73))
+ marker.Transparency=1;marker.CastShadow=false
+ model.Parent=marker
+end
 local function prompt(p,action,text,object)
  p:SetAttribute("QuestAction",action)
  local pr=Instance.new("ProximityPrompt");pr.ActionText=text;pr.ObjectText=object or p.Name
  pr.KeyboardKeyCode=Enum.KeyCode.F;pr.MaxActivationDistance=10;pr.HoldDuration=action=="Garden" and 1.5 or .25;pr.RequiresLineOfSight=false;pr.Parent=p
 end
-function City.Build(parent)
+function City.Build(parent,withMap10Finish)
+ local ocean
  for _,spec in ipairs(Layout.PartSpecs) do
-  local p=part(parent,spec.id,spec.size,spec.position,spec.color,spec.collidable)
+  -- The finishing pass supplies crystals, lava channels and layered speaker drivers.
+  local id=spec.id
+  if withMap10Finish and not spec.collidable
+   and (id:match("^Crystal%d+$") or id:match("^LavaFissure%d+$") or id:match("^BranchLava%d+$") or id:match("^Speaker[0-2]%d%d$")) then continue end
+  local oceanTile=id=="Sea" or id:match("^SeaHorizon")
+  if oceanTile and not ocean then
+   ocean=Instance.new("Model")
+   ocean.Name="OceanBackdrop";ocean.ModelStreamingMode=Enum.ModelStreamingMode.Persistent;ocean.Parent=parent
+  end
+  local p=part(oceanTile and ocean or parent,spec.id,spec.size,spec.position,spec.color,spec.collidable)
+  if oceanTile then p.CastShadow=false end
   local r=spec.rotation or Vector3.zero;p.CFrame=CFrame.new(spec.position)*CFrame.Angles(0,math.rad(r.Y),0)*CFrame.Angles(math.rad(r.X),0,math.rad(r.Z))
   if spec.shape then p.Shape=Enum.PartType[spec.shape] end
   if spec.material then p.Material=Enum.Material[spec.material] end
   if spec.collidable then p:SetAttribute("GroundSurface",true) end
+  local gardenIndex=withMap10Finish and id:match("^Flowers([0-2])$")
+  if gardenIndex then plantGarden(p,tonumber(gardenIndex)) end
  end
  -- Offset a narrow line just inside confirmed green, so even at a cut
  -- corner the decoration neither floats over a notch nor paints a ramp.
@@ -33,9 +85,12 @@ function City.Build(parent)
   end
  end
  local quests=Instance.new("Folder");quests.Name="QuestObjects";quests.Parent=parent
- for _,spec in ipairs(Layout.QuestMarkers) do
+ for index,spec in ipairs(Layout.QuestMarkers) do
   local p=part(quests,spec.id,V(1,1.6,1),spec.position,Color3.fromRGB(226,181,83),false)
-  prompt(p,spec.action,spec.text,spec.action=="Garden" and "Community garden" or nil)
+  if withMap10Finish and spec.action=="Garden" then p.Transparency=1;p.CastShadow=false end
+  local bottle=withMap10Finish and spec.action=="Litter"
+  if bottle then dressBottle(p,index) end
+  prompt(p,spec.action,spec.text,spec.action=="Garden" and "Community garden" or bottle and "Beach cleanup" or nil)
  end
  for _,stop in ipairs(Layout.DeliveryStops) do
   local p=part(quests,stop.id,V(1,1.6,1),stop.position,Color3.fromRGB(226,181,83),false)

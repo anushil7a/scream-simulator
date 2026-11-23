@@ -9,6 +9,7 @@ dispatch=b[b.index('action.OnServerEvent:Connect(function'):b.index('\nlocal fun
 helper=c[c.index('local sprinting=false'):c.index('\nlocal function targetCovered(')]
 step=b[b.index('local function stepSprint('):b.index('\ntask.spawn(function()',b.index('local function stepSprint('))]
 setup=r'''
+local academy={}
 local now=0;local os={clock=function()return now end}
 local workspace={GetServerTimeNow=function()return now end}
 local h={Health=100};local attrs={};local p={Character={FindFirstChildOfClass=function()return h end},GetAttribute=function(_,key)return attrs[key]end}

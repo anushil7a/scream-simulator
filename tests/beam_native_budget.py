@@ -5,7 +5,7 @@ import beam_silhouette as support
 R=Path(__file__).resolve().parents[1]
 source=(R/'src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau').read_text()
 # Client passes platformReducedMotion as contactReduced; it must also reach VFX.
-assert 'syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,quiet or contactReduced,distance,styleSpec)' in source
+assert 'syncVfx(rig,origin,finish,dir,length,width,distance,styleSpec,suppressSecondary)' in source
 support.CHECKS=''
 def run(s):
     body=support.fixture(s)
@@ -35,8 +35,8 @@ print('PASS native-path doubles: 25 saturated attackers, contact, reduced transi
     try:return subprocess.run(['luau',str(p)],capture_output=True,text=True)
     finally:p.unlink()
 r=run(source);assert r.returncode==0,r.stdout+r.stderr;print(r.stdout.strip())
-old=' local nextIndex=rig.used+1\n local part=rig.parts[nextIndex]\n if not part then part=take(detail or nextIndex>5);if not part then return end;rig.parts[nextIndex]=part end\n -- Count successful allocations only. Native tint/contact loops must never visit holes.\n rig.used=nextIndex'
-bad=' rig.used+=1\n local part=rig.parts[rig.used]\n if not part then part=take(detail or rig.used>5);if not part then return end;rig.parts[rig.used]=part end'
+old=' local nextIndex=rig.used+1\n local part=rig.parts[nextIndex]\n if not part then part=take(kind or (nextIndex>5 and "detail" or "core"));if not part then return end;rig.parts[nextIndex]=part end\n -- Count successful allocations only. Native tint/contact loops must never visit holes.\n rig.used=nextIndex'
+bad=' rig.used+=1\n local part=rig.parts[rig.used]\n if not part then part=take(kind or (rig.used>5 and "detail" or "core"));if not part then return end;rig.parts[rig.used]=part end'
 assert old in source
 r=run(source.replace(old,bad));assert r.returncode and 'nil' in r.stderr,r.stdout+r.stderr
 print('PASS negative control: pre-fix allocation crashes native-only path')

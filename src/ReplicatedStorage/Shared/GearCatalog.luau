@@ -21,6 +21,9 @@ function Gear.Selected(data)
  if data.megaphoneOwned and data.megaphoneEquipped then return Gear.Get("Megaphone") end
 end
 function Gear.Multiplier(data) local item=Gear.Selected(data);return item and 1+item.bonus or 1 end
+function Gear.BonusLabel(item)
+ return string.format("Lv %d · +%d%% beam power · 100%% cap",item.level,math.floor(item.bonus*100+.5))
+end
 function Gear.Sanitize(data,raw)
  data.gearOwned={}
  for _,item in ipairs(Gear.Items) do
@@ -30,21 +33,24 @@ function Gear.Sanitize(data,raw)
  data.gearEquipped=item and Gear.Owned(data,item.id) and item.id or nil
  -- Keep legacy ownership/selection fields intact for rollback. Combat chooses only one.
 end
-function Gear.Act(data,id,toggle)
+function Gear.Act(data,id,intent)
  local item=Gear.Get(id)
  if not item then return false,"Unknown gear." end
  if (data.level or 1)<item.level then return false,"Unlocks at level "..item.level.."." end
  local owned=Gear.Owned(data,id)
- if owned and not toggle then return false,"Already owned. Equip from Style." end
+ local selected=Gear.Selected(data)
+ local equipped=selected and selected.id==id
+ if owned and not intent then return false,"Already owned. Equip from Gear." end
+ if intent=="buy" and owned or intent=="equip" and equipped or intent=="unequip" and not equipped then return true end
+ if intent=="equip" and not owned then return false,"Buy this gear before equipping it." end
  if not owned and data.coins<item.price then return false,"Need "..(item.price-data.coins).." more coins." end
  -- No yield: validate everything before debit. Duplicate buy requests never debit again.
- local selected=Gear.Selected(data)
  if not owned then
   data.coins-=item.price
   data.gearOwned=data.gearOwned or {};data.gearOwned[id]=true
   if id=="Megaphone" then data.megaphoneOwned=true elseif id=="MicroSpeaker" then data.amplifierOwned=true end
  end
- local equip=not (owned and toggle and selected and selected.id==id)
+ local equip=not (intent=="unequip" or intent==true and equipped)
  data.gearEquipped=equip and id or nil
  data.amplifierEquipped=equip and id=="MicroSpeaker"
  data.megaphoneEquipped=equip and id=="Megaphone"
@@ -52,7 +58,9 @@ function Gear.Act(data,id,toggle)
 end
 function Gear.Products(data)
  local out={}
- for _,item in ipairs(Gear.Items) do table.insert(out,{id=item.id,name=item.name,price=item.price,owned=Gear.Owned(data,item.id),description=string.format("Level %d · +%d%% normalized power, capped at 100%%. One gear at a time.",item.level,math.floor(item.bonus*100+.5))}) end
+ for _,item in ipairs(Gear.Items) do
+  table.insert(out,{id=item.id,name=item.name,price=item.price,owned=Gear.Owned(data,item.id),description=Gear.BonusLabel(item)})
+ end
  return out
 end
 return Gear

@@ -3,11 +3,13 @@ from pathlib import Path
 import argparse,subprocess,tempfile
 R=Path(__file__).resolve().parents[1]
 def assemble(s):
+ creation=s[s.index('local miniMapButton='):s.index('local function card(',s.index('local miniMapButton='))]
  helper=s[s.index('function academy.hideMiniMapForMenu()'):s.index('\nlocal function card(',s.index('function academy.hideMiniMapForMenu()'))]
  close=s[s.index('local function closeMenu()'):s.index('\nbutton(modal,"Close"')]
  toggle=s[s.index('local function toggleTab('):s.index('\nlocal shop=button(top,')]
  conversation=s[s.index('showConversation=function(info)'):].splitlines()[1]
- visible=s[s.index(' local miniVisible='):s.index(' talkButton.Text=',s.index(' local miniVisible='))]
+ visible=s[s.index(' local miniVisible='):s.index('\nend)',s.index(' local miniVisible='))]
+ notice_map=next(line for line in s.splitlines() if line.startswith(' local noticeMap='))
  m=(R/'src/StarterPlayer/StarterPlayerScripts/CityMap.luau').read_text()
  update=m[m.index('function CityMap.MiniUpdate('):m.index('\nCityMap.legend=')]
  return r'''
@@ -17,7 +19,7 @@ local modal={Visible=false};local conversationPanel={Visible=false};local devPan
 local miniMapButton={Visible=true};local miniMapHolder={Visible=true}
 local miniMapView={map={Parent=true},dot={Visible=true},nextUpdate=5,lastRoot={}}
 local miniMapAvailable=true;local windowFocused=true;local gameplayVisible=true
-local root={Parent=true};local selected='Shop';local lockController;local renderRevision=0;local renderedMenuKey
+local root={Parent=true};local selected='Shop';local renderRevision=0;local renderedMenuKey
 local function hidden(where)check(not miniMapButton.Visible and not miniMapView.dot.Visible,'Minimap leaked before '..where)end
 local function clearShop()end
 local function cancelCapture()hidden('conversation dispatch')end
@@ -52,13 +54,35 @@ for _,size in ipairs({'320x568','390x844','844x390','2042x912'})do
   end
  end
 end
+local cityNoticeLayout={available=true,width=100}
+local viewport,touch,data={},false,{devAccess=false}
+CityMap.MiniLayout=function()return cityNoticeLayout end
+local function noticeMapLayout()
+'''+notice_map+'''
+ return noticeMap
+end
+check(noticeMapLayout()==cityNoticeLayout,'City notice lost the map reservation')
+academy.hideMap=true;modal.Visible=false;selected='Shop'
+check(noticeMapLayout()==nil,'Hall notice reserved absent map space')
+toggleTab('Map')
+check(not modal.Visible and selected=='Shop','Hall Map shortcut opened its menu')
+do
+local gui={}
+local UDim2={fromOffset=function()end,new=function()end}
+local function button()error('Hall created a minimap')end
+'''+creation+'''
+check(not miniMapButton and not miniMapView and not miniMapAvailable,'Hall created a minimap')
+academy.hideMiniMapForMenu()
+end
 print('PASS '..n..' actual-source minimap transition assertions; mocked frame ordering, not native devices')
 '''
 def run(s,negative=False):
  with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False)as f:f.write(assemble(s));p=Path(f.name)
  try:
   r=subprocess.run(['luau',str(p)],capture_output=True,text=True);out=r.stdout+r.stderr
-  if negative:assert r.returncode,'Negative control passed';print('PASS negative control:',out.splitlines()[0])
+  if negative:
+   assert r.returncode and (negative is True or negative in out),out
+   print('PASS negative control:',out.splitlines()[0])
   else:assert not r.returncode,out;print(out,end='')
  finally:p.unlink()
 if __name__=='__main__':
@@ -67,3 +91,6 @@ if __name__=='__main__':
   run(s.replace(' if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end\n','',1),True)
   run(s.replace('if academy.hideMiniMapForMenu then academy.hideMiniMapForMenu() end;','',1),True)
   run(s.replace(' and not modal.Visible and not (conversationPanel and conversationPanel.Visible) and not academy.testLauncherBlocked','',1),True)
+  run(s.replace(' if name=="Map" and academy.hideMap then return end','',1),'Hall Map shortcut opened its menu')
+  run(s.replace('local miniMapButton=not academy.hideMap and button','local miniMapButton=button',1),'Hall created a minimap')
+  run(s.replace('local noticeMap=not academy.hideMap and','local noticeMap=false and',1),'City notice lost the map reservation')

@@ -8,7 +8,7 @@ a=s.index(' elseif verb=="ClaimQuest" then')+len(' elseif verb=="ClaimQuest" the
 b=s.index(' elseif verb=="SetSettings"',a)
 setup='''
 local p={};local earned=0;local stops=0;local messages=0;local reenter
-local definitions={garden={id='garden',goal=3,coins=40,xp=100},nick={id='nick',goal=1,coins=200,xp=500}}
+local definitions={garden={id='garden',name='Garden',goal=3,coins=40,xp=100},nick={id='nick',name='Nick',goal=1,coins=200,xp=500}}
 local Config={GetQuest=function(id)return definitions[id]end}
 local s={activeQuest='garden',data={coins=10,achievements={},quests={garden={progress=2,claimed=false}}}}
 local Commerce={Multiplier=function()return 1 end}

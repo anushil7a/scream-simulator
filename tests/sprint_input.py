@@ -1,4 +1,4 @@
-"""Actual sprint input helper with mocked UI/character state; no physical inputs."""
+"""Actual client control callbacks with mocked UI, character and input events."""
 from pathlib import Path
 import subprocess
 import tempfile
@@ -8,16 +8,31 @@ start=s.index('local sprinting=false');end=s.index('local function playerTargetI
 setup='''
 local h={Health=100};local attrs={};local character={FindFirstChildOfClass=function()return h end}
 local p={Character=character,GetAttribute=function(_,k)return attrs[k]end}
-local windowFocused=true;local mic={ready=true};local GuiService={MenuIsOpen=false}
+local windowFocused=true;local mic={ready=true};local GuiService={MenuIsOpen=false};local gui={}
 local typing=false;local UIS={GetFocusedTextBox=function()return typing and {} or nil end}
 local micPanel={Visible=false};local modal={Visible=false};local devPanel={Visible=false};local conversationPanel={Visible=false}
 local workspace={GetServerTimeNow=function()return 10 end}
-local began,ended;local Enum={KeyCode={LeftShift='shift',V='v'}};UIS.InputBegan={};UIS.InputEnded={}
-local function connectClient(signal,fn)if signal==UIS.InputBegan then began=fn else ended=fn end end
-local function releaseCapture()end;local captureSource=nil
+local academy={}
+local began,ended,disconnected
+local keys={LeftShift='shift',V='v',ButtonY='y',ButtonB='b',ButtonR1='r1',ButtonL1='l1',ButtonL2='l2',ButtonL3='l3'}
+local Enum={KeyCode=keys};UIS.InputBegan={};UIS.InputEnded={};UIS.GamepadDisconnected={}
+local function connectClient(signal,fn)
+ if signal==UIS.InputBegan then began=fn elseif signal==UIS.InputEnded then ended=fn else disconnected=fn end
+end
+local captureSource;local sustainedControl={armed=false,SetArmed=function(self,armed)self.armed=armed end};local actions={}
+local function toggle()table.insert(actions,'menu')end
+local function toggleVoice()sustainedControl:SetArmed(not sustainedControl.armed);table.insert(actions,'voice')end
+local function requestTalk()table.insert(actions,'talk')end
+local function dodge()table.insert(actions,'dodge')end
+local function closeMenu()modal.Visible=false end
+local function closeConversation()conversationPanel.Visible=false end
+local function beginCapture(source)captureSource=source end
+local function releaseCapture(source)if captureSource==source then captureSource=nil;table.insert(actions,'release') end end
+local function cancelCapture()captureSource=nil;table.insert(actions,'cancel')end
 local messages={};local action={FireServer=function(_,verb,arg)assert(verb=='Sprint');table.insert(messages,arg)end}
 '''
 dispatch=s[s.index('connectClient(UIS.InputBegan,'):s.index('connectClient(p.CharacterRemoving,',s.index('connectClient(UIS.InputBegan,'))]
+disconnect=s[s.index('connectClient(UIS.GamepadDisconnected,'):s.index('\ndo\n local scope,previous')]
 checks='''
 local count=0;local function check(v,msg)assert(v,msg);count+=1 end
 setSprint(true);check(sprinting and #messages==1 and messages[1],'Start was not transmitted')
@@ -51,11 +66,90 @@ for i=1,20 do began(shift,false);ended(shift) end
 check(not sprinting and #messages==sent+41,'Tap dispatch lost starts/stops')
 began(shift,true);check(not sprinting,'Processed key started sprint')
 began({KeyCode=Enum.KeyCode.V},false);check(not sprinting,'Removed view key changed sprint')
-print('PASS '..count..' actual sprint input checks with mocked UI/character state')
+local primary={Name='Gamepad1'}
+local secondary={Name='Gamepad2'}
+local keyboard={Name='Keyboard'}
+local function press(key,device,processed)
+ began({KeyCode=key,UserInputType=device or primary},processed or false)
+end
+press(keys.ButtonY,keyboard)
+press(keys.ButtonY,primary,true)
+windowFocused=false;press(keys.ButtonY);windowFocused=true
+GuiService.MenuIsOpen=true;press(keys.ButtonY);GuiService.MenuIsOpen=false
+typing=true;press(keys.ButtonY);typing=false
+check(#actions==0,'Blocked or non-gamepad input activated an action')
+press(keys.ButtonY);press(keys.ButtonR1);press(keys.ButtonL1);press(keys.ButtonL2)
+check(table.concat(actions,',')=='menu,voice,dodge,talk','Controller actions were not dispatched')
+check(sustainedControl.armed,'Controller did not arm the voice double')
+disconnected(secondary);check(sustainedControl.armed,'An unrelated controller disarmed voice')
+disconnected(primary);check(not sustainedControl.armed,'Arming controller disconnect left voice armed')
+modal.Visible=true;press(keys.ButtonB);check(not modal.Visible,'Controller back left Menu open')
+conversationPanel.Visible=true;press(keys.ButtonB);check(not conversationPanel.Visible,'Controller back left conversation open')
+local owned={IsDescendantOf=function(_,root)return root==gui end}
+local foreign={IsDescendantOf=function()return false end}
+GuiService.SelectedObject=owned
+press(keys.ButtonB,primary,true)
+check(GuiService.SelectedObject==owned,'Processed Back released HUD selection')
+windowFocused=false;press(keys.ButtonB);windowFocused=true
+GuiService.MenuIsOpen=true;press(keys.ButtonB);GuiService.MenuIsOpen=false
+typing=true;press(keys.ButtonB);typing=false
+check(GuiService.SelectedObject==owned,'Blocked Back released HUD selection')
+devPanel.Visible=true;press(keys.ButtonB);devPanel.Visible=false
+check(GuiService.SelectedObject==owned,'Back interrupted the Test panel')
+modal.Visible=true;press(keys.ButtonB)
+check(not modal.Visible and GuiService.SelectedObject==owned,'Back bypassed normal Menu close behavior')
+conversationPanel.Visible=true;press(keys.ButtonB)
+check(not conversationPanel.Visible and GuiService.SelectedObject==owned,'Back bypassed normal conversation close behavior')
+press(keys.ButtonB)
+check(GuiService.SelectedObject==nil,'Back left ordinary HUD selection active')
+GuiService.SelectedObject=foreign;press(keys.ButtonB)
+check(GuiService.SelectedObject==foreign,'Back released selection outside our HUD')
+GuiService.SelectedObject=nil;press(keys.ButtonB)
+
+press(keys.ButtonL3);local padSent=#messages
+check(sprinting and academy.sprintController==primary,'Controller did not start sprint')
+press(keys.ButtonL3)
+ended({KeyCode=keys.ButtonL3,UserInputType=secondary})
+disconnected(secondary)
+check(sprinting and #messages==padSent,'Another controller interrupted sprint or repeat sent another start')
+ended({KeyCode=keys.ButtonL3,UserInputType=primary})
+check(not sprinting and messages[#messages]==false,'Controller release left sprint active')
+press(keys.ButtonL3);disconnected(primary)
+check(not sprinting and not academy.sprintController,'Controller disconnect left sprint active')
+press(keys.ButtonL3);windowFocused=false;setSprint(true);windowFocused=true
+check(not sprinting and not academy.sprintController,'Interruption kept stale sprint controller')
+press(keys.ButtonL3);check(sprinting,'New press after interruption did not recover')
+setSprint(false)
+sustainedControl=nil
+press(keys.ButtonR1);check(captureSource==primary,'Legacy capture did not start on controller')
+ended({KeyCode=keys.ButtonR1,UserInputType=secondary})
+check(captureSource==primary,'Secondary controller released legacy capture')
+disconnected(primary);check(not captureSource and actions[#actions]=='cancel','Disconnect fired or retained legacy capture')
+press(keys.ButtonR1);ended({KeyCode=keys.ButtonR1,UserInputType=primary})
+check(not captureSource and actions[#actions]=='release','Controller release failed for legacy capture')
+print('PASS '..count..' actual sprint and controller input checks with mocked UI/character state')
 '''
-with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.sprint_input_',dir=root/'tests',delete=False) as f:
-    path=Path(f.name);f.write(setup+s[start:end]+dispatch+checks)
-try:
-    subprocess.run(['luau',str(path)],cwd=root,check=True)
-finally:
-    path.unlink()
+def run(handler,disconnect_handler=disconnect):
+    with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',prefix='.sprint_input_',dir=root/'tests',delete=False) as f:
+        path=Path(f.name);f.write(setup+s[start:end]+handler+disconnect_handler+checks)
+    try:
+        return subprocess.run(['luau',str(path)],cwd=root,text=True,capture_output=True)
+    finally:
+        path.unlink()
+
+result=run(dispatch)
+assert result.returncode==0,result.stdout+result.stderr
+print(result.stdout.strip())
+for wrong,correct,failure in (
+    ('k==Enum.KeyCode.ButtonY then toggle()', 'k==Enum.KeyCode.ButtonY then return', 'Controller actions were not dispatched'),
+    ('academy.sprintController==input.UserInputType', 'academy.sprintController~=input.UserInputType', 'Another controller interrupted sprint'),
+    ('academy.beamController==inputType', 'academy.beamController~=inputType', 'An unrelated controller disarmed voice'),
+    ('if selection and selection:IsDescendantOf(gui) then GuiService.SelectedObject=nil end',
+     'if false then GuiService.SelectedObject=nil end', 'Back left ordinary HUD selection active'),
+    ('if selection and selection:IsDescendantOf(gui) then GuiService.SelectedObject=nil end',
+     'if selection then GuiService.SelectedObject=nil end', 'Back released selection outside our HUD'),
+):
+    assert (dispatch+disconnect).count(wrong)==1,wrong
+    result=run(dispatch.replace(wrong,correct),disconnect.replace(wrong,correct))
+    assert result.returncode!=0 and failure in result.stderr,result.stdout+result.stderr
+print('PASS 5 controller input negative controls')

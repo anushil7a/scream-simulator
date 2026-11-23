@@ -1,0 +1,349 @@
+{
+  "overlapSeconds": 1.4836050104349852,
+  "clients": {
+    "Player1": {
+      "renderedWarnings": [],
+      "ack": true,
+      "role": 1,
+      "ends": {
+        "-1": true,
+        "-2": true
+      },
+      "length": 54.75,
+      "finalLocalEnergy": 0,
+      "peakLocalTemplates": 2,
+      "finalLocalTemplates": 0,
+      "width": 7,
+      "peakLocalEnergy": 154,
+      "camera": "-337.999542, 7.75485897, 123.074173, 0.99999994, -9.8386472e-06, 3.67229404e-05, 0, 0.965933859, 0.258788735, -3.80180645e-05, -0.258788705, 0.965933919",
+      "finalHp": 480,
+      "levels": {
+        "100": true
+      },
+      "damagePackets": 0,
+      "viewport": "1274.40002, 634.400024",
+      "packets": {
+        "-1": 6,
+        "-2": 6
+      },
+      "pulses": 11
+    },
+    "Player3": {
+      "renderedWarnings": {
+        "BEAM HIT YOU": true
+      },
+      "ack": false,
+      "role": 3,
+      "ends": {
+        "-1": true,
+        "-2": true
+      },
+      "length": 54.75,
+      "finalLocalEnergy": 0,
+      "peakLocalTemplates": 0,
+      "peakLocalEnergy": 8,
+      "finalLocalTemplates": 0,
+      "width": 7,
+      "levels": {
+        "100": true
+      },
+      "camera": "-324, 6.01999998, 121, -0.832050264, -0.100854576, 0.545454562, 0, 0.983332157, 0.181818187, -0.554700136, 0.151281863, -0.818181872",
+      "finalHp": 170,
+      "visibleWarning": true,
+      "viewport": "1274.40002, 671.200012",
+      "damagePackets": 2,
+      "packets": {
+        "-1": 6,
+        "-2": 6
+      },
+      "pulses": 0
+    },
+    "Player2": {
+      "renderedWarnings": [],
+      "ack": true,
+      "role": 2,
+      "ends": {
+        "-1": true,
+        "-2": true
+      },
+      "length": 54.75,
+      "finalLocalEnergy": 0,
+      "peakLocalTemplates": 2,
+      "finalLocalTemplates": 0,
+      "width": 7,
+      "peakLocalEnergy": 154,
+      "camera": "-329.185516, 0.00776815414, 112.789368, 0.241644353, -0.504935265, -0.828642607, 0, 0.853949487, -0.520356059, 0.970364869, 0.125741109, 0.20635207",
+      "finalHp": 480,
+      "levels": {
+        "100": true
+      },
+      "damagePackets": 0,
+      "viewport": "1274.40002, 634.400024",
+      "packets": {
+        "-1": 6,
+        "-2": 6
+      },
+      "pulses": 11
+    }
+  },
+  "damageB": 155,
+  "ok": true,
+  "bodyLane": {
+    "thirdRoot": "-334.0379333496094, 3.8201992511749268, 120.49205017089844",
+    "authorityLine": false,
+    "visibleLengthObstruction": "clear",
+    "nativeHit": "Workspace.Player2.HumanoidRootPart"
+  },
+  "finalHp": 170,
+  "health": [
+    {
+      "at": 0.3010518550872803,
+      "hp": 453,
+      "both": true
+    },
+    {
+      "at": 0.30118393898010254,
+      "hp": 426,
+      "both": true
+    },
+    {
+      "at": 0.5342249870300293,
+      "hp": 400,
+      "both": true
+    },
+    {
+      "at": 0.53432297706604,
+      "hp": 374,
+      "both": true
+    },
+    {
+      "at": 0.7673089504241943,
+      "hp": 349,
+      "both": true
+    },
+    {
+      "at": 0.7674160003662109,
+      "hp": 324,
+      "both": true
+    },
+    {
+      "at": 1.0012259483337402,
+      "hp": 298,
+      "both": true
+    },
+    {
+      "at": 1.0014019012451172,
+      "hp": 272,
+      "both": true
+    },
+    {
+      "at": 1.2333128452301025,
+      "hp": 246,
+      "both": true
+    },
+    {
+      "at": 1.2334339618682861,
+      "hp": 220,
+      "both": true
+    },
+    {
+      "at": 1.4671528339385986,
+      "hp": 195,
+      "both": true
+    },
+    {
+      "at": 1.467270851135254,
+      "hp": 170,
+      "both": true
+    }
+  ],
+  "lanes": [
+    {
+      "line": true,
+      "world": "clear"
+    },
+    {
+      "line": true,
+      "world": "clear"
+    }
+  ],
+  "activeAfter": 0,
+  "damageWhileOverlapping": 310,
+  "stage": {
+    "Player1": {
+      "noSave": true,
+      "floor": "IslandCore2",
+      "position": "-338, 3.0199999809265137, 111",
+      "userId": -1,
+      "hp": 480
+    },
+    "Player3": {
+      "noSave": true,
+      "floor": "IslandCore2",
+      "position": "-330, 3.0199999809265137, 130",
+      "userId": -3,
+      "hp": 480
+    },
+    "Player2": {
+      "noSave": true,
+      "floor": "IslandCore2",
+      "position": "-322, 3.0199999809265137, 111",
+      "userId": -2,
+      "hp": 480
+    }
+  },
+  "damageA": 155,
+  "fixture_sha256": "3f30adfae3bfb829cc6bb046f3b8d9799b43aa1657bcff95bea42ec9d8da6aa4",
+  "source": "1f1fbb4d3d46e1711af56e02c1a8ff9e168092cb",
+  "ownedStudioPids": [
+    5740,
+    13780,
+    1792,
+    30244,
+    25328,
+    27772,
+    15616,
+    29708,
+    8480,
+    13500
+  ],
+  "cleanup": "StudioTestService EndTest returned. All listed owned processes verified closed. No studio preferences modified.",
+  "counterScope": "Only parented workspace children named VoiceEnergy or BeamVfx_*; pooled capacity is not counted.",
+  "cameraEvidence": "Fixed off-axis defender camera and native HUD visibility telemetry. No synchronized peak screenshot.",
+  "scope": "Native three-client Studio on one desktop, guarded zero-ID temporary profiles, staged arena positions and level 100, synthetic aim and power through the normal Action remote. Damage, Effect delivery and HUD visibility were sampled. No real microphone, released servers, GPU timing or physical device was exercised.",
+  "matchedBodyCover": {
+    "ok": true,
+    "health": [],
+    "phases": [
+      {
+        "offset": 2.7,
+        "nearHp": 480,
+        "farDistance": 19.173389434814453,
+        "actualFarRay": "clear",
+        "farLoss": 100,
+        "farHp": 480,
+        "nearPos": "-327.3326721191406, 3.8210582733154297, 120.44688415527344",
+        "authorityFar": true,
+        "nearDistance": 9.968510627746582,
+        "farInBeam": true,
+        "beamObstruction": "clear",
+        "authorityNear": true,
+        "farPos": "-330, 3.0199999809265137, 130",
+        "nearLoss": 100,
+        "nearInBeam": true
+      },
+      {
+        "offset": 0,
+        "nearHp": 380,
+        "farDistance": 19.173389434814453,
+        "actualFarRay": "Workspace.Player2.UpperTorso",
+        "farLoss": 0,
+        "farHp": 380,
+        "nearPos": "-330.0326843261719, 3.8210582733154297, 120.44688415527344",
+        "authorityFar": false,
+        "nearDistance": 9.586690902709961,
+        "farInBeam": true,
+        "beamObstruction": "clear",
+        "authorityNear": true,
+        "farPos": "-330, 3.0199999809265137, 130",
+        "nearLoss": 75,
+        "nearInBeam": true
+      }
+    ],
+    "stage": {
+      "Player1": {
+        "hp": 480,
+        "userId": -1,
+        "floor": "IslandCore2",
+        "position": "-330, 3.0199999809265137, 111"
+      },
+      "Player3": {
+        "hp": 480,
+        "userId": -3,
+        "floor": "IslandCore2",
+        "position": "-330, 3.0199999809265137, 130"
+      },
+      "Player2": {
+        "hp": 480,
+        "userId": -2,
+        "floor": "IslandCore2",
+        "position": "-330, 3.0199999809265137, 120"
+      }
+    },
+    "clients": {
+      "Player1": {
+        "reports": [
+          {
+            "width": 7,
+            "damagePackets": 0,
+            "ack": true,
+            "packetCount": 4,
+            "level": 100,
+            "length": 54.75,
+            "ended": true
+          },
+          {
+            "width": 7,
+            "damagePackets": 0,
+            "ack": true,
+            "packetCount": 3,
+            "level": 100,
+            "length": 54.75,
+            "ended": true
+          }
+        ]
+      },
+      "Player3": {
+        "reports": [
+          {
+            "width": 7,
+            "damagePackets": 1,
+            "packetCount": 4,
+            "level": 100,
+            "length": 54.75,
+            "ended": true
+          },
+          {
+            "width": 7,
+            "damagePackets": 0,
+            "packetCount": 3,
+            "level": 100,
+            "length": 54.75,
+            "ended": true
+          }
+        ]
+      },
+      "Player2": {
+        "reports": [
+          {
+            "width": 7,
+            "damagePackets": 1,
+            "packetCount": 4,
+            "level": 100,
+            "length": 54.75,
+            "ended": true
+          },
+          {
+            "width": 7,
+            "damagePackets": 1,
+            "packetCount": 3,
+            "level": 100,
+            "length": 54.75,
+            "ended": true
+          }
+        ]
+      }
+    },
+    "fixture_sha256": "1d473561e9e2f801107d05043789567f16f62c85d9c9b0ac441fd5deba04a1cb",
+    "source": "1f1fbb4d3d46e1711af56e02c1a8ff9e168092cb",
+    "ownedStudioPids": [
+      31056,
+      9576,
+      28084,
+      24920,
+      26476
+    ],
+    "cleanup": "StudioTestService EndTest returned and all listed owned processes verified closed",
+    "fixtureNotes": "All three level 100 with temporary profiles, actors anchored to fix the ray geometry. Only blocker moved 2.7 studs horizontally. Both beams used normal Action and cooldown, with synthetic input. Counts differed by one tick due native timing; primary comparison is positive vs zero far target damage. No simultaneous synchronized screenshot."
+  }
+}

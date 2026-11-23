@@ -1,6 +1,6 @@
 local SoundService=game:GetService("SoundService")
 local Content=game:GetService("ContentProvider")
-local Settings=require(game:GetService("ReplicatedStorage").Shared.GameplayAudioConfig)
+local Settings=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("GameplayAudioConfig"))
 local Mix=require(script.Parent:WaitForChild("CueAudioMix"))
 local Audio={}
 function Audio.new()

@@ -11,7 +11,7 @@ V.__sub=function(a,b)return Vector3.new(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end
 local Color3={fromRGB=function(r,g,b)return {R=r,G=g,B=b}end}
 local CFrame={new=function(p)return {Position=p}end}
 local Vector2={new=function(x,y)return {X=x,Y=y}end}
-local Enum={NormalId={Right=1,Left=2},SurfaceGuiSizingMode={FixedSize=1},PartType={Ball=1,Cylinder=2},Material={SmoothPlastic=1},KeyCode={F=1},Font={GothamBold=1}}
+local Enum={ModelStreamingMode={Persistent="Persistent"},NormalId={Right=1,Left=2},SurfaceGuiSizingMode={FixedSize=1},PartType={Ball=1,Cylinder=2},Material={SmoothPlastic=1},KeyCode={F=1},Font={GothamBold=1}}
 local UDim2={fromOffset=function(x,y)return {X=x,Y=y}end,fromScale=function(x,y)return {X=x,Y=y}end}
 local nodes={};local Instance={new=function(class)local n={ClassName=class,attributes={},Transparency=0};function n:SetAttribute(k,v)self.attributes[k]=v end;table.insert(nodes,n);return n end}
 local Layout=(function()
