@@ -1129,6 +1129,20 @@ end)
 academy.compactObjective.Visible=false
 academy.compactObjective.TextSize=12
 academy.surface(academy.compactObjective,gold)
+function academy.trainingNeedsCloser()
+ local selection=academy.guideSelection
+ local fighter=academy.trainingGuideFighter
+ if not selection or selection.kind~="place" or selection.id~="training" or not fighter or not fighter.Parent
+  or fighter:GetAttribute("ResidentActive")~=true or academy.guide:GetStatus()~="Arrived" then return false end
+ local fighterRoot=fighter:FindFirstChild("HumanoidRootPart")
+ local character=p.Character
+ local root=character and character:FindFirstChild("HumanoidRootPart")
+ if not root or not fighterRoot then return false end
+ -- Give the player a good position for a beam that just clears the voice gate.
+ local launchRange=Config.VoiceCombat.Stats(data.level,sustainedControl.gate.OnPower,
+  data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier).range
+ return (fighterRoot.Position-previewAttackOrigin(root)).Magnitude>launchRange
+end
 function academy.trainingArrival(ready,short,voiceCooldown)
  if ready==false then return short and "FIGHTER RESTING" or "Fighter recovering" end
  if ready~=true then return short and "SPARRING PAD" or "Sparring pad" end
@@ -1148,6 +1162,7 @@ function academy.trainingArrival(ready,short,voiceCooldown)
   return short and "GO QUIET" or "Go quiet, then speak"
  end
  if sustainedControl.gate.onset>0 then return short and "KEEP SPEAKING" or "Keep speaking" end
+ if academy.trainingNeedsCloser() then return short and "MOVE CLOSER" or "Move closer to the fighter" end
  return short and "AIM & SPEAK" or "Aim at the fighter and speak"
 end
 function academy.compactObjectiveText(voiceCooldown)
@@ -1181,7 +1196,7 @@ function academy.refreshCompactObjective(limited,voiceCooldown)
   local headline,detail=string.match(text,"([^\n]+)\n(.*)")
   local shortTitle=({["VIEW QUEST"]="QUEST",["FOLLOW GUIDE"]="GUIDE",["FIGHTER RESTING"]="RESTING",["HIT TO SPAR"]="SPAR",["SPARRING PAD"]="SPAR",
    ["CHECK BEAMS"]="Beams",["BEAMS OFF"]="Beam off",["COOLDOWN"]="Wait",["GO QUIET"]="Quiet",
-   ["BEAM ACTIVE"]="Beam",["BEAM STARTING"]="Starting",["KEEP SPEAKING"]="Speak",["AIM & SPEAK"]="Aim"})[headline]
+   ["BEAM ACTIVE"]="Beam",["BEAM STARTING"]="Starting",["KEEP SPEAKING"]="Speak",["AIM & SPEAK"]="Aim",["MOVE CLOSER"]="Closer"})[headline]
   local progress,seconds=detail:match("^(%d+/%d+) · (%d+s)$")
   if headline=="VIEW QUEST" and seconds then text=progress.."\n"..seconds
   elseif not data.activeQuest and academy.guideSelection then
@@ -2145,6 +2160,7 @@ connectClient(Run.RenderStepped,function(dt)
    or os.clock()<(sustainedControl.unconfirmedUntil or 0) and (compactVoice and "Go quiet, then retry" or "Not confirmed • quiet, then retry")
    or sustainedControl.gate.needsQuiet and "Go quiet"
    or sustainedControl.gate.onset>0 and (compactVoice and "Keep speaking" or "Voice detected • keep speaking")
+   or academy.trainingNeedsCloser() and "Move closer"
    or "Aim and speak"
   meterFill.BackgroundColor3=voiceActive and Color3.fromRGB(104,222,157)
    or (not sustainedControl.armed or voiceCooldown>0 or sustainedControl.gate.needsQuiet or blocked()) and muted or gold

@@ -89,6 +89,8 @@ local _,_,_,_,_,thresholdUnavailable=cue(0,false,false,false,0,true,{serverReady
 check(thresholdReady and not thresholdCooling and not thresholdOff and not thresholdUnavailable,'Start threshold must reflect beam availability')
 check(short({},0,true)=='BEAMS: ON\nGo quiet','Short reset hides the quiet cue')
 check(short({},0,false)=='BEAMS: ON\nAim and speak','Short ready cue lost')
+check(short({trainingFar=true},0,false)=='BEAMS: ON\nMove closer','Short beam cue contradicted the training guide')
+check(short({trainingFar=true},2,false)=='BEAMS: ON\nCooldown 2.0s','Training distance hid the beam cooldown')
 check(short({height=314},0,false)=='BEAMS: ON\nAim and speak','Short cue disappears one pixel early')
 check(short({height=315},0,false)=='BEAMS: ON\nTap to turn off','Short cue leaks into full meter layout')
 check(short({},0,false,false,false,.1)=='BEAMS: ON\nKeep speaking','Short onset cue lost')
@@ -164,7 +166,7 @@ status_code=r'''
  local function beamBlocked() return not mic.ready or data.voiceEligible~=true or blocked() end
  local captureHint
  local castButton={}
- local meterText,power,academy={},0,{VoiceReactor=Reactor,voiceThreshold={}}
+ local meterText,power,academy={},0,{VoiceReactor=Reactor,voiceThreshold={},trainingNeedsCloser=function()return state.trainingFar end}
 ''' + s[s.index(' local showVoiceMeter='):s.index(' meter.Visible=gameplayVisible and showVoiceMeter')] + s[start:end] + s[s.index('\n meterText.Text=',end):s.index(' local shortLandscape=',end)] + s[s.index(' if sustainedControl then\n  -- Keep the next voice action'):s.index(' -- Keep attack duration/cooldown distinct')] + '''
  return captureHint,meterFill.BackgroundColor3,castButton.Text,showVoiceMeter,meterText.Text,academy.voiceThreshold.Visible
 '''
@@ -188,6 +190,7 @@ run(payload)
 if '--negative-controls' in sys.argv:
  for old,new,expected in [
   ('status=captureHint','status=nil','Short cooldown hides the quiet cue'),
+  ('or academy.trainingNeedsCloser() and "Move closer"','', 'Short beam cue contradicted the training guide'),
   ('viewport.Y>=315','viewport.Y>=314','Short cue disappears one pixel early'),
   ('viewport.Y>=315','viewport.Y>=316','Short cue leaks into full meter layout'),
   ('if not mic.ready or serverReady~=true then','if serverReady~=true then','Local mic unavailable reported ready'),

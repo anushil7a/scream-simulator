@@ -79,6 +79,7 @@ local function visibility(active,selected,paused,touch,view,selection,routeStatu
  local windowFocused=not voice or not voice.inactive
  local function beamBlocked()return voice and voice.blocked end
  local function voiceEligibilityHint()return nil,voice and voice.muted end
+ academy.trainingNeedsCloser=function()return voice and voice.far end
  __ARRIVAL__
  local devPanel={Visible=false}
  local function offset(x,y)return {X={Offset=x},Y={Offset=y}}end
@@ -143,6 +144,7 @@ for _,case in ipairs({
  {{ready=true,armed=true,attack={}},'Starting beam…'},
  {{ready=true,armed=true,attack={acknowledged=true}},'Beam in progress'},
  {{ready=true,armed=true,onset=.1},'Keep speaking'},
+ {{ready=true,armed=true,far=true},'Move closer to the fighter'},
  {{ready=true,armed=true},'Aim at the fighter and speak'},
 })do
  _,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},training,'Arrived',false,true,1,case[1])
@@ -172,6 +174,7 @@ do
 local top,shop,questsToggle={},{},{}
 academy.passesToggle={}
 local data={training='Rookie',quests={},combatChallenges={fighters=1}}
+data.level=1
 local sustainedControl
 local voiceCooldown=0
 local windowFocused=true
@@ -179,6 +182,12 @@ local function beamBlocked()return false end
 local function voiceEligibilityHint()return nil,false end
 local quest={id='sprint',goal=3}
 local Config={CompactCity=true,GetQuest=function(id)return id=='sprint' and quest or nil end}
+Config.VoiceCombat=require('../src/ReplicatedStorage/Shared/VoiceCombat')
+local measuredDistance=10
+local fighterRoot={Position=setmetatable({},{__sub=function()return {Magnitude=measuredDistance}end})}
+local root={}
+local p={Character={FindFirstChild=function()return root end}}
+local function previewAttackOrigin()return {} end
 local GuiService={MenuIsOpen=false};local modal,devPanel,conversationPanel={},{},{}
 local gold={}
 local showQuest=true
@@ -216,9 +225,11 @@ refresh(true);check(b.Visible and b.Text=='ROOKIE GUIDE\n1/3 fighters','Compact 
 b.Activated();refresh(true)
 check(b.Text=='FOLLOW GUIDE\n1/3 · Clear','Compact training route missing progress or Clear')
 academy.refreshCompactObjective(true);check(b.Text=='CLEAR\nEn route\n1/3','Tight row concealed the active route clear action')
-status='Arrived';academy.trainingGuideFighter={Parent={},GetAttribute=function()return true end};refresh(true)
+status='Arrived'
+academy.trainingGuideFighter={Parent={},GetAttribute=function()return true end,FindFirstChild=function()return fighterRoot end}
+refresh(true)
 check(b.Text=='HIT TO SPAR\n1/3 · Clear','Compact arrival lost its instruction')
-sustainedControl={armed=false,gate={needsQuiet=false,onset=0}}
+sustainedControl={armed=false,gate={needsQuiet=false,onset=0,OnPower=.33}}
 refresh(true)
 check(b.Text=='CHECK BEAMS\n1/3 · Clear','Connecting mic did not replace the spar instruction')
 academy.refreshCompactObjective(true)
@@ -237,6 +248,16 @@ academy.refreshCompactObjective(true,voiceCooldown)
 check(b.Text=='CLEAR\nWait\n1/3','Tight row lost cooldown or Clear')
 voiceCooldown=0;sustainedControl.gate.needsQuiet=false;refresh(true)
 check(b.Text=='AIM & SPEAK\n1/3 · Clear','Ready and armed did not show the aiming and voice handoff')
+measuredDistance=21.93
+refresh(true)
+check(b.Text=='MOVE CLOSER\n1/3 · Clear','Compact training guide invited an out-of-range beam')
+academy.refreshCompactObjective(true,voiceCooldown)
+check(b.Text=='CLEAR\nCloser\n1/3','Tight route lost the approach instruction or Clear')
+status='Follow the markers'
+check(not academy.trainingNeedsCloser(),'Range hint appeared before arriving at training')
+status='Arrived'
+measuredDistance=Config.VoiceCombat.Stats(1,.33).range
+refresh(true);check(b.Text=='AIM & SPEAK\n1/3 · Clear','An in-range fighter kept the approach instruction')
 sustainedControl=nil
 academy.trainingGuideFighter.GetAttribute=function()return false end;refresh(true)
 check(b.Text=='FIGHTER RESTING\n1/3 · Clear','Compact arrival masked recovery')
@@ -321,6 +342,9 @@ cases = [
     ('if sustainedControl.gate.needsQuiet or os.clock()', 'if os.clock()', 'automatic beam availability: Go quiet, then speak'),
     ('status=academy.trainingArrival(ready,false,voiceCooldown)', 'status=academy.trainingArrival(ready,false,0)', 'automatic beam availability: Wait for cooldown'),
     ('["GO QUIET"]="Quiet"', '["GO QUIET"]="Guide"', 'Tight row lost the quiet instruction or Clear'),
+    ('if academy.trainingNeedsCloser() then return short','if false then return short',
+     'Regular guide did not reflect automatic beam availability: Move closer to the fighter'),
+    ('Magnitude>launchRange','Magnitude>30','Compact training guide invited an out-of-range beam'),
     ('if count then text..="\\n"..count end','if false then text..="\\n"..count end',
      'Tight row concealed the active route clear action'),
     ('compact and 58 or 0', 'compact and 44 or 0', 'Compact objective overlaps a navigation sibling'),

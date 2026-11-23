@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Lead the first Rookie beam into range
+
+- A fresh temporary profile followed the normal Rookie Guide from spawn at 455 × 218 touch-emulated pixels. A separate normal step back to the guide's arrival edge reproduced **Aim** on a clear 21.93-stud line to Rookie. The level-one beam reaches about 17.94 studs at the sustained voice gate. The baseline staged microphone readiness with zero power and did not fire, so it established the geometry mismatch without measuring a miss.
+- The active Rookie guide and idle Beams caption now agree on **Move closer** until the fighter is within launch range, based on the current level, gear, sustained voice gate and beam origin. The cue only applies after arriving on an active training guide. The tight lane keeps the **CLEAR** action and fighter count. Existing microphone, cooldown, recovery and active beam instructions keep priority.
+- The actual-helper regression failed before the change. It passes 190 layout assertions and 31 controls, including removal of the approach tip and substitution of full-power instead of launch range. The Beams-caption suite passed 263 checks and 13 controls. Independent review, 198 local suites, 99 Luau compiles, and the City and Hall builds passed. Baseline evidence is under `build/rookie_aim_native/native-baseline.json`.
+- In the final Studio replay at 455 × 218, the ordinary Guide and Beams actions produced fitted **Closer** and **Move closer** at 18.42 studs with a clear line. A normal step to 16.75 studs changed both to their aiming instructions. The fixture used synthetic zero-power readiness, so no cast or human microphone was exercised. See `build/rookie_aim_native/native-final.json` (fixture SHA-256 `885477475c149362d7a5fe3a37dc920fd78925e16dd839bac50278529a2b8ed1`). Disposable Studio closed and the earlier emulator preset was restored. Next, compare how quickly a fresh eligible player finds a comfortable range on a real microphone and physical phone.
+
 ## Distinguish the Hall floor from an active spawn shield
 
 - The exact local Hall build kept the zone badge fitted beside the unread arrival notice. A fast normal walk crossed from the safe apron at z54 to the PvP floor at z45.20. The red **RESONANCE HALL • PvP ON** badge appeared while 1.79 seconds of spawn protection remained, and looked identical after expiry.
