@@ -1080,7 +1080,7 @@ end)
 academy.compactObjective.Visible=false
 academy.compactObjective.TextSize=12
 academy.surface(academy.compactObjective,gold)
-function academy.trainingArrival(ready,short)
+function academy.trainingArrival(ready,short,voiceCooldown)
  if ready==false then return short and "FIGHTER RESTING" or "Fighter recovering" end
  if ready~=true then return short and "SPARRING PAD" or "Sparring pad" end
  if not sustainedControl then return short and "HIT TO SPAR" or "Hit the fighter to spar" end
@@ -1089,9 +1089,19 @@ function academy.trainingArrival(ready,short)
   return short and "CHECK BEAMS" or "Check the Beams button"
  end
  if not sustainedControl.armed then return short and "BEAMS OFF" or "Turn Beams on to spar" end
- return short and "AIM TO SPAR" or "Aim at the fighter"
+ if voiceCooldown>0 then return short and "COOLDOWN" or "Wait for cooldown" end
+ local attack=sustainedControl.attack
+ if attack then
+  if attack.acknowledged then return short and "BEAM ACTIVE" or "Beam in progress" end
+  return short and "BEAM STARTING" or "Starting beam…"
+ end
+ if sustainedControl.gate.needsQuiet or os.clock()<(sustainedControl.unconfirmedUntil or 0) then
+  return short and "GO QUIET" or "Go quiet, then speak"
+ end
+ if sustainedControl.gate.onset>0 then return short and "KEEP SPEAKING" or "Keep speaking" end
+ return short and "AIM & SPEAK" or "Aim at the fighter and speak"
 end
-function academy.compactObjectiveText()
+function academy.compactObjectiveText(voiceCooldown)
  local quest=Config.GetQuest(data.activeQuest)
  if quest then
   local saved=data.quests[quest.id]
@@ -1107,21 +1117,22 @@ function academy.compactObjectiveText()
   if status=="Arrived" then
    local fighter=academy.trainingGuideFighter
    local ready=fighter and fighter.Parent and fighter:GetAttribute("ResidentActive")
-   heading=academy.trainingArrival(ready,true)
+   heading=academy.trainingArrival(ready,true,voiceCooldown)
   end
   return heading.."\n"..count.."/3 · Clear"
  end
  return heading.."\nClear guide"
 end
-function academy.refreshCompactObjective(limited)
+function academy.refreshCompactObjective(limited,voiceCooldown)
  local objective=academy.compactObjective
  objective.Size=UDim2.fromOffset(limited and 52 or 104,46)
  objective.TextSize=limited and 11 or 12
- local text=academy.compactObjectiveText()
+ local text=academy.compactObjectiveText(voiceCooldown)
  if limited then
   local headline,detail=string.match(text,"([^\n]+)\n(.*)")
   local shortTitle=({["VIEW QUEST"]="QUEST",["FOLLOW GUIDE"]="GUIDE",["FIGHTER RESTING"]="RESTING",["HIT TO SPAR"]="SPAR",["SPARRING PAD"]="SPAR",
-   ["CHECK BEAMS"]="Beams",["BEAMS OFF"]="Beam off",["AIM TO SPAR"]="Aim"})[headline]
+   ["CHECK BEAMS"]="Beams",["BEAMS OFF"]="Beam off",["COOLDOWN"]="Wait",["GO QUIET"]="Quiet",
+   ["BEAM ACTIVE"]="Beam",["BEAM STARTING"]="Starting",["KEEP SPEAKING"]="Speak",["AIM & SPEAK"]="Aim"})[headline]
   local progress,seconds=detail:match("^(%d+/%d+) · (%d+s)$")
   if headline=="VIEW QUEST" and seconds then text=progress.."\n"..seconds
   elseif not data.activeQuest and academy.guideSelection then
@@ -2184,7 +2195,7 @@ connectClient(Run.RenderStepped,function(dt)
    if status=="Arrived" and selection.kind=="place" and selection.id=="training" then
     local fighter=academy.trainingGuideFighter
     local ready=fighter and fighter.Parent and fighter:GetAttribute("ResidentActive")
-    status=academy.trainingArrival(ready,false)
+    status=academy.trainingArrival(ready,false,voiceCooldown)
     distance=nil
     if guideUsesTracker then
      heading=""
@@ -2313,7 +2324,7 @@ connectClient(Run.RenderStepped,function(dt)
  questsToggle.Text=academy.shortObjective and questShortcut~="NOTICE" and questShortcut~="QUESTS" and "REWARD" or questShortcut
  questsToggle.Visible=shop.Visible and not modal.Visible and questShortcut~="QUESTS"
  academy.passesToggle.Visible=shop.Visible and gameplayVisible and not devPanel.Visible
- if academy.compactObjective.Visible then academy.refreshCompactObjective(questsToggle.Visible) end
+ if academy.compactObjective.Visible then academy.refreshCompactObjective(questsToggle.Visible,voiceCooldown) end
  talkButton.Visible=talkTarget~=nil and gameplayVisible
  talkButton.Size=UDim2.fromOffset(academy.stackedTouchActions and (viewport.Y<205 and 44 or 84) or noticeLayout.baseTalkWidth or 120,touch and 44 or 34)
  if academy.stackedTouchActions then

@@ -71,7 +71,10 @@ local function visibility(active,selected,paused,touch,view,selection,routeStatu
  local viewport=view or (touch and {X=750,Y=323} or {X=567,Y=241})
  local showQuest,gameplayVisible=true,not paused
  local data={activeQuest=active and 'sprint' or nil,combatChallenges={fighters=progress}}
- local sustainedControl=voice and {armed=voice.armed}
+ local sustainedControl=voice and {armed=voice.armed,attack=voice.attack,
+  gate={needsQuiet=voice.quiet,onset=voice.onset or 0},
+  unconfirmedUntil=voice.retry and (os.clock()+10) or nil}
+ local voiceCooldown=voice and voice.cooldown or 0
  data.micReady=voice and voice.ready
  local windowFocused=not voice or not voice.inactive
  local function beamBlocked()return voice and voice.blocked end
@@ -134,10 +137,16 @@ for _,case in ipairs({
  {{ready=true,armed=true,muted=true},'Check the Beams button'},
  {{ready=true,armed=true,inactive=true},'Check the Beams button'},
  {{ready=true,armed=false},'Turn Beams on to spar'},
- {{ready=true,armed=true},'Aim at the fighter'},
+ {{ready=true,armed=true,quiet=true},'Go quiet, then speak'},
+ {{ready=true,armed=true,quiet=true,cooldown=3},'Wait for cooldown'},
+ {{ready=true,armed=true,retry=true},'Go quiet, then speak'},
+ {{ready=true,armed=true,attack={}},'Starting beam…'},
+ {{ready=true,armed=true,attack={acknowledged=true}},'Beam in progress'},
+ {{ready=true,armed=true,onset=.1},'Keep speaking'},
+ {{ready=true,armed=true},'Aim at the fighter and speak'},
 })do
  _,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},training,'Arrived',false,true,1,case[1])
- check(arrival==case[2]..'\nFighters 1/3','Regular guide did not reflect automatic beam availability')
+ check(arrival==case[2]..'\nFighters 1/3','Regular guide did not reflect automatic beam availability: '..case[2])
 end
 _,_,_,arrival=visibility(false,true,false,true,{X=529,Y=242},training,'Arrived',false,false,1,{ready=false})
 check(arrival=='Fighter recovering\nFighters 1/3','Voice availability overrode fighter recovery')
@@ -149,7 +158,7 @@ start=s.index(' local guideUsesTracker=false')
 stop=s.index(' local now=workspace:GetServerTimeNow();local protected=',start)
 code=code.replace('__SHARED_RAIL__',s[start:stop])
 start=s.index('function academy.trainingArrival(')
-arrival_source=s[start:s.index('function academy.compactObjectiveText()',start)]
+arrival_source=s[start:s.index('function academy.compactObjectiveText(',start)]
 code=code.replace('__ARRIVAL__',arrival_source)
 start=s.index(' local meterWidth,meterHeight=')
 stop=s.index(' local testBottom=',start)
@@ -164,6 +173,7 @@ local top,shop,questsToggle={},{},{}
 academy.passesToggle={}
 local data={training='Rookie',quests={},combatChallenges={fighters=1}}
 local sustainedControl
+local voiceCooldown=0
 local windowFocused=true
 local function beamBlocked()return false end
 local function voiceEligibilityHint()return nil,false end
@@ -185,7 +195,7 @@ academy.guide={GetStatus=function()return status end}
 ''' + compact_ui + r'''
 local function refresh(gameplayVisible)
 ''' + compact_render + r'''
- if academy.compactObjective.Visible then academy.compactObjective.Text=academy.compactObjectiveText() end
+ if academy.compactObjective.Visible then academy.refreshCompactObjective(false,voiceCooldown) end
 end
 academy.layoutObjectiveNav({X=492,Y=150},true,true)
 local b=academy.compactObjective
@@ -204,7 +214,7 @@ check(b.Text=='FOLLOW GUIDE\n1/3 · Clear','Compact training route missing progr
 academy.refreshCompactObjective(true);check(b.Text=='CLEAR\nEn route','Tight row concealed the active route clear action')
 status='Arrived';academy.trainingGuideFighter={Parent={},GetAttribute=function()return true end};refresh(true)
 check(b.Text=='HIT TO SPAR\n1/3 · Clear','Compact arrival lost its instruction')
-sustainedControl={armed=false}
+sustainedControl={armed=false,gate={needsQuiet=false,onset=0}}
 refresh(true)
 check(b.Text=='CHECK BEAMS\n1/3 · Clear','Connecting mic did not replace the spar instruction')
 academy.refreshCompactObjective(true)
@@ -213,8 +223,16 @@ data.micReady=true;refresh(true)
 check(b.Text=='BEAMS OFF\n1/3 · Clear','Ready but disarmed still showed the spar instruction')
 academy.refreshCompactObjective(true)
 check(b.Text=='CLEAR\nBeam off','Tight route lost the disarmed status or Clear')
-sustainedControl.armed=true;refresh(true)
-check(b.Text=='AIM TO SPAR\n1/3 · Clear','Ready and armed did not show the aiming handoff')
+sustainedControl.armed=true;sustainedControl.gate.needsQuiet=true;refresh(true)
+check(b.Text=='GO QUIET\n1/3 · Clear','Newly armed guide invites a shot while the voice gate needs quiet')
+academy.refreshCompactObjective(true,voiceCooldown)
+check(b.Text=='CLEAR\nQuiet','Tight row lost the quiet instruction or Clear')
+voiceCooldown=4;refresh(true)
+check(b.Text=='COOLDOWN\n1/3 · Clear','Cooldown lost precedence over the quiet cue')
+academy.refreshCompactObjective(true,voiceCooldown)
+check(b.Text=='CLEAR\nWait','Tight row lost cooldown or Clear')
+voiceCooldown=0;sustainedControl.gate.needsQuiet=false;refresh(true)
+check(b.Text=='AIM & SPEAK\n1/3 · Clear','Ready and armed did not show the aiming and voice handoff')
 sustainedControl=nil
 academy.trainingGuideFighter.GetAttribute=function()return false end;refresh(true)
 check(b.Text=='FIGHTER RESTING\n1/3 · Clear','Compact arrival masked recovery')
@@ -284,6 +302,10 @@ cases = [
     (' or data.micReady~=true or beamBlocked()', ' or beamBlocked()', 'Regular guide did not reflect automatic beam availability'),
     ('if not sustainedControl.armed then return short', 'if false then return short', 'Regular guide did not reflect automatic beam availability'),
     ('if inputMuted or not windowFocused', 'if not windowFocused', 'Regular guide did not reflect automatic beam availability'),
+    ('if voiceCooldown>0 then return short', 'if false then return short', 'automatic beam availability: Wait for cooldown'),
+    ('if sustainedControl.gate.needsQuiet or os.clock()', 'if os.clock()', 'automatic beam availability: Go quiet, then speak'),
+    ('status=academy.trainingArrival(ready,false,voiceCooldown)', 'status=academy.trainingArrival(ready,false,0)', 'automatic beam availability: Wait for cooldown'),
+    ('["GO QUIET"]="Quiet"', '["GO QUIET"]="Guide"', 'Tight row lost the quiet instruction or Clear'),
     ('compact and 58 or 0', 'compact and 44 or 0', 'Compact objective overlaps a navigation sibling'),
     ('timer>0 and string.format(" · %ds",timer)', 'false and string.format(" · %ds",timer)', 'Compact guide covered the active quest timer'),
     ('compact and 45 or narrowNav and 54 or 78','compact and 56 or narrowNav and 54 or 78','Narrow navigation overlaps the action stack'),

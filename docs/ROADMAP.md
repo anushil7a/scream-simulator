@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Match Rookie Training guidance to the beam gate
+
+- A fresh temporary level-1 avatar followed the real Guide markers from Academy spawn to Rookie Training in 11.45 seconds on the exact `20f6621` build. A pointer selected Guide and native scripted movement followed the markers without teleporting. In the 567 × 241 usable desktop Studio emulator viewport, the Guide and Talk blocks fit. The unavailable input kept Beams OFF, and the real Talk action opened the fighter's tip.
+- With the actual voice gate and controller in an isolated Luau check, newly armed synthetic power held the quiet requirement for one second. The old compact Guide still said **AIM TO SPAR** even though zero start requests were sent. A quiet interval and a fresh onset then sent one start request. The pre-fix source also failed the new navigation check.
+- Both arrival layouts now show the current next action. Cooldown takes priority over the quiet instruction. With a clear gate, the Guide tells the player to aim at the fighter and speak. Pending starts and acknowledged attacks get separate copy. The existing beam toggle, fighter recovery, route clearing, server rules and proximity voice keep their existing behavior.
+- The exact final build repeated the fresh route in 11.55 seconds at the same 567 × 241 usable viewport. With staged microphone readiness and synthetic power, the real Beams button armed and the rendered Guide showed **Go quiet, then speak**, **Wait for cooldown**, and **Aim at the fighter and speak** in the expected phases. The Guide and Beams labels reported `TextFits=true`. The fixture controlled the cooldown timestamp to hold the display for inspection. Native candidate SHA-256: `105529f65b62d21745f2c5d8d3d564ee0dc15478d419262d6d50155041fa1e48`. Local captures are in `build/opening_hud_native`. Real voice, a physical phone and a live fight remain release checks.
+- Independent review passed. The navigation suite passed 180 assertions and 28 negative controls, VoiceReactor 261 contracts, and HUD readability 1,567 checks. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and Rojo builds on unchanged verification inputs.
+- Next reproduce the visible overlap between the Rookie world nameplate and the fixed Talk button at compact viewports and verify whether it obscures the fighter during normal aim and movement.
+
 ## Remove floating basalt above the south Volcano bridge
 
 - In `d72cc77`, matched coastal and bridge views showed two suspended clusters. A near server inspection identified them as `LandmarkBasalt4Long/Cut` and `LandmarkBasalt5Long/Cut`. Downward rays from their centers found only the plateau at Y=32. Their source ridges were deliberately omitted to open the southwest bridge gate. The nearby Ridge 3 crown still intersected its ridge.
