@@ -204,7 +204,7 @@ def run(source,automatic=True,pause=0,mode='destroy',fixed=False,variant='normal
  # This does not run or simulate the rest of RenderStepped.
  if variant in ('touch-owned','touch-replacement'):
   line=next(line for line in source.splitlines() if 'lastTouchControls=showTouchControls;' in line)
-  source+='\nlocal showTouchControls=false\n'+line+'\n'
+  source+='\nUIS.TouchEnabled=true\nlocal showTouchControls=false\n'+line+'\n'
   if variant=='touch-replacement':source+='showTouchControls=true\n'+line+'\nGuiService.TouchControlsEnabled=false\n'
  text=SETUP.replace('VARIANT',repr(variant)).replace('FIXED',str(fixed).lower()).replace('AUTO',str(automatic).lower()).replace('PAUSE',str(pause))+source+TAIL.replace('INVALIDATE',repr(mode))
  with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:f.write(text);path=Path(f.name)

@@ -2240,7 +2240,7 @@ connectClient(Run.RenderStepped,function(dt)
  local arenaActive=academy.refreshZone()
 
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
- if GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
+ if UIS.TouchEnabled and GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
  local eligibilityHint,inputMuted=voiceEligibilityHint(true)
  if academy.muteNoticePending and not inputMuted then
   notifications:Remove("micMuted")
