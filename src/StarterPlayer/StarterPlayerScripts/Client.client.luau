@@ -771,7 +771,7 @@ local nextResidentUi=0
 local function refreshResidentLabels(root,camera,residents)
  local nearest,best=nil,13
  local speaker,speechDistance=nil,24
- local damaged,damageDistance=nil,18
+ local damaged,damageDistance=nil,math.huge
  local visible={}
  for _,bot in ipairs(residents) do
   local r=bot:FindFirstChild("HumanoidRootPart");local head=bot:FindFirstChild("Head");local h=bot:FindFirstChildOfClass("Humanoid")
@@ -785,7 +785,13 @@ local function refreshResidentLabels(root,camera,residents)
   if not onScreen then continue end
   visible[bot]={nameplate=nameplate,speech=speech}
   if distance<best and InteractionRules.CanReachNpc(root.Parent,bot,13) then nearest=bot;best=distance end
-  if h.Health<h.MaxHealth and distance<damageDistance then damaged=bot;damageDistance=distance end
+  if h.Health<h.MaxHealth and distance<damageDistance then
+   local home=bot:GetAttribute("TrainingHome")
+   -- A fighter can take beam damage farther away than an ordinary nameplate.
+   if distance<18 or typeof(home)=="Vector3" and (root.Position-home).Magnitude<=academy.TrainingRules.Radius then
+    damaged=bot;damageDistance=distance
+   end
+  end
   local words=speech and speech:FindFirstChildOfClass("TextLabel")
   if words and words.Visible and distance<speechDistance then speaker=bot;speechDistance=distance end
  end

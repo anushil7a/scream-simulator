@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Keep trainer HP visible at valid beam distance
+
+- At a native 567 × 241 usable viewport on `93c3bb6`, a server-accepted beam at 19.815 studs landed 17 damage ticks and lowered Rookie from 80 to 34 HP. The trainer was on screen and within the billboard's camera distance, but the client disabled the HP plate beyond the ordinary 18-stud resident range.
+- The client still selects at most one additional damaged resident beside the nearest Talk target. A damaged trainer now stays eligible while the player is inside that trainer's established pad radius, using the same home and distance rule as combat. The ordinary resident range and Talk range stay at 18 and 13 studs. The display continues to follow the existing camera and depth rules.
+- The continuous baseline spar used staged microphone power and aim with the production Action receiver and combat rules. A real Q input during the warning dodged the strike and stopped the beam. The player walked back into range and defeated Rookie. The native HUD displayed **Rookie defeated · +48 XP · +5 coins** and the fighter count reached 1. Staged input and capture timing do not measure human reaction or expected fight duration.
+- The matched candidate at 19.815 studs displayed the real **31 / 80 HP** plate after an accepted cast and reported `TextFits=true`. A second capture clearly showed **58 / 80 HP** after the player scrolled the arming notice and its dwell elapsed. The arming notice persisted unread in the compact view and could cover the world health plate. Local evidence is in `build/rookie_spar_native`. Candidate SHA-256: `5c14aa9f0b9964673d2da456558f36eb8f33c5df7f7744361f96f25e7fa31293`. Physical phones, human voice and live services were outside this check.
+- Independent review and the nameplate and resident suites passed 159 assertions, four source checks and 15 negative controls. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and Rojo builds on unchanged verification inputs.
+- Next address the reproduced compact arming-notice overlap while keeping its voice opt-in and talk-safety message readable.
+
 ## Keep Rookie identity readable beside the Talk action
 
 - In the 567 × 241 usable Studio viewport, the Talk button covered the name and level of a reachable Rookie fighter. A matched camera pan revealed the complete world label. The baseline Talk action still opened the training tip. Native measurements confirmed that the billboard's reported absolute coordinates were local to its own canvas.

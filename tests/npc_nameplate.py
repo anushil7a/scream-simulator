@@ -13,6 +13,8 @@ local n=0;local function check(v,m)assert(v,m);n+=1 end
 local V={};V.__index=function(v,k)if k=='Magnitude'then return math.sqrt(v.X*v.X+v.Y*v.Y+v.Z*v.Z)end end
 local Vector3={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},V)end};Vector3.zero=Vector3.new(0,0,0)
 V.__sub=function(a,b)return Vector3.new(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end
+local function typeof(value) return getmetatable(value)==V and 'Vector3' or type(value) end
+local academy={TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')}
 local UDim2={fromOffset=function(x,y)return {X={Scale=0,Offset=x},Y={Scale=0,Offset=y}}end,fromScale=function(x,y)return {X={Scale=x,Offset=0},Y={Scale=y,Offset=0}}end}
 local Vector2={new=function(x,y)return {X=x,Y=y}end};local C={dark={}}
 local UDim={new=function(...)return {...}end};local Color3={fromRGB=function(...)return {...}end}
@@ -71,7 +73,10 @@ local function resident(distance,hp)
  local bot={r={Position=head.Position},h={Health=hp or 80,MaxHealth=80},active=true,plate=plate,speech=speech,words=words,head=head}
  function bot:FindFirstChild(k)return k=='Head' and self.head or self.r end
  function bot:FindFirstChildOfClass()return self.h end
- function bot:GetAttribute()return self.active end
+ function bot:GetAttribute(name)
+  if name=='TrainingHome' then return self.home end
+  return self.active
+ end
  return bot
 end
 for _,distance in ipairs({12.999,13,13.001,17.999,18,18.001})do
@@ -79,6 +84,21 @@ for _,distance in ipairs({12.999,13,13.001,17.999,18,18.001})do
  check((nearest==b)==(distance<13),'Interaction boundary changed')
  check(b.plate.Enabled==(distance<18),'Damaged visibility boundary changed')
 end
+local rookie=resident(19.8,40);rookie.home=Vector3.new(15,0,0)
+check(refreshResidentLabels(root,camera,{rookie})==nil and rookie.plate.Enabled,'First spar lost HP at valid beam range')
+rookie.home=Vector3.new(32,0,0)
+refreshResidentLabels(root,camera,{rookie});check(rookie.plate.Enabled,'Exact training boundary lost HP')
+rookie.home=Vector3.new(32.01,0,0)
+refreshResidentLabels(root,camera,{rookie});check(not rookie.plate.Enabled,'Off-pad avatar gained extended training HP')
+rookie.home=Vector3.new(15,0,0);rookie.h.Health=80
+refreshResidentLabels(root,camera,{rookie});check(not rookie.plate.Enabled,'Healthy distant trainer showed a damage plate')
+rookie.h.Health=40
+local closer=resident(18.5,40);closer.home=rookie.home
+refreshResidentLabels(root,camera,{rookie,closer})
+check(closer.plate.Enabled and not rookie.plate.Enabled,'Two damaged trainer nameplates shown')
+closer.head.Position=Vector3.new(18.5,0,1)
+refreshResidentLabels(root,camera,{rookie,closer})
+check(rookie.plate.Enabled and not closer.plate.Enabled,'Off-screen trainer displaced visible damage plate')
 local bots={};for i=1,30 do bots[i]=resident(1+i*.4,i==30 and 40 or 80)end
 refreshResidentLabels(root,camera,bots);local shown=0;for _,b in ipairs(bots)do if b.plate.Enabled then shown+=1 end end
 check(shown==2 and bots[1].plate.Enabled and bots[30].plate.Enabled,'Crowd nameplate limit changed')
@@ -100,8 +120,12 @@ assert 'name="Boardwalk runner"' in (R/'src/ServerScriptService/CompactCity.luau
 assert 'nameLabel.Parent.MaxDistance=65' in w.replace(' ', '')
 print('PASS 4 constructor-wiring/authored-name source contracts')
 if '--negative-controls' in sys.argv:
- cases=[(w.replace('gui.AlwaysOnTop=false;gui.MaxDistance=18','gui.AlwaysOnTop=true;gui.MaxDistance=18'),c,'Visibility property changed'),(w.replace('bot.nameplateHealth.Visible=showHealth','bot.nameplateHealth.Visible=false'),c,'Damaged health/identity incorrect'),(w.replace('bot.label.Text=bot.alive and bot.name or "RECOVERING"','bot.label.Text="UNKNOWN"'),c,'Full health identity wrong'),(w.replace('math.clamp(bot.health/nameplateMaximum,0,1)','bot.health/nameplateMaximum'),c,'Health ratio unclamped'),(w,c.replace('local damaged,damageDistance=nil,18','local damaged,damageDistance=nil,19'),'Damaged visibility boundary changed'),(w,c.replace('local nearest,best=nil,13','local nearest,best=nil,14'),'Interaction boundary changed')]
+ cases=[(w.replace('gui.AlwaysOnTop=false;gui.MaxDistance=18','gui.AlwaysOnTop=true;gui.MaxDistance=18'),c,'Visibility property changed'),(w.replace('bot.nameplateHealth.Visible=showHealth','bot.nameplateHealth.Visible=false'),c,'Damaged health/identity incorrect'),(w.replace('bot.label.Text=bot.alive and bot.name or "RECOVERING"','bot.label.Text="UNKNOWN"'),c,'Full health identity wrong'),(w.replace('math.clamp(bot.health/nameplateMaximum,0,1)','bot.health/nameplateMaximum'),c,'Health ratio unclamped'),(w,c.replace('if distance<18 or typeof(home)','if distance<19 or typeof(home)'),'Damaged visibility boundary changed'),(w,c.replace('local nearest,best=nil,13','local nearest,best=nil,14'),'Interaction boundary changed')]
  cases.extend([(w.replace('speech.Parent.SizeOffset=Vector2.new(0,1.25)','speech.Parent.SizeOffset=Vector2.new(0,0)'),c,'Speech size offset lost'),(w.replace('health.TextSize=14','health.TextSize=11'),c,'Readable health lane geometry changed')])
+ cases.extend([
+  (w,c.replace(' or typeof(home)=="Vector3" and (root.Position-home).Magnitude<=academy.TrainingRules.Radius','',1),'First spar lost HP at valid beam range'),
+  (w,c.replace(' and (root.Position-home).Magnitude<=academy.TrainingRules.Radius','',1),'Off-pad avatar gained extended training HP'),
+ ])
  for world,client,message in cases:
   out=run(world,client);assert out.returncode and message in out.stderr,(message,out.stdout,out.stderr)
- print('PASS 8 nameplate negative controls')
+ print(f'PASS {len(cases)} nameplate negative controls')
