@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Verify touch Beams OFF during a live cast
+
+- In a guarded City replay on `a1f2715` at an 801 × 355 iPhone XR landscape safe area, the fitted 260 × 44 Beams button received real Roblox Touch and Activated signals from Studio input. The automatic beam dealt 22 damage to Rookie. Tapping Beams OFF during the active cast led to the matching server stop 0.033 seconds after the activation. The last damage preceded the tap.
+- The touch caption returned to **Beams Off / Tap to turn on** while the synthetic voice power remained at 0.65. The fixture used a staged starting position and camera, temporary data and synthetic voice readiness. Phone microphone behavior remains a separate test.
+- After 21.90 seconds of continued loudness OFF, the server was still inactive on sequence 1 and Rookie remained at 58 HP. A separate tap on the Dodge button still reached the ordinary server action, displaced the avatar about 14 studs and showed its cooldown.
+- Independent review verified the archived trace in `build/touch_beams_off_native/native-result.json`. Focused voice toggle and HUD checks passed. The original preset was restored and the disposable Studio session closed. No gameplay code changed.
+
 ## Verify controller Beams OFF and correct its prompt
 
 - In guarded local City Studio on `57a2a31`, genuine Gamepad1 RB stopped an accepted beam after Rookie fell from 80 to 59 HP. The server ended the cast, and sustained 0.65 synthetic loudness produced no new cast or damage while OFF, including after cooldown ended. Rearming with the same loudness showed **Go quiet** and stayed idle. Fresh quiet followed by loudness started sequence 2. This checks the attack gate, with ordinary proximity voice and physical headset behavior outside the fixture.
