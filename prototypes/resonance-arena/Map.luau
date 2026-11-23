@@ -1,14 +1,15 @@
--- Local preview map. The two panels are connected by portals in the place.
+-- The playable travel rehearsal shows only the Hall and its City portal.
 local Config=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config"))
 local Layout=assert(Config.ResonanceLayout)
+local travel=Config.ResonanceTravel
 local Base=require(script.Parent:WaitForChild("CityMapBase"))
 local Map={
  aspectRatio=1.2,
  MiniLayout=Base.MiniLayout,
  mapHelp="Gold arrow: you. Cyan: protected portal areas.",
- legend="RESONANCE HALL · red shows the PvP floor.\nTRAINING LANDING · local practice preview.",
+ legend=travel and "RESONANCE HALL · red shows the PvP floor." or "RESONANCE HALL · red shows the PvP floor.\nTRAINING LANDING · local practice preview.",
  legendHeight=66,
- activityHelp="Use the cyan Training City portal to leave the Hall. Use the return portal at the landing to come back.",
+ activityHelp=travel and "The cyan portal leads to City training. This rehearsal stays in the current Studio file." or "Use the cyan Training City portal to leave the Hall. Use the return portal at the landing to come back.",
 }
 local background=Color3.fromRGB(20,28,38)
 local red=Color3.fromRGB(104,57,65)
@@ -28,7 +29,7 @@ local function label(parent,name,x,y,w,h,words,color)
  item.Font=Enum.Font.GothamBold;item.TextSize=11;item.Parent=parent
  return item
 end
-local hall={x=.045,y=.16,w=.65,h=.72,bounds=Layout.Hall}
+local hall={x=travel and .10 or .045,y=.16,w=travel and .8 or .65,h=.72,bounds=Layout.Hall}
 local practice={x=.76,y=.30,w=.195,h=.40,bounds=Layout.Practice}
 local function project(panel,x,z)
  local bounds=panel.bounds
@@ -47,7 +48,7 @@ function Map.create(parent,compact)
  local ratio=Instance.new("UIAspectRatioConstraint")
  ratio.AspectRatio=Map.aspectRatio;ratio.AspectType=Enum.AspectType.FitWithinMaxSize;ratio.Parent=map
  frame(map,"HallFloor",hall.x,hall.y,hall.w,hall.h,slate)
- frame(map,"TrainingLanding",practice.x,practice.y,practice.w,practice.h,slate)
+ if not travel then frame(map,"TrainingLanding",practice.x,practice.y,practice.w,practice.h,slate) end
  local bounds=Layout.Combat
  footprint(map,hall,"HallPvP",(bounds.minX+bounds.maxX)/2,(bounds.minZ+bounds.maxZ)/2,
   bounds.maxX-bounds.minX,bounds.maxZ-bounds.minZ,red)
@@ -63,10 +64,10 @@ function Map.create(parent,compact)
   end
  end
  footprint(map,hall,"TrainingPortal",Layout.HallPortal.x,Layout.HallPortal.z,14,4,cyan)
- footprint(map,practice,"ReturnPortal",Layout.PracticePortal.x,Layout.PracticePortal.z,14,4,cyan)
+ if not travel then footprint(map,practice,"ReturnPortal",Layout.PracticePortal.x,Layout.PracticePortal.z,14,4,cyan) end
  if not compact then
   local hallLabel=label(map,"HallLabel",hall.x,.03,hall.w,.10,"HALL",gold)
-  local trainingLabel=label(map,"TrainingLabel",.71,.16,.29,.10,"TRAINING",cyan)
+  local trainingLabel=not travel and label(map,"TrainingLabel",.71,.16,.29,.10,"TRAINING",cyan) or nil
   for _,title in ipairs({hallLabel,trainingLabel}) do
    title.TextScaled=true
    local size=Instance.new("UITextSizeConstraint")
@@ -87,7 +88,7 @@ function Map.update(view,root)
  view.dot.Visible=root~=nil and root.Parent~=nil
  if not view.dot.Visible then return end
  local position=root.Position
- local panel=Layout.Contains(Layout.Practice,position) and practice or Layout.Contains(Layout.Hall,position) and hall
+ local panel=not travel and Layout.Contains(Layout.Practice,position) and practice or Layout.Contains(Layout.Hall,position) and hall
  if not panel then view.dot.Visible=false;return end
  local x,z=project(panel,position.X,position.Z)
  view.dot.Position=UDim2.fromScale(x,z)

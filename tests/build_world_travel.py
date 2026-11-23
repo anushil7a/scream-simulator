@@ -21,6 +21,7 @@ def place(role, universe, source, destination, temporary, out):
     server = {'Entry': {'$path': str(entry)}, 'TravelGate': {'$path': str(TRAVEL / 'TravelGate.luau')},
               'TravelSettings': {'$path': str(settings)}}
     if not hall:
+        server['CityPortal'] = {'$path': str(TRAVEL / 'CityPortal.luau')}
         server['CompactCity'] = {'$path': str(ROOT / 'src/ServerScriptService/CompactCity.luau')}
     tree = {'$className': 'DataModel',
             'ReplicatedStorage': {'$className': 'ReplicatedStorage', 'Shared': {

@@ -1351,7 +1351,7 @@ task.spawn(function()
      p.Character:PivotTo(World.SafeSpawn);protect(p,s)
      r.AssemblyLinearVelocity=Vector3.zero;r.AssemblyAngularVelocity=Vector3.zero
      state(p,"Returned to the safe courtyard")
-    elseif not Config.CompactCity and r.Position.Z>600 and (r.Position.Z>780 or math.abs(r.Position.X)>700) then
+    elseif not Config.CompactCity and not Config.ResonanceLayout and r.Position.Z>600 and (r.Position.Z>780 or math.abs(r.Position.X)>700) then
      resetMovement(p,s,h,r);running=false
      p.Character:PivotTo(CFrame.new(math.clamp(r.Position.X,-670,670),5,594));protect(p,s)
      state(p,"Lifeguard rescue · stay inside the gold buoys.")

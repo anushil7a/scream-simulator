@@ -407,7 +407,7 @@ function academy.refreshZone()
   or pvpAhead and "SAFE • PvP AHEAD" or "SAFE • PvP OFF"
  if layout and position then
   if enabled then value="RESONANCE HALL • PvP ON"
-  elseif layout.Contains(layout.Practice,position) then value="TRAINING LANDING • SAFE"
+  elseif not Config.ResonanceTravel and layout.Contains(layout.Practice,position) then value="TRAINING LANDING • SAFE"
   elseif layout.Contains(layout.Hall,position) and layout.IsSafeApron(position) then value="TRAINING PORTAL • SAFE" end
  end
  if zone.Text~=value then
@@ -1366,7 +1366,8 @@ render=function()
   end
  elseif selected=="Quests" and Config.ResonanceLayout then
   title.Text="RESONANCE HALL";subtitle.Text="Local PvP playtest"
-  info("Fight in the Hall. The cyan apron is safe. Use the Training City portal to leave and the return portal to come back.",98)
+  info(Config.ResonanceTravel and "Fight in the Hall. The cyan apron is safe. The Training City portal stays local in this rehearsal."
+   or "Fight in the Hall. The cyan apron is safe. Use the Training City portal to leave and the return portal to come back.",98)
  elseif selected=="Quests" then
   title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
   local current=Config.GetQuest(data.activeQuest)
@@ -1529,7 +1530,7 @@ render=function()
   end
  elseif selected=="Map" then
   title.Text=Config.ResonanceLayout and "RESONANCE HALL" or "CITY & COAST"
-  subtitle.Text=Config.ResonanceLayout and "Hall and training landing" or "Red: PvP • Pale café path: safe."
+  subtitle.Text=Config.ResonanceLayout and (Config.ResonanceTravel and "Arena and City portal" or "Hall and training landing") or "Red: PvP • Pale café path: safe."
   local trainingTarget=academy.NavigationCatalog.Resolve("place","training",data)
   if trainingTarget then
    local trainingCard=card(narrow and 106 or 70)

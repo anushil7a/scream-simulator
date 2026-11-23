@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Rehearse City training and Hall combat around the portals
+
+- The travel-only pair exercises landings and prompts without the game runtime. The new playable pair reuses those same portal landings alongside the City quest/training systems and Hall combat HUD. The files require Studio with zero place and universe IDs, temporary profiles and an unconfigured commerce catalog. The existing travel-only and local Hall preview modes remain available.
+- The former Hall fall adapter could target the practice deck when the cross-place geometry omits it. The playable Hall now recovers to its safe apron, and its map and Rules panel show the City portal without a practice-deck destination. Focused checks and independent review cover both Hall map modes, missing-deck fall recovery and the travel gate. Full verification passed 198 suites, 99 production compilations and both playable builds.
+- Native City showed the Rookie objective, four fighters and ten quests. Native Hall showed its Rules panel and switched from safe to PvP after walking beyond the blue line. Both F prompts gave local feedback without moving the avatar. Falls staged at z240 and z800 returned the Hall avatar to the apron with renewed protection. See `build/playable_travel_native/native-results.json`. The final build regenerated provenance after the geometry-only City guard moved before map construction. The playable runtime was unchanged by that edit. Both disposable sessions closed.
+- Actual teleport and shared progress still need two approved test places and separate persistence authorization. Run `python tests/build_sustained_review.py --travel-local-qa` for the playable local pair.
+
 ## Verify compact combat Close beside a scrollable notice
 
 - Two local Studio clients at 567 × 241 usable pixels used staged input through the normal attack remote. A private server hit reduced the defender from 480 to 457 HP while Gear and a scrollable notice were open. A test pointer reached the notice, then reached the adjacent 44 × 44 **HIT / CLOSE** button during damage. The menu closed and the fitted **BEAM HIT YOU** label returned about 101 ms after the hit. The notice remained visible after closing.

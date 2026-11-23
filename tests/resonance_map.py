@@ -32,7 +32,7 @@ local layout=(function()
 bridge=r'''
 end)()
 local function require(name)
- if name=="Config" then return {ResonanceLayout=layout} end
+ if name=="Config" then return {ResonanceLayout=layout,ResonanceTravel=travelOnly} end
  assert(name=="Base")
  return {MiniLayout=function()end}
 end
@@ -53,7 +53,12 @@ check(speakers==8 and projected.MixingDesk,"Missing speaker or desk footprint")
 check(not projected.TimberPier and not projected.Beach and projected.HallLabel.Text=="HALL","Legacy city map leaked")
 local hall,practice=projected.HallFloor,projected.TrainingLanding
 local portal,apron=projected.TrainingPortal,projected.SafeApron
-check(hall.Position.x+hall.Size.x<practice.Position.x,"Map visually connects the two floors")
+if travelOnly then
+ check(not practice and not projected.ReturnPortal and not projected.TrainingLabel,
+  "Travel Hall map still advertises the absent practice deck")
+else
+ check(hall.Position.x+hall.Size.x<practice.Position.x,"Map visually connects the two floors")
+end
 check(portal.Position.x>=apron.Position.x and portal.Position.x+portal.Size.x<=apron.Position.x+apron.Size.x
  and portal.Position.y>=apron.Position.y and portal.Position.y+portal.Size.y<=apron.Position.y+apron.Size.y,"Portal outside protected map area")
 check(layout.IsSafeApron({Z=50,X=11}) and not layout.IsSafeApron({Z=49.99,X=11})
@@ -70,8 +75,12 @@ check(view.dot.Visible and equal(view.dot.Position.x,portal.Position.x+portal.Si
 avatar.Position.Z=265
 map.update(view,avatar)
 local back=projected.ReturnPortal
-check(view.dot.Visible and equal(view.dot.Position.x,back.Position.x+back.Size.x/2) and
- equal(view.dot.Position.y,back.Position.y+back.Size.y/2),"Player did not project onto return portal")
+if travelOnly then
+ check(not view.dot.Visible,"Travel Hall map marked an absent training floor")
+else
+ check(view.dot.Visible and equal(view.dot.Position.x,back.Position.x+back.Size.x/2) and
+  equal(view.dot.Position.y,back.Position.y+back.Size.y/2),"Player did not project onto return portal")
+end
 avatar.Position.Z=175
 map.update(view,avatar)
 check(not view.dot.Visible,"A player in the gap was drawn inside a floor")
@@ -84,6 +93,7 @@ local world=(function()
  local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z} end}
  local CFrame={lookAt=function(position,target)return {Position=position,Target=target} end}
  local studio={IsStudio=function()return true end}
+ local script={Parent={FindFirstChild=function()return travelOnly end}}
  local storage={Shared={ResonanceLayout={}}}
  local game={PlaceId=0,GameId=0,GetService=function(_,name)
   if name=="RunService" then return studio end
@@ -97,15 +107,20 @@ check(layout.Practice.railHeight>=12,'Practice rail is lower than the native-val
 local fromHall=world.FallRescue({X=0,Z=layout.HallEntry.z})
 check(fromHall==nil,'Hall fall redirected to practice')
 local fromPractice,text=world.FallRescue({X=42,Z=layout.Practice.z})
-check(fromPractice and fromPractice.Position.Z==layout.PracticeEntry.z
- and fromPractice.Target.Z==layout.PracticePortal.z and text:find('training landing',1,true),
- 'Practice fall did not recover facing the practice portal')
-check(world.FallRescue({X=0,Z=149})==nil and world.FallRescue({X=0,Z=150})~=nil,'Fall midgap split drifted')
+if travelOnly then
+ check(fromPractice==nil and layout.IsSafeApron(world.SafeSpawn.Position),
+  "Travel Hall fall routed to the missing practice deck")
+else
+ check(fromPractice and fromPractice.Position.Z==layout.PracticeEntry.z
+  and fromPractice.Target.Z==layout.PracticePortal.z and text:find('training landing',1,true),
+  'Practice fall did not recover facing the practice portal')
+ check(world.FallRescue({X=0,Z=149})==nil and world.FallRescue({X=0,Z=150})~=nil,'Fall midgap split drifted')
+end
 print('PASS Hall and practice fall routing and rail height checks')
 '''
-def run(metadata, expected=None, world=world_source, map_source=source):
+def run(metadata, expected=None, world=world_source, map_source=source, travel=False):
     with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',suffix='.luau',dir=root/'tests',prefix='tmp_hall_',delete=False) as file:
-        file.write(setup+metadata+bridge+map_source+checks+recovery_setup+world+recovery_checks)
+        file.write(f"local travelOnly={str(travel).lower()}\n"+setup+metadata+bridge+map_source+checks+recovery_setup+world+recovery_checks)
         path=Path(file.name)
     try:
         result=subprocess.run(['luau',str(path)],cwd=root,capture_output=True,text=True)
@@ -119,7 +134,14 @@ def run(metadata, expected=None, world=world_source, map_source=source):
         print(result.stdout.strip())
 
 run(layout)
+run(layout,travel=True)
 if '--negative-controls' in sys.argv:
+    run(layout,'Travel Hall fall routed to the missing practice deck',
+        world_source.replace('if hasPractice and position.Z>=gapMiddle','if position.Z>=gapMiddle'),travel=True)
+    old='if not travel then frame(map,"TrainingLanding",practice.x,practice.y,practice.w,practice.h,slate) end'
+    assert source.count(old)==1
+    run(layout,'Travel Hall map still advertises the absent practice deck',
+        map_source=source.replace(old,old.removeprefix('if not travel then ').removesuffix(' end')),travel=True)
     for old,new,expected in [
         ('local startZ,endZ=Layout.Apron.startZ,','local startZ,endZ=Layout.Apron.startZ+1,','Apron footprint drifted from the PvP boundary'),
         ('HallEntry={x=0,z=54}','HallEntry={x=0,z=52}','Hall arrival cannot reach the local portal'),

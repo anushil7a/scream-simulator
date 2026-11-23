@@ -42,7 +42,11 @@ def main():
                         help="Build the unpublished manual two-player Test Beam damage review")
     parser.add_argument("--resonance-local-qa", action="store_true",
                         help="Build the unpublished Resonance Hall combat playtest")
+    parser.add_argument("--travel-local-qa", action="store_true",
+                        help="Build the disposable playable City and Hall portal rehearsal pair")
     args = parser.parse_args()
+    if args.travel_local_qa and any(value for key, value in vars(args).items() if key != "travel_local_qa"):
+        parser.error("The playable travel rehearsal is a separate fixture")
     if args.resonance_local_qa and any((args.test_beam_damage_local_qa, args.central_pvp_local_qa,
                                       args.combat_readouts_local_qa, args.boss_arena_local_qa,
                                       args.transport_mutation, args.test_tools_local)):
@@ -106,18 +110,20 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         fingerprint_paths = sorted(set(fingerprint_paths) | {ROOT / "tests/StudioCombatReadoutsReview.server.luau"})
     if args.boss_arena_local_qa:
         fingerprint_paths = sorted(set(fingerprint_paths) | {ROOT / "tests/StudioBossArenaReview.server.luau"})
-    if args.resonance_local_qa:
+    if args.resonance_local_qa or args.travel_local_qa:
         arena = ROOT / "prototypes/resonance-arena"
         arena_cases = ROOT / "tests/StudioResonanceCombat.server.luau"
         fingerprint_paths = sorted(set(fingerprint_paths) | set(arena.glob("*.luau")) | {arena_cases})
+        if args.travel_local_qa:
+            fingerprint_paths = sorted(set(fingerprint_paths) | set((arena / "travel").glob("*.luau")))
         # Use the real combat code with only this generated place's city setup replaced.
         assert bootstrap.count("BeachVolley.Start(workspace.ScreamSimulatorWorld)") == 1
-        bootstrap = bootstrap.replace("BeachVolley.Start(workspace.ScreamSimulatorWorld)",
+        hall_bootstrap = bootstrap.replace("BeachVolley.Start(workspace.ScreamSimulatorWorld)",
             'assert(Config.MovementPassId == 0, "Local arena has no movement pass")\n'
             'for _, item in ipairs(ShopCatalog.Items) do assert(item.id == 0, "Local arena has no paid products") end')
     def source_fingerprint():
         digest = hashlib.sha256()
-        digest.update(("resonance-local-qa" if args.resonance_local_qa else "test-beam-damage-local-qa" if args.test_beam_damage_local_qa else "central-pvp-local-qa" if args.central_pvp_local_qa else "combat-readouts-local-qa" if args.combat_readouts_local_qa else "boss-arena-local-qa" if args.boss_arena_local_qa else "test-tools-local" if args.test_tools_local else args.transport_mutation or "none").encode() + b"\0")
+        digest.update(("travel-local-qa" if args.travel_local_qa else "resonance-local-qa" if args.resonance_local_qa else "test-beam-damage-local-qa" if args.test_beam_damage_local_qa else "central-pvp-local-qa" if args.central_pvp_local_qa else "combat-readouts-local-qa" if args.combat_readouts_local_qa else "boss-arena-local-qa" if args.boss_arena_local_qa else "test-tools-local" if args.test_tools_local else args.transport_mutation or "none").encode() + b"\0")
         for path in fingerprint_paths:
             digest.update(path.relative_to(ROOT).as_posix().encode() + b"\0")
             digest.update(path.read_bytes() + b"\0")
@@ -129,7 +135,9 @@ workspace:SetAttribute("LocalSustainedPrototype", true)
         temp = Path(temp)
         transport_fixture = (ROOT / "tests/StudioVoiceTransport.server.luau").read_text()
         builds = [("SustainedLocalPlay", ""), ("SustainedNativeFixture", fixture), ("PerformanceReview", performance), ("VoiceTransportReview", transport_fixture), ("TrainingRoamReview", (ROOT / "tests/StudioTrainingRoam.server.luau").read_text())]
-        if args.resonance_local_qa:
+        if args.travel_local_qa:
+            builds = [("CityPlayableTravelRehearsal", ""), ("HallPlayableTravelRehearsal", "")]
+        elif args.resonance_local_qa:
             portal_prep = '''
 require(script.Parent.PortalTravel).SetPreparation(function(p, character)
  local s=sessions[p]
@@ -164,10 +172,31 @@ end)
             provenance = output / (name + ".provenance.json")
             provenance.unlink(missing_ok=True)
             stamp = f'workspace:SetAttribute("ReviewBuildName", "{name}")\nworkspace:SetAttribute("ReviewSourceSha256", "{source_hash}")\n'
-            script.write_text(guard + stamp + bootstrap + "\n" + appendix)
+            hall_mode = args.resonance_local_qa or name == "HallPlayableTravelRehearsal"
+            source_code = hall_bootstrap if hall_mode else bootstrap
+            if args.travel_local_qa:
+                travel = arena / "travel"
+                settings = temp / "TravelSettings.luau"
+                settings.write_text("return {rehearsal=true,universe=0,source=0,destination=0}\n")
+                server["TravelGate"] = {"$path": str(travel / "TravelGate.luau")}
+                server["TravelSettings"] = {"$path": str(settings)}
+                # Fail before World or Entitlements can use configured product IDs.
+                commerce_guard = (
+                    'local shared=game:GetService("ReplicatedStorage").Shared\n'
+                    'assert(require(shared.Config).MovementPassId==0, "No movement pass in travel rehearsal")\n'
+                    'for _, item in ipairs(require(shared.ShopCatalog).Items) do\n'
+                    ' assert(item.id==0, "No paid products in travel rehearsal")\nend\n'
+                )
+                if not hall_mode:
+                    server["CityPortal"] = {"$path": str(travel / "CityPortal.luau")}
+                    assert source_code.count("World.Build()") == 1
+                    source_code = source_code.replace("World.Build()", 'World.Build()\n'
+                        'require(script.Parent.CityPortal)(workspace.ScreamSimulatorWorld,World.SafeSpawn.Position)')
+                source_code = "do\n" + commerce_guard + "end\n" + source_code
+            script.write_text(guard + stamp + source_code + "\n" + appendix)
             subprocess.run([compiler, str(script)], check=True, stdout=subprocess.DEVNULL)
             server["Bootstrap"] = {"$path": str(script)}
-            if args.resonance_local_qa:
+            if hall_mode:
                 server["Arena"] = {"$path": str(arena / "Arena.server.luau")}
                 server["PortalTravel"] = {"$path": str(arena / "PortalTravel.luau")}
                 server["World"] = {"$path": str(arena / "CombatWorld.luau")}
@@ -187,11 +216,12 @@ end)
                 config_copy = temp / "Config.luau"
                 config_copy.write_text(config.replace("\nreturn Config", '''
 Config.CompactCity=false
+Config.ResonanceTravel=''' + str(args.travel_local_qa).lower() + '''
 Config.ResonanceLayout=require(script.Parent:WaitForChild("ResonanceLayout"))
 Config.ProfileQuestCatalog=Config.Quests
 Config.Quests={}
 Config.MapMin=Vector3.new(-88,-20,-76)
-Config.MapMax=Vector3.new(88,120,272)
+Config.MapMax=Vector3.new(88,120,Config.ResonanceTravel and 76 or 272)
 local combat=Config.ResonanceLayout.Combat
 Config.ZoneMin=Vector3.new(combat.minX,combat.minY,combat.minZ)
 Config.ZoneMax=Vector3.new(combat.maxX,combat.maxY,combat.maxZ)
@@ -211,6 +241,26 @@ return Config'''))
                 clients["CityMap"] = {"$path": str(arena / "Map.luau")}
                 for arena_source in (*arena.glob("*.luau"), config_copy, profile_copy):
                     subprocess.run([compiler, str(arena_source)], check=True, stdout=subprocess.DEVNULL)
+            if args.travel_local_qa:
+                clients = project["tree"]["StarterPlayer"]["StarterPlayerScripts"]
+                if "$path" in clients:
+                    folder = Path(clients.pop("$path"))
+                    for path in folder.glob("*.luau"):
+                        clients[path.name.removesuffix(".client.luau").removesuffix(".luau")] = {"$path": str(path)}
+                client_source = Path(clients["Client"]["$path"]).read_text(encoding="utf-8")
+                client_copy = temp / "Client.client.luau"
+                client_copy.write_text(guard.split("workspace:SetAttribute", 1)[0] + client_source + """
+do
+ local function travelNotice()
+  local message=p:GetAttribute("TravelStatus")
+  if message then notify(message,false,"travel") else notifications:Remove("travel") end
+ end
+ connectClient(p:GetAttributeChangedSignal("TravelStatus"),travelNotice)
+ travelNotice()
+end
+""", encoding="utf-8")
+                subprocess.run([compiler, str(client_copy)], check=True, stdout=subprocess.DEVNULL)
+                clients["Client"] = {"$path": str(client_copy)}
             if name.startswith("VoiceTransport"):
                 clients = project["tree"]["StarterPlayer"]["StarterPlayerScripts"]
                 del clients["$path"]
@@ -261,7 +311,9 @@ return Config'''))
                 "scope": "Compiled disposable local fixture; not executed or published",
                 **({"proceduralFallback": ["FireBeam", "StarterBeam"]} if args.test_tools_local else {}),
             }, indent=2) + "\n")
-    if args.resonance_local_qa:
+    if args.travel_local_qa:
+        print("Built both unpublished playable travel rehearsals; no Studio test was run.")
+    elif args.resonance_local_qa:
         print("Built unpublished Resonance Hall combat review; no Studio test was run.")
     elif args.test_beam_damage_local_qa:
         print("Built unpublished Test Beam damage review; no Studio test was run.")
