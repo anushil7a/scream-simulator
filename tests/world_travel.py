@@ -135,9 +135,67 @@ print("PASS "..count.." travel gate assertions; simulated Roblox transport and e
 '''
 
 
-def run(source, expected=None):
+PORTAL = (ROOT / 'prototypes/resonance-arena/travel/CityPortal.luau').read_text(encoding='utf-8')
+PORTAL_SETUP = r'''
+local vector={}
+vector.__add=function(a,b)return Vector3.new(a.X+b.X,a.Y+b.Y,a.Z+b.Z)end
+vector.__sub=function(a,b)return Vector3.new(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end
+Vector3={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},vector)end}
+Vector3.zAxis=Vector3.new(0,0,1)
+local CFrame={lookAt=function(position,target)return {Position=position,Target=target}end}
+local Color3={fromRGB=function(...)return {...}end}
+local UDim2={fromScale=function(...)return {...}end}
+local enum=setmetatable({},{__index=function(_,key)return key end})
+local Enum=setmetatable({},{__index=function()return enum end})
+local RaycastParams={new=function()return {} end}
+local world={}
+function world:FindFirstChild(name)
+ assert(name=="AcademySpine")
+ return {Position=Vector3.new(-292,32.13,-260),Size=Vector3.new(350,.2,26)}
+end
+local workspace={}
+function workspace:Raycast(origin,_,params)
+ assert(origin.X==-292 and origin.Z==-260 and params.RespectCanCollide
+  and params.FilterDescendantsInstances[1]==world,"Gateway ground probe left the Academy portal location")
+ return {Position=Vector3.new(-292,32,-260)}
+end
+local nodes={}
+local Instance={new=function(class)
+ local node={class=class};table.insert(nodes,node);return node
+end}
+local prompt,landing
+local travel={Bind=function(p)prompt=p end,BindArrival=function(frame)landing=frame end}
+local script={Parent={TravelGate={}}}
+local function require(_)return travel end
+local bind=(function()
+'''
+PORTAL_CHECKS = r'''
+end)()
+bind(world,Vector3.new(-300,36,-260))
+local labels={}
+for _,node in ipairs(nodes) do
+ if node.class=="Part" then
+  assert(node.Anchored and not node.CanCollide and not node.CanQuery and not node.CanTouch,
+   "Gateway art changes collision or rays")
+  if node.Name=="Threshold" or node.Name=="ThresholdLight" or node.Name=="RailFoot" then
+   assert(node.Position.Y-node.Size.Y/2>32.23,"Gateway floor art is buried in Academy paving")
+  end
+ elseif node.class=="TextLabel" then labels[node.Text]=true end
+end
+assert(prompt.Parent.Name=="HallPortalAnchor" and prompt.Parent.Position.X==-292
+ and prompt.Parent.Position.Y==35 and prompt.Parent.Position.Z==-260
+ and prompt.HoldDuration==.25 and prompt.MaxActivationDistance==10 and not prompt.RequiresLineOfSight,
+ "Gateway changed the original prompt")
+assert(landing.Position.X==-300 and math.abs(landing.Position.Y-35.8)<.001 and landing.Position.Z==-260
+ and landing.Target.Z==-261,"Gateway changed the Academy landing")
+assert(labels["RESONANCE HALL"] and labels["PVP ARENA"],"Gateway lacks its destination sign")
+print("PASS Gateway ground probe, nonphysical parts, prompt, landing and destination sign")
+'''
+
+
+def run(source, expected=None, setup=SETUP, checks=CHECKS):
     with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix='.luau', delete=False) as f:
-        f.write(SETUP + source + '\n' + CHECKS)
+        f.write(setup + source + '\n' + checks)
         path = Path(f.name)
     try:
         result = subprocess.run(['luau', str(path)], capture_output=True, text=True, timeout=10)
@@ -152,6 +210,7 @@ def run(source, expected=None):
 
 
 run(GATE)
+run(PORTAL, setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
 if '--negative-controls' in sys.argv:
     run(GATE.replace(' or pending[player]',''), 'Duplicate hold or wrong travel target')
     run(GATE.replace('failed(player,data.travelAttempt,','failed(player,pending[player],'), 'Stale failure unlocked a newer pending attempt')
@@ -160,3 +219,9 @@ if '--negative-controls' in sys.argv:
     run(GATE.replace('player.CharacterAdded:Once(land)','player.CharacterAdded:Connect(land)'), 'Respawn replayed inbound arrival')
     run(GATE.replace('player:SetAttribute("TravelStatus",nil)', ''), 'Arrival guidance survived character removal')
     run(GATE.replace(' and player:GetAttribute("TravelStatus")==arrivalStatus', ''), 'Character removal cleared newer travel feedback')
+    run(PORTAL.replace('part.CanQuery=false', 'part.CanQuery=true'), 'Gateway art changes collision or rays',
+        setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
+    run(PORTAL.replace('prompt.MaxActivationDistance=10', 'prompt.MaxActivationDistance=14'),
+        'Gateway changed the original prompt', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
+    run(PORTAL.replace('floorY+.028', '.028'), 'Gateway floor art is buried in Academy paving',
+        setup=PORTAL_SETUP, checks=PORTAL_CHECKS)

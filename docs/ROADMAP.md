@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Give the Academy's Hall portal a recognizable entrance
+
+- The City portal previously appeared as an unlabeled translucent rectangle. The shared travel-fixture entry now has an open cyan light frame, a gold waveform and a **RESONANCE HALL / PVP ARENA** sign. The floor accents sit above the visible Academy paving while the interaction point and arrivals stay fixed.
+- The first Studio candidate clipped Academy and Rookie wayfinding. The final sign is narrower and lower. Both destinations were readable from the settled 567 × 241 spawn with the ordinary HUD. When a resident triggered Talk, that button could still cover the first letters of the Hall sign. The close approach showed the full Hall sign, with minor overlap at the edge of the Rookie sign from that angle.
+- Native checks confirmed the 15 render-only parts did not change rays, floor, walking or the portal hold. The avatar walked through on sandstone and F showed the fitting rehearsal notice without moving the avatar. See the paired captures and measurements under `build/academy_hall_gateway_native`. The gateway appears in the travel fixtures. Independent review and ten negative controls passed, including controls for altered collision settings, prompt distance and buried flooring. Full local verification passed 198 suites, 99 production compilations and both travel build modes. All disposable Studio windows closed. Actual cross-place transfer and physical phone readability remain open.
+
 ## Verify Hall damage stops at the safe apron
 
 - Two Studio clients used the linked Hall rehearsal with temporary profiles. One accepted beam through the normal Action remote dealt 12 HP on the PvP floor, zero for 1.10 seconds on the apron, then 17 HP after the defender returned to the floor. The beam stayed active, clear and in range at the sampled points. Spawn protection had expired. The same-run apron control isolates the zone rule while keeping the attack and participants constant.
