@@ -1135,8 +1135,10 @@ function academy.refreshTrainingGuide(residents)
   end
  end
 end
-academy.selectGuide=function(kind,id)
+academy.selectGuide=function(kind,id,sourceButton)
  if not academy.resolveGuide(kind,id) then return end
+ -- Leaving the HUD selected routes the left stick to UI instead of walking.
+ if sourceButton and GuiService.SelectedObject==sourceButton then GuiService.SelectedObject=nil end
  if kind~="mar" then academy.marPosition=nil
  elseif not academy.guideSelection or academy.guideSelection.kind~="mar" then academy.guideTarget=nil end
  academy.guideSelection={kind=kind,id=id};academy.refreshGuide();renderedMenuKey=nil
@@ -1145,7 +1147,7 @@ function academy.canGuideTraining()
  return Config.CompactCity==true and not data.activeQuest and not academy.guideSelection
 end
 academy.trainingGuideButton=button(tracked,"GuideTraining","GUIDE",UDim2.fromOffset(78,44),UDim2.new(1,-78,.5,-22),function()
- if academy.trainingGuideButton.Visible and academy.canGuideTraining() then academy.selectGuide("place","training") end
+ if academy.trainingGuideButton.Visible and academy.canGuideTraining() then academy.selectGuide("place","training",academy.trainingGuideButton) end
 end)
 academy.trainingGuideButton.TextColor3=gold
 academy.trainingGuideButton.Visible=false
@@ -1154,7 +1156,7 @@ academy.compactObjective=button(top,"CompactObjective","",UDim2.fromOffset(104,4
   or GuiService.MenuIsOpen or modal.Visible or devPanel.Visible or conversationPanel.Visible then return end
  if data.activeQuest then toggleTab("Quests",true,data.activeQuest)
  elseif academy.guideSelection then academy.clearGuide()
- elseif academy.canGuideTraining() then academy.selectGuide("place","training") end
+ elseif academy.canGuideTraining() then academy.selectGuide("place","training",academy.compactObjective) end
 end)
 academy.compactObjective.Visible=false
 academy.compactObjective.TextSize=12

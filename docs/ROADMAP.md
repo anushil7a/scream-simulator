@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Let controller players walk immediately after choosing Guide
+
+- A fresh level-one City profile used Xbox Controller Emulator View, D-pad and A to activate Rookie Training Guide. The route started, but stock focus moved to Clear Guide. A held left stick delivered real Gamepad1 axis changes while the avatar stayed stationary. B did not restore movement. A second press of View cleared the selection and the same held input moved the avatar 21.42 studs.
+- A successful HUD Guide selection now clears its own focus before the Guide button is replaced. Unavailable destinations and unrelated selections retain focus. Both regular and compact Guide buttons use this path.
+- The baseline controller could walk to the Rookie pad after leaving HUD selection. LT opened the live Rookie instruction to hit the fighter from the pad and move out of red strikes or dodge. Rookie provides a tip at this point rather than a branching dialogue. No microphone input was staged during this run.
+- In a fresh native candidate, the first input after activating Guide was a forward left-stick hold. The avatar moved 21.76 studs and the live route decreased from 184 to 168 studs. No intervening View, Back or avatar reposition was used.
+- The paired native reports are in `build/controller_rookie_native/native-baseline.json` and `native-candidate.json`. Focused navigation checks passed 48 selection and 12 HUD assertions, including a mutation that restores the focus trap, as well as 193 layout assertions with 32 layout controls. Independent review and the 323-step local check and build passed.
+
 ## Keep the Academy portal clear in portrait and landscape
 
 - At iPhone 16 portrait size (391 × 700), a normal touch turn toward the City portal placed the raised prompt behind **Guide**. A matched Studio comparison at the same camera and avatar positions showed the destination hidden at offsets 72 and 56, while the default zero offset cleared Guide. The previous 72-pixel build still passed its exact Xbox Gamepad1 ButtonX hold.

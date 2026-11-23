@@ -1,6 +1,6 @@
 """Execute actual selection lifecycle; source-check explicit-only UI wiring. Not native UI proof."""
 from pathlib import Path
-import subprocess, tempfile
+import subprocess, sys, tempfile
 R=Path(__file__).resolve().parents[1]
 s=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 f=s[s.index('academy.clearGuide=function()'):s.index('academy.compactObjective=button(')]
@@ -9,6 +9,7 @@ local n=0;local function check(v,m)assert(v,m);n+=1 end
 local data={};local Config={CompactCity=true};local target=nil;local sets,clears=0,0
 local throttled
 local renderedMenuKey='old';local UDim2={fromOffset=function()end,new=function()end}
+local GuiService={}
 local click,guideTraining
 local function button(_,name,_,_,_,callback)
  if name=='ClearGuide' then click=callback else guideTraining=callback end
@@ -37,11 +38,18 @@ guideTraining();check(academy.guideSelection==nil,'Hidden training button select
 academy.trainingGuideButton.Visible=true
 data.activeQuest='garden';guideTraining();check(academy.guideSelection==nil,'Training replaced an active quest')
 data.activeQuest=nil;Config.CompactCity=false;guideTraining();check(academy.guideSelection==nil,'Training guide exposed in legacy city')
-Config.CompactCity=true;guideTraining()
+Config.CompactCity=true;GuiService.SelectedObject=academy.trainingGuideButton;guideTraining()
 check(academy.guideSelection.kind=='place' and academy.guideSelection.id=='training','HUD did not select training')
+check(not GuiService.SelectedObject,'Guide left HUD selection active when movement should resume')
 local selected=academy.guideSelection;guideTraining()
 check(academy.guideSelection==selected,'Training button replaced existing route')
 click();check(academy.canGuideTraining(),'Clear did not restore training eligibility')
+GuiService.SelectedObject={};local outside=GuiService.SelectedObject
+guideTraining();check(GuiService.SelectedObject==outside,'Guide cleared an unrelated selection')
+click()
+local validTarget=target;target=nil;GuiService.SelectedObject=academy.trainingGuideButton
+guideTraining();check(GuiService.SelectedObject==academy.trainingGuideButton,'Unavailable Guide cleared focus')
+target=validTarget
 local function position(x)
  return setmetatable({X=x},{__sub=function(a,b)return {Magnitude=math.abs(a.X-b.X)} end})
 end
@@ -68,10 +76,21 @@ click();academy.refreshMarGuide(center,{mar})
 check(not academy.guideSelection and not academy.guideTarget,'Refresh restarted a cleared guide')
 print('PASS',n,'actual selection lifecycle checks')
 '''
-with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=R/'tests',delete=False) as t:
- t.write(setup+f+checks);p=Path(t.name)
-try:subprocess.run(['luau',str(p)],check=True)
-finally:p.unlink()
+def run(fragment):
+ with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=R/'tests',delete=False) as t:
+  t.write(setup+fragment+checks);p=Path(t.name)
+ try:return subprocess.run(['luau',str(p)],capture_output=True,text=True)
+ finally:p.unlink()
+
+result=run(f)
+assert result.returncode==0,result.stdout+result.stderr
+print(result.stdout.strip())
+if '--negative-controls' in sys.argv:
+ control='if sourceButton and GuiService.SelectedObject==sourceButton then GuiService.SelectedObject=nil end'
+ assert f.count(control)==1
+ result=run(f.replace(control,''))
+ assert result.returncode!=0 and 'Guide left HUD selection active' in result.stderr,result.stdout+result.stderr
+ print('PASS guide focus release negative control')
 assert s.count('academy.guideSelection={')==1
 assert 'data.activeQuest==q.id and "ACTIVE"' in s and '"TRACKING"' not in s
 for marker in ['"Guide_"..q.id','"GuideBoss_"..boss.id','"GuidePlace_"..place.id','choice("Guide me: "..q.name','choice("Choose a boss or place to guide me to"','academy.guide:GetStatus()','academy.guide:Destroy()']:
