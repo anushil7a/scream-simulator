@@ -1,5 +1,16 @@
 # Scream Simulator development roadmap
 
+## Connect the Metronome, Golem and Ignis rigs through their attacks
+
+- In the exact `f813f75` City build, staged walk poses showed sky gaps between the Metronome and Golem torsos and their thighs. At rest the gaps are 1.26 and 1.12 studs at the production 2.8× scale. Ignis's stationary shoulder assembly shifted relative to its upper arm by about 3.01 studs in the Organ Flames tell and 1.97 during the Backdraft hit.
+- Metronome and Golem gained one recessed waist part each, built from the original Blender-authoring script. The hips overlap the moving greaves through both attacks as well as gait. The exact exporter comparison found only two added parts in the five production models. Metronome is now 275 native visual parts and Golem 292.
+- Ignis's existing armor, inserts, musical trim, pipes, mouths and side flames follow their corresponding upper arm. The head flame keeps its own animation. Ignis stays at 269 visual parts. Server roots, attacks, collision, visual scales, gameplay and asset requirements are unaffected.
+- Blender 5.2.3 regenerated the upload-free geometry and editable lineup. The new pose checks exercise actual gait, windup and recovery transforms, while mutants deliberately remove or shorten a waist and detach an Ignis shoulder detail or flame. Independent review also checked the full-kick overlap rather than relying on an idle silhouette.
+
+- The exact Studio candidate repeated six camera and timing samples from the baseline, using the real BossAppearance and BossPose at 2.8×. The two photographed gait/contact gaps were filled. Ignis's sampled shoulder-armor position relative to its upper arm varied by less than 0.000024 studs, and the pipes and staff turned with the arm. The setup staged poses in disposable local City builds. The native candidate SHA-256 was `588e97588c3db98cd4ad344337877203230e66eeeb21469774378eb6b2c4c43e`.
+- The pose suite passed 220,315 assertions and nine negative controls, and the visual fixture passed 47,463 geometry/lifecycle assertions. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and Rojo builds on unchanged inputs. Phone-size and combat readability with human players remain separate checks.
+- Next do a targeted comparison of the owner's map surface direction and the current shore/terrain appearance before changing any material pass.
+
 ## Drain active purchase writes before server shutdown returns
 
 - The audit reproduced a shutdown callback returning while an admitted boost receipt was still suspended inside the isolated purchase store. The profile counters were already clear. A departed player's ledger transaction could still be running at that point.

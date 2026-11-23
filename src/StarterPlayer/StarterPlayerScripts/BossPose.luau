@@ -6,6 +6,7 @@ local arms={
  Arm=true,ArmBrassBand=true,ArmWave=true,Gauntlet=true,Finger=true,RoundPauldron=true,TealShoulderEnamel=true,ShoulderWave=true,
  ArmCone=true,ArmDriver=true,ArmPiston=true,Fist=true,ForearmSpeaker=true,Knuckle=true,KnuckleEtch=true,
  ShoulderCabinet=true,ShoulderGrille=true,ShoulderGrilleSlat=true,
+ ShoulderArmor=true,ShoulderInset=true,ShoulderMusicStaff=true,StaffLine=true,ShoulderNote=true,OrganPipe=true,PipeMouth=true,
  UpperArm=true,CuffBand=true,ForkBridge=true,ForkGrip=true,TuningForkTine=true,MicHandle=true,MicHead=true,
  Sleeve=true,Glove=true,GloveCuff=true,GloveFinger=true,Epaulette=true,EpauletteFringe=true,
  CaptainArm=true,CaptainCuff=true,CaptainHand=true,CaptainHook=true,CaptainEpaulette=true,CaptainFringe=true,
@@ -18,7 +19,10 @@ function Motion.Group(id,name,x,y)
  if arms[name] then return x<0 and left or right end
  if id=="metronome" and (name=="Pendulum" or name=="PendulumTip") then return "pendulum" end
  if id=="golem" and name=="ChestSubwoofer" then return "woofer" end
- if id=="ignis" and (name=="AzureFlame" or name=="FlameCore" or name=="HelmFlameCore") then return "flame" end
+ if id=="ignis" then
+  if name=="FlameCore" or (name=="AzureFlame" and math.abs(x)>1) then return x<0 and left or right end
+  if name=="AzureFlame" or name=="HelmFlameCore" then return "flame" end
+ end
  if id=="leviathan" and string.sub(name,1,5)=="Siren" then return "sirens" end
  if id=="conductor" and (bells[name] or string.sub(name,1,9)=="OrbitBell") then
   -- Each bell's shell, lip, crown, rune and clapper travel together.

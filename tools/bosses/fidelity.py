@@ -94,6 +94,8 @@ def save_group(id):
  all_data[id]=entries;groups[id]=obs;entries=[];obs=[]
 # METRONOME: broad rounded pauldrons, tapered continuous clock case and exposed gear mechanism.
 armor_legs('teal')
+# Recessed chassis spans the articulated thigh caps through the full kick.
+box('ClockworkWaist',(0,3.24,-.08),(2.56,1.06,1.66),'iron')
 profile('ClockCase',[(0,3.5,0,1.55,.8),(0,7.9,0,.66,.65),(0,8.35,0,.5,.45)],'gold')
 panel('RecessedClockFace',[(-1.32,3.72),(1.32,3.72),(.48,7.9),(-.48,7.9)],-.83,.08,'teal')
 for side in [-1,1]:
@@ -121,8 +123,9 @@ for side in [-1,1]:
  for k in range(4):box('ClockTick',(side*(.65+k*.1),6.15-k*.3,-.94),(.2,.025,.04),'silver')
 rod('DialHand',(0,5.15,-1.03),(.32,5.63,-1.03),.035,'edge')
 save_group('metronome')
-# GOLEM: separated squat stone legs, wide speaker shoulders and real skull-like face.
+# GOLEM: squat stone legs under a recessed waist, wide speaker shoulders and a carved face.
 armor_legs('stone',1.05)
+box('StoneWaist',(0,3.2,0),(2.48,.98,1.54),'iron')
 profile('StoneChest',[(0,3.45,0,1.05,.65),(0,5.2,0,1.65,.85),(0,6.4,0,1.55,.75)],'stone')
 box('ChestGrille',(0,5.2,-.9),(3,.95,.1),'dark')
 for r,c,z in [(1.35,'gold',-1.02),(1.17,'dark',-1.13),(.93,'amber',-1.22),(.65,'gold',-1.29),(.4,'dark',-1.36)]:cylinder('ChestSubwoofer',(0,4.95,z),r,.12,c)
