@@ -13,7 +13,9 @@ def build(c, hall=False):
  map_availability=next(line for line in c.splitlines() if line.startswith('academy.hideMap='))
  city_audio_start=c.index('\n  end\n',c.index('"RetryVoiceAccess"'))+len('\n  end\n')
  city_audio=c[city_audio_start:c.index('  local audioCard=',city_audio_start)]
- return SETUP+mode+helpers+'\n'+map_availability+'\n'+register+'\nlocal function layout(width,shortLandscape,height) local viewport={Y=height or 650};local tabY=height and 44 or 88;local menuHeight=viewport.Y-16;local layoutChanged=true;modal.Size=UDim2.fromOffset(width,menuHeight)\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+(HALL_CHECKS if hall else CHECKS)+AUDIO_SETUP+city_audio+AUDIO_CHECKS
+ rules_start=c.index(' elseif selected=="Quests" and Config.ResonanceLayout then\n')+len(' elseif selected=="Quests" and Config.ResonanceLayout then\n')
+ rules=c[rules_start:c.index(' elseif selected=="Quests" then',rules_start)]
+ return SETUP+mode+helpers+'\n'+map_availability+'\n'+register+'\nlocal function layout(width,shortLandscape,height) local viewport={Y=height or 650};local tabY=height and 44 or 88;local menuHeight=viewport.Y-16;local layoutChanged=true;modal.Size=UDim2.fromOffset(width,menuHeight)\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+(HALL_CHECKS if hall else CHECKS)+AUDIO_SETUP+city_audio+AUDIO_CHECKS+(RULES_SETUP+rules+RULES_CHECKS if hall else "")
 SETUP=r'''
 local made={};local Instance={new=function(class)local o={ClassName=class,PaddingLeft={Scale=0,Offset=0},PaddingRight={Scale=0,Offset=0}};table.insert(made,o);return o end}
 local UDim={new=function(s,o)return {Scale=s,Offset=o}end}
@@ -156,6 +158,27 @@ else
 end
 print("PASS world-specific City Audio control")
 '''
+RULES_SETUP=r'''
+local title,subtitle={},{}
+local cards={}
+local function info(text)table.insert(cards,text)end
+local function renderRules()
+ table.clear(cards)
+'''
+RULES_CHECKS=r'''
+end
+for _,rehearsal in ipairs({false,true})do
+ Config.ResonanceTravel=rehearsal
+ renderRules()
+ local combat,portal=(cards[1] or ""):match("^(.-)\n\n(.*)$")
+ check(#cards==1 and combat and portal,"Hall Rules need a single combat and travel card")
+ check(combat:find("safe apron",1,true) and combat:find("spawn shield",1,true),"Hall Rules lack combat guidance")
+ check(portal:find("cyan portal",1,true),"Hall Rules lost portal guidance")
+ check((portal:find("stays in the Hall",1,true)~=nil)==rehearsal,"Hall Rules describe the wrong travel mode")
+ check((portal:find("return portal",1,true)~=nil)==not rehearsal,"Hall Rules give the wrong route back")
+end
+print("PASS Hall combat and portal rules in both playable modes")
+'''
 def run(c, hall=False):
  with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:p=Path(f.name)
  try:
@@ -185,4 +208,12 @@ if __name__=='__main__':
   assert audio_guard in source
   out=run(source.replace(audio_guard,audio_guard.replace('not Config.ResonanceLayout','true')),hall=True)
   assert out.returncode and 'Hall exposed City Audio' in out.stderr,out.stderr
-  print(f'PASS {len(cases)+2} menu icon negative controls')
+  rules_mutations=[
+   ('Fight past the safe apron once your spawn shield ends.','Fight on the floor.','Hall Rules lack combat guidance'),
+   ('local travel=Config.ResonanceTravel and "Follow the cyan portal','local travel=true and "Follow the cyan portal','Hall Rules describe the wrong travel mode'),
+  ]
+  for old,new,message in rules_mutations:
+   assert old in source,old
+   out=run(source.replace(old,new,1),hall=True)
+   assert out.returncode and message in out.stderr,out.stderr
+  print(f'PASS {len(cases)+2+len(rules_mutations)} menu icon negative controls')

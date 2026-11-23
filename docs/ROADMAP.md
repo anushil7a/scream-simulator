@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Explain the PvP floor and Training City on the Rules screen
+
+- In the current Hall baseline at 455 × 218 touch-emulated pixels, Rules showed only portal directions. The full card was visible, but it gave no rule for starting a fight. A normal walk from the cyan apron onto the floor switched the fitted zone badge to PvP ON.
+- Rules now explains where to fight once the spawn shield ends and where to find the cyan training portal. The existing local rehearsal and practice-landing modes retain their own travel instructions. The City and combat rules are unchanged.
+- An initial two-card layout fit touch but clipped portal text at 567 × 241 desktop. The final single card shows both sections without scrolling at both native viewport sizes. The Map tab remained absent. See `build/hall_touch_audit_native/native-final.json` (fixture SHA-256 `5bff98a7abc7c2f98fdedd25653cfbe9663d9c2b230b833fa50f4351c0615edd`) and the paired screenshots. Restored the emulator preset and closed all disposable Studio sessions.
+- The focused menu suite passed 705 layout checks, four Hall reflow checks, both portal modes and 17 negative controls. Independent review reproduced the original missing-content failure. This pass verifies Rules rendering and copy. Real-device, human-voice and actual cross-place checks remain open.
+
 ## Keep City-only controls out of the PvP Hall
 
 - The Hall already hid the map tab and minimap. A native Hall baseline still showed City Audio in Settings and started four coastal surf sounds and one silent city busker loop.

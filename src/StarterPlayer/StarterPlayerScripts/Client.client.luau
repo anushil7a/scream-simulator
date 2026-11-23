@@ -1388,9 +1388,10 @@ render=function()
    if not unlocked then b.TextColor3=muted end
   end
  elseif selected=="Quests" and Config.ResonanceLayout then
-  title.Text="RESONANCE HALL";subtitle.Text="Local PvP playtest"
-  info(Config.ResonanceTravel and "Follow the TRAINING CITY signs to the cyan portal. The apron is safe. Previewing the portal keeps you in the Hall."
-   or "Follow the TRAINING CITY signs to the cyan portal. The apron is safe. Use the return portal on the training landing to come back.",98)
+  title.Text="RESONANCE HALL";subtitle.Text="Combat & travel"
+  local travel=Config.ResonanceTravel and "Follow the cyan portal signs. This preview stays in the Hall."
+   or "Follow the cyan portal signs. Use the return portal to come back."
+  info("PVP FLOOR\nFight past the safe apron once your spawn shield ends.\n\nTRAINING CITY\n"..travel,92)
  elseif selected=="Quests" then
   title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
   local current=Config.GetQuest(data.activeQuest)
