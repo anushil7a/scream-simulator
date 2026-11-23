@@ -1,9 +1,13 @@
 -- Standalone arena and portal-layout playtest.
-assert(game:GetService("RunService"):IsStudio() and game.PlaceId==0 and game.GameId==0,
- "Open the unpublished Resonance Arena draft in Studio")
+local travelGate=script.Parent:FindFirstChild("TravelGate")
+local crossPlace=travelGate and require(travelGate)
+if not crossPlace then
+ assert(game:GetService("RunService"):IsStudio() and game.PlaceId==0 and game.GameId==0,
+  "Open the unpublished Resonance Arena draft in Studio")
+end
 
 local Layout=require(game:GetService("ReplicatedStorage").Shared.ResonanceLayout)
-local PortalTravel=require(script.Parent.PortalTravel)
+local PortalTravel=not crossPlace and require(script.Parent.PortalTravel)
 local Lighting=game:GetService("Lighting")
 Lighting.ClockTime=16.6
 Lighting.Brightness=2.1
@@ -135,9 +139,13 @@ local function portal(parent,name,position,title,body,action,travelTo,apron)
  prompt.MaxActivationDistance=10
  prompt.RequiresLineOfSight=false
  prompt.Parent=anchor
- prompt.Triggered:Connect(function(player)
-  PortalTravel.Move(player,anchor,prompt.MaxActivationDistance,travelTo)
- end)
+ if crossPlace then
+  crossPlace.Bind(prompt)
+ else
+  prompt.Triggered:Connect(function(player)
+   PortalTravel.Move(player,anchor,prompt.MaxActivationDistance,travelTo)
+  end)
+ end
 end
 
 local arena=Instance.new("Folder")
@@ -213,6 +221,15 @@ for _,xSide in ipairs({-1,1}) do
  end
 end
 
+local arrival=Layout.PracticeEntry
+portal(arena,"TrainingPortal",Vector3.new(Layout.HallPortal.x,0,Layout.HallPortal.z),"TRAINING CITY",
+ crossPlace and "CITY TRAINING" or "RETURN TO PRACTICE","Return to training",
+ CFrame.lookAt(Vector3.new(arrival.x,3.5,arrival.z),Vector3.new(Layout.PracticePortal.x,3.5,Layout.PracticePortal.z)),Layout.ApronFootprint())
+if crossPlace then
+ world.Parent=workspace
+ return
+end
+
 local training=Instance.new("Folder")
 training.Name="TrainingPreview"
 training.Parent=world
@@ -224,9 +241,6 @@ for _,side in ipairs({-1,1}) do
  box(training,"EndRail",practice.x,railHeight/2,practice.z+side*(practice.depth/2-1),practice.width-4,railHeight,2,ink,true)
 end
 sign(training,"ArrivalSign",-20,10,258,25,4.8,"TRAINING CITY","LOCAL PREVIEW",blue)
-local arrival=Layout.PracticeEntry
-portal(arena,"TrainingPortal",Vector3.new(Layout.HallPortal.x,0,Layout.HallPortal.z),"TRAINING CITY","RETURN TO PRACTICE","Return to training",
- CFrame.lookAt(Vector3.new(arrival.x,3.5,arrival.z),Vector3.new(Layout.PracticePortal.x,3.5,Layout.PracticePortal.z)),Layout.ApronFootprint())
 local entry=Layout.HallEntry
 portal(training,"ArenaPortal",Vector3.new(Layout.PracticePortal.x,0,Layout.PracticePortal.z),"RESONANCE HALL","RETURN TO THE ARENA","Return to arena",
  CFrame.lookAt(Vector3.new(entry.x,3.5,entry.z),Vector3.new(entry.x,3.5,0)))

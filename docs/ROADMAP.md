@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Build the City and Hall travel rehearsal pair
+
+- The existing City and Hall candidates had no cross-place test path. The isolated, travel-only builder now generates both world fixtures using the current City base geometry and the Hall arch. The Academy prompt points to Resonance Hall, and the Hall arch points to City training. The standard City project and the previous local Hall preview retain their existing behavior.
+- A zero-ID rehearsal uses native prompts and local on-screen feedback. Only the explicit test-ID build can request `TeleportAsync`, after verifying Studio and the configured source and universe. There are no progression, voice or commerce scripts in either travel-only artifact. Retrying after failure requires a new prompt activation. Per-player pending state rejects duplicate prompts and stale failure events.
+- Focused Luau checks passed 14 assertions and three controls with simulated transport. Full builds now include the rehearsal pair. Actual cross-place transport still needs an approved two-place nonproduction experience. Durable progression, the historical writer fleet, real voice and physical device validation remain separate gates.
+- Both exact rehearsal artifacts ran in native Studio. City spawned on AcademyPlateau0 eight studs from the new prompt. Hall reached the arch after a scripted walk of about 68 studs. At each end the real F hold showed fitted rehearsal feedback and left the avatar in place. The Hall travel rehearsal contains no practice deck. Evidence: `build/world-travel/city-native-final.json` and `build/world-travel/hall-native-final.json`. All disposable Studio sessions closed.
+- Independent review passed. Full aggregate verification passed 198 suites, 99 production compilations and City, Hall and travel rehearsal builds on unchanged inputs. The distinct-ID builder guard rejected an equal-place argument, and the new travel sources compiled separately.
+
 ## Preserve City quest progress through a Hall profile
 
 - The prior isolated writer probe on `2a6e975` paired the Hall preview's empty catalog with normal saving. It reproduced quest state erasure while retaining coins, XP and level. The Hall configuration now keeps a reference to the canonical City catalog for profile sanitization while leaving local quest lookup and offers empty. Bootstrap omits saved City quests and discoveries from Hall state packets. The real Hall review continues to use temporary profiles with storage disabled.
