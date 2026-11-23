@@ -235,12 +235,23 @@ local Finish=(function()
 end)()
 local fixed=Instance.new('Part');fixed.Name='IslandCore0';fixed.CanCollide=true
 fixed.CanQuery=true;fixed.Material='SmoothPlastic';fixed.Position=Vector3.new(2,4,8)
+local islandPhysics={Friction=.3,Elasticity=.5}
+fixed.CurrentPhysicalProperties=islandPhysics
+local deck=Instance.new('Part');deck.Name='DockMain';deck.CanCollide=true;deck.CanQuery=true
+deck.Material='SmoothPlastic'
+local deckPhysics={Friction=.5,Elasticity=.2}
+deck.CustomPhysicalProperties=deckPhysics
+deck.CurrentPhysicalProperties={Friction=.7,Elasticity=.1}
 local unaffected=Instance.new('Part');unaffected.Name='Other'
 local paving=Instance.new('Part');paving.Name='CoastalWalk';paving.CanCollide=false;paving.CanQuery=false;paving.Material='SmoothPlastic'
-local world={GetChildren=function()return {fixed,unaffected,paving}end}
+local world={GetChildren=function()return {fixed,deck,unaffected,paving}end}
 local folder=Finish.Build(world)
 assert(folder.Parent==world and folder.Name=='Map10Finishing')
-assert(fixed.CanCollide and fixed.CanQuery and fixed.Material=='SmoothPlastic' and fixed.Position.Y==4,'Base collision material or position changed')
+assert(fixed.Material=='Sandstone' and deck.Material=='WoodPlanks','Solid terrain skipped its authored surface grade')
+assert(fixed.CustomPhysicalProperties==islandPhysics and deck.CustomPhysicalProperties==deckPhysics,
+ 'Surface grade changed effective collision physics')
+assert(fixed.CanCollide and fixed.CanQuery and fixed.Position.Y==4 and deck.CanCollide and deck.CanQuery,
+ 'Base collision or position changed')
 assert(unaffected.Color==nil and unaffected.Material==nil,'Non-map part changed')
 assert(paving.Material=='Concrete' and not paving.CanCollide and not paving.CanQuery
  and paving.Color.R==212 and paving.Color.G==207 and paving.Color.B==189,'Coast paving lost its finish or affects physics')
@@ -292,7 +303,7 @@ for _,n in ipairs(nodes) do
 end
 assert(amphitheatreSign=='AMPHITHEATRE','City marquee disagrees with the Amphitheatre map pin')
 assert(solids==78,'Expected the authored collision parts')
-print('PASS '..count..' actual finishing props, original collision material retained, nine occluded world signs')
+print('PASS '..count..' actual finishing props, solid grades preserve collision properties, nine occluded world signs')
 local Layout=(function()
 '''+(R/'src/ReplicatedStorage/Shared/CompactLayout.luau').read_text()+'''
 end)()
@@ -454,6 +465,12 @@ try:
     subprocess.run(['luau', str(path)], cwd=R, check=True)
     if '--negative-controls' in sys.argv:
         for before, after, expected_error in (
+            ('p.Material=material', 'if not p.CanCollide then p.Material=material end',
+             'Solid terrain skipped its authored surface grade'),
+            ('p.CustomPhysicalProperties=p.CurrentPhysicalProperties', '',
+             'Surface grade changed effective collision physics'),
+            ('if p.CanCollide and not p.CustomPhysicalProperties then', 'if p.CanCollide then',
+             'Surface grade changed effective collision physics'),
             ('{"CoastalWalk","Concrete",Color3.fromRGB(212,207,189)},', '', 'Coast paving lost its finish'),
             ('"CoastDeckSurfaceDockMain",Vector3.new(-220,0.12,516),Vector3.new(32,0.04,156)',
              '"CoastDeckSurfaceDockMain",Vector3.new(-220,0.12,507),Vector3.new(32,0.04,174)',

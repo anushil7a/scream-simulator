@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Apply the City surface palette to solid terrain
+
+- The original finishing pass colored solid surfaces but skipped their authored material grades. Native baseline and a failing focused assertion confirmed SmoothPlastic on the Academy plateau, island, stadium tier, garden terrace and main pier. The finishing pass now applies the planned sandstone, concrete, grass, timber, rock and basalt grades. It preserves each changed collider's previous contact properties and any existing custom override.
+- Same-camera passes in the disposable City compare the Academy and Timber Pier. Studio compared all 174 graded parts across the before and after builds. Of those, 167 changed material. Contact properties, transforms, sizes, collision flags and ray hits matched. The avatar walked 24 studs along the pier at a stable height and reported WoodPlanks underfoot. See `build/graded_surfaces_native/native-results.json` and the paired screenshots. Both disposable sessions closed. Full local verification passed 198 suites, 99 production compilations, and the City and Hall builds. The focused suite and independent review passed, including 19 negative controls. Three exercise the material guard and both ways physical properties could be lost.
+- Next, profile a representative resident-animation workload and remove confirmed redundant engine reads if the behavior stays equivalent. Physical touch, real voice and a representative multiplayer soak remain open, along with approved places for actual travel and isolated persistence.
+
 ## Stage and verify safe City and Hall arrivals
 
 - The travel-only pair previously used ordinary spawns for inbound travelers. Hall arrivals now start inside the safe apron facing the arena boundary, with the City portal behind them. City arrivals land at the Academy facing the training courts. Only the configured peer's engine-reported source IDs select a landing in the test-ID builds. The zero-ID rehearsal stages the same landings for local inspection.

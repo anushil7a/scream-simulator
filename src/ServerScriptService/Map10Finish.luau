@@ -56,7 +56,14 @@ function Finish.Build(world)
   end
   for _,spec in ipairs(grades) do
    if starts(p.Name,spec[1]) then
-    if not p.CanCollide then p.Material=Enum.Material[spec[2]] end
+    local material=Enum.Material[spec[2]]
+    if p.Material~=material then
+     -- Keep the old contact properties when changing a walkable or solid surface.
+     if p.CanCollide and not p.CustomPhysicalProperties then
+      p.CustomPhysicalProperties=p.CurrentPhysicalProperties
+     end
+     p.Material=material
+    end
     if spec[3] then p.Color=spec[3] end
     break
    end
