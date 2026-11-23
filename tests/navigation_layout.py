@@ -222,6 +222,13 @@ check(top.Position.x+questsToggle.Position.x+questsToggle.Size.x<=232
 
 
 refresh(true);check(b.Visible and b.Text=='ROOKIE GUIDE\n1/3 fighters','Compact idle objective lost the first-spar goal')
+for _,name in ipairs({'Rookie','Brawler','Elite'})do
+ data.training=name;academy.refreshCompactObjective(true)
+ check(b.Text==name..'\nGUIDE\n1/3' and b.Size.x==52 and b.Size.y==46,
+  'Tight idle training guide lost the named destination')
+end
+data.training='Rookie'
+academy.refreshCompactObjective(true)
 b.Activated();refresh(true)
 check(b.Text=='FOLLOW GUIDE\n1/3 · Clear','Compact training route missing progress or Clear')
 academy.refreshCompactObjective(true);check(b.Text=='CLEAR\nEn route\n1/3','Tight row concealed the active route clear action')
@@ -319,6 +326,8 @@ result=run(code)
 assert result.returncode==0,result.stderr
 print(result.stdout.strip())
 cases = [
+    ('text=destination..(shortTitle or "GUIDE")', 'text=(shortTitle or "GUIDE")',
+     'Tight idle training guide lost the named destination'),
     ('math.ceil(w*.4)+8','16','Tracker enters thumbstick lane'),
     ('w-103','w-80','Tracker enters Jump lane'),
     ('if width>=196 then','if width>=212 then','Tracker enters thumbstick lane'),

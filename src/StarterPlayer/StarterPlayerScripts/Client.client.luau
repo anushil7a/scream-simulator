@@ -1225,7 +1225,8 @@ function academy.refreshCompactObjective(limited,voiceCooldown)
    if count then text..="\n"..count end
   else
    local footer=detail:match("^[%d/]+") or ""
-   text=(shortTitle or "GUIDE").."\n"..footer
+   local destination=not data.activeQuest and (data.training or "Rookie").."\n" or ""
+   text=destination..(shortTitle or "GUIDE").."\n"..footer
   end
  end
  objective.Text=text

@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep the first training destination visible alongside notices
+
+- In the exact current City at 455 × 218 touch-emulated pixels, the routine startup notice reduced the idle 52 × 46 training button to generic GUIDE / 0/3. Its ordinary activation produced 18 route dots, and a staged uninterrupted Humanoid walk reached the Rookie arrival handoff without teleporting or injecting microphone readiness.
+- The compact idle button now keeps the training tier name above GUIDE and the fighter count. Active routes, Clear, quest actions and timed objectives keep their existing precedence and layout.
+- The candidate's fitted Rookie / GUIDE / 0/3 sat six pixels from NOTICE. An ordinary pointer activated the same 18-dot route, showed Clear and then restored the named idle target when cleared. Native font samples for Brawler and Elite also fit the 52 × 46 button. See `build/academy_opening_audit_native/native-candidate.json` (fixture SHA-256 `6a3ae364e951f88467e45e22eee868b115aadac7feb4dbdcc51691998490ce98`).
+- Independent review and 193 navigation assertions with 32 negative controls passed. Human discovery, real voice and physical touch still need an isolated playtest.
+
 ## Reject ambiguous paid offer IDs before checkout and granting perks
 
 - A disposable entitlement simulation configured Spectrum and Freerunner with one shared ID and two cosmetics with another. The old code trusted the same ownership result for each mapping and granted all four perks.
