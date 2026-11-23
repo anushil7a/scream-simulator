@@ -7,7 +7,7 @@ def assemble(s):
  close=s[s.index('local function closeMenu()'):s.index('\nbutton(modal,"Close"')]
  toggle=s[s.index('local function toggleTab('):s.index('\nlocal shop=button(top,')]
  conversation=s[s.index('showConversation=function(info)'):].splitlines()[1]
- visible=s[s.index(' local miniVisible='):s.index(' talkButton.Text=',s.index(' local miniVisible='))]
+ visible=s[s.index(' local miniVisible='):s.index('\nend)',s.index(' local miniVisible='))]
  m=(R/'src/StarterPlayer/StarterPlayerScripts/CityMap.luau').read_text()
  update=m[m.index('function CityMap.MiniUpdate('):m.index('\nCityMap.legend=')]
  return r'''

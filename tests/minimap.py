@@ -85,7 +85,7 @@ client_checks=''
 if not args.baseline:
  a=client.index('local miniMapButton=');creation=client[a:client.index('local function card(',a)]
  a=client.index(' local stackedActions=academy.layoutActions');layout=client[a:client.index(' hud.Position=',a)]
- a=client.index(' local miniVisible=');visibility=client[a:client.index(' talkButton.Text=',a)]
+ a=client.index(' local miniVisible=');visibility=client[a:client.index('\nend)',a)]
  client_setup=r'''
 local gui={};local activated;local opens={};local allocations=0
 local testButton={};local data={devAccess=false}

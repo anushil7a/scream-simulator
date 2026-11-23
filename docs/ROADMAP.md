@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Keep Rookie identity readable beside the Talk action
+
+- In the 567 × 241 usable Studio viewport, the Talk button covered the name and level of a reachable Rookie fighter. A matched camera pan revealed the complete world label. The baseline Talk action still opened the training tip. Native measurements confirmed that the billboard's reported absolute coordinates were local to its own canvas.
+- On short landscape layouts with at least 84 pixels of button width, the selected trainer's name and level now share the existing Talk button. Healthy trainers use that single identity label. Damaged trainers keep their world health plate, and narrow buttons and larger layouts retain the world label. The same reach, line of sight and dialogue validation still applies.
+- The matched candidate showed **TALK [T]** and **Rookie · Lv 1** at all three sampled views and returned the same training tip. With staged 70/80 health, the real world update restored the visible health label. The native font measured the longest known caption, **Brawler · Lv 25**, at 80 × 24 pixels inside the narrow 84 × 44 button.
+- The exact final candidate repeated the covered angle and native Talk action. Staging the fighter inactive hid both Talk and the nameplate at the next sample. The earlier matched candidate restored the original world label when resized wide. Final SHA-256: `b5438ba830486f72b529bdca0e90ee578abf6fdf66dfa64043fed8ea4e17ab88`. Evidence: `build/rookie_nameplate_native/native-final.json` and `RookieNameplateComparison.jpg`. All three disposable sessions closed. No physical phone was used.
+- Independent review passed. The resident suite passed 16 assertions and five negative controls. HUD, notice and minimap checks passed. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and Rojo builds on unchanged verification inputs.
+- Next run a continuous local Rookie spar. Check whether attack tells, fighter HP and reward feedback remain readable during combat in the compact layout.
+
 ## Match Rookie Training guidance to the beam gate
 
 - A fresh temporary level-1 avatar followed the real Guide markers from Academy spawn to Rookie Training in 11.45 seconds on the exact `20f6621` build. A pointer selected Guide and native scripted movement followed the markers without teleporting. In the 567 × 241 usable desktop Studio emulator viewport, the Guide and Talk blocks fit. The unavailable input kept Beams OFF, and the real Talk action opened the fighter's tip.

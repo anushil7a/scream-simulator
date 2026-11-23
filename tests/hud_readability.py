@@ -275,6 +275,7 @@ def fixture(source, name):
  local dodgeButton,sprintButton,testButton,sustainedControl={},{},{},{}
  local miniMapButton,miniMapHolder,miniMapAvailable={},{},false
  local talkButton,noticeView,noticeLayout={}, {visible=false}, {}
+ academy.presentTalk=function()end
  local NoticeLayout=require('../src/StarterPlayer/StarterPlayerScripts/NoticeLayout')
 ''' + layout + '''
  function f.actions(width,height,touch)

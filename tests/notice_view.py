@@ -138,7 +138,7 @@ local selected='Shop';local function closeMenu()modal.Visible=false end;local fu
 local devPanel={Visible=false};local closeConversation;local shopRefreshes=0
 local action={FireServer=function(_,verb)if verb=='ShopRefresh' then shopRefreshes+=1 end end}
 local GuiService={MenuIsOpen=false}
-local academy={surface=function()end,compactObjective={},damageReadout={},gearUpgrade=function()return nil end} -- The extracted tab handler shares the Client UI namespace.
+local academy={surface=function()end,compactObjective={},damageReadout={},gearUpgrade=function()return nil end,presentTalk=function()end} -- The extracted tab handler shares the Client UI namespace.
 local renderedTab,renderedMenuKey
 TOGGLE
 local top={};local dark,gold={},{};local function button(_,_,text,_,_,fn)return {Visible=true,callback=fn,Text=text}end

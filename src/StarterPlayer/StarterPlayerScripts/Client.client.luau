@@ -805,6 +805,40 @@ local function requestTalk()
  action:FireServer("Talk",target:GetAttribute("NpcId") or target.Name)
 end
 local talkButton=button(gui,"Talk","TALK [T]",UDim2.fromOffset(120,34),UDim2.new(.5,-60,1,-108),requestTalk);talkButton.Visible=false;academy.surface(talkButton,gold)
+local function liveTalkHumanoid(target)
+ if not target or not target.Parent or target:GetAttribute("ResidentActive")==false then return nil end
+ local humanoid=target:FindFirstChildOfClass("Humanoid")
+ return humanoid and humanoid.Health>0 and humanoid or nil
+end
+function academy.presentTalk(button,target,touch,shortLandscape)
+ local width=button.Size.X.Offset
+ local caption=(touch or width<72) and "TALK" or "TALK [T]"
+ local textSize=14
+ local previous=academy.talkNameplate
+ local compact=button.Visible and shortLandscape and width>=84
+ local humanoid=(previous or compact) and liveTalkHumanoid(target)
+ local replacement
+ if compact and humanoid and target:GetAttribute("TrainingTier") then
+  local head=target:FindFirstChild("Head")
+  local plate=head and head:FindFirstChild("Nameplate")
+  local identity=plate and plate:FindFirstChild("Identity")
+  if identity and identity.Text~="" then
+   caption..="\n"..identity.Text
+   textSize=12
+   -- A hurt fighter still needs the world-space HP and its background.
+   if humanoid.Health>=humanoid.MaxHealth then replacement=plate end
+  end
+ end
+ if previous and previous~=replacement and humanoid and previous:IsDescendantOf(target) then previous.Enabled=true end
+ academy.talkNameplate=replacement
+ if replacement and replacement.Enabled then replacement.Enabled=false end
+ if button.TextSize~=textSize then button.TextSize=textSize end
+ if button.Text~=caption then button.Text=caption end
+end
+ownClient(function()
+ local plate=academy.talkNameplate
+ if plate and plate.Parent and liveTalkHumanoid(plate.Parent.Parent) then plate.Enabled=true end
+end)
 local localFlightTools=Run:IsStudio() and game.PlaceId==0 and game.GameId==0 and workspace:GetAttribute("LocalSustainedPrototype")==true
 -- Display capability is server-produced, not client authorization. Nil fallback
 -- exists only for unchanged disposable local UI startup fixtures.
@@ -2337,6 +2371,7 @@ connectClient(Run.RenderStepped,function(dt)
  else
   talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
  end
+ academy.presentTalk(talkButton,talkTarget,touch,shortLandscape)
  for _,passive in ipairs({hud,tracked,zone,saveNotice,meter,academy.guidePanel})do
   if noticeView:Overlaps(passive,gui) or noticeView:Overlaps(passive,gui,talkButton) then passive.Visible=false end
  end
@@ -2399,8 +2434,6 @@ connectClient(Run.RenderStepped,function(dt)
  miniMapButton.Visible=miniVisible
  academy.refreshTestLauncher()
  CityMap.MiniUpdate(miniMapView,root,os.clock(),miniVisible and miniMapHolder.Visible)
- talkButton.Text=(touch or talkButton.Size.X.Offset<72) and "TALK" or "TALK [T]"
- talkButton.Visible=talkTarget~=nil and gameplayVisible
 end)
 end)()
 if not clientCheckpoint() then return end
