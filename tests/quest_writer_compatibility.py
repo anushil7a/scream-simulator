@@ -179,6 +179,32 @@ def main():
     ok,output=probe_writer(old_config,(PIN/'Profiles.luau').read_text(),(PIN/'ProfileLease.luau').read_text())
     assert not ok and 'Writer altered quest' in output and 'at writer load' in output,output
     print('PASS historical writer lifecycle probe rejects claim/progress loss')
+    review_builder=(ROOT/'tests/build_sustained_review.py').read_text()
+    hall_catalog, = (line for line in review_builder.splitlines() if line.startswith('Config.Quests='))
+    # Deliberately pair the preview catalog with normal Profiles to expose the migration hazard.
+    hall_probe=writer_probe_source(current_profiles,current_lease,hall_catalog)+r"""
+local seed=P.Default();seed.coins=177;seed.level=20;seed.xp=7
+local states={"garden","beach","arena_assist","sprint"}
+for _,id in ipairs(states) do seed.availableQuests[id]=true end
+seed.quests.garden={progress=1,claimed=false}
+seed.quests.beach={progress=Config.GetQuest("beach").goal,claimed=false}
+seed.quests.arena_assist={progress=1,claimed=true}
+durable=seed;now+=10;clock+=10
+local hall,allowed=probe.Load(7);assert(allowed,"Hall simulation did not acquire its fake lease")
+for _,profile in ipairs({hall,durable}) do
+ for _,id in ipairs(states) do
+  assert(profile.quests[id]==nil and profile.availableQuests[id]==nil,"Preview catalog retained City quest state: "..id)
+ end
+ assert(profile.coins==177 and profile.level==20 and profile.xp==7,"Preview catalog changed unrelated economy")
+end
+assert(probe.Save(7,hall,true),"Hall simulation did not release its fake lease")
+local reloaded,writable=loadProfiles().Load(7);assert(writable,"City simulation did not reacquire its fake lease")
+for _,id in ipairs(states) do
+ assert(reloaded.quests[id]==nil and reloaded.availableQuests[id]==nil,"City reload unexpectedly restored quest state: "..id)
+end
+print("PASS preview-catalog simulation: partial, unclaimed, claimed and discovered-only City state lost on acquisition; coins retained")
+"""
+    result=fixture.run(hall_probe);print(result.stdout+result.stderr,end='');assert result.returncode==0
     if args.negative_controls:
         availability='for _,q in ipairs(Config.Quests) do if raw.availableQuests[q.id]==true then data.availableQuests[q.id]=true end end'
         assert current_profiles.count(availability)==1
@@ -197,7 +223,7 @@ def main():
         ok,output=probe_writer(current_config,destructive,current_lease)
         assert not ok and 'Writer altered quest' in output,output
         print('PASS negative control: in_place_raw_mutation')
-        hanging=current_profiles.replace('function Profiles.Load(userId)','function Profiles.Load(userId) while true do end')
+        hanging=current_profiles.replace('function Profiles.Load(userId, fromOtherPlace)','function Profiles.Load(userId, fromOtherPlace) while true do end')
         assert hanging!=current_profiles
         ok,output=probe_writer(current_config,hanging,current_lease,timeout=.2)
         assert not ok and 'timeout' in output,output

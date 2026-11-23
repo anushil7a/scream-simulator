@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Verify the City profile contract before connecting the Hall
+
+- The guarded Hall uses same-place prompt travel. Its generated catalog is empty because the review overrides storage to nil. The existing writer fixture paired that exact catalog override with normal profile acquisition on an isolated simulated store. It erased four representative City quest states during acquisition and left the 177 coins, level 20 and seven XP unchanged. Release and normal City reload did not restore the quest states. Canonical City writers still preserve the catalog in the existing acquisition/release/reload probe.
+- The writer suite's timeout control still targeted the older one-argument load signature, so it stopped before exercising timeout detection. It now hangs the actual two-argument entry in the finite subprocess control. The 46 historical assertions, current writer probe, 11 negative controls, 23 simulated handoff checks and eight arrival-classifier checks passed. Local developer access preflight passed for the reviewed disabled configuration. Full aggregate passed 197 suites, 99 production compilations and City and Hall builds on unchanged inputs. Local normal City artifact SHA-256: `3242e611b939e83d0f7b68f396b9ff36f0ef8e56badccee2c30c85d4e91aeee2`. Its writer-fleet gate remains `BLOCKED_UNVERIFIED_WRITER_FLEET`.
+- The release handoff distinguishes the Studio-supported same-experience travel-only test from a separately authorized real persistence test. The minimum external setup is approval for one separate nonproduction experience with City and Hall destinations. Deployment-shaped builds and matched canonical catalog are still needed. Studio-only Hall artifacts and an unverified writer fleet remain outside the release path.
+
 ## Clear the Hall return camera through the training arch
 
 - On `66a2338`, the actual practice-to-Hall prompt put the avatar at z54 in the protected apron. The normal camera settled near z66.074 and its line to the avatar crossed the cyan field and center waveform bar. The effect obscured the stationary avatar after arrival. Baseline: `build/hall_wayfinding_native/native-return-baseline.json` and `HallReturnBaselineExact.jpg`.
