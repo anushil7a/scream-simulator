@@ -253,7 +253,15 @@ return Config'''))
 do
  local function travelNotice()
   local message=p:GetAttribute("TravelStatus")
-  if message then notify(message,false,"travel") else notifications:Remove("travel") end
+  if message then
+   -- Only the guarded rehearsal's passive spawn message may wait behind the menu.
+   local key=message:find("Arrival rehearsal. ",1,true)==1 and "travelArrival" or "travel"
+   notifications:Remove(key=="travel" and "travelArrival" or "travel")
+   notify(message,false,key)
+  else
+   notifications:Remove("travelArrival")
+   notifications:Remove("travel")
+  end
  end
  connectClient(p:GetAttributeChangedSignal("TravelStatus"),travelNotice)
  travelNotice()

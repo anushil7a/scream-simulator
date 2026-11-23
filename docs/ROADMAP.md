@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep the Hall menu title visible during routine arrival guidance
+
+- At 567 × 241 desktop and 455 × 218 touch-emulated pixels, the normal Menu and Rules path hid the title while the startup notice occupied its entire footprint. Closing the menu exposed the existing NOTICE shortcut. An explicit disclosure deliberately uses that same header strip.
+- The compact Hall now pauses a routine welcome or passive arrival while the player browses the menu. Closing the menu restores access, and selecting NOTICE still reveals the full message. A pending action result keeps queue advancement available, and urgent and save notices retain priority. City presentation is unchanged.
+- The guarded travel rehearsal distinguishes passive spawn guidance from the actual portal confirmation. A regression using the actual travel status callback reproduced a lost confirmation before that distinction. It now covers replacement and clearing, explicit notice access, unread dwell and urgent priority. Independent reruns passed 793 notice, 249 save-notification and 28 travel assertions with the applicable negative controls.
+- Final native Hall replay kept the title and Rules content visible at both sizes. Actual NOTICE input showed the deferred startup message. Holding F at the apron triggered the local portal prompt and showed its confirmation even after normally reopening the menu. Evidence is in `build/hall_notice_native/native-final.json` (fixture SHA-256 `49e4e201b6c9d8e9b532c0ac54ce1daf1e27ae83ada42e7a5c28afcffe6caddd`). The physical phone, real microphone and approved cross-place gates remain open.
+
 ## Explain the PvP floor and Training City on the Rules screen
 
 - In the current Hall baseline at 455 × 218 touch-emulated pixels, Rules showed only portal directions. The full card was visible, but it gave no rule for starting a fight. A normal walk from the cyan apron onto the floor switched the fitted zone badge to PvP ON.

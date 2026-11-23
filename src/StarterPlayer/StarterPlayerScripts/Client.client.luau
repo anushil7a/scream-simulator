@@ -248,6 +248,7 @@ local renderedMenuKey,renderedTab
 local renderRevision=0
 local function closeMenu()
  modal.Visible=false
+ academy.menuNoticeRequested=nil
  academy.menuQuestFocus=nil
  if academy.refreshTestLauncher then academy.refreshTestLauncher() end
  clearShop()
@@ -295,7 +296,10 @@ local function toggle()
  else toggleTab(selected) end
 end
 local shop=button(top,"ShopToggle","MENU [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),toggle,gold);shop.TextColor3=dark
-local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests",true) end)
+local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function()
+ academy.menuNoticeRequested=academy.noticeShortcut
+ toggleTab("Quests",true)
+end)
 questsToggle.Visible=false
 academy.surface(shop);academy.surface(questsToggle)
 academy.passesToggle=button(top,"PassesToggle","PASSES",UDim2.fromOffset(64,46),UDim2.fromOffset(80,0),function()
@@ -449,6 +453,20 @@ noticeView=noticeView.new(gui,toast)
 ownClient(function() noticeView:Destroy() end);if not clientCheckpoint() then return end
 
 local function notify(t,urgent,key) notifications:Push(t,urgent,key) end
+do
+ local function ambient(entry)
+  return entry and not entry.urgent and (entry.key=="welcome" or entry.key=="travelArrival")
+ end
+ function academy.deferArrivalNotice(shortLandscape)
+  if not (academy.hideMap and shortLandscape and modal.Visible and not academy.menuNoticeRequested
+   and ambient(notifications.active)) then return false end
+  -- A deferred welcome must never hold up the result of an action in the menu.
+  for _,entry in ipairs(notifications.pending) do
+   if not ambient(entry) then return false end
+  end
+  return true
+ end
+end
 local nextCast=0;local sequence=0;local captureSource=nil
 local sustainedControl,sustainedRules
 local voiceAccessInterrupted=false
@@ -1853,7 +1871,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  local key=data.messageKey
  if data.message and (not newMilestone or data.messageUrgent or key=="trainingReceipt") then
   if key~="questClaim" or unclaimed>0 then
-   notify(data.message,data.messageUrgent,(key=="save" or key=="questClaim" or key=="questReceipt" or key=="trainingReceipt") and key or nil)
+   notify(data.message,data.messageUrgent,(key=="save" or key=="questClaim" or key=="questReceipt" or key=="trainingReceipt" or key=="welcome") and key or nil)
   end
  end
  local gearReady=false
@@ -2425,14 +2443,15 @@ connectClient(Run.RenderStepped,function(dt)
  if modal.Visible then noticeLayout=NoticeLayout.Modal(viewport.X,viewport.Y,shortLandscape) end
  local noticeVisible=(gameplayVisible or modal.Visible) and windowFocused and not GuiService.MenuIsOpen
  local noticeNow=os.clock()
- noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active)
+ noticeView:Update(notice,noticeLayout,noticeVisible and not academy.deferArrivalNotice(shortLandscape),noticeNow,viewport.X<820 and 14 or 16,notifications.active)
  local nextNotice=notifications:Step(dt,noticeView:CanAdvance())
- if nextNotice~=notice then notice=nextNotice;noticeView:Update(notice,noticeLayout,noticeVisible,noticeNow,viewport.X<820 and 14 or 16,notifications.active) end
+ if nextNotice~=notice then notice=nextNotice;noticeView:Update(notice,noticeLayout,noticeVisible and not academy.deferArrivalNotice(shortLandscape),noticeNow,viewport.X<820 and 14 or 16,notifications.active) end
  title.Visible=not (shortLandscape and modal.Visible and noticeView.visible)
  shop.Visible=not GuiService.MenuIsOpen and not (conversationPanel and conversationPanel.Visible)
   and not (modal.Visible and (noticeView.visible or shortLandscape))
  local questShortcut=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
  -- Keep navigation in MENU. A pending claim or inaccessible notice gets a shortcut.
+ academy.noticeShortcut=questShortcut=="NOTICE"
  local hiddenWin=questShortcut=="NOTICE" and notifications.active and notifications.active.key=="trainingReceipt"
  questsToggle.Text=hiddenWin and "WIN" or academy.shortObjective and questShortcut~="NOTICE" and questShortcut~="QUESTS" and "REWARD" or questShortcut
  questsToggle.Visible=shop.Visible and not modal.Visible and questShortcut~="QUESTS"

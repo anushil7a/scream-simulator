@@ -156,7 +156,7 @@ local function state(p,message,conversation,messageUrgent,messageKey,changedOnly
  micReady=s.micReady,
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,flying=s.flight~=nil,
  testBeamAvailable=s.testBeamAvailable==true,testBeamDamageAvailable=s.testBeamAvailable==true,
- testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt" or messageKey=="trainingReceipt") and messageKey or nil}
+ testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt" or messageKey=="trainingReceipt" or messageKey=="welcome") and messageKey or nil}
  if changedOnly and StateSnapshot.Equal(packet,s.lastStatePacket) then return end
  local snapshot=StateSnapshot.Copy(packet)
  -- Timestamp only outgoing packets. Time alone does not change the boost ledger.
@@ -1148,7 +1148,8 @@ local function joined(p)
  end)
  s.characterAddedConnection=p.CharacterAdded:Connect(spawn);if p.Character then task.spawn(spawn,p.Character) end
  stepVoiceEligibility(p,s,os.clock());dispatchVoiceEligibility(os.clock())
- state(p,loadMessage or "Welcome · train for XP, unlock beam styles, and explore the coast")
+ state(p,loadMessage or "Welcome · train for XP, unlock beam styles, and explore the coast",nil,false,
+  (localFixture or not loadMessage) and "welcome" or nil)
 end
 local function joinTracked(p)
  if closing then return end

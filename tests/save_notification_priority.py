@@ -249,10 +249,10 @@ if '--negative-controls' in sys.argv:
  mutate_queue('key=="save" and 2 or urgent and 1 or receipt and .5 or 0','urgent and 1 or receipt and .5 or 0','Save warning evicted before any displayed frame')
  assert payload.count(',nil,true,"save")')==2
  run(payload.replace(',nil,true,"save")',',nil,true)'),'Save warning evicted before any displayed frame')
- needle='messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt" or messageKey=="trainingReceipt") and messageKey or nil'
+ needle='messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt" or messageKey=="trainingReceipt" or messageKey=="welcome") and messageKey or nil'
  assert payload.count(needle)==1
  run(payload.replace(needle,'messageKey=nil'),'Save warning evicted before any displayed frame')
- needle='(key=="save" or key=="questClaim" or key=="questReceipt" or key=="trainingReceipt") and key or nil'
+ needle='(key=="save" or key=="questClaim" or key=="questReceipt" or key=="trainingReceipt" or key=="welcome") and key or nil'
  assert payload.count(needle)==1
  run(payload.replace(needle,'nil'),'Save warning evicted before any displayed frame')
  needle='if data.savingAvailable==true and not data.savingDelayed then notifications:Remove("save") end'

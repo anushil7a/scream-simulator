@@ -5,6 +5,8 @@ R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument
 paths=['NoticeLayout','NoticeView'];sources={n:(R/f'src/StarterPlayer/StarterPlayerScripts/{n}.luau').read_text(encoding='utf-8-sig') for n in paths}
 client=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text();city=(R/'src/StarterPlayer/StarterPlayerScripts/CityMap.luau').read_text();mini=city[city.index('function CityMap.MiniLayout('):city.index('function CityMap.MiniUpdate(')]
 integration=client[client.index(' -- Pause queue time while covered,'):client.index(' beamScreenFeedback:Step(',client.index(' -- Pause queue time while covered,'))]
+builder=(R/'tests/build_sustained_review.py').read_text(encoding='utf-8')
+travel_callback=builder[builder.index(' local function travelNotice()'):builder.index(' connectClient(p:GetAttributeChangedSignal("TravelStatus")')]
 texts=[]
 for f in (R/'src').rglob('*.luau'):
  for t in re.findall(r'"([^"\n]+)"',f.read_text(encoding='utf-8-sig')):
@@ -134,12 +136,18 @@ v:Destroy()
 -- Execute the actual per-frame Client queue/layout block with real helper/queue.
 local NoticeLayout=Layout;local noticeView=make();local notifications=Queue.new();local viewport=Vector2.new(320,315);local touch=true;local data={devAccess=true}
 local modal={Visible=false};local title={Visible=true};local talkTarget
-local selected='Shop';local function closeMenu()modal.Visible=false end;local function render()end
+local academy
+local selected='Shop';local function closeMenu()modal.Visible=false;academy.menuNoticeRequested=nil end;local function render()end
 local devPanel={Visible=false};local closeConversation;local shopRefreshes=0
 local action={FireServer=function(_,verb)if verb=='ShopRefresh' then shopRefreshes+=1 end end}
 local GuiService={MenuIsOpen=false}
-local academy={surface=function()end,compactObjective={},damageReadout={},gearUpgrade=function()return nil end,presentTalk=function()end} -- The extracted tab handler shares the Client UI namespace.
+academy={surface=function()end,compactObjective={},damageReadout={},gearUpgrade=function()return nil end,presentTalk=function()end} -- The extracted tab handler shares the Client UI namespace.
 local renderedTab,renderedMenuKey
+HALL_NOTICE_POLICY
+local travelStatus
+local p={GetAttribute=function(_,key)assert(key=="TravelStatus");return travelStatus end}
+local function notify(text,urgent,key)notifications:Push(text,urgent,key)end
+TRAVEL_NOTICE
 TOGGLE
 local top={};local dark,gold={},{};local function button(_,_,text,_,_,fn)return {Visible=true,callback=fn,Text=text}end
 local storeSignal={}
@@ -225,6 +233,39 @@ check(questsToggle.Visible and questsToggle.Text=='WIN' and not noticeView.root.
 questsToggle.callback();frame()
 check(modal.Visible and noticeView.root.Visible and noticeView.text.Text==sparAward,'Win shortcut did not show the actual reward first')
 closeMenu();notifications=Queue.new()
+-- The narrow Hall header shares a strip with notices. Defer only ambient traffic.
+academy.hideMap=true;local viewportBefore=viewport
+for _,size in ipairs({Vector2.new(455,218),Vector2.new(567,241)})do
+ viewport=size;notifications=Queue.new();modal.Visible=false;gameplayVisible=true
+ notifications:Push("Fresh Hall welcome",false,"welcome")
+ travelStatus="Arrival rehearsal. Safe arrival.";travelNotice()
+ local welcome=notifications.active
+ shop.callback();gameplayVisible=false
+ for i=1,100 do frame() end
+ check(modal.Visible and title.Visible and not noticeView.root.Visible and welcome.remaining==4,
+  "Routine Hall welcome displaced the menu title or consumed dwell")
+ notifications:Push("Shop update",false,"shopResult")
+ frame();check(noticeView.root.Visible,"Queued action feedback was trapped behind a hidden welcome")
+ -- Urgent warnings still take over immediately, and removing them re-evaluates ambient visibility.
+ notifications:Push("Saving unavailable",true,"save")
+ frame();check(noticeView.root.Visible and noticeView.message=="Saving unavailable","Hall title suppressed urgent saves")
+ notifications:Remove("save");notifications:Remove("welcome");notifications:Remove("shopResult");modal.Visible=false;gameplayVisible=true
+ -- The viewport is short enough that the preserved arrival uses the existing shortcut.
+ frame()
+ check(questsToggle.Visible and questsToggle.Text=="NOTICE","Deferred Hall guidance lost its HUD shortcut")
+ questsToggle.callback();gameplayVisible=false;frame()
+ check(noticeView.root.Visible and noticeView.message=="Arrival rehearsal. Safe arrival.","NOTICE failed to expose deferred Hall guidance")
+ shop.callback()
+ check(not academy.menuNoticeRequested,"Closing menu retained explicit notice disclosure")
+ gameplayVisible=true;shop.callback();gameplayVisible=false
+ travelStatus="Portal reached. This local rehearsal stays in the same place.";travelNotice()
+ frame();check(noticeView.root.Visible and noticeView.message==travelStatus,
+  "Explicit portal result was deferred like passive arrival")
+ travelStatus=nil;travelNotice();frame()
+ check(noticeView.message=="","Clearing travel status left an obsolete notice")
+ shop.callback()
+end
+academy.hideMap=false;viewport=viewportBefore;modal.Visible=false;gameplayVisible=true
 -- The baseline safe HUD measured 567 × 242 even though the camera was taller.
 viewport=Vector2.new(567,242);talkTarget={};notifications=Queue.new()
 local function checkShortTalk()
@@ -367,7 +408,7 @@ local count=measured;f:Update('Fractional recovery warning',lane,true,4,14,id)
 check(measured==count,'Rounded measurement causes repeated invalidation')
 f:Destroy();TextService.GetTextSize=oldMeasure
 print('PASS',n,'notice module/Client assertions; mock text metrics/GUI, no native access claim')
-'''.replace('MINI',mini).replace('SAMPLES','{'+','.join(json.dumps(t) for t in texts)+'}').replace('INTEGRATION',integration).replace('TOGGLE',client[client.index('local function toggleTab('):client.index('local shop=button(')]).replace('MENU_BUTTON',next(x for x in client.splitlines() if x.startswith('local shop=button('))).replace('QUEST_LABEL',client[client.index('local function questLauncherText()'):client.index('local hud=frame(gui,"CompactHUD"')]).replace('RECEIVER_COUNT',client[client.index(' local unclaimed=0'):client.index(' refreshQuestObjects();stats.Text=')]).replace('PASS_BUTTON',client[client.index('academy.passesToggle=button('):client.index('local function questLauncherText()')]).replace('QUEST_BUTTON',next(x for x in client.splitlines() if x.startswith('local questsToggle=button(')))
+'''.replace('MINI',mini).replace('SAMPLES','{'+','.join(json.dumps(t) for t in texts)+'}').replace('INTEGRATION',integration).replace('HALL_NOTICE_POLICY',client[client.index('do\n local function ambient(entry)'):client.index('\nend',client.index(' function academy.deferArrivalNotice('))+len('\nend')]).replace('TRAVEL_NOTICE',travel_callback).replace('TOGGLE',client[client.index('local function toggleTab('):client.index('local shop=button(')]).replace('MENU_BUTTON',next(x for x in client.splitlines() if x.startswith('local shop=button('))).replace('QUEST_LABEL',client[client.index('local function questLauncherText()'):client.index('local hud=frame(gui,"CompactHUD"')]).replace('RECEIVER_COUNT',client[client.index(' local unclaimed=0'):client.index(' refreshQuestObjects();stats.Text=')]).replace('PASS_BUTTON',client[client.index('academy.passesToggle=button('):client.index('local function questLauncherText()')]).replace('QUEST_BUTTON',client[client.index('local questsToggle=button('):client.index('questsToggle.Visible=false')])
 def run(layout,view,body=checks,error=None):
  code=setup+layout+'\nend\nlocal Layout=loadLayout();local function require(k)if k=="layout"then return Layout end;return _G.require(k)end\nlocal function loadView()\n'+view+'\nend\nlocal View=loadView()\n'+body
  # Preserve ordinary file require while mocking just the module dependency.
@@ -407,6 +448,15 @@ if a.negative_controls:
      error='Touch TALK covered health and progress without a notice')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('elseif noticeLayout.baseTalkX then','elseif noticeView.visible and noticeLayout.baseTalkX then'),'Short phone TALK extends outside the safe HUD')
  run(sources['NoticeLayout'].replace('talk.x=x;talk.y=','talk.x=navRight-24;talk.y='),sources['NoticeView'],error='Short phone TALK overlaps an existing HUD control')
+ for old,new,error in [
+     ('not academy.deferArrivalNotice(shortLandscape)','true','Routine Hall welcome displaced'),
+     ('if not ambient(entry) then return false end','if false then return false end','Queued action feedback was trapped'),
+     ('academy.menuNoticeRequested=academy.noticeShortcut','academy.menuNoticeRequested=false','NOTICE failed to expose deferred Hall guidance'),
+     ('entry.key=="travelArrival"','(entry.key=="travelArrival" or entry.key=="travel")','Explicit portal result was deferred'),
+     ('notifications:Remove(key=="travel" and "travelArrival" or "travel")','','Explicit portal result was deferred'),
+ ]:
+  assert old in checks
+  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace(old,new),error)
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('(gameplayVisible or modal.Visible)','gameplayVisible'),'Shop error hidden or covers modal navigation')
  run(sources['NoticeLayout'].replace('if height>=150 and height<318','if height>=156 and height<318'),sources['NoticeView'],error='491 × 150 desktop TALK overlaps Passes')
  run(sources['NoticeLayout'].replace('width-map.width-74','width-map.width-22'),sources['NoticeView'],error='Desktop TALK overlaps Test next to MAP')
