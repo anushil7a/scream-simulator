@@ -1,4 +1,4 @@
--- Original handheld amplifier geometry; gameplay power remains server-calculated in VoiceCombat.
+-- Original gear visuals; gameplay power remains server-calculated in VoiceCombat.
 local Equipment={}
 local function piece(model,torso,name,size,offset,color,shape)
  local part=Instance.new("Part");part.Name=name;part.Size=size;part.Color=color;part.Material=Enum.Material.SmoothPlastic
@@ -58,6 +58,23 @@ function Equipment.SyncMegaphone(player,equipped)
   add("AcousticNose",Vector3.new(.22,.22,.22),horn(-.68),brass,Enum.PartType.Ball)
  end)
 end
+local function buildOrganPack(model,mount)
+ local gold=Color3.fromRGB(221,175,80)
+ local violet=Color3.fromRGB(105,60,163)
+ local case=Color3.fromRGB(39,31,55)
+ local back=mount.Size.Z/2
+ piece(model,mount,"OrganCase",Vector3.new(1.38,1.04,.28),CFrame.new(0,-.13,back+.14),case)
+ piece(model,mount,"OrganFoot",Vector3.new(1.46,.18,.46),CFrame.new(0,-.57,back+.24),violet)
+ for i=-2,2 do
+  local height=1.42-math.abs(i)*.26
+  local x=i*.25
+  local pipe=CFrame.new(x,-.48+height/2,back+.41)*CFrame.Angles(0,0,math.pi/2)
+  local cap=CFrame.new(x,-.48+height,back+.41)*CFrame.Angles(0,0,math.pi/2)
+  piece(model,mount,"OrganPipe"..(i+3),Vector3.new(height,.19,.19),pipe,gold,Enum.PartType.Cylinder)
+  piece(model,mount,"OrganCollar"..(i+3),Vector3.new(.12,.23,.23),cap,violet,Enum.PartType.Cylinder)
+ end
+ piece(model,mount,"OrganRail",Vector3.new(1.36,.13,.13),CFrame.new(0,-.23,back+.53),case)
+end
 -- Authored templates are local imported Models in ServerStorage/GearTemplates.
 -- No asset IDs, uploads or fake mesh claims. Fallback is explicitly marked.
 function Equipment.SyncGear(player,item)
@@ -70,11 +87,14 @@ function Equipment.SyncGear(player,item)
  if current then return end
  local templates=game:GetService("ServerStorage"):FindFirstChild("GearTemplates")
  local template=templates and templates:FindFirstChild(item.template)
- local mount=item.mount=="back" and (character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")) or (character:FindFirstChild("RightHand") or character:FindFirstChild("Right Arm"))
- if template and template:IsA("Model") and mount and template:FindFirstChildWhichIsA("BasePart",true) then
-  local model=template:Clone();model.Name="ProgressionGear";model:SetAttribute("GearId",id);model:SetAttribute("MountKind",item.mount=="back" and "back" or "hand")
+ local back=item.mount=="back"
+ local mount=if back then (character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso"))
+  else (character:FindFirstChild("RightHand") or character:FindFirstChild("Right Arm"))
+ if not mount then return end
+ if template and template:IsA("Model") and template:FindFirstChildWhichIsA("BasePart",true) then
+  local model=template:Clone();model.Name="ProgressionGear";model:SetAttribute("GearId",id);model:SetAttribute("MountKind",back and "back" or "hand")
   local palmDepth=template:GetAttribute("PalmSurfaceGrip")==true and (-mount.Size.Z/2+.06) or -.25
-  local offset=item.mount=="back" and CFrame.new(0,0,.8) or CFrame.new(0,-mount.Size.Y/2+.15,palmDepth)
+  local offset=back and CFrame.new(0,0,.8) or CFrame.new(0,-mount.Size.Y/2+.15,palmDepth)
   model:PivotTo(mount.CFrame*offset)
   for _,part in ipairs(model:GetDescendants()) do
    if part:IsA("BasePart") then
@@ -82,6 +102,11 @@ function Equipment.SyncGear(player,item)
     local weld=Instance.new("WeldConstraint");weld.Part0=mount;weld.Part1=part;weld.Parent=part
    end
   end
+  model.Parent=character
+ elseif back then
+  local model=Instance.new("Model");model.Name="ProgressionGear"
+  model:SetAttribute("GearId",id);model:SetAttribute("FallbackVisual",true);model:SetAttribute("MountKind","back")
+  buildOrganPack(model,mount)
   model.Parent=character
  else
   -- Explicit temporary old art, never presented as an imported Blender model.

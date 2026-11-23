@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep the Celestial Organ on the avatar's back
+
+- In a disposable Studio run, the Academy Megaphone's 13 parts stayed welded to the R15 right hand during a synthetic cast. The normal Gear controls removed and re-equipped it, and it returned after respawn. In the same baseline build the catalog's back-mounted Celestial Organ appeared as a handheld speaker with 14 right-hand welds when its authored template was unavailable.
+- The standard build now supplies a 13-part gold-and-violet organ pack, based on the approved concept. A back item waits for the torso on both rig types. The portable model uses massless, noncolliding parts and leaves the hand free. Price, power and authored-template precedence follow the existing catalog and equipment rules.
+- The focused Luau mock failed against the old code, which mounted a back item before the torso was ready. It passes for both torso names, welds, removal and repeat sync. Two negative controls catch a restored handheld fallback and an early fallback to the hand. Studio evidence is kept under `build/megaphone_visual_native`.
+- In the disposable candidate, all 13 Organ parts were welded to the R15 upper torso, the right hand was empty, and the pipes were visible from behind. The actual Megaphone buy-and-equip action still fitted all 13 parts to the right hand. Independent review, 198 local suites, 99 Luau compilations, and the City and Hall builds passed. Both Studio sessions closed. R6 coverage used a mock rig. The Organ check staged an equipped item and did not play through level 90.
+
 ## Keep the first Gear action fully reachable on narrow screens
 
 - Studio reproduced a clipped **GUIDE TO MAR** action at 455 × 218 usable touch-emulated pixels. The content window was 40 pixels high and clipped the bottom 10 pixels of the 44-pixel button. A pointer tested below the clip hit the menu instead of the action.

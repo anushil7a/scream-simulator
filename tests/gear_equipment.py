@@ -66,9 +66,28 @@ Equipment.SyncGear(player,megaphone)
 assert(character:FindFirstChild('ProgressionGear').pivot.Z==-.25,'Untagged gear lost its legacy grip')
 Equipment.SyncGear(player,nil)
 prepared:Destroy()
-Equipment.SyncGear(player,G.Get('CelestialOrgan'))
-local fallback=character:FindFirstChild('ProgressionGear');assert(fallback:GetAttribute('FallbackVisual') and fallback:GetAttribute('MountKind')=='hand')
-Equipment.SyncGear(player,nil);assert(fallback.destroyed)
+local organ=G.Get('CelestialOrgan')
+for _,torsoName in ipairs({'UpperTorso','Torso'}) do
+ local rig=node('Model')
+ local palm=node('Part','RightHand');palm.Parent=rig
+ player.Character=rig
+ Equipment.SyncGear(player,organ)
+ assert(not rig:FindFirstChild('ProgressionGear'),'Organ mounted before the torso was ready')
+ local back=node('Part',torsoName);back.Parent=rig
+ Equipment.SyncGear(player,organ)
+ local fallback=rig:FindFirstChild('ProgressionGear')
+ assert(fallback and fallback:GetAttribute('GearId')==organ.id and fallback:GetAttribute('FallbackVisual')
+  and fallback:GetAttribute('MountKind')=='back','Organ fallback lost its back mount')
+ assert(fallback:FindFirstChild('OrganPipe3'),'Organ fallback lost its pipe silhouette')
+ for _,part in ipairs(fallback.children) do
+  local weld=part:FindFirstChild('WeldConstraint')
+  assert(weld and weld.Part0==back and weld.Part1==part,'Organ part is not welded to the torso')
+  assert(part.CFrame.Z>back.Size.Z/2,'Organ part center is inside the torso')
+  assert(not part.Anchored and not part.CanCollide and not part.CanQuery and not part.CanTouch and part.Massless)
+ end
+ Equipment.SyncGear(player,organ);assert(rig:FindFirstChild('ProgressionGear')==fallback)
+ Equipment.SyncGear(player,nil);assert(fallback.destroyed)
+end
 for _,case in ipairs({{'RightHand',.6275},{'Right Arm',1},{'RightHand',1.5}})do
  local rig=node('Model');local palm=node('Part',case[1]);palm.Size.Z=case[2];palm.Parent=rig;player.Character=rig
  Equipment.SyncGear(player,G.Get('Megaphone'))
@@ -82,7 +101,7 @@ for _,case in ipairs({{'RightHand',.6275},{'Right Arm',1},{'RightHand',1.5}})do
 end
 local respawn=node('Model');local arm=node('Part','Right Arm');arm.Parent=respawn;player.Character=respawn
 Equipment.SyncGear(player,G.Get('MosaicMic'));assert(respawn:FindFirstChild('ProgressionGear'))
-print('PASS actual equipment lifecycle, welds and three Megaphone grip depths; synthetic transforms')
+print('PASS actual equipment lifecycle, Organ torso readiness, R15/R6 welds and three Megaphone grip depths; synthetic transforms')
 '''
 def run_equipment(payload, expected=None):
  with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
@@ -102,6 +121,8 @@ if '--negative-controls' in sys.argv:
   ('math.max(0,hand.Size.Z/2-.02)','0','Megaphone mouthpiece crosses the palm'),
   ('Vector3.new(.16,.18,.24+forward)','Vector3.new(.16,.18,.24)','Megaphone bracket no longer spans mouthpiece and grip'),
   ('template:GetAttribute("PalmSurfaceGrip")==true and (-mount.Size.Z/2+.06) or -.25','-.25','Prepared palm grip does not follow hand depth'),
+  ('elseif back then\n  local model=Instance.new("Model");model.Name="ProgressionGear"','elseif false then\n  local model=Instance.new("Model");model.Name="ProgressionGear"','Organ fallback lost its back mount'),
+  ('character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso"))','character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso") or character:FindFirstChild("RightHand"))','Organ mounted before the torso was ready'),
  ]:
   assert code.count(old)==1,old
   run_equipment(code.replace(old,new),reason)
