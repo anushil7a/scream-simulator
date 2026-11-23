@@ -193,6 +193,18 @@ do
  now+=1;periodic();check(#packets==17 and packets[17].testBeamCooldown==2,'Tool cooldown stopped updating')
  now+=2;periodic();periodic();check(#packets==18 and packets[18].testBeamCooldown==0,'Tool cooldown expiry was suppressed')
 end
+do
+ local packet
+ stateRemote.FireClient=function(_,_,value)packet=value end
+ s.activeQuest=nil
+ s.data.quests={garden={progress=3,claimed=false}}
+ s.data.availableQuests={garden=true}
+ state(p);check(packet.quests.garden.progress==3 and packet.availableQuests.garden,'City state lost visible quest progress')
+ Config.ResonanceLayout={}
+ state(p);check(next(packet.quests)==nil,'Hall state exposed City quest progress')
+ check(next(packet.availableQuests)==nil,'Hall state exposed City quest discoveries')
+ check(s.data.quests.garden.progress==3 and s.data.availableQuests.garden,'Hall state cleared the persisted quest data')
+end
 print('PASS '..checks..' save notification and State integration assertions; synthetic store/UI/time/coin changes')
 '''
 # Keep the client HUD label separate from the reused server coins helper.
@@ -237,6 +249,9 @@ if '--negative-controls' in sys.argv:
  run(payload.replace('.." coins · "..q.name','.." coins · Garden"'),'Equal claim receipts merged')
  mutate_queue('if not receipt then','if true then','Equal claim receipts merged')
  mutate_queue('or urgent and 1 or receipt and .5 or 0','or receipt and 1.5 or urgent and 1 or 0','Receipt moved ahead of a queued urgent warning')
+ run(payload.replace('quests=not Config.ResonanceLayout and s.data.quests or {}','quests=s.data.quests'),'Hall state exposed City quest progress')
+ run(payload.replace('availableQuests=not Config.ResonanceLayout and s.data.availableQuests or {}','availableQuests=s.data.availableQuests'),
+     'Hall state exposed City quest discoveries')
  run(payload.replace('if changedOnly and StateSnapshot.Equal(packet,s.lastStatePacket) then return end',''), 'Identical periodic State was transmitted')
  run(payload.replace('local snapshot=StateSnapshot.Copy(packet)','local snapshot=StateSnapshot.Copy(packet);snapshot.quests=packet.quests'),'In-place quest progress was suppressed')
  run(payload.replace('if changedOnly and StateSnapshot.Equal','if StateSnapshot.Equal'),'Explicit State requests were suppressed')

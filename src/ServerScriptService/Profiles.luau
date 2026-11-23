@@ -71,11 +71,12 @@ function Profiles.Sanitize(raw)
     if sound then data.sound=(sound.level<=data.level and sound or Config.SoundForLevel(data.level)).id end
     if type(raw.customColor)=="string" and #raw.customColor==6 and raw.customColor:match("^%x+$") then data.customColor=raw.customColor:upper();data.useCustomColor=raw.useCustomColor==true end
     if type(raw.aura)=="string" and Config.Auras[raw.aura] then data.aura=raw.aura end
+    local questCatalog=Config.ProfileQuestCatalog or Config.Quests
     if type(raw.availableQuests)=="table" then
-        for _,q in ipairs(Config.Quests) do if raw.availableQuests[q.id]==true then data.availableQuests[q.id]=true end end
+        for _,q in ipairs(questCatalog) do if raw.availableQuests[q.id]==true then data.availableQuests[q.id]=true end end
     end
     if type(raw.quests)=="table" then
-        for _,q in ipairs(Config.Quests) do
+        for _,q in ipairs(questCatalog) do
             local old=raw.quests[q.id]
             if type(old)=="table" then data.availableQuests[q.id]=true;data.quests[q.id]={progress=wholeNumber(old.progress,0,0,q.goal),claimed=old.claimed==true} end
         end

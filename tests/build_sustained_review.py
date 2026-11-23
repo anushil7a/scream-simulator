@@ -188,6 +188,7 @@ end)
                 config_copy.write_text(config.replace("\nreturn Config", '''
 Config.CompactCity=false
 Config.ResonanceLayout=require(script.Parent:WaitForChild("ResonanceLayout"))
+Config.ProfileQuestCatalog=Config.Quests
 Config.Quests={}
 Config.MapMin=Vector3.new(-88,-20,-76)
 Config.MapMax=Vector3.new(88,120,272)
