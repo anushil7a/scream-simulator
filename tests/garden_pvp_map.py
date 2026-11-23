@@ -94,10 +94,13 @@ for x=-320,320,5 do for z=-180,190,5 do
 end end
 local zoneValues={Text=''};local zoneWrites=0
 local zone=setmetatable({},{__index=zoneValues,__newindex=function(_,key,value)zoneWrites+=1;zoneValues[key]=value end});local white,gold='white','gold';local academy={TrainingRules=TrainingRules};local root={Position=Vector3.new(0,20,0)}
-local bossHint
+local bossHint,protectionEnds
 local attributes={};local humanoid={Health=100}
 local character={FindFirstChild=function()return root end,FindFirstChildOfClass=function()return humanoid end,GetAttribute=function(_,key)return attributes[key]end}
-local p={Character=character,GetAttribute=function()return bossHint end}
+local p={Character=character,GetAttribute=function(_,name)
+ if name=='ProtectionEnds' then return protectionEnds end
+ return bossHint
+end}
 local now=10
 local workspace={GetServerTimeNow=function()return now end}
 local function typeof(value)return type(value)=='table' and 'Vector3' or type(value)end
@@ -155,6 +158,18 @@ check(not allowsRouteLights(terrace) and not allowsRouteLights(stadium) and allo
 Config.ResonanceLayout={Contains=function()return false end}
 academy.refreshZone()
 check(not classified(terrace) and zone.Text=='SAFE • PvP OFF','City route warning leaked into Resonance Hall')
+local cityArena,originalTime=Config.InArena,now
+Config.ResonanceLayout={Hall={},Contains=function()return true end,IsSafeApron=function(pos)return pos.Z>=50 end}
+Config.ResonanceTravel=true
+Config.InArena=function(pos)return pos.Z<50 end
+protectionEnds=now+1
+root.Position=Vector3.new(0,3.8,54);academy.refreshZone()
+check(zone.Text=='TRAINING PORTAL • SAFE','Spawn shield replaced the safe apron label')
+root.Position=Vector3.new(0,3.8,49);academy.refreshZone()
+check(zone.Text=='PvP • SPAWN SHIELD' and zone.TextColor3==gold,'Hall PvP badge omitted active spawn shield')
+now=protectionEnds;academy.refreshZone()
+check(zone.Text=='RESONANCE HALL • PvP ON' and zone.TextColor3~=gold,'Hall badge retained an expired spawn shield')
+protectionEnds=nil;Config.InArena=cityArena;Config.ResonanceTravel=nil;now=originalTime
 Config.ResonanceLayout=nil
 root.Position=Vector3.new(80,19.8,126);academy.refreshZone()
 check(zone.Text=='GARDEN • PvP ON','Advance warning displaced live Garden PvP')
@@ -203,6 +218,10 @@ if __name__=='__main__':
    ('academy.TrainingRules.ContainsStrike(center,position)','academy.TrainingRules.ContainsStrike(center,Vector3.new(position.X,center.Y+3,position.Z))','Ground warning retained above the damage band'),
    ('workspace:GetServerTimeNow()<strikeAt','true','Expired training cue retained'),
    ('or pvpAhead and "SAFE • PvP AHEAD"', 'or false and "SAFE • PvP AHEAD"', 'Approach did not distinguish safe now from upcoming PvP'),
+   ('value=hallShield and "PvP • SPAWN SHIELD" or "RESONANCE HALL • PvP ON"',
+    'value="RESONANCE HALL • PvP ON"', 'Hall PvP badge omitted active spawn shield'),
+   ('layout and enabled and workspace:GetServerTimeNow()<(p:GetAttribute("ProtectionEnds") or 0)',
+    'layout and enabled', 'Hall badge retained an expired spawn shield'),
   ]:
    assert zone.count(old)==1
    run(source,expected,zone.replace(old,new))

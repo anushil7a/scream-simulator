@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Distinguish the Hall floor from an active spawn shield
+
+- The exact local Hall build kept the zone badge fitted beside the unread arrival notice. A fast normal walk crossed from the safe apron at z54 to the PvP floor at z45.20. The red **RESONANCE HALL • PvP ON** badge appeared while 1.79 seconds of spawn protection remained, and looked identical after expiry.
+- The Hall badge now shows gold **PvP • SPAWN SHIELD** when the local avatar enters the PvP floor before its replicated protection deadline. It switches to the red PvP badge at expiry. The safe apron keeps its portal label. The badge reads the existing server deadline and never grants or removes protection.
+- The focused helper failed on the old caption and now passes 15,095 checks and 15 negative controls. Two controls exercise missing and stale shield labels. Independent review, 198 local suites, 99 Luau compiles, and the City and Hall builds passed. Baseline evidence is under `build/hall_map_native/native-zone-baseline.json`.
+- In the matched Studio candidate, an ordinary virtual W walk showed fitted safe, shielded, and active PvP labels in sequence at 567 × 241 desktop and 455 × 218 touch-emulated pixels. After crossing, the avatar held position while the badge changed from gold to red at expiry. The prior emulator preset was restored and the disposable Studio closed. See `build/hall_map_native/native-zone-candidate.json` (fixture SHA-256 `d3c95cdf97dbf84855453919c44401a9dfc8249e9ea0716847ea0936244e5236`). Real voice, physical touch and cross-place travel remain playtest gates.
+
 ## Keep Resonance Hall menus focused on PvP
 
 - Removed the Map tab and HUD minimap from both Hall modes. The M shortcut cannot open it in the Hall. Gear, Beams, Rules, Store and Settings reflow into the available space. Rules and Settings direct players to the TRAINING CITY signs and cyan portal. City still offers its map and minimap.

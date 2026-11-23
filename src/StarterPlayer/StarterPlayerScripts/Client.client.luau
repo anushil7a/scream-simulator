@@ -403,17 +403,19 @@ function academy.refreshZone()
   end
  end
  local layout=Config.ResonanceLayout
+ local hallShield=layout and enabled and workspace:GetServerTimeNow()<(p:GetAttribute("ProtectionEnds") or 0)
  local pvpAhead=not layout and not enabled and not bossHint and not trainingHint and position
   and academy.guide and academy.guide:HasPvPAhead()
  local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or bossHint or trainingHint and "MOVE OR DODGE"
   or pvpAhead and "SAFE • PvP AHEAD" or "SAFE • PvP OFF"
  if layout and position then
-  if enabled then value="RESONANCE HALL • PvP ON"
+  if enabled then value=hallShield and "PvP • SPAWN SHIELD" or "RESONANCE HALL • PvP ON"
   elseif not Config.ResonanceTravel and layout.Contains(layout.Practice,position) then value="TRAINING LANDING • SAFE"
   elseif layout.Contains(layout.Hall,position) and layout.IsSafeApron(position) then value="TRAINING PORTAL • SAFE" end
  end
  if zone.Text~=value then
-  zone.Text=value;zone.TextColor3=(enabled or trainingHint) and Color3.fromRGB(255,140,139) or (bossHint or pvpAhead) and gold or white
+  zone.Text=value
+  zone.TextColor3=hallShield and gold or (enabled or trainingHint) and Color3.fromRGB(255,140,139) or (bossHint or pvpAhead) and gold or white
  end
 end
 function academy.layoutZone(viewport,touch)
