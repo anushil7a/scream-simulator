@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Keep the Academy portal readable above the phone HUD
+
+- Rebuilt the playable travel pair from `b3d681c` and started the Hall directly in iPhone XR landscape. With a focused 801 × 355 safe viewport, the full **Training City / Preview portal** copy was visible without overlap. The built-in action label still reported `TextFits=false` at equal 101-pixel text and allocated widths. The prior inactive-window sample alone could not distinguish that measurement from visible clipping.
+- The calibrated emulated touch delivered a processed Touch event to the stock prompt. Its hold triggered after 0.267 seconds and showed the fitted same-place rehearsal message. The Hall avatar stayed on the safe apron without a position change. The camera was turned to inspect the portal.
+- On the same iPhone XR preset, City Beams and Dodge obscured the portal's destination and action at the default Academy camera framing. The exposed touch icon still worked. In the corrected native candidate the City prompt renders 72 pixels higher. The destination and action were both visible above Beams, below the startup notice, and an emulated touch held at the new location triggered the normal rehearsal confirmation. The interaction anchor, range and hold duration stayed the same.
+- The iPhone 16 Pro Max landscape preset (830 × 381) also showed both labels and accepted touch hold. A natural right turn toward the portal kept the prompt clear on the iPhone XR sample. The iPhone 16 portrait spawn camera put the portal offscreen, so portrait approach and simultaneous center Talk overlap remain unverified.
+- Focused checks passed 16 local portal movement assertions, 28 simulated travel assertions and 15 mutation controls. Full local verification and builds passed 323 steps on unchanged inputs. Native evidence is in `build/touch_travel_native/native-result.json` and `native-final.json`, with paired Studio screenshots. The emulator preset was restored and all disposable Studio sessions closed. The final offset was not rerun on desktop/controller; physical phones and actual transfer need separate tests.
+
 ## Verify controller portal prompts in both worlds
 
 - The playable zero-ID travel pair rebuilt from `bc5a693`. In the Xbox Controller Emulator, the Hall apron presented **Training City / Preview portal** 8.02 studs from spawn, and the Academy presented **Resonance Hall / Preview portal** 8.03 studs from spawn.

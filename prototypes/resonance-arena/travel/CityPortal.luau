@@ -71,6 +71,8 @@ local function bind(world,spawnPosition)
  gateway.Parent=world
  local prompt=Instance.new("ProximityPrompt")
  prompt.ActionText="Enter arena";prompt.ObjectText="Resonance Hall";prompt.HoldDuration=.25
+ -- Keep the floating prompt above the Beams controls on the Academy approach.
+ prompt.UIOffset=Vector2.new(0,72)
  prompt.RequiresLineOfSight=false;prompt.MaxActivationDistance=10;prompt.Parent=portal
  travel.Bind(prompt)
  local arrival=groundPosition+Vector3.new(-8,3.8,0)

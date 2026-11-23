@@ -145,6 +145,7 @@ vector.__add=function(a,b)return Vector3.new(a.X+b.X,a.Y+b.Y,a.Z+b.Z)end
 vector.__sub=function(a,b)return Vector3.new(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end
 Vector3={new=function(x,y,z)return setmetatable({X=x,Y=y,Z=z},vector)end}
 Vector3.zAxis=Vector3.new(0,0,1)
+local Vector2={new=function(x,y)return {X=x,Y=y}end}
 local CFrame={lookAt=function(position,target)return {Position=position,Target=target}end}
 local Color3={fromRGB=function(...)return {...}end}
 local UDim2={fromScale=function(...)return {...}end}
@@ -195,6 +196,8 @@ assert(prompt.Parent.Name=="HallPortalAnchor" and prompt.Parent.Position.X==-292
  and prompt.Parent.Position.Y==35 and prompt.Parent.Position.Z==-260
  and prompt.HoldDuration==.25 and prompt.MaxActivationDistance==10 and not prompt.RequiresLineOfSight,
  "Gateway changed the original prompt")
+assert(prompt.UIOffset and prompt.UIOffset.X==0 and prompt.UIOffset.Y==72,
+ "City portal prompt lost its HUD clearance offset")
 assert(landing.Position.X==-300 and math.abs(landing.Position.Y-35.8)<.001 and landing.Position.Z==-260
  and landing.Target.Z==-261,"Gateway changed the Academy landing")
 assert(labels["RESONANCE HALL"] and labels["PVP ARENA"],"Gateway lacks its destination sign")
@@ -247,6 +250,8 @@ if '--negative-controls' in sys.argv:
         setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
     run(PORTAL.replace('prompt.MaxActivationDistance=10', 'prompt.MaxActivationDistance=14'),
         'Gateway changed the original prompt', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
+    run(PORTAL.replace('prompt.UIOffset=Vector2.new(0,72)', 'prompt.UIOffset=Vector2.new(0,0)'),
+        'City portal prompt lost its HUD clearance offset', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
     run(PORTAL.replace('label(face(direction,"ArenaWayfinding"),"PVP ARENA →"', 'label(face(direction,"ArenaWayfinding"),"PVP ARENA"'),
         'Academy approach lacks an arena direction', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
     run(PORTAL.replace('Vector3.new(-4.45,5.6,.45)', 'Vector3.new(-6,5.6,.45)'),
