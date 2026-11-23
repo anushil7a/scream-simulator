@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Verify in-lane Hall dodge and isolate the multiplayer LB gate
+
+- In a guarded two-client Hall test from `48bbaec`, a clear scripted beam lowered the standing defender from 100 to 90 HP. The defender healed to 100 during setup for the next round.
+- The defender's multiplayer child showed controller labels after opening the Controller Emulator, but its mapped LB press arrived as unprocessed **Keyboard R**. The Studio MCP only exposed the parent editor to the tester, and the child did not expose the device-selection method used for this setup. The gamepad input path therefore remains unverified in Hall combat.
+- A separate native keyboard Q fallback entered the ordinary server dodge during a clear incoming cast. The defender went from 100 to 97 HP before the roll. While rolling along the centerline, an evaluated beam sample produced a private **Beam Dodged** event and the live HUD showed **Hit + Dodge**. HP stayed at 97 through the recorded cast end.
+- The runner's aggregate assertion failed because it compared against health from before the inter-round healing. Independent review verified the raw input, position, health and Effect traces in `build/hall_gamepad_dodge_native/native-result.json` and `native-summary.json`. Focused client and dodge checks passed. The keyboard trace used staged positions and client focus with synthetic attacker input. A physical or correctly routed controller piloting the defender is still required for the Hall LB check. All disposable Studio processes closed.
+
 ## Explain cover reached during an active beam
 
 - Two guarded local Hall clients on `66413e2` used scripted full-power beams and comparable 18-stud lanes. A clear cast dropped the defender from 100 to 57 HP and showed **Beam Hit You**. A cast aimed into the authored speaker left the defender at 100 HP and showed **Beam Hit Cover** only to the attacker.
