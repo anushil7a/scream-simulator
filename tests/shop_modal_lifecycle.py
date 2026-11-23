@@ -43,6 +43,7 @@ def assemble(c):
 local ShopUI=m.shop;local selected='Shop';local render;local closeMenu;local clientDestroyed=false;local clientConnections={};local button=ui.button
 local modal={Visible=false};local gui={AbsoluteSize={X=720,Y=720},Destroy=function()f.destroyed=true end}
 local GuiService={}
+local textFocus;local UIS={PreferredInput={Name="KeyboardAndMouse"},InputBegan={},GetFocusedTextBox=function()return textFocus end}
 local content={Size={X={Offset=-40}},CanvasPosition={X=0,Y=40},AbsoluteCanvasSize={Y=600},AbsoluteWindowSize={Y=200},GetChildren=function()return {}end}
 
 -- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
@@ -59,7 +60,7 @@ local openMicSetup;local micSetupOpen=false;local micPanel={Visible=false}
 '''
  initial=re.search(r'\blocal selected\s*=\s*"([^"]+)"',c).group(1)
  context=context.replace("local selected='Shop'",f"local selected={initial!r}")
- input_setup="local keyCallback;local textFocus;local UIS={InputBegan={},GetFocusedTextBox=function()return textFocus end};Enum.KeyCode={B='B'};local function connectClient(_,fn)keyCallback=fn end\n"
+ input_setup="local keyCallback;Enum.KeyCode={B='B'};local function connectClient(_,fn)keyCallback=fn end\n"
  if 'local function clearShop()' in c:
   owner=c[c.index('local clientConnections={}'):c.index('local function loadClientDependency(')]
   owner+='\n'+c[c.index('local shopUsed=false'):c.index('local ScreamEffects=')]

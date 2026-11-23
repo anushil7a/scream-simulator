@@ -1339,7 +1339,7 @@ local function menuKey()
   local starterAction,starterQuest=academy.starterCoinAction(data)
   fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=starterAction,starterQuest=starterQuest}
  elseif selected=="Shop" then fields={featureLayout=ShopUI.FeatureLayout(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,signalDeck=data.signalDeckPass,cityCrest=data.cityCrestPass,pulseFrame=data.pulseFramePass,routeLights=data.routeLightsPass,harborBadge=data.harborBadgePass,sprintRibbon=data.sprintRibbonPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
- elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
+ elseif selected=="Settings" then fields={input=UIS.PreferredInput.Name,settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  elseif selected=="Map" then fields={level=data.level,cityCrest=data.cityCrestPass}
  else fields={} end
  return selected..":"..gui.AbsoluteSize.X..":"..content.Size.X.Offset..":"..tostring(academy.sidebarMenu==true)..":"..game:GetService("HttpService"):JSONEncode(fields)
@@ -1641,18 +1641,28 @@ render=function()
    local note=label(recapCard,"Live DPS and fight total · this session",UDim2.new(1,-24,0,20),UDim2.fromOffset(12,50),12,muted)
    note.TextXAlignment=Enum.TextXAlignment.Center
   end
-  local touch=UIS.TouchEnabled
+  local touch=UIS.PreferredInput==Enum.PreferredInput.Touch
+  local gamepad=UIS.PreferredInput==Enum.PreferredInput.Gamepad
   local attackHelp
   if sustainedControl then
-   attackHelp=string.format("Beams start OFF. BEAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each beam.",sustainedRules.MaxDuration,sustainedRules.Cooldown,touch and "Tap BEAMS" or "E / BEAMS")
+   local toggleBinding=gamepad and "RB/R1" or touch and "Tap BEAMS" or "E / BEAMS"
+   attackHelp=string.format("Beams start OFF. BEAMS ON: normal speech can fire attacks. Aim, then speak; %.0fs max, %.0fs cooldown.\n%s toggles attacks. OFF lets you talk; voice chat is unchanged. Go quiet before each beam.",sustainedRules.MaxDuration,sustainedRules.Cooldown,toggleBinding)
+  elseif gamepad then attackHelp="Hold RB/R1, speak into your mic, then release to fire through the center reticle."
   else attackHelp=touch and "Hold BEAM, speak into your mic, then release to fire toward the center of your view." or "Hold E / BEAM, speak into your mic, then release to fire toward your aim." end
   info(attackHelp,touch and 130 or 100)
   info("VOICE SAFETY\nAvoid profanity. Roblox's profanity rules depend on the game's rating and settings; harassment, threats and hate speech are not allowed. Rule violations may restrict voice or your account.\nRoblox records voice for moderation. The beam mechanic reads volume, not words. Stopping attacks does not mute voice. Use Roblox's mic control to mute, or Report Abuse for violations.",100)
-  info(string.format("Third-person camera\n%s: dodge (W/A/S/D) · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
-  if Config.ResonanceLayout then
-   info(touch and "Touch and hold the Training City portal prompt. Follow the signs around the Hall." or "F: hold at the Training City portal · B: toggle menu",touch and 80 or 54)
+  if gamepad then
+   info(string.format("Left stick: walk · Right stick: aim the beam\nLB/L1: dodge · %.0fs arena cooldown\nHold L3 while moving to sprint for up to %.0fs. Rest %.0fs when empty. Refill starts after %.0fs without sprint.",Config.DodgeCooldown,Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),110)
+   local worldHelp=Config.ResonanceLayout and "Follow the signs and use the Training City portal prompt." or "LT/L2: talk near a resident. Follow the quest prompts."
+   info(worldHelp.."\nY/Triangle: menu · B/Circle: close",80)
   else
-   info(touch and "Tap TALK near a resident. Follow the on-screen quest prompts. Tap MENU to open the tabs or X to close them." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
+   local direction=touch and "move to choose a direction" or "W/A/S/D"
+   info(string.format("Third-person camera\n%s: dodge (%s) · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",direction,Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
+   if Config.ResonanceLayout then
+    info(touch and "Touch and hold the Training City portal prompt. Follow the signs around the Hall." or "F: hold at the Training City portal · B: toggle menu",touch and 80 or 54)
+   else
+    info(touch and "Tap TALK near a resident. Follow the on-screen quest prompts. Tap MENU to open the tabs or X to close them." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
+   end
   end
   info("MICROPHONE\n"..mic.status,60)
   if not mic.eligible and not mic.checkPending then
@@ -2658,6 +2668,10 @@ end)
 end)()
 if not clientCheckpoint() then return end
 action:FireServer("Sync")
+
+connectClient(UIS:GetPropertyChangedSignal("PreferredInput"),function()
+ if modal.Visible and selected=="Settings" then render() end
+end)
 
 -- JumpRequest supports the built-in keyboard, controller and touch jump controls.
 connectClient(UIS.JumpRequest,function()

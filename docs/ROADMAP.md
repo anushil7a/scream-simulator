@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Teach controller bindings in Settings
+
+- On `799ff24`, native Xbox emulation opened City Settings with Gamepad1 Y, D-pad and A. The visible help still listed E, Q, Shift and W/A/S/D. Settings now follows the active input: controller players see left-stick movement, right-stick beam aim, RB/R1, LB/L1, L3 and the relevant City or Hall prompts. Touch and keyboard have distinct instructions.
+- The native candidate City displayed the controller, touch and keyboard instructions while the same Settings panel was open. In the final Hall fixture at 567 × 241 usable pixels, an actual PreferredInput event switched the open Settings from keyboard to controller without resizing. The Hall card showed the Training City prompt and the controller menu bindings. Sampled labels fit.
+- The paired Studio evidence is in `build/controller_settings_candidate_native/native-settings-results.json` (SHA-256 `2bb3bec59928896dbe0e5d22a5622975334fe6ff69a1a59b4c747470f4936c55`). The City candidate replay preceded the listener relocation. The final Hall replay also verified that B closed Settings. The prior emulator preset was restored and all three disposable Studio sessions were closed.
+- Independent review cleared the change. The 630-case actual copy suite and 12 negative controls passed, together with the microphone notice, shop modal and panel callback suites. Full local verification passed 29 pure/synthetic suites, 169 mocked-service suites, compilation of 99 production scripts and the review builds. Physical controller, TV safe-area and headset checks remain open.
+
 ## Verify touch Beams OFF during a live cast
 
 - In a guarded City replay on `a1f2715` at an 801 × 355 iPhone XR landscape safe area, the fitted 260 × 44 Beams button received real Roblox Touch and Activated signals from Studio input. The automatic beam dealt 22 damage to Rookie. Tapping Beams OFF during the active cast led to the matching server stop 0.033 seconds after the activation. The last damage preceded the tap.

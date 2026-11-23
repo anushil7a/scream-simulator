@@ -21,7 +21,7 @@ setup=r'''
 local checks=0;local function check(ok,msg)assert(ok,msg);checks+=1 end
 local UDim2={new=function(xs,xo,ys,yo)return {X={Scale=xs or 0,Offset=xo or 0},Y={Scale=ys or 0,Offset=yo or 0}}end,fromOffset=function(x,y)return {X={Offset=x},Y={Offset=y}}end}
 local Vector2={new=function(x,y)return {X=x,Y=y}end,zero={X=0,Y=0}}
-local Color3={fromRGB=function(...)return {...}end};local Enum={Font={GothamMedium=1}}
+local Color3={fromRGB=function(...)return {...}end};local Enum={Font={GothamMedium=1},PreferredInput={Touch="touch",Gamepad="gamepad",KeyboardAndMouse="keyboard"}}
 local gui={AbsoluteSize={X=390}};local micPanel={};local muted={};local gold={};local panel={}
 local content={Size={X={Offset=-40}},children={},CanvasPosition={X=0,Y=0},AbsoluteCanvasSize={Y=1500},AbsoluteWindowSize={Y=400}}
 function content:GetChildren()return self.children end
@@ -38,7 +38,7 @@ local measured={}
 local TextService={GetTextSize=function(_,text,size,font,dimensions)
  local height=math.ceil(#text*7.5/math.max(1,dimensions.X))*18;measured[text]=height;return {Y=height}
 end}
-local sustainedControl;local sustainedRules={MaxDuration=4,Cooldown=5};local UIS={TouchEnabled=false}
+local sustainedControl;local sustainedRules={MaxDuration=4,Cooldown=5};local UIS={TouchEnabled=false,PreferredInput=Enum.PreferredInput.KeyboardAndMouse}
 local Config={DodgeCooldown=3,SprintDuration=5,SprintRecovery=4,SprintRegenDelay=2}
 local mic={status='unavailable',eligible=false,Check=function(self)self.count=(self.count or 0)+1 end};local modal={Visible=true}
 local cancellations,sprints=0,0;local function cancelCapture()cancellations+=1 end;local function setSprint()sprints+=1 end
@@ -73,7 +73,7 @@ for _,automatic in ipairs({false,true})do
  sustainedControl=automatic and {SetArmed=function(self,v)self.armed=v end} or nil
  for _,width in ipairs({320,390,844,1280})do
   for _,touch in ipairs({false,true})do
-   gui.AbsoluteSize.X=width;UIS.TouchEnabled=touch;selected='Settings';renderedMenuKey=nil;cards={};content.children={};labels={};buttons={};modal.Visible=true
+   gui.AbsoluteSize.X=width;UIS.TouchEnabled=touch;UIS.PreferredInput=touch and Enum.PreferredInput.Touch or Enum.PreferredInput.KeyboardAndMouse;selected='Settings';renderedMenuKey=nil;cards={};content.children={};labels={};buttons={};modal.Visible=true
    render();flush()
    local safety,found
    for i,c in ipairs(cards)do if c.labels[1] and string.find(c.labels[1].Text,'VOICE SAFETY',1,true) then check(not safety,'Duplicate safety card');safety=c;found=i end end

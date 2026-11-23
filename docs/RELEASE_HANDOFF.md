@@ -81,6 +81,8 @@ Verify Xbox and PlayStation before the readiness pause. Roblox offers in-experie
 
 The left stick walks with the camera following the avatar. The right stick aims the beam by turning the camera and centered reticle. RB/R1 toggles Beams, LB/L1 dodges, holding L3 sprints, LT/L2 talks to a nearby resident, and Y/Triangle opens the menu. B/Circle closes an open game menu or conversation. The D-pad moves selection and A/Cross activates the selected control. Roblox's own controls continue to handle portal prompts.
 
+Settings shows the bindings for the current input. In the local Hall replay, the open Settings panel updated from keyboard to Xbox controller instructions at the same viewport size.
+
 In Gear, use the D-pad to reach either arrow beside the hue strip and A/Cross to step the color preview. Equip Color applies the preview for Spectrum owners. The locked preview is available without the pass.
 
 On each physical console, verify sustained stick movement, TV safe areas, headset-triggered damage while aiming, ordinary voice while Beams are off, and controller-only access to the Guide, Talk, portal, and shop. Check commerce in an approved test environment. Console access settings require separate approval. [Roblox gamepad input](https://create.roblox.com/docs/input/gamepad)

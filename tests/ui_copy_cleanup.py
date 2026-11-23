@@ -5,9 +5,8 @@ R=Path(__file__).resolve().parents[1]
 source=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
 def build(c):
  a=c.index('  local nextStyle',c.index('title.Text="BEAM COLLECTION"'));collection=c[a:c.index(' elseif selected=="Quests"',a)]
- a=c.index('  local attackHelp');help=c[a:c.index('  info("VOICE SAFETY',a)]
- safety=next(x for x in c.splitlines() if 'info("VOICE SAFETY' in x)
- mic=next(x for x in c.splitlines() if 'info("MICROPHONE' in x)
+ a=c.index('  local touch=',c.index('title.Text="SETTINGS & CONTROLS"'))
+ help=c[a:c.index('  if not mic.eligible and not mic.checkPending then',a)]
  return r'''
 local Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat')
 local attackAudioSettings=require('../src/ReplicatedStorage/Shared/AttackAudioConfig')
@@ -68,13 +67,30 @@ end
 draw({level=100,sound='cap'},true,{})
 check(cards[1].height==70 and #cards[1].children==3,'Configured equipped sound retained voice-only milestone')
 check(string.find(cards[2].children[1].text,'VOICE ONLY',1,true)~=nil,'Unequipped starter lost its voice-only label')
-local function settings(touch,sustainedControl)
+local Enum={PreferredInput={Gamepad='gamepad',Touch='touch',KeyboardAndMouse='keyboard'}}
+local function settings(preferredInput,touchSupported,sustainedControl,hall)
  messages={};local sustainedRules={MaxDuration=4,Cooldown=5};local mic={status='Microphone ready'}
-'''+help+safety+'\n'+mic+r'''
+ local UIS={TouchEnabled=touchSupported,PreferredInput=preferredInput}
+ Config.ResonanceLayout=hall
+ Config.DodgeCooldown=4;Config.SprintDuration=6;Config.SprintRecovery=3;Config.SprintRegenDelay=1
+'''+help+r'''
 return messages
 end
-for _,touch in ipairs({false,true})do for _,automatic in ipairs({false,true})do
- local rows=settings(touch,automatic and {} or nil);local all=table.concat(rows,'\n')
+for _,input in ipairs({'gamepad','touch','keyboard'})do
+ for _,automatic in ipairs({false,true})do for _,hall in ipairs({false,true})do
+ local rows=settings(input,true,automatic and {} or nil,hall)
+ local function has(row,phrase)return string.find(rows[row],phrase,1,true)~=nil end
+ if input=='gamepad' then
+  check(has(1,'RB/R1'),'Controller beam key missing')
+  check(has(3,'Left stick') and has(3,'Right stick') and has(3,'LB/L1') and has(3,'L3'),'Controller movement keys missing')
+  check(has(4,'Y/Triangle') and has(4,'B/Circle'),'Controller menu keys missing')
+  check(hall and has(4,'Training City') or not hall and has(4,'LT/L2'),'Controller world help wrong')
+  check(not has(3,'W/A/S/D') and not has(4,'F:'),'Controller help leaked keyboard keys')
+ elseif input=='touch' then
+  check(has(1,automatic and 'Tap BEAMS' or 'Hold BEAM') and has(4,hall and 'Touch and hold' or 'Tap TALK'),'Touch help wrong')
+ else
+  check(has(1,'E / BEAM') and has(3,'Shift / SPRINT') and has(4,hall and 'F:' or 'T: talk'),'Keyboard help wrong on hybrid device')
+ end
  check(rows[#rows]=='MICROPHONE\nMicrophone ready','Microphone status repeats instructions')
  check((string.find(rows[1],'Beams start OFF.',1,true)~=nil)==automatic,'Wrong default OFF mode copy')
  check(string.find(rows[2],'Stopping attacks does not mute voice.',1,true) and string.find(rows[2],"Use Roblox's mic control to mute",1,true),'Voice safety weakened')
@@ -83,7 +99,7 @@ for _,touch in ipairs({false,true})do for _,automatic in ipairs({false,true})do
   check(string.find(rows[1],'normal speech can fire attacks',1,true) and string.find(rows[1],'Go quiet before each beam.',1,true),'Automatic safety instructions removed')
   check(string.find(rows[1],'voice chat is unchanged',1,true),'OFF voice distinction removed')
  else check(string.find(rows[1],'Hold',1,true) and string.find(rows[1],'release',1,true),'Legacy controls mislabeled')end
-end end
+end end end
 print('PASS '..checks..' actual copy/renderer rectangle assertions; no native text fit claim')
 '''
 def run(c):
@@ -101,8 +117,10 @@ if '--negative-controls' in sys.argv:
    ('local milestone=card(voiceOnlyEquipped and 86 or 70)','local milestone=card(140)','Next unlock must share the first card with Gear'),
    ('function() toggleTab("Style") end)','function() toggleTab("Map") end)','Gear shortcut did not open Gear'),
    ('label(milestone,"NOW · VOICE ONLY",','label(milestone,"",','Missing starter sound status'),
+   ('gamepad and "RB/R1" or touch and "Tap BEAMS"', 'touch and "Tap BEAMS"', 'Controller beam key missing'),
+   ('local touch=UIS.PreferredInput==Enum.PreferredInput.Touch', 'local touch=UIS.TouchEnabled', 'Keyboard help wrong on hybrid device'),
    ('sustainedRules and not attackAudioSettings.AssetForLevel(s.level)','sustainedRules','Configured sound was mislabeled'),
  ]:
   assert old in source
   out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stderr)
- print('PASS 10 copy/layout negative controls')
+ print('PASS 12 copy/layout negative controls')

@@ -15,7 +15,7 @@ local function copy(t)if type(t)~='table'then return t end;local out={};for k,v 
 local function node()return {Parent=true,Visible=true,GetChildren=function()return {}end,Destroy=function(self)self.Parent=nil end}end
 local Color3={fromRGB=function()return {}end};local Vector2={new=function(x,y)return {X=x,Y=y}end,zero={X=0,Y=0}}
 local UDim2={new=function()return {}end,fromOffset=function()return {}end,fromScale=function()return {}end}
-local Enum={Font={GothamMedium=1},AutomaticSize={Y=1}};local TextService={GetTextSize=function()return {Y=30}end}
+local Enum={Font={GothamMedium=1},AutomaticSize={Y=1},PreferredInput={Touch={Name="Touch"},Gamepad={Name="Gamepad"},KeyboardAndMouse={Name="KeyboardAndMouse"}}};local TextService={GetTextSize=function()return {Y=30}end}
 local buttons={};local function button(parent,name,text,size,pos,callback,color)local b=node();b.Text=text;b.callback=callback;b.color=color;buttons[name]=b;return b end
 local function card()return node()end;local function label(_,text)local n=node();n.Text=text;return n end;local function frame()return node()end;local function info()end
 local Config={Gear=require("../src/ReplicatedStorage/Shared/GearCatalog"),MaxLevel=100,MicroSpeakerPrice=200,MovementPassId=0,Auras={Gold={}},Progression={Challenges={}},Quests={}}
@@ -47,7 +47,7 @@ local function cancelCapture()effects.cancel+=1 end
 local function setSprint()effects.sprint+=1 end
 local mic={status="unavailable",eligible=false,checkPending=false,Check=function()effects.retry+=1 end,Calibrate=function()effects.calibrate+=1 end}
 local sustainedControl={SetArmed=function()effects.disarm+=1 end};local sustainedRules={MaxDuration=4,Cooldown=5}
-local UIS={TouchEnabled=false};Config.DodgeCooldown=3;Config.SprintDuration=4;Config.SprintRecovery=3;Config.SprintRegenDelay=1
+local UIS={TouchEnabled=false,PreferredInput=Enum.PreferredInput.KeyboardAndMouse};Config.DodgeCooldown=3;Config.SprintDuration=4;Config.SprintRecovery=3;Config.SprintRegenDelay=1
 local attackAudio={level='NORMAL'};local gameplayAudio={enabled=true};local gameplayAudioSettings={Ready=function()return false end}
 '''
 def assemble(client):
