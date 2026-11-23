@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Show Spectrum availability on the first shop screen
+
+- At 455 × 218 touch-emulated and 567 × 241 desktop pixels, opening PASSES showed the Spectrum promotion before either its disabled status or the Boosts shortcut. The buttons started 84 and 125 pixels below the respective scroll folds.
+- The short landscape shop now uses a compact Spectrum card with the 44-pixel availability and Boosts controls directly beneath its title. The other viewport modes keep their existing feature presentation. Price, entitlement, receipt and saved boost behavior use the same paths.
+- In the exact final Studio build both fitted controls were fully visible at the two sampled viewport sizes. A normal pointer activation jumped to the fitted TIMED BOOSTS header from each layout. Spectrum and the timed products still showed COMING SOON and could not launch checkout in the zero-ID fixture. Evidence is in `build/disabled_pass_native/native-candidate.json` (fixture SHA-256 `7c15b9f4a4189e58e8e3da8bd762db93cf5889eee1782a8401bd50de6a5a636b`). No purchases were attempted. Disposable Studio closed and its emulator preset was restored.
+- Independent review and focused price, menu, startup, boost and modal lifecycle checks passed. The modal mutation selector was updated to exercise the current close branch. The shortest 448 × 150 case is covered by simulated geometry. Configured passes, real voice, physical-device tests and gameplay acceptance remain release gates.
+
 ## Explain the local spawn shield in the aimed-opponent readout
 
 - The aimed-opponent readout inspected the target's protection but ignored the local player's. The focused regression reproduced the gold `ARENA OPPONENT` state for a clear in-range target while the authority would reject a cast from the shielded player.

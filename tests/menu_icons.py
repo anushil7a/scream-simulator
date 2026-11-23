@@ -27,7 +27,7 @@ local Enum={ApplyStrokeMode={Border='Border'},TextXAlignment={Right='Right',Cent
 local metrics=1;local TextService={GetTextSize=function(_,text,size,font,bounds)return {X=#text*size*.55*metrics,Y=size}end}
 local gold='gold';local muted='muted';local panel='panel';local white='white'
 local Config={};local modal={Visible=true};local content={Size=UDim2.new(1,-40,1,-148)};
-local ShopUI={CompactLandscape=function()return false end};local lastLayoutWidth=0;local tabs={};local selected='Shop';local clientDestroyed=false;local renders=0
+local ShopUI={FeatureLayout=function()return nil end};local lastLayoutWidth=0;local tabs={};local selected='Shop';local clientDestroyed=false;local renders=0
 local function render()renders+=1 end
 local function toggleTab(name)selected=name;render() end
 local function button(parent,name,text,size,pos,callback)

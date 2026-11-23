@@ -1322,7 +1322,7 @@ local function menuKey()
  elseif selected=="Style" then
   local starterAction,starterQuest=academy.starterCoinAction(data)
   fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=starterAction,starterQuest=starterQuest}
- elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,signalDeck=data.signalDeckPass,cityCrest=data.cityCrestPass,pulseFrame=data.pulseFramePass,routeLights=data.routeLightsPass,harborBadge=data.harborBadgePass,sprintRibbon=data.sprintRibbonPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
+ elseif selected=="Shop" then fields={featureLayout=ShopUI.FeatureLayout(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,signalDeck=data.signalDeckPass,cityCrest=data.cityCrestPass,pulseFrame=data.pulseFramePass,routeLights=data.routeLightsPass,harborBadge=data.harborBadgePass,sprintRibbon=data.sprintRibbonPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  elseif selected=="Map" then fields={level=data.level,cityCrest=data.cityCrestPass}
  else fields={} end
@@ -1360,7 +1360,7 @@ render=function()
    scroll=Vector2.new(0,math.clamp(offset,0,maximum))
    content.CanvasPosition=scroll
   end
-  shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,jump=jump,narrow=narrow,compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
+  shopUsed=true;ShopUI.Render(data,{card=card,frame=frame,label=label,button=button,info=info,jump=jump,narrow=narrow,featureLayout=ShopUI.FeatureLayout(gui.AbsoluteSize.X,gui.AbsoluteSize.Y)},action)
  elseif selected=="Screams" then
   title.Text="BEAM COLLECTION"
   local nextStyle,voiceOnlyEquipped
@@ -2230,9 +2230,9 @@ connectClient(Run.RenderStepped,function(dt)
  else
   content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
  end
- if width~=lastLayoutWidth or sidebarChanged or content.Size.X.Offset~=previousContentOffset or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) then
+ if width~=lastLayoutWidth or sidebarChanged or content.Size.X.Offset~=previousContentOffset or (selected=="Shop" and ShopUI.FeatureLayout(viewport.X,viewport.Y)~=academy.shopFeatureLayout) then
   lastLayoutWidth=width
-  academy.shopCompactLandscape=ShopUI.CompactLandscape(viewport.X,viewport.Y)
+  academy.shopFeatureLayout=ShopUI.FeatureLayout(viewport.X,viewport.Y)
   if modal.Visible then render() end
  end
  -- Keep desktop controls compact; smaller displays retain readable button text.

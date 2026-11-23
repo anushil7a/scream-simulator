@@ -4,6 +4,7 @@ import argparse,subprocess,tempfile
 R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument('--baseline',action='store_true');p.add_argument('--callback-baseline',action='store_true');p.add_argument('--disabled-baseline',action='store_true');p.add_argument('--negative-controls',action='store_true');a=p.parse_args()
 path='src/StarterPlayer/StarterPlayerScripts/ShopUI.luau';s=subprocess.check_output(['git','show','15df683:'+path],cwd=R,text=True,encoding='utf-8') if a.baseline else (R/path).read_text();s=subprocess.check_output(['git','show','0619103:'+path],cwd=R,text=True,encoding='utf-8') if a.disabled_baseline else s;s=subprocess.check_output(['git','show','74c7763:'+path],cwd=R,text=True,encoding='utf-8') if a.callback_baseline else s;s=s[:s.index('function Shop.ColorMixer(')]
 setup=r'''
+local HISTORICAL=HISTORICAL_FIXTURE
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
  local f={now=0,jobs={},buttons={},links={},sent=0,labels={},cards={}};local os={clock=function()return f.now end,time=function()return 100 end}
@@ -33,7 +34,7 @@ end
 local m=module();f.shop=m.shop;f.stats=m.stats;f.items=Catalog.Items;f.config=Config
 function f.draw(i,clear,allowed,owned)if clear~=false then m.shop.Clear()end;m.button(Catalog.Items[i or 2],{},owned==true,{savingAvailable=allowed~=false},ui,action,{},{});return f.buttons[#f.buttons]end
 function f.render(narrow,compact,data)
- ui.narrow=narrow;ui.compactLandscape=compact;f.buttons={};f.cards={};f.links={}
+ ui.narrow=narrow;ui.compactLandscape=compact;ui.featureLayout=compact==true and "compact" or compact;f.buttons={};f.cards={};f.links={}
  m.shop.Render(data or {savingAvailable=true,shop={ready=true,inventory={},ends={},serverNow=100}},ui,action)
 end
 function f.finish(i,result)local ok,err=coroutine.resume(f.jobs[i].co,result);assert(ok,err);m.shop.Tick()end
@@ -49,6 +50,24 @@ for _,narrow in ipairs({false,true})do
  rendered.shop.Clear();check(#rendered.stats().views==0,'Full Render clear retained views')
 end
 local visual=fixture()
+if not HISTORICAL then
+ check(visual.shop.FeatureLayout~=nil,'Short-landscape Spectrum layout missing')
+ for _,xy in ipairs({{455,218,154,275},{567,241,113,495},{448,150,86,208}})do
+  local mode=visual.shop.FeatureLayout(xy[1],xy[2])
+  check(mode=='short','Short-landscape Spectrum layout missing')
+  visual.render(true,mode)
+  local feature=visual.cards[1];local buy=visual.buttons[1];local boosts=visual.links[1]
+  check(buy.holder==feature and boosts.holder==feature and #visual.buttons==13,'Short hero changed offer or jump wiring')
+  check(buy.pos.y+buy.size.y<=xy[3] and boosts.pos.y+boosts.size.y<=xy[3] and buy.size.y==44 and boosts.size.y==44,
+   'Spectrum actions below short first fold')
+  check(buy.pos.x+buy.size.xs*xy[4]+buy.size.x<=boosts.pos.xs*xy[4]+boosts.pos.x-6,
+   'Spectrum actions overlap in the short pane')
+ end
+ local disabled=fixture();disabled.items[1].id=0;disabled.render(true,'short')
+ local buy=disabled.buttons[1];check(buy.Text=='COMING SOON' and not buy.Interactable,'Short hero obscured disabled availability')
+ buy.callback();check(disabled.sent==0,'Disabled Spectrum prompted checkout in short hero')
+end
+
 if visual.shop.CompactLandscape then
  check(not visual.shop.CompactLandscape(388,762) and not visual.shop.CompactLandscape(1024,720),'Portrait or desktop compact')
  for _,xy in ipairs({{644,316},{750,323},{644,326},{749,388},{749,330},{844,390}})do
@@ -206,6 +225,7 @@ print('PASS',n,'actual price-path assertions; coroutine API and GUI mocks only')
 if a.baseline or a.callback_baseline or a.disabled_baseline:
  checks='\n'.join(line for line in checks.split('\n') if not any(message in line for message in ('Spectrum concise copy missing','Repeated hue instruction retained','Hierarchy or action count changed','Supported landscape not compact')))
 
+setup=setup.replace('HISTORICAL_FIXTURE',str(a.baseline or a.callback_baseline or a.disabled_baseline).lower())
 def run(source,error=None,baseline=False):
  tail="local f=fixture();for i=1,120 do f.draw()end;assert(#f.jobs==120);print('REPRO120 rerenders create120 pending price calls')" if baseline else checks
  with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=R/'tests',encoding='utf-8',delete=False)as t:t.write(setup+source+endsetup+tail);q=Path(t.name)
@@ -223,7 +243,9 @@ else:
   mutations=[('Yellow base. Saved colors are kept.','Unlock the hue picker. Yellow is the base color; saved colors are kept.','Spectrum concise copy missing'),('revision==generation and b and b.Parent and available','b and b.Parent and available','Obsolete priced callback sent after clear'),('revision==generation and b and b.Parent and available','revision==generation and available','Obsolete priced callback sent after detach'),(' or prices[item.key] and prices[item.key].key~=item.kind..":"..id','','Owned changed configuration retained obsolete request'),('if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end' ,'-- omitted disabled invalidation','Disabled ID roundtrip reused obsolete request'),('if record.info and os.clock()<record.expires then view.apply(record.info,false);return end','-- omitted synchronous cache apply','Synchronous success displayed unavailable'),('not record.pending and now>=','now>=','Rerenders duplicated pending request'),('priceInFlight<PRICE_LIMIT','true','Hung slot abandoned/replaced'),('record.retryAt=now+PRICE_RETRY','record.retryAt=now','Error not unavailable'),('now<record.deadline and validPrice(info)','validPrice(info)','Timed-out response cached'),('table.clear(priceViews)','do end','Full Render did not bound four product views/calls'),('if prices[record.itemKey]~=record then return end','if false then return end','Obsolete ID record accepted result')]
   for old,new,error in mutations:
    assert s.count(old)==1,old;run(s.replace(old,new),error)
-  run(s.replace('or UDim2.new(1,-90,0,actionY),"BoostsSection"','or UDim2.new(1,-90,0,actionY),"SpectrumFeature"'),'First-fold shortcut did not open boost section')
+  run(s.replace('"BoostsSection",violet)','"SpectrumFeature",violet)'), 'First-fold shortcut did not open boost section')
+  run(s.replace('short and 36 or','short and 90 or'),'Spectrum actions below short first fold')
+  run(s.replace('short and -108 or','short and -90 or'),'Spectrum actions overlap in the short pane')
   run(s.replace('if revision==generation then ui.jump(target) end','ui.jump(target)'),'Closed shop shortcut still directs scroll')
   run(s.replace('owned=data.harborBadgePass','owned=data.sprintRibbonPass'),'Harbor Badge ownership was conflated')
   run(s.replace('owned=data.signalDeckPass','owned=data.cityCrestPass'), 'Ownership of the new passes must remain independent')

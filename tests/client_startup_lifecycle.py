@@ -117,7 +117,7 @@ modules.TrainingRules=require('../src/ReplicatedStorage/Shared/TrainingRules')
 modules.AttackAudioConfig.Range=100
 modules.ShopUI.Render=function()renders+=1 end;modules.ShopUI.ColorMixer=function()renders+=1 end
 -- This lifecycle fixture only checks the desktop port, not Shop layout.
-modules.ShopUI.CompactLandscape=function()return false end
+modules.ShopUI.FeatureLayout=function()return nil end
 modules.ShopUI.PulseFrame=function()return {Visible=false} end
 modules.ScreamEffects.Render=function()renders+=1 end
 modules.BeamVisuals.Create=function()renders+=1;return {}end

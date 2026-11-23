@@ -103,6 +103,7 @@ local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
   if revision==generation and b and b.Parent and available then action:FireServer("ShopPurchase",item.key) end
  end,owned and Color3.fromRGB(32,75,73) or ink)
  b.TextSize=13;stroke(b,accent)
+ if ui.featureLayout=="short" and item.key=="Spectrum" then b.TextWrapped=true end
  b.Interactable=false;b.Selectable=false
  -- Disabled configuration is an identity change, even if the same ID returns later.
  if not configured or prices[item.key] and prices[item.key].key~=item.kind..":"..id then prices[item.key]=nil end
@@ -124,6 +125,10 @@ end
 function Shop.CompactLandscape(width,height)
  return width>=644 and height>=316 and height<=430
 end
+function Shop.FeatureLayout(width,height)
+ if width>=448 and height>=150 and height<300 then return "short" end
+ if Shop.CompactLandscape(width,height) then return "compact" end
+end
 function Shop.Render(data,ui,action)
  Shop.Clear()
  local narrow=ui.narrow
@@ -134,7 +139,8 @@ function Shop.Render(data,ui,action)
   end,ink)
   button.TextSize=12;button.TextColor3=tint;stroke(button,tint)
  end
- local compact=ui.compactLandscape==true
+ local compact=ui.featureLayout=="compact"
+ local short=ui.featureLayout=="short"
  local function section(name,title,detail,tint,order,link,target)
   local c=ui.card(64);c.Name=name;c.LayoutOrder=order
   c.BackgroundColor3=Color3.fromRGB(18,29,48)
@@ -146,7 +152,7 @@ function Shop.Render(data,ui,action)
   ui.label(c,detail,UDim2.new(1,textWidth,0,32),UDim2.fromOffset(20,26),12,soft)
   if target then shortcut(c,"Browse"..target,link,UDim2.fromOffset(70,44),UDim2.new(1,-78,0,10),target,tint) end
  end
- local hero=ui.card(compact and 112 or narrow and 300 or 260);hero.Name="SpectrumFeature";hero.LayoutOrder=10
+ local hero=ui.card((short or compact) and 112 or narrow and 300 or 260);hero.Name="SpectrumFeature";hero.LayoutOrder=10
  local textScale,textOffset=compact and .48 or 1,compact and -24 or -32
  local function heroLabel(text,height,y,size,color)
   return ui.label(hero,text,UDim2.new(textScale,textOffset,0,height),UDim2.fromOffset(16,y),size,color)
@@ -154,24 +160,30 @@ function Shop.Render(data,ui,action)
  hero.BackgroundColor3=Color3.new(1,1,1)
  gradient(hero,{ColorSequenceKeypoint.new(0,Color3.fromRGB(30,49,76)),ColorSequenceKeypoint.new(1,Color3.fromRGB(39,24,61))},25)
  stroke(hero,accent)
- heroLabel("PERMANENT PASS · BEAM COLOR",20,compact and 8 or 12,12,accent)
- local heading=heroLabel("SPECTRUM",compact and 28 or 38,compact and 23 or 35,compact and 24 or 30);heading.Font=Enum.Font.GothamBlack
- heroLabel("One pass. Choose your beam hue.",compact and 16 or 38,compact and 50 or 78,compact and 12 or 15)
- local beam=ui.frame(hero,"SpectrumBeam",UDim2.new(compact and .52 or 1,compact and -38 or -48,0,12),compact and UDim2.new(.48,14,0,29) or UDim2.fromOffset(24,137),Color3.new(1,1,1))
- local keys={};for i=0,6 do table.insert(keys,ColorSequenceKeypoint.new(i/6,Color3.fromHSV(i/6,.8,1))) end
- gradient(beam,keys)
- ui.frame(beam,"HotCore",UDim2.new(1,0,0,3),UDim2.fromOffset(0,4),Color3.new(1,1,1))
- for i=1,4 do
-  local ring=ui.frame(hero,"EnergyRing",UDim2.fromOffset(14,42),UDim2.new(compact and .48+.52*i/5 or i/5,-7,0,compact and 14 or 122),accent)
-  ring.BackgroundTransparency=1;stroke(ring,Color3.fromHSV(i/5,.5,1),2)
+ if short then
+  local heading=heroLabel("SPECTRUM",26,5,20)
+  heading.Font=Enum.Font.GothamBlack
+  heroLabel("Choose your beam hue.",22,84,13,soft)
+ else
+  heroLabel("PERMANENT PASS · BEAM COLOR",20,compact and 8 or 12,12,accent)
+  local heading=heroLabel("SPECTRUM",compact and 28 or 38,compact and 23 or 35,compact and 24 or 30);heading.Font=Enum.Font.GothamBlack
+  heroLabel("One pass. Choose your beam hue.",compact and 16 or 38,compact and 50 or 78,compact and 12 or 15)
+  local beam=ui.frame(hero,"SpectrumBeam",UDim2.new(compact and .52 or 1,compact and -38 or -48,0,12),compact and UDim2.new(.48,14,0,29) or UDim2.fromOffset(24,137),Color3.new(1,1,1))
+  local keys={};for i=0,6 do table.insert(keys,ColorSequenceKeypoint.new(i/6,Color3.fromHSV(i/6,.8,1))) end
+  gradient(beam,keys)
+  ui.frame(beam,"HotCore",UDim2.new(1,0,0,3),UDim2.fromOffset(0,4),Color3.new(1,1,1))
+  for i=1,4 do
+   local ring=ui.frame(hero,"EnergyRing",UDim2.fromOffset(14,42),UDim2.new(compact and .48+.52*i/5 or i/5,-7,0,compact and 14 or 122),accent)
+   ring.BackgroundTransparency=1;stroke(ring,Color3.fromHSV(i/5,.5,1),2)
+  end
+  if not compact then heroLabel("Yellow base. Saved colors are kept.",narrow and 42 or 30,167,13,soft) end
  end
- if not compact then heroLabel("Yellow base. Saved colors are kept.",narrow and 42 or 30,167,13,soft) end
- local actionY=compact and 68 or narrow and 238 or 206
+ local actionY=short and 36 or compact and 68 or narrow and 238 or 206
  purchaseButton(Catalog.Get("Spectrum"),hero,data.spectrumPass,data,ui,action,
-  UDim2.new(compact and .52 or 1,compact and -32 or -114,0,44),
+  UDim2.new(compact and .52 or 1,short and -108 or compact and -32 or -114,0,44),
   compact and UDim2.new(.48,16,0,actionY) or UDim2.fromOffset(16,actionY))
- shortcut(hero,"BrowseTimedBoosts","BOOSTS ↓",UDim2.fromOffset(74,44),
-  compact and UDim2.fromOffset(16,actionY) or UDim2.new(1,-90,0,actionY),"BoostsSection",violet)
+ shortcut(hero,"BrowseTimedBoosts","BOOSTS ↓",UDim2.fromOffset(short and 68 or 74,44),
+  compact and UDim2.fromOffset(16,actionY) or UDim2.new(1,short and -84 or -90,0,actionY),"BoostsSection",violet)
  section("PassesSection","PERMANENT PERKS","Movement and cosmetics",accent,15)
  local movement=ui.card(narrow and 202 or 170);movement.Name="MovementFeature";movement.LayoutOrder=20
  movement.BackgroundColor3=Color3.new(1,1,1)
