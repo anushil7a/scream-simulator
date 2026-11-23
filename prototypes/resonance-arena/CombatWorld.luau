@@ -7,6 +7,7 @@ local practice=Layout.PracticeEntry
 local practiceSpawn=CFrame.lookAt(Vector3.new(practice.x,3.8,practice.z),Vector3.new(Layout.PracticePortal.x,3.8,Layout.PracticePortal.z))
 local gapMiddle=(Layout.Hall.z+Layout.Hall.depth/2+Layout.Practice.z-Layout.Practice.depth/2)/2
 local World={Bots={},SafeSpawn=CFrame.lookAt(Vector3.new(entry.x,3.8,entry.z),Vector3.new(entry.x,3.8,0))}
+World.SafeSpawnLabel="the Training City portal"
 function World.FallRescue(position)
  if hasPractice and position.Z>=gapMiddle then return practiceSpawn,"Rescued · back on the training landing" end
 end

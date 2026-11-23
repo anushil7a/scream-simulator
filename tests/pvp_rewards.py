@@ -18,9 +18,9 @@ local Players={GetPlayerByUserId=function(_,id)return players[id]end}
 local localFixture=false
 local sessions={}
 for _,p in pairs(players) do sessions[p]={rewardIdentity={},data={level=20,xp=0,coins=0,combatChallenges={}},credit={}} end
-local notices={};local updates={};local quests={};local ejections=0
+local notices={};local urgent={};local updates={};local quests={};local ejections=0
 local effect={FireClient=function(_,player,kind)assert(player==victim and kind=="SustainedDamageTaken")end}
-local function state(p,message)notices[p]=message;updates[p]=(updates[p] or 0)+1 end
+local function state(p,message,_,priority)notices[p]=message;urgent[p]=priority;updates[p]=(updates[p] or 0)+1 end
 local Commerce={Multiplier=function()return 1 end}
 local function coins(p,amount)sessions[p].data.coins+=amount;return amount end
 local function xp(p,amount)sessions[p].data.xp+=amount;return amount end
@@ -44,6 +44,7 @@ check(hitPlayer(two,target,50,101)==30 and h.Health==100 and ejections==1,'Overk
 check(sessions[one].data.xp==70 and sessions[two].data.xp==30,'Assist pool not damage-proportional')
 check(sessions[one].data.coins==14 and sessions[two].data.coins==6 and quests.Underdog==1 and quests.ArenaAssist==1,'Coins/underdog/assist events wrong')
 check(notices[one]=='Assist · +70 XP · +14 coins' and notices[two]=='KO · +30 XP · +6 coins','Assist/KO feedback missing')
+check(not urgent[one] and not urgent[two],'City reward notice became urgent')
 hitPlayer(two,target,100,102)
 check(ejections==2 and sessions[two].data.xp==30,'Repeat victim paid')
 hitPlayer(two,target,100,161)
@@ -80,6 +81,13 @@ end
 local d=sessions[one].data;d.combatChallenges.cover=4;before=d.xp
 check(combatChallenge(one,'cover')==0 and d.xp==before and d.combatChallenges.cover==4,'Retired destruction challenge still progresses or pays')
 check(combatChallenge(one,'elite')==0 and d.xp==before and d.combatChallenges.elite==1,'Retired elite challenge still progresses or pays')
+Config.ResonanceLayout={}
+sessions[one].data.level=20
+hitPlayer(one,target,70,2000)
+hitPlayer(two,target,30,2001)
+check(urgent[two] and not urgent[one],'Hall KO reward did not take priority over arrival guidance')
+hitPlayer(two,target,100,2002)
+check(urgent[two] and notices[two]=='KO · no reward awarded','Hall repeat KO feedback lost priority')
 print('PASS '..checks..' actual combat payouts and PvP damage checks (mocked services)')
 """
 with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False,encoding='utf-8') as f:

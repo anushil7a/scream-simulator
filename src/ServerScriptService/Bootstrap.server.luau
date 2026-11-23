@@ -304,6 +304,7 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
   local factor=Config.Progression.RewardFactor(rs.data.level,tier and TrainingRules.RewardLevel(tier,rs.data.level) or targetLevel)
   local repeatFactor=victim and Credit.RepeatFactor(rs.testBaseline and testRewardHistory or rewardHistory,id,victim.UserId,now) or 1
   local reward=math.floor(pool*share*factor*repeatFactor)
+  local hallKnockout=Config.ResonanceLayout~=nil and victim~=nil and recipient==finisher
   if reward>0 then
    local underdog=targetLevel>=rs.data.level
    local credited=xp(recipient,reward)
@@ -317,8 +318,8 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
    local summary=recipient==finisher and "KO" or "Assist"
    if tier then summary=tier.name..(recipient==finisher and " defeated" or " assist") end
    state(recipient,summary.." · +"..(credited+bonusXP).." XP"..((tier or coinCredit>0) and " · +"..coinCredit.." coins" or "")
-    ..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""))
-  elseif recipient==finisher then state(recipient,"KO · no reward awarded") end
+    ..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""),nil,hallKnockout)
+  elseif recipient==finisher then state(recipient,"KO · no reward awarded",nil,hallKnockout) end
  end
 end
 local function stopQuest(p)
@@ -361,7 +362,8 @@ local function eject(p,h)
  h.Health=Config.HealthForLevel(s.data.level)
  resetMovement(p,s,h,root)
  character:PivotTo(World.SafeSpawn);protect(p,s)
- s.nextHeal=os.clock()+Config.HealQuietSeconds;state(p,"Knocked out · back at the safe hub")
+ s.nextHeal=os.clock()+Config.HealQuietSeconds
+ state(p,"Knocked out · back at "..(World.SafeSpawnLabel or "the safe hub"),nil,Config.ResonanceLayout~=nil)
 end
 local function audible(c,origin,target,targetModel)
  local params=RaycastParams.new();params.FilterType=Enum.RaycastFilterType.Exclude;params.FilterDescendantsInstances={c,targetModel};params.RespectCanCollide=true
@@ -1359,7 +1361,7 @@ task.spawn(function()
      local rescue,notice
      if World.FallRescue then rescue,notice=World.FallRescue(r.Position) end
      resetMovement(p,s,h,r);running=false;p.Character:PivotTo(rescue or World.SafeSpawn);protect(p,s)
-     state(p,notice or "Rescued · back at the safe hub")
+     state(p,notice or "Rescued · back at "..(World.SafeSpawnLabel or "the safe hub"))
     end
    end
    if s.questDeadline and now>s.questDeadline then stopQuest(p);state(p,"Time's up · accept the task again to restart.") end

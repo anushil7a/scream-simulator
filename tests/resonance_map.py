@@ -106,6 +106,7 @@ end)()
 check(layout.Practice.railHeight>=12,'Practice rail is lower than the native-validated height')
 local fromHall=world.FallRescue({X=0,Z=layout.HallEntry.z})
 check(fromHall==nil,'Hall fall redirected to practice')
+check(world.SafeSpawnLabel=='the Training City portal','Hall return notice does not name the signed portal')
 local fromPractice,text=world.FallRescue({X=42,Z=layout.Practice.z})
 if travelOnly then
  check(fromPractice==nil and layout.IsSafeApron(world.SafeSpawn.Position),
@@ -136,6 +137,8 @@ def run(metadata, expected=None, world=world_source, map_source=source, travel=F
 run(layout)
 run(layout,travel=True)
 if '--negative-controls' in sys.argv:
+    run(layout,'Hall return notice does not name the signed portal',
+        world_source.replace('World.SafeSpawnLabel="the Training City portal"',''),travel=True)
     run(layout,'Travel Hall fall routed to the missing practice deck',
         world_source.replace('if hasPractice and position.Z>=gapMiddle','if position.Z>=gapMiddle'),travel=True)
     old='if not travel then frame(map,"TrainingLanding",practice.x,practice.y,practice.w,practice.h,slate) end'
