@@ -258,6 +258,7 @@ button(modal,"Close","X",UDim2.fromOffset(44,44),UDim2.new(1,-56,0,10),function(
 local content=Instance.new("ScrollingFrame");content.Name="Content";content.Size=UDim2.new(1,-40,1,-148);content.Position=UDim2.fromOffset(20,132);content.BackgroundTransparency=1;content.BorderSizePixel=0;content.ScrollBarThickness=4;content.AutomaticCanvasSize=Enum.AutomaticSize.Y;content.CanvasSize=UDim2.new();content.Parent=modal
 do local list=Instance.new("UIListLayout");list.Padding=UDim.new(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=content end
 local selected="Style";local render;local tabs={};local mapDot;local devPanel;local narrow=false;local lastLayoutWidth=0
+academy.hideMap=Config.ResonanceLayout~=nil
 local conversationPanel,showConversation,closeConversation
 local observedMicInterruption=0
 function academy.gearUpgrade(data)
@@ -268,6 +269,7 @@ function academy.gearUpgrade(data)
  return highestOwned and Config.Gear.Items[highestOwned+1]
 end
 local function toggleTab(name,resetScroll,focusQuest)
+ if name=="Map" and academy.hideMap then return end
  local opening=not modal.Visible or selected~=name
  selected=name;if not opening then closeMenu();return end;modal.Visible=true
  academy.menuQuestFocus=name=="Quests" and focusQuest or nil
@@ -1008,18 +1010,20 @@ connectClient(Run.Heartbeat,function()
  action:FireServer("FlightInput",{x=x,y=y,z=z})
 end)
 ownClient(function() if p:GetAttribute("TestFlight")==true then action:FireServer("FlightStop") end end)
--- Everyone sees the same navigation; authorized test controls sit below it.
--- Keep a separate view: modal renders replace mapDot but never this HUD map.
-local miniMapButton=button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end)
-miniMapButton.TextSize=12;miniMapButton.TextYAlignment=Enum.TextYAlignment.Top;miniMapButton.Visible=false
-do
+-- The City keeps a separate HUD map when the menu replaces its map view.
+local miniMapButton=not academy.hideMap and button(gui,"MiniMap","MAP",UDim2.fromOffset(112,132),UDim2.new(1,-126,0,14),function() toggleTab("Map") end) or nil
+local miniMapHolder,miniMapView
+if miniMapButton then
+ miniMapButton.TextSize=12;miniMapButton.TextYAlignment=Enum.TextYAlignment.Top;miniMapButton.Visible=false
  local miniMapPadding=Instance.new("UIPadding");miniMapPadding.PaddingTop=UDim.new(0,10);miniMapPadding.Parent=miniMapButton
+ miniMapHolder=frame(miniMapButton,"MiniMapHolder",UDim2.new(1,-16,1,-42),UDim2.fromOffset(8,34));miniMapHolder.BackgroundTransparency=1
+ miniMapView=CityMap.create(miniMapHolder,true)
 end
-local miniMapHolder=frame(miniMapButton,"MiniMapHolder",UDim2.new(1,-16,1,-42),UDim2.fromOffset(8,34));miniMapHolder.BackgroundTransparency=1
-local miniMapView=CityMap.create(miniMapHolder,true)
 local miniMapAvailable=false
+academy.noMiniMapLayout={width=0,height=0,available=false}
 -- Hide the HUD map before menu dispatch/render; keep normal restoration frame-owned.
 function academy.hideMiniMapForMenu()
+ if not miniMapButton then return end
  miniMapButton.Visible=false
  CityMap.MiniUpdate(miniMapView,nil,os.clock(),false)
 end
@@ -1284,7 +1288,7 @@ local function menuKey()
   fields={gearOwned=data.gearOwned,gearEquipped=data.gearEquipped,level=data.level,coins=data.coins,aura=data.aura,custom=data.customColor,customEquipped=data.useCustomColor,pass=data.spectrumPass,owned=data.amplifierOwned,equipped=data.amplifierEquipped,megaphoneOwned=data.megaphoneOwned,megaphoneEquipped=data.megaphoneEquipped,starterAction=starterAction,starterQuest=starterQuest}
  elseif selected=="Shop" then fields={compactLandscape=ShopUI.CompactLandscape(gui.AbsoluteSize.X,gui.AbsoluteSize.Y),spectrum=data.spectrumPass,movement=data.movementPass,encore=data.encorePass,afterimage=data.afterimagePass,cityGlow=data.cityGlowPass,signalDeck=data.signalDeckPass,cityCrest=data.cityCrestPass,pulseFrame=data.pulseFramePass,routeLights=data.routeLightsPass,harborBadge=data.harborBadgePass,sprintRibbon=data.sprintRibbonPass,inventory=data.shop and data.shop.inventory,ends=data.shop and data.shop.ends,ready=data.shop and data.shop.ready,saving=data.savingAvailable}
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
- elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil,cityCrest=data.cityCrestPass}
+ elseif selected=="Map" then fields={level=data.level,cityCrest=data.cityCrestPass}
  else fields={} end
  return selected..":"..gui.AbsoluteSize.X..":"..content.Size.X.Offset..":"..tostring(academy.sidebarMenu==true)..":"..game:GetService("HttpService"):JSONEncode(fields)
 end
@@ -1368,8 +1372,8 @@ render=function()
   end
  elseif selected=="Quests" and Config.ResonanceLayout then
   title.Text="RESONANCE HALL";subtitle.Text="Local PvP playtest"
-  info(Config.ResonanceTravel and "Fight in the Hall. The cyan apron is safe. The Training City portal stays local in this rehearsal."
-   or "Fight in the Hall. The cyan apron is safe. Use the Training City portal to leave and the return portal to come back.",98)
+  info(Config.ResonanceTravel and "Follow the TRAINING CITY signs to the cyan portal. The apron is safe. Previewing the portal keeps you in the Hall."
+   or "Follow the TRAINING CITY signs to the cyan portal. The apron is safe. Use the return portal on the training landing to come back.",98)
  elseif selected=="Quests" then
   title.Text="QUESTS & COMBAT";subtitle.Text="Beam combat first. One active task."
   local current=Config.GetQuest(data.activeQuest)
@@ -1531,15 +1535,15 @@ render=function()
    info("Your saved "..data.aura.." color is still equipped. Choosing yellow replaces this legacy selection; the old free palette is no longer selectable.")
   end
  elseif selected=="Map" then
-  title.Text=Config.ResonanceLayout and "RESONANCE HALL" or "CITY & COAST"
-  subtitle.Text=Config.ResonanceLayout and (Config.ResonanceTravel and "Arena and City portal" or "Hall and training landing") or "Red: PvP • Pale café path: safe."
+  title.Text="CITY & COAST"
+  subtitle.Text="Red: PvP • Pale café path: safe."
   local trainingTarget=academy.NavigationCatalog.Resolve("place","training",data)
   if trainingTarget then
    local trainingCard=card(narrow and 106 or 70)
    label(trainingCard,trainingTarget.label,UDim2.new(1,narrow and -28 or -160,0,44),UDim2.fromOffset(14,8),14,gold)
    button(trainingCard,"GuidePlace_training","GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,narrow and 54 or 13),function() academy.selectGuide("place","training");closeMenu() end)
   end
-  local height=Config.ResonanceLayout and math.clamp(content.AbsoluteWindowSize.Y-4,78,300) or 300
+  local height=300
   local c=card(height)
   local crest=data.cityCrestPass==true and Config.CompactCity and not Config.ResonanceLayout
   if crest then
@@ -1588,7 +1592,7 @@ render=function()
   info("VOICE SAFETY\nAvoid profanity. Roblox's profanity rules depend on the game's rating and settings; harassment, threats and hate speech are not allowed. Rule violations may restrict voice or your account.\nRoblox records voice for moderation. The beam mechanic reads volume, not words. Stopping attacks does not mute voice. Use Roblox's mic control to mute, or Report Abuse for violations.",100)
   info(string.format("Third-person camera\n%s: dodge (W/A/S/D) · %.0fs arena cooldown\n%s: %.0fs moving sprint; %.0fs rest when empty. Refill starts after %.0fs without sprint.",touch and "DODGE" or "Q / DODGE",Config.DodgeCooldown,touch and "SPRINT" or "Shift / SPRINT",Config.SprintDuration,Config.SprintRecovery,Config.SprintRegenDelay),touch and 130 or 110)
   if Config.ResonanceLayout then
-   info(touch and "Touch and hold the portal prompt to travel. Open MAP from MENU." or "F: hold to use a portal · M: map · B: toggle menu",touch and 80 or 54)
+   info(touch and "Touch and hold the Training City portal prompt. Follow the signs around the Hall." or "F: hold at the Training City portal · B: toggle menu",touch and 80 or 54)
   else
    info(touch and "Tap TALK near a resident. Follow the on-screen quest prompts. Tap MENU to open the tabs or X to close them." or "T: talk · F: quest interactions · M: map · B: toggle menu",touch and 80 or 54)
   end
@@ -1623,6 +1627,7 @@ render=function()
  end)
 end
 academy.menuTabs={"Style","Screams","Quests","Shop","Map","Settings"}
+if academy.hideMap then table.remove(academy.menuTabs,table.find(academy.menuTabs,"Map")) end
 for i,name in ipairs(academy.menuTabs) do
  local tabText=name=="Style" and "GEAR" or name=="Screams" and "BEAMS" or name=="Quests" and Config.ResonanceLayout and "RULES" or name=="Shop" and "STORE" or name:upper()
  tabs[name]=button(modal,name,tabText,UDim2.fromOffset(126,34),UDim2.fromOffset(20+(i-1)*134,88),function()
@@ -2161,8 +2166,8 @@ connectClient(Run.RenderStepped,function(dt)
  title.TextSize=width<620 and 20 or 23
  subtitle.Visible=not short;subtitle.Size=UDim2.new(1,-44,0,width<620 and 42 or 25)
  local tabY=shortLandscape and 44 or short and 54 or width<620 and 102 or 88
- local columns=(width>=620 or shortLandscape and width>=500) and 6 or 3
- local rows=6/columns
+ local columns=(width>=620 or shortLandscape and width>=500) and #academy.menuTabs or 3
+ local rows=math.ceil(#academy.menuTabs/columns)
  -- Keep the notice/title strip above both the tab grid and the scrolling cards.
  local sidebar=shortLandscape and width>=424 and viewport.Y>=150 and menuHeight-(tabY+rows*50+18)<88
  local sidebarChanged=academy.sidebarMenu~=sidebar
@@ -2184,7 +2189,7 @@ connectClient(Run.RenderStepped,function(dt)
  else
   content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
  end
- if width~=lastLayoutWidth or sidebarChanged or content.Size.X.Offset~=previousContentOffset or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) or (Config.ResonanceLayout and selected=="Map" and layoutChanged) then
+ if width~=lastLayoutWidth or sidebarChanged or content.Size.X.Offset~=previousContentOffset or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) then
   lastLayoutWidth=width
   academy.shopCompactLandscape=ShopUI.CompactLandscape(viewport.X,viewport.Y)
   if modal.Visible then render() end
@@ -2193,14 +2198,16 @@ connectClient(Run.RenderStepped,function(dt)
  local stackedActions=academy.layoutActions(viewport,touch,shortLandscape)
  academy.layoutObjectiveNav(viewport,touch,stackedActions)
  local splitTalkLane=stackedActions and viewport.Y<205
- local miniLayout=CityMap.MiniLayout(viewport,touch,data.devAccess==true)
+ local miniLayout=academy.hideMap and academy.noMiniMapLayout or CityMap.MiniLayout(viewport,touch,data.devAccess==true)
  local toolsBesideMap=not touch and NoticeLayout.DesktopTestBesideMap(viewport.X,viewport.Y,miniLayout)
  local testWidth=(splitTalkLane or toolsBesideMap) and 44 or stackedActions and 84 or viewport.X<432 and 86 or 112
  testButton.Size=UDim2.fromOffset(testWidth,44)
  testButton.TextSize=stackedActions and 12 or 14
  testButton.Text=(splitTalkLane or toolsBesideMap) and "TEST" or "TEST TOOLS"
- miniMapButton.Size=UDim2.fromOffset(miniLayout.width,miniLayout.height);miniMapButton.Position=UDim2.new(1,-miniLayout.width-14,0,14)
- miniMapHolder.Visible=miniLayout.expanded;miniMapAvailable=miniLayout.available
+ if miniMapButton then
+  miniMapButton.Size=UDim2.fromOffset(miniLayout.width,miniLayout.height);miniMapButton.Position=UDim2.new(1,-miniLayout.width-14,0,14)
+  miniMapHolder.Visible=miniLayout.expanded;miniMapAvailable=miniLayout.available
+ end
  local testTop
  if toolsBesideMap then testTop=14
  elseif miniLayout.available then testTop=14+miniLayout.height+8
@@ -2388,7 +2395,8 @@ connectClient(Run.RenderStepped,function(dt)
   beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),launchColor,screenFeedbackAllowed())
  end
  -- Pause queue time while covered, too small, interacting, or overflow remains unseen.
- local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,CityMap.MiniLayout(viewport,touch,data.devAccess==true),data.devAccess==true,talkTarget~=nil,
+ local noticeMap=not academy.hideMap and CityMap.MiniLayout(viewport,touch,data.devAccess==true) or nil
+ local noticeLayout=NoticeLayout.Get(viewport.X,viewport.Y,touch,noticeMap,data.devAccess==true,talkTarget~=nil,
   hud.Visible and hud.AbsolutePosition-gui.AbsolutePosition,hud.AbsoluteSize,
   math.max(tracked.Visible and tracked.AbsolutePosition.Y+tracked.AbsoluteSize.Y or 0,
    academy.guidePanel.Visible and academy.guidePanel.AbsolutePosition.Y+academy.guidePanel.AbsoluteSize.Y or 0)-gui.AbsolutePosition.Y)
@@ -2425,7 +2433,7 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if academy.damageReadout.phase then
   academy.damageReadout:Step(noticeNow,dt,gameplayVisible and windowFocused and alive and not devPanel.Visible,
-   gui,hud,tracked,academy.guidePanel,miniMapButton,testButton,noticeView.root,talkButton,meter,controls,zone,saveNotice)
+   gui,hud,tracked,academy.guidePanel,testButton,noticeView.root,talkButton,meter,controls,zone,saveNotice,miniMapButton)
  end
  beamScreenFeedback:Step(os.clock(),screenFeedbackAllowed(),data.settings.reducedShake or platformReducedMotion)
  cueContext();gameplayAudio:Step(os.clock(),dt)
@@ -2479,7 +2487,7 @@ connectClient(Run.RenderStepped,function(dt)
  end
  if mapDot then CityMap.update(mapDot,root) end
  local miniVisible=miniMapAvailable and gameplayVisible and windowFocused and not modal.Visible and not (conversationPanel and conversationPanel.Visible) and not academy.testLauncherBlocked
- miniMapButton.Visible=miniVisible
+ if miniMapButton then miniMapButton.Visible=miniVisible end
  academy.refreshTestLauncher()
  CityMap.MiniUpdate(miniMapView,root,os.clock(),miniVisible and miniMapHolder.Visible)
 end)

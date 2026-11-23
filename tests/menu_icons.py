@@ -3,13 +3,15 @@ from pathlib import Path
 import subprocess,tempfile,sys
 R=Path(__file__).resolve().parents[1]
 source=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text()
-def build(c):
+def build(c, hall=False):
  helpers=c[c.index('local academy={}'):c.index('local top=frame(')]
  a=c.index('academy.menuTabs=')
  register=c[a:c.index('local conversationNPC',a)]
  a=c.index(' local columns=', c.index(' local tabY='));layout=c[a:c.index(' -- Keep desktop controls compact',a)]
  selection=next(x for x in c.splitlines() if 'for name,b in pairs(tabs) do b.BackgroundColor3=' in x)
- return SETUP+helpers+'\n'+register+'\nlocal function layout(width,shortLandscape,height) local viewport={Y=height or 650};local tabY=height and 44 or 88;local menuHeight=viewport.Y-16;local layoutChanged=true;modal.Size=UDim2.fromOffset(width,menuHeight)\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+CHECKS
+ mode='\nConfig.ResonanceLayout={}\n' if hall else '\n'
+ map_availability=next(line for line in c.splitlines() if line.startswith('academy.hideMap='))
+ return SETUP+mode+helpers+'\n'+map_availability+'\n'+register+'\nlocal function layout(width,shortLandscape,height) local viewport={Y=height or 650};local tabY=height and 44 or 88;local menuHeight=viewport.Y-16;local layoutChanged=true;modal.Size=UDim2.fromOffset(width,menuHeight)\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+(HALL_CHECKS if hall else CHECKS)
 SETUP=r'''
 local made={};local Instance={new=function(class)local o={ClassName=class,PaddingLeft={Scale=0,Offset=0},PaddingRight={Scale=0,Offset=0}};table.insert(made,o);return o end}
 local UDim={new=function(s,o)return {Scale=s,Offset=o}end}
@@ -118,14 +120,26 @@ check(#made==allocated,'Layout allocated new icons')
 for _,name in ipairs(names)do select(name);for other,b in pairs(tabs)do check(b.BackgroundColor3==(other==name and Color3.fromRGB(64,93,99) or panel),'Selection highlight changed')end end
 print('PASS '..n..' actual icon/registration/layout assertions; synthetic text metrics only')
 '''
-def run(c):
+HALL_CHECKS=r'''
+check(not tabs.Map and #academy.menuTabs==5,'Hall registered a Map tab')
+check(tabs.Quests.Text=="RULES" and tabs.Style and tabs.Screams and tabs.Shop and tabs.Settings,'Hall lost its other menu tabs')
+layout(543,true,241)
+check(tabs.Settings.Position.Y.Offset==tabs.Style.Position.Y.Offset
+ and tabs.Settings.Position.X.Offset+tabs.Settings.Size.X.Offset<=543-20.0+1e-6,'Hall desktop tabs did not reflow into five columns')
+layout(431,true,218)
+check(academy.sidebarMenu and content.Position.X.Offset>tabs.Settings.Position.X.Offset+tabs.Settings.Size.X.Offset,
+ 'Hall short landscape tabs block its content')
+print('PASS '..n..' Hall tab registration and reflow checks')
+'''
+def run(c, hall=False):
  with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:p=Path(f.name)
  try:
-  p.write_text(build(c),encoding='utf-8')
+  p.write_text(build(c,hall),encoding='utf-8')
   return subprocess.run(['luau',str(p)],text=True,capture_output=True,timeout=15)
  finally:p.unlink()
 if __name__=='__main__':
  out=run(source);print(out.stdout,end='');assert out.returncode==0,out.stderr
+ out=run(source,hall=True);print(out.stdout,end='');assert out.returncode==0,out.stderr
 
  if '--negative-controls' in sys.argv:
   cases=[('shape("EmitterInk",2,5,6,11,ink,-18,2)','shape("EmitterInk",1,5,6,11,ink,-18,2)','Rotated glyph outside slot'),('icon.Visible=fits','icon.Visible=false','Incorrect fit fallback'),('padding.PaddingRight=UDim.new(0,fits and (width-total)/2 or 0)','padding.PaddingRight=UDim.new(0,0)','Icon/text group outside padded bounds'),('name=="Screams" and "BEAMS"','name=="Screams" and "WRONG"','Tab label changed'),('academy.tabIcon(tabs[name],name)','academy.tabIcon(tabs[name],"Shop")','Duplicate semantic silhouette'),('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),(' local fits=width>=total+16',' local fits=width>=total+16;Instance.new("Frame")','Layout allocated new icons'),('shortLandscape and width>=500','shortLandscape and width>=620','Wrong compact tab row count'),('local sidebar=shortLandscape and','local sidebar=false and shortLandscape and','Short menu leaves no gear viewport'),('local contentLeft=tabLeft+columns*(tabWidth+tabGap)+4','local contentLeft=tabLeft+columns*(tabWidth+tabGap)','Short menu leaves no gear viewport')]
@@ -140,4 +154,6 @@ if __name__=='__main__':
   for old,new,message in cases:
    assert old in source,old
    out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stdout,out.stderr)
-  print(f'PASS {len(cases)} menu icon negative controls')
+  out=run(source.replace('if academy.hideMap then table.remove','if false then table.remove'),hall=True)
+  assert out.returncode and 'Hall registered a Map tab' in out.stderr,out.stderr
+  print(f'PASS {len(cases)+1} menu icon negative controls')

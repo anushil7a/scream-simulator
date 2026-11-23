@@ -68,6 +68,7 @@ end
 
 function Travel.Bind(prompt)
  prompt.KeyboardKeyCode=Enum.KeyCode.F
+ if rehearsal then prompt.ActionText="Preview portal" end
  prompt.Triggered:Connect(function(player)
   if player.Parent~=players or pending[player] or not prompt.Enabled or not prompt.Parent then return end
   local character=player.Character

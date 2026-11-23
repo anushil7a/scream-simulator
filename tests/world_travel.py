@@ -69,19 +69,22 @@ local function actor(x)
  return p,root,human
 end
 local function bind(module)
- local prompt={Enabled=true,MaxActivationDistance=10,Parent={Position=vector(0)},Triggered=signal()}
+ local prompt={ActionText="Return to training",ObjectText="TRAINING CITY",Enabled=true,
+  MaxActivationDistance=10,Parent={Position=vector(0)},Triggered=signal()}
  module.Bind(prompt);return prompt,prompt.Triggered.emit
 end
 local p,root,human=actor(8)
 local prompt,activate=bind(gate());activate(p)
 check(contacted==0 and #attempts==0 and p.status:find("rehearsal"),"Zero-ID rehearsal attempted service access")
 check(prompt.KeyboardKeyCode=="F" and root.Position.x==8,"Rehearsal did not leave avatar at source")
+check(prompt.ActionText=="Preview portal" and prompt.ObjectText=="TRAINING CITY","Rehearsal advertised a real transfer")
 settings={universe=10,source=20,destination=30}
 game.GameId=10;game.PlaceId=20
 studio=false;check(not pcall(gate) and contacted==0,"Travel gate accepted live context")
 studio=true;game.PlaceId=99;check(not pcall(gate) and contacted==0,"Travel gate accepted wrong source place")
 game.PlaceId=20;game.GameId=99;check(not pcall(gate) and contacted==0,"Travel gate accepted wrong experience")
 game.GameId=10;prompt,activate=bind(gate())
+check(prompt.ActionText=="Return to training" and prompt.ObjectText=="TRAINING CITY","Configured travel prompt lost its action or destination")
 root.Position=vector(11);activate(p);check(#attempts==0,"Out of range started travel")
 root.Position=vector(8);human.Health=0;activate(p);check(#attempts==0,"Defeated character started travel")
 human.Health=100;mode="throw";activate(p);check(p.status:find("failed") and root.Position.x==8,"Thrown initialization left source in pending travel")
@@ -212,6 +215,10 @@ def run(source, expected=None, setup=SETUP, checks=CHECKS):
 run(GATE)
 run(PORTAL, setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
 if '--negative-controls' in sys.argv:
+    run(GATE.replace('if rehearsal then prompt.ActionText="Preview portal" end', ''),
+        'Rehearsal advertised a real transfer')
+    run(GATE.replace('if rehearsal then prompt.ActionText="Preview portal" end', 'prompt.ActionText="Preview portal"'),
+        'Configured travel prompt lost its action or destination')
     run(GATE.replace(' or pending[player]',''), 'Duplicate hold or wrong travel target')
     run(GATE.replace('failed(player,data.travelAttempt,','failed(player,pending[player],'), 'Stale failure unlocked a newer pending attempt')
     run(GATE.replace('assert(studio and (','assert(('), 'Travel gate accepted live context')

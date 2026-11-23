@@ -31,7 +31,7 @@ print('REPRO notification hides otherwise available minimap; no native rendering
 
 def current(source):
  blocked=source[source.index('local function blocked()'):source.index('local function beginCapture(')]
- frame='\n'.join(line(source,x) for x in ['local gameplayVisible=','local showTouchControls=','if GuiService.TouchControlsEnabled~=showTouchControls','local miniVisible='])+'\n'+line(source[source.index('local miniVisible='):],'miniMapButton.Visible=')
+ frame='\n'.join(line(source,x) for x in ['local gameplayVisible=','local showTouchControls=','if GuiService.TouchControlsEnabled~=showTouchControls','local miniVisible='])+'\n'+line(source[source.index('local miniVisible='):],'if miniMapButton then miniMapButton.Visible=')
  return r"""
 local checks=0;local function check(v,m)assert(v,m);checks+=1 end
 local workspace={GetServerTimeNow=function()return 100 end};local attrs={};local humanoid={Health=100,PlatformStand=false}

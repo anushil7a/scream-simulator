@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep Resonance Hall menus focused on PvP
+
+- Removed the Map tab and HUD minimap from both Hall modes. The M shortcut cannot open it in the Hall. Gear, Beams, Rules, Store and Settings reflow into the available space. Rules and Settings direct players to the TRAINING CITY signs and cyan portal. City still offers its map and minimap.
+- The two zero-ID travel prompts now say **Preview portal**. A local rehearsal hold gives feedback and leaves the player at the source. Configured test-place prompts retain their destination actions and transport checks.
+- Disposable native Hall runs at 567 × 241 desktop and 455 × 218 touch-emulated pixels showed no Hall Map tab or launcher. The real desktop M input left the menu closed, and the visible Rules direction fit in the first content pane at both sizes. Holding F at the apron displayed the rehearsal message without moving the avatar. A fresh City control retained its HUD Map launcher and Map tab, and pressing M opened the map. See `build/hall_map_native/native-no-map.json` and `build/hall_map_native/native-city-map-control.json`. The emulator preset was restored and all disposable Studio sessions closed.
+- Independent review and the focused tab, minimap, notice and travel checks passed. Full verification passed 198 local suites, 99 Luau compilations and the City and Hall builds. The linked portal still needs a separately approved two-place test. Physical touch and real voice remain open.
+
 ## Show when a dodge can start
 
 - In two disposable Hall clients, the standing control lost 6 HP to an accepted cast. A second cast used the same lane. A virtual keyboard Q rolled the defender 13.97 studs down that lane with no health loss. The defender saw **BEAM DODGED**, the attacker saw **OPPONENT DODGED**, and both labels fit. The test used synthetic voice input through the normal Action remote.
