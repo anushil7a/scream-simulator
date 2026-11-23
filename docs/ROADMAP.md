@@ -1,5 +1,19 @@
 # Scream Simulator development roadmap
 
+## Soak overlapping Hall beams for 30 minutes
+
+- A guarded three-client Hall fixture from `c3e7093` ran for 1,800.020 seconds. Two level-100 attackers used staged aim and synthetic voice power through the normal Action transport against a staged level-100 defender. The fixture reset defender HP between rounds and excluded those resets from damage. All 225 rounds had overlapping attacks, damage credit for both attackers and zero active casts at the recovery checkpoint. The server measured 374.3 seconds of dual overlap and 68,422 total HP damage.
+- All three clients returned to zero parented procedural and imported beam effects at each of their 225 cleanup checkpoints. Detached procedural parts were all free after every round. Allocation peaked at 154 per attacker and eight on the defender, and those peaks held across all three 10-minute bins. The attacker views peaked at two imported roots each and the defender view had none under the near-beam detail guard.
+- Server Heartbeat p95 ranged from 18.00 to 18.03 ms across active and idle bins. The two attacker windows ran near 15 frames per second and the defender window near 60 in this one-host Studio setup. One early defender idle frame interval reached 138 ms. These are frame and heartbeat intervals for the scripted workload. Human play, device and GPU performance, audio playback, and live capacity remain open.
+- Independent review verified the raw run in `build/hall_gold_soak_native/soak-server-result.json` (SHA-256 `12462fb667d8889038e240ea206d281a6d1901d92304dacd0bfa7cdc0d563c69`). Early fixtures exposed a monitor scope error and a staged-start timing issue. The recovered fixture passed a three-round smoke before the 225-round run. Those fixes were restricted to the disposable fixture.
+
+## Resolve a live beam's tint once per update
+
+- The sustained server broadcast previously resolved the same tint for each nearby viewer, including repeated color parsing when an equipped Spectrum custom tint was active. It now resolves the tint on the first eligible viewer and reuses that value for the remaining recipients of that update. Each new update reads the current tint.
+- The actual server step reduced two tint lookups to one for two in-range viewers, kept a distant or defeated client out, emitted no tint lookup with no eligible viewer, and used a changed tint on the next update. Restoring the duplicate lookup failed the expected regression. Independent review, 15,495 focused assertions and 11 negative controls passed. This counts avoided work and does not measure a frame-rate gain.
+
+- In a separate exact candidate replay, both attackers were accepted and credited in each of three overlapping rounds. All nine client cleanup checks showed zero parented beam effects, zero active actors and all procedural slots free. All 323 local verification and build steps passed. See `build/hall_gold_palette_candidate_native/candidate-smoke-result.json` (SHA-256 `01c6e30afb0e062dd97aa756a474af52a85065d89313ce11c366e18df117a09d`). All disposable Studio sessions and the soak watchdog closed.
+
 ## Verify controller Beams OFF against a player at simulated latency
 
 - A guarded two-client Hall replay on `22cfd93` measured roughly 203–204 ms round-trip latency with 100 ms simulated in each direction and no jitter or packet loss. Two unprocessed `Gamepad1 / ButtonR1` events from the attacker's Xbox Emulator activated and deactivated Beams through the normal client. Mic power was synthetic and aim and positions were staged.

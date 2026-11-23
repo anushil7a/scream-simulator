@@ -579,10 +579,12 @@ local function stepSustained(p,s,now)
     effect:FireClient(p,"SustainedNoHit",nil,p:GetAttribute("SustainedSequence"))
    end
   end
+  local tint
   for _,viewer in ipairs(Players:GetPlayers()) do
    local _,root=parts(viewer)
    if root and (root.Position-beam.origin).Magnitude<=180 then
-    effect:FireClient(viewer,"SustainedBeam",beam.origin,p.UserId,beamColor(p,s),beam.direction,beam.length,beam.width,intent.audioStyleId,intent.level)
+    tint=tint or beamColor(p,s)
+    effect:FireClient(viewer,"SustainedBeam",beam.origin,p.UserId,tint,beam.direction,beam.length,beam.width,intent.audioStyleId,intent.level)
    end
   end
  end

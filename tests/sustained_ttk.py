@@ -51,13 +51,17 @@ end}
 local VoiceEligibility={Allowed=function(s)return s==true end}
 local sustained=Adapter.new(Attack,VoiceCombat,function(origin,aim)return (aim-origin).Unit end)
 local dodgeCues,coverCues,evadedCues,bodyCues={},{},{},{}
+local visualRecipients,visualColor
+local colorReads=0
 local effect={FireClient=function(_,p,kind,humanoid,sequence,total)
  if kind=='BeamDodged' then table.insert(dodgeCues,{p,humanoid})
  elseif kind=='BeamBodyBlocked' then table.insert(bodyCues,{p,humanoid,sequence})
  elseif kind=='SustainedCover' then table.insert(coverCues,{p,sequence,clock,total})
- elseif kind=='SustainedEvaded' then table.insert(evadedCues,{p,sequence}) end
+ elseif kind=='SustainedEvaded' then table.insert(evadedCues,{p,sequence})
+ elseif kind=='SustainedBeam' and visualRecipients then table.insert(visualRecipients,{p,total}) end
 end,FireAllClients=function()end}
-local function sustainedEnd()end;local function beamColor()return nil end
+local function sustainedEnd()end
+local function beamColor()if visualRecipients then colorReads+=1 end;return visualColor end
 local Soccer={Hit=function()return false end};local BeachVolley=Soccer
 local function questProgress()end;local function state()end
 local function recordCredit()end
@@ -68,6 +72,30 @@ local function knockOutBot(bot)bot.alive=false;koAt=clock end
 """
 checks=r"""
 local n=0;local function check(x,m)assert(x,m);n+=1 end
+do
+ local origin=v(0,3,0);local destination=v(0,3,25)
+ local caster=player(1,origin,100)
+ local nearby=player(2,v(100,3,0),100)
+ local outside=player(3,v(200,3,0),100)
+ local defeated=player(4,v(1,3,0),0)
+ local s={data={level=1},micReady=true,voiceEligibility=true,protectedUntil=0,dodgingUntil=0,sustained=sustained.New()}
+ roster={caster,nearby,outside,defeated}
+ clock=1;check(sustained.Begin(s.sustained,clock,{sequence=1,power=1,aim=destination},sustainedContext(caster,s,clock)),'Beam color fixture did not start')
+ for sample,color in ipairs({'Gold','Custom'}) do
+  clock=1+sample*.21
+  sustained.Pulse(s.sustained,clock,{sequence=1,sample=sample,power=1,aim=destination},sustainedContext(caster,s,clock))
+  visualColor=color;visualRecipients={};colorReads=0
+  stepSustained(caster,s,clock)
+  check(#visualRecipients==2 and visualRecipients[1][1]==caster and visualRecipients[2][1]==nearby,'Beam viewers changed')
+  check(visualRecipients[1][2]==color and visualRecipients[2][2]==color,'Beam packet color was inconsistent or stale')
+  check(colorReads==1,'Beam color resolved more than once for one update')
+ end
+ roster={outside,defeated};visualRecipients={};colorReads=0;clock=1.63
+ sustained.Pulse(s.sustained,clock,{sequence=1,sample=3,power=1,aim=destination},sustainedContext(caster,s,clock))
+ stepSustained(caster,s,clock)
+ check(#visualRecipients==0 and colorReads==0,'Beam resolved color without a viewer')
+ roster=nil;visualRecipients=nil;visualColor=nil
+end
 local function measure(level,targetLevel,power,kind,tier,phase,quiet,quantum)
  table.clear(dodgeCues);table.clear(coverCues);table.clear(evadedCues)
  clock=0;cover=kind=='cover';awards=0;koAt=nil;World.Bots={}
@@ -261,7 +289,11 @@ if '--negative-controls' in sys.argv:
  ]:
   assert old in code
   out=run(code.replace(old,new));assert out.returncode and message in out.stderr,(old,out.stdout,out.stderr)
- print('PASS 10 authority/balance/cover/dodge negative controls')
+ old='tint=tint or beamColor(p,s)'
+ assert code.count(old)==1
+ out=run(code.replace(old,'tint=beamColor(p,s)'))
+ assert out.returncode and 'Beam color resolved more than once for one update' in out.stderr,out.stderr
+ print('PASS 11 authority/balance/cover/dodge/visual routing negative controls')
 if '--report' in sys.argv:
  assert '--baseline' not in sys.argv, 'Historical report must not overwrite candidate evidence'
  paths=['src/ServerScriptService/Bootstrap.server.luau','src/ServerScriptService/SustainedAttackAdapter.luau','src/ServerScriptService/CombatRules.luau','src/ReplicatedStorage/Shared/SustainedAttack.luau','src/ReplicatedStorage/Shared/VoiceCombat.luau','src/ReplicatedStorage/Shared/Healing.luau','src/ReplicatedStorage/Shared/TrainingRules.luau','src/ReplicatedStorage/Shared/Config.luau','src/ReplicatedStorage/Shared/CompactLayout.luau','tests/sustained_ttk.py']
