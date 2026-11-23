@@ -1,5 +1,15 @@
 # Scream Simulator development roadmap
 
+## Warn on Garden and Stadium PvP along any City guide
+
+- In the exact `2fbdbb8` City build, the staged safe café position (51, 19.8024, 113) used the normal Map → Coast Guide action with no active quest. Five of the 18 visible gold dots were already on Garden PvP ground, and the HUD still read **SAFE • PvP OFF**. The retained Beach-only guard caused the mismatch.
+- City navigation now marks visible checked Garden or Stadium PvP ground red and shows **SAFE • PvP AHEAD** while the avatar is still safe. The current-position PvP indicator and immediate boss and training warnings retain priority. Clearing or hiding the route clears the preview warning. Route Lights stays confined to safe markers. The existing combat area checks, routes, and Hall status remain intact.
+- The focused Garden map and HUD fixture reproduced the original failure and covers delivery, public guides, Stadium, safe café, height band, Route Lights, and Hall. The guide fixture still verifies that hidden or blocked path prefixes cannot leave an advance warning.
+
+- The exact Studio candidate drew the same 18 marker positions from the same staged start using the real Map action. All five Garden dots turned red, the 13 safe dots stayed gold, and the fitted HUD warned before entry. A normal keyboard walk entered Garden and showed **GARDEN • PvP ON**. Retreat restored **SAFE • PvP AHEAD** and the real Clear button returned to **SAFE • PvP OFF** with zero dots. Both disposable sessions were closed. No opposing player or physical phone was used.
+- Independent review cleared this scope. The production candidate passed 29 pure or synthetic suites, 168 mocked suites, 99 Luau compilations and Rojo builds. The final Garden map fixture used the real Coast key and passed 15,092 assertions and 13 negative controls. NavigationGuide passed 199 assertions and 15 controls. Native candidate SHA-256 was `a76796c64c665f8369d1619a8243d5b44a732d02db6044627ed6e12b962a5cca`.
+- Next verify the audit's idle State packet churn and the interaction between active countdowns and previously collected quest objects.
+
 ## Preserve earned boss credit through a retreat or knockout
 
 - The resumed review reproduced a real loss in the boss service. A contribution disappeared on the first service tick after a retreat, and defeating the boss before that tick still required the contributor to pass current attack admission. The old regression explicitly expected credit to disappear on ring exit.

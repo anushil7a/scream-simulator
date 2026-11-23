@@ -102,9 +102,9 @@ local now=10
 local workspace={GetServerTimeNow=function()return now end}
 local function typeof(value)return type(value)=='table' and 'Vector3' or type(value)end
 local data,gui={},{}
-local ahead,classified
-academy.NavigationGuide={new=function(_,classifier)
- classified=classifier
+local ahead,classified,allowsRouteLights
+academy.NavigationGuide={new=function(_,classifier,allowsLights)
+ classified=classifier;allowsRouteLights=allowsLights
  return {HasPvPAhead=function()return ahead==true end}
 end}
 '''
@@ -133,18 +133,29 @@ p.Character=nil;academy.refreshZone();check(zone.Text=='SAFE • PvP OFF','Missi
 local prior=zoneWrites;for _=1,1000 do academy.refreshZone()end;check(zoneWrites==prior,'Unchanged zone writes UI every frame')
 p.Character=character;root.Position=Vector3.new(51,19.8,113)
 local terrace=Vector3.new(80,16,126)
-academy.guideSelection={kind='quest',id='beach'}
-check(not classified(terrace),'Inactive Beach guide marked PvP')
-data.activeQuest='beach';academy.guideSelection={kind='place',id='beach'}
-check(not classified(terrace),'Wrong route type marked PvP')
-academy.guideSelection={kind='quest',id='garden'}
-check(not classified(terrace),'Wrong quest guide marked PvP')
-academy.guideSelection={kind='quest',id='beach'}
-check(classified(terrace),'Beach route failed to classify a verified PvP terrace')
-check(not classified(Vector3.new(80,16,125)),'Safe café edge marked PvP')
-check(not classified(Vector3.new(80,32,126)) and not classified(Vector3.new(80,10,126)),'Route warning ignored garden height band')
+data.activeQuest='delivery';academy.guideSelection={kind='quest',id='delivery'}
+check(classified(terrace),'Non-Beach route failed to classify a verified PvP terrace')
 ahead=true;academy.refreshZone()
 check(zone.Text=='SAFE • PvP AHEAD' and zone.TextColor3==gold,'Approach did not distinguish safe now from upcoming PvP')
+data.activeQuest=nil
+for _,selection in ipairs({{kind='place',id='coast'},{kind='boss',id='metronome'}}) do
+ academy.guideSelection=selection
+ check(classified(terrace),'Public guide without a quest failed to classify Garden PvP')
+ academy.refreshZone()
+ check(zone.Text=='SAFE • PvP AHEAD','Public guide without a quest lost the HUD warning')
+end
+data.activeQuest='beach';academy.guideSelection={kind='quest',id='beach'}
+check(classified(terrace),'Beach route stopped flagging Garden PvP')
+local cafe=Vector3.new(80,16,125)
+local stadium=Vector3.new((Layout.ZoneMin.X+Layout.ZoneMax.X)/2,0,(Layout.ZoneMin.Z+Layout.ZoneMax.Z)/2)
+check(classified(stadium),'Stadium route failed to classify PvP')
+check(not classified(cafe),'Safe café edge marked PvP')
+check(not classified(Vector3.new(80,32,126)) and not classified(Vector3.new(80,10,126)),'Route warning ignored garden height band')
+check(not allowsRouteLights(terrace) and not allowsRouteLights(stadium) and allowsRouteLights(cafe),'Route Lights cannot tint known PvP ground')
+Config.ResonanceLayout={Contains=function()return false end}
+academy.refreshZone()
+check(not classified(terrace) and zone.Text=='SAFE • PvP OFF','City route warning leaked into Resonance Hall')
+Config.ResonanceLayout=nil
 root.Position=Vector3.new(80,19.8,126);academy.refreshZone()
 check(zone.Text=='GARDEN • PvP ON','Advance warning displaced live Garden PvP')
 root.Position=Vector3.new(51,19.8,113);bossHint='Step off the circles';academy.refreshZone()
@@ -195,5 +206,11 @@ if __name__=='__main__':
   ]:
    assert zone.count(old)==1
    run(source,expected,zone.replace(old,new))
-  run(source,'Inactive Beach guide marked PvP',route=guide.replace('data.activeQuest=="beach" and selection','selection'))
-  run(source,'Safe café edge marked PvP',route=guide.replace('Config.InGardenPvp(ground+Vector3.new(0,3,0))','true'))
+  run(source,'Non-Beach route failed to classify a verified PvP terrace',
+      route=guide.replace('not Config.ResonanceLayout and Config.InArena','data.activeQuest=="beach" and Config.InArena',1))
+  run(source,'Approach did not distinguish safe now from upcoming PvP',
+      hud=zone.replace('academy.guide and academy.guide:HasPvPAhead()', 'academy.guide and data.activeQuest=="beach" and academy.guide:HasPvPAhead()'))
+  run(source,'Stadium route failed to classify PvP',route=guide.replace('and Config.InArena','and Config.InGardenPvp',1))
+  run(source,'Safe café edge marked PvP',route=guide.replace('and Config.InArena(ground+Vector3.new(0,3,0))','and true',1))
+  run(source,'City route warning leaked into Resonance Hall',
+      route=guide.replace('not Config.ResonanceLayout and Config.InArena','Config.InArena',1))

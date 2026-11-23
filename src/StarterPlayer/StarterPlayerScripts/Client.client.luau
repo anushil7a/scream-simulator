@@ -400,7 +400,7 @@ function academy.refreshZone()
  end
  local layout=Config.ResonanceLayout
  local pvpAhead=not layout and not enabled and not bossHint and not trainingHint and position
-  and academy.guide and data.activeQuest=="beach" and academy.guide:HasPvPAhead()
+  and academy.guide and academy.guide:HasPvPAhead()
  local value=enabled and (garden and "GARDEN • PvP ON" or "ARENA • PvP ON") or bossHint or trainingHint and "MOVE OR DODGE"
   or pvpAhead and "SAFE • PvP AHEAD" or "SAFE • PvP OFF"
  if layout and position then
@@ -997,10 +997,8 @@ academy.TrainingRules=loadClientDependency(shared,"TrainingRules");if not client
 academy.BossCatalog=loadClientDependency(shared,"BossCatalog");if not clientCheckpoint() then return end
 academy.NavigationGuide=loadClientDependency(script.Parent,"NavigationGuide");if not clientCheckpoint() then return end
 academy.guide=academy.NavigationGuide.new(gui,function(ground)
- local selection=academy.guideSelection
- return data.activeQuest=="beach" and selection and selection.kind=="quest" and selection.id=="beach"
-  -- Project a standing avatar over the validated ground sample.
-  and Config.InGardenPvp(ground+Vector3.new(0,3,0))
+ -- Apply the City combat bounds to a standing avatar above the validated ground sample.
+ return not Config.ResonanceLayout and Config.InArena(ground+Vector3.new(0,3,0))
 end,function(ground)
  return not Config.InArena(ground+Vector3.new(0,3,0))
 end)
