@@ -1363,6 +1363,11 @@ render=function()
  clearShop()
  mapDot=nil
  narrow=academy.sidebarMenu==true or gui.AbsoluteSize.X-24<620
+ if academy.gamepad and modal.Visible and not GuiService.MenuIsOpen then
+  local focused=GuiService.SelectedObject
+  -- Move focus before the selected card is destroyed and Roblox picks a neighboring tab.
+  if focused and focused:IsDescendantOf(content) then GuiService.SelectedObject=tabs[selected] end
+ end
  for _,c in ipairs(content:GetChildren()) do if c:IsA("GuiObject") then c:Destroy() end end
  for name,b in pairs(tabs) do b.BackgroundColor3=name==selected and Color3.fromRGB(64,93,99) or panel end
  if selected=="Shop" then

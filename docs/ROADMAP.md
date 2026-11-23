@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Verify the controller path to the Academy Megaphone
+
+- A fresh temporary profile in the zero-ID City built from `d47f4c5` earned its Garden reward with controller dialogue and the three stock flowerbed prompts. With 80 coins, Y opened Gear. D-pad and A selected **View Quest / Need 20 Coins** on the Academy Megaphone, opened the focused Beach Cleanup card, and accepted it. The server reported Beach active and kept the balance at 80.
+- Six actual ButtonX bottle interactions and the controller Claim action earned another 50 coins and reached level 3. Y opened Gear from **Gear Ready**. The 135 × 44 **Buy & Equip / 100 Coins** action left 30 coins. Server State confirmed the Megaphone was owned and equipped, and the in-game fallback model attached to the right hand with 13 welded parts.
+- The baseline controller selection jumped to **Settings** after Beach Accept, Beach Claim and Megaphone Buy while the original panel stayed open. Before replacing a selected controller card, the client now focuses the current tab. Deliberate focus on another tab and input owned by Roblox stay in place.
+- The exact candidate replay used fresh earned rewards. Controller Accept and Claim stayed on **Quests**, and Buy & Equip stayed on **Gear**. D-pad could continue into the updated card. The same purchase left 30 coins with the Megaphone owned and equipped. The local build and all 323 verification steps passed, including the focused 111-case modal suite and the separate mutation that restores the focus jump.
+- The paired archives are `build/controller_gear_native/native-controller-gear.json` and `native-focus-candidate.json`. Both runs used staged avatar positions for travel and ordinary game actions for progress and coins. They used temporary data. The original emulator preset was restored and both disposable Studio sessions closed. Robux, live saves and physical hardware remain outside their scope.
+
 ## Verify a branching Garden quest with controller input
 
 - In a zero-ID playable City build from `ce5dce9`, a fresh temporary avatar was staged within legal reach of Mar on solid ground. Xbox Controller Emulator LT opened her real dialogue. B dismissed it and cleared controller focus. Reopening with LT and pressing Down three times reached **Accept: A Little More Color**. A accepted it and the server State reported `activeQuest=garden` and progress 0.

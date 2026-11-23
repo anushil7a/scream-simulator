@@ -42,6 +42,7 @@ def assemble(c):
  context=r'''
 local ShopUI=m.shop;local selected='Shop';local render;local closeMenu;local clientDestroyed=false;local clientConnections={};local button=ui.button
 local modal={Visible=false};local gui={AbsoluteSize={X=720,Y=720},Destroy=function()f.destroyed=true end}
+local GuiService={}
 local content={Size={X={Offset=-40}},CanvasPosition={X=0,Y=40},AbsoluteCanvasSize={Y=600},AbsoluteWindowSize={Y=200},GetChildren=function()return {}end}
 
 -- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
@@ -58,7 +59,7 @@ local openMicSetup;local micSetupOpen=false;local micPanel={Visible=false}
 '''
  initial=re.search(r'\blocal selected\s*=\s*"([^"]+)"',c).group(1)
  context=context.replace("local selected='Shop'",f"local selected={initial!r}")
- input_setup="local keyCallback;local textFocus;local UIS={InputBegan={},GetFocusedTextBox=function()return textFocus end};local GuiService={};Enum.KeyCode={B='B'};local function connectClient(_,fn)keyCallback=fn end\n"
+ input_setup="local keyCallback;local textFocus;local UIS={InputBegan={},GetFocusedTextBox=function()return textFocus end};Enum.KeyCode={B='B'};local function connectClient(_,fn)keyCallback=fn end\n"
  if 'local function clearShop()' in c:
   owner=c[c.index('local clientConnections={}'):c.index('local function loadClientDependency(')]
   owner+='\n'+c[c.index('local shopUsed=false'):c.index('local ScreamEffects=')]
@@ -82,6 +83,20 @@ f.toggle=toggle;f.tab=toggleTab;f.content=content;f.modal=modal
 f.destroy=function()for _,fn in ipairs(destroyed)do fn()end end
 f.activateTab=function(name)tabs[name].callback()end
 f.selected=function()return selected end
+f.redrawFocus=function(mode)
+ local card={IsA=function()return true end,IsDescendantOf=function(_,ancestor)return ancestor==content end}
+ function tabs.Settings:IsDescendantOf()return false end
+ function card:Destroy()
+  if GuiService.SelectedObject==self then GuiService.SelectedObject=tabs.Settings end
+ end
+ content.GetChildren=function()return {card}end
+ academy.gamepad=mode~='mouse'
+ GuiService.MenuIsOpen=mode=='system'
+ GuiService.SelectedObject=mode=='other tab' and tabs.Settings or card
+ renderedMenuKey=nil
+ render()
+ return GuiService.SelectedObject==tabs[selected]
+end
 f.tick=function()ShopUI.Tick()end
 f.flushScroll=function()for _,job in ipairs(f.jobs)do if #job.args==0 and coroutine.status(job.co)=='suspended'then assert(coroutine.resume(job.co))end end end
 f.priceJobs=function()local out={};for _,job in ipairs(f.jobs)do if #job.args>0 then table.insert(out,job)end end;return out end
@@ -143,6 +158,10 @@ fresh.activateTab('Shop')
 check(fresh.modal.Visible and fresh.sent==1,'Tapping selected Shop closed or refreshed it')
 fresh.toggle();fresh.toggle()
 check(fresh.modal.Visible and fresh.selected()=='Shop' and fresh.sent==2,'Reopening did not respect the last tab')
+check(fresh.redrawFocus('gamepad'),'Redrawing a focused card jumped to a different tab')
+check(not fresh.redrawFocus('other tab'),'Redraw stole intentional focus on another tab')
+check(not fresh.redrawFocus('mouse'),'Redraw forced controller focus in mouse mode')
+check(not fresh.redrawFocus('system'),'Redraw stole focus during a Roblox menu')
 print('PASS',n,'actual modal callback/cache + Shop price/style lifecycle assertions; mocked UI/API')
 '''
 def run(c,error=None):
@@ -163,6 +182,8 @@ else:
    ('local selected="Style";local render','local selected="Shop";local render','Fresh menu did not open earned gear first'),
    ('if selected~=name then toggleTab(name) end','if selected~=name then selected=name;render() end','Moving to Shop missed its refresh'),
    ('if selected~=name then toggleTab(name) end','toggleTab(name)','Tapping selected Shop closed or refreshed it'),
+   ('if focused and focused:IsDescendantOf(content) then GuiService.SelectedObject=tabs[selected] end','',
+    'Redrawing a focused card jumped to a different tab'),
   ]
   for old,new,error in mutants:
    assert client.count(old)==(2 if old=="renderedMenuKey=nil;renderRevision+=1" else 1),old;run(client.replace(old,new,1),error)
