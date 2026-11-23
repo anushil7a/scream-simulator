@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Verify a branching Garden quest with controller input
+
+- In a zero-ID playable City build from `ce5dce9`, a fresh temporary avatar was staged within legal reach of Mar on solid ground. Xbox Controller Emulator LT opened her real dialogue. B dismissed it and cleared controller focus. Reopening with LT and pressing Down three times reached **Accept: A Little More Color**. A accepted it and the server State reported `activeQuest=garden` and progress 0.
+- A genuine Gamepad1 ButtonX hold triggered the first stock flowerbed prompt after 1.514 seconds. Server State advanced the objective to 1 and delivered the watering confirmation. A subsequent left-stick hold moved the avatar with no extra View press.
+- Controller movement and two further X holds completed the remaining beds. After returning to Mar, LT, Down and A selected **Claim: A Little More Color**. The server marked Garden claimed and cleared the active quest. The HUD showed level 2, 80 coins, 102/102 HP and the receipt for 130 XP and 80 coins.
+- This verifies the local controller Garden reward from a staged approach with ordinary gameplay and temporary data. The Academy Megaphone costs 100 coins, so the reward alone did not fund the first gear purchase. The controller route from this reward to the first gear purchase is still open. Physical console, live voice and durable saves remain separate checks.
+- The native report is `build/controller_mar_native/native-controller-mar.json` (place SHA-256 `8971013e8655b903643ba99927dd7ab5a0e8a6db78ec7067de46e09cb6ed452d`). Focused dialogue lifecycle, ownership, quest acceptance and prompt checks passed. No gameplay code changed. Studio closed and the prior emulator preset was restored.
+
 ## Let controller players walk immediately after choosing Guide
 
 - A fresh level-one City profile used Xbox Controller Emulator View, D-pad and A to activate Rookie Training Guide. The route started, but stock focus moved to Clear Guide. A held left stick delivered real Gamepad1 axis changes while the avatar stayed stationary. B did not restore movement. A second press of View cleared the selection and the same held input moved the avatar 21.42 studs.
