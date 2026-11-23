@@ -27,7 +27,7 @@ These are **pending checks**, not completed results. Save your open Studio work 
 
 - **Live proximity voice:** two eligible accounts/devices, near/far listening and a real scream-driven hit. Hearing your own mic loopback is not required.
 - **Legitimate saves/migration:** an explicitly approved test environment using normal profiles and legitimate earned progress. Disposable fixtures intentionally do not save. Do not publish a fixture or experiment with production keys to perform this check.
-- **Performance:** use the labeled PerformanceReview collector described below and profile representative desktop and phone hardware. The [four-client Studio overlap test](../tests/evidence/city-overlap-load-2026-11-22.json) gives a local beam replication and timing reference. It has no PvP target-resolution workload or device performance evidence.
+- **Performance:** use the labeled PerformanceReview collector described below and profile representative desktop and phone hardware. The [four-client Studio overlap test](../tests/evidence/city-overlap-load-2026-11-22.json) gives a local beam replication and timing reference. It has no PvP target-resolution workload. The [three-client repeated Stadium test](../tests/evidence/stadium-repeated-casts-native-2026-11-22.json) covers real local PvP damage, defender feedback and cleanup with scripted input. Both ran on one PC. Device performance and representative multiplayer are still pending.
 
 ### Record one result per scenario
 
@@ -50,7 +50,7 @@ Use two voice-eligible accounts/devices when available. Use comfortable speech; 
 
 ## City/NPC review (pending)
 
-Compare street-height views at the waterfront, Born lanes and Eixample. Check that district color is readable and not excessively bright. Watch a resident pass a newly blocked route: it must stop/replan rather than skip waypoints. Check transitions between walking, work, sitting, applause and Nick's stumble. Test occupied benches and destroyed paths. No measured FPS claim has been made for this candidate.
+Compare street-height views at the Academy, Central Garden, Stadium and Timber Pier. Watch a resident approach a blocked route in a disposable local fixture and verify it stops or replans. Check transitions between walking, work, sitting, applause and Nick's stumble. Test occupied benches.
 
 Record commit/build, devices, exact reproduction steps and expected/observed behavior. Synthetic unit tests and prior native geometry fixtures do not establish microphone, device or visual passes.
 
@@ -68,13 +68,13 @@ Record commit/build, devices, exact reproduction steps and expected/observed beh
 
 - Respawn state: reset during a scream, roll, car knockdown and NPC conversation. Confirm the old attack stops, the new avatar is upright with five-second protection, mic pause/resume works, no stale roll/knockdown animation remains, and duplicate initialization cannot refill health. Mocked server lifecycle tests pass; native reset/character-loading checks pending.
 
-- Aimed-player readout: aim at another player in first/third person and on phone. Verify level/health, safe-area/protected/rolling/out-of-max-range labels, clearing when aiming away, and no display through solid cover. Check accessories resolve to their owning character and three lines fit. Text logic passes mocked checks; native ray/UI review pending.
+- Aimed-player readout: aim at another player in third person on desktop and phone. Verify wheel and pinch zoom stay outside first person. Verify level/health, safe-area/protected/rolling/out-of-max-range labels, clearing when aiming away, and no display through solid cover. Check accessories resolve to their owning character and three lines fit. Text logic passes mocked checks; native ray/UI review pending.
 
 - Sprint stamina: hold sprint while stationary, walking into a solid wall, jumping vertically, seated, rolling and recovering from a car hit. Charge must not drain without available horizontal movement. Moving sprint should last ten seconds before a five-second break; inspect start/stop responsiveness under replication. Fourteen synthetic helper checks pass; native physics and control feel remain pending.
 
 - Roll interruption: in a disposable place, roll into a moving car and confirm the roll task does not restore turning/ownership during knockdown. Reset mid-roll and repeat premium rolls outside PvP; older tasks must not move or restore controls for a newer roll. Ten mocked cleanup checks pass; native physics/network-ownership transitions remain pending.
 
-- Destruction level feedback: below level 26, aim an automatic scream at a small tree. Confirm one required-level message for the whole attack, no damage/reward, and no message flicker on subsequent ticks. Repeat after unlocking the tier and confirm normal damage. Synthetic response checks pass; native targeting/HUD behavior remains pending.
+- Solid scenery: aim a beam at a wall or other solid obstruction in the current City. Confirm that it stops at the surface, the scenery stays intact, and the cast grants no destruction reward.
 
 **Historical calibration-era scenario; not a current setup requirement.** - Microphone teardown: in a disposable client, remove the gameplay client/controller during calibration or a ready microphone session; check its analyzer stays removed and no queued retry recreates it. Rejoining should create a fresh controller and require calibration. Twenty-two mocked lifecycle checks pass; hardware and native event ordering remain pending.
 

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Verify repeated overlapping Stadium hits and cleanup
+
+- A disposable build from `de9228a` staged two level-100 attackers and a defender in the Stadium. Two Studio attackers sent synthetic input through the normal Action RemoteEvent. A third Studio client was the defender. The longer first run reached a knockout during the second window and no damage to the defender in the third. Shorter casts preserved the same target for all three windows without forcing health or repositioning between windows.
+- In the short run both attackers dealt 51, 51 and 49 HP each across the three windows. Their simultaneous casts lasted about 0.57 seconds per window. The defender showed fitted **BEAM HIT YOU** every time. Every client received both end events, with zero active attacks and zero parented beam parts or template roots at the cleanup checkpoints. Server heartbeat p95 was about 18 ms during idle, the combat window, and recovery. It is a local interval sample, with different client frame cadences on the same host. See [the fixture results](../tests/evidence/stadium-repeated-casts-native-2026-11-22.json).
+- Independent evidence review cleared. The focused combat check passed 412 integration assertions and 50 negative controls. Full local verification passed 198 suites, 99 production compilations and City and Hall builds. All disposable Studio processes closed. The owner playtest now points to current City landmarks, third-person controls and solid scenery. Next verify pointer activation of **HIT / CLOSE** alongside a scrollable notice at the narrow supported touch layout. Real speech, device performance, crowded internet matches, and separate approved travel and save tests remain open.
+
 ## Reduce repeated reads during resident animation
 
 - A two-resident update using the actual frame callback with mocked engine inputs read the four sampled pose attributes 32 times and sampled server time twice. The updated callback reads the same attributes eight times and samples server time once, only when a resident is due. Work, gesture, reading and applause still use current attributes each update.
