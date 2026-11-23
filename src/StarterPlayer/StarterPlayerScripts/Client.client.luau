@@ -1180,7 +1180,9 @@ function academy.refreshCompactObjective(limited,voiceCooldown)
   if headline=="VIEW QUEST" and seconds then text=progress.."\n"..seconds
   elseif not data.activeQuest and academy.guideSelection then
    local routeStatus=({["FOLLOW GUIDE"]="En route",["NO ROUTE"]="No route",["ARRIVED"]="Arrived"})[headline]
+   local count=detail:match("^%d+/%d+")
    text="CLEAR\n"..(routeStatus or shortTitle or "Guide")
+   if count then text..="\n"..count end
   else
    local footer=detail:match("^[%d/]+") or ""
    text=(shortTitle or "GUIDE").."\n"..footer

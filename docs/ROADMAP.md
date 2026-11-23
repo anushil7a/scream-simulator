@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep the first Rookie win visible beside a notice
+
+- A fresh temporary level-1 profile used the Guide and walked its live route from Academy spawn into Rookie Training in 14.80 seconds. With staged power through the production beam controls, two casts earned the first knockout, 48 XP and five coins. The tracker recorded **1/3 fighters**. At 455 × 218 usable touch-emulated pixels, the adjacent **NOTICE** shortcut reduced the guide to 52 × 46 pixels and left it showing **CLEAR / Aim**, with the earned count missing.
+- The compact training guide now keeps the fighter count as a third line beside the sparring instruction and Clear action. The guide and notice each fit their own touch target at that viewport. Focused checks cover the normal route, active and resting fighter cues, notice lane and quest timer. The negative control restores the missing count.
+- A second fresh run replayed the walk, first hit and knockout in the exact candidate fixture. The 52 × 46 guide displayed fitted **CLEAR / En route / 1/3** beside the notice shortcut at the reward. The middle line reports the current fighter or route state. Clicking **NOTICE** exposed the fitted Rookie reward after the queued arming message. The prior emulator preset was restored and both disposable sessions closed. The paired screenshots and native records are under `build/rookie_first_run_native`. Independent review and 29 focused negative controls passed. Full local verification passed 198 suites, 99 production compilations and City and Hall builds.
+- This is the first spar and reward handoff. The end-to-end path into the first earned gear, unassisted discovery and real voice still need their own playtests.
+
 ## Give the Academy's Hall portal a recognizable entrance
 
 - The City portal previously appeared as an unlabeled translucent rectangle. The shared travel-fixture entry now has an open cyan light frame, a gold waveform and a **RESONANCE HALL / PVP ARENA** sign. The floor accents sit above the visible Academy paving while the interaction point and arrivals stay fixed.

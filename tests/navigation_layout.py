@@ -215,31 +215,34 @@ check(top.Position.x+questsToggle.Position.x+questsToggle.Size.x<=232
 refresh(true);check(b.Visible and b.Text=='ROOKIE GUIDE\n1/3 fighters','Compact idle objective lost the first-spar goal')
 b.Activated();refresh(true)
 check(b.Text=='FOLLOW GUIDE\n1/3 · Clear','Compact training route missing progress or Clear')
-academy.refreshCompactObjective(true);check(b.Text=='CLEAR\nEn route','Tight row concealed the active route clear action')
+academy.refreshCompactObjective(true);check(b.Text=='CLEAR\nEn route\n1/3','Tight row concealed the active route clear action')
 status='Arrived';academy.trainingGuideFighter={Parent={},GetAttribute=function()return true end};refresh(true)
 check(b.Text=='HIT TO SPAR\n1/3 · Clear','Compact arrival lost its instruction')
 sustainedControl={armed=false,gate={needsQuiet=false,onset=0}}
 refresh(true)
 check(b.Text=='CHECK BEAMS\n1/3 · Clear','Connecting mic did not replace the spar instruction')
 academy.refreshCompactObjective(true)
-check(b.Text=='CLEAR\nBeams','Tight route made the voice check look like a toggle')
+check(b.Text=='CLEAR\nBeams\n1/3','Tight route made the voice check look like a toggle')
 data.micReady=true;refresh(true)
 check(b.Text=='BEAMS OFF\n1/3 · Clear','Ready but disarmed still showed the spar instruction')
 academy.refreshCompactObjective(true)
-check(b.Text=='CLEAR\nBeam off','Tight route lost the disarmed status or Clear')
+check(b.Text=='CLEAR\nBeam off\n1/3','Tight route lost the disarmed status or Clear')
 sustainedControl.armed=true;sustainedControl.gate.needsQuiet=true;refresh(true)
 check(b.Text=='GO QUIET\n1/3 · Clear','Newly armed guide invites a shot while the voice gate needs quiet')
 academy.refreshCompactObjective(true,voiceCooldown)
-check(b.Text=='CLEAR\nQuiet','Tight row lost the quiet instruction or Clear')
+check(b.Text=='CLEAR\nQuiet\n1/3','Tight row lost the quiet instruction or Clear')
 voiceCooldown=4;refresh(true)
 check(b.Text=='COOLDOWN\n1/3 · Clear','Cooldown lost precedence over the quiet cue')
 academy.refreshCompactObjective(true,voiceCooldown)
-check(b.Text=='CLEAR\nWait','Tight row lost cooldown or Clear')
+check(b.Text=='CLEAR\nWait\n1/3','Tight row lost cooldown or Clear')
 voiceCooldown=0;sustainedControl.gate.needsQuiet=false;refresh(true)
 check(b.Text=='AIM & SPEAK\n1/3 · Clear','Ready and armed did not show the aiming and voice handoff')
 sustainedControl=nil
 academy.trainingGuideFighter.GetAttribute=function()return false end;refresh(true)
 check(b.Text=='FIGHTER RESTING\n1/3 · Clear','Compact arrival masked recovery')
+academy.refreshCompactObjective(true)
+check(b.Text=='CLEAR\nRESTING\n1/3' and b.Size.x==52 and b.Size.y==46,
+ 'Tight Rookie guide hid earned fighter progress while a notice was available')
 data.activeQuest='sprint';data.quests.sprint={progress=2};data.questTime=37
 refresh(true);check(b.Text=='VIEW QUEST\n2/3 · 37s','Compact guide covered the active quest timer')
 data.questTime=120;academy.refreshCompactObjective(true);check(b.Text=='2/3\n120s' and b.Size.x==52 and b.Size.y==46,'Tight row lost quest timing or its touch target')
@@ -318,6 +321,8 @@ cases = [
     ('if sustainedControl.gate.needsQuiet or os.clock()', 'if os.clock()', 'automatic beam availability: Go quiet, then speak'),
     ('status=academy.trainingArrival(ready,false,voiceCooldown)', 'status=academy.trainingArrival(ready,false,0)', 'automatic beam availability: Wait for cooldown'),
     ('["GO QUIET"]="Quiet"', '["GO QUIET"]="Guide"', 'Tight row lost the quiet instruction or Clear'),
+    ('if count then text..="\\n"..count end','if false then text..="\\n"..count end',
+     'Tight row concealed the active route clear action'),
     ('compact and 58 or 0', 'compact and 44 or 0', 'Compact objective overlaps a navigation sibling'),
     ('timer>0 and string.format(" · %ds",timer)', 'false and string.format(" · %ds",timer)', 'Compact guide covered the active quest timer'),
     ('compact and 45 or narrowNav and 54 or 78','compact and 56 or narrowNav and 54 or 78','Narrow navigation overlaps the action stack'),
