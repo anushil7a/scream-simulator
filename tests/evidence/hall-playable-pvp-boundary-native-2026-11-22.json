@@ -1,0 +1,98 @@
+{
+  "productionCommit": "a5eb645c587e5dd2d640e2c6f4ca939cf8efaf77",
+  "fixtureSha256": "20b8b038d265e35653abb7eac74755a6701dfee84ebbd4f1391bb0c645eeeef4",
+  "scope": "Two local Studio clients with temporary profiles and zero place and universe IDs. Fixture positioned avatars, isolated microphone and focus, and drove ordinary Action remotes with staged power. Server damage resolution, replicated HUD and virtual F input ran in Studio.",
+  "limits": [
+    "No actual human voice, physical touch, internet multiplayer, cross-place transfer, persistence, or Hall knockout in this run.",
+    "Caster and defender positions were staged. The test demonstrates directional damage gating at the sampled positions, after natural spawn protection."
+  ],
+  "usableViewport": [
+    567.0,
+    241.0
+  ],
+  "attackerRoot": [
+    0.0,
+    3.8,
+    32.0
+  ],
+  "acceptedCasts": 1,
+  "pulsesSent": 24,
+  "beamLengthStuds": 30,
+  "beamPacketsPerClient": [
+    14,
+    14
+  ],
+  "stages": [
+    {
+      "targetRoot": [
+        0.0,
+        3.8,
+        48.0
+      ],
+      "serverSecondsFromStart": -3.0,
+      "pvpAllowed": true,
+      "attackActiveOnEntry": false,
+      "distanceFromBeamOriginStuds": 16.145,
+      "rayClear": true,
+      "spawnShieldSeconds": 0,
+      "healthOnEntry": 100,
+      "damage": 12
+    },
+    {
+      "targetRoot": [
+        0.0,
+        3.8,
+        52.0
+      ],
+      "serverSecondsFromStart": 0.932,
+      "pvpAllowed": false,
+      "attackActiveOnEntry": true,
+      "distanceFromBeamOriginStuds": 20.162,
+      "rayClear": true,
+      "spawnShieldSeconds": 0,
+      "healthOnEntry": 88,
+      "damage": 0
+    },
+    {
+      "targetRoot": [
+        0.0,
+        3.8,
+        48.0
+      ],
+      "serverSecondsFromStart": 2.032,
+      "pvpAllowed": true,
+      "attackActiveOnEntry": true,
+      "distanceFromBeamOriginStuds": 16.156,
+      "rayClear": true,
+      "spawnShieldSeconds": 0,
+      "healthOnEntry": 88,
+      "damage": 17
+    }
+  ],
+  "castEnd": {
+    "active": false,
+    "cooldownDeadlinePublished": true,
+    "defenderHealth": 71
+  },
+  "defenderCue": {
+    "privatePackets": 2,
+    "attackerReceivedPrivatePackets": 0,
+    "text": "BEAM HIT YOU",
+    "textFits": true,
+    "safeApronNote": "Existing hit cue remained briefly during its normal expiry. No new private packet or damage occurred while defender was safe."
+  },
+  "portal": {
+    "input": "Studio virtual F hold",
+    "beforeRoot": [
+      0.0,
+      3.8,
+      54.0
+    ],
+    "afterRoot": [
+      0.0,
+      3.8,
+      54.0
+    ],
+    "message": "Portal reached. This local rehearsal stays in the same place."
+  }
+}

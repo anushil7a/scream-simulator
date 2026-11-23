@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Verify Hall damage stops at the safe apron
+
+- Two Studio clients used the linked Hall rehearsal with temporary profiles. One accepted beam through the normal Action remote dealt 12 HP on the PvP floor, zero for 1.10 seconds on the apron, then 17 HP after the defender returned to the floor. The beam stayed active, clear and in range at the sampled points. Spawn protection had expired. The same-run apron control isolates the zone rule while keeping the attack and participants constant.
+- Only the defender received the two private hit messages. The fitted **BEAM HIT YOU** cue could finish its existing display on the apron, with no new hit or health loss there. Finishing the cast set the cooldown deadline. A virtual F hold at the apron portal showed the local message and left the avatar in place. See [native Hall results](../tests/evidence/hall-playable-pvp-boundary-native-2026-11-22.json).
+- Independent review confirmed the evidence. Full local verification passed 198 suites, 99 production compilations and City and Hall builds. The focused Hall map, portal, travel and beam-contact checks also passed. No gameplay changes were required. The next external gates are actual voice on two eligible accounts, including a physical phone, and transfer between two approved places. This fixture did not exercise Hall knockout or internet multiplayer. All disposable Studio sessions closed.
+
 ## Rehearse City training and Hall combat around the portals
 
 - The travel-only pair exercises landings and prompts without the game runtime. The new playable pair reuses those same portal landings alongside the City quest/training systems and Hall combat HUD. The files require Studio with zero place and universe IDs, temporary profiles and an unconfigured commerce catalog. The existing travel-only and local Hall preview modes remain available.
