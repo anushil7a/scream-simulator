@@ -2,7 +2,9 @@
 Reference: actual MAP-10 blueprint + prior hero; vault make-map and level-flow notes.
 Keep playable court, goal approaches, coastal race and dock deck unobstructed.
 """
+import json
 import math
+from pathlib import Path
 
 
 def add(box, disk, line):
@@ -10,6 +12,35 @@ def add(box, disk, line):
     lagoon=(64,185,185); timber=(117,80,51); endgrain=(164,119,73)
     brass=(158,119,65); iron=(49,77,76); amber=(255,209,132)
     leaf=(73,123,74); sage=(119,156,87); cream=(231,218,174)
+
+    geometry = Path(__file__).resolve().parents[1] / 'prototypes/map10/geometry.json'
+    base = {part['id']: part for part in json.loads(geometry.read_text(encoding='utf-8'))['parts']}
+    walk_x, walk_y, walk_z = base['CoastalWalk']['position']
+    walk_width, walk_height, walk_depth = base['CoastalWalk']['size']
+    walk_edge = walk_z + walk_depth / 2
+    walk_top = walk_y + walk_height / 2
+
+    # Flush joints make the promenade read as paving while leaving its sand shoulder exposed.
+    for offset in range(40 - int(walk_width / 2), int(walk_width / 2), 40):
+        box(f'CoastPavingJoint{offset}', (walk_x + offset, walk_top + .012, walk_z),
+            (.14, .02, walk_depth - 4), (178, 171, 155))
+    dock_x = base['DockMain']['position'][0]
+    dock_width = base['DockMain']['size'][0]
+    for side in (-1, 1):
+        box(f'CoastPavingPierInlay{side}',
+            (dock_x + side * (dock_width / 2 - .5), walk_top + .012, walk_edge - 11),
+            (.32, .02, 20), (180, 164, 139))
+
+    # Keep the original solid support and laminate only the visible deck.
+    for name in ('DockMain', 'DockCross', 'DockMainTail', 'DockCrossWestSeam', 'DockShelterPlatform'):
+        x, y, z = base[name]['position']
+        width, height, depth = base[name]['size']
+        start = z - depth / 2
+        end = z + depth / 2
+        if name == 'DockMain':
+            start = max(start, walk_edge)
+        box('CoastDeckSurface' + name, (x, round(y + height / 2 + .02, 6), (start + end) / 2),
+            (width, .04, end - start), endgrain, material='WoodPlanks')
 
     def beam(name,a,b,width,color):
         dx,dy,dz=(b[i]-a[i] for i in range(3)); horizontal=math.hypot(dx,dz)

@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Distinguish the coastal promenade from Timber Pier
+
+- Three matched player-height views in disposable Studio showed a nearly flat cream promenade and featureless brown pier in `96e7a15`. The approved Map 10 blueprint uses light paving beside warm timber. The candidate gives the existing promenade a cool, lightly textured finish and flush joints. Five thin wood faces follow the original pier and shelter decks. The sand shoulder stays visible.
+- All 30 added pieces are noncolliding, unqueryable, and shadow-free. The base geometry and support materials are unchanged. The coastal finish has 270 pieces within its 290-piece budget. Independent review confirmed that the main timber starts at the paving edge and the original deck joints remain visible.
+- Studio showed fine paving grit, visible board grain, and a readable Timber Pier sign. All 19 matched downward support rays returned the same part and height. A staged native Humanoid walked three pier checkpoints, covering 56 studs at full health. The native candidate SHA-256 was `0340a110bf5e2ca63b5f5e6c73665882e7e8748ea23c70d76e6e7e6319a36d2c`. The local comparison is `build/coast_surface_native/CoastSurfaceComparison.jpg`. Both disposable sessions closed. Phone-size readability and distance streaming under live network conditions were outside this check.
+- The finish suite passed 17 negative controls, including missing paving and a deck face extending beneath the walkway. All 18 map repair checks and 1,101 map contract checks passed. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and Rojo builds on unchanged verification inputs.
+- Next inspect the distant suspended silhouettes visible from the promenade and establish whether they are intended volcanic art or geometry exposed by streaming.
+
 ## Connect the Metronome, Golem and Ignis rigs through their attacks
 
 - In the exact `f813f75` City build, staged walk poses showed sky gaps between the Metronome and Golem torsos and their thighs. At rest the gaps are 1.26 and 1.12 studs at the production 2.8× scale. Ignis's stationary shoulder assembly shifted relative to its upper arm by about 3.01 studs in the Organ Flames tell and 1.97 during the Backdraft hit.

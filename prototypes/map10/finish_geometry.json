@@ -2,7 +2,7 @@
  "groups": {
   "North": 307,
   "East": 219,
-  "Coast": 240,
+  "Coast": 270,
   "Stadium": 144,
   "Landmark": 134
  },
@@ -13680,6 +13680,786 @@
     0
    ],
    "material": "Slate",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-440",
+   "position": [
+    -440,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-400",
+   "position": [
+    -400,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-360",
+   "position": [
+    -360,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-320",
+   "position": [
+    -320,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-280",
+   "position": [
+    -280,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-240",
+   "position": [
+    -240,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-200",
+   "position": [
+    -200,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-160",
+   "position": [
+    -160,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-120",
+   "position": [
+    -120,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-80",
+   "position": [
+    -80,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint-40",
+   "position": [
+    -40,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint0",
+   "position": [
+    0,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint40",
+   "position": [
+    40,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint80",
+   "position": [
+    80,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint120",
+   "position": [
+    120,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint160",
+   "position": [
+    160,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint200",
+   "position": [
+    200,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint240",
+   "position": [
+    240,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint280",
+   "position": [
+    280,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint320",
+   "position": [
+    320,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint360",
+   "position": [
+    360,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint400",
+   "position": [
+    400,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingJoint440",
+   "position": [
+    440,
+    0.232,
+    420
+   ],
+   "size": [
+    0.14,
+    0.02,
+    32
+   ],
+   "color": [
+    178,
+    171,
+    155
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingPierInlay-1",
+   "position": [
+    -235.5,
+    0.232,
+    427.0
+   ],
+   "size": [
+    0.32,
+    0.02,
+    20
+   ],
+   "color": [
+    180,
+    164,
+    139
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastPavingPierInlay1",
+   "position": [
+    -204.5,
+    0.232,
+    427.0
+   ],
+   "size": [
+    0.32,
+    0.02,
+    20
+   ],
+   "color": [
+    180,
+    164,
+    139
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "SmoothPlastic",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastDeckSurfaceDockMain",
+   "position": [
+    -220,
+    0.12,
+    516.0
+   ],
+   "size": [
+    32,
+    0.04,
+    156.0
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "WoodPlanks",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastDeckSurfaceDockCross",
+   "position": [
+    -20,
+    0.12,
+    610.0
+   ],
+   "size": [
+    430,
+    0.04,
+    32.0
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "WoodPlanks",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastDeckSurfaceDockMainTail",
+   "position": [
+    -220,
+    0.12,
+    628.0
+   ],
+   "size": [
+    32,
+    0.04,
+    4.0
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "WoodPlanks",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastDeckSurfaceDockCrossWestSeam",
+   "position": [
+    -235.5,
+    0.12,
+    610.0
+   ],
+   "size": [
+    1,
+    0.04,
+    32.0
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "WoodPlanks",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "CoastDeckSurfaceDockShelterPlatform",
+   "position": [
+    -258,
+    0.12,
+    535.0
+   ],
+   "size": [
+    44,
+    0.04,
+    40.0
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "WoodPlanks",
    "shape": null,
    "collidable": false
   },

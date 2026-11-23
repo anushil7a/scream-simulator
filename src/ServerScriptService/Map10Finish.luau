@@ -9,6 +9,7 @@ local grades={
  {"AcademyPlateau","Sandstone",Color3.fromRGB(200,174,132)},
  {"CentralGardenTerrace","Grass",Color3.fromRGB(115,152,85)},
  {"ShoreSand","Sandstone",nil},
+ {"CoastalWalk","Concrete",Color3.fromRGB(212,207,189)},
  {"VolcanoPlateau","Basalt",Color3.fromRGB(65,58,63)},
  {"VolcanicRidge","Rock",Color3.fromRGB(59,52,58)},
  {"DockMain","WoodPlanks",Color3.fromRGB(156,109,69)},

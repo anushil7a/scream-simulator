@@ -229,14 +229,18 @@ end)()
 local fixed=Instance.new('Part');fixed.Name='IslandCore0';fixed.CanCollide=true
 fixed.CanQuery=true;fixed.Material='SmoothPlastic';fixed.Position=Vector3.new(2,4,8)
 local unaffected=Instance.new('Part');unaffected.Name='Other'
-local world={GetChildren=function()return {fixed,unaffected}end}
+local paving=Instance.new('Part');paving.Name='CoastalWalk';paving.CanCollide=false;paving.CanQuery=false;paving.Material='SmoothPlastic'
+local world={GetChildren=function()return {fixed,unaffected,paving}end}
 local folder=Finish.Build(world)
 assert(folder.Parent==world and folder.Name=='Map10Finishing')
 assert(fixed.CanCollide and fixed.CanQuery and fixed.Material=='SmoothPlastic' and fixed.Position.Y==4,'Base collision material or position changed')
 assert(unaffected.Color==nil and unaffected.Material==nil,'Non-map part changed')
+assert(paving.Material=='Concrete' and not paving.CanCollide and not paving.CanQuery
+ and paving.Color.R==212 and paving.Color.G==207 and paving.Color.B==189,'Coast paving lost its finish or affects physics')
 local expected={}
 for _,row in ipairs(Data) do expected[row[1]]=row[8]==true end
 local count,labels,solids=0,0,0
+local deckFaces,pavingAccents=0,0
 local expectedInlays={NorthTrainingInlayRookie='ROOKIE',NorthTrainingInlayBrawler='BRAWLER',NorthTrainingInlayElite='ELITE'}
 local inlays=0
 for _,p in ipairs(nodes)do
@@ -247,6 +251,19 @@ for _,p in ipairs(nodes)do
   if p.CanCollide then solids+=1 end
   assert(p.Size.X>0 and p.Size.Y>0 and p.Size.Z>0 and p.Material~=nil and (p.ClassName=='WedgePart' or p.Shape~=nil),'Invalid decoration')
   if p.Material=='Neon' then assert(p.CastShadow==false,'Emissive accent casts shadow') end
+  if p.Name:match('^CoastDeckSurface') then
+   assert(p.Material=='WoodPlanks' and not p.CanCollide and not p.CanQuery and not p.CastShadow,
+    'Pier finish must remain visual-only timber')
+   local position=p.CFrame[1]
+   assert(math.abs(position.Y-p.Size.Y/2-.1)<.00001,'Pier finish leaves the support surface')
+   if p.Name=='CoastDeckSurfaceDockMain' then
+    assert(position.Z-p.Size.Z/2==438 and position.Z+p.Size.Z/2==594,'Main deck overlaps paving or leaves a gap')
+   end
+   deckFaces+=1
+  elseif p.Name:match('^CoastPaving') then
+   assert(not p.CanCollide and not p.CanQuery and not p.CastShadow,'Paving accents must remain visual-only')
+   pavingAccents+=1
+  end
   count+=1
  elseif p.ClassName=='SurfaceGui' then
   assert(p.AlwaysOnTop==false and p.Parent,'Labels should not reveal through walls')
@@ -260,6 +277,7 @@ for _,p in ipairs(nodes)do
  end
 end
 assert(count==#Data and count>600 and count<=1100,'Total finishing props outside budget')
+assert(deckFaces==5 and pavingAccents==25,'Missing promenade or pier finish')
 assert(labels==9 and inlays==3,'Expected three training inlays alongside six world signs')
 local amphitheatreSign
 for _,n in ipairs(nodes) do
@@ -429,6 +447,10 @@ try:
     subprocess.run(['luau', str(path)], cwd=R, check=True)
     if '--negative-controls' in sys.argv:
         for before, after, expected_error in (
+            ('{"CoastalWalk","Concrete",Color3.fromRGB(212,207,189)},', '', 'Coast paving lost its finish'),
+            ('"CoastDeckSurfaceDockMain",Vector3.new(-220,0.12,516),Vector3.new(32,0.04,156)',
+             '"CoastDeckSurfaceDockMain",Vector3.new(-220,0.12,507),Vector3.new(32,0.04,174)',
+             'Main deck overlaps paving or leaves a gap'),
             ('mark(p,trainingNames[id],Enum.NormalId.Top)', 'mark(p,trainingNames[id],Enum.NormalId.Front)',
              'Training inlay label is not on the top face'),
             ('NorthTrainingInlayRookie="ROOKIE"', 'NorthTrainingInlayRookie="BRAWLER"',
