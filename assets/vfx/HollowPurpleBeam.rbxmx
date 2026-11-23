@@ -275,7 +275,7 @@
         </Item>
         <Item class="Beam" referent="RBX_10">
           <Properties>
-            <string name="Name">Beam</string>
+            <string name="Name">CoreSpine</string>
             <Ref name="Attachment0">RBX_9</Ref>
             <Ref name="Attachment1">RBX_15</Ref>
             <float name="Brightness">10.0</float>
@@ -299,7 +299,7 @@
         </Item>
         <Item class="Beam" referent="RBX_11">
           <Properties>
-            <string name="Name">Beam</string>
+            <string name="Name">CoreFlow</string>
             <Ref name="Attachment0">RBX_9</Ref>
             <Ref name="Attachment1">RBX_15</Ref>
             <float name="Brightness">10.0</float>

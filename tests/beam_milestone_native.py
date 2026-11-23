@@ -3,9 +3,18 @@ Not a native rendering, asset-permission, voice transport or GPU test.
 """
 from pathlib import Path
 import subprocess,tempfile
+from xml.etree import ElementTree
 import beam_silhouette as support
 R=Path(__file__).resolve().parents[1]
 P=R/'src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau'
+hollow_asset=ElementTree.parse(R/'assets/vfx/HollowPurpleBeam.rbxmx')
+central=next(item for item in hollow_asset.iter('Item')
+             if item.findtext('Properties/string[@name="Name"]')=='Hollow Purple')
+roles={item.findtext('Properties/string[@name="Name"]'): item.findtext('Properties/Content[@name="Texture"]/url')
+       for item in central.iter('Item') if item.get('class')=='Beam'}
+assert {name: texture for name,texture in roles.items() if name.startswith('Core')} == {
+    'CoreSpine':'rbxassetid://107624017803706', 'CoreFlow':'rbxassetid://13135259077',
+}, roles
 ENV=r'''
 local objects={}
 local methods={}
@@ -37,8 +46,8 @@ local NumberRange={new=function(a,b)return {Min=a,Max=b or a}end}
 local ColorSequence={new=function(c)return {Keypoints={{Value=c}}}end}
 local authored=ColorSequence.new(Color3.fromRGB(130,54,204))
 local templates=make('Folder','VfxTemplates',workspace)
-local function beam(parent,width,core)
- local b=make('Beam','Filament',parent)
+local function beam(parent,width,name)
+ local b=make('Beam',name or 'Filament',parent)
  b.Width0=width;b.Width1=width*.6;b.CurveSize0=0;b.CurveSize1=0;b.LightEmission=.2;b.TextureSpeed=2
  b.Color=authored
  return b
@@ -58,8 +67,9 @@ local f=make('MeshPart','Beam',fire);beam(f,15);beam(f,8)
 for i=1,4 do emitter(f) end
 local hollow=make('Folder','HollowPurpleBeam',templates)
 local h=make('Part','Hollow Purple',hollow)
--- Actual selected XML width sequence (two tapered cores, three outer ribbons).
-for _,w in ipairs({2.2692313194,6.8076901436,6.8076901436,3.4038450718,13.6153802872})do beam(h,w)end
+-- A ribbon is first to exercise the engine's unspecified sibling order.
+beam(h,13.6153802872);beam(h,2.2692313194,'CoreSpine');beam(h,3.4038450718)
+beam(h,6.8076901436,'CoreFlow');beam(h,6.8076901436,'Beam1')
 for i=1,4 do emitter(h)end
 -- A side demo and unknown script must never become live Hollow Purple children.
 beam(make('Part','Amplified',hollow),99);make('Script','Untrusted',h)
@@ -90,7 +100,13 @@ for _,width in ipairs({1,7})do
     if i>5 then check(part.LocalTransparencyModifier==0,'native hides milestone decoration')end
    end
    for _,o in ipairs(v.root:GetDescendants())do check(not o:IsA('Script'),'script cloned')end
-   if level>=80 then check(#v.beams==5 and #v.emitters==4,'wrong hollow demo selected')end
+   if level>=80 then
+    check(#v.beams==5 and #v.emitters==4,'wrong hollow demo selected')
+    local cores={}
+    for _,entry in ipairs(v.beams)do if entry.isCore then cores[entry.inst.Name]=true end end
+    check(cores.CoreSpine and cores.CoreFlow and not cores.Filament and not cores.Beam1,
+     'Hollow Purple chose core layers by sibling order')
+   end
    local root=v.root
    local widths,sizes={},{}
    for i,entry in ipairs(v.beams)do widths[i]={entry.inst.Width0,entry.inst.Width1}end
@@ -234,6 +250,7 @@ def run(source):
  finally:path.unlink()
 s=P.read_text();result=run(s);assert result.returncode==0,result.stdout+result.stderr;print(result.stdout.strip())
 for old,new,message in [
+ ('source.Name=="CoreSpine" or source.Name=="CoreFlow"','#vfx.beams<2','Hollow Purple chose core layers by sibling order'),
  ('if i==1 or (i==2 and hasVfx) then','if i==1 or partKind[p]=="detail" or (i==2 and hasVfx) then','native hides milestone decoration'),
  ('wScale=width*.6*scale/widest','wScale=width*.6/widest','native milestone width lost'),
  ('local quiet=reduced or rig.reduced or contactReduced','local quiet=reduced or rig.reduced','quiet native retained dynamic parts'),
@@ -253,4 +270,4 @@ for old,new,message in [
 ]:
  assert old in s
  result=run(s.replace(old,new));assert result.returncode and message in result.stderr,result.stdout+result.stderr
-print('PASS 16 native-path negative controls (progression, scale, crowding, rate, tint and redundant writes)')
+print('PASS 17 native-path negative controls (core selection, progression, scale, crowding, rate, tint and redundant writes)')

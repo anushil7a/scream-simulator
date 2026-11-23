@@ -239,7 +239,7 @@ local function buildHollowPurpleVfx(template)
    local beam=source:Clone();beam:ClearAllChildren()
    beam.Attachment0=startAtt;beam.Attachment1=endAtt;beam.Parent=startAnchor
    -- Preserve width ratios, curves and emission from the reference.
-   trackBeam(vfx,beam,#vfx.beams<2)
+   trackBeam(vfx,beam,source.Name=="CoreSpine" or source.Name=="CoreFlow")
   elseif source:IsA("ParticleEmitter") and #vfx.emitters<4 then
    local emitter=source:Clone();emitter:ClearAllChildren();emitter.Parent=midAnchor
    trackEmitter(vfx,emitter,false,nil,12)
