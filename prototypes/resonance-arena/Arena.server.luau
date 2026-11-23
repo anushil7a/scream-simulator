@@ -113,10 +113,16 @@ local function portal(parent,name,position,title,body,action,travelTo,apron)
  box(parent,name.."Header",x,y+14,z,18.3,2,3,ink,true)
  box(parent,name.."Light",x,y+13.25,z-1.56,15,.24,.18,blue,false,neon)
  box(parent,name.."Threshold",x,y+.09,z-1,14,.1,1.1,blue,false,neon)
- local field=box(parent,name.."Field",x,y+6.5,z+.6,13.6,12.9,.13,blue,false,neon)
- field.Transparency=.77
+ -- The Hall return camera can sit behind this arch. Leave its opening clear.
+ if not apron then
+  local field=box(parent,name.."Field",x,y+6.5,z+.6,13.6,12.9,.13,blue,false,neon)
+  field.Transparency=.77
+ end
+ local waveY=apron and 14 or 6.5
+ local waveZ=apron and -1.62 or .48
+ local waveScale=apron and .15 or 1
  for i,height in ipairs({1.1,2.4,4.4,7.1,4.4,2.4,1.1}) do
-  box(parent,name.."Wave",x+(i-4)*1.12,y+6.5,z+.48,.32,height,.14,blue,false,neon)
+  box(parent,name.."Wave",x+(i-4)*1.12,y+waveY,z+waveZ,.32,height*waveScale,.14,blue,false,neon)
  end
  sign(parent,name.."Sign",x,y+17.6,z-1.55,29,5.8,title,body,blue)
  local anchor=box(parent,name.."PromptAnchor",x,y+3.2,z-3,1,1,1,ink,false)

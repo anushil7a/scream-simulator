@@ -45,6 +45,16 @@ local prompt=assert(world.Hall:FindFirstChild("TrainingPortal",true))
 local entry=Vector3.new(layout.HallEntry.x,3.8,layout.HallEntry.z)
 assert((entry-prompt.Parent.Position).Magnitude<prompt.MaxActivationDistance and layout.IsSafeApron(entry))
 floorAt(entry,"ArenaFloor")
+assert(not world.Hall:FindFirstChild("TrainingPortalField"), "Hall return camera still looks through a portal pane")
+local headerWaves=0
+for _,part in ipairs(world.Hall:GetChildren()) do
+ if part.Name=="TrainingPortalWave" then
+  assert(part.Position.Y-part.Size.Y/2>=13,"A Hall waveform bar still blocks the portal opening")
+  headerWaves+=1
+ end
+end
+assert(headerWaves==7 and world.TrainingPreview:FindFirstChild("ArenaPortalField"), "Portal art changed outside the Hall header")
+
 
 local markedSpawns=0
 local markedRoutes=0

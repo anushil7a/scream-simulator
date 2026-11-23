@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Clear the Hall return camera through the training arch
+
+- On `66a2338`, the actual practice-to-Hall prompt put the avatar at z54 in the protected apron. The normal camera settled near z66.074 and its line to the avatar crossed the cyan field and center waveform bar. The effect obscured the stationary avatar after arrival. Baseline: `build/hall_wayfinding_native/native-return-baseline.json` and `HallReturnBaselineExact.jpg`.
+- The Hall portal now has an open center, with its seven cyan equalizer bars on the header fascia. The cyan frame and threshold still identify the training portal. The safe boundary, collision, walkable route, prompt distance, facing, and both local destinations keep their existing values. The practice-side return portal keeps its original art.
+- Independent review passed. The Studio wayfinding fixture now checks the open Hall arch and the full header waveform, plus continued presence of the practice-side pane. The existing map and portal checks passed with their negative controls.
+- At 567 × 241 the exact native candidate returned to the same z54 position with the SAFE badge and the same camera at z66.074. The camera line crossed zero portal art parts, down from two. Scrolling out to z74.078 also left the view clear at 567 × 241 and at 750 × 323 in the phone emulator. Activating the prompt again from z54 returned to the local landing at z240. Candidate SHA-256: `400a32ce775112111a53c4b69f57f7b270acfad091a2454b0873e7af80664ad3`. Evidence: `build/hall_return_camera_native/native-return-candidate.json`. Both disposable Studio sessions closed and the prior emulator preset was restored. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and City and Hall Rojo builds.
+- The Hall portal still connects local areas within the guarded preview. Actual cross-place travel to City and progress handoff remain open, along with real voice, physical phones and live persistence. The City-first release order remains in the handoff.
+
 ## Put Hall training directions ahead of the HUD overlap
 
 - On `c7488ff`, the 567 × 241 desktop spawn at (-69,3.8,55) put the Map button over the right arrow and the end of the protection instruction. At 750 × 323 in the touch emulator the arrow was visible, while Test Tools partly covered the safety text in the owner fixture. The boards now lead with the direction arrow and **SAFE AT PORTAL**. The route and protected area retain their authored geometry.
