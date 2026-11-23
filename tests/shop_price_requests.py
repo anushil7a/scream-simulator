@@ -8,8 +8,8 @@ local HISTORICAL=HISTORICAL_FIXTURE
 local n=0;local function check(v,m)assert(v,m);n+=1 end
 local function fixture()
  local f={now=0,jobs={},buttons={},links={},sent=0,labels={},cards={}};local os={clock=function()return f.now end,time=function()return 100 end}
- local Catalog={Items={}};for i,key in ipairs({'Spectrum','XP','Coins','Movement','Encore','Afterimage','CityGlow','SignalDeck','CityCrest','PulseFrame','RouteLights','HarborBadge','SprintRibbon'})do table.insert(Catalog.Items,{key=key,id=i<=4 and 100+i or 0,suggestedPrice=i==5 and 79 or 99,kind=(i==1 or i>=4) and 'pass' or 'product'})end
- function Catalog.Get(key)for _,v in ipairs(Catalog.Items)do if v.key==key then return v end end end
+ local Catalog=require('../src/ReplicatedStorage/Shared/ShopCatalog')
+ for i,item in ipairs(Catalog.Items) do item.id=i<=4 and 100+i or 0 end
  for _,item in ipairs(Catalog.Items)do item.tag='tag';item.name=item.key;item.description='description';item.boost=item.key=='XP' and 'xp' or 'coins'end
  local Config={MovementPassId=104}
  local Marketplace={GetProductInfoAsync=function(_,id,kind)if f.sync then return f.sync end;local result=coroutine.yield();if result=='error'then error('mock unavailable')end;return result end}
@@ -146,6 +146,16 @@ for _,info in ipairs({{},true,{IsForSale=true},{IsForSale=true,PriceInRobux=-1},
 end
 f=fixture();b=f.draw(2,true,false);f.finish(1,{IsForSale=true,PriceInRobux=10});b.callback();check(b.Text=='TEST / UNAVAILABLE' and f.sent==0,'Unsavable snapshot purchase enabled')
 f=fixture();f.items[2].id=0;b=f.draw();check(#f.jobs==0 and b.Text=='COMING SOON','Disabled product queried')
+if not HISTORICAL then
+ local f=fixture()
+ f.config.MovementPassId=f.items[1].id
+ local spectrum=f.draw(1)
+ local movement=f.draw(4,false)
+ check(#f.jobs==0 and spectrum.Text=='COMING SOON' and not spectrum.Interactable
+  and movement.Text=='COMING SOON' and not movement.Interactable,'Conflicting pass obtained a price request')
+ spectrum.callback();movement.callback();check(f.sent==0,'Conflicting pass fired a client checkout request')
+ local product=f.draw(2,false);check(#f.jobs==1 and not product.Interactable,'Separate product checkout was affected by pass collision')
+end
 if visual.shop.CompactLandscape and visual.buttons[3].Name=="BuyEncore" then
  local f=fixture()
  f.render(false,false)
@@ -255,6 +265,9 @@ else:
   run(s.replace('owned=data.pulseFramePass','owned=data.routeLightsPass'),'Pulse Frame and Route Lights ownership were conflated')
   run(s.replace('rail.Interactable=false','rail.Interactable=true'),'Pulse trim captured beam input')
 
+  run(s.replace('local id=Catalog.OfferId(item,Config.MovementPassId)\n local configured=id~=nil',
+                'local id=item.key=="Movement" and Config.MovementPassId or item.id\n local configured=type(id)=="number" and id==id and id>0 and id<math.huge and id%1==0'),
+      'Conflicting pass obtained a price request')
   worker=s[s.index('local function fetchPrice('):s.index('local function updatePrice(')]
   assert all(word not in worker for word in ['view.','apply(','button','data.']), 'Worker captures GUI context'
   print('PASS source contract: worker has no GUI/apply/snapshot reference; not a GC proof')

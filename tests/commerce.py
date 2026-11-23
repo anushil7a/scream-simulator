@@ -31,7 +31,7 @@ local function fixture(seed)
   return result
  end}
  local services={MarketplaceService=market,Players={GetPlayerByUserId=function()return f.live end,PlayerRemoving={Connect=function(_,fn)f.removing=fn end}},RunService={IsStudio=function()return f.studio end},HttpService={GenerateGUID=function()f.guid+=1;return 'operation-'..f.guid end},DataStoreService={GetDataStore=function()return db end}}
- local Config={MovementPassId=0};local Entitlements={HasSpectrum=function()return false end,HasMovement=function()return false end,
+ local Config={MovementPassId=0};f.config=Config;local Entitlements={HasSpectrum=function()return false end,HasMovement=function()return false end,
   HasEncore=function()return f.encore==true end,HasAfterimage=function()return f.afterimage==true end,HasCityGlow=function()return f.cityglow==true end,
   HasSignalDeck=function()return f.signalDeck==true end,HasCityCrest=function()return f.cityCrest==true end,
   HasPulseFrame=function()return f.pulseFrame==true end,HasRouteLights=function()return f.routeLights==true end,
@@ -136,6 +136,24 @@ for _,entry in ipairs({{'Encore','encore',103,79},{'Afterimage','afterimage',104
  check(f.deliver('cosmetic',id)=='pending' and f.calls==0,'Cosmetic passed through boost receipt ledger')
  item.id=0
 end
+
+-- Fail closed on duplicate pass IDs without mixing the product namespace.
+do
+ local f=fixture()
+ local spectrum,encore,afterimage=Catalog.Get('Spectrum'),Catalog.Get('Encore'),Catalog.Get('Afterimage')
+ spectrum.id=901;f.config.MovementPassId=901;encore.id=902;afterimage.id=902
+ for _,key in ipairs({'Spectrum','Movement','Encore','Afterimage'})do
+  f.clock+=4;f.commerce.Prompt(f.player,key)
+ end
+ check(f.prompts==0,'Ambiguous game pass reached Roblox checkout')
+ check(f.calls==0,'Checking ambiguous game passes contacted persistence')
+ f.config.MovementPassId=0
+ spectrum.id=101 -- Numeric ID has meaning within the pass or product namespace.
+ f.clock+=4;f.commerce.Prompt(f.player,'Spectrum')
+ check(f.prompts==1 and f.passId==101,'Product ID incorrectly blocked independent game pass')
+ check(f.deliver('separate-kind',101)=='granted' and f.raw.ends.xp==1900,'Pass ID incorrectly blocked product receipt')
+ spectrum.id=0;encore.id=0;afterimage.id=0
+end
 print('PASS '..n..' actual commerce assertions with simulated atomic retries/time; no native or live services')
 """
 def run(code, expected=None):
@@ -159,6 +177,9 @@ if __name__=='__main__':
   run(code.replace('if not ok then return Enum.ProductPurchaseDecision.NotProcessedYet end','if false then return Enum.ProductPurchaseDecision.NotProcessedYet end'),'Precommit failure acknowledged')
   run(code.replace('elseif not success then cache[player]=nil end','elseif not success then end'),'Ambiguous failure retained an unconfirmed cache')
   run(code.replace('-- MUTATION_INSERT',"Ledger.Multiplier=function(d,kind,now)return d and d.ends and (d.ends[kind] or 0)>0 and 2 or 1 end"),'Independent expiry boundary failed')
+  run(code.replace('local id=Catalog.OfferId(item,Config.MovementPassId)',
+                   'local id=item.key=="Movement" and Config.MovementPassId or item.id; if id<=0 then id=nil end'),
+      'Ambiguous game pass reached Roblox checkout')
   run(code.replace('or item.key=="Encore" and Entitlements.HasEncore(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
   run(code.replace('or item.key=="Afterimage" and Entitlements.HasAfterimage(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')
   run(code.replace('or item.key=="CityGlow" and Entitlements.HasCityGlow(player)',''),'Confirmed cosmetic ownership prompted duplicate purchase')

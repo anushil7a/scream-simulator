@@ -78,14 +78,14 @@ function Commerce.Prompt(player,key)
  if not live(player) then return end
  local item=Catalog.Get(key)
  if not item or Run:IsStudio() or not allowed(player) then changed(player,"Purchases are unavailable in this session.",nil,true);return end
- local id=item.key=="Movement" and Config.MovementPassId or item.id
- if type(id)~="number" or id<=0 then changed(player,"This unlock is coming soon.",nil,true);return end
+ local id=Catalog.OfferId(item,Config.MovementPassId)
+ if not id then changed(player,"This unlock is coming soon.",nil,true);return end
  if os.clock()<(promptAt[player] or 0) then return end
  promptAt[player]=os.clock()+3
  if item.kind=="product" and not cache[player] then changed(player,"Loading your purchases. Please try again.",nil,true);task.spawn(Commerce.Load,player);return end
  if item.kind=="product" then
   local count=0;for _ in pairs(cache[player].receipts) do count+=1 end
-  if Catalog.Product(id)~=item or count>=Ledger.ReceiptLimit or math.max(os.time(),cache[player].ends[item.boost])>Ledger.MaxExpiry-Ledger.Duration then
+  if count>=Ledger.ReceiptLimit or math.max(os.time(),cache[player].ends[item.boost])>Ledger.MaxExpiry-Ledger.Duration then
    changed(player,"This purchase is currently unavailable.",nil,true);return
   end
  end

@@ -24,22 +24,22 @@ function Entitlements.Refresh(player)
  -- Each request supersedes older yielding work without permanently latching ownership.
  local identity={};refreshIdentity[player]=identity
  local function current() return player.Parent~=nil and refreshIdentity[player]==identity end
- local spectrumId=Catalog.Get("Spectrum").id
- if spectrumId>0 then
+ local spectrumId=Catalog.OfferId(Catalog.Get("Spectrum"),Config.MovementPassId)
+ if spectrumId then
   local success,result=pcall(Marketplace.UserOwnsGamePassAsync,Marketplace,player.UserId,spectrumId)
   if not current() then return false end
   if success then spectrum[player]=result==true end
  else spectrum[player]=false end
- local id=Config.MovementPassId
- if type(id)~="number" or id<=0 then owned[player]=false
+ local id=Catalog.OfferId(Catalog.Get("Movement"),Config.MovementPassId)
+ if not id then owned[player]=false
  else
   local success,result=pcall(Marketplace.UserOwnsGamePassAsync,Marketplace,player.UserId,id)
   if not current() then return false end
   if success then owned[player]=result==true end
  end
  for _,key in ipairs(cosmeticPasses) do
-  local passId=Catalog.Get(key).id
-  if passId>0 then
+  local passId=Catalog.OfferId(Catalog.Get(key),Config.MovementPassId)
+  if passId then
    local success,result=pcall(Marketplace.UserOwnsGamePassAsync,Marketplace,player.UserId,passId)
    if not current() then return false end
    if success then player:SetAttribute(key.."Pass",result==true) end
@@ -64,7 +64,7 @@ function Entitlements.CanUseMovement(player,position)
  return Entitlements.HasMovement(player) and not Config.InArena(position)
 end
 Marketplace.PromptGamePassPurchaseFinished:Connect(function(player,id,purchased)
- if id>0 and (id==Config.MovementPassId or id==Catalog.Get("Spectrum").id or id==Catalog.Get("Encore").id or id==Catalog.Get("Afterimage").id or id==Catalog.Get("CityGlow").id or id==Catalog.Get("SignalDeck").id or id==Catalog.Get("CityCrest").id or id==Catalog.Get("PulseFrame").id or id==Catalog.Get("RouteLights").id or id==Catalog.Get("HarborBadge").id or id==Catalog.Get("SprintRibbon").id) and purchased then task.spawn(Entitlements.Refresh,player) end
+ if purchased and Catalog.Pass(id,Config.MovementPassId) then task.spawn(Entitlements.Refresh,player) end
 end)
 Players.PlayerRemoving:Connect(function(player) departed[player]=true;refreshIdentity[player]=nil;owned[player]=nil;testOwned[player]=nil;spectrum[player]=nil end)
 return Entitlements

@@ -10,13 +10,15 @@ local function fixture(spectrumId,movementId,encoreId,afterimageId,cityGlowId,th
  local handlers={};local function event(name)return {Connect=function(_,fn)handlers[name]=fn end}end
  local f={calls={},studio=false};local ids={Spectrum=spectrumId,Encore=encoreId,Afterimage=afterimageId,CityGlow=cityGlowId}
  for key,id in pairs(themeIds or {})do ids[key]=id end
- local config={MovementPassId=movementId,InArena=function(pos)return pos=='arena'end,Get=function(key)return {id=ids[key] or 0}end}
+ local config={MovementPassId=movementId,InArena=function(pos)return pos=='arena'end}
+ local catalog=require('../src/ReplicatedStorage/Shared/ShopCatalog')
+ for _,item in ipairs(catalog.Items) do item.id=ids[item.key] or 0 end
  local services={Players={PlayerRemoving=event('remove')},RunService={IsStudio=function()return f.studio end}}
  services.MarketplaceService={PromptGamePassPurchaseFinished=event('purchase'),UserOwnsGamePassAsync=function(_,id,pass)
   table.insert(f.calls,{id,pass});local result=coroutine.yield();if result=='error'then error('mock ownership unavailable')end;return result
  end}
- local game={ReplicatedStorage={Shared={Config={}}},GetService=function(_,name)return services[name]end}
- local require=function()return config end;local task={spawn=function(fn,player)local co=coroutine.create(fn);f.spawned=co;assert(coroutine.resume(co,player));return co end}
+ local game={ReplicatedStorage={Shared={Config=config,ShopCatalog=catalog}},GetService=function(_,name)return services[name]end}
+ local require=function(module)return module end;local task={spawn=function(fn,player)local co=coroutine.create(fn);f.spawned=co;assert(coroutine.resume(co,player));return co end}
  local E=(function()
 '''
 checks=r'''
@@ -162,6 +164,18 @@ for i,key in ipairs({'SignalDeck','CityCrest','PulseFrame','RouteLights','Harbor
  local pending=f.start(p);f.remove(p);f.resume(pending,true)
  check(not has(p) and p[key..'Pass']==false,'Departure let a pending theme confirm')
 end
+-- Two kinds of pass-ID collision; an unrelated valid offer still refreshes.
+do
+ local f=fixture(11,11,22,22,55);local player={UserId=84,Parent={}}
+ local co=f.start(player)
+ check(#f.calls==1 and f.calls[1][2]==55,'Duplicate pass ID reached ownership API')
+ f.resume(co,true)
+ check(coroutine.status(co)=='dead' and f.E.HasCityGlow(player),'Unique pass failed alongside disabled conflicts')
+ check(not f.E.HasSpectrum(player) and not f.E.HasMovement(player),'Duplicate Spectrum/Movement granted benefits')
+ check(not f.E.HasEncore(player) and not f.E.HasAfterimage(player),'Duplicate cosmetics granted benefits')
+ f.purchase(player,11,true);f.purchase(player,22,true)
+ check(f.spawned==nil and #f.calls==1,'Ambiguous checkout result started ownership refresh')
+end
 print('PASS',n,'actual entitlement coroutine assertions; no live API, purchase or native replication')
 '''
 def run(source,error=None):
@@ -180,16 +194,19 @@ else:
   run(s.replace(guard,'-- omitted first fence',1),'Stale first response overwrote spectrum')
   at=s.index(guard,s.index(guard)+len(guard));run(s[:at]+s[at:].replace(guard,'-- omitted second fence',1),'Stale second response overwrote movement')
   at=s.rindex(guard);run(s[:at]+s[at:].replace(guard,'-- omitted cosmetic fence',1),'Stale Encore refresh changed cosmetics')
-  run(s.replace(' or id==Catalog.Get("CityGlow").id',''),'Glow checkout must recheck ownership without granting it')
-  for key in ('SignalDeck', 'CityCrest', 'PulseFrame', 'RouteLights', 'HarborBadge', 'SprintRibbon'):
-   run(s.replace(f' or id==Catalog.Get("{key}").id',''),'Theme checkout must recheck ownership without granting it')
+  lookup='Catalog.Pass(id,Config.MovementPassId)'
+  assert s.count(lookup)==1
+  run(s.replace(lookup,lookup+' and '+lookup+'.key~="CityGlow"'),'Glow checkout must recheck ownership without granting it')
+  run(s.replace('purchased and '+lookup, 'purchased and id>0'), 'Cancelled/unrelated event queried ownership')
+  run(s.replace('local spectrumId=Catalog.OfferId(Catalog.Get("Spectrum"),Config.MovementPassId)',
+                'local spectrumId=Catalog.Get("Spectrum").id>0 and Catalog.Get("Spectrum").id or nil'),'Duplicate pass ID reached ownership API')
   old='refreshIdentity[player]=nil;';assert s.count(old)==1;run(s.replace(old,''),'Departed cache repopulated')
   old='if not player.Parent or departed[player] then return false end';assert s.count(old)==1;run(s.replace(old,'if departed[player] then return false end'),'Detached player began ownership work')
   old='if success then owned[player]=result==true end';assert s.count(old)==1;run(s.replace(old,'if success and result then owned[player]=true end'),'Later legitimate revocation ignored')
 
   old='departed[player]=true;';assert s.count(old)==1;run(s.replace(old,''),'Queued departure refresh began work')
 
-  old='and purchased then';assert s.count(old)==1;run(s.replace(old,'then'),'Cancelled/unrelated event queried ownership')
+  old='if purchased and Catalog.Pass';assert s.count(old)==1;run(s.replace(old,'if Catalog.Pass'),'Cancelled/unrelated event queried ownership')
   old='owned[player]=nil;';assert s.count(old)==1;run(s.replace(old,''),'Departure retained confirmed movement')
-  old='and purchased then task.spawn(Entitlements.Refresh,player)';assert s.count(old)==1
-  run(s.replace(old,'and purchased then owned[player]=true;spectrum[player]=true;task.spawn(Entitlements.Refresh,player)'),'Purchase event granted before ownership response')
+  old='then task.spawn(Entitlements.Refresh,player)';assert s.count(old)==1
+  run(s.replace(old,'then owned[player]=true;spectrum[player]=true;task.spawn(Entitlements.Refresh,player)'),'Purchase event granted before ownership response')

@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Reject ambiguous paid offer IDs before checkout and granting perks
+
+- A disposable entitlement simulation configured Spectrum and Freerunner with one shared ID and two cosmetics with another. The old code trusted the same ownership result for each mapping and granted all four perks.
+- The shop, authoritative purchase prompt and ownership refresh now resolve IDs through the same catalog check. Conflicting offers cannot request prices, prompt checkout, or grant the affected benefits. It uses the Config override for Freerunner. An unaffected pass remains available, and equal numbers in the separate pass and product namespaces do not conflate receipts or ownership.
+- Focused checks passed 119 entitlement refresh, 95 commerce and 214 shop price assertions with targeted negative controls. They recreate the old trust paths against simulated ownership, prices and atomic receipts. The configured IDs remain zero. Owner-approved IDs, actual Roblox fulfillment and real-player voice/device tests remain release gates.
+- Exact zero-ID Studio smoke at 567 × 241 opened PASSES, kept all 13 offers disabled, and navigated to TIMED BOOSTS with the ordinary pointer. No module errors or purchase prompts were observed. An asset-type warning appeared separately. Evidence is in `build/disabled_pass_native/native-commerce-guard.json` (fixture SHA-256 `d230a1b5e03a4e76ebbabc47b8eabae373ee7bf6e974fd430363e82ee5eccbe3`). The disposable Studio session closed. Duplicate tests used mocks, since there are no configured IDs in this Studio build.
+
 ## Show Spectrum availability on the first shop screen
 
 - At 455 × 218 touch-emulated and 567 × 241 desktop pixels, opening PASSES showed the Spectrum promotion before either its disabled status or the Boosts shortcut. The buttons started 84 and 125 pixels below the respective scroll folds.

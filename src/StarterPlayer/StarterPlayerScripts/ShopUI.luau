@@ -94,8 +94,8 @@ function Shop.Tick()
  end
 end
 local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
- local id=item.key=="Movement" and Config.MovementPassId or item.id
- local configured=type(id)=="number" and id==id and id>0 and id<math.huge and id%1==0
+ local id=Catalog.OfferId(item,Config.MovementPassId)
+ local configured=id~=nil
  local text=owned and "OWNED" or not configured and "COMING SOON" or "CHECKING PRICE…"
  local available=false;local revision=generation
  local b
@@ -116,7 +116,6 @@ local function purchaseButton(item,parent,owned,data,ui,action,size,pos)
   b.BackgroundColor3=available and purchaseGreen or ink
  end
  -- Only the fixed catalog creates records; changing an ID invalidates old results.
- if Catalog.Get(item.key)~=item or type(id)~="number" or id~=id or id<=0 or id>=math.huge or id%1~=0 then apply(nil,false);return end
  local key=item.kind..":"..id;local record=prices[item.key]
  if not record or record.key~=key then record={itemKey=item.key,key=key};prices[item.key]=record end
  local view={record=record,id=id,kind=item.kind=="pass" and Enum.InfoType.GamePass or Enum.InfoType.Product,apply=apply}

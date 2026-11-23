@@ -29,7 +29,7 @@ Use the following suggested base prices when setting up approved products under 
 | Double XP | Repeatable product | 39 Robux | 30 minutes of double XP |
 | Double Coins | Repeatable product | 29 Robux | 30 minutes of double coins |
 
-Set IDs in [ShopCatalog](../src/ReplicatedStorage/Shared/ShopCatalog.luau) and set Freerunner in [Config](../src/ReplicatedStorage/Shared/Config.luau) via `MovementPassId`. Use unique IDs for each offer. Retain old developer product IDs for any receipts that can still arrive. A zero ID displays **COMING SOON** and disables checkout.
+Set IDs in [ShopCatalog](../src/ReplicatedStorage/Shared/ShopCatalog.luau) and set Freerunner in [Config](../src/ReplicatedStorage/Shared/Config.luau) via `MovementPassId`. Use a unique ID within each offer type. If two passes share an ID, both are disabled for pricing, checkout, and ownership refresh, including collisions with the Freerunner override. Ambiguous product IDs cannot be purchased or fulfilled until corrected. Retain old developer product IDs for any receipts that can still arrive. A zero ID displays **COMING SOON** and disables checkout.
 
 Before enabling sales, use an approved test experience to verify pass ownership, regional price display, a real purchase receipt, activation, leave/rejoin and unavailable-data retries. Local mocks do not verify Roblox payment delivery or real datastores. Products remain disabled in Studio, disposable fixtures, temporary profiles and developer test sessions.
 

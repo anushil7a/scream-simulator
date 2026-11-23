@@ -16,13 +16,30 @@ Catalog.Items={
  {key="SprintRibbon",name="SPRINT RIBBON",tag="PERMANENT PASS",description="Leave a short ribbon while sprinting in safe areas. Only you can see it.",kind="pass",id=0,suggestedPrice=69},
 }
 function Catalog.Get(key) for _,item in ipairs(Catalog.Items) do if item.key==key then return item end end end
-function Catalog.Product(id)
- if type(id)~="number" or id<=0 then return end
+local function effectiveId(item,movementPassId)
+ if item.key=="Movement" then return movementPassId end
+ return item.id
+end
+local function uniqueOffer(kind,id,movementPassId)
+ if type(id)~="number" or not (id>0 and id<2^53) or id%1~=0 then return end
  local found
  for _,item in ipairs(Catalog.Items) do
-  if item.kind=="product" and item.id==id then if found then return end;found=item end
+  if item.kind==kind and effectiveId(item,movementPassId)==id then
+   if found then return end
+   found=item
+  end
  end
  return found
+end
+function Catalog.Product(id)
+ return uniqueOffer("product",id)
+end
+function Catalog.Pass(id,movementPassId)
+ return uniqueOffer("pass",id,movementPassId)
+end
+function Catalog.OfferId(item,movementPassId)
+ local id=effectiveId(item,movementPassId)
+ if uniqueOffer(item.kind,id,movementPassId)==item then return id end
 end
 function Catalog.Hex(value)
  if type(value)~="string" or #value>7 then return end
