@@ -1,5 +1,15 @@
 # Scream Simulator development roadmap
 
+## Finish the departure save before admitting a fast rejoin
+
+- Simulated storage reproduced the audit's same-server race. An autosave held the per-user lock with 70 coins, and the final save carrying 91 coins and the rejoin both waited. After the autosave completed, resuming the rejoin first returned temporary progress while the departure save was still queued.
+- A final save now reserves the handoff on the exact bound session before waiting. A rejoin waits for either the reservation or the storage lock. Extra release calls and queued autosaves cannot overtake it. The final save enters the same token- and revision-fenced commit path, and the rejoin loads the saved 91 coins under a new writable binding. The old handle remains fenced.
+- The reservation clears if the final save reaches its deadline before it can write. Existing deadline, exact-token, confirmed fallback and ambiguous-response recovery paths remain in use. The reproduction covered a departure already queued behind another save. It cannot establish how Roblox orders an actual reconnect ahead of the initial departure callback.
+
+- Studio ran the exact old and new Profiles sources with the real ProfileLease module, isolated fake storage and explicit coroutine ordering. The old code failed the duplicate-release control and the direct rejoin-first control. The candidate passed all 31 checks. The disposable zero-ID place did not use a live DataStore and its Studio session was closed.
+- Independent review cleared the handoff ordering. Four focused controls detected bypassed detached-store guard, early rejoin, an overtaking autosave and duplicate release. Profile recovery, cross-server handoff and shutdown races continued to pass. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 Luau compilations and Rojo builds on unchanged inputs.
+- Next investigate the reported purchase-ledger shutdown race with isolated storage before changing shutdown behavior.
+
 ## Send HUD State when something changes
 
 - Exact native baseline `91bea48` delivered 11 State packets in 10.50 seconds while a fresh player stood idle. All 10 consecutive changes were the shop timestamp. Following an actual Garden watering and its two immediate feedback packets, another 10.52-second idle window delivered 19 packets, including 8 exact duplicates and 10 whose only change was the timestamp.

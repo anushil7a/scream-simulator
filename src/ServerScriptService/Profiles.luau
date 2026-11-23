@@ -135,7 +135,9 @@ end
 
 function Profiles.Load(userId, fromOtherPlace)
     if not store then return Profiles.Default(),false,"Saving is unavailable. This session uses temporary progress." end
-    while locks[userId] do task.wait(.05) end
+    while locks[userId] or (owned[userId] and owned[userId].releasing) do
+        task.wait(.05)
+    end
     local previous=owned[userId]
     if previous and not previous.pending then
         return Profiles.Default(),false,"Your previous session is still saving. Rejoin shortly."
@@ -231,13 +233,19 @@ function Profiles.Save(userId,data,release,deadline)
     if not store then return false,"unavailable" end
     local session=owned[userId]
     if not session or bindings[data]~=session then return false,"ownership" end
+    if release then
+        if session.releasing or session.pending then return false,"ownership" end
+        -- Reserve the handoff before waiting, regardless of which waiter wakes first.
+        session.releasing=true
+    end
     while locks[userId] do
         local remaining=deadline and deadline-os.clock()
-        if remaining and remaining<=0 then return false,"deadline" end
+        if remaining and remaining<=0 then break end
         task.wait(remaining and math.min(.05,remaining) or .05)
     end
+    if release then session.releasing=nil end
     if deadline and os.clock()>=deadline then return false,"deadline" end
-    if owned[userId]~=session or session.pending then return false,"ownership" end
+    if owned[userId]~=session or session.pending or session.releasing then return false,"ownership" end
     locks[userId]=true
     session.revision+=1
     local operation={snapshot=Profiles.Sanitize(data),release=release==true,revision=session.revision}
