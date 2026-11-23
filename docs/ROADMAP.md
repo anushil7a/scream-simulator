@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Verify three overlapping high-tier beams in the Hall
+
+- A guarded Hall fixture on `7a32ee1` ran four local Studio clients with staged positions, cameras and synthetic level-100 Gold beams. Three real sustained casts overlapped in each of two rounds. The level-100 defender moved from 480 to 193 HP in the close view and from 480 to 228 in the off-axis view. All three attackers recorded server damage, with no knockout.
+- The 567 × 299 defender view kept a fitted **Beam Hit You** warning during triple overlap and peaked at 12 parented procedural beam parts and zero imported beam roots in each round. The attackers peaked at 86–87 procedural parts and two or three imported roots per client. All peers returned to zero parented beam visuals after the casts.
+- The synchronized images were from attacker windows. The local rehearsal's unread arrival notice covered the center of those views. The defender trace records the HUD and render counts but does not establish avatar visibility. The initial harness failed because the observer referenced a renderer local outside its scope. A corrected observer recorded parented instances without changing gameplay.
+- The final trace and capture scope are in `build/hall_gold_overlap_native/native-result.json` and `native-visibility-scope.json`. Independent review verified the trace and capture roles. Focused contact, cleanup and readiness checks passed. The original and corrected disposable sessions closed. One computer ran all four clients. Real-device readability and performance remain open.
+
 ## Verify in-lane Hall dodge and isolate the multiplayer LB gate
 
 - In a guarded two-client Hall test from `48bbaec`, a clear scripted beam lowered the standing defender from 100 to 90 HP. The defender healed to 100 during setup for the next round.
