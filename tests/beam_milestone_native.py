@@ -138,7 +138,15 @@ for _,width in ipairs({1,7})do
     check(#r.parts==4,'quiet native retained dynamic parts')
     if mode[3]==0 then
      check(root.Parent==nil and r.parts[2].LocalTransparencyModifier<1,'Quiet comfort retained template glare or hid the shaft')
+     local first=r.parts[1]
+     if level>=80 then
+      check(first.LocalTransparencyModifier==0 and first.Material==Enum.Material.SmoothPlastic
+       and near(first.Size.X,1.15) and first.Color==color,'Quiet high-tier launch collar missing or emissive')
+     else
+      check(first.LocalTransparencyModifier==1,'Quiet starter or mid-tier shell became visible')
+     end
     else
+     check(r.parts[1].LocalTransparencyModifier==1,'Far LOD exposed a local-only collar')
      check(root.Parent==workspace,'Distance LOD lost its template')
      for _,entry in ipairs(v.beams)do check(entry.inst.TextureSpeed==0 and entry.inst.Enabled==entry.isCore,'distance template motion')end
      for _,entry in ipairs(v.emitters)do check(not entry.inst.Enabled,'distance particles')end
@@ -150,8 +158,12 @@ for _,width in ipairs({1,7})do
     check(near(first,r.parts[1].Size.Y),'quiet silhouette pulses')
     Visuals.Animate(r,r.born+1.5,Vector3.zero,false,true,false)
     check(r.vfx.root==root and root.Parent==workspace and #r.parts>4,'restore rebuild/leak')
+    check(r.parts[1].LocalTransparencyModifier==1,'Normal rendering retained the quiet collar opacity')
     for _,entry in ipairs(v.beams)do check(entry.inst.TextureSpeed==entry.baseTextureSpeed,'texture did not restore')end
    end
+   Visuals.Animate(r,r.born+1.6,vec(0,0,111),true,true,false)
+   check(root.Parent==nil and #r.parts==4 and r.parts[1].LocalTransparencyModifier==1,
+    'Past the detail distance, a quiet beam must not render the collar')
    for _,entry in ipairs(v.emitters)do
     check(not entry.inst.Enabled or entry.inst.Parent==v.midAnchor,'endpoint particle sphere returned')
    end
@@ -321,7 +333,7 @@ def run(source):
  try:return subprocess.run(['luau',str(path)],capture_output=True,text=True)
  finally:path.unlink()
 s=P.read_text();result=run(s);assert result.returncode==0,result.stdout+result.stderr;print(result.stdout.strip())
-for old,new,message in [
+controls=[
  ('if vfx and not spareVfx[vfx.styleId] then','if vfx and false then','Ended cast did not release a reusable detached root'),
  ('if vfx and not spareVfx[vfx.styleId] then','if vfx then','Idle template cap retained a second spare'),
  ('if speedChanged then em.Speed=','if rescale then em.Speed=','Moving endpoint left particle speed at the old travel distance'),
@@ -330,7 +342,11 @@ for old,new,message in [
  ('for _,entry in ipairs(vfx.emitters) do entry.inst:Clear() end','for _,entry in ipairs(vfx.emitters) do end','Ending a cast retained old particles'),
  ('for _,vfx in pairs(spareVfx) do vfx.root:Destroy() end','for _,vfx in pairs(spareVfx) do end','Clear left an idle imported root'),
  ('source.Name=="CoreSpine" or source.Name=="CoreFlow"','#vfx.beams<2','Hollow Purple chose core layers by sibling order'),
- ('if i==1 or (i==2 and hasVfx) then','if i==1 or partKind[p]=="detail" or (i==2 and hasVfx) then','native hides milestone decoration'),
+ ('elseif i==2 and hasVfx then','elseif partKind[p]=="detail" or (i==2 and hasVfx) then','native hides milestone decoration'),
+ ('p.LocalTransparencyModifier=quietCollar and 0 or 1','p.LocalTransparencyModifier=1','Quiet high-tier launch collar missing or emissive'),
+ ('local quietCollar=quiet and high and distance<=Style.FarDistance','local quietCollar=quiet','Quiet starter or mid-tier shell became visible'),
+ ('local quietCollar=quiet and high and distance<=Style.FarDistance','local quietCollar=quiet and high',
+  'Past the detail distance, a quiet beam must not render the collar'),
  ('wScale=width*.6*scale/widest','wScale=width*.6/widest','native milestone width lost'),
  ('local quiet=reduced or rig.reduced or contactReduced','local quiet=reduced or rig.reduced','quiet native retained dynamic parts'),
  ('b.TextureSpeed=far and 0 or entry.baseTextureSpeed','b.TextureSpeed=entry.baseTextureSpeed','distance template motion'),
@@ -346,7 +362,8 @@ for old,new,message in [
  ('p.Color=color;p.LocalTransparencyModifier=.2','p.Color=styleColor(styleSpec.primary,color);p.LocalTransparencyModifier=.2','Explicit tint did not reach pooled geometry'),
  ('if vfx.tint==tint then return end','if false then return end','Steady tint rewrote or reallocated template'),
  ('vfx.tint=tint','if vfx.tint and tint.R==1 then return end;vfx.tint=tint','Default yellow did not return across beam tiers'),
-]:
+]
+for old,new,message in controls:
  assert old in s
  result=run(s.replace(old,new));assert result.returncode and message in result.stderr,result.stdout+result.stderr
-print('PASS 24 native-path negative controls (steady geometry, travel speed, reuse, core selection, progression, scale, crowding, rate, tint and redundant writes)')
+print(f'PASS {len(controls)} native-path negative controls')

@@ -62,7 +62,7 @@ for _,level in ipairs({1,40,100})do
   radius=7*(.24+StyleSource.Tier(level)*.012)*StyleSource.WidthScale(level,true)
   Visuals.Animate(r,r.born+age,Vector3.zero,true)
   check(#r.parts==4 and r.parts[1].Material==Enum.Material.SmoothPlastic and near(r.parts[1].Size.Y,radius*.72)
-   and r.parts[1].Transparency==.83,'Reduced body changed')
+   and r.parts[1].Transparency==(level>=80 and .42 or .83) and near(r.parts[1].Size.X,level>=80 and 1.15 or 40),'Reduced body changed')
   check(near(r.parts[2].Size.Y,radius*.42) and r.parts[2].Material==Enum.Material.SmoothPlastic,'Reduced shaft retained a wide glow')
   check(near(r.parts[3].Size.Y,radius*.13) and r.parts[3].Material==Enum.Material.Neon
    and same(r.parts[3].Color,tint:Lerp(white,.35)) and r.parts[3].Transparency==.45,'Reduced spine changed')

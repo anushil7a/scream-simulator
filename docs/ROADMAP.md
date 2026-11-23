@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Distinguish nearby high-tier beams in reduced effects
+
+- Matched Studio staging at 455 × 218 pixels used the actual beam renderer and avatar proximity guard. Level 10, 50, and 100 quiet beams shared the same shape apart from width. The fourth pooled path was already allocated but hidden.
+- Quiet Lv80–100 beams within 110 studs now reuse that path as a matte collar in the player's beam color. In the matched Lv100 run, the visible collar started 0.70 studs from the origin and ended at 1.85 studs. The three other paths matched baseline, the quiet rig still used four slots, and the avatar and Bell Cascade rims stayed visible. Staging used yellow and did not exercise damage or human voice.
+- Focused renderer suites passed 800 silhouette checks, 5,243 tier geometry checks, and 7,466 builder/manager checks, with 44 negative controls across the three suites. Paired measurements and images are under `build/quiet_tiers_native`. The disposable Studio session closed and its emulator preset was restored.
+
 ## Stop rewriting static boss windup accents
 
 - The Conductor's 24 warning accents held identical transforms and 0.35 transparency for 90 sampled updates after initialization. The old renderer still issued 48 property assignments each update. The live caller applied the final opacity in the same callback as creation.

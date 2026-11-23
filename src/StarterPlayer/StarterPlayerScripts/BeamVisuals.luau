@@ -497,9 +497,16 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,su
   local pulse=(quiet or distance>Style.FarDistance) and 1 or 1+.035*math.sin(age*9)
   local detailed=not quiet and distance<=Style.FarDistance
   local high=tier>=8
+  local quietCollar=quiet and high and distance<=Style.FarDistance
   if quiet then
    -- A matte shaft and thin lit spine leave floor warnings readable.
-   line(rig,origin,finish,radius*.72,color,.83,Enum.Material.SmoothPlastic)
+   if quietCollar then
+    -- Use the normally hidden shell slot for a short, still cue at the caster.
+    local offset=math.min(length*.2,.7)
+    line(rig,origin+dir*offset,origin+dir*math.min(length,offset+1.15),radius*.72,color,.42,Enum.Material.SmoothPlastic)
+   else
+    line(rig,origin,finish,radius*.72,color,.83,Enum.Material.SmoothPlastic)
+   end
    line(rig,origin,finish,radius*.42,color,.48,Enum.Material.SmoothPlastic)
    line(rig,origin,finish,radius*.13,color:Lerp(white,.35),.45)
    line(rig,finish-dir*math.min(length,.12),finish,radius*.34,color,.78,Enum.Material.SmoothPlastic)
@@ -599,7 +606,9 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,su
    local hasVfx=not quiet and rig.vfx~=nil
    for i=1,rig.used do
     local p=rig.parts[i]
-    if i==1 or (i==2 and hasVfx) then
+    if i==1 then
+     p.LocalTransparencyModifier=quietCollar and 0 or 1
+    elseif i==2 and hasVfx then
      p.LocalTransparencyModifier=1
     elseif partKind[p]=="detail" then
      -- Native templates must not erase the ten-level lightning progression.
