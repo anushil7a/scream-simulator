@@ -247,7 +247,7 @@ print('PASS starter coin route, claim priority and no implicit spend or claim; m
 local function view(w,h)
  local viewport={X=w,Y=h}
  local UDim2={new=function(_,x,_,y)return {x=x,y=y}end,fromOffset=function(x,y)return {x=x,y=y}end}
- local modal,title,subtitle,menuScale,content,tabs={},{},{},{},{},{}
+ local modal,title,subtitle,menuScale,content,tabs={},{},{},{},{Size={X={Offset=-40}}},{}
  modal.Close={}
  local academy={tabIcons={},layoutTab=function()end}
 '''+menu_tabs+r'''

@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Keep the first Gear action fully reachable on narrow screens
+
+- Studio reproduced a clipped **GUIDE TO MAR** action at 455 × 218 usable touch-emulated pixels. The content window was 40 pixels high and clipped the bottom 10 pixels of the 44-pixel button. A pointer tested below the clip hit the menu instead of the action.
+- The narrow landscape menu now uses the sidebar. It fits two tab columns when there is enough height for three rows and three columns at shorter supported heights. Cards measure the scroller's current width, so resizing across the column change rebuilds wrapping and action positions. In a separate candidate Studio run at 455 × 218, the 154-pixel pane showed the full 44-pixel Gear button, the product text and six fitted tabs. A click four pixels above the button bottom activated the guide. Focused mocks also cover 448 × 150 and rebuilding on a width change.
+- One fresh temporary profile completed three Garden holds and six Beach pickups. The first Gear card showed **NEED 20 COINS** after Garden, opened Beach, and exposed **ACCEPT** then **GUIDE**. The route crossed the marked Garden PvP area and reached the beach without repositioning or a manual ramp recovery. Normal claims earned 130 coins. **GEAR READY** opened Gear, and **BUY & EQUIP** spent 100, equipped the Academy Megaphone and reported a 1.06 multiplier. This baseline-layout run could click the center of the partly clipped button. The game state and UI verified the purchase and bonus. Native evidence and screenshots are under `build/current_earned_gear_native`. Independent review, 13 menu negative controls, 198 local suites, 99 Luau compilations and the City and Hall builds passed.
+
 ## Keep the first Rookie win visible beside a notice
 
 - A fresh temporary level-1 profile used the Guide and walked its live route from Academy spawn into Rookie Training in 14.80 seconds. With staged power through the production beam controls, two casts earned the first knockout, 48 XP and five coins. The tracker recorded **1/3 fighters**. At 455 × 218 usable touch-emulated pixels, the adjacent **NOTICE** shortcut reduced the guide to 52 × 46 pixels and left it showing **CLEAR / Aim**, with the earned count missing.

@@ -23,7 +23,7 @@ local UDim2={new=function(xs,xo,ys,yo)return {X={Scale=xs or 0,Offset=xo or 0},Y
 local Vector2={new=function(x,y)return {X=x,Y=y}end,zero={X=0,Y=0}}
 local Color3={fromRGB=function(...)return {...}end};local Enum={Font={GothamMedium=1}}
 local gui={AbsoluteSize={X=390}};local micPanel={};local muted={};local gold={};local panel={}
-local content={children={},CanvasPosition={X=0,Y=0},AbsoluteCanvasSize={Y=1500},AbsoluteWindowSize={Y=400}}
+local content={Size={X={Offset=-40}},children={},CanvasPosition={X=0,Y=0},AbsoluteCanvasSize={Y=1500},AbsoluteWindowSize={Y=400}}
 function content:GetChildren()return self.children end
 local cards,labels,buttons={}, {}, {};local destructions=0
 local function card(height)

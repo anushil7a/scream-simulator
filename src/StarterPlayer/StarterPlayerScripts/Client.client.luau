@@ -1030,7 +1030,7 @@ local function card(height)
 end
 function academy.menuContentWidth()
  local width=math.min(720,gui.AbsoluteSize.X-24)
- return width-(academy.sidebarMenu and (width<468 and 208 or 220) or 40)
+ return width+content.Size.X.Offset
 end
 local function info(text,height) local width=math.max(1,academy.menuContentWidth()-36);local fit=TextService:GetTextSize(text,15,Enum.Font.GothamMedium,Vector2.new(width,10000)).Y+24;local c=card(math.max(height or 70,fit));label(c,text,UDim2.new(1,-28,1,-20),UDim2.fromOffset(14,10),15);return c end
 ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 end)
@@ -1286,7 +1286,7 @@ local function menuKey()
  elseif selected=="Settings" then fields={settings=data.settings,micStatus=mic.status,micEligible=mic.eligible,micPending=mic.checkPending}
  elseif selected=="Map" then fields={level=data.level,height=Config.ResonanceLayout and content.AbsoluteWindowSize.Y or nil,cityCrest=data.cityCrestPass}
  else fields={} end
- return selected..":"..gui.AbsoluteSize.X..":"..tostring(academy.sidebarMenu==true)..":"..game:GetService("HttpService"):JSONEncode(fields)
+ return selected..":"..gui.AbsoluteSize.X..":"..content.Size.X.Offset..":"..tostring(academy.sidebarMenu==true)..":"..game:GetService("HttpService"):JSONEncode(fields)
 end
 render=function()
  if selected=="Screams" then
@@ -1490,7 +1490,7 @@ render=function()
     or remaining>0 and shortfall or ("BUY & EQUIP\n"..item.price.." COINS")
    local c=card(sidebarGear and 96 or compactGear and 72 or narrow and 116 or 110)
    label(c,string.upper(item.name),UDim2.new(1,sidebarGear and -142 or narrow and -168 or -28,0,sidebarGear and 38 or compactGear and 20 or narrow and 44 or 28),
-    UDim2.fromOffset(sidebarGear and 12 or 15,6),sidebarGear and 14 or 16,gold)
+    UDim2.fromOffset(sidebarGear and 12 or 15,6),sidebarGear and (gui.AbsoluteSize.X<480 and 12 or 14) or 16,gold)
    local status=equipped and "Equipped · " or owned and "Owned · " or not canBuy and (item.price.." coins · ") or ""
    local detail=Config.Gear.BonusLabel(item).."\n"..status..data.coins.." coins in wallet"
    if starter and not canAct then
@@ -2164,11 +2164,11 @@ connectClient(Run.RenderStepped,function(dt)
  local columns=(width>=620 or shortLandscape and width>=500) and 6 or 3
  local rows=6/columns
  -- Keep the notice/title strip above both the tab grid and the scrolling cards.
- local sidebar=shortLandscape and width>=456 and viewport.Y>=150 and menuHeight-(tabY+rows*50+18)<88
+ local sidebar=shortLandscape and width>=424 and viewport.Y>=150 and menuHeight-(tabY+rows*50+18)<88
  local sidebarChanged=academy.sidebarMenu~=sidebar
  academy.sidebarMenu=sidebar
  if sidebar then
-  columns=3
+  columns=(width<456 and viewport.Y>=200) and 2 or 3
   modal.Size=UDim2.fromOffset(width,viewport.Y-12)
  end
  local tabWidth=sidebar and (width<468 and 56 or 60) or (width-40-(columns-1)*6)/columns
@@ -2177,13 +2177,14 @@ connectClient(Run.RenderStepped,function(dt)
   local b=tabs[name];b.Size=UDim2.fromOffset(tabWidth,44);b.Position=UDim2.fromOffset(tabLeft+((i-1)%columns)*(tabWidth+tabGap),tabY+math.floor((i-1)/columns)*50);b.TextSize=(width<620 or sidebar) and 12 or 14
   local decoration=academy.tabIcons[name];academy.layoutTab(b,decoration.icon,decoration.padding,tabWidth)
  end
+ local previousContentOffset=content.Size.X.Offset
  if sidebar then
   local contentLeft=tabLeft+columns*(tabWidth+tabGap)+4
   content.Position=UDim2.fromOffset(contentLeft,44);content.Size=UDim2.new(1,-contentLeft-12,1,-52)
  else
   content.Position=UDim2.fromOffset(20,tabY+rows*50+4);content.Size=UDim2.new(1,-40,1,-(tabY+rows*50+18))
  end
- if width~=lastLayoutWidth or sidebarChanged or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) or (Config.ResonanceLayout and selected=="Map" and layoutChanged) then
+ if width~=lastLayoutWidth or sidebarChanged or content.Size.X.Offset~=previousContentOffset or (selected=="Shop" and ShopUI.CompactLandscape(viewport.X,viewport.Y)~=academy.shopCompactLandscape) or (Config.ResonanceLayout and selected=="Map" and layoutChanged) then
   lastLayoutWidth=width
   academy.shopCompactLandscape=ShopUI.CompactLandscape(viewport.X,viewport.Y)
   if modal.Visible then render() end

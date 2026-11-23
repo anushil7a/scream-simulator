@@ -7,9 +7,9 @@ def build(c):
  helpers=c[c.index('local academy={}'):c.index('local top=frame(')]
  a=c.index('academy.menuTabs=')
  register=c[a:c.index('local conversationNPC',a)]
- a=c.index(' local columns=', c.index(' local tabY='));layout=c[a:c.index(' if width~=lastLayoutWidth',a)]
+ a=c.index(' local columns=', c.index(' local tabY='));layout=c[a:c.index(' -- Keep desktop controls compact',a)]
  selection=next(x for x in c.splitlines() if 'for name,b in pairs(tabs) do b.BackgroundColor3=' in x)
- return SETUP+helpers+'\n'+register+'\nlocal function layout(width,shortLandscape,height) local viewport={Y=height or 650};local tabY=height and 44 or 88;local menuHeight=viewport.Y-16;modal.Size=UDim2.fromOffset(width,menuHeight)\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+CHECKS
+ return SETUP+helpers+'\n'+register+'\nlocal function layout(width,shortLandscape,height) local viewport={Y=height or 650};local tabY=height and 44 or 88;local menuHeight=viewport.Y-16;local layoutChanged=true;modal.Size=UDim2.fromOffset(width,menuHeight)\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+CHECKS
 SETUP=r'''
 local made={};local Instance={new=function(class)local o={ClassName=class,PaddingLeft={Scale=0,Offset=0},PaddingRight={Scale=0,Offset=0}};table.insert(made,o);return o end}
 local UDim={new=function(s,o)return {Scale=s,Offset=o}end}
@@ -20,7 +20,8 @@ local ColorSequence={new=function(a,b)return {a,b}end}
 local Enum={ApplyStrokeMode={Border='Border'},TextXAlignment={Right='Right',Center='Center',Left='Left'}}
 local metrics=1;local TextService={GetTextSize=function(_,text,size,font,bounds)return {X=#text*size*.55*metrics,Y=size}end}
 local gold='gold';local muted='muted';local panel='panel';local white='white'
-local Config={};local modal={Visible=true};local content={};local tabs={};local selected='Shop';local clientDestroyed=false;local renders=0
+local Config={};local modal={Visible=true};local content={Size=UDim2.new(1,-40,1,-148)};
+local ShopUI={CompactLandscape=function()return false end};local lastLayoutWidth=0;local tabs={};local selected='Shop';local clientDestroyed=false;local renders=0
 local function render()renders+=1 end
 local function toggleTab(name)selected=name;render() end
 local function button(parent,name,text,size,pos,callback)
@@ -92,6 +93,25 @@ for _,name in ipairs(names) do
  local tab=tabs[name]
  check(tab.Size.X.Offset>=44 and tab.Position.X.Offset+tab.Size.X.Offset<=content.Position.X.Offset-8,'Narrow sidebar tabs overlap cards')
 end
+layout(431,true,218)
+check(academy.sidebarMenu and content.Position.Y.Offset==44 and modal.Size.Y.Offset+content.Size.Y.Offset==154,
+ 'Narrow landscape clips the first gear action')
+check(content.Position.X.Offset==136 and content.Size.X.Offset==-148,
+ 'Narrow landscape failed to make room for card labels')
+for _,name in ipairs(names) do
+ local tab=tabs[name];local x,y,w,h=tab.Position.X.Offset,tab.Position.Y.Offset,tab.Size.X.Offset,tab.Size.Y.Offset
+ check(y>=44 and y+h<=modal.Size.Y.Offset and x+w<=content.Position.X.Offset-8 and w>=44 and h==44,
+  'Narrow landscape tabs overlap content or header')
+end
+selected='Quests'
+local layoutRenders=renders
+layout(431,true,199)
+check(renders==layoutRenders+1 and content.Size.X.Offset==-208,'Narrow sidebar failed to reflow cards on height change')
+layout(431,true,198)
+check(renders==layoutRenders+1,'Narrow sidebar rerendered without a change in card width')
+layout(424,true,150)
+check(academy.sidebarMenu and content.Position.X.Offset==196 and modal.Size.Y.Offset+content.Size.Y.Offset==86,
+ 'Shortest supported menu clips the first gear action')
 layout(543,true,244)
 check(not academy.sidebarMenu and content.Position.X.Offset==20 and tabs.Settings.Position.Y.Offset==tabs.Style.Position.Y.Offset,'Normal menu did not restore at usable height')
 check(#made==allocated,'Layout allocated new icons')
@@ -109,6 +129,14 @@ if __name__=='__main__':
 
  if '--negative-controls' in sys.argv:
   cases=[('shape("EmitterInk",2,5,6,11,ink,-18,2)','shape("EmitterInk",1,5,6,11,ink,-18,2)','Rotated glyph outside slot'),('icon.Visible=fits','icon.Visible=false','Incorrect fit fallback'),('padding.PaddingRight=UDim.new(0,fits and (width-total)/2 or 0)','padding.PaddingRight=UDim.new(0,0)','Icon/text group outside padded bounds'),('name=="Screams" and "BEAMS"','name=="Screams" and "WRONG"','Tab label changed'),('academy.tabIcon(tabs[name],name)','academy.tabIcon(tabs[name],"Shop")','Duplicate semantic silhouette'),('icon.Interactable=false','icon.Interactable=true','Icon intercepts input'),(' local fits=width>=total+16',' local fits=width>=total+16;Instance.new("Frame")','Layout allocated new icons'),('shortLandscape and width>=500','shortLandscape and width>=620','Wrong compact tab row count'),('local sidebar=shortLandscape and','local sidebar=false and shortLandscape and','Short menu leaves no gear viewport'),('local contentLeft=tabLeft+columns*(tabWidth+tabGap)+4','local contentLeft=tabLeft+columns*(tabWidth+tabGap)','Short menu leaves no gear viewport')]
+  cases.extend([
+   ('shortLandscape and width>=424 and viewport.Y>=150',
+    'shortLandscape and width>=456 and viewport.Y>=150','Narrow landscape clips the first gear action'),
+   ('columns=(width<456 and viewport.Y>=200) and 2 or 3',
+    'columns=3','Narrow landscape failed to make room for card labels'),
+   (' or content.Size.X.Offset~=previousContentOffset','',
+    'Narrow sidebar failed to reflow cards on height change'),
+  ])
   for old,new,message in cases:
    assert old in source,old
    out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stdout,out.stderr)

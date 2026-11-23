@@ -38,6 +38,7 @@ local academy={
  selectGuide=function(kind,id)table.insert(routes,{kind,id})end,
 }
 local data,narrow;local title,subtitle={},{};local gui={AbsoluteSize={X=390}};local gold,muted={},{}
+local content={Size={X={Offset=-40}}}
 MENU_CONTENT_WIDTH
 local messages,buttons,calls,cards,order={},{},{},{},{}
 local function info(text)table.insert(messages,text);table.insert(order,{kind="info",text=text})end

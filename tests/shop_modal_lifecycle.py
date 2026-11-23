@@ -42,7 +42,7 @@ def assemble(c):
  context=r'''
 local ShopUI=m.shop;local selected='Shop';local render;local closeMenu;local clientDestroyed=false;local clientConnections={};local button=ui.button
 local modal={Visible=false};local gui={AbsoluteSize={X=720,Y=720},Destroy=function()f.destroyed=true end}
-local content={CanvasPosition={X=0,Y=40},AbsoluteCanvasSize={Y=600},AbsoluteWindowSize={Y=200},GetChildren=function()return {}end}
+local content={Size={X={Offset=-40}},CanvasPosition={X=0,Y=40},AbsoluteCanvasSize={Y=600},AbsoluteWindowSize={Y=200},GetChildren=function()return {}end}
 
 -- Passive tab decoration is exercised by menu_icons.py; retain real tab callbacks here.
 local academy={tabIcons={},tabIcon=function()return {},{} end,refreshTestLauncher=function()end,canShowTestLauncher=function()return not clientDestroyed and not modal.Visible end,gearUpgrade=function()return nil end}
