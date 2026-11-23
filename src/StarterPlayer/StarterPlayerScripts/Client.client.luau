@@ -1421,8 +1421,11 @@ render=function()
     if switching then description..="\n\nReplaces "..current.name..". Unfinished progress resets." end
     if restarting then description..="\n\nRestarting resets this unfinished progress." end
     if not available then description..="\n\nTo unlock: meet "..(q.giver or "a resident").." and use Talk." end
-    local focusedStart=q.id==academy.menuQuestFocus and q~=current and available and not v.claimed and v.progress<q.goal
-    local headerAction=narrow and focusedStart
+    local focused=q.id==academy.menuQuestFocus
+    local focusedStart=focused and q~=current and available and not v.claimed and v.progress<q.goal
+    local canGuide=not focusedStart and academy.NavigationCatalog.Resolve("quest",q.id,data)~=nil
+    local headerGuide=narrow and focused and q==current and canGuide
+    local headerAction=headerGuide or narrow and focusedStart
     local contentWidth=academy.menuContentWidth()-8
     local nameMargin=narrow and not headerAction and 28 or 158
     local textWidth=math.max(1,contentWidth-(narrow and 28 or 158))
@@ -1431,7 +1434,6 @@ render=function()
     local descriptionY=math.max(12+nameHeight,headerAction and 56 or 0)
     local rewardY=descriptionY+descriptionHeight+5
     local actionY=headerAction and 6 or narrow and rewardY+34 or 32
-    local canGuide=not focusedStart and academy.NavigationCatalog.Resolve("quest",q.id,data)~=nil
     local guideToMar=not available and (q.id=="garden" or q.id=="beach") and academy.NavigationCatalog.Resolve("place","gardens",data)~=nil
     local height=math.max(canGuide and 164 or 150,rewardY+35)
     if narrow then
@@ -1442,12 +1444,14 @@ render=function()
     label(c,q.name,UDim2.new(1,narrow and -nameMargin or -150,0,nameHeight),UDim2.fromOffset(14,8),17,gold)
     label(c,description,UDim2.new(1,narrow and -28 or -158,0,descriptionHeight),UDim2.fromOffset(14,descriptionY),13)
     label(c,v.progress.." / "..q.goal.."   •   +"..q.xp.." XP   •   +"..q.coins.." coins",UDim2.new(1,-28,0,30),UDim2.fromOffset(14,rewardY),12,muted)
-    button(c,q.id,guideToMar and "GUIDE TO MAR" or not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "ACTIVE" or switching and "SWITCH" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,(switching or focusedStart) and 44 or (guideToMar and 44 or 38)),UDim2.new(1,-130,0,actionY),function()
-     if guideToMar then academy.selectGuide("mar","gardens");closeMenu();return end
-     if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
-    end)
+    if not headerGuide then
+     button(c,q.id,guideToMar and "GUIDE TO MAR" or not available and "MEET NPC" or v.claimed and "CLAIMED" or v.progress>=q.goal and "CLAIM" or data.activeQuest==q.id and "ACTIVE" or switching and "SWITCH" or restarting and "RESTART" or "ACCEPT",UDim2.fromOffset(116,(switching or focusedStart) and 44 or (guideToMar and 44 or 38)),UDim2.new(1,-130,0,actionY),function()
+      if guideToMar then academy.selectGuide("mar","gardens");closeMenu();return end
+      if available and not v.claimed and (v.progress>=q.goal or data.activeQuest~=q.id) then action:FireServer(v.progress>=q.goal and "ClaimQuest" or "AcceptQuest",q.id) end
+     end)
+    end
     if canGuide then
-     button(c,"Guide_"..q.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,actionY+46),function()
+     button(c,"Guide_"..q.id,"GUIDE",UDim2.fromOffset(116,44),UDim2.new(1,-130,0,headerGuide and actionY or actionY+46),function()
       academy.selectGuide("quest",q.id);closeMenu()
      end)
     end

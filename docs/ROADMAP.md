@@ -1,5 +1,15 @@
 # Scream Simulator development roadmap
 
+## Keep the Beach Guide visible after accepting the quest
+
+- The actual quest renderer placed the Gear-focused Beach **ACCEPT** button at Y=6. After the server confirmed the quest, the separate **GUIDE** button moved down to Y=190–234, below the short menu's initial scroll window. The previous check verified that the button existed. The new regression fails on its out-of-view position in the baseline.
+- The continuous compact Studio replay confirmed the same defect after earning 80 coins from Garden. With the native menu at scroll position zero and a content area from Y=106 to Y=219, **ACCEPT** occupied Y=112–156. The rendered **GUIDE** moved to Y=278–322 after the native click.
+- The same fresh profile completed the entire compact earning route in one disposable Studio session. Continuous scripted walking reached Mar, all three Garden beds and six Beach bottles. Normal Talk, prompt holds and Claim credited 80 and 50 coins. The 74.61-second Beach approach from the Guide click passed the coast ramp without the earlier recovery maneuver. At level 3, the real **BUY & EQUIP** button spent 100 of the 130 earned coins. The server acknowledged the Academy Megaphone and the menu changed to **UNEQUIP** with 30 coins left. No teleport, currency grant, live service, physical phone or real microphone was used. Local capture: `build/academy_earned_compact/AcademyMegaphoneEarnedEquipped.jpg`.
+- A narrow focused quest now keeps the 44-pixel action in the same header slot, switching from **ACCEPT** to **GUIDE** once the active quest has a destination. A separate tap or click still selects the route. Completed quests and the ordinary quest list retain their actions.
+- At 567 × 241 usable pixels, a separate candidate fixture staged the exact pre-Beach profile state to isolate the handoff. Native **ACCEPT** and **GUIDE** both fit at (397,112) with size 116 × 44, and the guide click at the same coordinates produced the actual 0/6 quest tracker and breadcrumbs without scrolling. Candidate SHA-256: `cf717931f983b8afa0908db4ee76765341759c7c905f4ba303ec9894a9243b2f`. Local capture: `build/first_gear_compact_native/BeachCandidateAfterAccept.jpg`.
+- Independent review and the quest renderer passed 1,822 assertions and 28 negative controls. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and Rojo builds on unchanged verification inputs.
+- Next compare how quickly a fresh player gets clear feedback and a useful reward on the current Rookie-first and quest-first openings. Treat the scripted walk time as route evidence and keep unassisted discovery on a physical device separate.
+
 ## Keep the Beams arming notice from covering the spar
 
 - At 567 × 241 usable pixels, the old arming copy needed 68 pixels for its text body and 96 pixels of scrolling canvas in a 65-pixel panel. Its unread scroll rule kept it over Rookie's health during the first spar until the player scrolled.

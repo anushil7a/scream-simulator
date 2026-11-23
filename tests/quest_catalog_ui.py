@@ -168,6 +168,10 @@ for _,isNarrow in ipairs({false,true})do
  value.activeQuest='beach';value.questNavigation.beach.label='Hold to pick up bottle'
  renderChecked(value,isNarrow)
  check(buttons.Guide_beach~=nil,'Focused Beach did not show its guide after acceptance')
+ if isNarrow then
+  check(buttons.Guide_beach.pos[4]<=10 and buttons.Guide_beach.height==44,'Focused active guide fell below the compact card header')
+  check(not buttons.beach,'Compact guide kept a redundant Active control')
+ end
  local routesBefore=#routes;buttons.Guide_beach.call()
  check(#routes==routesBefore+1 and routes[#routes][1]=='quest' and routes[#routes][2]=='beach','Active focused Beach guide selected the wrong route')
  academy.menuQuestFocus=nil;value.activeQuest=nil;value.questNavigation.beach.label='Talk to Mar Soler'
@@ -330,6 +334,8 @@ check(garden:find(Config.GetQuest('garden').description,1,true) and beach:find(C
    run(code.replace('local actionY=headerAction and 6 or narrow and rewardY+34 or 32',
                     'local actionY=narrow and rewardY+34 or 32'),
        'Gear-focused acceptance starts below the compact card header')
+   run(code.replace('headerGuide and actionY or actionY+46','actionY+46'),
+       'Focused active guide fell below the compact card header')
    run(code.replace(' and not (academy.sidebarMenu and q==reward)', ''),'Compact quest focus pushed the matching reward below the fold')
    run(code.replace('local function render(value,isNarrow)','table.insert(Config.Progression.Challenges,{id="cover",name="Destroy 5 eligible cover objects",goal=5})\nlocal function render(value,isNarrow)'),'Retired challenge displayed')
    run(code.replace('if q.hidden and not available then continue end','if false then continue end'),'Hidden city quest exposed before discovery')
