@@ -748,10 +748,10 @@ do
  academy.staminaFill=fill
 end
 function academy.layoutActions(viewport,touch,shortLandscape)
- local compact=touch and shortLandscape and viewport.X>=480 and viewport.Y>=150
+ local compact=touch and shortLandscape and viewport.X>=448 and viewport.Y>=150
  -- Short safe areas need a column beside Jump; an extra row above it gets clipped.
  local stacked=compact and viewport.Y<239
- local width=stacked and 140 or compact and 196 or 260
+ local width=stacked and math.min(140,viewport.X-346) or compact and math.min(196,viewport.X-264) or 260
  local height=touch and 44 or 32
  local dodgeWidth=stacked and width or compact and 84 or 108
  local sprintWidth=stacked and width or width-dodgeWidth-8
@@ -759,6 +759,7 @@ function academy.layoutActions(viewport,touch,shortLandscape)
   or UDim2.new(1,-width-14,1,touch and -195 or -102)
  controls.Size=UDim2.fromOffset(width,stacked and 144 or touch and 96 or 88)
  castButton.Size=UDim2.fromOffset(width,44)
+ castButton.TextWrapped=stacked and width<140
  local mark=castButton:FindFirstChild("AcademyIcon_voice")
  if mark then mark.Visible=sustainedControl~=nil and not stacked end
  dodgeButton.Position=UDim2.fromOffset(0,stacked and 50 or 52)

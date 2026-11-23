@@ -153,11 +153,12 @@ end
 local function overlaps(a,b)
  return a.x<b.x+b.w and b.x<a.x+a.w and a.y<b.y+b.h and b.y<a.y+a.h
 end
-for _,size in ipairs({{480,150},{491,162},{492,150},{509,162},{509,204},{509,205},{509,220},{566,238},{566,239},{566,244},{620,259},{620,298},{666,374},{390,700}}) do
+for _,size in ipairs({{448,150},{455,204},{455,205},{455,218},{479,238},{448,239},{455,260},{480,150},{491,162},{492,150},{509,162},{509,204},{509,205},{509,220},{566,238},{566,239},{566,244},{620,259},{620,298},{666,374},{390,700}}) do
  local width,height=table.unpack(size)
  local root={x=0,y=0,w=width,h=height}
  local controls,cast,dodge,sprint,test,stacked,glyph,talk=current.actions(width,height,true)
  local cluster=relative(controls,root)
+ local wrapped=cast.TextWrapped
  cast,dodge,sprint,test=relative(cast,cluster),relative(dodge,cluster),relative(sprint,cluster),relative(test,root)
  check(stacked==(height<239) and glyph.Visible==not stacked,'Short touch action mode or glyph did not restore')
  local typicalJump={x=width-95,y=height-90,w=70,h=70}
@@ -171,15 +172,23 @@ for _,size in ipairs({{480,150},{491,162},{492,150},{509,162},{509,204},{509,205
   check(item.x>=0 and item.y>=0 and item.x+item.w<=width and item.y+item.h<=height and item.h==44 and item.w>=44,'Touch action clipped or undersized')
   check(not overlaps(item,typicalJump),'Touch actions overlap the sampled Jump rectangle')
   check(not overlaps(item,test),'Test Tools overlaps a combat control')
+  if width<480 and height<300 then
+   check(not overlaps(item,{x=14,y=49,w=190,h=14}),'Narrow touch controls cover the PvP badge')
+   check(not overlaps(item,{x=14,y=64,w=218,h=78}),'Narrow touch controls cover the status card')
+   if not stacked then
+    check(not overlaps(item,{x=164,y=2,w=78,h=46}),'Narrow Beams overlaps the notice or reward launcher')
+   end
+  end
   if stacked and height>=205 then
    check(not overlaps(item,guide),'Stack overlaps the training guide')
   end
   if stacked then check(not overlaps(item,talk),'Stack overlaps the compact TALK button') end
  end
  check(not overlaps(cast,dodge) and not overlaps(cast,sprint) and not overlaps(dodge,sprint),'Touch combat buttons overlap')
- check(cluster.w==(stacked and 140 or height<300 and 196 or 260),'Compact touch controls occupy the ordinary combat width')
+ check((wrapped==true)==(stacked and cluster.w<140),'Narrow Beams button lost text wrapping')
+ check(cluster.w==(stacked and math.min(140,width-346) or height<300 and math.min(196,width-264) or 260),'Compact touch controls occupy the ordinary combat width')
 end
-for _,size in ipairs({{479,162},{510,149}}) do
+for _,size in ipairs({{447,162},{510,149}}) do
  local controls,_,_,_,_,stacked=current.actions(size[1],size[2],true)
  check(not stacked and controls.Size.X.Offset==260,'Compact layout was forced below its supported dimensions')
 end
@@ -335,7 +344,10 @@ def main():
             ('xpScale.Parent=xpText', 'xpScale.Parent=hud', 'XP warning text size constraint missing or misbounded'),
             ('academy.layoutStatusCard(touch and shortLandscape,compactDesktop and math.min(218,viewport.X-296) or nil)', 'academy.layoutStatusCard(false,compactDesktop and math.min(218,viewport.X-296) or nil)', 'Short touch card retained full footprint'),
             ('stacked and UDim2.new(1,-width-106,0,6)', 'stacked and UDim2.new(1,-width-106,1,-195)', 'Touch action clipped or undersized'),
-            (' and viewport.X>=480 and viewport.Y>=150', '', 'Compact layout was forced below its supported dimensions'),
+            (' and viewport.X>=448 and viewport.Y>=150', '', 'Compact layout was forced below its supported dimensions'),
+            ('math.min(140,viewport.X-346)', '140', 'Narrow touch controls cover the PvP badge'),
+            ('math.min(196,viewport.X-264)', '196', 'Narrow Beams overlaps the notice or reward launcher'),
+            ('castButton.TextWrapped=stacked and width<140', 'castButton.TextWrapped=false', 'Narrow Beams button lost text wrapping'),
             ('stacked and UDim2.new(1,-width-106,0,6)', 'stacked and UDim2.new(1,-width-106,0,math.max(0,viewport.Y-156))', 'Stack overlaps the training guide'),
             ('or UDim2.new(1,-98,0,50)', 'or UDim2.new(1,-246,0,50)', 'Stack overlaps the compact TALK button'),
             ('UDim2.new(1,-102,0,0)', 'UDim2.new(1,-102,0,60)', 'Compact TALK has no safe target'),

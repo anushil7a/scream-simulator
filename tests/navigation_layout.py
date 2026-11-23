@@ -207,6 +207,10 @@ check(top.Position.x+questsToggle.Position.x+questsToggle.Size.x<492-246,'Compac
 academy.layoutObjectiveNav({X=480,Y=150},true,true)
 check(questsToggle.Size.x>=44 and questsToggle.Size.y>=44 and top.Position.x+questsToggle.Position.x+questsToggle.Size.x<480-246,
  'Narrow navigation overlaps the action stack or loses its touch target')
+academy.layoutObjectiveNav({X=448,Y=150},true,true)
+check(top.Position.x+questsToggle.Position.x+questsToggle.Size.x<=232
+ and top.Position.x+b.Position.x+b.Size.x<=232,'Narrow touch navigation crosses the left rail')
+
 
 refresh(true);check(b.Visible and b.Text=='ROOKIE GUIDE\n1/3 fighters','Compact idle objective lost the first-spar goal')
 b.Activated();refresh(true)
