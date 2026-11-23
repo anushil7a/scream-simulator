@@ -316,7 +316,8 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,dista
  end
  local far=distance>Style.FarDistance
  local showSecondary=not far and not suppressSecondary
- local scale=Style.WidthScale(rig.level,far)
+ local crowded=not far and suppressSecondary
+ local scale=Style.WidthScale(rig.level,far or crowded)
  -- Normalize against the actual selected recipe, not a guessed pack width.
  -- Family switches at 40/80 must not shrink a newly earned milestone.
  local widest=.001
@@ -324,6 +325,8 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,dista
   if not far or entry.isCore then widest=math.max(widest,entry.baseW0,entry.baseW1) end
  end
  wScale=width*.6*scale/widest
+ -- Keep the imported shafts distinct without flooding a shared target with glow.
+ if crowded then wScale*=.55 end
  pScale*=math.min(scale,1.5)
  local bucket=wScale
  local rescale=vfx.lastBucket~=bucket

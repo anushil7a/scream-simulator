@@ -97,10 +97,12 @@ for _,width in ipairs({1,7})do
    for i=1,5 do sizes[i]=r.parts[i].Size end
    Visuals.Animate(r,r.born+.6,Vector3.zero,false,true,false,true)
    check(#r.parts==5 and r.vfx.root==root,'Crowded mode lost the core rig or retained decoration')
+   local crowdedScale=StyleSource.WidthScale(level,true)*.55/StyleSource.WidthScale(level,false)
    for i,entry in ipairs(v.beams)do
     check(entry.inst.Enabled==entry.isCore,'Crowded mode hid a core or kept a secondary template')
-    check(near(entry.inst.Width0,widths[i][1]) and near(entry.inst.Width1,widths[i][2])
-     and entry.inst.TextureSpeed==entry.baseTextureSpeed,'Crowded mode changed core width or motion')
+    check(near(entry.inst.Width0,widths[i][1]*crowdedScale) and near(entry.inst.Width1,widths[i][2]*crowdedScale),
+     'Crowded native texture retained the broad firing width')
+    check(entry.inst.TextureSpeed==entry.baseTextureSpeed,'Crowded mode changed core motion')
    end
    for i=1,5 do
     check(near(r.parts[i].Size.X,sizes[i].X) and near(r.parts[i].Size.Y,sizes[i].Y)
@@ -110,6 +112,9 @@ for _,width in ipairs({1,7})do
    check(r.parts[4].Transparency==.95,'Crowded mode retained the opaque endpoint lens')
    Visuals.Animate(r,r.born+.6,Vector3.zero,false,true,false)
    check(#r.parts>5 and r.parts[4].Transparency==.58,'Crowded mode did not restore after overlap')
+   for i,entry in ipairs(v.beams)do
+    check(near(entry.inst.Width0,widths[i][1]) and near(entry.inst.Width1,widths[i][2]),'Crowded texture width did not restore')
+   end
    -- Each observer comfort source, far LOD, and restoration on the SAME rig.
    for _,mode in ipairs({{true,false,0},{false,true,0},{false,false,111}})do
     Visuals.Animate(r,r.born+.7,vec(0,0,mode[3]),mode[1],true,mode[2])
@@ -236,6 +241,7 @@ for old,new,message in [
  ('if rig.vfx and rig.vfx.root.Parent then rig.vfx.root.Parent=nil end','if false then end','Quiet comfort retained template glare'),
  ('local hasVfx=not quiet and rig.vfx~=nil','local hasVfx=rig.vfx~=nil','Quiet comfort retained template glare'),
  ('local showSecondary=not far and not suppressSecondary','local showSecondary=not far','Crowded mode kept particles'),
+ ('local crowded=not far and suppressSecondary','local crowded=false','Crowded native texture retained the broad firing width'),
  ('local endAlpha=suppressSecondary and .95 or rig.contactPosition and .86 or .58','local endAlpha=.58','Crowded mode retained the opaque endpoint lens'),
  ('local visibilityChanged=vfx.showSecondary~=showSecondary','local visibilityChanged=true','Steady mode rewrote template properties'),
  ('math.min(entry.baseRate,60/#vfx.emitters)','entry.baseRate','Initial aggregate particle rate cap missing'),
@@ -247,4 +253,4 @@ for old,new,message in [
 ]:
  assert old in s
  result=run(s.replace(old,new));assert result.returncode and message in result.stderr,result.stdout+result.stderr
-print('PASS 13 native-path negative controls (progression, scale, crowding, rate, tint and redundant writes)')
+print('PASS 16 native-path negative controls (progression, scale, crowding, rate, tint and redundant writes)')
