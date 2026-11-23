@@ -15,7 +15,7 @@ def digest(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def snapshot(root):
     paths=[]
-    for folder, suffixes in (("src", {".luau"}), ("tests", {".py", ".luau"}), ("tools", {".py"})):
+    for folder, suffixes in (("src", {".luau"}), ("prototypes/resonance-arena", {".luau"}), ("tests", {".py", ".luau"}), ("tools", {".py"})):
         for p in (root/folder).rglob("*"):
             rel=p.relative_to(root)
             if p.is_file() and p.suffix in suffixes and not any(x.startswith((".", "tmp")) or x=="__pycache__" for x in rel.parts):
@@ -46,7 +46,7 @@ class Report:
         self.path.parent.mkdir(parents=True,exist_ok=True)
         self.logpath=self.path.with_name(self.path.stem+"."+uuid.uuid4().hex+".log")
         self.start=time.monotonic()
-        self.data={"schemaVersion":1,"execution":"local-not-CI","status":"RUNNING","startedAtUtc":utc(),"command":list(command),"commands":[],"scope":"src/**/*.luau; tests/**/*.py,luau; tools/**/*.py; root *.project.json. Input selection excludes hidden/tmp paths, vault, build outputs and evidence JSON. This is path selection, not secret detection.","limits":["baseCommit is metadata, not a testedCommit claim","Default aggregate does not enable optional negative controls","Native references are historical; mismatch does not fail local tests","Release gates remain separate; no publication approval"],**git_metadata(self.root)}
+        self.data={"schemaVersion":1,"execution":"local-not-CI","status":"RUNNING","startedAtUtc":utc(),"command":list(command),"commands":[],"scope":"src/**/*.luau; prototypes/resonance-arena/**/*.luau; tests/**/*.py,luau; tools/**/*.py; root *.project.json. Input selection excludes hidden/tmp paths, vault, build outputs and evidence JSON. This is path selection, not secret detection.","limits":["baseCommit is metadata, not a testedCommit claim","Default aggregate does not enable optional negative controls","Native references are historical; mismatch does not fail local tests","Release gates remain separate; no publication approval"],**git_metadata(self.root)}
         self.log=self.logpath.open("w",encoding="utf8")
         self.save()
     def save(self):

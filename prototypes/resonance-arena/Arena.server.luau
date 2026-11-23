@@ -187,7 +187,7 @@ for _,xSide in ipairs({-1,1}) do
   spawn.Size=Vector3.new(5,.2,5)
   spawn.CFrame=CFrame.lookAt(Vector3.new(x,.1,z),Vector3.new(x-xSide*10,.1,z-zSide*10))
   local outerSpeaker=Layout.Speakers[1]
-  local direction=xSide==1 and "← TRAINING CITY" or "TRAINING CITY →"
+  local direction=xSide==1 and "← TRAINING CITY" or "→ TRAINING CITY"
   local center=Vector3.new(xSide*outerSpeaker.x,8.5,zSide*outerSpeaker.z)
   local corner=Vector3.new(x,center.Y,z)
   local outward=(corner-center).Unit
@@ -195,7 +195,7 @@ for _,xSide in ipairs({-1,1}) do
   local position=center+outward*8.5
   block(arena,"TrainingSignBracket",Vector3.new(2.8,2,3.5),CFrame.lookAt(position-outward*1.75,corner),trim,false)
   local board=sign(arena,"TrainingDirection_"..xSide.."_"..zSide,
-   position.X,position.Y,position.Z,14,4,direction,"BLUE LINE · SAFE AT PORTAL",routeBlue)
+   position.X,position.Y,position.Z,14,4,direction,"SAFE AT PORTAL · BLUE LINE",routeBlue)
   board.CFrame=CFrame.lookAt(board.Position,corner)
   spawn.Transparency=1
   spawn.Anchored=true

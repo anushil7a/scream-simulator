@@ -84,6 +84,8 @@ def verify(args, report=None):
     if args.build:
         run([sys.executable, 'tests/build_candidate.py'])
         run([sys.executable, 'tests/build_sustained_review.py'])
+        run([sys.executable, 'tests/build_sustained_review.py', '--resonance-local-qa'])
+        run(['rojo', 'build', 'resonance-arena.project.json', '-o', 'build/ResonanceArenaLocalDraft.rbxl'])
         run([sys.executable, 'tests/build_studio_harness.py'])
         run([sys.executable, 'tests/build_shop_review.py'])
         run([sys.executable, 'tests/build_onboarding_review.py'])

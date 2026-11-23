@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Put Hall training directions ahead of the HUD overlap
+
+- On `c7488ff`, the 567 × 241 desktop spawn at (-69,3.8,55) put the Map button over the right arrow and the end of the protection instruction. At 750 × 323 in the touch emulator the arrow was visible, while Test Tools partly covered the safety text in the owner fixture. The boards now lead with the direction arrow and **SAFE AT PORTAL**. The route and protected area retain their authored geometry.
+- The current Hall is a guarded, sound-themed 176 × 152-stud PvP preview. A native scripted walk from the southwest spawn reached the local training prompt, and real local prompt holds traveled to the landing and back. The 72 × 48-stud landing is distinct from the actual City. The release handoff now records the remaining authorized cross-place and profile evidence.
+- Full local verification now packages both guarded Hall variants and fingerprints their Luau source directory. The current aggregate formerly exercised only focused Hall mocks and City-oriented builds. Independent review passed 11 map checks and seven controls, 16 portal checks and three controls, and 36 reporter checks.
+- The matched native candidate showed its leading arrow and **SAFE AT PORTAL** in both 567 × 241 desktop and 750 × 323 emulated touch views. All four authored sign labels had the intended arrow and `TextFits`. Some far-right characters remain behind the HUD in those tight camera views. Candidate SHA-256: `c9ef90b9e858232f9c7f84916b56ae34c6bcadb3f3f5eb4a6322fd88571b1d0e`. Evidence: `build/hall_wayfinding_native/native-candidate.json` and `HallCandidateDesktopSpawn.jpg`. Both disposable Studio sessions closed, with the previous emulator setting restored. The final local run passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and City and Hall Rojo builds on unchanged verification inputs.
+- Next address the native Hall return camera obstruction. After the verified local return to z54, the default camera sat behind the portal at about z66 and viewed the avatar through the cyan field at z65. Capture: `build/hall_wayfinding_native/HallReturnCompactCamera.jpg`. Preserve the protected landing and intentional entry into combat.
+
 ## Keep narrow landscape combat controls clear of PvP status
 
 - The 455 × 218 native touch baseline showed the Stadium PvP badge at (14,49), 190 × 14. The desktop-width Beams control crossed 23 × 14 pixels of that badge, overlaid Test Tools, and put Dodge over the left status card. The narrow touch status lane already existed. The combat layout still required 480 pixels to switch.

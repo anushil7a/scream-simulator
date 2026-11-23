@@ -85,13 +85,15 @@ for _,sx in ipairs({-1,1}) do
   end
   local walkDirection=sz==-1 and Vector3.zAxis or Vector3.new(-sx,0,0)
   local arrow=spawn.CFrame.RightVector:Dot(walkDirection)<0 and "←" or "→"
-  local matchingArrow=false
+  local matchingArrow,safeFirst=false,false
   for _,label in board:GetDescendants() do
    if label:IsA("TextLabel") and label.Text:find("TRAINING CITY",1,true) then
-    matchingArrow=label.Text:find(arrow,1,true)~=nil
+    matchingArrow=label.Text:find(arrow,1,true)==1
+   elseif label:IsA("TextLabel") then
+    safeFirst=label.Text:find("SAFE AT PORTAL",1,true)==1
    end
   end
-  assert(matchingArrow,"Training directions point away from the clear exit")
+  assert(matchingArrow and safeFirst,"Training sign must lead with its exit arrow and safe threshold")
   markedSpawns+=1
  end
 end
