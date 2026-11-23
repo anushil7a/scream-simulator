@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Show how to evade each boss attack
+
+- At 455 × 218 touch-emulated pixels, the Conductor's Baton Sweep drew one ground warning while the HUD showed **SAFE • PvP OFF** through windup. The actual strike shoved the standing participant and dealt 77 HP. Bell Cascade in the same fixture drew six warnings and displayed **Step off the circles**. Its standing control lost 58 HP, and a separate walk into a gap took zero damage.
+- Fault-line Quake now says **Step into a gap**. Woofer Slam and Backdraft say **Leave the circle**. Cutlass Broadside and Baton Sweep say **Step back or aside**. The existing HUD lane reads the instruction from the committed server warning. The attack footprints, countdowns, impact checks and damage are unchanged.
+- The actual service fixture now checks both attack families for all five bosses. It passed 8,350 service assertions and six negative controls, including removal of the Baton Sweep and Fault-line warnings. The client-effects suite passed 748 renderer assertions, 46 lifecycle checks and six controls. Independent review, 198 local suites, 99 Luau compilations, and the City and Hall builds passed. Baseline evidence is under `build/bell_gap_native/native-baseline.json`.
+- With Reduced Effects on at the same native viewport, the fitted **Step back or aside** cue was visible before Baton Sweep hit. Standing still again cost 77 HP. An ordinary sideways walk moved 14.4 studs out of the rectangle and avoided damage without Dodge. The staged level-95 local fixture exercised the actual boss resolver. See `build/bell_gap_native/native-candidate.json`. The emulator preset was restored and both disposable sessions closed. Next verify recognition at physical phone size during a real fight with overlapping beams.
+
 ## Put the first sparring reward ahead of routine guidance
 
 - At 455 × 218 touch-emulated pixels, two accepted synthetic casts through normal combat paid 48 XP and five coins and advanced the Rookie count to 1/3. The old HUD displayed generic **NOTICE**. Opening it showed the earlier arming message, and the earned receipt first appeared 3.47 seconds later.

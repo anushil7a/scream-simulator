@@ -25,9 +25,14 @@ local laneEdgeColors={
 local escapeHints={
  PendulumSweep="Leave the sweep lane",
  ResonanceKick="Avoid the kick zone",
- BellCascade="Step off the circles",
+ FaultLine="Step into a gap",
+ WooferSlam="Leave the circle",
  OrganFlames="Step between lanes",
+ Backdraft="Leave the circle",
  TwinSirens="Find the center gap",
+ CutlassBroadside="Step back or aside",
+ BellCascade="Step off the circles",
+ BatonSweep="Step back or aside",
 }
 local function markLaneEdges(marker,color)
  local width,length=marker.Size.X,marker.Size.Z

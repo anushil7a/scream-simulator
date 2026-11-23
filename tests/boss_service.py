@@ -237,7 +237,7 @@ for _,spec in ipairs(Catalog.Entries) do
    check(not Patterns.Contains(shape,100,100),"outside shape miss")
   end
  end
- local boss=byId[spec.id];Rules.Reset(boss,spec,2000)
+ local boss=byId[spec.id];Rules.Reset(boss,spec,2000);boss.turn=0
  local attacker=player(90,boss)
  for _,off in ipairs({Vector3.new(spec.radius+.001,3,0),Vector3.new(0,12.001,0),Vector3.new(0,-12.001,0),Vector3.new(0/0,3,0),Vector3.new(math.huge,3,0)}) do
   contexts[90].position=boss.center+off
@@ -250,8 +250,10 @@ for _,spec in ipairs(Catalog.Entries) do
  local warning=boss.warning
  local hint=warning:GetAttribute("BossAttackHint")
  local expectedHints={PendulumSweep="Leave the sweep lane",ResonanceKick="Avoid the kick zone",
-  BellCascade="Step off the circles",OrganFlames="Step between lanes",TwinSirens="Find the center gap"}
- check(hint==expectedHints[boss.strike.style],"Wrong escape instruction for the committed pattern")
+  BellCascade="Step off the circles",OrganFlames="Step between lanes",TwinSirens="Find the center gap",
+  WooferSlam="Leave the circle",FaultLine="Step into a gap",Backdraft="Leave the circle",
+  CutlassBroadside="Step back or aside",BatonSweep="Step back or aside"}
+ check(boss.strike.kind=="Ranged" and hint==expectedHints[boss.strike.style],"Wrong escape instruction for the committed pattern")
  check(warning:GetAttribute("BossHintRange")== (hint and spec.radius+spec.moveLeash+1 or nil),"Escape range should include patrol reach")
  contexts[90].position=boss.center+Vector3.new(spec.radius+1,3,0)
  service:Step(2002.2)
@@ -280,6 +282,11 @@ for _,spec in ipairs(Catalog.Entries) do
  oldWarning=boss.warning
  service:Hit(boss,attacker,spec.health,2202.1)
  check(oldWarning.destroyed and not boss.strike and not boss.warning,"KO cancels pending hazard")
+ Rules.Reset(boss,spec,2300);boss.motion=Motion.New();boss.turn=1;service.nextStep=0
+ contexts[90].position=boss.center+Vector3.new(0,3,7)
+ service:Hit(boss,attacker,1,2302);service:Step(2302)
+ check(boss.strike.kind=="Melee" and boss.warning:GetAttribute("BossAttackHint")==expectedHints[boss.strike.style],
+  "Melee warning omitted its escape instruction: "..boss.strike.style)
 end
 -- Pure authoritative patrol: deterministic, bounded, speed-capped even after stalls.
 for _,spec in ipairs(Catalog.Entries) do
@@ -426,6 +433,10 @@ def run_service(source, expected=None):
 run_service(service)
 if '--negative-controls' in sys.argv:
     for old,new,expected in (
+        ('BatonSweep="Step back or aside",','',
+         'Melee warning omitted its escape instruction: BatonSweep'),
+        ('FaultLine="Step into a gap",','',
+         'Wrong escape instruction for the committed pattern'),
         ('if c then table.insert(targets,{player=p,context=c}) end',
          'if c then table.insert(targets,{player=p,context=c}) else b.credit[id]=nil end',
          'escape loses attack targeting but keeps earned contribution'),
