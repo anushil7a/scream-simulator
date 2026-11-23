@@ -37,7 +37,7 @@ For an approved nonproduction experience, `python tests/build_world_travel.py --
 
 ### Playable zero-ID Studio travel rehearsal
 
-Run `python tests/build_sustained_review.py --travel-local-qa` to create `CityPlayableTravelRehearsal.rbxl` and `HallPlayableTravelRehearsal.rbxl` in `build/`. The City uses the regular Academy training, quests and gameplay UI. The Hall uses the regular combat runtime, local PvP rules and safe apron. Its map shows the City portal and omits the old practice deck. Open each file separately and use the portal prompt to verify its destination and local feedback.
+Run `python tests/build_sustained_review.py --travel-local-qa` to create `CityPlayableTravelRehearsal.rbxl` and `HallPlayableTravelRehearsal.rbxl` in `build/`. The City uses the regular Academy training, quests and gameplay UI. The Hall uses the regular combat runtime, local PvP rules and safe apron. Follow the blue route to the Training City arch. The Hall's Rules tab explains the route and the Map tab is hidden. Open each file separately and use the portal prompt to verify its destination and local feedback.
 
 The playable pair requires Studio with place and universe IDs zero. Each file uses temporary profiles, refuses configured commerce IDs and has no transport service access. Progress is local to the open file. Continue to use the separate travel-only test-ID pair for authorized cross-place checks. These playable builds do not exercise transfer, shared progression or real persistence.
 

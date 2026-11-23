@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Verify controller portal prompts in both worlds
+
+- The playable zero-ID travel pair rebuilt from `bc5a693`. In the Xbox Controller Emulator, the Hall apron presented **Training City / Preview portal** 8.02 studs from spawn, and the Academy presented **Resonance Hall / Preview portal** 8.03 studs from spawn.
+- Holding X delivered processed Gamepad1 ButtonX events through the built-in prompt. Both prompts triggered 0.266 seconds after hold began and displayed the fitted same-place rehearsal message. Both avatars stayed at their local positions. The Hall showed the safe Training Portal zone.
+- The iPhone XR landscape probe found the Hall prompt instances, but Studio focus was inactive during the activation attempt. Its action label reported `TextFits=false`; retest while focused before drawing a layout or activation conclusion.
+- Evidence is in `build/controller_travel_native/native-result.json`; the prior preset was restored and both disposable Studio sessions were closed. Real cross-place transfer, physical controls, voice and persistence remain open. The next transfer check requires a separately authorized nonproduction City and Hall pair in the same experience.
+- Focused portal tests passed 16 movement/preparation checks and 28 simulated transport checks plus 14 mutation controls. The handoff now reflects that Hall navigation uses the blue route and Rules, with Map hidden.
+
 ## Make Beam Style hue editable with a controller
 
 - In native Xbox controller emulation, the baseline D-pad moved past the hue strip in Gear and reached Equip without letting the player change the preview. The selected color stayed `#FFCB63`.
