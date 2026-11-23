@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Verify the Rookie strike and controller dodge
+
+- In a guarded zero-ID local City session built from `8923140`, the avatar was staged on the Rookie pad. A synthetic 0.46-power beam with scripted aim started the ordinary spar. The actual eight-stud warning disc and fitted **Move or Dodge** cue appeared. Standing inside the marked strike lowered HP from 100 to 92.
+- A matched strike accepted a genuine Xbox Controller Emulator LB input 0.433 seconds before the advertised impact. The roll moved outside the four-stud radius before resolution, left HP at 92 and started the ordinary dodge cooldown. The HUD returned to its normal zone status after leaving the circle. This establishes positional avoidance with the controller. Within-radius dodge immunity and real voice or player aim were outside the test.
+- Independent review verified the protected fixture's source and both outcomes. The native trace and HUD measurements are in `build/controller_spar_native/native-controller-spar.json` and `native-label-bounds.json`. Focused training-strike and dodge checks passed. Studio closed and the previous emulator preset was restored. No gameplay code changed.
+
 ## Verify the controller path to the Academy Megaphone
 
 - A fresh temporary profile in the zero-ID City built from `d47f4c5` earned its Garden reward with controller dialogue and the three stock flowerbed prompts. With 80 coins, Y opened Gear. D-pad and A selected **View Quest / Need 20 Coins** on the Academy Megaphone, opened the focused Beach Cleanup card, and accepted it. The server reported Beach active and kept the balance at 80.
