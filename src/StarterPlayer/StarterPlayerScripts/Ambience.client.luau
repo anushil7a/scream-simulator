@@ -9,7 +9,7 @@ script.Destroying:Connect(function() destroyed=true end)
 local replicated=game:GetService("ReplicatedStorage")
 local shared=replicated:WaitForChild("Shared");if destroyed then return end
 local configModule=shared:WaitForChild("Config");if destroyed then return end
-local Config=require(configModule);if destroyed then return end
+local Config=require(configModule);if destroyed or Config.ResonanceLayout then return end
 local assets={}
 local group=Instance.new("SoundGroup");group.Name="CityAmbience";group.Volume=.55;group.Parent=SoundService
 local folder=Instance.new("Folder");folder.Name="LocalCitySoundscape";folder.Parent=workspace

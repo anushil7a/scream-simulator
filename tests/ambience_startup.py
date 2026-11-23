@@ -1,9 +1,11 @@
 """Actual ambience remote hookup with synthetic yielding waits; no audio/device test."""
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 root=Path(__file__).resolve().parents[1]
 s=(root/'src/StarterPlayer/StarterPlayerScripts/Ambience.client.luau').read_text()
+startup=s[:s.index('local assets={}')]
 heartbeat=s[s.index('local performing=false'):s.index('local connection\n')]
 s=s[s.index('local remotes=game:GetService("ReplicatedStorage")'):]
 setup='''
@@ -54,7 +56,45 @@ bot.inside=true;step(.5);check(guitar.Volume==.2,'Returned active busker failed 
 destroyed=true;bot.working=false;step(.5);check(guitar.Volume==.2,'Queued heartbeat changed destroyed audio')
 print('PASS '..checks..' total mocked ambience startup/activity checks; no audio playback evidence')
 """
-with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
- path=Path(f.name);f.write(setup+'local function start()\n'+s+'\nend\n'+checks+activity_setup+heartbeat+activity_checks)
-try: subprocess.run(['luau',str(path)],cwd=root,check=True)
-finally: path.unlink()
+world_setup="""
+local config, reached
+local script={Destroying={Connect=function()end}}
+local dependency={WaitForChild=function(self)return self end}
+local game={GetService=function()return dependency end}
+local function require()return config end
+local function start()
+"""
+world_checks="""
+ reached=true
+end
+config={}
+start()
+assert(reached,'City ambience never reached emitter setup')
+reached=false
+config={ResonanceLayout={}}
+start()
+assert(not reached,'Hall reached City ambience emitter setup')
+print('PASS City-only ambience startup')
+"""
+
+def run(fragment, error=None):
+ with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=root/'tests',delete=False) as f:
+  path=Path(f.name)
+  f.write(fragment)
+ try:
+  result=subprocess.run(['luau',str(path)],cwd=root,capture_output=True,text=True)
+ finally:
+  path.unlink()
+ if error:
+  assert result.returncode and error in result.stderr,result.stderr
+  print('PASS negative control:',error)
+ else:
+  assert result.returncode==0,result.stderr
+  print(result.stdout,end='')
+
+run(setup+'local function start()\n'+s+'\nend\n'+checks+activity_setup+heartbeat+activity_checks)
+run(world_setup+startup+world_checks)
+if '--negative-controls' in sys.argv:
+ guard=' or Config.ResonanceLayout'
+ assert guard in startup
+ run(world_setup+startup.replace(guard,'',1)+world_checks,'Hall reached City ambience emitter setup')

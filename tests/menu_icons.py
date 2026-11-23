@@ -11,7 +11,9 @@ def build(c, hall=False):
  selection=next(x for x in c.splitlines() if 'for name,b in pairs(tabs) do b.BackgroundColor3=' in x)
  mode='\nConfig.ResonanceLayout={}\n' if hall else '\n'
  map_availability=next(line for line in c.splitlines() if line.startswith('academy.hideMap='))
- return SETUP+mode+helpers+'\n'+map_availability+'\n'+register+'\nlocal function layout(width,shortLandscape,height) local viewport={Y=height or 650};local tabY=height and 44 or 88;local menuHeight=viewport.Y-16;local layoutChanged=true;modal.Size=UDim2.fromOffset(width,menuHeight)\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+(HALL_CHECKS if hall else CHECKS)
+ city_audio_start=c.index('\n  end\n',c.index('"RetryVoiceAccess"'))+len('\n  end\n')
+ city_audio=c[city_audio_start:c.index('  local audioCard=',city_audio_start)]
+ return SETUP+mode+helpers+'\n'+map_availability+'\n'+register+'\nlocal function layout(width,shortLandscape,height) local viewport={Y=height or 650};local tabY=height and 44 or 88;local menuHeight=viewport.Y-16;local layoutChanged=true;modal.Size=UDim2.fromOffset(width,menuHeight)\n'+layout+'\nend\nlocal function select(name) selected=name\n'+selection+'\nend\n'+(HALL_CHECKS if hall else CHECKS)+AUDIO_SETUP+city_audio+AUDIO_CHECKS
 SETUP=r'''
 local made={};local Instance={new=function(class)local o={ClassName=class,PaddingLeft={Scale=0,Offset=0},PaddingRight={Scale=0,Offset=0}};table.insert(made,o);return o end}
 local UDim={new=function(s,o)return {Scale=s,Offset=o}end}
@@ -131,6 +133,29 @@ check(academy.sidebarMenu and content.Position.X.Offset>tabs.Settings.Position.X
  'Hall short landscape tabs block its content')
 print('PASS '..n..' Hall tab registration and reflow checks')
 '''
+AUDIO_SETUP=r'''
+local volume, nextVolume, help
+local data={settings={volume=.55}}
+local action={FireServer=function(_,name,payload)
+ check(name=="SetSettings","City audio action changed");nextVolume=payload.volume
+end}
+local function card()return {}end
+local function info(text)help=text end
+local function button(_,name,text,size,position,callback)
+ check(name=="Volume","Unexpected control in City audio section")
+ volume={text=text,callback=callback}
+end
+'''
+AUDIO_CHECKS=r'''
+if Config.ResonanceLayout then
+ check(not volume and not help,"Hall exposed City Audio")
+else
+ check(volume and volume.text=="CITY AUDIO: 55%" and help=="City audio controls surf and street music.","City lost its audio control")
+ volume.callback()
+ check(math.abs(nextVolume-.8)<.00001,"City volume did not update")
+end
+print("PASS world-specific City Audio control")
+'''
 def run(c, hall=False):
  with tempfile.NamedTemporaryFile('w',suffix='.luau',dir=R/'tests',delete=False,encoding='utf8')as f:p=Path(f.name)
  try:
@@ -156,4 +181,8 @@ if __name__=='__main__':
    out=run(source.replace(old,new));assert out.returncode and message in out.stderr,(message,out.stdout,out.stderr)
   out=run(source.replace('if academy.hideMap then table.remove','if false then table.remove'),hall=True)
   assert out.returncode and 'Hall registered a Map tab' in out.stderr,out.stderr
-  print(f'PASS {len(cases)+1} menu icon negative controls')
+  audio_guard='if not Config.ResonanceLayout then\n   local c=card(58);button(c,"Volume"'
+  assert audio_guard in source
+  out=run(source.replace(audio_guard,audio_guard.replace('not Config.ResonanceLayout','true')),hall=True)
+  assert out.returncode and 'Hall exposed City Audio' in out.stderr,out.stderr
+  print(f'PASS {len(cases)+2} menu icon negative controls')

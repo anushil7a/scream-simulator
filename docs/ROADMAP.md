@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep City-only controls out of the PvP Hall
+
+- The Hall already hid the map tab and minimap. A native Hall baseline still showed City Audio in Settings and started four coastal surf sounds and one silent city busker loop.
+- Hall Settings now omits the City volume control and its help, and the City ambience script exits before creating its sound group or emitters. The normal voice help, combat audio, Reduced Effects and Rules remain available.
+- Native Hall checks at 567 × 241 desktop and 455 × 218 touch-emulated pixels confirmed absent City controls and emitters, no map tab or minimap, and fitted Rules and combat settings. The City control retained its soundscape and volume control, and Studio keyboard input opened the City map with M. See `build/hall_settings_native/native-baseline.json` and `native-candidate.json`. All three disposable Studio sessions closed and the emulator preset was restored.
+- Independent review and focused map, menu and ambience tests passed. Real phone, human microphone and approved cross-place tests remain open.
+
 ## Distinguish nearby high-tier beams in reduced effects
 
 - Matched Studio staging at 455 × 218 pixels used the actual beam renderer and avatar proximity guard. Level 10, 50, and 100 quiet beams shared the same shape apart from width. The fourth pooled path was already allocated but hidden.

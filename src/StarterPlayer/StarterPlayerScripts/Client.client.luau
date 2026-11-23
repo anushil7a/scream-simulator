@@ -1620,7 +1620,10 @@ render=function()
     if not mic.eligible and not mic.checkPending then mic:Check() end
    end)
   end
-  local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
+  if not Config.ResonanceLayout then
+   local c=card(58);button(c,"Volume","CITY AUDIO: "..math.floor(data.settings.volume*100).."%",UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{volume=data.settings.volume>=.99 and 0 or math.min(1,data.settings.volume+.25)}) end)
+   info("City audio controls surf and street music.",42)
+  end
   local audioCard=card(58);local audioButton
   local function audioLabel()return "BEAM SFX: "..attackAudio.level end
   audioButton=button(audioCard,"AttackAudio",audioLabel(),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function()
@@ -1633,7 +1636,7 @@ render=function()
    gameplayAudio:SetEnabled(not gameplayAudio.enabled);cueContext();cueButton.Text=cueLabel()
   end)
   info("This also mutes boss warnings. Packaged boss fallbacks play only when available; custom hit/dodge/level cues still await upload.",72)
-  info("City audio controls surf and street music. Manage live voice with Roblox's microphone and listener controls.",54)
+  info("Manage live voice with Roblox's microphone and listener controls.",54)
   local d=card(58);button(d,"ReducedFX","REDUCED EFFECTS: "..(data.settings.reducedShake and "ON" or "OFF"),UDim2.new(1,-24,0,38),UDim2.fromOffset(12,10),function() action:FireServer("SetSettings",{reducedShake=not data.settings.reducedShake}) end)
  end
  -- Restore only after AutomaticCanvasSize has measured the replacement cards.
