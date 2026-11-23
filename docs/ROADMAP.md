@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Stop repeatedly toggling visible resident labels
+
+- The City client previously cleared resident label and speech visibility and immediately re-enabled the same winners every 0.1 seconds. At a stationary 455 × 218 touch-emulated spawn the actual Alex nameplate and speech bubble each emitted 56 Enabled changes over 3.049 seconds while both started and ended visible. The healthy Rookie plate also emitted 56 changes over 3.048 seconds while compact Talk was presenting the trainer name.
+- Selection now retains the same nearest interaction, closest hurt resident and nearest speaker rules, then writes only real visibility changes. A healthy trainer whose identity is already on Talk stays suppressed. Wounded HP, missing-camera cleanup and new selection still take effect.
+- The exact candidate had zero Enabled changes on the stable Alex nameplate and bubble over 3.001 seconds. Native samples with real selection or speech changes still changed their boards. Native counts are in `build/resident_labels_native/native-baseline.json` and `native-candidate.json`. Focused tests cover steady no-write behavior, compact Talk and damage transitions. Independent review cleared the change. Signal counts establish eliminated property churn, with no frame-rate or physical-device performance conclusion.
+- The current City also passed the initial HUD and Menu/Close smoke at four mainstream emulated phone sizes, iPad 9, average Windows laptop and Full HD desktop. Measured safe areas and the remaining device checks are in [Launch device coverage](RELEASE_HANDOFF.md#launch-device-coverage). Preserve the launch priority on common sizes and defer the long tail to a later update. Xbox and PlayStation are launch gates.
+
 ## Point to Resonance Hall from the Academy approach
 
 - Native 455 × 218 touch emulation showed the near Hall plaque behind Beams and the local test launcher at Academy spawn. A normal 4.27-stud forward walk pushed the plaque partly outside the viewport. The original Rookie board remained readable.

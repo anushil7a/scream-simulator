@@ -796,35 +796,41 @@ local talkTarget
 local nextResidentUi=0
 local function refreshResidentLabels(root,camera,residents)
  local nearest,best=nil,13
- local speaker,speechDistance=nil,24
- local damaged,damageDistance=nil,math.huge
- local visible={}
+ local speechDistance,damageDistance=24,math.huge
+ local nearestPlate,damagedPlate,speaker
+ local enabled=table.create(3)
  for _,bot in ipairs(residents) do
   local r=bot:FindFirstChild("HumanoidRootPart");local head=bot:FindFirstChild("Head");local h=bot:FindFirstChildOfClass("Humanoid")
   if not head then continue end
   local nameplate=head:FindFirstChild("Nameplate");local speech=head:FindFirstChild("SpeechBubble")
-  if nameplate then nameplate.Enabled=false end
-  if speech then speech.Enabled=false end
+  if nameplate and nameplate.Enabled then table.insert(enabled,nameplate) end
+  if speech and speech.Enabled then table.insert(enabled,speech) end
   if not r or not root or not camera or not h or h.Health<=0 or bot:GetAttribute("ResidentActive")==false then continue end
   local distance=(r.Position-root.Position).Magnitude
   local _,onScreen=camera:WorldToViewportPoint(head.Position)
   if not onScreen then continue end
-  visible[bot]={nameplate=nameplate,speech=speech}
-  if distance<best and InteractionRules.CanReachNpc(root.Parent,bot,13) then nearest=bot;best=distance end
+  if distance<best and InteractionRules.CanReachNpc(root.Parent,bot,13) then
+   nearest=bot;best=distance
+   -- Compact Talk already carries this healthy trainer's name.
+   nearestPlate=(nameplate~=academy.talkNameplate or h.Health<h.MaxHealth) and nameplate or nil
+  end
   if h.Health<h.MaxHealth and distance<damageDistance then
    local home=bot:GetAttribute("TrainingHome")
    -- A fighter can take beam damage farther away than an ordinary nameplate.
    if distance<18 or typeof(home)=="Vector3" and (root.Position-home).Magnitude<=academy.TrainingRules.Radius then
-    damaged=bot;damageDistance=distance
+    damagedPlate=nameplate;damageDistance=distance
    end
   end
   local words=speech and speech:FindFirstChildOfClass("TextLabel")
-  if words and words.Visible and distance<speechDistance then speaker=bot;speechDistance=distance end
+  if words and words.Visible and distance<speechDistance then speaker=speech;speechDistance=distance end
  end
- -- A single interaction name, at most one additional hurt resident, and one
- -- speech bubble keep crowds readable. Occlusion still uses native billboards.
- for _,bot in pairs({nearest,damaged}) do local item=visible[bot];if item and item.nameplate then item.nameplate.Enabled=true end end
- if speaker and visible[speaker].speech then visible[speaker].speech.Enabled=true end
+ -- Apply each visibility change once after choosing the interaction, damage and speech winners.
+ for _,board in ipairs(enabled) do
+  if board~=nearestPlate and board~=damagedPlate and board~=speaker then board.Enabled=false end
+ end
+ if nearestPlate and not nearestPlate.Enabled then nearestPlate.Enabled=true end
+ if damagedPlate and not damagedPlate.Enabled then damagedPlate.Enabled=true end
+ if speaker and not speaker.Enabled then speaker.Enabled=true end
  return nearest
 end
 local function requestTalk()

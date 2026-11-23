@@ -53,6 +53,34 @@ Pause development and notify the owner only after one identified candidate passe
 
 A local fixture or code check cannot stand in for the real-device or Roblox commerce results. Keep the current no-publication, no-live-persistence boundaries until separately authorized.
 
+
+## Launch device coverage
+
+Prioritize common phone, tablet and desktop sizes for launch. Use phone references around 360 × 800 and 414 × 896, an iPad-class 768 × 1024 and a 1280 × 800 tablet, plus 1366 × 768 and 1920 × 1080 desktop windows. Check supported phone/tablet orientations. These are representative sizes selected using worldwide web screen statistics. Measure the actual Studio safe area as well as the nominal preset and keep additional viewport tuning for a later update. [Phone sizes](https://gs.statcounter.com/screen-resolution-stats/mobile/worldwide) · [Tablet sizes](https://gs.statcounter.com/screen-resolution-stats/tablet/worldwide) · [Desktop sizes](https://gs.statcounter.com/screen-resolution-stats/desktop/worldwide)
+
+Use Studio for HUD bounds, text fit, button actions and scroll checks. Verify the opening Guide and Talk, Beams/Dodge/Sprint, menu and shop closure, health and notices, and Hall combat and portal prompts where available. Physical touch, on-device performance and real microphone behavior require actual devices. [Roblox Device Simulator](https://create.roblox.com/docs/studio/device-simulator)
+
+The current City candidate opened and closed the actual Menu on the following Studio presets near Rookie Training. The landscape checks also sampled the visible HUD controls for fit and overlap. Sizes are measured usable HUD pixels after Studio insets.
+
+| Preset | Usable HUD |
+| --- | --- |
+| Galaxy A16 landscape | 685 × 280 |
+| iPhone XR landscape | 801 × 355 |
+| iPhone 16 Pro Max landscape | 830 × 381 |
+| iPhone 16 portrait | 391 × 700 |
+| iPad 9 landscape | 1080 × 752 |
+| Average Windows laptop | 1365 × 710 |
+| Full HD desktop | 1919 × 1021 |
+
+Emulated phone taps activated the real Menu and Close controls after mapping the Studio input offset to the HUD coordinate space. Tablet and desktop used the native pointer. The evidence is in `build/resident_labels_native/native-device-matrix.json`. The remaining launch pass should include Hall interactions, full shop and quest paths, sustained play and physical devices. Keep work on less common sizes for a later update.
+
+
+### Console is a launch requirement
+
+Verify Xbox and PlayStation before the readiness pause. Roblox offers in-experience voice chat to eligible users on both console families. Real microphone input for this experience still needs separate verification on each platform. [Xbox voice](https://en.help.roblox.com/hc/en-us/articles/205355430-Xbox-App-Voice-Chat) · [PlayStation voice](https://en.help.roblox.com/hc/en-us/articles/41326172881300-PlayStation-App-Voice-Chat)
+
+The current client already uses center aim for gamepad, while its direct gameplay shortcuts are keyboard bindings. Verify controller-only Beams, Dodge, Sprint, Guide, Talk and portal prompts, and dependable focus navigation and Back in menus and shop. Start with Studio's Controller Emulator, then record a real-console check for movement, aiming, headset-triggered damage, voice while Beams are off, and menu and commerce interaction. Console access settings require separate approval. [Roblox gamepad input](https://create.roblox.com/docs/input/gamepad)
+
 ## Highest remaining release gates
 
 1. **Real microphone and ordinary conversation:** no accepted evidence yet for the complete real-input path in this candidate. The owner/testers need two voice-eligible accounts/devices, ideally desktop plus a physical phone, in an explicitly approved isolated environment containing the exact candidate. Verify beams start OFF with no calibration or mic-testing panel/area, deliberately turn ON, then test comfortable speech and ON onset/quiet-stop, four-second cap/five-second cooldown, then OFF during attack while the other device confirms ordinary proximity conversation remains audible and no damage/restart occurs. Normal speech may trigger attacks while ON; OFF must leave microphone/proximity voice unchanged. Test mute, focus, death/respawn and deliberate resume. Actual microphone sensitivity remains unverified. The retired Controlled Beams objective must not appear for new/partial/claimed records; only an existing earned, unclaimed reward remains claimable. Record build/commit, devices and observed results without recordings or credentials. Synthetic power, local UI signals and Studio layout emulation cannot close this gate. Any required upload or environment change needs separate owner authorization; none is performed by this handoff.
