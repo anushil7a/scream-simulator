@@ -421,6 +421,7 @@ function academy.refreshZone()
   zone.Text=value
   zone.TextColor3=hallShield and gold or (enabled or trainingHint) and Color3.fromRGB(255,140,139) or (bossHint or pvpAhead) and gold or white
  end
+ return enabled
 end
 function academy.layoutZone(viewport,touch)
  if touch or viewport.X<820 then
@@ -457,8 +458,8 @@ do
  local function ambient(entry)
   return entry and not entry.urgent and (entry.key=="welcome" or entry.key=="travelArrival")
  end
- function academy.deferArrivalNotice(shortLandscape)
-  if not (academy.hideMap and shortLandscape and modal.Visible and not academy.menuNoticeRequested
+ function academy.deferArrivalNotice(shortLandscape,arenaActive)
+  if not (academy.hideMap and shortLandscape and (modal.Visible or arenaActive) and not academy.menuNoticeRequested
    and ambient(notifications.active)) then return false end
   -- A deferred welcome must never hold up the result of an action in the menu.
   for _,entry in ipairs(notifications.pending) do
@@ -2222,7 +2223,7 @@ connectClient(Run.RenderStepped,function(dt)
   local routeLights=data.routeLightsPass==true and root~=nil and not Config.InArena(root.Position)
   academy.guide:Step(root,os.clock(),gameplayVisible and alive and not devPanel.Visible,routeLights)
  end
- academy.refreshZone()
+ local arenaActive=academy.refreshZone()
 
  local showTouchControls=originalTouchControls and not GuiService.MenuIsOpen and not modal.Visible and not conversationPanel.Visible
  if GuiService.TouchControlsEnabled~=showTouchControls then lastTouchControls=showTouchControls;GuiService.TouchControlsEnabled=showTouchControls end
@@ -2557,13 +2558,17 @@ connectClient(Run.RenderStepped,function(dt)
  if modal.Visible then noticeLayout=NoticeLayout.Modal(viewport.X,viewport.Y,shortLandscape) end
  local noticeVisible=(gameplayVisible or modal.Visible) and windowFocused and not GuiService.MenuIsOpen
  local noticeNow=os.clock()
- noticeView:Update(notice,noticeLayout,noticeVisible and not academy.deferArrivalNotice(shortLandscape),noticeNow,viewport.X<820 and 14 or 16,notifications.active)
+ local noticeDeferred=academy.deferArrivalNotice(shortLandscape,arenaActive)
+ noticeView:Update(notice,noticeLayout,noticeVisible and not noticeDeferred,noticeNow,viewport.X<820 and 14 or 16,notifications.active)
  local nextNotice=notifications:Step(dt,noticeView:CanAdvance())
- if nextNotice~=notice then notice=nextNotice;noticeView:Update(notice,noticeLayout,noticeVisible and not academy.deferArrivalNotice(shortLandscape),noticeNow,viewport.X<820 and 14 or 16,notifications.active) end
+ if nextNotice~=notice then
+  notice=nextNotice;noticeDeferred=academy.deferArrivalNotice(shortLandscape,arenaActive)
+  noticeView:Update(notice,noticeLayout,noticeVisible and not noticeDeferred,noticeNow,viewport.X<820 and 14 or 16,notifications.active)
+ end
  title.Visible=not (shortLandscape and modal.Visible and noticeView.visible)
  shop.Visible=not GuiService.MenuIsOpen and not (conversationPanel and conversationPanel.Visible)
   and not (modal.Visible and (noticeView.visible or shortLandscape))
- local questShortcut=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
+ local questShortcut=notice~="" and (not noticeLayout.available or noticeDeferred) and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
  -- Keep navigation in MENU. A pending claim or inaccessible notice gets a shortcut.
  academy.noticeShortcut=questShortcut=="NOTICE"
  local hiddenWin=questShortcut=="NOTICE" and notifications.active and notifications.active.key=="trainingReceipt"

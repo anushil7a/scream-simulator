@@ -5,6 +5,7 @@ R=Path(__file__).resolve().parents[1];p=argparse.ArgumentParser();p.add_argument
 paths=['NoticeLayout','NoticeView'];sources={n:(R/f'src/StarterPlayer/StarterPlayerScripts/{n}.luau').read_text(encoding='utf-8-sig') for n in paths}
 client=(R/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text();city=(R/'src/StarterPlayer/StarterPlayerScripts/CityMap.luau').read_text();mini=city[city.index('function CityMap.MiniLayout('):city.index('function CityMap.MiniUpdate(')]
 integration=client[client.index(' -- Pause queue time while covered,'):client.index(' beamScreenFeedback:Step(',client.index(' -- Pause queue time while covered,'))]
+assert 'local arenaActive=academy.refreshZone()' in client[client.index('connectClient(Run.RenderStepped,function(dt)'):client.index(integration)]
 builder=(R/'tests/build_sustained_review.py').read_text(encoding='utf-8')
 travel_callback=builder[builder.index(' local function travelNotice()'):builder.index(' connectClient(p:GetAttributeChangedSignal("TravelStatus")')]
 texts=[]
@@ -163,7 +164,7 @@ local function receiveQuests(quests)
  data.quests=quests
 RECEIVER_COUNT
 end
-local gameplayVisible=true;local windowFocused=true;local gui={AbsolutePosition=Vector2.zero};local dt=.05
+local gameplayVisible=true;local windowFocused=true;local gui={AbsolutePosition=Vector2.zero};local dt=.05;local arenaActive=false
 local function rect(x,y,w,h)return {Visible=true,AbsolutePosition=Vector2.new(x,y),AbsoluteSize=Vector2.new(w,h),Position={}}end
 academy.guidePanel=rect(16,270,290,62);local meter=rect(490,612,300,96)
 local talkButton=rect(100,66,120,44);local hud=rect(14,118,240,88);local tracked=rect(16,214,290,50);local zone=rect(40,12,240,28);local saveNotice=rect(35,40,250,28)
@@ -265,6 +266,24 @@ for _,size in ipairs({Vector2.new(455,218),Vector2.new(567,241)})do
  check(noticeView.message=="","Clearing travel status left an obsolete notice")
  shop.callback()
 end
+viewport=Vector2.new(567,299);notifications=Queue.new();modal.Visible=false;gameplayVisible=true;touch=false
+travelStatus="Arrival rehearsal. Safe arrival.";travelNotice()
+frame();check(noticeView.root.Visible,"Safe Hall arrival was hidden")
+local arrival=notifications.active;local dwell=arrival.remaining
+arenaActive=true
+for i=1,20 do frame() end
+check(not noticeView.root.Visible and arrival.remaining==dwell,"Passive Hall arrival obscured live combat or consumed unread dwell")
+check(questsToggle.Visible and questsToggle.Text=="NOTICE","Hall combat lost its deferred notice shortcut")
+questsToggle.callback();gameplayVisible=false;frame()
+check(modal.Visible and noticeView.root.Visible and noticeView.message==travelStatus,"Explicit Hall combat notice reveal failed")
+shop.callback();gameplayVisible=true;frame()
+check(not noticeView.root.Visible,"Closing the notice reopened it over Hall combat")
+arenaActive=false;frame();check(noticeView.root.Visible,"Leaving Hall combat did not restore arrival guidance")
+arenaActive=true;notifications:Push("Saving unavailable",true,"save");frame()
+check(noticeView.root.Visible and noticeView.message=="Saving unavailable","Hall combat suppressed an urgent save notice")
+notifications:Remove("save");travelStatus="Portal reached. This local rehearsal stays in the same place.";travelNotice();frame()
+check(noticeView.root.Visible and noticeView.message==travelStatus,"Hall combat suppressed portal confirmation")
+arenaActive=false;touch=true
 academy.hideMap=false;viewport=viewportBefore;modal.Visible=false;gameplayVisible=true
 -- The baseline safe HUD measured 567 × 242 even though the camera was taller.
 viewport=Vector2.new(567,242);talkTarget={};notifications=Queue.new()
@@ -449,7 +468,9 @@ if a.negative_controls:
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('elseif noticeLayout.baseTalkX then','elseif noticeView.visible and noticeLayout.baseTalkX then'),'Short phone TALK extends outside the safe HUD')
  run(sources['NoticeLayout'].replace('talk.x=x;talk.y=','talk.x=navRight-24;talk.y='),sources['NoticeView'],error='Short phone TALK overlaps an existing HUD control')
  for old,new,error in [
-     ('not academy.deferArrivalNotice(shortLandscape)','true','Routine Hall welcome displaced'),
+     ('noticeVisible and not noticeDeferred','noticeVisible and true','Routine Hall welcome displaced'),
+     ('(modal.Visible or arenaActive)','modal.Visible','Passive Hall arrival obscured live combat'),
+     ('(not noticeLayout.available or noticeDeferred)','not noticeLayout.available','Hall combat lost its deferred notice shortcut'),
      ('if not ambient(entry) then return false end','if false then return false end','Queued action feedback was trapped'),
      ('academy.menuNoticeRequested=academy.noticeShortcut','academy.menuNoticeRequested=false','NOTICE failed to expose deferred Hall guidance'),
      ('entry.key=="travelArrival"','(entry.key=="travelArrival" or entry.key=="travel")','Explicit portal result was deferred'),

@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep passive arrival guidance out of narrow Hall combat
+
+- At 567 × 241 usable pixels in the local Hall on `4abb822`, an ordinary walk from the safe apron onto the PvP floor left the unread arrival notice at x264, y66 in a 169 × 65 scroll frame. Both the projected avatar head and the torso fell inside it. The startup guidance had no **Notice** shortcut because its frame was drawable.
+- The narrow Hall now defers passive arrival and welcome notices while the player is on the PvP floor. **Notice** opens the queued guidance in Rules. Leaving combat restores unread guidance. Urgent saves, action results and explicit portal confirmations keep their existing priority.
+- In the matched native candidate, the safe apron still showed the arrival guidance. Walking onto the PvP floor removed the obstruction, left the fitted zone badge visible and exposed a 78 × 36 Notice button. Clicking it displayed the full original notice in Rules, with a separate Close button. After closing and walking back, the explicit stock portal confirmation still fit.
+- A fresh ordinary round trip restored the same arrival guidance on the apron without opening Notice. Evidence and paired images are in `build/hall_entry_notice_native` and `build/hall_entry_notice_candidate_native`. Independent review, 801 focused notice assertions, 249 save-notification assertions and the full 323-step local check and build passed. All disposable Studio sessions closed. Actual transfer and physical-device testing remain open.
+
 ## Verify three overlapping high-tier beams in the Hall
 
 - A guarded Hall fixture on `7a32ee1` ran four local Studio clients with staged positions, cameras and synthetic level-100 Gold beams. Three real sustained casts overlapped in each of two rounds. The level-100 defender moved from 480 to 193 HP in the close view and from 480 to 228 in the off-axis view. All three attackers recorded server damage, with no knockout.
