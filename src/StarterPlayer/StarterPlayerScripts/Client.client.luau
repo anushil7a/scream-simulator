@@ -2093,6 +2093,14 @@ connectClient(Run.RenderStepped,function(dt)
   local hit=now<(academy.defenderHitUntil or 0)
   local dodged=now<(academy.defenderDodgeUntil or 0)
   local covered=now<(academy.defenderCoverUntil or 0)
+  local menuHit=hit and modal.Visible and windowFocused and alive and not GuiService.MenuIsOpen and not conversationPanel.Visible
+  local close=modal.Close
+  local closeText=menuHit and "HIT\nCLOSE" or "X"
+  if close.Text~=closeText then
+   close.Text=closeText
+   close.TextSize=menuHit and 11 or 14
+   close.TextColor3=menuHit and Color3.fromRGB(255,157,146) or white
+  end
   academy.incomingHit.Visible=gameplayVisible and windowFocused and alive and (hit or dodged or covered)
   if academy.incomingHit.Visible then
    local text=hit and (dodged and "HIT + DODGE" or "BEAM HIT YOU") or dodged and "BEAM DODGED" or "BODY BLOCK"

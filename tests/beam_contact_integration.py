@@ -35,7 +35,8 @@ local p={UserId=7,Character=character,GetAttribute=function(_,key)return attrs[k
 workspace.GetServerTimeNow=function()return clock end
 workspace.CurrentCamera={CFrame={Position=Vector3.zero}}
 local GuiService={MenuIsOpen=false};local typing;local UIS={GetFocusedTextBox=function()return typing end}
-local modal={Visible=false};local devPanel={Visible=false};local conversationPanel={Visible=false}
+local white=Color3.fromRGB(245,252,255)
+local modal={Visible=false,Close={Text='X',TextSize=14,TextColor3=white}};local devPanel={Visible=false};local conversationPanel={Visible=false}
 local mic={ready=true};local data={voiceEligible=true,settings={reducedShake=false}}
 local clientDestroyed=false;local windowFocused=true;local platformReducedMotion=false
 local gate={Cancel=function(self)self.next=nil end,Step=function(self)local n=self.next;self.next=nil;return n end}
@@ -211,6 +212,27 @@ send('BeamBodyBlocked',h);hud();clock+=1.41;hud()
 check(not academy.incomingHit.Visible,'Body cover outlived its duration')
 send('BeamBodyBlocked',h);hud();protectionRemaining=1;hud();protectionRemaining=0;hud()
 check(not academy.incomingHit.Visible,'Body cover replayed after protection')
+clock+=2;send('SustainedDamageTaken',h);gameplayVisible=false;hud()
+check(modal.Close.Text=='X','Hit cue escaped the app menu surface')
+modal.Visible=true;hud()
+check(modal.Close.Text=='HIT\nCLOSE' and modal.Close.TextColor3.R>modal.Close.TextColor3.G,
+ 'Open menu concealed confirmed damage')
+check(modal.Close.TextSize==11 and not academy.incomingHit.Visible,'Menu cue changed the covered battlefield HUD')
+GuiService.MenuIsOpen=true;hud();check(modal.Close.Text=='X','Hit cue escaped into the Roblox system menu')
+GuiService.MenuIsOpen=false;windowFocused=false;hud();check(modal.Close.Text=='X','Menu hit cue escaped inactive window')
+windowFocused=true;alive=false;hud();check(modal.Close.Text=='X','Menu hit cue appeared after defeat')
+alive=true;hud();check(modal.Close.Text=='HIT\nCLOSE','Menu hit cue did not restore before expiry')
+clock+=1.5;hud()
+check(modal.Close.Text=='X' and modal.Close.TextSize==14 and modal.Close.TextColor3==white,
+ 'Open menu kept a stale hit cue after expiry')
+send('BeamDodged',h);send('BeamBodyBlocked',h);send('SustainedDamageTaken',{});hud()
+check(modal.Close.Text=='X','Menu called an evade, cover, or unrelated hit damage')
+send('SustainedDamageTaken',h);hud();check(modal.Close.Text=='HIT\nCLOSE','New menu hit did not restore warning')
+protectionRemaining=1;hud();protectionRemaining=0;hud()
+check(modal.Close.Text=='X','Menu hit cue replayed after protection')
+modal.Visible=false;gameplayVisible=true;send('SustainedDamageTaken',h);hud()
+check(academy.incomingHit.Visible and modal.Close.Text=='X','Defender cue failed to restore after closing')
+
 local rig,id=make();check(sustainedControl.attack.acknowledged,'Real Controls did not acknowledge')
 hit(id,10,anchor);send('SustainedDamageTaken',h);hud();retained(10);frame(1/30)
 check(academy.incomingHit.Visible and hitText.Visible,'Outgoing damage replaced defender cue')
@@ -428,6 +450,9 @@ def main():
             (event, '"OPPONENT DODGED" or "BEAM HIT COVER"', '"BEAM HIT COVER" or "BEAM HIT COVER"', 'Opponent dodge cue missing or played a hit effect'),
             (event, '"NO HIT YET" or kind', '"BEAM HIT COVER" or kind', 'Open advisory missing or played a hit effect'),
             (event, 'if kind=="BeamDodged" then','if false then', 'A recent evade concealed damage'),
+            (hud, 'local menuHit=hit and modal.Visible', 'local menuHit=false and modal.Visible', 'Open menu concealed confirmed damage'),
+            (hud, 'local menuHit=hit and modal.Visible', 'local menuHit=(hit or dodged or covered) and modal.Visible', 'Menu called an evade, cover, or unrelated hit damage'),
+            (hud, 'alive and not GuiService.MenuIsOpen and not conversationPanel.Visible', 'alive and not conversationPanel.Visible', 'Hit cue escaped into the Roblox system menu'),
             (hud, 'dodged and "HIT + DODGE" or "BEAM HIT YOU"', '"BEAM HIT YOU"', 'A recent evade concealed damage'),
             (event, 'hitUntil and hitUntil>now and hitUntil or expires','expires','A dodge-only tail outlived the mixed damage window'),
             (event, ' or kind=="BeamBodyBlocked" then', ' then', 'Body cover was not shown'),

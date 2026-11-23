@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Show confirmed beam damage while the menu is open
+
+- On `1c84c4f`, an isolated Stadium pair at 567 × 241 usable pixels reproduced a feedback gap. With Gear open, a server-accepted cast lowered the defender from 480 to 378 HP and delivered the private damage packet. The battlefield cue stayed hidden for the entire hit window. A second cast with the menu closed lowered HP from 378 to 254 and showed the fitted **BEAM HIT YOU** label.
+- The existing 44 × 44 custom Close button now says **HIT / CLOSE** during the confirmed-damage window. It remains clickable in the same place. Expiry, protection or leaving the active menu restores the plain X. Dodge, cover and another character's damage cannot trigger the warning. The ordinary combat HUD and the notice queue keep their existing visibility and priority.
+- Independent review cleared the code. The actual Client integration passed 412 mocked checks and 50 negative controls. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and local Rojo builds on unchanged inputs. The suite reproduced the silent menu, false evade/cover warning and warning in the system menu.
+- In the candidate replay, the defender went from 480 to 354 HP with Gear open. The Close warning appeared on the next sampled frame, about 17 ms after the private hit. It fit the same button at (499,8) and returned to X after the 1.4-second cue expired, with Gear still open. A closed-menu control still showed **BEAM HIT YOU**. The Rojo-built candidate was opened locally and instrumented in memory in an isolated place with synthetic attack input and the real local server transport. Candidate SHA-256: `c557aecdd4061a1ece21cc4e66caa3ca78396dc7d8e5a37b5085c9779dff78d5`. Paired measurements: `build/defender_menu_native/native-baseline.json` and `build/menu_hit_feedback_native/native-candidate.json`. Both owned Studio sessions closed. The paired replay did not capture a pointer click during the warning or a concurrently visible notice.
+- Next review City touch controls and PvP entry/exit on a fresh local candidate. Real microphone transport, physical touch and representative internet multiplayer remain release gates.
+
 ## Open Gear directly from the earned upgrade cue
 
 - At 567 × 241 usable pixels on `77c470a`, a disposable Studio profile started with 80 coins and five Beach bottles. The real prompt completed the quest and Claim raised the balance to 130. The fitted **GEAR READY** Menu button still reopened Quests and showed zero Megaphone controls. After visiting Settings it reopened Settings with the same cue. Baseline: `build/compact_first_feedback/native-baseline.json`.
