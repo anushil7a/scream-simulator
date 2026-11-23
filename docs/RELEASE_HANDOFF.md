@@ -85,6 +85,8 @@ Settings shows the bindings for the current input. In the local Hall replay, the
 
 In Gear, use the D-pad to reach either arrow beside the hue strip and A/Cross to step the color preview. Equip Color applies the preview for Spectrum owners. The locked preview is available without the pass.
 
+The local two-client Hall check used the defender's Controller Emulator window. Select Xbox in the widget and click its left bumper directly. The mapped keyboard shortcut arrived as keyboard input in the earlier replay. The genuine Gamepad1 press produced a server dodge during an active beam, with damage resuming after the roll. See [the Hall controller evidence](ROADMAP.md#verify-controller-dodge-against-a-player-beam-in-hall).
+
 On each physical console, verify sustained stick movement, TV safe areas, headset-triggered damage while aiming, ordinary voice while Beams are off, and controller-only access to the Guide, Talk, portal, and shop. Check commerce in an approved test environment. Console access settings require separate approval. [Roblox gamepad input](https://create.roblox.com/docs/input/gamepad)
 
 ## Highest remaining release gates

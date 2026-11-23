@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Verify controller dodge against a player beam in Hall
+
+- In a guarded two-client local Studio replay from `aef05e0`, a matched cast reduced the standing defender from 100 to 90 HP. On the second cast the fresh 100 HP defender dropped to 84 before rolling. The attacker used fixture-driven voice power and aim. In the defender's own client window, choosing Xbox in Controller Emulator and clicking the left-bumper hotspot sent real, unprocessed `Gamepad1 / ButtonL1`. The mapped keyboard key did not exercise that route.
+- The production server accepted the roll roughly 32 ms after LB. The defender moved 13.97 studs along the beam centerline. Nine sampled active, dodging frames stayed at 84 HP. The server sent the private **Beam Dodged** event during the roll and the fitted **Hit + Dodge** feedback appeared. Damage resumed in the same active cast at the end of the roll, lowering HP to 80 and then 67.
+- Independent review verified the raw input, server timestamps, samples and health events in `build/hall_gamepad_dodge_retest/native-matched-result.json` (SHA-256 `1a66d22c1b8b91dd77cea4da1b8dc0d7f7c458539f6a5ea3924966e329ac4cce`). The prior preset was restored and all disposable Studio processes closed.
+- Focused controller dispatch and dodge behavior checks passed. This verifies the emulator input and real local client/server dodge path. Physical Xbox and PlayStation, voice transport and internet latency remain open.
+
 ## Keep controller movement after closing Menu
 
 - In the exact `c80c4df` City fixture, a fresh Xbox emulation sequence walked before opening Gear with Y. Closing with Y left selection nil and the stock controller and Thumbstick1 binding enabled, but the same raw lateral input produced no movement. A fresh Y-to-B sequence also worked in one replay, so the lock was intermittent across close sequences. On the non-touch emulator Roblox's `TouchControlsEnabled` changed from true to false to true on each panel cycle.
@@ -65,12 +72,12 @@
 - The synchronized images were from attacker windows. The local rehearsal's unread arrival notice covered the center of those views. The defender trace records the HUD and render counts but does not establish avatar visibility. The initial harness failed because the observer referenced a renderer local outside its scope. A corrected observer recorded parented instances without changing gameplay.
 - The final trace and capture scope are in `build/hall_gold_overlap_native/native-result.json` and `native-visibility-scope.json`. Independent review verified the trace and capture roles. Focused contact, cleanup and readiness checks passed. The original and corrected disposable sessions closed. One computer ran all four clients. Real-device readability and performance remain open.
 
-## Verify in-lane Hall dodge and isolate the multiplayer LB gate
+## Verify in-lane keyboard dodge and document the first emulator routing attempt
 
-- In a guarded two-client Hall test from `48bbaec`, a clear scripted beam lowered the standing defender from 100 to 90 HP. The defender healed to 100 during setup for the next round.
-- The defender's multiplayer child showed controller labels after opening the Controller Emulator, but its mapped LB press arrived as unprocessed **Keyboard R**. The Studio MCP only exposed the parent editor to the tester, and the child did not expose the device-selection method used for this setup. The gamepad input path therefore remains unverified in Hall combat.
+- Historical keyboard control. The later direct Xbox emulator replay above verifies the separate multiplayer LB path. In a guarded two-client Hall test from `48bbaec`, a clear scripted beam lowered the standing defender from 100 to 90 HP. The defender healed to 100 during setup for the next round.
+- The defender's multiplayer child showed controller labels after opening the Controller Emulator, but its mapped LB press arrived as unprocessed **Keyboard R**. The Studio MCP only exposed the parent editor to the tester, and the child did not expose the device-selection method used for this setup. That replay did not verify the gamepad input path in Hall combat.
 - A separate native keyboard Q fallback entered the ordinary server dodge during a clear incoming cast. The defender went from 100 to 97 HP before the roll. While rolling along the centerline, an evaluated beam sample produced a private **Beam Dodged** event and the live HUD showed **Hit + Dodge**. HP stayed at 97 through the recorded cast end.
-- The runner's aggregate assertion failed because it compared against health from before the inter-round healing. Independent review verified the raw input, position, health and Effect traces in `build/hall_gamepad_dodge_native/native-result.json` and `native-summary.json`. Focused client and dodge checks passed. The keyboard trace used staged positions and client focus with synthetic attacker input. A physical or correctly routed controller piloting the defender is still required for the Hall LB check. All disposable Studio processes closed.
+- The runner's aggregate assertion failed because it compared against health from before the inter-round healing. Independent review verified the raw input, position, health and Effect traces in `build/hall_gamepad_dodge_native/native-result.json` and `native-summary.json`. Focused client and dodge checks passed. The keyboard trace used staged positions and client focus with synthetic attacker input. The later replay used the Xbox widget's direct button control to complete the local Hall LB check. All disposable Studio processes closed.
 
 ## Explain cover reached during an active beam
 
