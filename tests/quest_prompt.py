@@ -85,6 +85,7 @@ client=(root/'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_t
 refresh=client[client.index('local function refreshQuestObject('):client.index('local function saveStatus()')]
 client_setup=r'''
 local shown,added
+local academy={};local gui={AbsoluteSize={X=800,Y=450}}
 local game={GetService=function(_,name)
  assert(name=="ProximityPromptService");return {PromptShown={}}
 end}
@@ -97,7 +98,7 @@ local world={FindFirstChild=function(_,name)if name=="QuestObjects" then return 
 local workspace={DescendantAdded="DescendantAdded",FindFirstChild=function(_,name)if name=="ScreamSimulatorWorld" then return world end end}
 local function marker(name,action,parent)
  local part={Name=name,Parent=parent,LocalTransparencyModifier=.2}
- local prompt={Enabled=true,Parent=part,IsA=function(_,class)return class=="ProximityPrompt" end}
+ local prompt={Enabled=true,Parent=part,IsA=function(_,class)return class=="ProximityPrompt" end,GetAttribute=function()return nil end}
  function part:IsA(class)return class=="BasePart" end
  function part:GetAttribute(attr)if attr=="QuestAction" then return action end end
  function part:FindFirstChildOfClass()return prompt end

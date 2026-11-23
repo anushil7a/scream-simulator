@@ -1808,8 +1808,16 @@ local function refreshQuestObjects()
  if not objects then return end
  for _,object in objects:GetChildren() do refreshQuestObject(object) end
 end
+function academy.layoutCityTravelPrompt(prompt,viewport)
+ local landscapeOffset=prompt:GetAttribute("LandscapeUIOffset")
+ if typeof(landscapeOffset)~="Vector2" or viewport.X<=0 or viewport.Y<=0 then return end
+ -- In portrait, lifting the portal places it behind the Academy Guide.
+ local offset=viewport.Y>viewport.X and Vector2.zero or landscapeOffset
+ if prompt.UIOffset~=offset then prompt.UIOffset=offset end
+end
 -- Reapply this player's collection state if a marker loads after its state packet.
 connectClient(game:GetService("ProximityPromptService").PromptShown,function(prompt)
+ academy.layoutCityTravelPrompt(prompt,gui.AbsoluteSize)
  local object=prompt.Parent
  if not object or not data.collected or data.collected[object.Name]~=true then return end
  local world=workspace:FindFirstChild("ScreamSimulatorWorld")
@@ -2153,6 +2161,11 @@ connectClient(Run.RenderStepped,function(dt)
  ShopUI.Tick()
  refreshHealth()
  local viewport=gui.AbsoluteSize
+ if viewport~=lastViewport then
+  for _,prompt in game:GetService("CollectionService"):GetTagged("CityTravelPortal") do
+   academy.layoutCityTravelPrompt(prompt,viewport)
+  end
+ end
  local touch=UIS.TouchEnabled
  academy.gamepad=UIS.PreferredInput==Enum.PreferredInput.Gamepad
  academy.updateControllerFocus()

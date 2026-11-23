@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Keep the Academy portal clear in portrait and landscape
+
+- At iPhone 16 portrait size (391 × 700), a normal touch turn toward the City portal placed the raised prompt behind **Guide**. A matched Studio comparison at the same camera and avatar positions showed the destination hidden at offsets 72 and 56, while the default zero offset cleared Guide. The previous 72-pixel build still passed its exact Xbox Gamepad1 ButtonX hold.
+- The City prompt now uses its default placement in portrait and keeps the raised 72-pixel placement in landscape. The client applies the offset when the portal shows and when the viewport changes. The interaction anchor, labels, range and hold duration use the same server path.
+- The responsive candidate displayed the full prompt below Guide and above Talk in the matched portrait approach. An emulated touch hold triggered after 0.264 seconds and set the same-place status. Studio rotation changed the offset from 0 to 72 and back to 0. The prompt was also visible after rotation to landscape. The exact candidate passed a Gamepad1 ButtonX hold in the Xbox emulator at 7.91 studs.
+- Independent source review cleared the change. Five focused orientation checks and 17 travel mutation controls passed, along with the full 323-step local check and build. The paired native traces are in `build/touch_travel_native/native-portrait-baseline.json` and `native-responsive.json`. The prior emulator preset was restored and both disposable sessions closed.
+- The manual voice check now includes RB/R1 and center aiming on controller. Physical phone and console controls, real headset voice and cross-place transfer remain release checks.
+
 ## Keep the Academy portal readable above the phone HUD
 
 - Rebuilt the playable travel pair from `b3d681c` and started the Hall directly in iPhone XR landscape. With a focused 801 × 355 safe viewport, the full **Training City / Preview portal** copy was visible without overlap. The built-in action label still reported `TextFits=false` at equal 101-pixel text and allocated widths. The prior inactive-window sample alone could not distinguish that measurement from visible clipping.

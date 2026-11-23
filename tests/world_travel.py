@@ -170,7 +170,10 @@ function workspace:Raycast(origin,_,params)
 end
 local nodes={}
 local Instance={new=function(class)
- local node={class=class};table.insert(nodes,node);return node
+ local node={class=class,attributes={},tags={}}
+ function node:SetAttribute(key,value)self.attributes[key]=value end
+ function node:AddTag(tag)self.tags[tag]=true end
+ table.insert(nodes,node);return node
 end}
 local prompt,landing
 local travel={Bind=function(p)prompt=p end,BindArrival=function(frame)landing=frame end}
@@ -198,6 +201,8 @@ assert(prompt.Parent.Name=="HallPortalAnchor" and prompt.Parent.Position.X==-292
  "Gateway changed the original prompt")
 assert(prompt.UIOffset and prompt.UIOffset.X==0 and prompt.UIOffset.Y==72,
  "City portal prompt lost its HUD clearance offset")
+assert(prompt.attributes.LandscapeUIOffset==prompt.UIOffset and prompt.tags.CityTravelPortal,
+ "City prompt lost its orientation metadata")
 assert(landing.Position.X==-300 and math.abs(landing.Position.Y-35.8)<.001 and landing.Position.Z==-260
  and landing.Target.Z==-261,"Gateway changed the Academy landing")
 assert(labels["RESONANCE HALL"] and labels["PVP ARENA"],"Gateway lacks its destination sign")
@@ -213,6 +218,32 @@ for _,node in ipairs(nodes) do
  assert(node.Name~="ArenaDirection","Fallback City gained a floating sign")
 end
 print("PASS Gateway ground probe, nonphysical parts, prompt, landing and destination sign")
+'''
+
+client = (ROOT / 'src/StarterPlayer/StarterPlayerScripts/Client.client.luau').read_text(encoding='utf-8')
+start = client.index('function academy.layoutCityTravelPrompt(')
+layout = client[start:client.index('-- Reapply this player', start)]
+assert 'academy.layoutCityTravelPrompt(prompt,gui.AbsoluteSize)' in client
+assert 'GetTagged("CityTravelPortal") do\n   academy.layoutCityTravelPrompt(prompt,viewport)' in client
+LAYOUT_SETUP = r'''
+local academy={}
+local Vector2={zero={X=0,Y=0,kind="Vector2"}}
+local function typeof(value)return type(value)=="table" and value.kind or type(value)end
+'''
+LAYOUT_CHECKS = r'''
+local landscape={X=801,Y=355}
+local portrait={X=391,Y=700}
+local empty={X=0,Y=0}
+local offset={X=0,Y=72,kind="Vector2"}
+local prompt={offset=offset,UIOffset=offset,GetAttribute=function(self)return self.offset end}
+local apply=academy.layoutCityTravelPrompt
+apply(prompt,portrait);assert(prompt.UIOffset==Vector2.zero,"Portrait did not restore the default prompt offset")
+apply(prompt,empty);assert(prompt.UIOffset==Vector2.zero,"Invalid viewport changed the prompt offset")
+apply(prompt,landscape);assert(prompt.UIOffset==offset,"Landscape did not restore the HUD clearance offset")
+apply(prompt,portrait);assert(prompt.UIOffset==Vector2.zero,"Rotating back to portrait kept the landscape offset")
+prompt.offset=nil;prompt.UIOffset=offset
+apply(prompt,portrait);assert(prompt.UIOffset==offset,"Unmarked prompt changed")
+print("PASS 5 mocked City prompt orientation checks")
 '''
 
 
@@ -234,6 +265,7 @@ def run(source, expected=None, setup=SETUP, checks=CHECKS):
 
 run(GATE)
 run(PORTAL, setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
+run(layout, setup=LAYOUT_SETUP, checks=LAYOUT_CHECKS)
 if '--negative-controls' in sys.argv:
     run(GATE.replace('if rehearsal then prompt.ActionText="Preview portal" end', ''),
         'Rehearsal advertised a real transfer')
@@ -252,6 +284,10 @@ if '--negative-controls' in sys.argv:
         'Gateway changed the original prompt', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
     run(PORTAL.replace('prompt.UIOffset=Vector2.new(0,72)', 'prompt.UIOffset=Vector2.new(0,0)'),
         'City portal prompt lost its HUD clearance offset', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
+    run(PORTAL.replace('prompt:AddTag("CityTravelPortal")', ''),
+        'City prompt lost its orientation metadata', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
+    run(layout.replace('viewport.Y>viewport.X and Vector2.zero or landscapeOffset', 'landscapeOffset'),
+        'Portrait did not restore the default prompt offset', setup=LAYOUT_SETUP, checks=LAYOUT_CHECKS)
     run(PORTAL.replace('label(face(direction,"ArenaWayfinding"),"PVP ARENA →"', 'label(face(direction,"ArenaWayfinding"),"PVP ARENA"'),
         'Academy approach lacks an arena direction', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
     run(PORTAL.replace('Vector3.new(-4.45,5.6,.45)', 'Vector3.new(-6,5.6,.45)'),
