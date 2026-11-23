@@ -288,7 +288,9 @@ local function toggleTab(name,resetScroll,focusQuest)
  end
 end
 local function toggle()
- if modal.Visible then closeMenu() else toggleTab(selected) end
+ if modal.Visible then closeMenu()
+ elseif academy.starterGearReady then toggleTab("Style",true)
+ else toggleTab(selected) end
 end
 local shop=button(top,"ShopToggle","MENU [B]",UDim2.fromOffset(125,36),UDim2.fromOffset(0,0),toggle,gold);shop.TextColor3=dark
 local questsToggle=button(top,"QuestsToggle","QUESTS",UDim2.fromOffset(95,36),UDim2.fromOffset(134,0),function() toggleTab("Quests",true) end)

@@ -186,6 +186,17 @@ renderedTab,renderedMenuKey="Style","previous position"
 shop.callback();check(modal.Visible and selected=="Style",'Menu toggle did not reopen the last tab')
 check(renderedTab=="Style" and renderedMenuKey=="previous position",'Ordinary menu reopen discarded scroll')
 shop.callback();check(not modal.Visible,'Menu toggle did not close its group')
+selected="Quests";academy.starterGearReady=true
+shop.callback();check(modal.Visible and selected=="Style",'Gear-ready Menu reopened Quests instead of Gear')
+shop.callback();check(not modal.Visible,'Gear-ready Menu did not close its group')
+renderedTab,renderedMenuKey="Style","below the gear upgrade"
+shop.callback();check(modal.Visible and selected=="Style" and renderedTab==nil,
+ 'Gear-ready Menu preserved scroll below the upgrade')
+closeMenu();academy.starterGearReady=false
+selected="Settings";shop.callback()
+check(modal.Visible and selected=="Settings",'Ordinary Menu stopped reopening the last tab')
+closeMenu();selected="Style"
+
 local beforePassRefresh=shopRefreshes
 renderedTab,renderedMenuKey="Style","previous position"
 academy.passesToggle.callback()
@@ -354,6 +365,11 @@ if a.negative_controls:
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('or questLauncherText()', 'or "QUESTS"'),'Frame erased actual receiver reward count')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace(' and questShortcut~="QUESTS"',''),'Modal exit failed to restore grouped navigation')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('),toggle,gold);shop.TextColor3', '),function()toggleTab("Shop")end,gold);shop.TextColor3'),'Menu toggle did not reopen the last tab')
+ for old,new,error in [
+     ('elseif academy.starterGearReady then toggleTab("Style",true)', 'elseif academy.starterGearReady then toggleTab(selected)', 'Gear-ready Menu reopened Quests instead of Gear'),
+     ('elseif academy.starterGearReady then toggleTab("Style",true)', 'elseif academy.starterGearReady then toggleTab("Style")', 'Gear-ready Menu preserved scroll below the upgrade'),
+ ]:
+  assert old in checks;run(sources['NoticeLayout'],sources['NoticeView'],checks.replace(old,new),error)
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('toggleTab("Quests",true)','toggleTab("Quests")'),'Ready reward shortcut preserved stale scroll')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('elseif noticeLayout.baseTalkX then','elseif noticeView.visible and noticeLayout.baseTalkX then'),'Short phone TALK extends outside the safe HUD')
  run(sources['NoticeLayout'].replace('talk.x=x;talk.y=','talk.x=navRight-24;talk.y='),sources['NoticeView'],error='Short phone TALK overlaps an existing HUD control')

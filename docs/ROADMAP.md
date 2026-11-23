@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Open Gear directly from the earned upgrade cue
+
+- At 567 × 241 usable pixels on `77c470a`, a disposable Studio profile started with 80 coins and five Beach bottles. The real prompt completed the quest and Claim raised the balance to 130. The fitted **GEAR READY** Menu button still reopened Quests and showed zero Megaphone controls. After visiting Settings it reopened Settings with the same cue. Baseline: `build/compact_first_feedback/native-baseline.json`.
+- While the current affordability cue is visible, the existing Menu button and B shortcut open Gear at the top. The usual tab picker remains available, and Menu still closes the panel when open. Once the cue clears, Menu resumes the last selected tab. Quest rewards and actual gear entitlement continue through the server.
+- Independent review cleared the change. Notice/Client tests passed 751 mocked assertions with 41 negative controls, including wrong-tab routing and stale scroll. Focused action feedback passed 27 checks and 11 controls.
+- The exact candidate replayed the same Beach claim. Clicking **GEAR READY** or pressing B opened **GEAR & BEAM COLOR** at scroll zero. The real **BUY & EQUIP** control fit at (378,112), 135 × 44, within the 113-pixel content window. Clicking it equipped the Academy Megaphone, left 30 coins and cleared the cue. Pressing B after selecting and closing Settings reopened Settings. This staged local path uses normal quest and gear actions without Robux or live saves. Candidate SHA-256: `065c10077114786415c0804d52946b5db97ac783dc752ec35aa6a1c6e66cb93d`. Capture: `build/gear_ready_navigation_native/GearReadyOpensGear.jpg`. Both disposable Studio sessions closed. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and local builds on unchanged inputs.
+- Next reproduce whether the defender misses confirmed beam damage feedback when the custom menu hides the combat HUD. The private hit cue expires after 1.4 seconds, so a menu-open local combat control can decide whether the gap is player-facing. Real voice, physical touch and multiplayer over the internet remain open.
+
 ## Keep beam geometry and particle travel in sync
 
 - In the native `33cd1b9` renderer fixture, 12 overlapping level-50 and level-100 beams sized and posed their imported instances on every step. From actual asset contents, each mixed update attempted 162 imported property writes. With packet input held for six render steps, 135 of those per step on average were eligible to be skipped. Procedural paths, texture animation and mode updates run separately.
