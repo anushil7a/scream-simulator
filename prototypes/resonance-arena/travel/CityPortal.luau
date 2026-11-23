@@ -43,18 +43,31 @@ local function bind(world,spawnPosition)
  end
  local sign=piece("Destination",Vector3.new(5.3,1.55,.18),Vector3.new(-1.55,8.52,0),ink,Enum.Material.SmoothPlastic)
  sign.CFrame=CFrame.lookAt(sign.Position,sign.Position+Vector3.new(-1,0,1))
- local face=Instance.new("SurfaceGui")
- face.Name="HallSign";face.Face=Enum.NormalId.Front
- face.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;face.PixelsPerStud=36
- face.LightInfluence=.25;face.Parent=sign
- local function label(text,y,height,color)
+ local function face(part,name)
+  local surface=Instance.new("SurfaceGui")
+  surface.Name=name;surface.Face=Enum.NormalId.Front
+  surface.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud;surface.PixelsPerStud=36
+  surface.LightInfluence=.25;surface.Parent=part
+  return surface
+ end
+ local function label(surface,text,y,height,color)
   local line=Instance.new("TextLabel")
   line.Text=text;line.Font=Enum.Font.GothamBold;line.TextColor3=color;line.TextScaled=true
   line.Position=UDim2.fromScale(.04,y);line.Size=UDim2.fromScale(.92,height)
-  line.BackgroundTransparency=1;line.Parent=face
+  line.BackgroundTransparency=1;line.Parent=surface
  end
- label("RESONANCE HALL",.08,.5,Color3.fromRGB(247,245,222))
- label("PVP ARENA",.62,.29,gold)
+ local hallFace=face(sign,"HallSign")
+ label(hallFace,"RESONANCE HALL",.08,.5,Color3.fromRGB(247,245,222))
+ label(hallFace,"PVP ARENA",.62,.29,gold)
+ -- The close plaque is often behind compact HUD controls. Join the Academy
+ -- boards on their lower row where players can still see both directions.
+ local marquee=world:FindFirstChild("NorthAcademyMarqueePostL",true)
+ if marquee then
+  local offset=marquee.Position-groundPosition+Vector3.new(-4.45,5.6,.45)
+  local direction=piece("ArenaDirection",Vector3.new(8.9,1.65,.2),offset,ink,Enum.Material.SmoothPlastic)
+  direction.CFrame=CFrame.lookAt(direction.Position,direction.Position+Vector3.zAxis)
+  label(face(direction,"ArenaWayfinding"),"PVP ARENA →",.08,.84,gold)
+ end
  gateway.Parent=world
  local prompt=Instance.new("ProximityPrompt")
  prompt.ActionText="Enter arena";prompt.ObjectText="Resonance Hall";prompt.HoldDuration=.25

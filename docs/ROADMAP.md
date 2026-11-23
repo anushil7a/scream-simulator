@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Point to Resonance Hall from the Academy approach
+
+- Native 455 × 218 touch emulation showed the near Hall plaque behind Beams and the local test launcher at Academy spawn. A normal 4.27-stud forward walk pushed the plaque partly outside the viewport. The original Rookie board remained readable.
+- The City travel fixture now attaches a separate **PVP ARENA →** plaque to the Academy marquee's existing left post. It sits beside Academy Plaza and below Rookie Training. The gateway's close-range plaque, trigger and arrival positions remain in place. The new part cannot collide, affect a ray, or touch players, and the legacy map without the post omits it.
+- Independent review and 28 simulated travel assertions, the gateway geometry contract and 14 negative controls passed. The tests detect a missing direction, a detached plaque, changed collision or prompt behavior and travel guard regressions.
+- In the exact City rehearsal, the new and existing signs read clearly at 567 × 241 desktop spawn. At 455 × 218 touch, the plaque cleared the HUD, although a temporary resident speech bubble obscured it in the initial captures. A short ordinary walk exposed all three signs. A local F hold then fired the existing preview response without moving the avatar. Walking back to the spawn mark after the resident moved also showed the full plaque with the HUD present. Evidence is in `build/academy_hall_sight_native/native-candidate.json` (fixture SHA-256 `1aa59ef1e14716c09a60999289aa57824d0034f567e722c5bfc6a8b2f4c79b5c`). This is a local rehearsal with emulated touch and virtual keyboard, so unassisted discovery and real cross-place travel remain open.
+
 ## Keep the first training destination visible alongside notices
 
 - In the exact current City at 455 × 218 touch-emulated pixels, the routine startup notice reduced the idle 52 × 46 training button to generic GUIDE / 0/3. Its ordinary activation produced 18 route dots, and a staged uninterrupted Humanoid walk reached the Rookie arrival handoff without teleporting or injecting microphone readiness.

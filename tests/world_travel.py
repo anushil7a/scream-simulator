@@ -152,7 +152,12 @@ local enum=setmetatable({},{__index=function(_,key)return key end})
 local Enum=setmetatable({},{__index=function()return enum end})
 local RaycastParams={new=function()return {} end}
 local world={}
-function world:FindFirstChild(name)
+local marquee={Position=Vector3.new(-291.05,39,-277),Size=Vector3.new(.8,14.4,.8)}
+function world:FindFirstChild(name,recursive)
+ if name=="NorthAcademyMarqueePostL" then
+  assert(recursive,"Academy wayfinding post is nested in the City map")
+  return marquee
+ end
  assert(name=="AcademySpine")
  return {Position=Vector3.new(-292,32.13,-260),Size=Vector3.new(350,.2,26)}
 end
@@ -175,8 +180,9 @@ local bind=(function()
 PORTAL_CHECKS = r'''
 end)()
 bind(world,Vector3.new(-300,36,-260))
-local labels={}
+local labels={};local direction
 for _,node in ipairs(nodes) do
+ if node.Name=="ArenaDirection" then direction=node end
  if node.class=="Part" then
   assert(node.Anchored and not node.CanCollide and not node.CanQuery and not node.CanTouch,
    "Gateway art changes collision or rays")
@@ -192,6 +198,17 @@ assert(prompt.Parent.Name=="HallPortalAnchor" and prompt.Parent.Position.X==-292
 assert(landing.Position.X==-300 and math.abs(landing.Position.Y-35.8)<.001 and landing.Position.Z==-260
  and landing.Target.Z==-261,"Gateway changed the Academy landing")
 assert(labels["RESONANCE HALL"] and labels["PVP ARENA"],"Gateway lacks its destination sign")
+assert(direction and labels["PVP ARENA →"],"Academy approach lacks an arena direction")
+assert(math.abs(direction.Position.X+direction.Size.X/2-marquee.Position.X)<.01
+ and math.abs(direction.Position.Y-marquee.Position.Y)+direction.Size.Y/2<=marquee.Size.Y/2+.6
+ and math.abs(direction.Position.Z-marquee.Position.Z-.45)<.01
+ and direction.CFrame.Target.Z>direction.Position.Z,"Academy direction is detached or faces away")
+table.clear(nodes)
+marquee=nil
+bind(world,Vector3.new(-300,36,-260))
+for _,node in ipairs(nodes) do
+ assert(node.Name~="ArenaDirection","Fallback City gained a floating sign")
+end
 print("PASS Gateway ground probe, nonphysical parts, prompt, landing and destination sign")
 '''
 
@@ -230,5 +247,9 @@ if '--negative-controls' in sys.argv:
         setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
     run(PORTAL.replace('prompt.MaxActivationDistance=10', 'prompt.MaxActivationDistance=14'),
         'Gateway changed the original prompt', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
+    run(PORTAL.replace('label(face(direction,"ArenaWayfinding"),"PVP ARENA →"', 'label(face(direction,"ArenaWayfinding"),"PVP ARENA"'),
+        'Academy approach lacks an arena direction', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
+    run(PORTAL.replace('Vector3.new(-4.45,5.6,.45)', 'Vector3.new(-6,5.6,.45)'),
+        'Academy direction is detached or faces away', setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
     run(PORTAL.replace('floorY+.028', '.028'), 'Gateway floor art is buried in Academy paving',
         setup=PORTAL_SETUP, checks=PORTAL_CHECKS)
