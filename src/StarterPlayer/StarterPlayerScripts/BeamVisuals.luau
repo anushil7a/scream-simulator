@@ -2,6 +2,7 @@
 local Style=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("BeamStyle"))
 local Visuals={}
 local pool,live={},{}
+local spareVfx={}
 local allocated=0
 -- Reserve five core Parts per admitted beam and one local confirmed-hit burst.
 local coreLimit,contactLimit=24*5,16
@@ -279,12 +280,13 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,dista
  local vfx=rig.vfx
  if vfx and vfx.styleId~=styleId then destroyVfx(rig);vfx=nil end
  if not vfx then
-  vfx=buildVfxForStyle(styleId)
+  vfx=spareVfx[styleId]
+  spareVfx[styleId]=nil
+  vfx=vfx or buildVfxForStyle(styleId)
   if not vfx then return end
   rig.vfx=vfx
  end
  applyTemplateTint(vfx,rig.color)
- if vfx.root.Parent~=workspace then vfx.root.Parent=workspace end
  local up=math.abs(dir.Y)>.98 and Vector3.zAxis or Vector3.yAxis
  local mid=(origin+finish)*.5
  vfx.startAnchor.CFrame=CFrame.lookAt(origin,finish,up)
@@ -378,7 +380,8 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,dista
    mesh.CFrame=CFrame.lookAt(mid,finish,up)*CFrame.Angles(0,math.pi/2,0)
   end
  end
-
+ -- A reused root becomes visible only after its new pose and style are ready.
+ if vfx.root.Parent~=workspace then vfx.root.Parent=workspace end
 end
 local function take(kind)
  if inUse[kind]>=limits[kind] then return end
@@ -619,7 +622,17 @@ end
 function Visuals.Destroy(rig)
  if not live[rig] then return end
  live[rig]=nil
- if isRoblox then destroyVfx(rig) end
+ local vfx=rig.vfx
+ if vfx and not spareVfx[vfx.styleId] then
+  for _,entry in ipairs(vfx.emitters) do entry.inst:Clear() end
+  vfx.root.Parent=nil
+  -- Width can match the previous cast even when its particle travel distance changes.
+  vfx.lastBucket=nil
+  spareVfx[vfx.styleId]=vfx
+  rig.vfx=nil
+ else
+  destroyVfx(rig)
+ end
  for _,part in ipairs(rig.parts) do release(part) end
  for _,part in ipairs(rig.contact.parts) do release(part) end
  table.clear(rig.parts)
@@ -627,6 +640,8 @@ function Visuals.Destroy(rig)
 end
 function Visuals.Clear()
  for rig in pairs(live) do Visuals.Destroy(rig) end
+ for _,vfx in pairs(spareVfx) do vfx.root:Destroy() end
+ table.clear(spareVfx)
  for _,part in ipairs(pool) do part:Destroy() end
  table.clear(pool);allocated=0
 end

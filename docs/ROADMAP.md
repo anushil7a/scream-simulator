@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Reuse imported beam effects between casts
+
+- On the exact `73a9f34` baseline, the native client renderer created 30 imported roots for 30 sequential level-100 casts, and 100 roots across five waves of 20 overlapping casts. Repeated updates within a cast already reused the same rig. The test staged the renderer locally with an isolated place and separated root counts from wall-clock timings.
+- The renderer keeps one detached spare for each of the three imported styles. It clears old particles, refreshes the next cast's geometry and tint before mounting the root, and destroys extra spares and all roots at final cleanup. The spare handles staggered cast starts. Simultaneous casts still get their own roots, and existing distance culling stays in place.
+- The mocked renderer passed 7,136 checks and 22 negative controls. New cases cover all three styles, retention limits, matching root reuse, far visibility, distinct simultaneous roots, retinting and rebuilding particle speed for a new length at the same width. Independent review checked that retained emitters in the actual asset packages are tracked and cleared.
+- The native candidate created one root for 30 sequential casts, six across five two-cast waves, and 96 across five 20-cast waves. Staged level 10, 50 and 100 recasts retinted and moved their reused roots, hid secondary beams while crowded, and stopped far texture motion. No roots remained parented after each wave, and all three saved spare references rejected reparenting after `Clear`. Single-run timing varied across scenarios, so these counts establish less allocation churn without a frame-rate conclusion. Evidence: `build/beam_recast_native/native-candidate.json`. Candidate SHA-256: `89631c1f9d38bd6723e3de9deff392d20698f1496a60fbcb02b35e1a46a73ebb`.
+- Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and local Rojo builds on unchanged verification inputs. Real voice, physical-phone performance, internet multiplayer, and production texture permissions remain open.
+- Next profile steady moving combat in the current City to identify whether frame cost comes from visible procedural detail, imported transform writes, or something outside the beam renderer before changing its level-of-detail rules.
+
 ## Keep high-tier beam cores stable across Studio loads
 
 - In disposable native Studio at `d4d65b6`, reversing the order of the five central Hollow Purple Beam siblings changed which two remained in crowded and distant views. Crowded maximum imported width went from 0.900 to 3.599 studs in the same fixture. The five normal layers still loaded.

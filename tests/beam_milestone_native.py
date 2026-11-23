@@ -182,6 +182,7 @@ check(r.vfx==nil and #r.parts==4,'A quiet cast allocated an imported template at
 manager:Update(1,.6,Vector3.zero,Vector3.zAxis,40,7,color,100,false)
 Visuals.Animate(r,r.born+.6,Vector3.zero,false,false,false)
 local v=r.vfx
+local initialClears=v.emitters[1].inst.clearCount or 0
 for _,e in ipairs(v.beams) do countWrites(e.inst,{'Enabled','TextureSpeed'}) end
 for _,e in ipairs(v.emitters) do countWrites(e.inst,{'Enabled','Rate'}) end
 for _,mode in ipairs({{false,false},{false,true},{true,false},{false,false}}) do
@@ -193,7 +194,7 @@ for _,mode in ipairs({{false,false},{false,true},{true,false},{false,false}}) do
  check(writes==0,'Steady mode rewrote template properties')
  check(v.emitters[1].inst.clearCount==clears,'Steady mode cleared particles again')
 end
-check(v.emitters[1].inst.clearCount==1 and v.emitters[1].inst.Enabled,'Particle transition failed to clear or restore')
+check(v.emitters[1].inst.clearCount==initialClears+1 and v.emitters[1].inst.Enabled,'Particle transition failed to clear or restore')
 local tint=Color3.fromRGB(32,235,88)
 local base=Color3.fromRGB(255,203,99)
 local light=tint:Lerp(Color3.fromRGB(245,252,255),.32)
@@ -235,6 +236,52 @@ for _,entry in ipairs(r.vfx.emitters) do
  check(entry.baseRate==18 and entry.inst.Rate==15,'Initial aggregate particle rate cap missing')
 end
 manager:Destroy();Visuals.Clear();check(Visuals.Budget()==0,'cleanup')
+local spareRoots={}
+for _,level in ipairs({10,50,100}) do
+ local first=Visuals.Create()
+ Visuals.Update(first,Vector3.zero,Vector3.zAxis,40,7,tint,level,false)
+ Visuals.Animate(first,first.born+.6,Vector3.zero,false,true,false)
+ local old=first.vfx
+ local emitter=old.emitters[1].inst
+ local cleared=emitter.clearCount or 0
+ local second=Visuals.Create()
+ Visuals.Update(second,Vector3.zero,Vector3.zAxis,40,7,tint,level,false)
+ Visuals.Animate(second,second.born+.6,Vector3.zero,false,true,false)
+ local overflow=second.vfx.root
+ check(old.root~=overflow,'Two live casts shared an imported root')
+ Visuals.Destroy(first)
+ check(first.vfx==nil and old.root.Parent==nil and not old.root.dead,
+  'Ended cast did not release a reusable detached root')
+ check(emitter.clearCount==cleared+1,'Ending a cast retained old particles')
+ Visuals.Destroy(second)
+ check(overflow.dead,'Idle template cap retained a second spare of one style')
+ local nextCast=Visuals.Create()
+ Visuals.Update(nextCast,Vector3.zero,Vector3.zAxis,20,5,base,level,false)
+ Visuals.Animate(nextCast,nextCast.born+.6,vec(0,0,125),false,true,false)
+ check(nextCast.vfx==old and old.root.Parent==workspace,'New cast rebuilt its matching template')
+ local widest=0
+ for _,entry in ipairs(old.beams) do
+  local b=entry.inst
+  check(b.Enabled==entry.isCore and b.TextureSpeed==0,'Reused cast retained normal visibility or motion')
+  check(sameColor(b.Color.Keypoints[1].Value,entry.isCore and base or baseLight),'Reused cast retained old tint')
+  if b.Enabled then widest=math.max(widest,b.Width0,b.Width1) end
+ end
+ check(near(widest,5*.6*StyleSource.WidthScale(level,true)),'Reused cast retained old width')
+ check(not emitter.Enabled,'Reused cast retained active particles at distance')
+ Visuals.Destroy(nextCast)
+ if level==100 then
+  local sameWidth=Visuals.Create()
+  Visuals.Update(sameWidth,Vector3.zero,Vector3.zAxis,30,5,base,level,false)
+  Visuals.Animate(sameWidth,sameWidth.born+.6,vec(0,0,125),false,true,false)
+  check(sameWidth.vfx==old and near(emitter.Speed.Max,old.emitters[1].baseSpeed.Max*30/44),
+   'Reused cast retained old particle travel speed')
+  Visuals.Destroy(sameWidth)
+ end
+ table.insert(spareRoots,old.root)
+end
+Visuals.Clear()
+for _,root in ipairs(spareRoots) do check(root.dead,'Clear left an idle imported root') end
+check(Visuals.Budget()==0,'Template reuse changed procedural cleanup')
 print('PASS '..checks..' native-builder/manager milestone checks; Instance doubles, NOT native Studio')
 '''
 def run(source):
@@ -250,6 +297,11 @@ def run(source):
  finally:path.unlink()
 s=P.read_text();result=run(s);assert result.returncode==0,result.stdout+result.stderr;print(result.stdout.strip())
 for old,new,message in [
+ ('if vfx and not spareVfx[vfx.styleId] then','if vfx and false then','Ended cast did not release a reusable detached root'),
+ ('if vfx and not spareVfx[vfx.styleId] then','if vfx then','Idle template cap retained a second spare'),
+ ('  vfx.lastBucket=nil','  vfx.lastBucket=vfx.lastBucket','Reused cast retained old particle travel speed'),
+ ('for _,entry in ipairs(vfx.emitters) do entry.inst:Clear() end','for _,entry in ipairs(vfx.emitters) do end','Ending a cast retained old particles'),
+ ('for _,vfx in pairs(spareVfx) do vfx.root:Destroy() end','for _,vfx in pairs(spareVfx) do end','Clear left an idle imported root'),
  ('source.Name=="CoreSpine" or source.Name=="CoreFlow"','#vfx.beams<2','Hollow Purple chose core layers by sibling order'),
  ('if i==1 or (i==2 and hasVfx) then','if i==1 or partKind[p]=="detail" or (i==2 and hasVfx) then','native hides milestone decoration'),
  ('wScale=width*.6*scale/widest','wScale=width*.6/widest','native milestone width lost'),
@@ -270,4 +322,4 @@ for old,new,message in [
 ]:
  assert old in s
  result=run(s.replace(old,new));assert result.returncode and message in result.stderr,result.stdout+result.stderr
-print('PASS 17 native-path negative controls (core selection, progression, scale, crowding, rate, tint and redundant writes)')
+print('PASS 22 native-path negative controls (reuse, core selection, progression, scale, crowding, rate, tint and redundant writes)')
