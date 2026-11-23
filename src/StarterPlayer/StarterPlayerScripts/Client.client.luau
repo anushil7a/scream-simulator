@@ -2340,7 +2340,18 @@ connectClient(Run.RenderStepped,function(dt)
  else
   castButton.BackgroundColor3=protected>0 and muted or gold
  end
- local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now);dodgeButton.Text=cd>0 and string.format("DODGE %.1fs",cd) or (touch and "DODGE" or "DODGE [Q]")
+ local cd=math.max(0,(p:GetAttribute("DodgeReady") or 0)-now)
+ local dodgeStatus
+ if protected>0 then dodgeStatus="SHIELDED"
+ elseif cd<=0 then
+  if not alive or not root or root.Anchored or rolling or knocked or humanoid.PlatformStand or humanoid.Sit or humanoid.SeatPart then
+   dodgeStatus="WAIT"
+  elseif humanoid.FloorMaterial==Enum.Material.Air then dodgeStatus="LAND FIRST" end
+ end
+ dodgeButton.TextSize=dodgeStatus and 12 or 14
+ if dodgeStatus then dodgeButton.Text="DODGE\n"..dodgeStatus
+ elseif cd>0 then dodgeButton.Text=string.format("DODGE %.1fs",cd)
+ else dodgeButton.Text=touch and "DODGE" or "DODGE [Q]" end
  local rest=p:GetAttribute("SprintCooldown") or 0;local charge=p:GetAttribute("SprintCharge") or Config.SprintDuration
  sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",charge)..(touch and "" or " [SHIFT]")
  academy.staminaFill.Size=UDim2.fromScale(math.clamp(charge/Config.SprintDuration,0,1),1)

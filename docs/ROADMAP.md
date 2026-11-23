@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Show when a dodge can start
+
+- In two disposable Hall clients, the standing control lost 6 HP to an accepted cast. A second cast used the same lane. A virtual keyboard Q rolled the defender 13.97 studs down that lane with no health loss. The defender saw **BEAM DODGED**, the attacker saw **OPPONENT DODGED**, and both labels fit. The test used synthetic voice input through the normal Action remote.
+- A separate ordinary Hall spawn reproduced a false ready state. The grounded avatar saw **DODGE [Q]** with over three seconds of spawn protection left. Q caused no movement or cooldown. The same input after the shield expired moved the avatar and started the normal four-second cooldown.
+- The control now shows **SHIELDED**, **LAND FIRST**, or **WAIT** below **DODGE** when those conditions apply. The server cooldown remains visible outside the shield window and takes precedence over the airborne hint. The ordinary ground label and active inputs keep their existing behavior. The focused test failed before the caption fix and now passes seven label checks and two controls that remove the shield and midair hints.
+- The 567 × 241 desktop Studio candidate fit both new shield and airborne captions in the 108 × 32 button. A shielded Q again did not roll. After an ordinary jump showed **LAND FIRST**, a separate grounded Q started a roll and displayed **DODGE 3.6s** at the sample. The caption follows the client state at the time it is drawn. The server still decides whether a request arriving near landing can start a roll. See `build/hall_dodge_native` and `build/hall_dodge_candidate_native/native-solo-candidate.json`.
+- Independent review, 198 local suites, 99 Luau compilations, and the City and Hall builds passed. Disposable Studio sessions closed. Physical touch and real-voice, internet duels remain open. Next compare the same sequence with two eligible voice users, including a physical phone, when an isolated environment is available.
+
 ## Complete a knockout and return to the Training City portal
 
 - Two level-one Studio clients started with 100 HP and temporary profiles in the playable Hall rehearsal. Two synthetic casts through the production Action RemoteEvent earned one knockout. The attacker gained 96 XP and 20 coins. The defender kept the same character, returned to the cyan apron at z54, and recovered to 100 HP. A beam within range was still active 0.57 seconds later and dealt no further damage. The defender stayed at 100 HP after the shield expired.
