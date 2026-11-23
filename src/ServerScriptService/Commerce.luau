@@ -13,7 +13,7 @@ local loadAt,activateAt={},{}
 -- PlayerRemoving can precede Parent clearing; never admit that same object again.
 local departed=setmetatable({},{__mode="k"})
 local function live(player) return player.Parent~=nil and not departed[player] end
-local allowed,changed,store
+local allowed,changed,store,shutdownDeadline
 local function database()
  if Run:IsStudio() then return end
  if not store then
@@ -23,7 +23,7 @@ local function database()
  return store
 end
 local function transact(player,transform)
- if not live(player) then return false end
+ if not live(player) or not allowed(player) then return false end
  local db=database();if not db then return false end
  local id=player.UserId
  while locks[id] do
@@ -35,18 +35,21 @@ local function transact(player,transform)
  locks[id]=true
  local success,result
  for attempt=1,3 do
+  if shutdownDeadline and os.clock()>=shutdownDeadline then break end
   success,result=pcall(function() return db:UpdateAsync("Player_"..id,transform) end)
-  if success then break end
-  task.wait(attempt)
+  if success or attempt==3 then break end
+  local delay=shutdownDeadline and math.min(attempt,shutdownDeadline-os.clock()) or attempt
+  if delay<=0 then break end
+  task.wait(delay)
  end
  if success and result then
-  if live(player) then cache[player]=Ledger.Normalize(result) end
+  if live(player) and not shutdownDeadline then cache[player]=Ledger.Normalize(result) end
  elseif not success then cache[player]=nil end -- never grant from an ambiguous write
  locks[id]=nil
  return success and result~=nil
 end
 function Commerce.Load(player)
- if not live(player) or not database() or not allowed(player) then return end
+ if not live(player) or not allowed(player) or not database() then return end
  if os.clock()<(loadAt[player] or 0) or locks[player.UserId] then return end
  loadAt[player]=os.clock()+15
  local ok=transact(player,Ledger.Normalize)
@@ -58,6 +61,8 @@ function Commerce.Status(player)
 end
 function Commerce.Multiplier(player,kind) return Ledger.Multiplier(live(player) and cache[player] or nil,kind,os.time()) end
 function Commerce.Busy(player) return locks[player.UserId]==true end
+function Commerce.BeginShutdown(deadline) shutdownDeadline=deadline end
+function Commerce.HasTransactions() return next(locks)~=nil end
 function Commerce.Activate(player,kind)
  if not live(player) or (kind~="xp" and kind~="coins") or not allowed(player) or not cache[player] then return end
  if os.clock()<(activateAt[player] or 0) or locks[player.UserId] then return end
@@ -103,7 +108,10 @@ function Commerce.Prompt(player,key)
 end
 function Commerce.Start(canPurchase,onChanged)
  assert(not allowed,"Commerce already started")
- allowed=canPurchase;changed=onChanged
+ allowed=function(player) return not shutdownDeadline and canPurchase(player) end
+ changed=function(...)
+  if not shutdownDeadline then onChanged(...) end
+ end
  Marketplace.ProcessReceipt=function(receipt)
   local item=Catalog.Product(receipt.ProductId)
   local player=Players:GetPlayerByUserId(receipt.PlayerId)

@@ -54,7 +54,7 @@ local function loadProfiles()
 between=r'''
 end
 local Profiles=loadProfiles()
-local Commerce={Multiplier=function()return 1 end}
+local Commerce={Multiplier=function()return 1 end,BeginShutdown=function()end,HasTransactions=function()return false end}
 local Entitlements={Refresh=function()end}
 local notices={};local cancels=0
 local function state(p,message)table.insert(notices,{p=p,message=message})end

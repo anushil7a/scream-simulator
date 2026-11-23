@@ -1411,6 +1411,7 @@ local function shutdown()
  local deadline=os.clock()+25
  shutdownSaveDeadline=deadline
  closing=true
+ Commerce.BeginShutdown(deadline)
  local pending=0
  local finalSaves={}
  -- Freeze gameplay before any final save can yield or release its lease.
@@ -1433,7 +1434,7 @@ local function shutdown()
    end)
   end
  end
- while pending>0 or departuresInFlight>0 or joinsInFlight>0 do
+ while pending>0 or departuresInFlight>0 or joinsInFlight>0 or Commerce.HasTransactions() do
   local remaining=deadline-os.clock()
   if remaining<=0 then break end
   task.wait(math.min(.1,remaining))

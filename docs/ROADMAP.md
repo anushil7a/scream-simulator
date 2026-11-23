@@ -1,5 +1,16 @@
 # Scream Simulator development roadmap
 
+## Drain active purchase writes before server shutdown returns
+
+- The audit reproduced a shutdown callback returning while an admitted boost receipt was still suspended inside the isolated purchase store. The profile counters were already clear. A departed player's ledger transaction could still be running at that point.
+- Shutdown now closes commerce admission and waits for active ledger transactions with the same 25-second deadline used for profile releases. New and queued work remains pending. An admitted operation can finish or retry within budget, and an already-issued write may still return after the deadline if the server is running. No retries start after that deadline.
+- A confirmed commit can acknowledge the receipt without reviving departed or closing cache/UI. An ambiguous commit stays pending. The existing atomic receipt ID and boost expiry allow later replay to confirm the result without granting extra time. Catalog IDs remain disabled and the schema is unchanged.
+- Focused commerce lifecycle checks reproduced the old early return. They also covered an admitted write after departure, refused new and queued receipt work, bounded and capped retries, a late confirmed result, and a committed-but-ambiguous result replayed against the same stored receipt. Independent review cleared the shutdown lifecycle.
+
+- An isolated Studio fixture executed the exact old and candidate Commerce and Bootstrap shutdown bodies with the real BoostLedger module and mocked time, receipts and storage. The baseline failed the early-return check. The candidate passed all 78 assertions. The native fixture SHA-256 was `3832d6c5c03fcb20094e445d3e45208d25e4b08481fd8c2c6b8ad717347a4354`, and the disposable session closed. Live Marketplace delivery and storage remain release checks.
+- The focused lifecycle suite passed 78 assertions and 17 negative controls, with existing commerce, profile and shutdown checks all passing. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 Luau compilations and Rojo builds on unchanged inputs.
+- Next reproduce the reported rig gaps and detached shoulder details on the Metronome, Golem and Ignis with matched Studio views before changing their presentation.
+
 ## Finish the departure save before admitting a fast rejoin
 
 - Simulated storage reproduced the audit's same-server race. An autosave held the per-user lock with 70 coins, and the final save carrying 91 coins and the rejoin both waited. After the autosave completed, resuming the rejoin first returned temporary progress while the departure save was still queued.

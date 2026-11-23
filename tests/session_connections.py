@@ -28,7 +28,7 @@ end,wait=function(t)coroutine.yield(t)end}
 local Profiles={Default=function()return {level=1}end,Load=function()return {level=1},true end,Save=function(...)
  saves+=1;if saveHook then saveHook(...)end;return true
 end}
-local Entitlements={Refresh=function()end};local Commerce={Load=function()end}
+local Entitlements={Refresh=function()end};local Commerce={Load=function()end,BeginShutdown=function()end,HasTransactions=function()return false end}
 local VoiceCombat={New=function()return {}end,Cancel=function(v)v.capture=nil end}
 local VoiceEligibility={New=function()return {}end}
 local Config={HealQuietSeconds=12,SprintDuration=4,HealthForLevel=function()return 100 end}

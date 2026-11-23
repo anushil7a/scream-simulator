@@ -8,6 +8,7 @@ a=s.index('local function shutdown()');b=s.index('game:BindToClose(shutdown)',a)
 setup='''
 local now=0;local os={clock=function()return now end}
 local sessions={};local departuresInFlight=0;local joinsInFlight=0;local closing=false;local shutdownSaveDeadline
+local Commerce={BeginShutdown=function()end,HasTransactions=function()return false end}
 local closes,cancels=0,0
 local function closeConversation()closes+=1 end
 local function cancelSustained()cancels+=1 end
