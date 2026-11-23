@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Capture the defender view during three overlapping Hall beams
+
+- In a guarded four-client replay on `2c3a948`, three level-100 Gold beams converged on the defender. Two synchronized 567 × 241 captures from the marked defender window show **Beam Hit You**, health at 329/480 and 331/480, and a fitted **Notice** shortcut with the passive arrival banner hidden. The earlier overlap captures came from attacker windows.
+- The defender's head and outer silhouette remained recognizable in both sampled views. The beams crossed and partly obscured the torso in the close view. The off-axis view separated more of the silhouette. The defender peaked at 12 parented procedural beam parts and zero imported roots per round. All four clients cleared parented beam visuals after the casts.
+- The trace, scope and images are under `build/hall_gold_defender_native`. Independent review verified the defender role and runtime measurements. Focused beam contact and notice suites passed. The replay used staged positions, cameras and focus with synthetic aim and voice power. The disposable editor, server and clients closed. Physical-device readability, performance and human reaction timing remain separate checks.
+
 ## Keep passive arrival guidance out of narrow Hall combat
 
 - At 567 × 241 usable pixels in the local Hall on `4abb822`, an ordinary walk from the safe apron onto the PvP floor left the unread arrival notice at x264, y66 in a 169 × 65 scroll frame. Both the projected avatar head and the torso fell inside it. The startup guidance had no **Notice** shortcut because its frame was drawable.
