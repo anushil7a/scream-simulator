@@ -249,6 +249,14 @@ academy.layoutObjectiveNav({X=509,Y=220},true,true);refresh(true)
 check(b.Visible,'The compact objective disappeared inside the stacked band')
 academy.layoutObjectiveNav({X=566,Y=244},true,false);refresh(true)
 check(not b.Visible and top.Position.y==2 and shop.Size.x==74 and questsToggle.Size.x==78,'Standard navigation layout did not restore')
+academy.starterGearReady=true
+academy.layoutObjectiveNav({X=567,Y=241},false,false)
+check(shop.Text=='MENU [B]\nGEAR READY' and shop.TextSize==11 and shop.Size.x==74,'Menu lost the visible gear cue')
+academy.layoutObjectiveNav({X=509,Y=220},true,true)
+check(shop.Text=='MENU\nGEAR' and shop.TextSize==11 and shop.Size.x==45,'Compact Menu gear cue displaced navigation')
+academy.starterGearReady=false
+academy.layoutObjectiveNav({X=567,Y=241},false,false)
+check(shop.Text=='MENU [B]' and shop.TextSize==14,'Menu kept an obsolete gear cue')
 for _,view in ipairs({{X=491,Y=150},{X=480,Y=168},{X=819,Y=209}}) do
  academy.layoutObjectiveNav(view,false,false);refresh(true);academy.refreshCompactObjective(false)
  check(b.Visible and b.Text=='ROOKIE GUIDE\n1/3 fighters','Short desktop loses the first Rookie Guide')

@@ -1185,6 +1185,13 @@ function academy.refreshCompactObjective(limited,voiceCooldown)
  end
  objective.Text=text
 end
+function academy.refreshMenuCaption(width,touch)
+ local narrow=width<74
+ local menuText=(narrow or touch) and "MENU" or "MENU [B]"
+ if academy.starterGearReady then menuText..=narrow and "\nGEAR" or "\nGEAR READY" end
+ shop.Text=menuText
+ shop.TextSize=academy.starterGearReady and 11 or narrow and 12 or 14
+end
 function academy.layoutObjectiveNav(viewport,touch,stacked)
  local tight=viewport.X<380
  -- The desktop tracker starts at y160 and needs 50 pixels. Its action fits in the top rail here.
@@ -1196,8 +1203,7 @@ function academy.layoutObjectiveNav(viewport,touch,stacked)
  local passesWidth=compact and 52 or narrowNav and 60 or 64
  top.Position=UDim2.fromOffset(14,stacked and 0 or (touch or viewport.X<820) and 2 or 12)
  shop.Size=UDim2.fromOffset(menuWidth,touch and 46 or 36)
- shop.Text=(narrowNav or touch) and "MENU" or "MENU [B]"
- shop.TextSize=narrowNav and 12 or 14
+ academy.refreshMenuCaption(menuWidth,touch)
  academy.passesToggle.Size=UDim2.fromOffset(passesWidth,46)
  academy.passesToggle.Position=UDim2.fromOffset(menuWidth+6,0)
  academy.passesToggle.TextSize=narrowNav and 11 or 13
@@ -1818,10 +1824,12 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
    notify(data.message,data.messageUrgent,(key=="save" or key=="questClaim" or key=="questReceipt") and key or nil)
   end
  end
+ local gearReady=false
  if Config.CompactCity and not Config.ResonanceLayout then
   local item=Config.Gear.Get("Megaphone")
   local ready=item and not data.testSession and data.level>=item.level
    and data.coins>=item.price and not Config.Gear.Owned(data,item.id)
+  gearReady=ready==true
   if not ready then
    starterGear.pending=nil
    notifications:Remove("starterGear")
@@ -1829,6 +1837,10 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
    starterGear.pending=item.name.." ready to buy · MENU → GEAR"
   end
   starterGear.lastCoins=not data.testSession and data.coins or nil
+ end
+ if (academy.starterGearReady==true)~=gearReady then
+  academy.starterGearReady=gearReady
+  academy.refreshMenuCaption(shop.Size.X.Offset,UIS.TouchEnabled)
  end
  if data.conversation then showConversation(data.conversation) end
  if modal.Visible then render() end

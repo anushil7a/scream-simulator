@@ -97,6 +97,9 @@ gear_setup = setup.replace(
 local notifications
 local function notify(message,urgent,key)notifications:Push(message,urgent,key)end""",
 )
+menu_caption_start=client.index('function academy.refreshMenuCaption(')
+gear_setup+='\nlocal shop={Size={X={Offset=74}}};local UIS={TouchEnabled=false}\n'
+gear_setup+=client[menu_caption_start:client.index('function academy.layoutObjectiveNav(',menu_caption_start)]
 render_hint = client.split('connectClient(Run.RenderStepped,function(dt)\n -- The optional gear hint', 1)[1]
 render_hint = ' -- The optional gear hint' + render_hint.split(' local notice=notifications:Step(0,false)', 1)[0]
 gear_checks = r"""
@@ -119,10 +122,12 @@ local hint='Academy Megaphone ready to buy · MENU → GEAR'
 Config.CompactCity=true
 reset();update(130)
 check(frame()=='','Existing wallet was mistaken for freshly earned coins')
+check(academy.starterGearReady==true,'Affordable gear missing on a ready wallet')
 reset();update(80);update(99)
-check(frame()=='','Hint appeared below the catalog price')
+check(frame()=='' and not academy.starterGearReady,'Hint appeared below the catalog price')
 update(100,{savingAvailable=false},'Level 2')
 check(frame()=='Level 2','Gear hint displaced the level notice')
+check(shop.Text=='MENU [B]\nGEAR READY','Reward queue delayed the Menu gear cue')
 update(100,nil,'Quest reward')
 local seen={}
 for _=1,145 do
@@ -133,20 +138,20 @@ end
 check(#seen==3 and seen[1]=='Level 2' and seen[2]=='Quest reward' and seen[3]==hint,
  'Gear hint missing after the real notices drained')
 update(100,{megaphoneOwned=true})
-check(frame()=='','Buying the item left stale affordability text')
+check(frame()=='' and shop.Text=='MENU [B]','Buying the item left stale affordability text')
 update(20);update(130)
 check(frame()=='','Repeated crossing replayed an already shown hint')
 reset();update(80);update(130,nil,'Reward');update(90)
-check(not waitFor(hint) and frame()=='','Falling below price left a queued hint')
+check(not waitFor(hint) and frame()=='' and not academy.starterGearReady,'Falling below price left a queued hint')
 reset();update(80);update(130,nil,'Reward');update(130,{megaphoneOwned=true})
 check(not waitFor(hint) and frame()=='','Ownership did not cancel a pending hint')
 reset();update(80);update(130,{testSession=true})
-check(frame()=='','Temporary test coins advertised the gear')
+check(frame()=='' and not academy.starterGearReady,'Temporary test coins advertised the gear')
 update(130)
 check(frame()=='','Leaving test mode was mistaken for an earning event')
 Config.ResonanceLayout=true
 reset();update(80);update(130)
-check(frame()=='','City guidance leaked into Resonance Hall')
+check(frame()=='' and not academy.starterGearReady,'City guidance leaked into Resonance Hall')
 print('PASS '..n..' actual gear affordability/queue checks; simulated State and render timing')
 """
 gear_payload = gear_setup + '\nlocal frameHint\nlocal function reset()\n local coins={}\n notifications=Queue.new()\n' + receiver + '\n frameHint=function()\n' + render_hint + '\n end\nend\n' + gear_checks
@@ -158,6 +163,8 @@ if '--negative-controls' in sys.argv:
         ('   starterGear.pending=nil\n   notifications:Remove("starterGear")', '   notifications:Remove("starterGear")', 'Falling below price left a queued hint'),
         ('   notifications:Remove("starterGear")', '', 'Buying the item left stale affordability text'),
         ('not starterGear.shown and starterGear.lastCoins', 'starterGear.lastCoins', 'Repeated crossing replayed'),
+        ('gearReady=ready==true', 'gearReady=ready==true and not notifications.active', 'Reward queue delayed the Menu gear cue'),
+        ('  academy.refreshMenuCaption(shop.Size.X.Offset,UIS.TouchEnabled)', '', 'Reward queue delayed the Menu gear cue'),
     ):
         assert before in gear_payload
         run(gear_payload.replace(before, after, 1), expected)

@@ -99,7 +99,7 @@ local function frame(parent,name,size,pos)allocations+=1;return {Parent=parent,N
  client_setup+='\nlocal academy={passesToggle={},compactObjective={}};local clientDestroyed=false\n'+client[client.index('function academy.canShowTestLauncher()'):client.index('\n-- Flight controls exist only',client.index('function academy.canShowTestLauncher()'))]+'\n'
  action_start=client.index('function academy.layoutActions(')
  client_setup+=client[action_start:client.index('\nlocal talkTarget',action_start)]+'\n'
- nav_start=client.index('function academy.layoutObjectiveNav(')
+ nav_start=client.index('function academy.refreshMenuCaption(')
  client_setup+=client[nav_start:client.index('\nacademy.guideMenu=',nav_start)]+'\n'
  client_end=r'''
 check(miniMapButton.Name=="MiniMap" and miniMapButton.Text=="MAP",'MAP launcher missing')
