@@ -118,6 +118,28 @@ protectionEnds=0;protectionCallback()
 check(sustainedControl.armed and server.protocol.active,'Cleared protection update disarmed an active cast')
 protectionEnds=now-1;protectionCallback()
 check(not sustainedControl.armed and not server.protocol.active,'Late protection grant did not disarm')
+-- Deliver Begin after the local OFF, then expose its live acknowledgement before Stop arrives.
+protectionEnds=0;advance(6,0);toggleVoice();advance(.4,0)
+local deliver=sustainedControl.send
+local pending={}
+sustainedControl.send=function(verb,arg)table.insert(pending,{verb,arg})end
+advance(.4,.8)
+check(#pending==1 and pending[1][1]=='SustainedBegin' and sustainedControl.attack
+ and not server.protocol.active,'Delayed Begin setup did not leave a cast pending')
+local delayedSequence=pending[1][2].sequence
+toggleVoice()
+check(not sustainedControl.armed and not sustainedControl.attack and #pending==2
+ and pending[2][1]=='SustainedStop' and pending[2][2]==delayedSequence,'OFF did not queue a matching Stop for delayed Begin')
+deliver(table.unpack(pending[1]))
+check(server.protocol.active and server.protocol.active.sequence==delayedSequence,'Server did not accept in-flight Begin')
+advance(.1,.8) -- The controller now sees the old sequence active with a Stop still in transit.
+check(not sustainedControl.armed and not sustainedControl.attack and #pending==2
+ and server.protocol.active,'Late acknowledgement resumed local attack or emitted another request')
+deliver(table.unpack(pending[2]))
+check(not server.protocol.active and server.protocol.nextStart>now,'Delayed Stop did not end the matching cast and start cooldown')
+advance(7,.8)
+check(not sustainedControl.armed and not server.protocol.active and #pending==2
+ and now>server.protocol.nextStart and mic.power==.8,'Continued loud input restarted Beams after delayed Stop')
 print('PASS '..checks..' actual voice toggle checks with mocked availability')
 '''
 checks=checks.replace('__RESPAWN_CALLBACK__',respawn_line).replace('__PROTECTION_CALLBACK__',suspend+protection)
@@ -139,7 +161,7 @@ payload=setup+s[a:b]+checks
 run(payload)
 if '--negative-controls' in sys.argv:
     # Isolated fault injection into actual controller instances; production files untouched.
-    needle="toggleVoice()\ncheck(not sustainedControl.armed and not sustainedControl.attack"
+    needle="toggleVoice()\ncheck(not sustainedControl.armed and not sustainedControl.attack and not server.protocol.active"
     assert payload.count(needle)==1
     run(payload.replace(needle,"sustainedControl.Cancel=function()end\n"+needle),
         'OFF did not explicitly stop the active attack')
@@ -158,3 +180,11 @@ if '--negative-controls' in sys.argv:
         'Cleared protection update disarmed an active cast')
     run(payload.replace(needle,' and (p:GetAttribute("ProtectionEnds") or 0)>now'),
         'Late protection grant did not disarm')
+    needle='deliver(table.unpack(pending[2]))'
+    assert payload.count(needle)==1
+    run(payload.replace(needle,'deliver("SustainedStop",delayedSequence+1)'),
+        'Delayed Stop did not end the matching cast and start cooldown')
+    needle='advance(.1,.8) -- The controller now sees'
+    assert payload.count(needle)==1
+    run(payload.replace(needle,'sustainedControl.armed=true;'+needle),
+        'Late acknowledgement resumed local attack or emitted another request')

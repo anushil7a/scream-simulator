@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Keep Beams OFF through a late cast acknowledgement
+
+- The toggle regression queues the original Begin, turns Beams OFF before that Begin reaches the server, and then delivers it. The server accepts the request in flight and the client observes the delayed active sequence. The client remains OFF and emits no additional request. Delivering the same sequence's Stop ends the cast and starts the cooldown. Seven seconds of continued synthetic loudness produces no restart.
+- The actual toggle helper, input controller, activation gate and server adapter ran in the delayed-dispatch simulation. A wrong-sequence Stop and a forced local re-arm both failed the expected assertions. Independent review and all 43 toggle assertions with seven negative controls passed.
+
+- In the separate zero-ID Studio attempt on `7210e3a`, both clients measured roughly 203–204 ms round-trip latency with 100 ms simulated in each direction and zero jitter or loss. The primary client received a processed Touch input without a matching Beams activation. Manual pointer retries did not land on an active primary viewport. The watchdog completed, but neither a cast nor an OFF transition was observed, so this replay establishes network impairment only. The prior successful default-latency touch result below still applies.
+- The attempted replay is archived in `build/touch_beams_network_native/native-touch-network-attempt.json` (SHA-256 `1231e2da68e1f4830988309a0ba49c48bdfac0b3290c3813b54b759682e3fded`). Network defaults were restored, the device preset was preserved and the disposable Studio processes closed. Full local verification and builds passed all 323 steps. Physical touch OFF under latency and real microphone behavior remain open.
+
 ## Verify Hall dodge with simulated network latency
 
 - Replayed the exact two-client Hall fixture from `aef05e0` on `04723f7`, which changed documentation only. Roblox Studio Network Simulator was configured for 100 ms inbound and 100 ms outbound, with zero jitter or packet loss. The matched artifact was byte-identical to the zero-added-latency replay. The first standing health change to the private defender hit event measured roughly 122 ms versus 16 ms before. Unprocessed Xbox Emulator `Gamepad1 / ButtonL1` to authoritative roll start measured roughly 126 ms versus 32 ms. These are approximate synchronized-clock event gaps.
