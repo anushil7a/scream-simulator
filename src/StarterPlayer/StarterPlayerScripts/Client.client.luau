@@ -1954,7 +1954,11 @@ connectClient(UIS.InputBegan,function(input,processed)
    if sprinting then academy.sprintController=inputType end
   elseif k==Enum.KeyCode.ButtonB then
    if modal.Visible then closeMenu()
-   elseif conversationPanel and conversationPanel.Visible then closeConversation() end
+   elseif conversationPanel and conversationPanel.Visible then closeConversation()
+   elseif not devPanel.Visible then
+    local selection=GuiService.SelectedObject
+    if selection and selection:IsDescendantOf(gui) then GuiService.SelectedObject=nil end
+   end
   end
   return
  end

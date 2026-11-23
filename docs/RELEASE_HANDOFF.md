@@ -79,7 +79,7 @@ Emulated phone taps activated the real Menu and Close controls after mapping the
 
 Verify Xbox and PlayStation before the readiness pause. Roblox offers in-experience voice chat to eligible users on both console families. Real microphone input for this experience still needs separate verification on each platform. [Xbox voice](https://en.help.roblox.com/hc/en-us/articles/205355430-Xbox-App-Voice-Chat) · [PlayStation voice](https://en.help.roblox.com/hc/en-us/articles/41326172881300-PlayStation-App-Voice-Chat)
 
-The left stick walks with the camera following the avatar. The right stick aims the beam by turning the camera and centered reticle. RB/R1 toggles Beams, LB/L1 dodges, holding L3 sprints, LT/L2 talks to a nearby resident, and Y/Triangle opens the menu. B/Circle closes an open game menu or conversation. The D-pad moves selection and A/Cross activates the selected control. Roblox's own controls continue to handle portal prompts.
+The left stick walks with the camera following the avatar. The right stick aims the beam by turning the camera and centered reticle. RB/R1 toggles Beams, LB/L1 dodges, holding L3 sprints, LT/L2 talks to a nearby resident, and Y/Triangle opens the menu. B/Circle closes an open game menu or conversation, or leaves game HUD selection so the left stick can move the avatar. The D-pad moves selection and A/Cross activates the selected control. Roblox's own controls continue to handle portal prompts.
 
 Settings shows the bindings for the current input. In the local Hall replay, the open Settings panel updated from keyboard to Xbox controller instructions at the same viewport size.
 

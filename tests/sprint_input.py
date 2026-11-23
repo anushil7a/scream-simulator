@@ -8,7 +8,7 @@ start=s.index('local sprinting=false');end=s.index('local function playerTargetI
 setup='''
 local h={Health=100};local attrs={};local character={FindFirstChildOfClass=function()return h end}
 local p={Character=character,GetAttribute=function(_,k)return attrs[k]end}
-local windowFocused=true;local mic={ready=true};local GuiService={MenuIsOpen=false}
+local windowFocused=true;local mic={ready=true};local GuiService={MenuIsOpen=false};local gui={}
 local typing=false;local UIS={GetFocusedTextBox=function()return typing and {} or nil end}
 local micPanel={Visible=false};local modal={Visible=false};local devPanel={Visible=false};local conversationPanel={Visible=false}
 local workspace={GetServerTimeNow=function()return 10 end}
@@ -85,6 +85,27 @@ disconnected(secondary);check(sustainedControl.armed,'An unrelated controller di
 disconnected(primary);check(not sustainedControl.armed,'Arming controller disconnect left voice armed')
 modal.Visible=true;press(keys.ButtonB);check(not modal.Visible,'Controller back left Menu open')
 conversationPanel.Visible=true;press(keys.ButtonB);check(not conversationPanel.Visible,'Controller back left conversation open')
+local owned={IsDescendantOf=function(_,root)return root==gui end}
+local foreign={IsDescendantOf=function()return false end}
+GuiService.SelectedObject=owned
+press(keys.ButtonB,primary,true)
+check(GuiService.SelectedObject==owned,'Processed Back released HUD selection')
+windowFocused=false;press(keys.ButtonB);windowFocused=true
+GuiService.MenuIsOpen=true;press(keys.ButtonB);GuiService.MenuIsOpen=false
+typing=true;press(keys.ButtonB);typing=false
+check(GuiService.SelectedObject==owned,'Blocked Back released HUD selection')
+devPanel.Visible=true;press(keys.ButtonB);devPanel.Visible=false
+check(GuiService.SelectedObject==owned,'Back interrupted the Test panel')
+modal.Visible=true;press(keys.ButtonB)
+check(not modal.Visible and GuiService.SelectedObject==owned,'Back bypassed normal Menu close behavior')
+conversationPanel.Visible=true;press(keys.ButtonB)
+check(not conversationPanel.Visible and GuiService.SelectedObject==owned,'Back bypassed normal conversation close behavior')
+press(keys.ButtonB)
+check(GuiService.SelectedObject==nil,'Back left ordinary HUD selection active')
+GuiService.SelectedObject=foreign;press(keys.ButtonB)
+check(GuiService.SelectedObject==foreign,'Back released selection outside our HUD')
+GuiService.SelectedObject=nil;press(keys.ButtonB)
+
 press(keys.ButtonL3);local padSent=#messages
 check(sprinting and academy.sprintController==primary,'Controller did not start sprint')
 press(keys.ButtonL3)
@@ -123,8 +144,12 @@ for wrong,correct,failure in (
     ('k==Enum.KeyCode.ButtonY then toggle()', 'k==Enum.KeyCode.ButtonY then return', 'Controller actions were not dispatched'),
     ('academy.sprintController==input.UserInputType', 'academy.sprintController~=input.UserInputType', 'Another controller interrupted sprint'),
     ('academy.beamController==inputType', 'academy.beamController~=inputType', 'An unrelated controller disarmed voice'),
+    ('if selection and selection:IsDescendantOf(gui) then GuiService.SelectedObject=nil end',
+     'if false then GuiService.SelectedObject=nil end', 'Back left ordinary HUD selection active'),
+    ('if selection and selection:IsDescendantOf(gui) then GuiService.SelectedObject=nil end',
+     'if selection then GuiService.SelectedObject=nil end', 'Back released selection outside our HUD'),
 ):
     assert (dispatch+disconnect).count(wrong)==1,wrong
     result=run(dispatch.replace(wrong,correct),disconnect.replace(wrong,correct))
     assert result.returncode!=0 and failure in result.stderr,result.stdout+result.stderr
-print('PASS 3 controller input negative controls')
+print('PASS 5 controller input negative controls')

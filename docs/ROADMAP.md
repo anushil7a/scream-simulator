@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Let controller Back leave HUD selection
+
+- In zero-ID City Studio on `c7c51e9`, Xbox emulation entered HUD selection with View and moved to Guide Training with the D-pad. The real Gamepad1 B event was unprocessed and left the button selected. A full forward left-stick input produced zero movement; View cleared selection and the same input moved the avatar 27.20 studs.
+- B/Circle now releases selection owned by the game HUD when no game menu, conversation or Test panel is open. Existing processed input, Roblox menu, text focus and focus-loss guards apply. In the candidate, real B cleared Guide Training focus without activating the button, and forward input resumed movement for 27.20 studs without another View press.
+- The replay exposed a separate Menu-close failure. Starting with no HUD focus on the candidate, the same left stick moved 28.54 studs before Y opened Menu. B closed it and selection was nil, but the stock movement vector and displacement remained zero with full forward input. The avatar was grounded and healthy, the controller was enabled, and right-stick camera input still worked. The baseline also showed a post-menu movement failure. Next, isolate the stock control state transition on panel open/close before changing it.
+- Paired traces are in `build/hud_back_native/native-result.json` and `build/hud_back_candidate_native/native-result.json`. The latter has SHA-256 `5dde9196878ea02b8c83f320f72839c3f783d94fb4f2478ec775e3146e5f9830`. The original emulator preset was restored and both disposable Studio sessions were closed.
+- Independent review and 70 actual-handler assertions passed. Five negative controls include removing the fallback and clearing a selection owned outside the game HUD. The full 323-step local check and build passed. Physical console and headset tests remain open.
+
 ## Teach controller bindings in Settings
 
 - On `799ff24`, native Xbox emulation opened City Settings with Gamepad1 Y, D-pad and A. The visible help still listed E, Q, Shift and W/A/S/D. Settings now follows the active input: controller players see left-stick movement, right-stick beam aim, RB/R1, LB/L1, L3 and the relevant City or Hall prompts. Touch and keyboard have distinct instructions.
