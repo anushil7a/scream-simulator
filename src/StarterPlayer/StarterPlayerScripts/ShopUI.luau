@@ -228,7 +228,7 @@ function Shop.Render(data,ui,action)
   indicator.Active=false;indicator.Selectable=false;indicator.Interactable=false
   local status=ui.label(band,shop.ready==true and "Not active" or "Boost status unavailable",UDim2.new(1,-32,1,0),UDim2.fromOffset(20,0),14,soft)
   status.Name="BoostStatusText";status.Font=Enum.Font.GothamBold
-  table.insert(timers,{label=status,band=band,indicator=indicator,ready=shop.ready==true,ends=ends[item.boost] or 0,serverNow=shop.serverNow or os.time(),received=os.clock()})
+  table.insert(timers,{label=status,band=band,indicator=indicator,ready=shop.ready==true,ends=ends[item.boost] or 0,serverNow=shop.serverNow or os.time(),received=shop.receivedAt or os.clock()})
   local y=narrow and 202 or 182
   local count=inventory[item.boost] or 0
   purchaseButton(item,c,false,data,ui,action,UDim2.new(count>0 and .5 or 1,count>0 and -22 or -32,0,44),UDim2.fromOffset(16,y))

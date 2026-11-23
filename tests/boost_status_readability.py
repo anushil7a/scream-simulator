@@ -202,6 +202,17 @@ for _,mode in ipairs({'clear','rerender','detach'})do
  end
  trace(old,current);paint(current)
 end
+-- A quiet server may send no new State while a player closes and reopens the shop.
+local reopen=fixture()
+local same={savingAvailable=true,shop={ready=true,inventory={},ends={xp=200},serverNow=100,receivedAt=0}}
+reopen.render(same,false)
+check(reopen.stats().timers[1].label.Text=='ACTIVE · 01:40 remaining','Initial boost clock incorrect')
+reopen.now=35.5;reopen.shop.Tick()
+check(reopen.stats().timers[1].label.Text=='ACTIVE · 01:05 remaining','Boost clock failed to advance without new State')
+reopen.render(same,true)
+check(reopen.stats().timers[1].label.Text=='ACTIVE · 01:05 remaining','Reopening the shop restarted the previous packet clock')
+reopen.now=100;reopen.render(same,false)
+check(reopen.stats().timers[1].label.Text=='Not active','Reopening resurrected an expired boost')
 local missing=fixture();missing.render({},true);paint(missing);for _,timer in ipairs(missing.stats().timers)do check(timer.label.Text=='Boost status unavailable','Missing ledger presented inactive/active')end
 print('PASS',n,'boost state/layout/frozen9138743 graph/behavior assertions; actual constructors, mocked API/clock, no native glyph evidence')
 '''
@@ -250,6 +261,7 @@ def main():
     run(source, baseline)
     if args.negative_controls:
         cases = [
+            ('received=shop.receivedAt or os.clock()', 'received=os.clock()', 'Reopening the shop restarted the previous packet clock'),
             ('timer.ready and remaining>0', 'timer.ready and remaining>=0', 'Status text paint does not match confirmed state'),
             ('timer.indicator.BackgroundColor3=active and Color3.fromRGB(112,230,174) or soft', 'timer.indicator.BackgroundColor3=soft', 'Status indicator paint does not match confirmed state'),
             ('timer.band.BackgroundColor3=active and Color3.fromRGB(18,42,40) or ink', 'timer.band.BackgroundColor3=ink', 'Status band paint does not match confirmed state'),

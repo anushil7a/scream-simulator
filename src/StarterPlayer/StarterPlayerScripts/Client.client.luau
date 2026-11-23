@@ -1661,12 +1661,13 @@ end
 local function refreshQuestObject(object)
  if not object:IsA("BasePart") then return end
  local action=object:GetAttribute("QuestAction")
- if action~="Litter" and action~="Garden" then return end
  local collected=data.collected and data.collected[object.Name]==true
- if action=="Litter" then
+ if action~="Litter" and action~="Garden" and (action~=nil or not collected) then return end
+ -- A collected marker may stream in before its QuestAction attribute.
+ local bottle=action~="Garden" and object:FindFirstChild("BottleVisual")
+ if action=="Litter" or bottle then
   local transparency=collected and 1 or 0
   object.LocalTransparencyModifier=transparency
-  local bottle=object:FindFirstChild("BottleVisual")
   if bottle then
    for _,piece in bottle:GetChildren() do
     if piece:IsA("BasePart") then piece.LocalTransparencyModifier=transparency end
@@ -1690,15 +1691,20 @@ connectClient(game:GetService("ProximityPromptService").PromptShown,function(pro
  local objects=world and world:FindFirstChild("QuestObjects")
  if objects and object.Parent==objects then refreshQuestObject(object) end
 end)
--- The bottle's art can stream in after its prompt has already been disabled.
+-- Streamed markers, prompts and bottle art may arrive in separate events.
 connectClient(workspace.DescendantAdded,function(piece)
- local model=piece.Parent
- if not data.collected or not model or model.Name~="BottleVisual" or not piece:IsA("BasePart") then return end
- local marker=model.Parent
+ if not data.collected or not next(data.collected) then return end
+ local parent=piece.Parent
+ if not parent then return end
+ local marker
+ if piece:IsA("ProximityPrompt") then marker=parent
+ elseif piece:IsA("BasePart") then
+  if parent.Name=="BottleVisual" then marker=parent.Parent else marker=piece end
+ end
  if not marker or not data.collected[marker.Name] then return end
  local world=workspace:FindFirstChild("ScreamSimulatorWorld")
  local objects=world and world:FindFirstChild("QuestObjects")
- if objects and marker.Parent==objects and marker:GetAttribute("QuestAction")=="Litter" then piece.LocalTransparencyModifier=1 end
+ if objects and marker.Parent==objects then refreshQuestObject(marker) end
 end)
 local function saveStatus()
  if data.testSession then return "TEST SESSION · progress is temporary" end
@@ -1724,6 +1730,7 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  observeVoiceEligibility(nextData)
  cueContext();gameplayAudio:ObserveLevel(nextData.level,nextData.testSession,os.clock())
  data=nextData
+ if data.shop then data.shop.receivedAt=os.clock() end
  academy.pulseFrame.Visible=data.pulseFramePass==true
  if academy.refreshTesterTools then academy.refreshTesterTools() end
  p:SetAttribute("BossReducedEffects",not data.settings or data.settings.reducedShake~=false)

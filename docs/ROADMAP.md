@@ -1,5 +1,17 @@
 # Scream Simulator development roadmap
 
+## Send HUD State when something changes
+
+- Exact native baseline `91bea48` delivered 11 State packets in 10.50 seconds while a fresh player stood idle. All 10 consecutive changes were the shop timestamp. Following an actual Garden watering and its two immediate feedback packets, another 10.52-second idle window delivered 19 packets, including 8 exact duplicates and 10 whose only change was the timestamp.
+- Periodic State compares the stable snapshot, including the full collected-marker set. A real outgoing packet receives a fresh shop timestamp after comparison. Protection, dodge and cast data already come from existing controls or player attributes, so three unread State fields were removed. Quest and test-tool countdowns keep their existing updates. Explicit notices and action responses still send.
+- The client anchors boost time when it receives State. Closing, reopening or resizing the shop uses the original anchor, counts down without further packets and does not resurrect an expired boost. Display timing is still subject to the packet's wall-clock precision and transport delay. The server's absolute-expiry reward multiplier is unchanged.
+- Streamed quest markers, newly added prompts and bottle art reapply the last authoritative collected set. PromptShown remains a second check. Tests cover late action attributes, separate prompt/art arrivals, real collection changes and resets. Independent source review and the focused State, quest prompt and boost suites cleared these behaviors.
+
+- The exact candidate delivered zero State packets in 10.52 seconds of idle and zero in 10.52 seconds after the settled Garden interaction. The real watering action still delivered immediate progress and feedback, kept the HUD at 1/3 and disabled the prompt. These were individual local clients and packet counts, with no live throughput or frame-time claim.
+- In a controlled native server-side reparent, the watered marker and child prompt disappeared from the client and were restored with the server prompt enabled. The client reapplied its disabled prompt and kept the tracker at 1/3 without another State packet. A separate explicit Sync returned fresh State and the current shop timestamp. The reparent checks local replication and event ordering. Distance streaming under real network conditions remains open.
+- Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 Luau compilations and Rojo builds on unchanged inputs. Focused checks passed 241 State assertions plus 18 controls, 53 quest prompt assertions plus five controls, and 29,074 boost assertions plus 16 controls. The exact candidate SHA-256 was `d14f365c60fa4b1aa2e7113176be963613a2573d7750cf851f94450d3035ee86`.
+- Next reproduce the reported same-server rejoin during an in-flight autosave/release, using isolated persistence and the current lease protocol.
+
 ## Warn on Garden and Stadium PvP along any City guide
 
 - In the exact `2fbdbb8` City build, the staged safe café position (51, 19.8024, 113) used the normal Map → Coast Guide action with no active quest. Five of the 18 visible gold dots were already on Garden PvP ground, and the HUD still read **SAFE • PvP OFF**. The retained Beach-only guard caused the mismatch.

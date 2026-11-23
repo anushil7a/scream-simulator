@@ -153,14 +153,16 @@ local function state(p,message,conversation,messageUrgent,messageKey,changedOnly
  questNavigation=NavigationCatalog.QuestTargets(s,questGivers),availableQuests=s.data.availableQuests,quests=s.data.quests,collected=s.collected,activeQuest=s.activeQuest,questStep=step,questTime=soccer and soccer.remaining or s.questDeadline and math.max(0,math.ceil(s.questDeadline-os.clock())) or 0,
  health=h and math.ceil(h.Health) or Config.HealthForLevel(s.data.level),maxHealth=Config.HealthForLevel(s.data.level),inWarZone=r and Config.InArena(r.Position) or false,
  voiceEligible=VoiceEligibility.Allowed(s.voiceEligibility,os.clock()),voiceStatus=VoiceEligibility.Status(s.voiceEligibility,os.clock()),
- castCooldown=math.max(0,(s.sustained and s.sustained.protocol.nextStart or s.voice.nextCast)-os.clock()),micReady=s.micReady,protection=math.max(0,s.protectedUntil-os.clock()),dodgeCooldown=math.max(0,s.nextDodge-os.clock()),
+ micReady=s.micReady,
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,flying=s.flight~=nil,
  testBeamAvailable=s.testBeamAvailable==true,testBeamDamageAvailable=s.testBeamAvailable==true,
  testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt") and messageKey or nil}
- -- Keep the periodic client refresh for collected markers that may stream back in.
- if changedOnly and not (s.collected and next(s.collected)) and StateSnapshot.Equal(packet,s.lastStatePacket) then return end
+ if changedOnly and StateSnapshot.Equal(packet,s.lastStatePacket) then return end
+ local snapshot=StateSnapshot.Copy(packet)
+ -- Timestamp only outgoing packets. Time alone does not change the boost ledger.
+ packet.shop.serverNow=os.time()
  stateRemote:FireClient(p,packet)
- s.lastStatePacket=StateSnapshot.Copy(packet)
+ s.lastStatePacket=snapshot
 end
 -- No remote can enqueue voice checks. Retry state belongs only to live sessions;
 -- at most eight actual API calls exist, with one new start per quarter-second.

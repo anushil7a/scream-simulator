@@ -97,7 +97,7 @@ local world={FindFirstChild=function(_,name)if name=="QuestObjects" then return 
 local workspace={DescendantAdded="DescendantAdded",FindFirstChild=function(_,name)if name=="ScreamSimulatorWorld" then return world end end}
 local function marker(name,action,parent)
  local part={Name=name,Parent=parent,LocalTransparencyModifier=.2}
- local prompt={Enabled=true,Parent=part}
+ local prompt={Enabled=true,Parent=part,IsA=function(_,class)return class=="ProximityPrompt" end}
  function part:IsA(class)return class=="BasePart" end
  function part:GetAttribute(attr)if attr=="QuestAction" then return action end end
  function part:FindFirstChildOfClass()return prompt end
@@ -166,6 +166,21 @@ shown(unrelatedPrompt)
 check(unrelatedPrompt.Enabled,"A similarly named prompt outside QuestObjects was mutated")
 shown(otherPrompt)
 check(otherPrompt.Enabled,"Unwatered nearby bed stopped being available")
+-- Initial instances, late prompts and delayed attribute delivery must not need fresh State.
+data.collected={Bottle1=true,Bed1=true}
+local returningBottle,returningPrompt=marker("Bottle1","Litter",folder)
+added(returningBottle)
+check(returningBottle.LocalTransparencyModifier==1 and not returningPrompt.Enabled,
+ "Streamed bottle stayed visible before its prompt was shown")
+local lateBed,latePrompt=marker("Bed1",nil,folder)
+added(latePrompt)
+check(not latePrompt.Enabled and lateBed.LocalTransparencyModifier==.2,
+ "Streamed collected prompt waited for its QuestAction attribute")
+local lateBottle,lateBottlePrompt=marker("Bottle1",nil,folder)
+local lateArt=bottleVisual(lateBottle)
+added(lateArt[4])
+check(lateArt[4].LocalTransparencyModifier==1 and not lateBottlePrompt.Enabled,
+ "Streamed bottle art waited for its QuestAction attribute")
 print("PASS "..checks.." local quest prompt presentation checks")
 '''
 
@@ -189,7 +204,10 @@ for old,new,failure in [
     ('action~="Litter" and action~="Garden"','action~="Litter"','Only the watered bed should retire its prompt'),
     ('if piece:IsA("BasePart") then piece.LocalTransparencyModifier=transparency end','if false then piece.LocalTransparencyModifier=transparency end','Collected bottle art remained visible'),
     ('if objects and object.Parent==objects then refreshQuestObject(object) end','if false then refreshQuestObject(object) end','Late-loaded bottle art appeared after collection'),
-    ('then piece.LocalTransparencyModifier=1 end','then piece.LocalTransparencyModifier=0 end','Bottle art arriving after its prompt was visible'),
+    ('if objects and marker.Parent==objects then refreshQuestObject(marker) end',
+     'if false then refreshQuestObject(marker) end','Bottle art arriving after its prompt was visible'),
+    ('if piece:IsA("ProximityPrompt") then marker=parent','if false then marker=parent',
+     'Streamed collected prompt waited for its QuestAction attribute'),
 ]:
     assert refresh.count(old)==1,old
     run_client(refresh.replace(old,new),failure)

@@ -54,7 +54,7 @@ function Commerce.Load(player)
 end
 function Commerce.Status(player)
  local d=live(player) and cache[player] or nil
- return {ready=d~=nil and allowed(player),inventory=d and d.inventory or {xp=0,coins=0},ends=d and d.ends or {xp=0,coins=0},serverNow=os.time()}
+ return {ready=d~=nil and allowed(player),inventory=d and d.inventory or {xp=0,coins=0},ends=d and d.ends or {xp=0,coins=0}}
 end
 function Commerce.Multiplier(player,kind) return Ledger.Multiplier(live(player) and cache[player] or nil,kind,os.time()) end
 function Commerce.Busy(player) return locks[player.UserId]==true end
