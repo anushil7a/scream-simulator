@@ -2088,7 +2088,10 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
   return
  end
  if kind=="SustainedCover" or kind=="SustainedEvaded" or kind=="SustainedNoHit" then
-  if type(id)=="number" and p:GetAttribute("SustainedActive")==true and id==p:GetAttribute("SustainedSequence") and id~=hitFeedback.sequence then
+  -- A new obstruction can end a damaging beam's contact. Old cover cannot override a newer hit.
+  local freshCover=kind=="SustainedCover" and aura==hitFeedback.total
+  if type(id)=="number" and p:GetAttribute("SustainedActive")==true and id==p:GetAttribute("SustainedSequence")
+   and id>hitFeedback.discardedThrough and (id~=hitFeedback.sequence or freshCover) then
    academy.attackCueSequence=id;academy.attackCueUntil=os.clock()+.9
    academy.attackCueText=kind=="SustainedNoHit" and "NO HIT YET" or kind=="SustainedEvaded" and "OPPONENT DODGED" or "BEAM HIT COVER"
   end

@@ -51,10 +51,10 @@ end}
 local VoiceEligibility={Allowed=function(s)return s==true end}
 local sustained=Adapter.new(Attack,VoiceCombat,function(origin,aim)return (aim-origin).Unit end)
 local dodgeCues,coverCues,evadedCues,bodyCues={},{},{},{}
-local effect={FireClient=function(_,p,kind,humanoid,sequence)
+local effect={FireClient=function(_,p,kind,humanoid,sequence,total)
  if kind=='BeamDodged' then table.insert(dodgeCues,{p,humanoid})
  elseif kind=='BeamBodyBlocked' then table.insert(bodyCues,{p,humanoid,sequence})
- elseif kind=='SustainedCover' then table.insert(coverCues,{p,sequence,clock})
+ elseif kind=='SustainedCover' then table.insert(coverCues,{p,sequence,clock,total})
  elseif kind=='SustainedEvaded' then table.insert(evadedCues,{p,sequence}) end
 end,FireAllClients=function()end}
 local function sustainedEnd()end;local function beamColor()return nil end
@@ -88,6 +88,7 @@ local function measure(level,targetLevel,power,kind,tier,phase,quiet,quantum)
  local sequence,sample,nextPulse,begins=0,0,0,0;local ticks={};local initial=victim.h.Health
  for i=0,math.ceil(45/(quantum or .025)) do
   clock=i*(quantum or .025)
+  if kind=='midCover' and clock>=.8 then cover=true end
   if not s.sustained.protocol.active and clock+1e-7>=s.sustained.protocol.nextStart and (kind~='timeout' or sequence==0) then
    sequence+=1;local context=sustainedContext(attacker,s,clock)
    local ok=sustained.Begin(s.sustained,clock,{sequence=sequence,power=power,aim=bot and bot.root.Position or victim.root.Position},context)
@@ -106,6 +107,8 @@ local function measure(level,targetLevel,power,kind,tier,phase,quiet,quantum)
  if not quiet then print(string.format('ROW %d %d %.2f %s %.3f %d %.1f %d %s',level,targetLevel,power,kind or 'clear',koAt or -1,begins,victim.h.Health,awards,table.concat(ticks,',')))end
  if tier then check(bot.health==0 and not bot.alive and awards==1,'Trainer authority KO failed')
  elseif kind=='timeout'then check(not koAt and victim.h.Health==56 and not s.sustained.protocol.active,'Timeout continued damage')
+ elseif kind=='midCover'then
+  check(not koAt and #ticks==3 and victim.h.Health==initial-9,'Cover after an opening hit allowed further damage')
  elseif kind=='bothTest' or kind=='capturedLevel'then check(koAt==1.0,'Same-mode or captured-level parity changed')
  elseif kind then check(not koAt and victim.h.Health==initial,'Guard allowed damage '..kind)else check(koAt~=nil and awards==1,'No authoritative KO')end
  if kind=='dodge' then
@@ -114,9 +117,10 @@ local function measure(level,targetLevel,power,kind,tier,phase,quiet,quantum)
  else
   check(#dodgeCues==0 and #evadedCues==0,'Non-evade resolver branch showed a dodge cue')
  end
- if kind=='cover' then
+ if kind=='cover' or kind=='midCover' then
   check(#coverCues==1 and coverCues[1][1]==attacker and coverCues[1][2]==1,'Missing/duplicate or public cover cue')
   check(coverCues[1][3]>=.4,'Cover cue emitted before two blocked ticks')
+  if kind=='midCover' then check(coverCues[1][4]==9 and coverCues[1][3]>=1,'Cover cue lost the last confirmed damage') end
  else
   check(#coverCues==0,'Non-cover resolver branch showed cover')
  end
@@ -126,6 +130,7 @@ for _,level in ipairs({1,25,50,75,100})do for _,power in ipairs({1,.5,.08})do me
 local time=measure(100,1,1);check(math.abs(time-1.0)<.00001,'Max vs starter full-power TTK changed')
 measure(100,25,1);measure(100,50,1);measure(100,75,1);measure(100,100,1)
 for _,kind in ipairs({'cover','range','safe','protected','dodge','attackerProtected','notEligible','timeout','mixedMode','bothTest','capturedLevel'})do measure(100,1,1,kind)end
+measure(1,1,1,'midCover',nil,nil,true)
 for level=75,100 do
  local stats=VoiceCombat.Stats(level,1,false)
  check(math.abs(stats.maxDps-(63+(level-75)*(110-63)/25))<1e-8,'Upper interpolation changed')
@@ -237,6 +242,9 @@ if '--body-cover-baseline' in sys.argv:
  sys.exit(0)
 result=run(code);print(result.stdout,end='');assert result.returncode==0,result.stderr
 if '--negative-controls' in sys.argv:
+ failure=run(code.replace('beam.obstruction and noContact','beam.obstruction and noHit'))
+ assert failure.returncode!=0 and 'Missing/duplicate or public cover cue' in failure.stderr,failure.stderr
+ print('PASS obstruction after damage negative control')
  for old,new,message in [('sameCombatMode(sessions[ctx.player],ts)','true','Guard allowed damage mixedMode'),('now>=targetProtectedUntil','true','Guard allowed damage protected'),('intent.coverTicks==2','intent.coverTicks==1','Cover cue emitted before two blocked ticks'),('intent.coverReported=true','intent.coverTicks=nil','Missing/duplicate or public cover cue'),('intent.evadeReported=true','intent.evadeReported=false','Attacker dodge cue incorrectly routed or repeated')]:
   assert old in code
   out=run(code.replace(old,new));assert out.returncode and message in out.stderr,(old,out.stdout,out.stderr)

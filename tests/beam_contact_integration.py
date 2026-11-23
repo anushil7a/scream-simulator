@@ -135,6 +135,16 @@ hit(coverId,3,anchor)
 check(hitText.Visible and hitText.Text=='3 DAMAGE','Cover hid confirmed damage')
 clock+=.75;send('SustainedCover',nil,coverId);hud()
 check(not hitText.Visible,'Old cover resurfaced after damage')
+local _,freshCoverId=make()
+hit(freshCoverId,6,anchor)
+clock+=.4;send('SustainedCover',nil,freshCoverId,6);hud()
+check(hitText.Visible and hitText.Text=='6 DAMAGE','Fresh cover replaced damage too early')
+clock+=.35;hud()
+check(hitText.Visible and hitText.Text=='BEAM HIT COVER','Fresh cover after damage was discarded')
+hit(freshCoverId,9,anchor);clock+=.75;hud()
+check(not hitText.Visible,'Old cover resurfaced after damage')
+send('SustainedCover',nil,freshCoverId,6);hud()
+check(not hitText.Visible,'Cover tagged with older damage showed after a new hit')
 local _,openId=make()
 send('SustainedNoHit',nil,openId+1);hud()
 check(not hitText.Visible,'Stale open cue appeared')
@@ -445,7 +455,8 @@ def main():
             (event, 'now<entry.expires', 'true', 'Ineligible hit decorated new rig: expired entry'),
             (event, 'and windowFocused and not beamBlocked()', '', 'Blocked hit created contact'),
             (event, 'playGameplayCue("Hit");', '', 'Accepted hit lost retained sound/HUD'),
-            (event, ' and id==p:GetAttribute("SustainedSequence") and id~=hitFeedback.sequence', ' and id~=hitFeedback.sequence', 'Stale sequence showed cover'),
+            (event, ' and id==p:GetAttribute("SustainedSequence")', '', 'Stale sequence showed cover'),
+            (event, 'aura==hitFeedback.total', 'false', 'Fresh cover after damage was discarded'),
             (event, '   if id==academy.attackCueSequence then academy.attackCueUntil=nil end', '', 'Old cover resurfaced after damage'),
             (event, '"OPPONENT DODGED" or "BEAM HIT COVER"', '"BEAM HIT COVER" or "BEAM HIT COVER"', 'Opponent dodge cue missing or played a hit effect'),
             (event, '"NO HIT YET" or kind', '"BEAM HIT COVER" or kind', 'Open advisory missing or played a hit effect'),

@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Explain cover reached during an active beam
+
+- Two guarded local Hall clients on `66413e2` used scripted full-power beams and comparable 18-stud lanes. A clear cast dropped the defender from 100 to 57 HP and showed **Beam Hit You**. A cast aimed into the authored speaker left the defender at 100 HP and showed **Beam Hit Cover** only to the attacker.
+- In the same-cast transition, the defender took 14 damage in the clear lane, then moved behind the speaker at 1.2 seconds. The speaker stopped further damage, but the attacker's 14-damage total faded and the readout stayed blank for the rest of the blocked cast.
+- The attacker can now receive the cover cue after confirmed damage, once the server observes two consecutive blocked samples without a current hit. The cue carries the preceding damage total and still yields to the current total. A newer hit cancels older cover feedback. Damage, cover and defender authority use the same rules.
+- In the exact candidate, the same mid-cast transition left the defender at 83 HP after 17 initial damage and caused no further HP drops. The attacker saw the fitted **17 Damage** total before the fitted **Beam Hit Cover** cue appeared while the beam was still active. The candidate also repeated the clear and initially blocked controls. Both probes used staged avatar positions and client focus, scripted aim and synthetic power. Neither exercised gamepad dodging.
+- Paired native reports are under `build/hall_cover_native/native-result.json` and `build/hall_cover_candidate_native/native-result.json`. Independent source review, focused authority and client feedback checks with mutations, and the full 323-step local check and build passed. The editor, server and client sessions were closed after each run.
+
 ## Verify level scaling with two native Hall clients
 
 - A guarded local Hall run built from `6125415` used two Studio clients, temporary profiles, staged levels and positions, no gear and synthetic full-power aim through the normal sustained attack remote. The three rounds used a clear combat lane at roughly 16.1 studs. Each scripted cast requested stop after about 3.15 seconds.

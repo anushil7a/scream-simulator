@@ -262,7 +262,7 @@ if __name__=='__main__':
    ('early open cue',change(2,'if intent.openTicks==4 then','if intent.openTicks==3 then'),'Open cue appeared before four ticks'),
    ('open streak reset on cover',change(2,'+1 or nil\n   if intent.openTicks','+1 or intent.openTicks\n   if intent.openTicks'),'Obstructed tick did not reset the open streak'),
    ('suppress open cue after specific cue',change(2,' and not intent.coverReported and not intent.evadeReported\n   intent.openTicks','\n   intent.openTicks'),'Prior contact or specific cue allowed an open advisory'),
-   ('attacker mixed contact gate',change(2,'local noHit=#hits==0 and not intent.damageTotal','local noHit=not intent.damageTotal'),'Mixed hit and evade advertised an attacker dodge'),
+   ('attacker mixed contact gate',change(2,'local noHit=noContact and not intent.damageTotal','local noHit=not intent.damageTotal'),'Mixed hit and evade advertised an attacker dodge'),
    ('missing private dodge cue',change(2,'effect:FireClient(target,"BeamDodged",humanoid)',''),'Actual PvP evade did not send'),
    ('dodge burst rate limit',change(2,'now<(s.nextBeamDodgeCueAt or 0)','false'),'Defender throttle changed quests or attacker feedback'),
    ('cast dodge deduplication',change(2,'if not intent.evaded[target.UserId] then','if true then'),'Cast replay renewed a dodge cue'),
