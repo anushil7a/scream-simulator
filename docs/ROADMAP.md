@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Verify level scaling with two native Hall clients
+
+- A guarded local Hall run built from `6125415` used two Studio clients, temporary profiles, staged levels and positions, no gear and synthetic full-power aim through the normal sustained attack remote. The three rounds used a clear combat lane at roughly 16.1 studs. Each scripted cast requested stop after about 3.15 seconds.
+- Level 1 against level 1 left the defender at 53 of 100 HP. Level 1 against level 100 left the defender at 436 of 480 HP. Level 100 knocked out level 1 on the fifth damage update, about 1.17 seconds after the scheduled trigger and 0.87 seconds after the first damage update. The normal server path returned the defender to the safe apron at full health with spawn protection.
+- These results verify the high-level advantage under matched clear shots. The native evidence is in `build/hall_tier_native/native-result.json`. Independent review verified the fixture and results, and 15,482 deterministic combat checks and ten negative controls passed. The disposable editor, local server and two Studio clients were closed. Human aim, microphone power, movement, cover use, internet latency and the reciprocal time to knockout remain outside this spot check.
+
 ## Verify the Rookie strike and controller dodge
 
 - In a guarded zero-ID local City session built from `8923140`, the avatar was staged on the Rookie pad. A synthetic 0.46-power beam with scripted aim started the ordinary spar. The actual eight-stud warning disc and fitted **Move or Dodge** cue appeared. Standing inside the marked strike lowered HP from 100 to 92.

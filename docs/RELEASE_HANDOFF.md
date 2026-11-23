@@ -47,7 +47,7 @@ The playable pair requires Studio with place and universe IDs zero. Each file us
 Pause development and notify the owner only after one identified candidate passes these checks:
 
 - Real speech starts and sustains a beam in ordinary play, and another player takes server-confirmed damage. Two eligible participants should also verify that Beams OFF preserves ordinary proximity voice.
-- Higher levels deal more beam damage and have more health. Current source and deterministic resolver checks cover scaling, including the level 1 to 100 health increase from 100 to 480. Compare same- and mixed-level fights on the candidate to verify the intended balance, including that large level advantages matter.
+- Higher levels deal more beam damage and have more health. Deterministic checks and the local two-client Hall spot check cover the level 1 to 100 health increase from 100 to 480 and stronger high-level damage. Compare same- and mixed-level fights with real players to assess the intended balance, including that large level advantages matter.
 - Testers can read the HUD, find training and the arena, and enjoy a continuous first-upgrade and PvP session. Check both visual quality and play feel on the actual reference devices.
 - Each intended game pass grants its advertised entitlement through Roblox, and the shop shows accurate availability. The source catalog currently has 11 passes and two timed products, all with zero IDs. Local ownership and receipt simulations cover the code paths. Actual entitlements and receipts need owner-approved IDs and a separately authorized isolated test. If the timed boosts ship with the passes, verify delivery, rejoin and offline expiry too.
 
