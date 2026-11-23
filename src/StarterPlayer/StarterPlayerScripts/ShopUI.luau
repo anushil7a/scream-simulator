@@ -263,7 +263,7 @@ function Shop.ColorMixer(data,ui,action)
  local color=data.customColor and Color3.fromHex(data.customColor) or Config.Auras[data.aura] or Config.Auras.Gold
  local hue=color:ToHSV()
  ui.label(c,"HUE",UDim2.new(1,-32,0,20),UDim2.fromOffset(16,110),12,soft)
- local bar=ui.frame(c,"HUE",UDim2.new(1,-32,0,44),UDim2.fromOffset(16,134),Color3.new(1,1,1));bar.Active=true
+ local bar=ui.frame(c,"HUE",UDim2.new(1,-136,0,44),UDim2.fromOffset(68,134),Color3.new(1,1,1));bar.Active=true
  local colors={};for j=0,6 do table.insert(colors,ColorSequenceKeypoint.new(j/6,Color3.fromHSV(j/6,1,1))) end
  gradient(bar,colors)
  local knob=ui.frame(bar,"Thumb",UDim2.fromOffset(10,44),UDim2.new(),Color3.new(1,1,1));stroke(knob,ink)
@@ -276,18 +276,30 @@ function Shop.ColorMixer(data,ui,action)
   knob.Position=UDim2.new(hue,-10*hue,.5,-22)
  end
  local dragInput
- local function setHue(input)
-  hue=math.clamp((input.Position.X-bar.AbsolutePosition.X)/math.max(1,bar.AbsoluteSize.X),0,1)
+ local function setHue(value)
+  hue=value
   color=Color3.fromHSV(hue,1,1);update()
  end
+ local function setPointerHue(input)
+  setHue(math.clamp((input.Position.X-bar.AbsolutePosition.X)/math.max(1,bar.AbsoluteSize.X),0,1))
+ end
+ local previous=ui.button(c,"HuePrevious","‹",UDim2.fromOffset(44,44),UDim2.fromOffset(16,134),function()
+  if revision==generation then setHue((hue-1/24)%1) end
+ end,ink)
+ local nextHue=ui.button(c,"HueNext","›",UDim2.fromOffset(44,44),UDim2.new(1,-60,0,134),function()
+  if revision==generation then setHue((hue+1/24)%1) end
+ end,ink)
+ previous.TextSize=24;nextHue.TextSize=24
+ previous.NextSelectionRight=nextHue;nextHue.NextSelectionLeft=previous
+ stroke(previous,violet);stroke(nextHue,violet)
  table.insert(connections,bar.InputBegan:Connect(function(input)
   if revision~=generation or dragInput then return end
   if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
-   dragInput=input;setHue(input)
+   dragInput=input;setPointerHue(input)
   end
  end))
  table.insert(connections,UIS.InputChanged:Connect(function(input)
-  if revision==generation and dragInput and (input==dragInput or input.UserInputType==Enum.UserInputType.MouseMovement and dragInput.UserInputType==Enum.UserInputType.MouseButton1) then setHue(input) end
+  if revision==generation and dragInput and (input==dragInput or input.UserInputType==Enum.UserInputType.MouseMovement and dragInput.UserInputType==Enum.UserInputType.MouseButton1) then setPointerHue(input) end
  end))
  table.insert(connections,UIS.InputEnded:Connect(function(input) if input==dragInput then dragInput=nil end end))
  local equip=ui.button(c,"EquipCustom",data.spectrumPass and "EQUIP COLOR" or "PASS REQUIRED",UDim2.new(1,-32,0,44),UDim2.fromOffset(16,232),function()

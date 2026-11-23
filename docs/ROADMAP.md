@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Make Beam Style hue editable with a controller
+
+- In native Xbox controller emulation, the baseline D-pad moved past the hue strip in Gear and reached Equip without letting the player change the preview. The selected color stayed `#FFCB63`.
+- Two 44-pixel buttons flank the touch-and-mouse hue strip. Controller focus moves between the arrows, and A/Cross steps the preview through the hue range in 15-degree increments. The saved color and Spectrum ownership checks still govern Equip.
+- In the native candidate, actual Gamepad1 D-pad and A events reached both arrows and changed the preview `#FFCB63 → #FFEA00 → #FFAA00`. Activating the locked Equip control left the preview and pass requirement in place. In iPhone XR portrait emulation, both buttons fit and a real emulated touch drag changed the preview across the 205-pixel strip.
+- Native evidence is in `build/console_input_native/native-hue-baseline.json` and `native-hue-candidate.json`. The emulator preset was restored and the disposable Studio sessions were closed. Independent review cleared the change. Local verification passed 29 pure/synthetic suites, 169 mocked-service suites, production compilation and review builds. Physical-device input and commerce remain release checks.
+
 ## Controller aiming and gameplay shortcuts
 
 - In the native Xbox Controller Emulator, the baseline received a genuine Gamepad1 Y event and ignored it. Opening Menu through stock selection and A left focus on the launcher behind the panel. B did not close it. The controller already used a centered beam ray.

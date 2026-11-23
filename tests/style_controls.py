@@ -101,6 +101,21 @@ frames.HUE.InputBegan:Fire(input(Enum.UserInputType.Touch,60));check(frames.Colo
 draw(true,'123456');local stale=buttons.EquipCustom.call;local old=frames.HUE;local down=input(Enum.UserInputType.Touch,30);old.InputBegan:Fire(down)
 draw(true,'654321');stale();down.Position.X=90;UIS.InputChanged:Fire(down);check(#actions==0 and equip()=='654321','Reopened mixer inherited stale drag')
 draw(true,'123456');frames.HUE.InputBegan:Fire(input(Enum.UserInputType.Keyboard,60));check(equip()=='123456','Keyboard input edited hue')
+if CONTROLLER_CHECKS then
+ draw(true,'FF0000')
+ local previous,nextHue=buttons.HuePrevious,buttons.HueNext
+ check(previous and nextHue,'Hue has no controller-selectable step controls')
+ local swatch=frames.ColorSwatch
+ previous.call();check(swatch.BackgroundColor3:ToHex():upper()=='FF0040' and #actions==0,'Previous hue did not wrap locally')
+ nextHue.call();check(swatch.BackgroundColor3:ToHex():upper()=='FF0000' and #actions==0,'Next hue did not wrap locally')
+ nextHue.call();check(swatch.BackgroundColor3:ToHex():upper()=='FF4000' and #actions==0,'Next hue did not adjust the preview')
+ check(equip()=='FF4000','Equip did not use the previewed hue')
+ draw(false,'FF0000')
+ buttons.HueNext.call();buttons.EquipCustom.call()
+ check(frames.ColorSwatch.BackgroundColor3:ToHex():upper()=='FF4000' and #actions==0,'Locked preview stepped or equipped incorrectly')
+ local staleHue=buttons.HueNext.call;local staleSwatch=frames.ColorSwatch;Shop.Clear();staleHue()
+ check(staleSwatch.BackgroundColor3:ToHex():upper()=='FF4000','Cleared step control edited hue')
+end
 '''
 server_setup=r'''
 local ShopCatalog=Catalog;local entitled=false
@@ -137,7 +152,8 @@ def run(code,expected=None):
  out=r.stdout+r.stderr
  if expected:assert r.returncode and expected in out,out;print('PASS negative control:',expected)
  else:assert r.returncode==0,out;print(out.strip())
-code=setup+helpers+mixer+tests+server_setup+branches+server_tests.replace('s.data.aura=\'Blue\';s.data.customColor',beam_color+'s.data.aura=\'Blue\';s.data.customColor')
+controller='local CONTROLLER_CHECKS='+('false' if args.baseline else 'true')+'\n'
+code=controller+setup+helpers+mixer+tests+server_setup+branches+server_tests.replace('s.data.aura=\'Blue\';s.data.customColor',beam_color+'s.data.aura=\'Blue\';s.data.customColor')
 if args.baseline:run(code,'Extra color sliders remain')
 else:
  run(code)
@@ -152,6 +168,8 @@ else:
   run(code.replace('swatch.BackgroundColor3=color','-- swatch.BackgroundColor3=color\n'),'Color swatch did not track hue drag')
   run(code.replace('swatch.Interactable=false','swatch.Interactable=true'),'Passive color swatch captured input')
   run(code.replace('UDim2.fromOffset(48,186)','UDim2.fromOffset(16,186)'),'SelectedColor overlaps ColorSwatch')
+  run(code.replace('setHue((hue+1/24)%1)','setHue(hue)'),'Next hue did not wrap locally')
+  run(code.replace('if revision==generation then setHue((hue+1/24)%1) end','setHue((hue+1/24)%1)'),'Cleared step control edited hue')
 
 # Isolated real Profiles module, fake atomic store only.
 profile_preamble="\nlocal Healing=require('../src/ReplicatedStorage/Shared/Healing')\nlocal Combat=require('../src/ReplicatedStorage/Shared/VoiceCombat')\nlocal Lease=require('../src/ReplicatedStorage/Shared/ProfileLease')\nlocal Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}\nlocal Color3={fromRGB=function(r,g,b)return {r,g,b}end}\nlocal Progression=(function()\n"
