@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Verify compact combat Close beside a scrollable notice
+
+- Two local Studio clients at 567 × 241 usable pixels used staged input through the normal attack remote. A private server hit reduced the defender from 480 to 457 HP while Gear and a scrollable notice were open. A test pointer reached the notice, then reached the adjacent 44 × 44 **HIT / CLOSE** button during damage. The menu closed and the fitted **BEAM HIT YOU** label returned about 101 ms after the hit. The notice remained visible after closing.
+- The multiplayer clients kept the desktop layout. A separate touch-emulated solo at 455 × 218 staged the private cue after spawn protection. The notice ended six pixels before the fitted Close target. A virtual mouse click closed the menu and restored the fitted combat cue. The first staged cue during protection was suppressed. Physical tap, post-close **NOTICE** shortcut access on touch, and real damage in touch emulation remain unverified.
+- Independent review confirmed the result, requiring no gameplay change. Focused notice and combat integration passed 1,187 checks and 93 negative controls. Full local verification passed 198 suites, 99 production compilations and City and Hall builds. The previous simulator preset was restored and disposable Studio sessions closed. See [native results](../tests/evidence/compact-defender-menu-pointer-native-2026-11-22.json). Next, test real speech and ordinary proximity chat on two eligible accounts, including a phone, in an approved isolated build.
+
 ## Verify repeated overlapping Stadium hits and cleanup
 
 - A disposable build from `de9228a` staged two level-100 attackers and a defender in the Stadium. Two Studio attackers sent synthetic input through the normal Action RemoteEvent. A third Studio client was the defender. The longer first run reached a knockout during the second window and no damage to the defender in the third. Shorter casts preserved the same target for all three windows without forcing health or repositioning between windows.
