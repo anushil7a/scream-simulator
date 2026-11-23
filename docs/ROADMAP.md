@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Verify controller Beams OFF and correct its prompt
+
+- In guarded local City Studio on `57a2a31`, genuine Gamepad1 RB stopped an accepted beam after Rookie fell from 80 to 59 HP. The server ended the cast, and sustained 0.65 synthetic loudness produced no new cast or damage while OFF, including after cooldown ended. Rearming with the same loudness showed **Go quiet** and stayed idle. Fresh quiet followed by loudness started sequence 2. This checks the attack gate, with ordinary proximity voice and physical headset behavior outside the fixture.
+- The compact ready button showed **BEAMS: OFF [RB/R1]** over a conflicting **[E] to turn on** hint. The gamepad now says **Press to turn on** beneath its controller binding. The wide Beams button still displays RB/R1 and the separate meter retains its talk guidance.
+- The native Xbox candidate displayed both fitted variants. Near Rookie, a genuine RB press stopped the active beam and the compact button showed the corrected OFF instruction while the synthetic loudness remained high. The focused 265-case voice reactor suite passed, including the mutation that restores the keyboard hint.
+- Independent review checked the fixtures and state traces in `build/controller_rearm_native/native-baseline.json` and `build/controller_rearm_candidate_native/native-candidate.json`. The full 323-step local check and build passed. The prior emulator preset was restored and both disposable sessions closed.
+
 ## Verify right-stick steering during an acknowledged beam
 
 - A guarded zero-ID Academy replay on `775cef6` used a staged starting position and camera, synthetic voice readiness and 0.65 loudness, and the ordinary production aim path. Gamepad1 RB armed Beams and the automatic cast struck Rookie five times, taking the fighter from 80 to 67 HP.

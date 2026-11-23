@@ -128,6 +128,11 @@ _,_,desktop,meter=cue(4.9,true,false,false,0,true,{nearNpc=true})
 check(not meter and desktop=='BEAMS: ON\nCooldown 4.9s · go quiet','Desktop TALK hides cooldown guidance')
 _,_,desktop,meter=cue(0,false,false,false,0,false,{nearNpc=true})
 check(not meter and desktop=='BEAMS: OFF\n[E] to turn on','Desktop compact OFF shows the wrong input')
+local _,_,gamepad,gamepadMeter=cue(0,false,false,false,0,false,{nearNpc=true,gamepad=true})
+check(not gamepadMeter and gamepad=='BEAMS: OFF [RB/R1]\nPress to turn on','Controller compact OFF shows the wrong input')
+local _,_,wideGamepad,wideGamepadMeter,wideGamepadText=cue(0,false,false,false,0,false,{gamepad=true})
+check(wideGamepadMeter and wideGamepad=='BEAMS: OFF\n[RB/R1] to turn on' and wideGamepadText:find('Voice chat is unchanged',1,true),
+ 'Controller full meter shows the wrong input')
 _,_,desktop,meter=cue(0,true,false,false,0,true,{nearNpc=false})
 check(meter and desktop=='BEAMS: ON\n[E] to turn off','Desktop meter or normal hint did not return')
 _,_,desktop,meter=cue(0,true,false,false,0,true,{width=819,nearNpc=true})
@@ -166,7 +171,7 @@ status_code=r'''
  local function beamBlocked() return not mic.ready or data.voiceEligible~=true or blocked() end
  local captureHint
  local castButton={}
- local meterText,power,academy={},0,{VoiceReactor=Reactor,voiceThreshold={},trainingNeedsCloser=function()return state.trainingFar end}
+ local meterText,power,academy={},0,{VoiceReactor=Reactor,voiceThreshold={},gamepad=state.gamepad,trainingNeedsCloser=function()return state.trainingFar end}
 ''' + s[s.index(' local showVoiceMeter='):s.index(' meter.Visible=gameplayVisible and showVoiceMeter')] + s[start:end] + s[s.index('\n meterText.Text=',end):s.index(' local shortLandscape=',end)] + s[s.index(' if sustainedControl then\n  -- Keep the next voice action'):s.index(' -- Keep attack duration/cooldown distinct')] + '''
  return captureHint,meterFill.BackgroundColor3,castButton.Text,showVoiceMeter,meterText.Text,academy.voiceThreshold.Visible
 '''
@@ -189,6 +194,7 @@ def run(source, expected=None):
 run(payload)
 if '--negative-controls' in sys.argv:
  for old,new,expected in [
+  ('academy.gamepad and "Press to turn on" or ', '', 'Controller compact OFF shows the wrong input'),
   ('status=captureHint','status=nil','Short cooldown hides the quiet cue'),
   ('or academy.trainingNeedsCloser() and "Move closer"','', 'Short beam cue contradicted the training guide'),
   ('viewport.Y>=315','viewport.Y>=314','Short cue disappears one pixel early'),
