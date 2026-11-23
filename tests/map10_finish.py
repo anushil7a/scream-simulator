@@ -9,6 +9,13 @@ import tempfile
 R=Path(__file__).resolve().parents[1]; S=R/'src/ServerScriptService'
 doc=json.loads((R/'prototypes/map10/finish_geometry.json').read_text())
 assert set(doc['groups'])=={'Stadium','North','East','Coast','Landmark'}
+base = json.loads((R/'prototypes/map10/geometry.json').read_text())
+ridge_indices = {m[1] for part in base['parts'] if (m := re.fullmatch(r'VolcanicRidge(\d+)', part['id']))}
+basalt_parts = [part for part in doc['parts'] if part['id'].startswith('LandmarkBasalt')]
+assert {part['id'] for part in basalt_parts} == {
+    f'LandmarkBasalt{index}{suffix}' for index in ridge_indices for suffix in ('Long', 'Cut')
+}, 'Basalt crowns must follow the standing ridges and leave the bridge gate open'
+assert all(not part['collidable'] for part in basalt_parts)
 assert not any(re.fullmatch(r'NorthPavilion[0-3]Entablature|StadiumEntry(?:-1|1)(?:Lantern|LanternLens|GlazedPanel)|StadiumCorner-246_(?:36|204)Z', part['id']) for part in doc['parts'])
 solid_parts = [part for part in doc['parts'] if part['collidable']]
 expected_groups = {

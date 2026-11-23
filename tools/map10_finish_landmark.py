@@ -1,5 +1,7 @@
 """Large-form dressing pass: focal paving, windy coastal trees, fractured basalt caps."""
+import json
 import math
+from pathlib import Path
 
 def add(box,disk,line):
     limestone=(210,192,158); ochre=(171,131,75); cream=(231,213,174)
@@ -36,7 +38,11 @@ def add(box,disk,line):
         box(n+'Cypress2',(x-2.9*side,soil_top+3.8/2-.42,z-2.9),(4.4,3.8,4),(118,147,89),material='Grass',shape='Ball')
     # Polygonal crowns interlock with the old tall ridge silhouette. Keep all
     # original solid surfaces and their material so gameplay physics stays put.
+    geometry = Path(__file__).resolve().parents[1] / 'prototypes/map10/geometry.json'
+    base_ids = {part['id'] for part in json.loads(geometry.read_text(encoding='utf-8'))['parts']}
     for i in range(12):
+        if f'VolcanicRidge{i}' not in base_ids:
+            continue
         a=i*math.tau/12
         x,z=355+math.cos(a)*125,-70+math.sin(a)*164
         y=62+(i%3)*14

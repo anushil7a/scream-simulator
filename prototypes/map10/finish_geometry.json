@@ -4,7 +4,7 @@
   "East": 219,
   "Coast": 270,
   "Stadium": 144,
-  "Landmark": 134
+  "Landmark": 130
  },
  "parts": [
   {
@@ -26261,110 +26261,6 @@
    "rotation": [
     -9,
     212.0,
-    7
-   ],
-   "material": "Slate",
-   "shape": "Wedge",
-   "collidable": false
-  },
-  {
-   "id": "LandmarkBasalt4Long",
-   "position": [
-    291.5,
-    78.8,
-    74.62624243200128
-   ],
-   "size": [
-    31,
-    16,
-    32
-   ],
-   "color": [
-    72,
-    64,
-    70
-   ],
-   "rotation": [
-    6,
-    131.0,
-    -10
-   ],
-   "material": "Basalt",
-   "shape": "Wedge",
-   "collidable": false
-  },
-  {
-   "id": "LandmarkBasalt4Cut",
-   "position": [
-    284.70577136594005,
-    74.3,
-    69.52816622064796
-   ],
-   "size": [
-    19,
-    10,
-    25
-   ],
-   "color": [
-    66,
-    63,
-    72
-   ],
-   "rotation": [
-    -9,
-    242.0,
-    7
-   ],
-   "material": "Slate",
-   "shape": "Wedge",
-   "collidable": false
-  },
-  {
-   "id": "LandmarkBasalt5Long",
-   "position": [
-    245.01477371937628,
-    92.8,
-    13.499999999999986
-   ],
-   "size": [
-    31,
-    19,
-    32
-   ],
-   "color": [
-    82,
-    72,
-    75
-   ],
-   "rotation": [
-    9,
-    161.0,
-    -4
-   ],
-   "material": "Basalt",
-   "shape": "Wedge",
-   "collidable": false
-  },
-  {
-   "id": "LandmarkBasalt5Cut",
-   "position": [
-    242.24682452694515,
-    88.3,
-    7.669872981077792
-   ],
-   "size": [
-    19,
-    10,
-    25
-   ],
-   "color": [
-    94,
-    77,
-    76
-   ],
-   "rotation": [
-    -9,
-    272.0,
     7
    ],
    "material": "Slate",

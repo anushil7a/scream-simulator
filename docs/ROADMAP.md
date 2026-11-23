@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Remove floating basalt above the south Volcano bridge
+
+- In `d72cc77`, matched coastal and bridge views showed two suspended clusters. A near server inspection identified them as `LandmarkBasalt4Long/Cut` and `LandmarkBasalt5Long/Cut`. Downward rays from their centers found only the plateau at Y=32. Their source ridges were deliberately omitted to open the southwest bridge gate. The nearby Ridge 3 crown still intersected its ridge.
+- The finishing generator checks which source ridges exist before creating their crowns. The export removes four nonphysical wedges and preserves all 20 crowns on standing ridges, the original bridge geometry and the intentional floating shrine. The baseline export failed the new crown-to-ridge regression. Independent source review cleared the correction.
+- The disposable Studio candidate showed the open sky above the gate and retained the 20 supported caps. A staged Humanoid walked all five bridge legs to the plateau (X=310.22, Z=40) at full health. The support rose from Y=16.49 to Y=31.38 before the Y=32 plateau. The distant captures differ in how much retained scenery renders, although the candidate client had the sampled ridges and crowns and its ray hit Ridge 3. The near capture shows the surviving rock and the cleared sky together. Native candidate SHA-256: `b17a2aec0523cf917e363a2ec2b30048cf4d2020c34aab7df2e52e030ac245c7`. Local comparison: `build/basalt_crowns_native/BasaltCrownsComparison.jpg`.
+- The finish suite passed 17 negative controls. All 18 map repair checks and 1,101 map contract checks passed. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and Rojo builds on unchanged verification inputs.
+- Next inspect the opening HUD and training handoff at a compact viewport during a continuous fresh-player route. Use existing evidence for staged interactions and distinguish the remaining physical-device and real-voice gates.
+
 ## Distinguish the coastal promenade from Timber Pier
 
 - Three matched player-height views in disposable Studio showed a nearly flat cream promenade and featureless brown pier in `96e7a15`. The approved Map 10 blueprint uses light paving beside warm timber. The candidate gives the existing promenade a cool, lightly textured finish and flush joints. Five thin wood faces follow the original pier and shelter decks. The sand shoulder stays visible.
