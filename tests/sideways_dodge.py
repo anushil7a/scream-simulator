@@ -86,6 +86,7 @@ sustainedControl=nil;blockedNow=false;dodge()
 check(cancels==1 and #calls==count+1,'Legacy Dodge lost immediate capture cancel')
 print('PASS desktop/joystick/default intent using actual client function')
 local dodgeButton={}
+local academy={}
 local now=10
 local protected,rolling,knocked,alive,touch=0,false,false,true,false
 local deadline=0
@@ -97,6 +98,7 @@ local function updateDodgeLabel()
  return dodgeButton.Text
 end
 check(updateDodgeLabel()=='DODGE [Q]','Grounded desktop dodge lost its key hint')
+academy.gamepad=true;check(updateDodgeLabel()=='DODGE [LB/L1]','Grounded controller dodge lost its key hint');academy.gamepad=false
 touch=true;check(updateDodgeLabel()=='DODGE','Grounded touch dodge lost its ready label')
 protected=4
 check(updateDodgeLabel()=='DODGE\nSHIELDED','Shielded dodge looked ready')
@@ -107,7 +109,7 @@ check(updateDodgeLabel()=='DODGE 2.5s','Airborne reminder hid the active cooldow
 deadline=0;humanoid.FloorMaterial='ground';humanoid.SeatPart={}
 check(updateDodgeLabel()=='DODGE\nWAIT','Seated dodge looked ready')
 humanoid.SeatPart=nil;check(updateDodgeLabel()=='DODGE','Landed dodge did not become ready')
-print('PASS seven dodge HUD readiness checks with mocked attributes')
+print('PASS eight dodge HUD readiness checks with mocked attributes')
 '''
 def run(payload):
  with tempfile.NamedTemporaryFile(mode='w',suffix='.luau',dir=r/'tests',delete=False) as f:

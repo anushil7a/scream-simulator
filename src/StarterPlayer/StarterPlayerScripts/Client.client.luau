@@ -565,12 +565,16 @@ local function toggleVoice()
   if inputMuted then academy.muteNoticePending=true end
   notify(hint or "Beams stay OFF. Wait for live microphone input and gameplay to be ready, then turn them on.",true,inputMuted and "micMuted" or "voice");return
  end
+ academy.beamController=nil
  sustainedControl:SetArmed(not sustainedControl.armed)
  notify(sustainedControl.armed and "Speech can fire.\nOFF to talk."
   or "Beams OFF. Talk freely without attacking. Voice chat is unchanged.",false,"voice")
 end
-local function screamToggleLabel(armed,touch,status)
- return (armed and "BEAMS: ON" or "BEAMS: OFF").."\n"..(status or (touch and "Tap" or "[E]")..(armed and " to turn off" or " to turn on"))
+local function screamToggleLabel(armed,touch,status,gamepad)
+ local prompt=gamepad and "[RB/R1]" or touch and "Tap" or "[E]"
+ local title=armed and "BEAMS: ON" or "BEAMS: OFF"
+ if gamepad and status then title..=" "..prompt end
+ return title.."\n"..(status or prompt..(armed and " to turn off" or " to turn on"))
 end
 local function releaseCapture(source)
  if captureSource~=source then return end
@@ -700,6 +704,7 @@ local function setSprint(requested)
   or modal.Visible or (devPanel and devPanel.Visible) or (conversationPanel and conversationPanel.Visible)
   or not humanoid or humanoid.Health<=0 or humanoid.PlatformStand or humanoid.Sit or humanoid.SeatPart
   or workspace:GetServerTimeNow()<(p:GetAttribute("KnockdownEnds") or 0)) then requested=false end
+ if not requested then academy.sprintController=nil end
  -- Reconcile a held request after a transient quota rejection; never retry OFF.
  local now=os.clock()
  if sprinting==requested and (not requested or now<nextSprintSend) then return end
@@ -848,9 +853,9 @@ local function liveTalkHumanoid(target)
  local humanoid=target:FindFirstChildOfClass("Humanoid")
  return humanoid and humanoid.Health>0 and humanoid or nil
 end
-function academy.presentTalk(button,target,touch,shortLandscape)
+function academy.presentTalk(button,target,touch,shortLandscape,gamepad)
  local width=button.Size.X.Offset
- local caption=(touch or width<72) and "TALK" or "TALK [T]"
+ local caption=gamepad and width>=84 and "TALK [LT/L2]" or (touch or width<72 or gamepad) and "TALK" or "TALK [T]"
  local textSize=14
  local previous=academy.talkNameplate
  local compact=button.Visible and shortLandscape and width>=84
@@ -1237,14 +1242,15 @@ function academy.refreshCompactObjective(limited,voiceCooldown)
  end
  objective.Text=text
 end
-function academy.refreshMenuCaption(width,touch)
+function academy.refreshMenuCaption(width,touch,gamepad)
+ if gamepad==nil then gamepad=academy.gamepad end
  local narrow=width<74
- local menuText=(narrow or touch) and "MENU" or "MENU [B]"
+ local menuText=(narrow or touch) and "MENU" or gamepad and "MENU [Y/△]" or "MENU [B]"
  if academy.starterGearReady then menuText..=narrow and "\nGEAR" or "\nGEAR READY" end
  shop.Text=menuText
  shop.TextSize=academy.starterGearReady and 11 or narrow and 12 or 14
 end
-function academy.layoutObjectiveNav(viewport,touch,stacked)
+function academy.layoutObjectiveNav(viewport,touch,stacked,gamepad)
  local tight=viewport.X<380
  -- The desktop tracker starts at y160 and needs 50 pixels. Its action fits in the top rail here.
  local shortDesktop=not touch and viewport.X>=480 and viewport.X<820 and viewport.Y>=150 and viewport.Y<210
@@ -1255,7 +1261,7 @@ function academy.layoutObjectiveNav(viewport,touch,stacked)
  local passesWidth=compact and 52 or narrowNav and 60 or 64
  top.Position=UDim2.fromOffset(14,stacked and 0 or (touch or viewport.X<820) and 2 or 12)
  shop.Size=UDim2.fromOffset(menuWidth,touch and 46 or 36)
- academy.refreshMenuCaption(menuWidth,touch)
+ academy.refreshMenuCaption(menuWidth,touch,gamepad)
  academy.passesToggle.Size=UDim2.fromOffset(passesWidth,46)
  academy.passesToggle.Position=UDim2.fromOffset(menuWidth+6,0)
  academy.passesToggle.TextSize=narrowNav and 11 or 13
@@ -1906,6 +1912,26 @@ end)
 connectClient(UIS.InputBegan,function(input,processed)
  if processed or GuiService.MenuIsOpen or UIS:GetFocusedTextBox() then return end
  local k=input.KeyCode
+ local inputType=input.UserInputType
+ if inputType and string.match(inputType.Name,"^Gamepad%d+$") then
+  if not windowFocused then return end
+  if k==Enum.KeyCode.ButtonY then toggle()
+  elseif k==Enum.KeyCode.ButtonR1 then
+   if sustainedControl then
+    toggleVoice()
+    if sustainedControl.armed then academy.beamController=inputType end
+   else beginCapture(inputType) end
+  elseif k==Enum.KeyCode.ButtonL1 then dodge()
+  elseif k==Enum.KeyCode.ButtonL2 then requestTalk()
+  elseif k==Enum.KeyCode.ButtonL3 and not academy.sprintController then
+   setSprint(true)
+   if sprinting then academy.sprintController=inputType end
+  elseif k==Enum.KeyCode.ButtonB then
+   if modal.Visible then closeMenu()
+   elseif conversationPanel and conversationPanel.Visible then closeConversation() end
+  end
+  return
+ end
  if k==Enum.KeyCode.E then if sustainedControl then toggleVoice() else beginCapture("keyboard") end elseif k==Enum.KeyCode.Q then dodge() elseif k==Enum.KeyCode.B then toggle()
  elseif k==Enum.KeyCode.M then toggleTab("Map")
  elseif k==Enum.KeyCode.LeftShift then setSprint(true)
@@ -1913,7 +1939,9 @@ connectClient(UIS.InputBegan,function(input,processed)
 end)
 connectClient(UIS.InputEnded,function(input)
  if input.KeyCode==Enum.KeyCode.E then releaseCapture("keyboard")
+ elseif input.KeyCode==Enum.KeyCode.ButtonR1 and captureSource and captureSource==input.UserInputType then releaseCapture(captureSource)
  elseif captureSource==input or (typeof(captureSource)=="Instance" and captureSource.UserInputType==Enum.UserInputType.MouseButton1 and input.UserInputType==Enum.UserInputType.MouseButton1) then releaseCapture(captureSource) end
+ if input.KeyCode==Enum.KeyCode.ButtonL3 and academy.sprintController and academy.sprintController==input.UserInputType then setSprint(false) end
  if input.KeyCode==Enum.KeyCode.LeftShift then setSprint(false) end
 end)
 connectClient(p.CharacterRemoving,function() academy.defenderHitUntil=nil;academy.defenderDodgeUntil=nil;academy.defenderCoverUntil=nil;academy.attackCueUntil=nil;academy.incomingHit.Visible=false;hitFeedback:DiscardThrough(sustainedControl and sustainedControl.sequence or hitFeedback.sequence);setSprint(false);if sustainedControl then sustainedControl:SetArmed(false) end;cancelCapture();if closeConversation then closeConversation() end end)
@@ -1924,6 +1952,59 @@ local function suspendGameplay()
 end
 connectClient(UIS.WindowFocusReleased,function() windowFocused=false;suspendGameplay() end)
 connectClient(GuiService.MenuOpened,suspendGameplay)
+connectClient(UIS.GamepadDisconnected,function(inputType)
+ if academy.sprintController==inputType then setSprint(false) end
+ if captureSource==inputType then cancelCapture() end
+ if sustainedControl and academy.beamController==inputType then
+  academy.beamController=nil
+  sustainedControl:SetArmed(false)
+ end
+end)
+do
+ local scope,previous
+ for _,panelRoot in ipairs({modal,conversationPanel}) do
+  panelRoot.SelectionGroup=true
+  panelRoot.SelectionBehaviorUp=Enum.SelectionBehavior.Stop
+  panelRoot.SelectionBehaviorDown=Enum.SelectionBehavior.Stop
+  panelRoot.SelectionBehaviorLeft=Enum.SelectionBehavior.Stop
+  panelRoot.SelectionBehaviorRight=Enum.SelectionBehavior.Stop
+ end
+ local function visibleSelection(selection,root)
+  if not selection or not selection.Selectable or not selection.Interactable or not selection:IsDescendantOf(root) then return false end
+  local ancestor=selection
+  while ancestor~=gui do
+   if ancestor:IsA("GuiObject") and not ancestor.Visible then return false end
+   ancestor=ancestor.Parent
+  end
+  return true
+ end
+ local function restoreFocus()
+  local selection=GuiService.SelectedObject
+  if not selection or selection:IsDescendantOf(scope) then
+   GuiService.SelectedObject=visibleSelection(previous,gui) and previous or nil
+  end
+  scope,previous=nil,nil
+ end
+ function academy.updateControllerFocus()
+  if GuiService.MenuIsOpen then return end
+  local active=academy.gamepad and (modal.Visible and modal or conversationPanel.Visible and conversationPanel)
+  if scope and scope~=active then restoreFocus() end
+  if not active then return end
+  local selection=GuiService.SelectedObject
+  if scope~=active then
+   previous=selection
+   scope=active
+  end
+  if not visibleSelection(selection,active) then
+   local tab=active==modal and tabs[selected]
+   GuiService.SelectedObject=visibleSelection(tab,active) and tab or active==modal and modal.Close or conversationView.close
+  end
+ end
+ ownClient(function()
+  local selection=GuiService.SelectedObject
+  if selection and selection:IsDescendantOf(gui) then GuiService.SelectedObject=nil end
+ end)
+end
 connectClient(p:GetAttributeChangedSignal("ProtectionEnds"),function()
  -- A positive update is a server protection grant, even if it arrives late.
  if sustainedControl and (p:GetAttribute("ProtectionEnds") or 0)>0 then
@@ -2073,6 +2154,8 @@ connectClient(Run.RenderStepped,function(dt)
  refreshHealth()
  local viewport=gui.AbsoluteSize
  local touch=UIS.TouchEnabled
+ academy.gamepad=UIS.PreferredInput==Enum.PreferredInput.Gamepad
+ academy.updateControllerFocus()
  local layoutChanged=viewport~=lastViewport or touch~=lastTouch or data.devAccess~=lastDevAccess
  if layoutChanged then lastViewport=viewport;lastTouch=touch;lastDevAccess=data.devAccess end
  if layoutChanged then conversationView.layout(viewport) end
@@ -2244,7 +2327,7 @@ connectClient(Run.RenderStepped,function(dt)
  end
  -- Keep desktop controls compact; smaller displays retain readable button text.
  local stackedActions=academy.layoutActions(viewport,touch,shortLandscape)
- academy.layoutObjectiveNav(viewport,touch,stackedActions)
+ academy.layoutObjectiveNav(viewport,touch,stackedActions,academy.gamepad)
  local splitTalkLane=stackedActions and viewport.Y<205
  local miniLayout=academy.hideMap and academy.noMiniMapLayout or CityMap.MiniLayout(viewport,touch,data.devAccess==true)
  local toolsBesideMap=not touch and NoticeLayout.DesktopTestBesideMap(viewport.X,viewport.Y,miniLayout)
@@ -2371,10 +2454,10 @@ connectClient(Run.RenderStepped,function(dt)
      or data.voiceStatus=="unavailable" and "Voice check delayed" or "Checking voice"
    end
   end
-  castButton.Text=screamToggleLabel(sustainedControl.armed,touch,status)
+  castButton.Text=screamToggleLabel(sustainedControl.armed,touch,status,academy.gamepad)
   castButton.TextSize=academy.stackedTouchActions and 12 or 13
  else
-  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or "HOLD BEAM [E]"
+  castButton.Text=protected>0 and "PROTECTED "..math.ceil(protected).."s" or os.clock()<nextCast and string.format("BEAM %.1fs",nextCast-os.clock()) or captureSource and (captureRemaining>0 and "SPEAK • RELEASE" or "RELEASE TO FIRE") or academy.gamepad and "HOLD BEAM [RB/R1]" or "HOLD BEAM [E]"
  end
  -- Keep attack duration/cooldown distinct from live microphone loudness.
  voiceTimeTrack.Visible=sustainedControl~=nil and alive and protected<=0 and (voiceActive or (voiceCooldown or 0)>0)
@@ -2406,9 +2489,9 @@ connectClient(Run.RenderStepped,function(dt)
  dodgeButton.TextSize=dodgeStatus and 12 or 14
  if dodgeStatus then dodgeButton.Text="DODGE\n"..dodgeStatus
  elseif cd>0 then dodgeButton.Text=string.format("DODGE %.1fs",cd)
- else dodgeButton.Text=touch and "DODGE" or "DODGE [Q]" end
+ else dodgeButton.Text=academy.gamepad and "DODGE [LB/L1]" or touch and "DODGE" or "DODGE [Q]" end
  local rest=p:GetAttribute("SprintCooldown") or 0;local charge=p:GetAttribute("SprintCharge") or Config.SprintDuration
- sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",charge)..(touch and "" or " [SHIFT]")
+ sprintButton.Text=rest>0 and string.format("REST %.1fs",rest) or string.format("SPRINT %.1fs",charge)..(academy.gamepad and " [L3]" or touch and "" or " [SHIFT]")
  academy.staminaFill.Size=UDim2.fromScale(math.clamp(charge/Config.SprintDuration,0,1),1)
  aimInfo.Visible=gameplayVisible
  if sustainedBeams then
@@ -2477,7 +2560,7 @@ connectClient(Run.RenderStepped,function(dt)
  else
   talkButton.Position=UDim2.new(.5,-60,1,touch and -249 or -108)
  end
- academy.presentTalk(talkButton,talkTarget,touch,shortLandscape)
+ academy.presentTalk(talkButton,talkTarget,touch,shortLandscape,academy.gamepad)
  for _,passive in ipairs({hud,tracked,zone,saveNotice,meter,academy.guidePanel})do
   if noticeView:Overlaps(passive,gui) or noticeView:Overlaps(passive,gui,talkButton) then passive.Visible=false end
  end

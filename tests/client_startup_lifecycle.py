@@ -40,7 +40,7 @@ local methods={}
 local mt={__index=function(t,k)
  if methods[k] then return methods[k] end
  if k=="Parent" or k=="dead" then return nil end
- if k=='Destroying' or k=='ChildAdded' or k=='AncestryChanged' or k=='Activated' or k=='InputBegan' or k=='InputEnded' or k=='OnClientEvent' or k=='CharacterAdded' or k=='CharacterRemoving' or k=='PlayerRemoving' or k=='Heartbeat' or k=='RenderStepped' or k=='JumpRequest' or k=='WindowFocusReleased' or k=='WindowFocused' or k=='MenuOpened' then local s=signal(t.Name..'.'..k);rawset(t,k,s);return s end
+ if k=='Destroying' or k=='ChildAdded' or k=='AncestryChanged' or k=='Activated' or k=='InputBegan' or k=='InputEnded' or k=='OnClientEvent' or k=='CharacterAdded' or k=='CharacterRemoving' or k=='PlayerRemoving' or k=='Heartbeat' or k=='RenderStepped' or k=='GamepadDisconnected' or k=='JumpRequest' or k=='WindowFocusReleased' or k=='WindowFocused' or k=='MenuOpened' then local s=signal(t.Name..'.'..k);rawset(t,k,s);return s end
  for _,o in ipairs(objects)do if rawget(o,"Parent")==t and rawget(o,"Name")==k then return o end end
  return nil
 end}

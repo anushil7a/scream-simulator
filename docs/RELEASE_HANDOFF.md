@@ -79,7 +79,9 @@ Emulated phone taps activated the real Menu and Close controls after mapping the
 
 Verify Xbox and PlayStation before the readiness pause. Roblox offers in-experience voice chat to eligible users on both console families. Real microphone input for this experience still needs separate verification on each platform. [Xbox voice](https://en.help.roblox.com/hc/en-us/articles/205355430-Xbox-App-Voice-Chat) · [PlayStation voice](https://en.help.roblox.com/hc/en-us/articles/41326172881300-PlayStation-App-Voice-Chat)
 
-The current client already uses center aim for gamepad, while its direct gameplay shortcuts are keyboard bindings. Verify controller-only Beams, Dodge, Sprint, Guide, Talk and portal prompts, and dependable focus navigation and Back in menus and shop. Start with Studio's Controller Emulator, then record a real-console check for movement, aiming, headset-triggered damage, voice while Beams are off, and menu and commerce interaction. Console access settings require separate approval. [Roblox gamepad input](https://create.roblox.com/docs/input/gamepad)
+The left stick walks with the camera following the avatar. The right stick aims the beam by turning the camera and centered reticle. RB/R1 toggles Beams, LB/L1 dodges, holding L3 sprints, LT/L2 talks to a nearby resident, and Y/Triangle opens the menu. B/Circle closes an open game menu or conversation. The D-pad moves selection and A/Cross activates the selected control. Roblox's own controls continue to handle portal prompts.
+
+On each physical console, verify sustained stick movement, TV safe areas, headset-triggered damage while aiming, ordinary voice while Beams are off, and controller-only access to the Guide, Talk, portal, and shop. Check commerce in an approved test environment. Console access settings require separate approval. [Roblox gamepad input](https://create.roblox.com/docs/input/gamepad)
 
 ## Highest remaining release gates
 

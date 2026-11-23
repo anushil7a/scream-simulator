@@ -1,5 +1,13 @@
 # Scream Simulator development roadmap
 
+## Controller aiming and gameplay shortcuts
+
+- In the native Xbox Controller Emulator, the baseline received a genuine Gamepad1 Y event and ignored it. Opening Menu through stock selection and A left focus on the launcher behind the panel. B did not close it. The controller already used a centered beam ray.
+- Left stick walks with the camera following the player. Right stick turns the camera and aims the centered beam ray. The client now has shortcuts for Beams, Dodge, Sprint, Talk and Menu. Menu and Conversation take controller focus on open and restore valid prior focus on close. The controller that armed Beams disarms them on disconnect. Held sprint stops on release, disconnect or an existing gameplay interruption. The shortcuts use the existing gameplay and voice checks.
+- In the disposable Xbox emulation, held left stick moved the avatar 11.47 studs. Held right stick rotated the centered ray without root translation. Holding sprint while moving reached WalkSpeed 25, used stamina, and release restored WalkSpeed 16. Native Menu focus, Back, dodge, and fitted button labels passed. The Beams shortcut stayed OFF with the microphone unavailable. Controller Emulator events were Gamepad1, delivered through mapped keyboard keys. This exercised the native input path without a physical controller or headset.
+- The final Studio evidence is in `build/console_input_native/native-controller-final.json` (fixture SHA-256 `3651ebf4e02f49a9073c8d70505de16a3840256b7fdeafdccaa363d41c1cb8a6`). The emulator preset was restored and the three disposable Studio sessions were closed.
+- Focused simulations passed 63 controller and sprint checks with three rejection controls. Independent review also reran the 37 voice toggle checks and five rejection controls. Physical Xbox and PlayStation sticks, screens, headsets, ordinary voice, and commerce still need local-owner validation in the approved test workflow. See [Launch device coverage](RELEASE_HANDOFF.md#launch-device-coverage).
+
 ## Stop repeatedly toggling visible resident labels
 
 - The City client previously cleared resident label and speech visibility and immediately re-enabled the same winners every 0.1 seconds. At a stationary 455 × 218 touch-emulated spawn the actual Alex nameplate and speech bubble each emitted 56 Enabled changes over 3.049 seconds while both started and ended visible. The healthy Rookie plate also emitted 56 changes over 3.048 seconds while compact Talk was presenting the trainer name.
