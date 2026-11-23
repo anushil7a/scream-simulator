@@ -43,11 +43,12 @@ function Layout.Get(width,height,touch,map,testTools,talkVisible,statusPosition,
   local navRight=width<380 and 190 or 243
   local x=navRight+8
   local talk={x=width/2-60,y=height-249,width=120,height=44}
-  -- The short safe area can put the default target above the HUD or on the launchers.
-  -- Move above the action row when the top lane fits between the nav and right column.
-  if (talk.y<0 or (talk.y<56 and talk.x<navRight)) and x+talk.width<=right and height>=239 then
-   talk.x=x;talk.y=math.min(14,height-239)
-   result.baseTalkX=talk.x;result.baseTalkY=talk.y
+  -- Keep the default target clear of status and launchers even without a notice.
+  local statusOverlap=status and Layout.Overlaps(status,talk)
+  local sideWidth=math.min(talk.width,right-x)
+  if height>=239 and sideWidth>=84 and (statusOverlap or talk.y<0 or (talk.y<56 and talk.x<navRight)) then
+   talk.x=x;talk.y=math.min(14,height-239);talk.width=sideWidth
+   result.baseTalkX=talk.x;result.baseTalkY=talk.y;result.baseTalkWidth=talk.width
   end
   if Layout.Overlaps(result,talk) or status and Layout.Overlaps(status,talk) then
    -- Never move TALK into the native bottom-left thumbstick exclusion zone.

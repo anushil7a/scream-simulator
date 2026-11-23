@@ -245,6 +245,25 @@ notifications:Push(samples[1],true,'save')
 local noticeX,noticeY=checkShortTalk()
 check(firstX==noticeX and firstY==noticeY and not noticeView.root.Visible,'Hidden notice moved or covered short phone TALK')
 viewport=Vector2.new(567,241);checkShortTalk()
+-- Reachable residents must stay clear of health and PvP state without a notice.
+for _,sample in ipairs({{567,315,false,120},{480,315,false,117},{480,292,true,95},{480,241,true,95}}) do
+ local w,h,tester,expectedWidth=table.unpack(sample)
+ data.devAccess=tester;viewport=Vector2.new(w,h);notifications=Queue.new()
+ hud=rect(14,64,242,94);zone=rect(14,49,190,14)
+ local function assertTalkLane()
+  frame()
+  local p,s=talkButton.Position,talkButton.Size
+  local target={x=p.X.Scale*w+p.X.Offset,y=p.Y.Scale*h+p.Y.Offset,width=s.X.Offset,height=s.Y.Offset}
+  check(not Layout.Overlaps(target,{x=14,y=64,width=242,height=94}), 'Touch TALK covered health and progress without a notice')
+  check(target.x==251 and target.y==math.min(14,h-239) and target.width==expectedWidth and target.height==44,
+   'Touch TALK lost its fallback side lane or target size')
+  check(not Layout.Overlaps(target,{x=14,y=49,width=190,height=14}) and target.y+target.height<=h-195,
+   'Touch TALK covered PvP status or the Beams control')
+ end
+ assertTalkLane()
+ notifications:Push(samples[1],true,'save');assertTalkLane()
+end
+data.devAccess=true;hud=rect(14,118,240,88);zone=rect(40,12,240,28)
 notifications=Queue.new();viewport=Vector2.new(390,844);frame()
 local portrait=talkButton.Position
 check(portrait.X.Scale*390+portrait.X.Offset==135 and portrait.Y.Scale*844+portrait.Y.Offset==595,'Portrait TALK moved out of its existing lane')
@@ -371,6 +390,10 @@ if a.negative_controls:
  ]:
   assert old in checks;run(sources['NoticeLayout'],sources['NoticeView'],checks.replace(old,new),error)
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('toggleTab("Quests",true)','toggleTab("Quests")'),'Ready reward shortcut preserved stale scroll')
+ run(sources['NoticeLayout'].replace('local statusOverlap=status and Layout.Overlaps(status,talk)','local statusOverlap=false'),
+     sources['NoticeView'],error='Touch TALK covered health and progress without a notice')
+ run(sources['NoticeLayout'].replace('sideWidth>=84','sideWidth>=120'),sources['NoticeView'],
+     error='Touch TALK covered health and progress without a notice')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('elseif noticeLayout.baseTalkX then','elseif noticeView.visible and noticeLayout.baseTalkX then'),'Short phone TALK extends outside the safe HUD')
  run(sources['NoticeLayout'].replace('talk.x=x;talk.y=','talk.x=navRight-24;talk.y='),sources['NoticeView'],error='Short phone TALK overlaps an existing HUD control')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('(gameplayVisible or modal.Visible)','gameplayVisible'),'Shop error hidden or covers modal navigation')

@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Keep Talk clear of the landscape touch HUD
+
+- The extracted production layout on `38a99bc` showed that a reachable resident's **TALK** button crosses the wallet and health card at 567 × 315 usable pixels when no notice is visible. The existing code reserved a side lane for notice collisions, but the frame only used that move while a notice was visible. At 480 × 315 the lane fit 117 pixels, while the old branch required the full 120.
+- Talk now uses the existing top-side lane whenever its default placement crosses the status card, nav buttons, or safe top edge and that lane has room. It can narrow to fit the existing map or tester reserve while keeping the 44-pixel target height. At the 239-pixel height boundary it stays above the Beams button. Notice-only moves and portrait/desktop defaults retain their existing behavior.
+- Independent review cleared the diff. The notice suite passed 775 mocked assertions and 43 negative controls. The minimap sweep passed 138 construction checks and 1,169,592 synthetic layout/input assertions. The focused negative controls restored status overlap and the restrictive 120-pixel width requirement.
+- The native touch-emulator baseline at 567 × 316 usable pixels showed this near a reachable Mar with no notice: Talk crossed Wallet by 20.5 × 24 pixels and the health label by 20.5 × 15. The pre-existing Test Tools button was on the far right and clear of Talk. Baseline capture: `build/stadium_entry_native/TouchBaselineMar567.jpg`.
+- At the same 567 × 316 usable pixels, the exact candidate moved Talk from (223.5,67) to (251,14). The 120 × 44 control fit and cleared Wallet, health, PvP status and Beams. Activating it in the touch emulator reached Mar's actual dialogue. Candidate SHA-256: `2bb0b05bb3b7bb7b79a9d9475a6c032f94495e7950d67b3c0abb71013275331e`. Capture: `build/touch_talk_lane_native/TouchCandidateMar567.jpg`. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and local Rojo builds on unchanged inputs.
+- Next address the separate 455 × 218 touch-emulator overlap reproduced at the Stadium. The live **ARENA • PvP ON** badge appears at the expected position but the Beams button covers 23 × 14 pixels of its lane. Keep ordinary controls and the map's PvP geometry separate. Physical touch and representative device play remain open.
+
 ## Show confirmed beam damage while the menu is open
 
 - On `1c84c4f`, an isolated Stadium pair at 567 × 241 usable pixels reproduced a feedback gap. With Gear open, a server-accepted cast lowered the defender from 480 to 378 HP and delivered the private damage packet. The battlefield cue stayed hidden for the entire hit window. A second cast with the menu closed lowered HP from 378 to 254 and showed the fitted **BEAM HIT YOU** label.

@@ -173,7 +173,7 @@ __POSITIONS__
     check(tools.y>=0 and not overlaps(tools,rectangle(controls,viewport)),'Tools overlap short touch controls')
     local talk=NoticeLayout.Get(width,height,touch,miniLayout,testAccess,true)
     if talk.baseTalkX then
-     check(not overlaps(tools,{x=talk.baseTalkX,y=talk.baseTalkY,w=120,h=44}),'Tools overlap relocated short TALK')
+     check(not overlaps(tools,{x=talk.baseTalkX,y=talk.baseTalkY,w=talk.baseTalkWidth or 120,h=44}),'Tools overlap relocated short TALK')
     end
    end
    if miniLayout.available then
@@ -191,7 +191,7 @@ __TOAST__
      if touch then check(not overlaps(rectangle(controls,viewport),notice),'Notice overlaps touch controls')end
      local talk=rectangle(talkButton,viewport)
      if layout.moveTalk then talk.x=layout.talkX;talk.y=layout.talkY
-     elseif layout.baseTalkX then talk.x=layout.baseTalkX;talk.y=layout.baseTalkY end
+     elseif layout.baseTalkX then talk.x=layout.baseTalkX;talk.y=layout.baseTalkY;talk.w=layout.baseTalkWidth or talk.w end
      check(not overlaps(talk,notice),'Notice overlaps resolved TALK')
      check(not overlaps(talk,m),'Resolved TALK overlaps MAP')
      if testAccess then check(not overlaps(talk,rectangle(testButton,viewport)),'Resolved TALK overlaps tools')end
