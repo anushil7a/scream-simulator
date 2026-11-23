@@ -1,6 +1,7 @@
 """Execute actual animation scripts with mocked events/rigs; no Animator/physics evidence."""
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 root=Path(__file__).resolve().parents[1]
@@ -128,6 +129,66 @@ end
 collection.removed:Fire(m)
 check(rigs[m]==nil and ball.destroyed,'Streamed-out resident retained visual')
 check(limb.Transform=='identity' and neck.Transform=='identity','Resident cleanup retained pose')
+-- Run the actual frame loop on complete rigs before the subscription teardown checks.
+local clockReads=0
+function workspace:GetServerTimeNow()clockReads+=1;return 100 end
+CFrame.Angles=function(x,y,z)return {x=x,y=y,z=z}end
+local frameMT={__mul=function(_,b)return b end}
+CFrame.new=function()return setmetatable({},frameMT)end
+Vector3.new=function(x,y,z)return {X=x,Y=y,Z=z,Magnitude=math.sqrt(x*x+y*y+z*z)}end
+local vectorMT={__sub=function(a,b)return Vector3.new(a.X-b.X,a.Y-b.Y,a.Z-b.Z)end}
+local function joint()
+ local function pose()
+  return {writes=0,Lerp=function(self,target)
+   local nextPose=pose();nextPose.writes=self.writes+1;nextPose.x=target.x;nextPose.z=target.z
+   return nextPose
+  end}
+ end
+ return {Parent=true,Transform=pose()}
+end
+local function complete(distance,attributes)
+ local m=resident();m.reads={}
+ function m:GetAttribute(key)
+  self.reads[key]=(self.reads[key] or 0)+1
+  return attributes[key]
+ end
+ local position=setmetatable(Vector3.new(distance,0,0),vectorMT)
+ local root={Position=position,AssemblyLinearVelocity=Vector3.new(0,0,0)}
+ local torso={children={}}
+ for _,name in ipairs({'RootJoint','Neck',table.unpack(jointNames)})do torso.children[name]=joint()end
+ function torso:FindFirstChild(name)return self.children[name]end
+ local human={Health=100,FloorMaterial='Solid'}
+ function m:FindFirstChild(name)return name=='Torso' and torso or root end
+ function m:FindFirstChildOfClass()return human end
+ collection.added:Fire(m);m.reads={}
+ return m,torso.children,human
+end
+workspace.CurrentCamera={CFrame={Position=Vector3.new(0,0,0)}}
+local garden,gardenJoints=complete(10,{Role='Gardener',Working=true,WorkStarted=98})
+local crowd,crowdJoints=complete(20,{Applauding=true})
+local reader,readerJoints,readerHuman=complete(125,{Reading=true})
+readerHuman.SeatPart={}
+local distant,distantJoints=complete(190,{})
+run.PreSimulation:Fire(.025)
+check(gardenJoints['Right Shoulder'].Transform.x==.9-math.sin(160)*.12,'Gardener lost work pose')
+check(crowdJoints['Left Shoulder'].Transform.x==1.15 and crowdJoints['Right Shoulder'].Transform.z<0,
+ 'Applause changed')
+check(readerJoints.Neck.Transform.writes==0 and distantJoints.Neck.Transform.writes==0,'Distance update ran too early')
+check(garden.reads.Working==1 and crowd.reads.Applauding==1 and crowd.reads.Gesturing==1,
+ 'Pose flags read more than once per resident update')
+check(clockReads==1,'Multiple clock samples in one frame')
+run.PreSimulation:Fire(.025)
+check(readerJoints.Neck.Transform.x==-.22 and readerJoints['Left Shoulder'].Transform.x==1.15,
+ 'Reading did not update at the middle distance cadence')
+check(reader.reads.Reading==1 and distantJoints.Neck.Transform.writes==0,'Reading or distant cadence changed')
+collection.removed:Fire(garden);collection.removed:Fire(crowd);collection.removed:Fire(reader)
+local previousReads=clockReads
+run.PreSimulation:Fire(.02)
+check(clockReads==previousReads,'Idle frame sampled the clock')
+run.PreSimulation:Fire(.14)
+check(distantJoints.Neck.Transform.writes==1 and clockReads==previousReads+1,'Distant update missed its cadence')
+collection.removed:Fire(distant)
+
 collection.added:Fire(m);local second=rigs[m]
 collection.added:Fire(m);check(rigs[m]==second,'Duplicate tag replaced resident state')
 script.Destroying:Fire()
@@ -142,5 +203,18 @@ for name,checks in [('RunAnimation.client.luau',player_checks),('Residents.clien
         file.write(setup+source+checks+f'\nprint("PASS "..checks.." {name} mocked lifecycle checks")\n')
     try:
         subprocess.run(['luau',str(path)],cwd=root,check=True)
+        if name=='Residents.client.luau' and '--negative-controls' in sys.argv:
+            for before, after, message in (
+                ('if workRequested then', 'if model:GetAttribute("Working") then',
+                 'Pose flags read more than once per resident update'),
+                ('now=now or workspace:GetServerTimeNow()', 'now=workspace:GetServerTimeNow()',
+                 'Multiple clock samples in one frame'),
+            ):
+                assert source.count(before)==1, before
+                path.write_text(setup+source.replace(before,after)+checks,encoding='utf-8')
+                result=subprocess.run(['luau',str(path)],cwd=root,capture_output=True,text=True)
+                assert result.returncode and message in result.stderr, result.stderr
+                print('PASS negative control:',message)
+
     finally:
         path.unlink()

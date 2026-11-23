@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Reduce repeated reads during resident animation
+
+- A two-resident update using the actual frame callback with mocked engine inputs read the four sampled pose attributes 32 times and sampled server time twice. The updated callback reads the same attributes eight times and samples server time once, only when a resident is due. Work, gesture, reading and applause still use current attributes each update.
+- Focused lifecycle and pose checks passed with two negative controls. Studio found 18 resident tags in both disposable City builds. The sampled Nick joint changed 125/42/10 times at near/mid/far distances over 126 frames per distance on the baseline and 125/41/10 on the candidate. Nick's practice animation and local ball appeared in both. The two disposable sessions closed. See `build/resident_motion_native/native-results.json` and the paired Nick screenshots. These counts establish distance cadence, with CPU time and multiplayer load still unmeasured. Independent review and full local verification passed, including 198 suites, 99 production compilations, and City and Hall builds.
+- Next, use the existing device and multiplayer playtest gates to inspect first-beam comprehension, crowded combat and data handoff in the exact candidate. Approved test places are still needed for actual transfer and separately authorized persistence.
+
 ## Apply the City surface palette to solid terrain
 
 - The original finishing pass colored solid surfaces but skipped their authored material grades. Native baseline and a failing focused assertion confirmed SmoothPlastic on the Academy plateau, island, stadium tier, garden terrace and main pier. The finishing pass now applies the planned sandstone, concrete, grass, timber, rock and basalt grades. It preserves each changed collider's previous contact properties and any existing custom override.
