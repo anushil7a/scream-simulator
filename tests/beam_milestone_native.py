@@ -16,6 +16,7 @@ assert {name: texture for name,texture in roles.items() if name.startswith('Core
     'CoreSpine':'rbxassetid://107624017803706', 'CoreFlow':'rbxassetid://13135259077',
 }, roles
 ENV=r'''
+function V.__eq(a,b)return a.X==b.X and a.Y==b.Y and a.Z==b.Z end
 local objects={}
 local methods={}
 local mt={__index=function(self,k)if k=='Parent' then return rawget(self,'_parent')end;return methods[k]end,
@@ -63,7 +64,7 @@ local p=make('Part','Part',starter);beam(p,1.5);beam(p,.7)
 local a=make('Attachment','Attachment',p);emitter(a)
 local e=make('Part','Part1',starter);emitter(make('Attachment','Attachment',e))
 local fire=make('Folder','FireBeam',templates)
-local f=make('MeshPart','Beam',fire);beam(f,15);beam(f,8)
+local f=make('MeshPart','Beam',fire);beam(f,15);beam(f,8);make('MeshPart','Beam',f)
 for i=1,4 do emitter(f) end
 local hollow=make('Folder','HollowPurpleBeam',templates)
 local h=make('Part','Hollow Purple',hollow)
@@ -268,6 +269,17 @@ for _,level in ipairs({10,50,100}) do
  end
  check(near(widest,5*.6*StyleSource.WidthScale(level,true)),'Reused cast retained old width')
  check(not emitter.Enabled,'Reused cast retained active particles at distance')
+ if level==50 then
+  local mesh=old.meshes[1].inst
+  Visuals.Update(nextCast,vec(1,0,0),Vector3.zAxis,20,5,base,level,false)
+  Visuals.Animate(nextCast,nextCast.born+.7,Vector3.zero,false,true,false)
+  check(mesh.Size.X==20,'Near Firebeam did not size the imported mesh')
+  Visuals.Update(nextCast,Vector3.zero,Vector3.zAxis,30,5,base,level,false)
+  Visuals.Animate(nextCast,nextCast.born+.8,vec(0,0,125),false,true,false)
+  check(mesh.Size.X==20,'Far Firebeam rewrote the hidden mesh')
+  Visuals.Animate(nextCast,nextCast.born+.9,Vector3.zero,false,true,false)
+  check(mesh.Size.X==30,'Near detail did not refresh after far movement')
+ end
  Visuals.Destroy(nextCast)
  if level==100 then
   local sameWidth=Visuals.Create()
@@ -275,6 +287,19 @@ for _,level in ipairs({10,50,100}) do
   Visuals.Animate(sameWidth,sameWidth.born+.6,vec(0,0,125),false,true,false)
   check(sameWidth.vfx==old and near(emitter.Speed.Max,old.emitters[1].baseSpeed.Max*30/44),
    'Reused cast retained old particle travel speed')
+  Visuals.Update(sameWidth,Vector3.zero,Vector3.zAxis,12,5,base,level,false)
+  Visuals.Animate(sameWidth,sameWidth.born+.7,vec(0,0,125),false,true,false)
+  check(near(emitter.Speed.Max,old.emitters[1].baseSpeed.Max*12/44),
+   'Moving endpoint left particle speed at the old travel distance')
+  for _,anchor in ipairs({old.startAnchor,old.endAnchor,old.midAnchor}) do countWrites(anchor,{'CFrame','Size'}) end
+  writes=0
+  Visuals.Update(sameWidth,vec(0,0,0),vec(0,0,1),12,5,base,level,false)
+  Visuals.Animate(sameWidth,sameWidth.born+.8,vec(0,0,125),false,true,false)
+  check(writes==0,'Steady geometry rewrote imported transforms')
+  Visuals.Update(sameWidth,vec(3,0,0),Vector3.zAxis,12,5,base,level,false)
+  Visuals.Animate(sameWidth,sameWidth.born+.9,vec(0,0,125),false,true,false)
+  check(writes==4 and old.endAnchor.CFrame.Position.X==3 and old.endAnchor.CFrame.Position.Z==12,
+   'A moved emitter did not update its imported transforms')
   Visuals.Destroy(sameWidth)
  end
  table.insert(spareRoots,old.root)
@@ -299,7 +324,9 @@ s=P.read_text();result=run(s);assert result.returncode==0,result.stdout+result.s
 for old,new,message in [
  ('if vfx and not spareVfx[vfx.styleId] then','if vfx and false then','Ended cast did not release a reusable detached root'),
  ('if vfx and not spareVfx[vfx.styleId] then','if vfx then','Idle template cap retained a second spare'),
- ('  vfx.lastBucket=nil','  vfx.lastBucket=vfx.lastBucket','Reused cast retained old particle travel speed'),
+ ('if speedChanged then em.Speed=','if rescale then em.Speed=','Moving endpoint left particle speed at the old travel distance'),
+ ('and vfx.far==far then','then','Near detail did not refresh after far movement'),
+ ('if vfx.origin==origin and','if false and vfx.origin==origin and','Steady geometry rewrote imported transforms'),
  ('for _,entry in ipairs(vfx.emitters) do entry.inst:Clear() end','for _,entry in ipairs(vfx.emitters) do end','Ending a cast retained old particles'),
  ('for _,vfx in pairs(spareVfx) do vfx.root:Destroy() end','for _,vfx in pairs(spareVfx) do end','Clear left an idle imported root'),
  ('source.Name=="CoreSpine" or source.Name=="CoreFlow"','#vfx.beams<2','Hollow Purple chose core layers by sibling order'),
@@ -322,4 +349,4 @@ for old,new,message in [
 ]:
  assert old in s
  result=run(s.replace(old,new));assert result.returncode and message in result.stderr,result.stdout+result.stderr
-print('PASS 22 native-path negative controls (reuse, core selection, progression, scale, crowding, rate, tint and redundant writes)')
+print('PASS 24 native-path negative controls (steady geometry, travel speed, reuse, core selection, progression, scale, crowding, rate, tint and redundant writes)')

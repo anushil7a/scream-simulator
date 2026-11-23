@@ -5,7 +5,7 @@ import beam_silhouette as support
 R=Path(__file__).resolve().parents[1]
 source=(R/'src/StarterPlayer/StarterPlayerScripts/BeamVisuals.luau').read_text()
 # Client passes platformReducedMotion as contactReduced; it must also reach VFX.
-assert 'syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,distance,styleSpec,suppressSecondary)' in source
+assert 'syncVfx(rig,origin,finish,dir,length,width,distance,styleSpec,suppressSecondary)' in source
 support.CHECKS=''
 def run(s):
     body=support.fixture(s)

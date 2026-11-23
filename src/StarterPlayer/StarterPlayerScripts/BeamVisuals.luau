@@ -275,18 +275,12 @@ local function applyTemplateTint(vfx,tint)
   entry.inst.Color=accent
  end
 end
-local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,distance,spec,suppressSecondary)
- local styleId=spec.id
- local vfx=rig.vfx
- if vfx and vfx.styleId~=styleId then destroyVfx(rig);vfx=nil end
- if not vfx then
-  vfx=spareVfx[styleId]
-  spareVfx[styleId]=nil
-  vfx=vfx or buildVfxForStyle(styleId)
-  if not vfx then return end
-  rig.vfx=vfx
+local function syncVfxGeometry(vfx,origin,finish,dir,length,width,far)
+ if vfx.origin==origin and vfx.direction==dir and vfx.length==length and vfx.width==width and vfx.far==far then
+  return
  end
- applyTemplateTint(vfx,rig.color)
+ vfx.origin=origin;vfx.direction=dir;vfx.length=length;vfx.width=width
+ local styleId=vfx.styleId
  local up=math.abs(dir.Y)>.98 and Vector3.zAxis or Vector3.yAxis
  local mid=(origin+finish)*.5
  vfx.startAnchor.CFrame=CFrame.lookAt(origin,finish,up)
@@ -300,13 +294,39 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,dista
    vfx.midAnchor.CFrame=CFrame.lookAt(mid,finish,up)
   end
  end
+ for _,off in ipairs(vfx.attOffsets) do
+  if off.midFrac then
+   off.att.Position=Vector3.new((off.midFrac-.5)*length,width*(off.ySide or 0),width*(off.side or 0))
+  else
+   off.att.Position=Vector3.new(width*(off.side or 0),0,0)
+  end
+ end
+ for _,m in ipairs(vfx.meshes) do
+  local mesh=m.inst
+  mesh.Transparency=1 -- No imported mesh bulbs on the firing path.
+  if not far then
+   local d=math.max(.8,width*.68)
+   mesh.Size=Vector3.new(length,d,d)
+   mesh.CFrame=CFrame.lookAt(mid,finish,up)*CFrame.Angles(0,math.pi/2,0)
+  end
+ end
+end
+local function syncVfx(rig,origin,finish,dir,length,width,distance,spec,suppressSecondary)
+ local styleId=spec.id
+ local vfx=rig.vfx
+ if vfx and vfx.styleId~=styleId then destroyVfx(rig);vfx=nil end
+ if not vfx then
+  vfx=spareVfx[styleId]
+  spareVfx[styleId]=nil
+  vfx=vfx or buildVfxForStyle(styleId)
+  if not vfx then return end
+  rig.vfx=vfx
+ end
+ applyTemplateTint(vfx,rig.color)
  local wScale,pScale,sScale
  if styleId=="hollow_purple" then
-  wScale=math.clamp((width*.80)/13.61538,.08,.42)
   pScale=math.clamp(width/13.61538,.08,.52)
   sScale=math.clamp(length/44,.05,1.5)
-  if vfx.ampAtt then vfx.ampAtt.Position=Vector3.new(-width*.45,0,0) end
-  if vfx.revAtt then vfx.revAtt.Position=Vector3.new(width*.45,0,0) end
  elseif styleId=="firebeam" then
   wScale=math.clamp((width*.48)/15,.08,.30)
   pScale=wScale*1.3
@@ -347,7 +367,9 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,dista
    end
   end
  end
- if visibilityChanged or rescale then
+ local speedChanged=vfx.lastSpeedScale~=sScale
+ if speedChanged then vfx.lastSpeedScale=sScale end
+ if visibilityChanged or rescale or speedChanged then
   for _,entry in ipairs(vfx.emitters) do
    local em=entry.inst
    if visibilityChanged then
@@ -358,28 +380,13 @@ local function syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,dista
    end
    if rescale then
     em.Size=scaleNumberSequence(entry.baseSize,pScale)
-    em.Speed=scaleNumberRange(entry.baseSpeed,sScale)
    end
+   if speedChanged then em.Speed=scaleNumberRange(entry.baseSpeed,sScale) end
   end
  end
  vfx.showSecondary=showSecondary
+ syncVfxGeometry(vfx,origin,finish,dir,length,width,far)
  vfx.far=far
- for _,off in ipairs(vfx.attOffsets) do
-  if off.midFrac then
-   off.att.Position=Vector3.new((off.midFrac-.5)*length,width*(off.ySide or 0),width*(off.side or 0))
-  else
-   off.att.Position=Vector3.new(width*(off.side or 0),0,0)
-  end
- end
- for _,m in ipairs(vfx.meshes) do
-  local mesh=m.inst
-  mesh.Transparency=1 -- No imported mesh bulbs on the firing path.
-  if not far then
-   local d=math.max(.8,width*.68)
-   mesh.Size=Vector3.new(length,d,d)
-   mesh.CFrame=CFrame.lookAt(mid,finish,up)*CFrame.Angles(0,math.pi/2,0)
-  end
- end
  -- A reused root becomes visible only after its new pose and style are ready.
  if vfx.root.Parent~=workspace then vfx.root.Parent=workspace end
 end
@@ -587,7 +594,7 @@ function Visuals.Animate(rig,now,viewer,reduced,contactAllowed,contactReduced,su
     -- Imported core textures still bloom even when their motion is stopped.
     if rig.vfx and rig.vfx.root.Parent then rig.vfx.root.Parent=nil end
    else
-    syncVfx(rig,origin,finish,dir,basis,length,width,radius,age,distance,styleSpec,suppressSecondary)
+    syncVfx(rig,origin,finish,dir,length,width,distance,styleSpec,suppressSecondary)
    end
    local hasVfx=not quiet and rig.vfx~=nil
    for i=1,rig.used do
@@ -626,7 +633,8 @@ function Visuals.Destroy(rig)
  if vfx and not spareVfx[vfx.styleId] then
   for _,entry in ipairs(vfx.emitters) do entry.inst:Clear() end
   vfx.root.Parent=nil
-  -- Width can match the previous cast even when its particle travel distance changes.
+  -- A new cast refreshes its detached geometry before it becomes visible.
+  vfx.origin=nil
   vfx.lastBucket=nil
   spareVfx[vfx.styleId]=vfx
   rig.vfx=nil

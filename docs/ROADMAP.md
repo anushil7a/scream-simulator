@@ -1,5 +1,15 @@
 # Scream Simulator development roadmap
 
+## Keep beam geometry and particle travel in sync
+
+- In the native `33cd1b9` renderer fixture, 12 overlapping level-50 and level-100 beams sized and posed their imported instances on every step. From actual asset contents, each mixed update attempted 162 imported property writes. With packet input held for six render steps, 135 of those per step on average were eligible to be skipped. Procedural paths, texture animation and mode updates run separately.
+- The same native baseline reproduced stale Hollow Purple particle speed at a fixed width of five studs. Shortening a cast from 30 to 12 studs left emitter speed at 15.472 studs/sec instead of the scaled 6.189.
+- The renderer now refreshes imported transforms on a different origin, direction, length, width or distance band. Particle speed follows the actual travel length independently of beam-width changes. Near Firebeam geometry refreshes on re-entry from far detail if it moved while distant.
+- Independent review cleared the exact diff. The mocked milestone suite passed 7,158 checks and 24 negative controls. The controls reproduced stale travel speed, unnecessary steady writes and missing near-detail refresh. Pool composition passed 115,412 assertions in independent review.
+- The exact candidate updated all four emitters across six fixed-width steps, including an unchanged packet and the two length clamps. For the reproduced 30-to-12-stud move, it changed speed from 15.472 to 6.189 studs/sec. Firebeam matched six baseline geometry snapshots, including all 16 attachment offsets, far-to-near refresh, and cross-cast reuse. Both disposable Studio sessions closed. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and Rojo builds on unchanged verification inputs. Evidence: `build/beam_geometry_native/native-candidate.json`. Candidate SHA-256: `140e13075dcf9a837503a283ce494fa827fb26421f6b8ffa8c04c2a32b3bf339`.
+- Isolated Studio renderer timings varied. In the 12-beam fixed-width held-packet case, median script time was 0.253 ms before and 0.224 ms after, while p95 rose from 0.637 to 0.673 ms. The controlled result supports fewer idle writes. Frame-rate, production texture permissions, real voice, internet multiplayer and physical-phone performance remain unverified.
+- Next inspect the City playtest against the first-session and later-game feedback priorities. Change level-of-detail rules only if a native comparison shows that a visible change improves crowded combat.
+
 ## Reuse imported beam effects between casts
 
 - On the exact `73a9f34` baseline, the native client renderer created 30 imported roots for 30 sequential level-100 casts, and 100 roots across five waves of 20 overlapping casts. Repeated updates within a cast already reused the same rig. The test staged the renderer locally with an isolated place and separated root counts from wall-clock timings.
