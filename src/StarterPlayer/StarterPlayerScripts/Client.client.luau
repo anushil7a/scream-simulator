@@ -542,7 +542,7 @@ local function toggleVoice()
   notify(hint or "Beams stay OFF. Wait for live microphone input and gameplay to be ready, then turn them on.",true,inputMuted and "micMuted" or "voice");return
  end
  sustainedControl:SetArmed(not sustainedControl.armed)
- notify(sustainedControl.armed and "Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged."
+ notify(sustainedControl.armed and "Speech can fire.\nOFF to talk."
   or "Beams OFF. Talk freely without attacking. Voice chat is unchanged.",false,"voice")
 end
 local function screamToggleLabel(armed,touch,status)

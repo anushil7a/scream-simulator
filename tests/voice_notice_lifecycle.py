@@ -38,13 +38,14 @@ for _,kind in ipairs({'respawn','unavailable','suspend'}) do
  notifications=Queue.new();sustainedControl:SetArmed(false)
  notify('Saving is unavailable',true);toggleVoice()
  check(sustainedControl.armed and #notifications.pending==1,'Setup did not queue ON behind warning')
+ local armedText=notifications.pending[1].text
  if kind=='respawn' then removalCallback()
  elseif kind=='unavailable' then sustainedControl:ObserveAvailability(false)
  else suspendGameplay() end
  check(not sustainedControl.armed,'Lifecycle did not disarm')
  noVoice(kind)
  check(notifications:Step(1/60,true)=='Saving is unavailable','Clearing guidance lost save warning')
- for _=1,400 do check(notifications:Step(1/60,true)~='Beams ON. Normal speech can fire attacks. Go quiet, then speak. Turn OFF to talk freely; voice chat is unchanged.','Disarmed ON guidance replayed') end
+ for _=1,400 do check(notifications:Step(1/60,true)~=armedText,'Disarmed ON guidance replayed') end
 end
 -- Active ON is withdrawn too, without removing unrelated queued feedback.
 notifications=Queue.new();toggleVoice();notify('Reward');notifications:Step(1/60,true)

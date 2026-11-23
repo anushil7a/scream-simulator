@@ -1,5 +1,14 @@
 # Scream Simulator development roadmap
 
+## Keep the Beams arming notice from covering the spar
+
+- At 567 × 241 usable pixels, the old arming copy needed 68 pixels for its text body and 96 pixels of scrolling canvas in a 65-pixel panel. Its unread scroll rule kept it over Rookie's health during the first spar until the player scrolled.
+- The arming toast now says **Speech can fire.** and **OFF to talk.** The regular Beams status and Rookie guide already say when to go quiet. Settings and the OFF message still explain that voice chat is unchanged. The notice queue, reading time, overflow rules and combat controls stay the same.
+- The native Gotham Medium font measured the new text at 94 × 28 pixels at 104, 116 and 153 pixels of available width. With the existing padding it fits the minimum 44-pixel notice height. The lifecycle regression now captures the actual queued ON message before checking for stale replay after disarm.
+- The exact candidate rendered both lines in a 169 × 44 panel at 567 × 241 usable pixels. A native Beams click armed it and the notice cleared after 4.017 seconds without scrolling, revealing the staged HP plate. The native OFF click kept the original explanation. In a separate KO phase after the notice elapsed, synthetic input through the real Action receiver earned 48 XP and five coins, and the reward toast appeared. Native evidence: `build/arming_notice_native/native-candidate.json`. Candidate SHA-256: `199124f88a3551a3bc2d38885071879ad4527f0dee7e4ebbee3b93956aa022c1`. Both disposable Studio sessions closed. No physical phone or real microphone was used.
+- Independent review passed. The voice toggle and lifecycle suites passed 1,256 assertions and eight negative controls. The notice view and queue passed 2,408 assertions. Full verification passed 29 pure or synthetic suites, 168 mocked suites, 99 production compilations and Rojo builds on unchanged verification inputs.
+- Next run the City opening through the first earned equipment in one fresh compact Studio session. Keep real voice, physical touch and live persistence as separate release gates.
+
 ## Keep trainer HP visible at valid beam distance
 
 - At a native 567 × 241 usable viewport on `93c3bb6`, a server-accepted beam at 19.815 studs landed 17 damage ticks and lowered Rookie from 80 to 34 HP. The trainer was on screen and within the billboard's camera distance, but the client disabled the HP plate beyond the ordinary 18-stud resident range.
