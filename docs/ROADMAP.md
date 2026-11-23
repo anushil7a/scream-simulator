@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Verify right-stick steering during an acknowledged beam
+
+- A guarded zero-ID Academy replay on `775cef6` used a staged starting position and camera, synthetic voice readiness and 0.65 loudness, and the ordinary production aim path. Gamepad1 RB armed Beams and the automatic cast struck Rookie five times, taking the fighter from 80 to 67 HP.
+- A genuine right-stick input turned the camera during the same accepted cast. The server's beam direction swung about 147 degrees and Rookie took no further damage after the turn through the end of that cast. The first visibly changed server beam packet in this local sample arrived 0.333 seconds after the stick input. This verifies steering through the actual aim and pulse path, with no real microphone or physical-controller claim.
+- In a second accepted cast, opposite right-stick inputs turned the server beam about 80 degrees away and back to within 0.02 degrees of its original heading. Rookie stopped taking damage at 67 HP for a measured 1.284-second gap, then dropped to 62 after the beam returned. The same cast stayed active and reported the later hits without rearming.
+- Independent review verified the fixture boundary and trace in `build/controller_steer_native/native-result.json`. Focused free-aim checks passed. The prior emulator preset was restored and the disposable Studio session closed. No gameplay source changed.
+
 ## Capture the defender view during three overlapping Hall beams
 
 - In a guarded four-client replay on `2c3a948`, three level-100 Gold beams converged on the defender. Two synchronized 567 × 241 captures from the marked defender window show **Beam Hit You**, health at 329/480 and 331/480, and a fitted **Notice** shortcut with the passive arrival banner hidden. The earlier overlap captures came from attacker windows.
