@@ -41,6 +41,18 @@ Run `python tests/build_sustained_review.py --travel-local-qa` to create `CityPl
 
 The playable pair requires Studio with place and universe IDs zero. Each file uses temporary profiles, refuses configured commerce IDs and has no transport service access. Progress is local to the open file. Continue to use the separate travel-only test-ID pair for authorized cross-place checks. These playable builds do not exercise transfer, shared progression or real persistence.
 
+
+## Owner's readiness bar
+
+Pause development and notify the owner only after one identified candidate passes these checks:
+
+- Real speech starts and sustains a beam in ordinary play, and another player takes server-confirmed damage. Two eligible participants should also verify that Beams OFF preserves ordinary proximity voice.
+- Higher levels deal more beam damage and have more health. Current source and deterministic resolver checks cover scaling, including the level 1 to 100 health increase from 100 to 480. Compare same- and mixed-level fights on the candidate to verify the intended balance, including that large level advantages matter.
+- Testers can read the HUD, find training and the arena, and enjoy a continuous first-upgrade and PvP session. Check both visual quality and play feel on the actual reference devices.
+- Each intended game pass grants its advertised entitlement through Roblox, and the shop shows accurate availability. The source catalog currently has 11 passes and two timed products, all with zero IDs. Local ownership and receipt simulations cover the code paths. Actual entitlements and receipts need owner-approved IDs and a separately authorized isolated test. If the timed boosts ship with the passes, verify delivery, rejoin and offline expiry too.
+
+A local fixture or code check cannot stand in for the real-device or Roblox commerce results. Keep the current no-publication, no-live-persistence boundaries until separately authorized.
+
 ## Highest remaining release gates
 
 1. **Real microphone and ordinary conversation:** no accepted evidence yet for the complete real-input path in this candidate. The owner/testers need two voice-eligible accounts/devices, ideally desktop plus a physical phone, in an explicitly approved isolated environment containing the exact candidate. Verify beams start OFF with no calibration or mic-testing panel/area, deliberately turn ON, then test comfortable speech and ON onset/quiet-stop, four-second cap/five-second cooldown, then OFF during attack while the other device confirms ordinary proximity conversation remains audible and no damage/restart occurs. Normal speech may trigger attacks while ON; OFF must leave microphone/proximity voice unchanged. Test mute, focus, death/respawn and deliberate resume. Actual microphone sensitivity remains unverified. The retired Controlled Beams objective must not appear for new/partial/claimed records; only an existing earned, unclaimed reward remains claimable. Record build/commit, devices and observed results without recordings or credentials. Synthetic power, local UI signals and Studio layout emulation cannot close this gate. Any required upload or environment change needs separate owner authorization; none is performed by this handoff.

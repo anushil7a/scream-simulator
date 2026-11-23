@@ -19,6 +19,18 @@ local h={Health=72.5,MaxHealth=135};local checks=0
 local function check(v,msg)assert(v,msg);checks+=1 end
 local text,ready=playerTargetInfo(target,h,true,true,false,10)
 check(ready and text=='Test Player · LV 100\\nARENA OPPONENT','Opponent name/level/status text incorrect')
+text,ready=playerTargetInfo(target,h,true,true,false,10,false,false,true)
+check(not ready and text=='Test Player · LV 100\\nYOUR SPAWN SHIELD','Own spawn shield left the opponent looking attackable')
+text,ready=playerTargetInfo(target,h,true,true,false,10,false,false,false)
+check(ready and text=='Test Player · LV 100\\nARENA OPPONENT','Opponent stayed unavailable after own shield expired')
+text,ready=playerTargetInfo(target,h,false,true,false,10,false,false,true)
+check(not ready and text=='Test Player · LV 100\\nYOU ARE OUTSIDE PvP','Own shield hid the local zone restriction')
+text,ready=playerTargetInfo(target,h,true,false,false,10,false,false,true)
+check(not ready and text=='Test Player · LV 100\\nTARGET OUTSIDE PvP','Own shield hid the target zone restriction')
+attrs.ProtectionEnds=12
+text,ready=playerTargetInfo(target,h,true,true,false,10,false,false,true)
+check(not ready and text=='Test Player · LV 100\\nYOUR SPAWN SHIELD','Both shielded players gave the wrong next action')
+attrs.ProtectionEnds=nil
 text,ready=playerTargetInfo(target,h,false,false,false,10)
 check(not ready and string.find(text,'BOTH OUTSIDE PvP',1,true),'Safe opponent labeled attackable')
 text,ready=playerTargetInfo(target,h,true,false,false,10)
@@ -107,6 +119,8 @@ readout=source[start:end]
 run(readout)
 if '--negative-controls' in sys.argv:
     for old,new,expected in [
+        ('or localShielded and "YOUR SPAWN SHIELD"', '', 'Own spawn shield left the opponent looking attackable'),
+        ('and not localShielded and protection<=0', 'and protection<=0', 'Own spawn shield left the opponent looking attackable'),
         ('(model:GetAttribute("TrainingTier")~=nil and "TRAINING FIGHTER" or "CITY RESIDENT")', '"TRAINING RESIDENT"', 'Ordinary resident presented as a training fighter'),
         ('model:GetAttribute("TrainingTier")~=nil', 'false', 'Training tier did not identify a fighter'),
         ('typeof(home)=="Vector3" and (position-home).Magnitude>academy.TrainingRules.Radius', 'false', 'Outside the sparring pad looked attackable'),

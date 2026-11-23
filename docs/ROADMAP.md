@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Explain the local spawn shield in the aimed-opponent readout
+
+- The aimed-opponent readout inspected the target's protection but ignored the local player's. The focused regression reproduced the gold `ARENA OPPONENT` state for a clear in-range target while the authority would reject a cast from the shielded player.
+- A player aiming across the PvP floor with their shield up now sees muted `YOUR SPAWN SHIELD`. Positions outside PvP still take precedence. Once the existing local deadline expires, the target's shield, rolling state, range and cover determine the result again. The readout uses the same per-frame server clock as the local shield display.
+- Independent review and the focused 35 target, 80 beam cover/endpoint and 15,095 zone assertions passed with their applicable negative controls. This adjusts the client preview while preserving combat authority.
+- In a guarded two-client Studio replay, the center ray hit the opposing avatar's upper torso at an unchanged eight-stud position. With over five seconds on the staged local shield, the baseline paired a shielded zone badge with gold `ARENA OPPONENT`. The candidate showed fitted muted `YOUR SPAWN SHIELD`, then fitted gold `ARENA OPPONENT` after expiry. That transition is sampled on the existing aimed-readout interval. The candidate used a 567 × 241 viewport, the baseline 567 × 299. Evidence is in `build/hall_feedback_native/native-aim-shield.json`. It used real local avatars with staged positions and protection and did not fire a beam. All disposable Studio sessions closed.
+
 ## Keep the Hall menu title visible during routine arrival guidance
 
 - At 567 × 241 desktop and 455 × 218 touch-emulated pixels, the normal Menu and Rules path hid the title while the startup notice occupied its entire footprint. Closing the menu exposed the existing NOTICE shortcut. An explicit disclosure deliberately uses that same header strip.

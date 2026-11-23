@@ -739,18 +739,19 @@ local function targetCovered(origin,targetRoot,targetModel,aimPoint)
  local obstruction=workspace:Raycast(origin,direction*projection,params)
  return obstruction~=nil and obstruction.Distance<projection
 end
-local function playerTargetInfo(target,humanoid,inPvp,targetInPvp,far,now,currentFar,covered)
+local function playerTargetInfo(target,humanoid,inPvp,targetInPvp,far,now,currentFar,covered,localShielded)
  if humanoid.Health<=0 then return nil,false end
  local protection=math.max(0,(target:GetAttribute("ProtectionEnds") or 0)-now)
  local rolling=now<(target:GetAttribute("DodgeEnds") or 0)
  local status=not inPvp and (targetInPvp and "YOU ARE OUTSIDE PvP" or "BOTH OUTSIDE PvP")
   or not targetInPvp and "TARGET OUTSIDE PvP"
+  or localShielded and "YOUR SPAWN SHIELD"
   or protection>0 and string.format("PROTECTED · %.1fs",protection)
   or rolling and "DODGING" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER" or "ARENA OPPONENT"
  local level=target:GetAttribute("ScreamLevel")
  local name=target.DisplayName..(type(level)=="number" and string.format(" · LV %d",level) or "")
  return string.format("%s\n%s",name,status),
-  inPvp and targetInPvp and protection<=0 and not rolling and not far and not currentFar and not covered
+  inPvp and targetInPvp and not localShielded and protection<=0 and not rolling and not far and not currentFar and not covered
 end
 local function residentTargetInfo(model,humanoid,far,currentFar,covered,position)
  if model:GetAttribute("ResidentActive")==false then return nil,false end
@@ -2494,9 +2495,11 @@ connectClient(Run.RenderStepped,function(dt)
    local targetRoot=object:FindFirstChild("HumanoidRootPart");local humanoid=object:FindFirstChildOfClass("Humanoid")
    if root and targetRoot and humanoid then
     local inPvp,targetInPvp=Config.InArena(root.Position),Config.InArena(targetRoot.Position)
-    local canFight=inPvp and targetInPvp
+    local localShielded=protectionRemaining>0
+    local canFight=inPvp and targetInPvp and not localShielded
     local far,currentFar,origin=beamTargetRange(root,targetRoot,hit.Position,beamStats,true)
-    local text,available=playerTargetInfo(targetPlayer,humanoid,inPvp,targetInPvp,far,workspace:GetServerTimeNow(),currentFar,canFight and not far and not currentFar and targetCovered(origin,targetRoot,object,hit.Position))
+    local covered=canFight and not far and not currentFar and targetCovered(origin,targetRoot,object,hit.Position)
+    local text,available=playerTargetInfo(targetPlayer,humanoid,inPvp,targetInPvp,far,serverNow,currentFar,covered,localShielded)
     aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or white
    end
   elseif object and object~=workspace and object:IsA("Model") and object:GetAttribute("NpcId") then
