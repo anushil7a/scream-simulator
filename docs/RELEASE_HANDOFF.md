@@ -89,6 +89,8 @@ The local two-client Hall check used the defender's Controller Emulator window. 
 
 The same local Hall scenario also passed with 100 ms of simulated delay in each direction and no simulated jitter or packet loss. See [the Hall latency evidence](ROADMAP.md#verify-hall-dodge-with-simulated-network-latency) and [Roblox Network Simulator](https://create.roblox.com/docs/studio/network-simulator).
 
+A separate two-client replay at the same simulated latency used RB to disable an active beam through the normal client. The server stopped that sequence, and continued synthetic loudness past cooldown produced no restart. A final damage confirmation arrived after RB, but the server had already applied that hit before the local OFF state. See [the Hall Beams OFF evidence](ROADMAP.md#verify-controller-beams-off-against-a-player-at-simulated-latency).
+
 On each physical console, verify sustained stick movement, TV safe areas, headset-triggered damage while aiming, ordinary voice while Beams are off, and controller-only access to the Guide, Talk, portal, and shop. Check commerce in an approved test environment. Console access settings require separate approval. [Roblox gamepad input](https://create.roblox.com/docs/input/gamepad)
 
 ## Highest remaining release gates

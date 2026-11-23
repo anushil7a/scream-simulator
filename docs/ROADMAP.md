@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Verify controller Beams OFF against a player at simulated latency
+
+- A guarded two-client Hall replay on `22cfd93` measured roughly 203–204 ms round-trip latency with 100 ms simulated in each direction and no jitter or packet loss. Two unprocessed `Gamepad1 / ButtonR1` events from the attacker's Xbox Emulator activated and deactivated Beams through the normal client. Mic power was synthetic and aim and positions were staged.
+- The live cast lowered the defender from 100 to 84 HP. The last hit was applied about 94 ms before the local OFF state and its confirmation reached the attacker about 33 ms after OFF. The server processed the matching Stop roughly 106 ms after local OFF, with no further damage. The last pulse preceded Stop by about 84 ms, so the stop was earlier than the input timeout. Cross-client timings are approximate.
+- Independent review verified the trace in `build/hall_rb_network_native/native-rb-network-result.json` (SHA-256 `53b4f8e4b68d32f5463b16ce97410eab76786e13bccb2f8ad4762bc6eaf41599`). The original network settings and emulator preset were restored, and the disposable Studio processes closed.
+- Both clients received the end event. The OFF label fit after 7.2 seconds of unchanged 0.65 synthetic power, past the cooldown. The server stayed inactive on sequence 1 and defender HP stayed at 84. Focused toggle, input controller and server protocol checks passed. Physical touch, physical controllers, ordinary voice and live network testing remain open.
+
 ## Keep Beams OFF through a late cast acknowledgement
 
 - The toggle regression queues the original Begin, turns Beams OFF before that Begin reaches the server, and then delivers it. The server accepts the request in flight and the client observes the delayed active sequence. The client remains OFF and emits no additional request. Delivering the same sequence's Stop ends the cast and starts the cooldown. Seven seconds of continued synthetic loudness produces no restart.
