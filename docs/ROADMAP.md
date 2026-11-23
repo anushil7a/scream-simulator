@@ -1,5 +1,11 @@
 # Scream Simulator development roadmap
 
+## Stage and verify safe City and Hall arrivals
+
+- The travel-only pair previously used ordinary spawns for inbound travelers. Hall arrivals now start inside the safe apron facing the arena boundary, with the City portal behind them. City arrivals land at the Academy facing the training courts. Only the configured peer's engine-reported source IDs select a landing in the test-ID builds. The zero-ID rehearsal stages the same landings for local inspection.
+- Native reset before portal use reproduced stale arrival guidance. The fix clears that character's arrival banner on removal and preserves newer portal feedback. Native Studio verified the Hall apron, Academy spawn, banner fit and ordinary respawns after reset. See `build/world-travel/native-first-arrival-initial.json`, `build/world-travel/native-first-arrival-final.json` (City before a trailing-newline edit) and `build/world-travel/native-first-arrival-exact-hall.json` (exact Hall). Both real F holds updated the notice without moving the avatar. Disposable Studio sessions were closed.
+- Independent review and 26 simulated travel assertions passed, with seven negative controls. Full local verification passed 198 suites and 99 production compilations, including City, Hall and both travel-only builds, on unchanged test inputs. The fixture covers direct joins, incorrect source IDs, duplicate arrival and respawn, a replaced first character, stale banner cleanup and simulated transport failure. Actual transfer still requires two distinct place IDs in the same approved nonproduction experience. These travel-only builds carry no gameplay profiles, combat or commerce.
+
 ## Build the City and Hall travel rehearsal pair
 
 - The existing City and Hall candidates had no cross-place test path. The isolated, travel-only builder now generates both world fixtures using the current City base geometry and the Hall arch. The Academy prompt points to Resonance Hall, and the Hall arch points to City training. The standard City project and the previous local Hall preview retain their existing behavior.

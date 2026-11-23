@@ -22,3 +22,6 @@ local prompt=Instance.new("ProximityPrompt")
 prompt.ActionText="Enter arena";prompt.ObjectText="Resonance Hall";prompt.HoldDuration=.25
 prompt.RequiresLineOfSight=false;prompt.MaxActivationDistance=10;prompt.Parent=portal
 travel.Bind(prompt)
+local arrival=spawn.Position+Vector3.new(0,3.65,0)
+travel.BindArrival(CFrame.lookAt(arrival,arrival-Vector3.zAxis),
+ "Academy arrival. Find the training courts to the north.")

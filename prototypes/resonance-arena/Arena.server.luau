@@ -227,6 +227,10 @@ portal(arena,"TrainingPortal",Vector3.new(Layout.HallPortal.x,0,Layout.HallPorta
  CFrame.lookAt(Vector3.new(arrival.x,3.5,arrival.z),Vector3.new(Layout.PracticePortal.x,3.5,Layout.PracticePortal.z)),Layout.ApronFootprint())
 if crossPlace then
  world.Parent=workspace
+ local entry=Layout.HallEntry
+ local point=Vector3.new(entry.x,3.8,entry.z)
+ crossPlace.BindArrival(CFrame.lookAt(point,point-Vector3.zAxis),
+  "Safe arrival. The blue line marks the arena. The portal behind you leads to City training.")
  return
 end
 

@@ -28,6 +28,44 @@ if transporter then
 end
 players.PlayerRemoving:Connect(function(player)pending[player]=nil end)
 
+-- Stage the same landing in zero-ID rehearsal. Actual test places require the
+-- engine's peer IDs; teleport payloads never select a destination or reward.
+function Travel.BindArrival(destination,message)
+ local seen={}
+ local function joined(player)
+  if player.Parent~=players or seen[player] then return end
+  if not rehearsal then
+   local from=player:GetJoinData()
+   if from.SourceGameId~=settings.universe or from.SourcePlaceId~=settings.destination then return end
+  end
+  seen[player]=true
+  local function land(character)
+   if player.Parent~=players or player.Character~=character then return end
+   local root=character:WaitForChild("HumanoidRootPart",5)
+   local deadline=os.clock()+5
+   while root and not character:IsDescendantOf(workspace) and os.clock()<deadline
+    and player.Parent==players and player.Character==character do task.wait() end
+   local humanoid=character:FindFirstChildOfClass("Humanoid")
+   if not root or root.Parent~=character or not humanoid or humanoid.Health<=0
+    or player.Parent~=players or player.Character~=character or not character:IsDescendantOf(workspace) then return end
+   character:PivotTo(destination)
+   root.AssemblyLinearVelocity=Vector3.zero;root.AssemblyAngularVelocity=Vector3.zero
+   local arrivalStatus=(rehearsal and "Arrival rehearsal. " or "")..message
+   player:SetAttribute("TravelStatus",arrivalStatus)
+   player.CharacterRemoving:Once(function(removed)
+    if removed==character and player:GetAttribute("TravelStatus")==arrivalStatus then
+     player:SetAttribute("TravelStatus",nil)
+    end
+   end)
+  end
+  if player.Character then task.defer(land,player.Character)
+  else player.CharacterAdded:Once(land) end
+ end
+ players.PlayerRemoving:Connect(function(player)seen[player]=nil end)
+ players.PlayerAdded:Connect(joined)
+ for _,player in ipairs(players:GetPlayers()) do joined(player) end
+end
+
 function Travel.Bind(prompt)
  prompt.KeyboardKeyCode=Enum.KeyCode.F
  prompt.Triggered:Connect(function(player)
