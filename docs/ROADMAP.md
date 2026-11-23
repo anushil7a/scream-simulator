@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Verify Hall dodge with simulated network latency
+
+- Replayed the exact two-client Hall fixture from `aef05e0` on `04723f7`, which changed documentation only. Roblox Studio Network Simulator was configured for 100 ms inbound and 100 ms outbound, with zero jitter or packet loss. The matched artifact was byte-identical to the zero-added-latency replay. The first standing health change to the private defender hit event measured roughly 122 ms versus 16 ms before. Unprocessed Xbox Emulator `Gamepad1 / ButtonL1` to authoritative roll start measured roughly 126 ms versus 32 ms. These are approximate synchronized-clock event gaps.
+- The standing defender fell from 100 to 90 HP in the matched run's first cast. In the second active cast, the defender fell to 87 HP before the roll and stayed at 87 throughout ten samples of the in-lane roll. The defender received **Beam Dodged** and showed fitted **Hit + Dodge**. The attacker showed 13 confirmed damage through the dodge and 16 only after the same active cast resumed damage to 84 HP. The cast ended at 70 HP.
+- The paired trace is in `build/hall_network_sim_native/native-network-result.json` (SHA-256 `3919f77a58032de72de17eca02e2a09b469a53717a506360f83eb4e64f8a9664`). The original network settings and emulator preset were restored, and all disposable Studio processes closed.
+- Independent review and focused contact feedback, dodge and controller dispatch checks passed. The attacker used staged aim and synthetic voice. This checks local network latency emulation at one setting. Real devices, voice, internet conditions, jitter and packet loss remain open.
+
 ## Verify controller dodge against a player beam in Hall
 
 - In a guarded two-client local Studio replay from `aef05e0`, a matched cast reduced the standing defender from 100 to 90 HP. On the second cast the fresh 100 HP defender dropped to 84 before rolling. The attacker used fixture-driven voice power and aim. In the defender's own client window, choosing Xbox in Controller Emulator and clicking the left-bumper hotspot sent real, unprocessed `Gamepad1 / ButtonL1`. The mapped keyboard key did not exercise that route.

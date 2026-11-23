@@ -87,6 +87,8 @@ In Gear, use the D-pad to reach either arrow beside the hue strip and A/Cross to
 
 The local two-client Hall check used the defender's Controller Emulator window. Select Xbox in the widget and click its left bumper directly. The mapped keyboard shortcut arrived as keyboard input in the earlier replay. The genuine Gamepad1 press produced a server dodge during an active beam, with damage resuming after the roll. See [the Hall controller evidence](ROADMAP.md#verify-controller-dodge-against-a-player-beam-in-hall).
 
+The same local Hall scenario also passed with 100 ms of simulated delay in each direction and no simulated jitter or packet loss. See [the Hall latency evidence](ROADMAP.md#verify-hall-dodge-with-simulated-network-latency) and [Roblox Network Simulator](https://create.roblox.com/docs/studio/network-simulator).
+
 On each physical console, verify sustained stick movement, TV safe areas, headset-triggered damage while aiming, ordinary voice while Beams are off, and controller-only access to the Guide, Talk, portal, and shop. Check commerce in an approved test environment. Console access settings require separate approval. [Roblox gamepad input](https://create.roblox.com/docs/input/gamepad)
 
 ## Highest remaining release gates
