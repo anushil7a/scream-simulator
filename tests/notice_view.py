@@ -216,6 +216,15 @@ check(noticeView.scroll.Size.Y.Offset>=44,'Modal scroll target below44px')
 noticeView.scroll.CanvasPosition=Vector2.new(0,noticeView.contentHeight-noticeView.visibleHeight);frame();check(noticeView.text.Position.Y.Offset+noticeView.text.Size.Y.Offset-noticeView.scroll.CanvasPosition.Y<=noticeView.visibleHeight,'Modal last line remains beneath cue')
 modal.Visible=false;viewport=Vector2.new(640,360);frame();check(questsToggle.Text=='QUESTS' and noticeView.root.Visible,'Fitting resize retained fallback disclosure')
 notifications:Remove('save');frame();check(questsToggle.Text=='QUESTS' and not questsToggle.Visible,'Recovered notice retained disclosure launcher')
+viewport=Vector2.new(455,218);talkTarget=nil
+notifications=Queue.new()
+notifications:Push('Speech can fire.',false,'voice')
+local sparAward='Rookie defeated · +48 XP · +5 coins'
+notifications:Push(sparAward,false,'trainingReceipt');frame()
+check(questsToggle.Visible and questsToggle.Text=='WIN' and not noticeView.root.Visible,'Hidden training reward did not offer its win shortcut')
+questsToggle.callback();frame()
+check(modal.Visible and noticeView.root.Visible and noticeView.text.Text==sparAward,'Win shortcut did not show the actual reward first')
+closeMenu();notifications=Queue.new()
 -- The baseline safe HUD measured 567 × 242 even though the camera was taller.
 viewport=Vector2.new(567,242);talkTarget={};notifications=Queue.new()
 local function checkShortTalk()
@@ -383,6 +392,8 @@ if a.negative_controls:
   assert old in sources['NoticeLayout'];run(sources['NoticeLayout'].replace(old,new),sources['NoticeView'],error=error)
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('or questLauncherText()', 'or "QUESTS"'),'Frame erased actual receiver reward count')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace(' and questShortcut~="QUESTS"',''),'Modal exit failed to restore grouped navigation')
+ run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('hiddenWin and "WIN" or',''),
+     'Hidden training reward did not offer its win shortcut')
  run(sources['NoticeLayout'],sources['NoticeView'],checks.replace('),toggle,gold);shop.TextColor3', '),function()toggleTab("Shop")end,gold);shop.TextColor3'),'Menu toggle did not reopen the last tab')
  for old,new,error in [
      ('elseif academy.starterGearReady then toggleTab("Style",true)', 'elseif academy.starterGearReady then toggleTab(selected)', 'Gear-ready Menu reopened Quests instead of Gear'),

@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Put the first sparring reward ahead of routine guidance
+
+- At 455 × 218 touch-emulated pixels, two accepted synthetic casts through normal combat paid 48 XP and five coins and advanced the Rookie count to 1/3. The old HUD displayed generic **NOTICE**. Opening it showed the earlier arming message, and the earned receipt first appeared 3.47 seconds later.
+- A rewarded training finisher now sends a receipt through the existing notice queue. It appears ahead of routine messages and survives a simultaneous milestone. Save warnings and other urgent messages keep their priority. If the inline notice has no room, the existing shortcut reads **WIN**. Opening it displays the actual reward and the earlier voice message remains queued.
+- The matched local candidate showed fitted **WIN** in the original 45 × 46 slot and the fitted **Rookie defeated · +48 XP · +5 coins** on the first observed frame after a click. The guide still showed 1/3, and the original arming notice resumed later. Both runs dealt 80 HP to Rookie and left the player at 76 HP. See `build/rookie_reward_native/native-baseline.json` and `native-candidate.json` in the same folder.
+- Independent review and the focused payout, notice, and save-priority checks passed. Full verification passed 198 local suites, 99 Luau compilations, and the City and Hall builds. The emulator preset was restored and both disposable Studio sessions closed. The fixture used temporary profiles and synthetic microphone input. Real voice, physical touch and unassisted discovery remain open.
+
 ## Lead the first Rookie beam into range
 
 - A fresh temporary profile followed the normal Rookie Guide from spawn at 455 × 218 touch-emulated pixels. A separate normal step back to the guide's arrival edge reproduced **Aim** on a clear 21.93-stud line to Rookie. The level-one beam reaches about 17.94 studs at the sustained voice gate. The baseline staged microphone readiness with zero power and did not fire, so it established the geometry mismatch without measuring a miss.

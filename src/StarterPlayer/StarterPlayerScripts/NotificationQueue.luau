@@ -12,8 +12,8 @@ end
 function Queue:Push(text,urgent,key)
  if type(text)~="string" or text=="" then return end
  urgent=urgent==true
- local receipt=key=="questReceipt"
- -- Each confirmed claim is a separate event, even if the rewards match.
+ local receipt=key=="questReceipt" or key=="trainingReceipt"
+ -- Each confirmed reward is a separate event, even if the amounts match.
  if not receipt then
   if self.active and self.active.text==text then return end
   for _,entry in ipairs(self.pending) do if entry.text==text then return end end

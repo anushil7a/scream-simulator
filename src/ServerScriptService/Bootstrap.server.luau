@@ -156,7 +156,7 @@ local function state(p,message,conversation,messageUrgent,messageKey,changedOnly
  micReady=s.micReady,
  conversation=conversation,settings=s.data.settings,devAccess=Access.IsAuthorized(p,game.CreatorType,game.CreatorId,RunService:IsStudio(),game.GameId),savingAvailable=s.canSave and not s.testBaseline,savingDelayed=s.saveDelayed==true,recoveryWarning=s.recoveryWarning==true,testSession=s.testBaseline~=nil,flying=s.flight~=nil,
  testBeamAvailable=s.testBeamAvailable==true,testBeamDamageAvailable=s.testBeamAvailable==true,
- testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt") and messageKey or nil}
+ testBeamActive=s.testBeam~=nil,testBeamPower=s.testBeam and s.testBeam.power or 0,testBeamCooldown=math.max(0,(s.testBeamReadyAt or 0)-os.clock()),message=message,messageUrgent=messageUrgent==true,messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt" or messageKey=="trainingReceipt") and messageKey or nil}
  if changedOnly and StateSnapshot.Equal(packet,s.lastStatePacket) then return end
  local snapshot=StateSnapshot.Copy(packet)
  -- Timestamp only outgoing packets. Time alone does not change the boost ledger.
@@ -317,8 +317,9 @@ local function awardCombatKO(ledger,finisher,targetLevel,maximum,pool,now,victim
    end
    local summary=recipient==finisher and "KO" or "Assist"
    if tier then summary=tier.name..(recipient==finisher and " defeated" or " assist") end
+   local receipt=tier and recipient==finisher and (credited+bonusXP>0 or coinCredit>0) and "trainingReceipt" or nil
    state(recipient,summary.." · +"..(credited+bonusXP).." XP"..((tier or coinCredit>0) and " · +"..coinCredit.." coins" or "")
-    ..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""),nil,hallKnockout)
+    ..(bonus>0 and " · challenge completed & renewed" or "")..(factor<1 and " · weaker opponent" or ""),nil,hallKnockout,receipt)
   elseif recipient==finisher then state(recipient,"KO · no reward awarded",nil,hallKnockout) end
  end
 end

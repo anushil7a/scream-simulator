@@ -171,7 +171,7 @@ if '--negative-controls' in sys.argv:
 if reproduce:
     print('REPRODUCED: authoritative upgrade rejection, reward confirmation and completion disappear inside the milestone window; debit/reward guards remain correct.')
 if '--negative-controls' in sys.argv:
-    run(payload.replace('if data.message and (not newMilestone or data.messageUrgent) then','if data.message and os.clock()>=106 then'), 'Milestone hid upgrade rejection')
+    run(payload.replace('if data.message and (not newMilestone or data.messageUrgent or key=="trainingReceipt") then','if data.message and os.clock()>=106 then'), 'Milestone hid upgrade rejection')
     run(payload.replace('data.milestone~=lastMilestone','(data.milestone~=lastMilestone or not data.message)'), 'Repeated milestone snapshots replayed a notification')
     run(payload.replace('not v.claimed and v.progress>=q.goal','v.progress>=q.goal'), 'Repeated claim duplicated reward/notice')
-    run(payload.replace('(not newMilestone or data.messageUrgent)', '(not newMilestone)'), 'Same-packet milestone hid critical warning')
+    run(payload.replace('(not newMilestone or data.messageUrgent or key=="trainingReceipt")', '(not newMilestone or key=="trainingReceipt")'), 'Same-packet milestone hid critical warning')

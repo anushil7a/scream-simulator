@@ -164,6 +164,23 @@ do
  check(order[1]==saving and order[2]=='Other urgent' and order[3]==receipt,'Receipt moved ahead of a queued urgent warning')
 end
 do
+ local arming='Speech can fire.'..string.char(10)..'OFF to talk.'
+ local reward='Rookie defeated · +48 XP · +5 coins'
+ notifications=Queue.new()
+ notify(arming,false,'voice');frame()
+ s.canSave=true;s.milestone='Level 2'
+ state(p,reward,nil,false,'trainingReceipt')
+ check(frame()==reward and notifications.active.key=='trainingReceipt','Training receipt waited behind routine guidance or a milestone')
+ check(notifications.pending[1].text==arming,'The interrupted voice message was discarded')
+ s.data.xp+=48
+ state(p,reward,nil,false,'trainingReceipt')
+ check(#notifications.pending==3,'Equal training receipts were merged')
+ s.canSave=false
+ state(p,saving,nil,true,'save')
+ check(frame()==saving,'Training receipt outranked the save warning')
+ s.canSave=true;s.milestone=nil
+end
+do
  local packets={}
  stateRemote.FireClient=function(_,_,packet)table.insert(packets,packet)end
  local function periodic() state(p,nil,nil,nil,nil,true) end
@@ -232,10 +249,10 @@ if '--negative-controls' in sys.argv:
  mutate_queue('key=="save" and 2 or urgent and 1 or receipt and .5 or 0','urgent and 1 or receipt and .5 or 0','Save warning evicted before any displayed frame')
  assert payload.count(',nil,true,"save")')==2
  run(payload.replace(',nil,true,"save")',',nil,true)'),'Save warning evicted before any displayed frame')
- needle='messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt") and messageKey or nil'
+ needle='messageKey=(messageKey=="save" or messageKey=="questClaim" or messageKey=="questReceipt" or messageKey=="trainingReceipt") and messageKey or nil'
  assert payload.count(needle)==1
  run(payload.replace(needle,'messageKey=nil'),'Save warning evicted before any displayed frame')
- needle='(key=="save" or key=="questClaim" or key=="questReceipt") and key or nil'
+ needle='(key=="save" or key=="questClaim" or key=="questReceipt" or key=="trainingReceipt") and key or nil'
  assert payload.count(needle)==1
  run(payload.replace(needle,'nil'),'Save warning evicted before any displayed frame')
  needle='if data.savingAvailable==true and not data.savingDelayed then notifications:Remove("save") end'
@@ -246,6 +263,10 @@ if '--negative-controls' in sys.argv:
  mutate_queue('if #self.pending>Queue.Limit then','if false then','Mixed traffic exceeded queue bound')
  mutate_queue('if key then self:Remove(key) end','if key and key~="save" then self:Remove(key) end','Permanent failure did not replace delayed warning')
  mutate_queue('or receipt and .5 or 0','or 0','Quest receipt waited behind routine notices')
+ mutate_queue('local receipt=key=="questReceipt" or key=="trainingReceipt"','local receipt=key=="questReceipt"',
+              'Training receipt waited behind routine guidance or a milestone')
+ run(payload.replace('or data.messageUrgent or key=="trainingReceipt"','or data.messageUrgent'),
+     'Training receipt waited behind routine guidance or a milestone')
  run(payload.replace('.." coins · "..q.name','.." coins · Garden"'),'Equal claim receipts merged')
  mutate_queue('if not receipt then','if true then','Equal claim receipts merged')
  mutate_queue('or urgent and 1 or receipt and .5 or 0','or receipt and 1.5 or urgent and 1 or 0','Receipt moved ahead of a queued urgent warning')

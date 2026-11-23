@@ -1846,10 +1846,10 @@ connectClient(remotes.State.OnClientEvent,function(nextData)
  if newMilestone then
   lastMilestone=data.milestone;notify(data.milestone)
  end
- if data.message and (not newMilestone or data.messageUrgent) then
-  local key=data.messageKey
+ local key=data.messageKey
+ if data.message and (not newMilestone or data.messageUrgent or key=="trainingReceipt") then
   if key~="questClaim" or unclaimed>0 then
-   notify(data.message,data.messageUrgent,(key=="save" or key=="questClaim" or key=="questReceipt") and key or nil)
+   notify(data.message,data.messageUrgent,(key=="save" or key=="questClaim" or key=="questReceipt" or key=="trainingReceipt") and key or nil)
   end
  end
  local gearReady=false
@@ -2429,7 +2429,8 @@ connectClient(Run.RenderStepped,function(dt)
   and not (modal.Visible and (noticeView.visible or shortLandscape))
  local questShortcut=notice~="" and not noticeLayout.available and gameplayVisible and windowFocused and "NOTICE" or questLauncherText()
  -- Keep navigation in MENU. A pending claim or inaccessible notice gets a shortcut.
- questsToggle.Text=academy.shortObjective and questShortcut~="NOTICE" and questShortcut~="QUESTS" and "REWARD" or questShortcut
+ local hiddenWin=questShortcut=="NOTICE" and notifications.active and notifications.active.key=="trainingReceipt"
+ questsToggle.Text=hiddenWin and "WIN" or academy.shortObjective and questShortcut~="NOTICE" and questShortcut~="QUESTS" and "REWARD" or questShortcut
  questsToggle.Visible=shop.Visible and not modal.Visible and questShortcut~="QUESTS"
  academy.passesToggle.Visible=shop.Visible and gameplayVisible and not devPanel.Visible
  if academy.compactObjective.Visible then academy.refreshCompactObjective(questsToggle.Visible,voiceCooldown) end

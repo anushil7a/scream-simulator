@@ -33,7 +33,10 @@ Config.GetQuest=function(id)if id==q.id then return q end end
 local VoiceCombat={Stats=function()return {health=100,maxDps=1}end}
 local function parts()return nil,nil,nil end
 local function eject(_,h)h.Health=h.MaxHealth end
-local function state(player,message)if player==p then table.insert(notices,message or '')end end
+local messageKey
+local function state(player,message,_,_,key)
+ if player==p then table.insert(notices,message or '');messageKey=key end
+end
 local function stopQuest(p)sessions[p].activeQuest=nil end
 local localFixture=false;local rewardHistory={pairs={}}
 local Players={GetPlayerByUserId=function(_,id)if id==1 then return p elseif id==2 then return victim elseif id==3 then return helper end end}
@@ -105,6 +108,7 @@ s=fresh();local rookie=TrainingRules.Tiers[1];local bot={health=1,maxHealth=80,t
 recordCredit(bot.credit,helper,79,80,500);hitBot(p,bot,10,500)
 check(bot.health==0 and s.data.xp==0 and s.data.coins==0,'Tiny NPC payout changed')
 check(notices[#notices]=='KO · no reward awarded','Tiny first NPC falsely labeled repeat-limited')
+check(messageKey==nil,'Zero payout NPC triggered a training receipt')
 check(next(rewardHistory.pairs)==nil and next(observed)==nil,'NPC started repeat history')
 check(s.data.combatChallenges.fighters==nil and next(bot.credit)==nil,'Zero NPC reward gates/consumed credit changed')
 s=fresh();local h={Health=1,MaxHealth=100};local target={player=victim,humanoid=h,session=sessions[victim]}
@@ -116,6 +120,7 @@ s=fresh();h={Health=100,MaxHealth=100};target={player=victim,humanoid=h,session=
 hitPlayer(p,target,100,700)
 check(s.data.coins==20 and observed[1]==1,'Positive first PvP payout changed')
 check(notices[#notices]=='KO · +96 XP · +20 coins','PvP notice omitted credited coins: '..notices[#notices])
+check(messageKey==nil,'PvP payout triggered a training receipt')
 s.data.coins=999999998
 rewardHistory={pairs={}}
 hitPlayer(p,target,100,700)
@@ -135,6 +140,7 @@ check(rewardHistory.pairs['1:2']==nil,'Full history created extra pair')
 check(notices[#notices]=='KO · no reward awarded','Full history new pair falsely labeled repeat-limited')
 s=fresh();bot={health=80,maxHealth=80,training=rookie,credit={}};hitBot(p,bot,80,900)
 check(s.data.xp==48 and s.data.coins==5 and notices[#notices]=='Rookie defeated · +48 XP · +5 coins','Rookie win omitted actual reward')
+check(messageKey=='trainingReceipt','Rewarded training win omitted the receipt category')
 check(s.canSave==false and s.testBaseline==nil,'Keep Playing ordinary session changed')
 s=fresh();s.data.coins=999999998;multiplier=2
 bot={health=80,maxHealth=80,training=rookie,credit={}}
