@@ -18,8 +18,14 @@ fm.__add=function(a,b)return frame(a.Position+b)end
 local CFrame={new=frame,Angles=function()return frame()end}
 local Color3={fromRGB=function(r,g,b)return {r,g,b}end}
 local Enum={Material={Neon='Neon',Slate='Slate'}}
+local poseWrites=0
 local Instance={new=function(kind)
- local t={kind=kind};function t:Destroy()self.destroyed=true end;return t
+ local fields={kind=kind}
+ function fields:Destroy()self.destroyed=true end
+ return setmetatable({}, {__index=fields,__newindex=function(_,key,value)
+  if key=='Transparency' or key=='CFrame' then poseWrites+=1 end
+  fields[key]=value
+ end})
 end}
 local Effects=(function()
 '''
@@ -34,8 +40,19 @@ for _,id in ipairs({'metronome','golem','ignis','leviathan','conductor'})do
    check(p.part.Anchored and not p.part.CanCollide and not p.part.CanTouch and not p.part.CanQuery and not p.part.CastShadow)
    check(p.part.Size.X>0 and p.part.Size.Y>0 and p.part.Size.Z>0)
   end
-  e:Step(.2);for _,p in ipairs(e.pieces)do check(p.part.Transparency>=.25 and p.part.Transparency<=1)end
-  e:Step(Effects.Lifetime);if impact then check(e.pieces[1].part.Transparency==1)end
+  local builtWrites=poseWrites
+  e:Step(.2)
+  if impact then
+   check(poseWrites-builtWrites==48)
+   for _,p in ipairs(e.pieces)do
+    check(math.abs(p.part.Transparency-.5)<1e-6)
+    check(math.abs(p.part.CFrame.Position.Y-p.frame.Position.Y-.4)<1e-6)
+   end
+   e:Step(Effects.Lifetime);check(e.pieces[1].part.Transparency==1)
+  else
+   check(poseWrites==builtWrites)
+   for _,p in ipairs(e.pieces)do check(p.part.Transparency==.35 and p.part.CFrame==p.frame)end
+  end
   local folder=e.folder;e:Destroy();check(folder.destroyed and #e.pieces==0)
  end
 end
@@ -163,6 +180,9 @@ for name,source in [
  ('reduced effects hiding the hint',pre2+client.replace(' updateHint(player,root,models,now)',' if not reduced() then updateHint(player,root,models,now) end')+post2),
  ('fixed 30-stud hint radius',pre2+client.replace('distance<=range^2','distance<=30^2')+post2),
  ('captain siren motif',pre+module.replace('and width<length then','and false then')+post),
+ ('repeated windup property writes',pre+module.replace('  if not impact then return end\n','')+post),
+ ('wrong initial warning opacity',pre+module.replace('p.Transparency=impact and .25 or .35','p.Transparency=.25')+post),
+ ('frozen impact lift',pre+module.replace('entry.frame+rise','entry.frame')+post),
 ]:
  with tempfile.NamedTemporaryFile('w',dir=R/'tests',suffix='.luau',delete=False) as f:
   f.write(source);p=Path(f.name)

@@ -91,7 +91,7 @@ connection=Run.Heartbeat:Connect(function(dt)
      end
      if s then
       if (s.mode=="impact" and now-s.at>Effects.Lifetime) or (s.mode=="awaiting" and now>s.untilAt) then clear(model)
-      elseif s.effect then s.effect:Step(s.mode=="impact" and now-s.at or 0) end
+      elseif s.mode=="impact" then s.effect:Step(now-s.at) end
      end
     end
    end

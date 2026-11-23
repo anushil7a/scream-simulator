@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Stop rewriting static boss windup accents
+
+- The Conductor's 24 warning accents held identical transforms and 0.35 transparency for 90 sampled updates after initialization. The old renderer still issued 48 property assignments each update. The live caller applied the final opacity in the same callback as creation.
+- Static warning accents now spawn at their final opacity and need no pose update. Impact accents still use their original frames, fade, and lift, with the shared transparency and vertical offset calculated once per update.
+- The focused suite failed on the old write loop and now passes 878 renderer assertions, 46 controller lifecycle checks, and nine negative controls. In matched Roblox Studio microbenchmarks, nine 1,200-call static update batches had a median of 8.69 ms before and 0.026 ms after. The final static transforms and sampled impact values matched. This isolates the accent method and does not measure frame rate, network, GPU, or phone performance.
+- The production warning in the disposable candidate kept all 24 accents at their original pose and opacity. The confirmed Bell Cascade impact again dealt 58 HP, created the impact accents, and cleared the set. See `build/bell_gap_native/native-effects-baseline.json` and `native-effects-candidate.json` in the same folder. Independent review, 198 local suites, 99 Luau compilations, and City and Hall builds passed. Both disposable Studio sessions closed. Representative hardware and live multiplayer performance remain open.
+
 ## Keep Bell Cascade's circle edges visible under beams
 
 - At 455 × 218 touch-emulated pixels with Reduced Effects on, a fixed camera and two staged yellow level-100 beams washed out portions of Bell Cascade's disc edges on pale paving. A matched client-only clone of the six real warnings showed clearer silhouettes with a thin dark rim. The comparison isolated rendering during the warning and used no live voice.

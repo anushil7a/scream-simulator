@@ -8,7 +8,7 @@ function Effects.Build(parent,id,markers,impact)
   if #pieces>=Effects.MaxParts then return end
   local p=Instance.new("Part");p.Name="Accent";p.Size=impact and size*1.25 or size;p.CFrame=frame;p.Color=color
   p.Material=id=="golem" and Enum.Material.Slate or Enum.Material.Neon
-  p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.CastShadow=false;p.Transparency=.25
+  p.Anchored=true;p.CanCollide=false;p.CanTouch=false;p.CanQuery=false;p.CastShadow=false;p.Transparency=impact and .25 or .35
   p.Parent=folder;table.insert(pieces,{part=p,frame=frame})
  end
  -- At most six representative markers. Server warning retains the ENTIRE footprint.
@@ -49,9 +49,12 @@ function Effects.Build(parent,id,markers,impact)
  end
  local self={folder=folder,pieces=pieces}
  function self:Step(age)
+  if not impact then return end
+  local transparency=math.clamp(.1+age/Effects.Lifetime*.9,0,1)
+  local rise=Vector3.new(0,math.min(age,Effects.Lifetime)*2,0)
   for _,entry in ipairs(self.pieces) do
-   entry.part.Transparency=impact and math.clamp(.1+age/Effects.Lifetime*.9,0,1) or .35
-   entry.part.CFrame=entry.frame+(impact and Vector3.new(0,math.min(age,Effects.Lifetime)*2,0) or Vector3.zero)
+   entry.part.Transparency=transparency
+   entry.part.CFrame=entry.frame+rise
   end
  end
  function self:Destroy()self.folder:Destroy();table.clear(self.pieces)end
