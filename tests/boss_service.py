@@ -383,6 +383,32 @@ for i,case in ipairs({{"leviathan",2,{37,44,54}},{"ignis",3,{245,225,177}}}) do
  end
  check(edgeCount==4*lanes and boss.warning:GetAttribute("BossMarkerCount")==lanes,"Lane borders missing or altered hazard roster for "..id)
 end
+do
+ local boss=byId.conductor
+ Rules.Reset(boss,boss.spec,4300);boss.turn=0;boss.nextAttack=0;service.nextStep=0
+ local tester=player(127,boss)
+ service:Hit(boss,tester,1,4300);service:Step(4300)
+ local markers,rims=0,0
+ for _,node in ipairs(created) do
+  if node.Parent==boss.warning then
+   markers+=1
+   check(node.Name=="Hazard" and node.Shape==Enum.PartType.Cylinder and node.Size.Y==9
+    and not node.CanCollide and not node.CanTouch and not node.CanQuery,"Bell warning footprint or physics changed")
+  end
+  local marker=node.Parent
+  if node.Name=="BellRim" and marker and marker.Parent==boss.warning then
+   rims+=1
+   check(node.ClassName=="CylinderHandleAdornment" and node.Adornee==marker
+    and not node.AlwaysOnTop,"Bell rim must stay depth-tested on its own marker")
+   check(node.Radius==marker.Size.Y/2 and node.InnerRadius<node.Radius and node.InnerRadius>node.Radius-.5,
+    "Bell rim must stay thin and inside the damage circle")
+   check(node.Angle==360 and node.CFrame.Position.X-node.Height/2>marker.Size.X/2,
+    "Bell rim must cover the whole top face")
+  end
+ end
+ check(markers==6 and rims==6 and boss.warning:GetAttribute("BossMarkerCount")==6,
+  "Bell Cascade lost its six nested rims or original marker count")
+end
 local captain=byId.leviathan.spec
 check(captain.name=="Seagull Siren Captain" and captain.level==70,"captain public name and exact level")
 check(captain.coins==95 and captain.xp==340,"captain unchanged reward pool")
@@ -433,6 +459,10 @@ def run_service(source, expected=None):
 run_service(service)
 if '--negative-controls' in sys.argv:
     for old,new,expected in (
+        ('if strike.style=="BellCascade" then markBellRim(marker) end','',
+         'Bell Cascade lost its six nested rims or original marker count'),
+        ('rim.AlwaysOnTop=false','rim.AlwaysOnTop=true',
+         'Bell rim must stay depth-tested on its own marker'),
         ('BatonSweep="Step back or aside",','',
          'Melee warning omitted its escape instruction: BatonSweep'),
         ('FaultLine="Step into a gap",','',

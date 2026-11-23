@@ -1,5 +1,12 @@
 # Scream Simulator development roadmap
 
+## Keep Bell Cascade's circle edges visible under beams
+
+- At 455 × 218 touch-emulated pixels with Reduced Effects on, a fixed camera and two staged yellow level-100 beams washed out portions of Bell Cascade's disc edges on pale paving. A matched client-only clone of the six real warnings showed clearer silhouettes with a thin dark rim. The comparison isolated rendering during the warning and used no live voice.
+- The production warning adds one dark inset cylinder adornment to each Bell Cascade disc. Its radius follows the true warning footprint and it respects scene depth. The rim follows its parent hazard through cleanup, creates no physical parts, and leaves the six direct markers and authority geometry intact.
+- The actual service fixture passed 8,375 assertions and eight controls. The added controls remove the rims or make them draw over the scene. Full verification passed 198 local suites, 99 production Luau compilations, and the City and Hall builds. The matched prototype pair and its setup are under `build/bell_gap_native/native-contrast-baseline.json`.
+- Native Studio verified one replicated rim on each of the six unchanged discs, a fitted **Step off the circles** cue, and the normal 58 HP standing hit followed by complete warning cleanup. The matched visual comparison with two staged yellow beams kept the dark front and right edges visible. See `build/bell_gap_native/native-contrast-candidate.json` and `BellContrastProductionRim.jpg`. Independent review cleared the changes, both disposable sessions closed, and the original emulator preset was restored. A physical-device fight with real voice and simultaneous beams remains open.
+
 ## Show how to evade each boss attack
 
 - At 455 × 218 touch-emulated pixels, the Conductor's Baton Sweep drew one ground warning while the HUD showed **SAFE • PvP OFF** through windup. The actual strike shoved the standing participant and dealt 77 HP. Bell Cascade in the same fixture drew six warnings and displayed **Step off the circles**. Its standing control lost 58 HP, and a separate walk into a gap took zero damage.

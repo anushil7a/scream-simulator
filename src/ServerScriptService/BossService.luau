@@ -47,6 +47,21 @@ local function markLaneEdges(marker,color)
   edge(0,side*(length-thickness)/2,width-2*thickness,thickness)
  end
 end
+local function markBellRim(marker)
+ local rim=Instance.new("CylinderHandleAdornment")
+ rim.Name="BellRim"
+ rim.Adornee=marker
+ rim.Color3=Color3.fromRGB(44,25,52)
+ rim.Radius=marker.Size.Y/2
+ rim.InnerRadius=rim.Radius-.28
+ rim.Angle=360
+ rim.Height=.03
+ rim.DoubleSided=true
+ rim.AlwaysOnTop=false
+ -- The warning cylinder's local +X is its top face.
+ rim.CFrame=CFrame.new(marker.Size.X/2+.04,0,0)*CFrame.Angles(0,math.pi/2,0)
+ rim.Parent=marker
+end
 function Service.new(parent,callbacks)
  local self={bosses={},callbacks=callbacks,cooldowns={}}
  local folder=Instance.new("Folder");folder.Name="BossEncounters";folder.Parent=parent
@@ -194,6 +209,7 @@ function Service.new(parent,callbacks)
      else marker.CFrame=CFrame.new(pos)*CFrame.Angles(0,shape.angle,0) end
      marker.Material=Enum.Material.Neon;marker.Transparency=strike.kind=="Melee" and .27 or .45
      if edgeColor then markLaneEdges(marker,edgeColor) end
+     if strike.style=="BellCascade" then markBellRim(marker) end
     end
     warning.Parent=b.model;b.warning=warning
    end
