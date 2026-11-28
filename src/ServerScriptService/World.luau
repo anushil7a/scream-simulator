@@ -866,12 +866,13 @@ local function atmosphere()
         lighting.EnvironmentSpecularScale = 0.42
         lighting.ShadowSoftness = 0.42
         grade.Contrast = 0.10
-        grade.Saturation = 0.02
-        grade.TintColor = Color3.fromRGB(255, 251, 244)
-        haze.Density = 0.15
-        haze.Haze = 0.21
-        haze.Color = Color3.fromRGB(215, 228, 233)
-        haze.Decay = Color3.fromRGB(126, 138, 165)
+        grade.Saturation = 0.04
+        grade.TintColor = Color3.fromRGB(255, 250, 240)
+        haze.Density = 0.17
+        haze.Haze = 0.34
+        haze.Glare = 0.12
+        haze.Color = Color3.fromRGB(214, 229, 236)
+        haze.Decay = Color3.fromRGB(132, 149, 174)
     end
 end
 
@@ -990,8 +991,8 @@ function World.Build()
         end
         local pad=part(parent,"TrainingPad_"..tier.id,Vector3.new(64,.2,64),Vector3.new(tier.x,Config.CompactCity and (tier.y or 0)+.1 or 1.1,tier.z),padColor,Enum.Material.SmoothPlastic)
         if finishMap10 then pad.Transparency=1;pad.CastShadow=false end
-        local sign=part(parent,"TrainingSign_"..tier.id,Vector3.new(1,1,1),Vector3.new(tier.x,(tier.y or 0)+7,tier.z+30),C.gold,nil,false);sign.Transparency=1
-        local words=billboard(sign,tier.name.." · recommended Lv "..tier.level.."\n"..tier.health.." HP · "..tier.xp.." base XP\nHit to spar · move out of red strikes",Vector3.zero,280)
+        local sign=part(parent,"TrainingSign_"..tier.id,Vector3.new(1,1,1),Vector3.new(tier.x+14,(tier.y or 0)+6,tier.z+28),C.gold,nil,false);sign.Transparency=1
+        local words=billboard(sign,tier.name.." · recommended Lv "..tier.level.."\n"..tier.health.." HP · "..tier.xp.." base XP\n[E] Beams · hit to spar · dodge red rings",Vector3.zero,280)
         words.Parent.Size=UDim2.fromOffset(280,76);words.Parent.MaxDistance=100
         local bot=makeBot(parent,#World.Bots+1,tier.x,tier.z,"Fighter",nil,tier)
         local padSurface=pad.Position.Y+pad.Size.Y/2

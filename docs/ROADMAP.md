@@ -1,5 +1,25 @@
 # Scream Simulator development roadmap
 
+## Polish the opening vertical slice, combat feel, Map 10 landmarks, and UI clarity (2026-11-26)
+
+- **Branch & Scope:** Feature branch `feature/standout-vertical-slice` (off `3699089` / `origin/main` `d0d14a0`). Kept development-only gates (`DeveloperAccess.PrelaunchAllTesters == false`, `Config.ObjectDestruction == false`) intact with zero cloud publish actions.
+- **Map 10 Landmarks & Coastal Atmosphere (`tools/slice_landmarks_blender.py`, `tools/map10_finish_north.py`, `tools/map10_finish_coast.py`, `src/ServerScriptService/Map10FinishGeometry.luau`, `src/ServerScriptService/Map10Finish.luau`, `src/ServerScriptService/World.luau`, `src/ServerScriptService/CompactCity.luau`):**
+  - Auto-generated orthographic construction blueprints and built three original landmarks in headless Blender 5.2 (`build/blender_slice_landmarks/`: `academy_resonance_pylon.glb`, `courtyard_sparring_totem.glb`, `coastal_harbor_beacon.glb`), then compiled matching runtime Map 10 finishing geometry (`NorthPylon*`, `NorthTotem*`, paired `CoastBeacon*`, `1100` finishing props).
+  - Added warm `PointLight` accents (`WarmAccent`), soft sea horizon mist transparency, and tuned coastal `Atmosphere` (`Density = 0.17`, `Haze = 0.34`, `CityGrade.Saturation = 0.04`).
+- **ForgeGUI + Figma UI Spec & Native HUD (`Client.client.luau`, `NoticeLayout.luau`, `BossService.luau`, `tests/target_readout.py`):**
+  - Researched ForgeGUI assets and created a multi-viewport Figma spec (`TSMZfbHZktmQpYxZ4YQkk0`: `CoastalAcademyTokens`, Desktop `1280x720`, Mobile Portrait `390x844`, Mobile Landscape `750x323`).
+  - Aligned desktop `PASSES` button to `36px` (keeping `46px` on touch/compact), enabled live `VoiceReactor` waveform bars before arming, and added pure `bossTargetInfo()` + `academy.bossAt()` crosshair Boss readout.
+- **Scream Impact, Audio, Animation & Comfort-Gated Feedback (`GameplayAudioConfig.luau`, `GameplayAudio.luau`, `Ambience.client.luau`, `RunAnimation.client.luau`, `Client.client.luau`):**
+  - Added runtime-only `rbxasset://sounds/` cue fallbacks (`Hit`, `Dodge`, `Break`, `LevelUp`) and starter `BeamLaunchCue` ignition audio gated strictly by `typeof(game) == "Instance"`, preserving mock-suite contracts (`AssetId == ""` in `tests/`).
+  - Added smooth ambience voice ducking (`42%` target), sustained beam onset windup (`0.18s`) + exhale recoil (`0.36s`), bounded comfort-gated camera FOV kick (`+1.8°` launch / `+0.8°` hit, `0` under `reducedShake`/`ReducedMotionEnabled`), client Trainer Strike timing ring (`LocalTrainingStrikeRing`), and pooled target `BeamHitFlash` highlight.
+- **Critic Pass & Live Studio Fixes:**
+  - Live Studio Play testing caught and fixed `TrainingRules.Windup` lookup (was `StrikeWindup`) and `PlayerGui` parenting for `CylinderHandleAdornment` strike rings.
+  - Independent Critic review (`eba8b120`) drove lowering `BossNameplate.StudsOffset` (`math.max(5.5, 3.2*spec.scale)`) clear of `ZoneStatus`, styling `aimInfo` into a gold-bordered pill cleanly above center aim with live HP display and `2*spec.scale` hit envelope tolerance, pushing desktop notices below `objectiveBottom + 8` so they do not hide `QuestTracker`, setting `LightInfluence = 0` on `LandmarkSign`, and offsetting `TrainingSign_` clear of the fighter silhouette.
+- **Checks Run & Open Release Gates:**
+  - `verify_local.py --build` passed (`29` pure/synthetic suites, `169` mocked-service suites, `99` compiled production scripts, all `.rbxl` review builds), plus `--negative-controls` on `target_readout`, `navigation_layout`, `style_controls`, `gameplay_cue_settings`, `ambience_startup`, `animation_lifecycle`, `beam_screen_integration`, `client_startup_lifecycle`, `map10_finish`, and `prelaunch_release_gate`.
+  - Disposable zero-ID Studio (`PlaceId == 0`) Play passes verified Spawn, Rookie spar + strike timing ring, Academy Megaphone (`13` welded parts), 3-tier & 8-beam pooling (`162/512` parts -> `0` parented on destroy), Coast Beacons, Whispering Metronome Boss readout, `REDUCED EFFECTS: ON`, respawn (`FOV == 70`), and `Profiles.Sanitize`.
+  - Still required before live Roblox publish: uploaded custom audio asset IDs (`AttackAudioConfig`/`GameplayAudioConfig`), real `MovementPassId`, physical microphone/touch/controller tests, `uv` (`uvx`) installation for live `mcp-for-blender`, and multi-server live DataStore soak.
+
 ## Soak overlapping Hall beams for 30 minutes
 
 - A guarded three-client Hall fixture from `c3e7093` ran for 1,800.020 seconds. Two level-100 attackers used staged aim and synthetic voice power through the normal Action transport against a staged level-100 defender. The fixture reset defender HP between rounds and excluded those resets from damage. All 225 rounds had overlapping attacks, damage credit for both attackers and zero active casts at the recovery checkpoint. The server measured 374.3 seconds of dual overlap and 68,422 total HP damage.

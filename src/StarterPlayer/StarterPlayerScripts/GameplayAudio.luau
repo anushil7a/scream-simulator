@@ -2,6 +2,7 @@ local SoundService=game:GetService("SoundService")
 local Content=game:GetService("ContentProvider")
 local Settings=require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("GameplayAudioConfig"))
 local Mix=require(script.Parent:WaitForChild("CueAudioMix"))
+local isRoblox=typeof(game)=="Instance"
 local Audio={}
 function Audio.new()
  local destroyed=false;local ready={}
@@ -18,7 +19,7 @@ function Audio.new()
    parent=anchor
   end
   local sound=Instance.new("Sound");sound.Name="Gameplay"..kind;sound.SoundId=asset
-  sound.Looped=false;sound.Volume=0;sound.PlaybackSpeed=1;sound.PlayOnRemove=false
+  sound.Looped=false;sound.Volume=0;sound.PlaybackSpeed=isRoblox and Settings.Fallbacks and Settings.Fallbacks[kind] and Settings.Fallbacks[kind].Speed or 1;sound.PlayOnRemove=false
   sound.RollOffMode=Enum.RollOffMode.InverseTapered
   sound.RollOffMinDistance=Settings.NearDistance;sound.RollOffMaxDistance=Settings.Range
   sound.SoundGroup=group;sound.Parent=parent
@@ -40,20 +41,26 @@ function Audio.new()
  -- is allocated until cached; slow/failed loads never stall gameplay or play late.
  for kind in pairs(Settings.Cues) do
   local cueKind=kind;local asset=Settings.Asset(kind)
-  if asset then task.spawn(function()
-   for attempt=1,3 do
-    if destroyed then return end
-    local loaded=false
-    pcall(function()
-     Content:PreloadAsync({asset},function(_,status)
-      if status==Enum.AssetFetchStatus.Success then loaded=true end
-     end)
+  if asset then
+   if isRoblox and asset:sub(1,11)=="rbxasset://" then
+    ready[cueKind]=true
+   else
+    task.spawn(function()
+     for attempt=1,3 do
+      if destroyed then return end
+      local loaded=false
+      pcall(function()
+       Content:PreloadAsync({asset},function(_,status)
+        if status==Enum.AssetFetchStatus.Success then loaded=true end
+       end)
+      end)
+      if destroyed then return end
+      if loaded then ready[cueKind]=true;return end
+      if attempt<3 then task.wait(attempt) end
+     end
     end)
-    if destroyed then return end
-    if loaded then ready[cueKind]=true;return end
-    if attempt<3 then task.wait(attempt) end
    end
-  end) end
+  end
  end
  return mix
 end

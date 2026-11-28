@@ -160,3 +160,27 @@ def add(box, disk, line):
         a,c=i*math.tau/12,(i+1)*math.tau/12
         rail(f'StageMedallion{i}',[90+math.sin(a)*30,32.83,-330+math.cos(a)*30],
              [90+math.sin(c)*30,32.83,-330+math.cos(c)*30],1,.12,brass)
+
+    # First-upgrade slice architectural landmarks (matched to Blender 5.2 blueprints).
+    # Pylon frames the Spawn -> Rookie Courtyard approach; Totem marks Rookie Pad.
+    px, pz = -320, -276
+    b('PylonPlinth', [px, 32.45, pz], [3.2, .7, 3.2], [200, 168, 122], material='Sandstone')
+    b('PylonStep', [px, 33.05, pz], [2.4, .5, 2.4], ivory, material='Limestone')
+    d('PylonShaft', px, 35.1, pz, .75, 3.8, ivory, material='Limestone')
+    b('PylonRibA', [px, 35.1, pz], [1.72, 3.3, .24], [61, 48, 36], material='Metal')
+    b('PylonRibB', [px, 35.1, pz], [.24, 3.3, 1.72], [61, 48, 36], material='Metal')
+    d('PylonCollar', px, 37.2, pz, .95, .48, deep_teal, material='SmoothPlastic')
+    b('PylonFin', [px - .9, 37.9, pz - .3], [.32, 1.25, 1.1], brass, rot=[0, 35, 0], material='Metal', shape='Wedge')
+    d('PylonCore', px, 38.45, pz, .48, 1.4, [255, 198, 92], material='Neon')
+    d('PylonCap', px, 39.45, pz, .86, .48, [61, 48, 36], material='Metal')
+
+    tx, tz = -454, -378
+    b('TotemBase', [tx, 32.53, tz], [2.4, .55, 2.4], slate, material='Slate')
+    b('TotemPedestal', [tx, 33.7, tz], [1.75, 1.8, 1.75], slate, material='Slate')
+    b('TotemButtressX', [tx, 33.25, tz], [2.25, 1.1, .48], [194, 166, 122], material='Sandstone')
+    b('TotemButtressZ', [tx, 33.25, tz], [.48, 1.1, 2.25], [194, 166, 122], material='Sandstone')
+    d('TotemCollar', tx, 34.75, tz, .68, .3, brass, material='Metal')
+    for side in (-1, 1):
+        b(f'TotemStrut{side}', [tx + side * .62, 36.1, tz], [.2, 2.4, .2], [148, 158, 166], material='Metal')
+    b('TotemCrystal', [tx, 36.1, tz], [.68, 1.5, .26], [255, 199, 98], material='Neon')
+    b('TotemDish', [tx, 37.65, tz - .2], [.55, 2.5, 2.5], [122, 92, 56], rot=[0, 125, 25], material='Metal', shape='Cylinder')

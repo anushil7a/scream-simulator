@@ -63,7 +63,10 @@ function City.Build(parent,withMap10Finish)
    ocean.Name="OceanBackdrop";ocean.ModelStreamingMode=Enum.ModelStreamingMode.Persistent;ocean.Parent=parent
   end
   local p=part(oceanTile and ocean or parent,spec.id,spec.size,spec.position,spec.color,spec.collidable)
-  if oceanTile then p.CastShadow=false end
+  if oceanTile then
+   p.CastShadow=false
+   if id:match("^SeaHorizon") then p.Transparency=.14 end
+  end
   local r=spec.rotation or Vector3.zero;p.CFrame=CFrame.new(spec.position)*CFrame.Angles(0,math.rad(r.Y),0)*CFrame.Angles(math.rad(r.X),0,math.rad(r.Z))
   if spec.shape then p.Shape=Enum.PartType[spec.shape] end
   if spec.material then p.Material=Enum.Material[spec.material] end

@@ -34,7 +34,7 @@ local function starts(s,p) return string.sub(s,1,#p)==p end
 local function mark(part,title,face)
  local gui=Instance.new("SurfaceGui");gui.Name="LandmarkSign"
  gui.Face=face or Enum.NormalId.Front;gui.SizingMode=Enum.SurfaceGuiSizingMode.PixelsPerStud
- gui.PixelsPerStud=30;gui.LightInfluence=.4;gui.AlwaysOnTop=false
+ gui.PixelsPerStud=30;gui.LightInfluence=0;gui.AlwaysOnTop=false
  local text=Instance.new("TextLabel")
  text.Position=UDim2.fromScale(.065,.1);text.Size=UDim2.fromScale(.87,.8)
  text.Text=title;text.Font=Enum.Font.GothamBold;text.TextScaled=true
@@ -89,6 +89,10 @@ function Finish.Build(world)
   p.Parent=(pavilion and pavilions["Academy"..pavilion]) or district
   if names[id] then mark(p,names[id])
   elseif trainingNames[id] then mark(p,trainingNames[id],Enum.NormalId.Top) end
+  if material=="Neon" and (id:match("^CoastLanternGlass") or id:match("^CoastBeaconLens") or id=="NorthPylonCore" or id=="NorthTotemCrystal") then
+   local glow=Instance.new("PointLight");glow.Name="WarmAccent";glow.Color=Color3.fromRGB(255,214,148)
+   glow.Range=22;glow.Brightness=.75;glow.Shadows=false;glow.Parent=p
+  end
  end
  -- Attach the finished columns, roofs and their trim as a single streaming unit.
  for _,model in pairs(pavilions) do model.Parent=world end

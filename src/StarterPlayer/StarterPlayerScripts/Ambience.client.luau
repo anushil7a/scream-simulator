@@ -10,6 +10,8 @@ local replicated=game:GetService("ReplicatedStorage")
 local shared=replicated:WaitForChild("Shared");if destroyed then return end
 local configModule=shared:WaitForChild("Config");if destroyed then return end
 local Config=require(configModule);if destroyed or Config.ResonanceLayout then return end
+local Players=game:GetService("Players")
+local baseVolume=.55
 local assets={}
 local group=Instance.new("SoundGroup");group.Name="CityAmbience";group.Volume=.55;group.Parent=SoundService
 local folder=Instance.new("Folder");folder.Name="LocalCitySoundscape";folder.Parent=workspace
@@ -54,6 +56,12 @@ local heartbeat=Run.Heartbeat:Connect(function(dt)
   end
  end
  guitar.Volume+=((performing and .2 or 0)-guitar.Volume)*math.min(dt*3,1)
+ if Players and Players.LocalPlayer and group and baseVolume then
+  local lp=Players.LocalPlayer
+  local duck=lp:GetAttribute("SustainedActive")==true or lp:GetAttribute("BossAudioVoiceActive")==true
+  local target=baseVolume*(duck and .42 or 1)
+  group.Volume+=(target-group.Volume)*math.min(dt*6,1)
+ end
 end)
 local connection
 script.Destroying:Connect(function() destroyed=true;heartbeat:Disconnect();if connection then connection:Disconnect() end;folder:Destroy();group:Destroy() end)
@@ -64,7 +72,10 @@ if destroyed then return end
 connection=state.OnClientEvent:Connect(function(data)
  if destroyed then return end
  local volume=type(data)=="table" and type(data.settings)=="table" and data.settings.volume
- if type(volume)=="number" and volume==volume then group.Volume=math.clamp(volume,0,1) end
+ if type(volume)=="number" and volume==volume then
+  local clamped=math.clamp(volume,0,1)
+  baseVolume=clamped;group.Volume=clamped
+ end
 end)
 local action=remotes:WaitForChild("Action")
 if destroyed then return end

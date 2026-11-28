@@ -76,7 +76,7 @@ function Service.new(parent,callbacks)
    local a=i*2*math.pi/segments
    part(model,"Boundary",Vector3.new(1,.15,1),center+Vector3.new(math.cos(a)*spec.radius,.3,math.sin(a)*spec.radius),color).Material=Enum.Material.Neon
   end
-  local board=Instance.new("BillboardGui");board.Name="BossNameplate";board.Size=UDim2.fromOffset(296,32);board.StudsOffset=Vector3.new(0,math.max(8,5*spec.scale),0);board.MaxDistance=90;board.Parent=root
+  local board=Instance.new("BillboardGui");board.Name="BossNameplate";board.Size=UDim2.fromOffset(296,32);board.StudsOffset=Vector3.new(0,math.max(5.5,3.2*spec.scale),0);board.MaxDistance=90;board.Parent=root
   local label=Instance.new("TextLabel");label.Name="NameAndLevel";label.Size=UDim2.new(1,-16,1,0);label.Position=UDim2.fromOffset(8,0);label.BackgroundTransparency=.25;label.BackgroundColor3=Color3.fromRGB(20,20,35);label.TextColor3=color;label.TextSize=14;label.TextWrapped=false;label.Text=spec.name.." · Lv "..spec.level;label.Parent=board
   local b=Rules.New(spec);b.spec=spec;b.model=model;b.root=root;b.center=center;b.label=label;b.targets={};b.motion=Motion.New();phase(b,"Idle")
   model:SetAttribute("BossMaxHealth",spec.health);model:SetAttribute("BossHealth",b.health)

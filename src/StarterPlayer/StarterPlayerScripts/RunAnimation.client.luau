@@ -78,7 +78,7 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
   if rig.airborne and grounded then rig.landing=now end
   rig.airborne=not grounded
   if not rig.root.Parent or not rig.humanoid.Parent or rig.humanoid.Health<=0 or rig.humanoid.Sit or rig.humanoid.SeatPart or rig.humanoid.PlatformStand or now<(player:GetAttribute("KnockdownEnds") or 0) then
-   rig.charge=0;rig.blend=0;rig.airborne=false;rig.landing=0
+   rig.charge=0;rig.blend=0;rig.airborne=false;rig.landing=0;rig.wasSustained=false;rig.sustainedStart=0;rig.sustainedEnd=0
    rig.character:SetAttribute("RollAnimationProgress",-1)
    rig.character:SetAttribute("DodgeAnimationProgress",-1)
    rig.character:SetAttribute("SprintAnimationBlend",0)
@@ -112,11 +112,16 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
   -- Both attack modes use accepted server state; movement input never fires attacks.
   -- Sustained attacks hold the existing braced scream pose until cancellation,
   -- then blend back into the default Animator instead of snapping to idle.
-  local charging=(player:GetAttribute("CaptureStarted") or 0)>0 or player:GetAttribute("SustainedActive")==true
+  local sustained=player:GetAttribute("SustainedActive")==true
+  if sustained and not rig.wasSustained then rig.sustainedStart=now elseif not sustained and rig.wasSustained then rig.sustainedEnd=now end
+  rig.wasSustained=sustained
+  local charging=(player:GetAttribute("CaptureStarted") or 0)>0 or sustained
   rig.charge+=((charging and 1 or 0)-rig.charge)*math.min(dt*14,1)
-  local released=player:GetAttribute("ScreamReleased") or 0
+  local launchAge=now-(rig.sustainedStart or -1)
+  local onset=launchAge>=0 and launchAge<.18 and math.sin(launchAge/.18*math.pi) or 0
+  local released=math.max(player:GetAttribute("ScreamReleased") or 0,rig.sustainedEnd or 0)
   local age=now-released
-  local recoil=age>=0 and age<.38 and math.sin(age/.38*math.pi) or 0
+  local recoil=age>=0 and age<.36 and math.sin(age/.36*math.pi) or 0
   local charge=rig.charge
   for _,name in ipairs({"Left Shoulder","LeftShoulder"}) do pose(name,CFrame.Angles(-.65*charge-.9*recoil,0,-.32*charge)) end
   local gear=rig.character:FindFirstChild("ProgressionGear")
@@ -137,8 +142,8 @@ table.insert(connections,Run.PreSimulation:Connect(function(dt)
    pose("RightElbow",CFrame.identity,false,charge)
    pose("RightWrist",CFrame.Angles(-.85,0,0),false,charge)
   end
-  pose("Waist",CFrame.Angles(.12*charge-.28*recoil,0,0))
-  pose("Neck",CFrame.Angles(-.12*charge+.1*recoil,0,0))
+  pose("Waist",CFrame.Angles(.12*charge+.09*onset-.28*recoil,0,0))
+  pose("Neck",CFrame.Angles(-.12*charge-.08*onset+.1*recoil,0,0))
   if not grounded and rig.humanoid:GetState()~=Enum.HumanoidStateType.Swimming then
    local rising=v.Y>1
    local bend=rising and .26 or -.13

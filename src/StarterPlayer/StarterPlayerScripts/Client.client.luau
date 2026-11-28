@@ -308,7 +308,7 @@ end,Color3.fromRGB(78,55,27))
 academy.passesToggle.TextColor3=gold;academy.passesToggle.Visible=false
 academy.surface(academy.passesToggle,gold)
 do
- local signal=frame(academy.passesToggle,"StoreSignal",UDim2.fromOffset(24,2),UDim2.new(.5,-12,1,-8),gold)
+ local signal=frame(academy.passesToggle,"StoreSignal",UDim2.fromOffset(24,2),UDim2.new(.5,-12,1,-6),gold)
  signal.Interactable=false;signal.Active=false;signal.Selectable=false
 end
 local function questLauncherText()
@@ -669,9 +669,13 @@ do
  local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,7);corner.Parent=hitText
  local padding=Instance.new("UIPadding");padding.PaddingLeft=UDim.new(0,10);padding.PaddingRight=padding.PaddingLeft;padding.Parent=hitText
 end
-local aimInfo=label(gui,"",UDim2.fromOffset(290,48),UDim2.new(.5,-145,.5,25),14,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
-aimInfo.Font=Enum.Font.GothamBold
+local aimInfo=label(gui,"",UDim2.fromOffset(310,40),UDim2.new(.5,-155,.5,-56),14,gold);aimInfo.TextXAlignment=Enum.TextXAlignment.Center
+aimInfo.Font=Enum.Font.GothamBold;aimInfo.BackgroundColor3=dark;aimInfo.BackgroundTransparency=1
 aimInfo.TextStrokeColor3=dark;aimInfo.TextStrokeTransparency=.12
+do
+ local corner=Instance.new("UICorner");corner.CornerRadius=UDim.new(0,8);corner.Parent=aimInfo
+ local stroke=Instance.new("UIStroke");stroke.Name="AimEdge";stroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;stroke.Color=gold;stroke.Transparency=1;stroke.Thickness=1;stroke.Parent=aimInfo
+end
 local reportedReady=nil;local readyReportAt=0
 local dodgeButton=button(controls,"Dodge","DODGE  [Q]",UDim2.fromOffset(108,32),UDim2.fromOffset(0,52),dodge);academy.surface(dodgeButton)
 function academy.trainingHeadAt(ray,distance)
@@ -767,6 +771,20 @@ local function residentTargetInfo(model,humanoid,far,currentFar,covered,position
  local status=outsidePad and "MOVE TOWARD PAD CENTER" or far and "OUT OF MAX RANGE" or currentFar and "BEYOND CURRENT RANGE" or covered and "BEHIND COVER"
   or (model:GetAttribute("TrainingTier")~=nil and "TRAINING FIGHTER" or "CITY RESIDENT")
  return string.format("%s\n%s",model:GetAttribute("DisplayName") or model.Name,status),not outsidePad and not far and not currentFar and not covered
+end
+local function bossTargetInfo(labelText,requiredLevel,playerLevel,health,maxHealth,phase,outsideRing,far,currentFar,covered)
+ if type(health)~="number" or health<=0 or phase=="Defeated" then return nil,false end
+ local locked=type(requiredLevel)=="number" and (playerLevel or 1)<requiredLevel
+ local hpSuffix=type(maxHealth)=="number" and maxHealth>0 and string.format(" · %d/%d",math.ceil(health),math.ceil(maxHealth)) or ""
+ local status=locked and ("REQUIRES LV "..requiredLevel)
+  or outsideRing and "STEP INTO RING TO FIGHT"
+  or far and "OUT OF MAX RANGE"
+  or currentFar and "BEYOND CURRENT RANGE"
+  or covered and "BEHIND COVER"
+  or phase=="Windup" and ("INCOMING ATTACK · DODGE"..hpSuffix)
+  or phase=="Recovery" and ("OPENING · STRIKE NOW"..hpSuffix)
+  or ("BOSS · HIT TO FIGHT"..hpSuffix)
+ return string.format("%s\n%s",labelText,status),not locked and not outsideRing and not far and not currentFar and not covered
 end
 local sprintButton=button(controls,"Sprint","SPRINT [SHIFT]",UDim2.fromOffset(144,32),UDim2.fromOffset(116,52),function() setSprint(not sprinting) end);academy.surface(sprintButton)
 do
@@ -1075,6 +1093,178 @@ ownClient(function() modal.Visible=false;renderedMenuKey=nil;renderRevision+=1 e
 academy.NavigationCatalog=loadClientDependency(shared,"NavigationCatalog");if not clientCheckpoint() then return end
 academy.TrainingRules=loadClientDependency(shared,"TrainingRules");if not clientCheckpoint() then return end
 academy.BossCatalog=loadClientDependency(shared,"BossCatalog");if not clientCheckpoint() then return end
+do
+ local launchCue
+ ownClient(function() if launchCue then launchCue:Stop();launchCue:Destroy();launchCue=nil end end)
+
+ local launchFovAt,hitFovAt,appliedFovOffset=-10,-10,0
+ local function clearCameraImpulse()
+  local camera=workspace.CurrentCamera
+  if camera and appliedFovOffset~=0 then camera.FieldOfView=math.clamp(camera.FieldOfView-appliedFovOffset,30,120) end
+  appliedFovOffset=0;launchFovAt=-10;hitFovAt=-10
+ end
+ ownClient(clearCameraImpulse)
+
+ local strikeAnchor,outerRim,timingRing
+ local function ensureStrikeRing()
+  if strikeAnchor then return end
+  strikeAnchor=Instance.new("Part")
+  strikeAnchor.Name="LocalTrainingStrikeRing";strikeAnchor.Size=Vector3.new(.2,.2,.2)
+  strikeAnchor.Anchored=true;strikeAnchor.CanCollide=false;strikeAnchor.CanTouch=false;strikeAnchor.CanQuery=false;strikeAnchor.CastShadow=false;strikeAnchor.Transparency=1
+  outerRim=Instance.new("CylinderHandleAdornment")
+  outerRim.Name="StrikeOuterRim";outerRim.Adornee=strikeAnchor;outerRim.CFrame=CFrame.Angles(math.pi/2,0,0)
+  outerRim.Angle=360;outerRim.Height=.06;outerRim.Color3=Color3.fromRGB(255,224,158);outerRim.Transparency=.16;outerRim.Parent=gui
+  timingRing=Instance.new("CylinderHandleAdornment")
+  timingRing.Name="StrikeTimingRing";timingRing.Adornee=strikeAnchor;timingRing.CFrame=CFrame.Angles(math.pi/2,0,0)
+  timingRing.Angle=360;timingRing.Height=.07;timingRing.Color3=Color3.fromRGB(255,112,102);timingRing.Transparency=.12;timingRing.Parent=gui
+ end
+ local function clearStrikeRing() if strikeAnchor then strikeAnchor.Parent=nil;outerRim.Visible=false;timingRing.Visible=false end end
+ ownClient(function() if strikeAnchor then clearStrikeRing();outerRim:Destroy();timingRing:Destroy();strikeAnchor:Destroy();strikeAnchor=nil end end)
+
+ local hitHighlight
+ local hitFlashUntil=0
+ local function clearHitFlash()
+  hitFlashUntil=0
+  if hitHighlight then hitHighlight.Enabled=false;hitHighlight.Adornee=nil end
+ end
+ ownClient(function() if hitHighlight then clearHitFlash();hitHighlight:Destroy();hitHighlight=nil end end)
+
+ local function clearCombatFeedback(all)
+  clearCameraImpulse()
+  if all then clearStrikeRing();clearHitFlash() end
+ end
+ connectClient(p.CharacterRemoving,function() clearCombatFeedback(true) end)
+ connectClient(UIS.WindowFocusReleased,function() clearCombatFeedback(false) end)
+ connectClient(GuiService.MenuOpened,function() clearCombatFeedback(false) end)
+ do
+  local comfortOk,comfortSignal=pcall(function() return GuiService:GetPropertyChangedSignal("ReducedMotionEnabled") end)
+  if comfortOk then connectClient(comfortSignal,function()
+   local ok,value=pcall(function() return GuiService.ReducedMotionEnabled end)
+   if not ok or value==true then clearCombatFeedback(true) end
+  end) end
+ end
+ function academy.hitFov()
+  if not (data.settings.reducedShake or platformReducedMotion) then hitFovAt=os.clock() end
+ end
+ function academy.flashHitTarget(pos)
+  if typeof(pos)~="Vector3" or data.settings.reducedShake or platformReducedMotion then return end
+  local best,bestDist=nil,9
+  for _,model in ipairs(game:GetService("CollectionService"):GetTagged("CityResident")) do
+   if model:GetAttribute("ResidentActive")~=false then
+    local r=model:FindFirstChild("HumanoidRootPart")
+    if r then local d=(r.Position-pos).Magnitude;if d<bestDist then best=model;bestDist=d end end
+   end
+  end
+  if not best then
+   local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+   local encounters=world and world:FindFirstChild("BossEncounters")
+   if encounters then
+    bestDist=18
+    for _,boss in ipairs(encounters:GetChildren()) do
+     local core=boss:FindFirstChild("Core")
+     if core and core:IsA("BasePart") and (boss:GetAttribute("BossHealth") or 0)>0 then
+      local d=(core.Position-pos).Magnitude;if d<bestDist then best=boss;bestDist=d end
+     end
+    end
+   end
+  end
+  if best then
+   if not hitHighlight then
+    hitHighlight=Instance.new("Highlight")
+    hitHighlight.Name="BeamHitFlash";hitHighlight.DepthMode=Enum.HighlightDepthMode.Occluded
+    hitHighlight.FillColor=Color3.fromRGB(255,244,214);hitHighlight.OutlineColor=gold
+    hitHighlight.FillTransparency=1;hitHighlight.OutlineTransparency=1;hitHighlight.Parent=gui
+   end
+   hitHighlight.Adornee=best;hitHighlight.Enabled=true;hitFlashUntil=os.clock()+.12
+  end
+ end
+ function academy.onLaunchFeedback()
+  if gameplayAudio and gameplayAudio.enabled and mic and mic.phase==nil then
+   if not launchCue then
+    local ok,soundService=pcall(function() return game:GetService("SoundService") end)
+    launchCue=Instance.new("Sound")
+    launchCue.Name="BeamLaunchCue";launchCue.SoundId="rbxasset://sounds/action_jump.mp3"
+    launchCue.PlaybackSpeed=1.28;launchCue.Volume=.07;launchCue.Looped=false;launchCue.PlayOnRemove=false
+    launchCue.Parent=(ok and soundService) or workspace
+   end
+   launchCue.TimePosition=0;launchCue:Play()
+  end
+  if screenFeedbackAllowed() and not (data.settings.reducedShake or platformReducedMotion) then launchFovAt=os.clock() end
+ end
+ function academy.stepCombatFeedback(serverNow,alive,arenaActive,character)
+  local cam=workspace.CurrentCamera
+  local fxClock=os.clock()
+  local desired=0
+  if cam and screenFeedbackAllowed() and not (data.settings.reducedShake or platformReducedMotion) then
+   local lt=(fxClock-launchFovAt)/.22
+   if lt>=0 and lt<1 then desired+=1.8*math.sin(lt*math.pi) end
+   local ht=(fxClock-hitFovAt)/.15
+   if ht>=0 and ht<1 then desired+=.8*math.sin(ht*math.pi) end
+   desired=math.min(2.2,desired)
+  elseif not cam then appliedFovOffset=0 end
+  if cam and desired~=appliedFovOffset then
+   cam.FieldOfView=math.clamp(cam.FieldOfView+(desired-appliedFovOffset),30,120)
+   appliedFovOffset=desired
+  end
+  local strikeAt=character and alive and not arenaActive and character:GetAttribute("TrainingStrikeAt")
+  local strikeCenter=type(strikeAt)=="number" and serverNow<strikeAt and character:GetAttribute("TrainingStrikeCenter")
+  if typeof(strikeCenter)=="Vector3" then
+   ensureStrikeRing()
+   local radius=academy.TrainingRules.StrikeRadius
+   strikeAnchor.CFrame=CFrame.new(strikeCenter+Vector3.new(0,.14,0))
+   outerRim.Radius=radius;outerRim.InnerRadius=radius-.24;outerRim.Visible=true
+   if data.settings.reducedShake or platformReducedMotion then
+    timingRing.Visible=false
+   else
+    local windup=academy.TrainingRules.Windup or 1.1
+    local frac=1-math.clamp((strikeAt-serverNow)/windup,0,1)
+    local inner=math.max(.6,radius*(1-frac*.85))
+    timingRing.Radius=inner;timingRing.InnerRadius=math.max(0,inner-.34);timingRing.Visible=true
+   end
+   if strikeAnchor.Parent~=workspace then strikeAnchor.Parent=workspace end
+  elseif strikeAnchor and strikeAnchor.Parent then
+   clearStrikeRing()
+  end
+  if hitHighlight and hitHighlight.Enabled then
+   local rem=(hitFlashUntil-os.clock())/.12
+   if rem<=0 or data.settings.reducedShake or platformReducedMotion then
+    clearHitFlash()
+   else
+    hitHighlight.FillTransparency=1-.35*rem
+    hitHighlight.OutlineTransparency=1-.8*rem
+   end
+  end
+ end
+end
+function academy.bossAt(ray,distance)
+ local world=workspace:FindFirstChild("ScreamSimulatorWorld")
+ local encounters=world and world:FindFirstChild("BossEncounters")
+ if not encounters then return nil end
+ local picked,bestHit,bestEnter=nil,nil,distance
+ for _,boss in ipairs(encounters:GetChildren()) do
+  local health=boss:GetAttribute("BossHealth")
+  local phase=boss:GetAttribute("BossState")
+  local core=boss:FindFirstChild("Core")
+  if type(health)=="number" and health>0 and phase~="Defeated" and core and core:IsA("BasePart") then
+   local origin=core.CFrame:PointToObjectSpace(ray.Origin)
+   local direction=core.CFrame:VectorToObjectSpace(ray.Direction)
+   local half=core.Size/2
+   local enter,leave=0,bestEnter
+   for _,axis in ipairs({"X","Y","Z"}) do
+    local start,speed,extent=origin[axis],direction[axis],half[axis]
+    if math.abs(speed)<.00001 then
+     if math.abs(start)>extent then enter=math.huge;break end
+    else
+     local a,b=(-extent-start)/speed,(extent-start)/speed
+     enter=math.max(enter,math.min(a,b));leave=math.min(leave,math.max(a,b))
+     if enter>leave then break end
+    end
+   end
+   if enter<=leave and enter<bestEnter then picked=boss;bestEnter=enter;bestHit=ray.Origin+ray.Direction*enter end
+  end
+ end
+ return picked,bestHit
+end
 academy.NavigationGuide=loadClientDependency(script.Parent,"NavigationGuide");if not clientCheckpoint() then return end
 academy.guide=academy.NavigationGuide.new(gui,function(ground)
  -- Apply the City combat bounds to a standing avatar above the validated ground sample.
@@ -1265,7 +1455,7 @@ function academy.layoutObjectiveNav(viewport,touch,stacked,gamepad)
  top.Position=UDim2.fromOffset(14,stacked and 0 or (touch or viewport.X<820) and 2 or 12)
  shop.Size=UDim2.fromOffset(menuWidth,touch and 46 or 36)
  academy.refreshMenuCaption(menuWidth,touch,gamepad)
- academy.passesToggle.Size=UDim2.fromOffset(passesWidth,46)
+ academy.passesToggle.Size=UDim2.fromOffset(passesWidth,(touch or compact) and 46 or 36)
  academy.passesToggle.Position=UDim2.fromOffset(menuWidth+6,0)
  academy.passesToggle.TextSize=narrowNav and 11 or 13
  local nextX=menuWidth+passesWidth+12
@@ -2115,6 +2305,8 @@ connectClient(remotes.Effect.OnClientEvent,function(kind,pos,id,aura,direction,l
  if kind=="SustainedHit" then
   if hitFeedback:Accept(id,aura,os.clock()) then
    playGameplayCue("Hit");beamScreenFeedback:Hit(os.clock(),screenFeedbackAllowed())
+   if screenFeedbackAllowed() and academy.hitFov then academy.hitFov() end
+   if academy.flashHitTarget then academy.flashHitTarget(pos) end
    if id==academy.attackCueSequence then academy.attackCueUntil=nil end
    if sustainedBeams and typeof(pos)=="Vector3" then
     local attack=sustainedControl and sustainedControl.attack
@@ -2291,7 +2483,7 @@ connectClient(Run.RenderStepped,function(dt)
  local compactVoice=not showVoiceMeter
  meter.Visible=gameplayVisible and showVoiceMeter;reticle.Visible=usesCenterAim() and gameplayVisible
  local power=academy.VoiceReactor.Power(captureSource and mic:CapturePower() or mic.power)
- academy.reactor:Step(power,dt,data.settings.reducedShake or platformReducedMotion,mic.ready and (not sustainedControl or sustainedControl.armed))
+ academy.reactor:Step(power,dt,data.settings.reducedShake or platformReducedMotion,mic.ready)
  local beamStats=Config.VoiceCombat.Stats(data.level,power,data.amplifierEquipped,data.megaphoneEquipped,data.gearMultiplier)
  local range=beamStats.range
  local captureRemaining=mic.captureStarted and math.max(0,Config.VoiceCombat.MaxCapture-(os.clock()-mic.captureStarted)) or 0
@@ -2563,6 +2755,7 @@ connectClient(Run.RenderStepped,function(dt)
    launchColor=Color3.fromHex(data.customColor)
   end
   beamScreenFeedback:Begin(screenAttack.sequence,os.clock(),launchColor,screenFeedbackAllowed())
+  if academy.onLaunchFeedback then academy.onLaunchFeedback() end
  end
  -- Pause queue time while covered, too small, interacting, or overflow remains unseen.
  local noticeMap=not academy.hideMap and CityMap.MiniLayout(viewport,touch,data.devAccess==true) or nil
@@ -2612,6 +2805,7 @@ connectClient(Run.RenderStepped,function(dt)
    gui,hud,tracked,academy.guidePanel,testButton,noticeView.root,talkButton,meter,controls,zone,saveNotice,miniMapButton)
  end
  beamScreenFeedback:Step(os.clock(),screenFeedbackAllowed(),data.settings.reducedShake or platformReducedMotion)
+ if academy.stepCombatFeedback then academy.stepCombatFeedback(serverNow,alive,arenaActive,character) end
  cueContext();gameplayAudio:Step(os.clock(),dt)
  -- Audio consumes frame dt; keep ducking/calibration/fades outside the slow HUD gate.
  attackAudio:Step(os.clock(),dt,mic.ready and mic.power>.12,mic.phase~=nil)
@@ -2661,8 +2855,35 @@ connectClient(Run.RenderStepped,function(dt)
     end
    end
    aimInfo.TextColor3=(data.level<required or far or currentFar) and muted or gold
+  elseif ray then
+   local bossModel,bossHitPos=academy.bossAt(ray,hit and hit.Distance or 1000)
+   local bossCore=bossModel and bossModel:FindFirstChild("Core")
+   local bossRoot=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+   if bossModel and bossCore and bossRoot then
+    local spec
+    for _,entry in ipairs(academy.BossCatalog.Entries) do
+     if entry.id==bossModel.Name then spec=entry;break end
+    end
+    local labelText=spec and (spec.name.." · LV "..spec.level) or bossModel.Name
+    local reqLevel=spec and spec.level or 1
+    local radius=spec and spec.radius or 38
+    local pad=(spec and spec.scale or 1)*2
+    local bx,bz=spec and spec.x or bossCore.Position.X,spec and spec.z or bossCore.Position.Z
+    local by=spec and (spec.y or 0) or (bossCore.Position.Y-(spec and spec.aimHeight or 14))
+    local dx,dy,dz=bossRoot.Position.X-bx,bossRoot.Position.Y-by,bossRoot.Position.Z-bz
+    local outsideRing=math.abs(dy)>(spec and spec.engageHeight or 12) or dx*dx+dz*dz>radius*radius
+    local bossStats={range=beamStats.range+pad,maxRange=beamStats.maxRange+pad}
+    local far,currentFar,origin=beamTargetRange(bossRoot,bossCore,bossHitPos,bossStats,false)
+    local covered=data.level>=reqLevel and not outsideRing and not far and not currentFar and targetCovered(origin,bossCore,bossModel,bossHitPos)
+    local text,available=bossTargetInfo(labelText,reqLevel,data.level,bossModel:GetAttribute("BossHealth"),bossModel:GetAttribute("BossMaxHealth"),bossModel:GetAttribute("BossState"),outsideRing,far,currentFar,covered)
+    aimInfo.Text=text or "";aimInfo.TextColor3=available and gold or (data.level<reqLevel and muted or white)
+   end
   end
  end
+ local aimShown=aimInfo.Visible and aimInfo.Text~=""
+ aimInfo.BackgroundTransparency=aimShown and .14 or 1
+ local aimEdge=aimInfo:FindFirstChild("AimEdge")
+ if aimEdge then aimEdge.Transparency=aimShown and .35 or 1 end
  if mapDot then CityMap.update(mapDot,root) end
  local miniVisible=miniMapAvailable and gameplayVisible and windowFocused and not modal.Visible and not (conversationPanel and conversationPanel.Visible) and not academy.testLauncherBlocked
  if miniMapButton then miniMapButton.Visible=miniVisible end

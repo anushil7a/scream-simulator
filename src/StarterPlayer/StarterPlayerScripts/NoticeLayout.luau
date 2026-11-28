@@ -24,6 +24,11 @@ function Layout.Get(width,height,touch,map,testTools,talkVisible,statusPosition,
    result.height=math.max(0,math.floor(math.min(height*.35,bottom-result.y)))
    result.available=result.height>=44
   end
+ elseif not touch and objectiveBottom and objectiveBottom>66 and result.available and result.y<objectiveBottom+8 then
+  local shiftedY=math.ceil(objectiveBottom+8)
+  result.y=shiftedY
+  result.height=math.max(0,math.floor(math.min(height*.35,bottom-shiftedY)))
+  result.available=result.height>=44
  end
  if not touch and talkVisible then
   local talkX=width/2-60

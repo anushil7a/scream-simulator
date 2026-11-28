@@ -106,3 +106,14 @@ def add(box, disk, line):
     for i,x in enumerate([180,188]):
         disk(f'CoastBollard{i}',x,1,599,1.2,2,timber,material='Wood')
         disk(f'CoastBollardCap{i}',x,2.1,599,1.6,.35,brass)
+
+    # Coastal Promenade Acoustic Beacons flanking the Timber Pier approach.
+    teal_copper = (46, 142, 134)
+    for i, bx in enumerate((-242, -198)):
+        bz = 444
+        disk(f'CoastBeaconBase{i}', bx, .3, bz, 1.85, .6, sand, material='Sandstone')
+        disk(f'CoastBeaconShaft{i}', bx, 2.7, bz, 1.32, 4.2, endgrain, material='WoodPlanks')
+        disk(f'CoastBeaconGallery{i}', bx, 5.05, bz, 1.68, .44, iron, material='Metal')
+        disk(f'CoastBeaconLens{i}', bx, 6.1, bz, .88, 1.65, amber, material='Neon')
+        disk(f'CoastBeaconEave{i}', bx, 7.12, bz, 1.48, .32, teal_copper, material='Metal')
+        disk(f'CoastBeaconCap{i}', bx, 7.65, bz, 1.05, .8, teal_copper, material='Metal')

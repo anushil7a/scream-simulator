@@ -14,11 +14,19 @@ local Config = {
   Break = {AssetId = "", Cooldown = .12, Lifetime = .55, Spatial = true},
   LevelUp = {AssetId = "", Cooldown = 1, Lifetime = .80, Spatial = false},
  },
+ Fallbacks = {
+  Hit = {Asset = "rbxasset://sounds/action_jump_land.mp3", Speed = 1.22},
+  Dodge = {Asset = "rbxasset://sounds/action_get_up.mp3", Speed = 1.16},
+  Break = {Asset = "rbxasset://sounds/impact_explosion_03.mp3", Speed = 0.96},
+  LevelUp = {Asset = "rbxasset://sounds/volume_slider.ogg", Speed = 1.24},
+ },
 }
 function Config.Asset(kind)
  local cue=Config.Cues[kind]
  local id=cue and cue.AssetId
- return type(id)=="string" and id:match("^[1-9]%d*$") and "rbxassetid://"..id or nil
+ if type(id)=="string" and id:match("^[1-9]%d*$") then return "rbxassetid://"..id end
+ local fb=typeof(game)=="Instance" and Config.Fallbacks[kind]
+ return fb and fb.Asset or nil
 end
 function Config.Ready()
  for kind in pairs(Config.Cues) do if Config.Asset(kind) then return true end end

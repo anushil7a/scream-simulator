@@ -1,8 +1,8 @@
 {
  "groups": {
-  "North": 307,
+  "North": 325,
   "East": 219,
-  "Coast": 270,
+  "Coast": 282,
   "Stadium": 144,
   "Landmark": 130
  },
@@ -5399,7 +5399,7 @@
    "size": [
     1.2,
     1.2,
-    22.504725389117855
+    22.50472538911785
    ],
    "color": [
     240,
@@ -5626,7 +5626,7 @@
   {
    "id": "NorthGarden1Edging3",
    "position": [
-    21.338117195261034,
+    21.33811719526103,
     16.8,
     41.3020923735243
    ],
@@ -5642,7 +5642,7 @@
    ],
    "rotation": [
     -0.0,
-    39.599999999999994,
+    39.59999999999999,
     0
    ],
    "material": "SmoothPlastic",
@@ -5860,14 +5860,14 @@
   {
    "id": "NorthGarden2Edging3",
    "position": [
-    -23.661882804738966,
+    -23.66188280473897,
     16.8,
     81.30209237352432
    ],
    "size": [
     1.2,
     1.2,
-    22.504725389117855
+    22.50472538911785
    ],
    "color": [
     240,
@@ -7186,7 +7186,7 @@
   {
    "id": "NorthMusicFacade1",
    "position": [
-    179.09545442950497,
+    179.095454429505,
     38,
     -240.904545570495
    ],
@@ -7212,7 +7212,7 @@
   {
    "id": "NorthMusicFacadeInlay1",
    "position": [
-    179.09545442950497,
+    179.095454429505,
     41,
     -240.884545570495
    ],
@@ -7805,6 +7805,474 @@
    ],
    "material": "SmoothPlastic",
    "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthPylonPlinth",
+   "position": [
+    -320,
+    32.45,
+    -276
+   ],
+   "size": [
+    3.2,
+    0.7,
+    3.2
+   ],
+   "color": [
+    200,
+    168,
+    122
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Sandstone",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthPylonStep",
+   "position": [
+    -320,
+    33.05,
+    -276
+   ],
+   "size": [
+    2.4,
+    0.5,
+    2.4
+   ],
+   "color": [
+    240,
+    225,
+    191
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Limestone",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthPylonShaft",
+   "position": [
+    -320,
+    35.1,
+    -276
+   ],
+   "size": [
+    3.8,
+    1.5,
+    1.5
+   ],
+   "color": [
+    240,
+    225,
+    191
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Limestone",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "NorthPylonRibA",
+   "position": [
+    -320,
+    35.1,
+    -276
+   ],
+   "size": [
+    1.72,
+    3.3,
+    0.24
+   ],
+   "color": [
+    61,
+    48,
+    36
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Metal",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthPylonRibB",
+   "position": [
+    -320,
+    35.1,
+    -276
+   ],
+   "size": [
+    0.24,
+    3.3,
+    1.72
+   ],
+   "color": [
+    61,
+    48,
+    36
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Metal",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthPylonCollar",
+   "position": [
+    -320,
+    37.2,
+    -276
+   ],
+   "size": [
+    0.48,
+    1.9,
+    1.9
+   ],
+   "color": [
+    35,
+    91,
+    94
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "SmoothPlastic",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "NorthPylonFin",
+   "position": [
+    -320.9,
+    37.9,
+    -276.3
+   ],
+   "size": [
+    0.32,
+    1.25,
+    1.1
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    0,
+    35,
+    0
+   ],
+   "material": "Metal",
+   "shape": "Wedge",
+   "collidable": false
+  },
+  {
+   "id": "NorthPylonCore",
+   "position": [
+    -320,
+    38.45,
+    -276
+   ],
+   "size": [
+    1.4,
+    0.96,
+    0.96
+   ],
+   "color": [
+    255,
+    198,
+    92
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Neon",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "NorthPylonCap",
+   "position": [
+    -320,
+    39.45,
+    -276
+   ],
+   "size": [
+    0.48,
+    1.72,
+    1.72
+   ],
+   "color": [
+    61,
+    48,
+    36
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Metal",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "NorthTotemBase",
+   "position": [
+    -454,
+    32.53,
+    -378
+   ],
+   "size": [
+    2.4,
+    0.55,
+    2.4
+   ],
+   "color": [
+    44,
+    67,
+    72
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Slate",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTotemPedestal",
+   "position": [
+    -454,
+    33.7,
+    -378
+   ],
+   "size": [
+    1.75,
+    1.8,
+    1.75
+   ],
+   "color": [
+    44,
+    67,
+    72
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Slate",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTotemButtressX",
+   "position": [
+    -454,
+    33.25,
+    -378
+   ],
+   "size": [
+    2.25,
+    1.1,
+    0.48
+   ],
+   "color": [
+    194,
+    166,
+    122
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Sandstone",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTotemButtressZ",
+   "position": [
+    -454,
+    33.25,
+    -378
+   ],
+   "size": [
+    0.48,
+    1.1,
+    2.25
+   ],
+   "color": [
+    194,
+    166,
+    122
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Sandstone",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTotemCollar",
+   "position": [
+    -454,
+    34.75,
+    -378
+   ],
+   "size": [
+    0.3,
+    1.36,
+    1.36
+   ],
+   "color": [
+    187,
+    137,
+    62
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Metal",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "NorthTotemStrut-1",
+   "position": [
+    -454.62,
+    36.1,
+    -378
+   ],
+   "size": [
+    0.2,
+    2.4,
+    0.2
+   ],
+   "color": [
+    148,
+    158,
+    166
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Metal",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTotemStrut1",
+   "position": [
+    -453.38,
+    36.1,
+    -378
+   ],
+   "size": [
+    0.2,
+    2.4,
+    0.2
+   ],
+   "color": [
+    148,
+    158,
+    166
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Metal",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTotemCrystal",
+   "position": [
+    -454,
+    36.1,
+    -378
+   ],
+   "size": [
+    0.68,
+    1.5,
+    0.26
+   ],
+   "color": [
+    255,
+    199,
+    98
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "material": "Neon",
+   "shape": null,
+   "collidable": false
+  },
+  {
+   "id": "NorthTotemDish",
+   "position": [
+    -454,
+    37.65,
+    -378.2
+   ],
+   "size": [
+    0.55,
+    2.5,
+    2.5
+   ],
+   "color": [
+    122,
+    92,
+    56
+   ],
+   "rotation": [
+    0,
+    125,
+    25
+   ],
+   "material": "Metal",
+   "shape": "Cylinder",
    "collidable": false
   },
   {
@@ -13493,7 +13961,7 @@
     77
    ],
    "rotation": [
-    8.48528137423857,
+    8.485281374238571,
     45.0,
     11.313708498984761
    ],
@@ -20626,6 +21094,318 @@
    "collidable": false
   },
   {
+   "id": "CoastBeaconBase0",
+   "position": [
+    -242,
+    0.3,
+    444
+   ],
+   "size": [
+    0.6,
+    3.7,
+    3.7
+   ],
+   "color": [
+    226,
+    199,
+    145
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Sandstone",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconShaft0",
+   "position": [
+    -242,
+    2.7,
+    444
+   ],
+   "size": [
+    4.2,
+    2.64,
+    2.64
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "WoodPlanks",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconGallery0",
+   "position": [
+    -242,
+    5.05,
+    444
+   ],
+   "size": [
+    0.44,
+    3.36,
+    3.36
+   ],
+   "color": [
+    49,
+    77,
+    76
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Metal",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconLens0",
+   "position": [
+    -242,
+    6.1,
+    444
+   ],
+   "size": [
+    1.65,
+    1.76,
+    1.76
+   ],
+   "color": [
+    255,
+    209,
+    132
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Neon",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconEave0",
+   "position": [
+    -242,
+    7.12,
+    444
+   ],
+   "size": [
+    0.32,
+    2.96,
+    2.96
+   ],
+   "color": [
+    46,
+    142,
+    134
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Metal",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconCap0",
+   "position": [
+    -242,
+    7.65,
+    444
+   ],
+   "size": [
+    0.8,
+    2.1,
+    2.1
+   ],
+   "color": [
+    46,
+    142,
+    134
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Metal",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconBase1",
+   "position": [
+    -198,
+    0.3,
+    444
+   ],
+   "size": [
+    0.6,
+    3.7,
+    3.7
+   ],
+   "color": [
+    226,
+    199,
+    145
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Sandstone",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconShaft1",
+   "position": [
+    -198,
+    2.7,
+    444
+   ],
+   "size": [
+    4.2,
+    2.64,
+    2.64
+   ],
+   "color": [
+    164,
+    119,
+    73
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "WoodPlanks",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconGallery1",
+   "position": [
+    -198,
+    5.05,
+    444
+   ],
+   "size": [
+    0.44,
+    3.36,
+    3.36
+   ],
+   "color": [
+    49,
+    77,
+    76
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Metal",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconLens1",
+   "position": [
+    -198,
+    6.1,
+    444
+   ],
+   "size": [
+    1.65,
+    1.76,
+    1.76
+   ],
+   "color": [
+    255,
+    209,
+    132
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Neon",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconEave1",
+   "position": [
+    -198,
+    7.12,
+    444
+   ],
+   "size": [
+    0.32,
+    2.96,
+    2.96
+   ],
+   "color": [
+    46,
+    142,
+    134
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Metal",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
+   "id": "CoastBeaconCap1",
+   "position": [
+    -198,
+    7.65,
+    444
+   ],
+   "size": [
+    0.8,
+    2.1,
+    2.1
+   ],
+   "color": [
+    46,
+    142,
+    134
+   ],
+   "rotation": [
+    0,
+    0,
+    90
+   ],
+   "material": "Metal",
+   "shape": "Cylinder",
+   "collidable": false
+  },
+  {
    "id": "CoastDockMarquee",
    "position": [
     -233,
@@ -20758,7 +21538,7 @@
   {
    "id": "StadiumTier0_1Coping",
    "position": [
-    -250.8040405071067,
+    -250.80404050710666,
     3.1670000000000003,
     199.19595949289334
    ],
@@ -20784,7 +21564,7 @@
   {
    "id": "StadiumTier0_1Tile",
    "position": [
-    -253.66075190310033,
+    -253.6607519031003,
     2.45,
     196.3392480968997
    ],
@@ -21486,7 +22266,7 @@
   {
    "id": "StadiumTier2_1Coping",
    "position": [
-    -240.90454557049503,
+    -240.904545570495,
     9.167,
     209.095454429505
    ],
@@ -21512,7 +22292,7 @@
   {
    "id": "StadiumTier2_1Tile",
    "position": [
-    -243.76125696648867,
+    -243.76125696648865,
     8.45,
     206.23874303351135
    ],
@@ -21850,7 +22630,7 @@
   {
    "id": "StadiumTier3_1Coping",
    "position": [
-    -235.9547981021892,
+    -235.95479810218916,
     12.167,
     214.04520189781084
    ],
@@ -21876,7 +22656,7 @@
   {
    "id": "StadiumTier3_1Tile",
    "position": [
-    -238.81150949818283,
+    -238.8115094981828,
     11.45,
     211.1884905018172
    ],
@@ -22734,9 +23514,9 @@
   {
    "id": "StadiumButtress1_0Base",
    "position": [
-    -249.3898269447336,
+    -249.38982694473358,
     0.75,
-    245.86500705120545
+    245.86500705120548
    ],
    "size": [
     10,
@@ -22760,9 +23540,9 @@
   {
    "id": "StadiumButtress1_0Stem",
    "position": [
-    -249.3898269447336,
+    -249.38982694473358,
     7.4,
-    245.86500705120545
+    245.86500705120548
    ],
    "size": [
     7,
@@ -22786,9 +23566,9 @@
   {
    "id": "StadiumButtress1_0Cornice",
    "position": [
-    -249.3898269447336,
+    -249.38982694473358,
     14.55,
-    245.86500705120545
+    245.86500705120548
    ],
    "size": [
     10,
@@ -22812,9 +23592,9 @@
   {
    "id": "StadiumButtress1_0BronzeInlay",
    "position": [
-    -246.16542002252297,
+    -246.16542002252294,
     9,
-    249.0894139734161
+    249.08941397341613
    ],
    "size": [
     2.1,
@@ -22838,9 +23618,9 @@
   {
    "id": "StadiumButtress1_1Base",
    "position": [
-    -204.13499294879455,
+    -204.13499294879452,
     0.75,
-    200.61017305526644
+    200.61017305526642
    ],
    "size": [
     10,
@@ -22864,9 +23644,9 @@
   {
    "id": "StadiumButtress1_1Stem",
    "position": [
-    -204.13499294879455,
+    -204.13499294879452,
     7.4,
-    200.61017305526644
+    200.61017305526642
    ],
    "size": [
     7,
@@ -22890,9 +23670,9 @@
   {
    "id": "StadiumButtress1_1Cornice",
    "position": [
-    -204.13499294879455,
+    -204.13499294879452,
     14.55,
-    200.61017305526644
+    200.61017305526642
    ],
    "size": [
     10,
@@ -22916,9 +23696,9 @@
   {
    "id": "StadiumButtress1_1BronzeInlay",
    "position": [
-    -200.9105860265839,
+    -200.91058602658387,
     9,
-    203.8345799774771
+    203.83457997747706
    ],
    "size": [
     2.1,
